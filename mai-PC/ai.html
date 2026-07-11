@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AI工具赋能中心 - 袜掌柜门户</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        primary: '#FF4D2D',
+        'primary-d': '#E63E20',
+        'primary-l': '#FF7849',
+        'primary-bg': '#FFF6F3'
+      }
+    }
+  }
+}
+</script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: #F5F6FA;
+  color: #333;
+  min-width: 1200px;
+}
+a { text-decoration: none; color: inherit; }
+.container { max-width: 1400px; margin: 0 auto; padding: 0 24px; }
+
+/* ===== 顶部工具条 ===== */
+.top-bar { background: #1A1A2E; color: #B0B0C0; font-size: 12px; height: 36px; }
+.top-bar a:hover { color: #fff; }
+
+/* ===== 主导航 ===== */
+.main-nav { background: #fff; height: 72px; box-shadow: 0 1px 8px rgba(0,0,0,.06); position: sticky; top: 0; z-index: 1000; }
+.main-nav .logo { display: flex; align-items: center; gap: 8px; }
+.main-nav .logo .icon { width: 40px; height: 40px; background: linear-gradient(135deg, #FF4D2D, #FF7849); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 20px; }
+.main-nav .logo .text { font-size: 18px; font-weight: 700; color: #1A1A2E; }
+.main-nav .logo .text span { color: #FF4D2D; }
+
+.nav-menu { display: flex; align-items: center; gap: 0; list-style: none; }
+.nav-menu>li { position: relative; }
+.nav-menu>li>a {
+  display: flex; align-items: center; gap: 4px;
+  padding: 24px 14px; font-size: 14px; font-weight: 500; color: #333;
+  transition: color .2s; white-space: nowrap;
+}
+.nav-menu>li>a:hover, .nav-menu>li.active>a { color: #FF4D2D; }
+.nav-menu>li.active::after {
+  content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 24px; height: 3px; background: #FF4D2D; border-radius: 2px;
+}
+
+/* 搜索框 */
+.search-box { display: flex; border: 2px solid #FF4D2D; border-radius: 20px; overflow: hidden; height: 38px; }
+.search-box input { border: none; outline: none; padding: 0 14px; width: 260px; font-size: 13px; }
+.search-box button { border: none; background: #FF4D2D; color: #fff; width: 52px; cursor: pointer; font-size: 14px; }
+.search-box button:hover { background: #E63E20; }
+
+/* ===== 页面Banner ===== */
+.page-banner {
+  position: relative; height: 220px; overflow: hidden;
+  background: linear-gradient(135deg, #0F766E 0%, #0D9488 50%, #1A1A2E 100%);
+  display: flex; align-items: center; justify-content: center;
+}
+.page-banner .overlay { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(26,26,46,.6) 0%, rgba(26,26,46,.2) 60%, rgba(26,26,46,.5) 100%); }
+.page-banner .content { position: relative; z-index: 2; text-align: center; }
+.page-banner h1 { font-size: 36px; font-weight: 800; color: #fff; margin-bottom: 10px; }
+.page-banner p { font-size: 15px; color: rgba(255,255,255,.8); }
+.page-banner .deco-icon { position: absolute; font-size: 120px; color: rgba(255,255,255,.05); z-index: 1; }
+
+/* ===== 通用section标题 ===== */
+.section-title { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.section-title .left { display: flex; align-items: center; gap: 10px; }
+.section-title .left .bar { width: 4px; height: 20px; background: #FF4D2D; border-radius: 2px; }
+.section-title .left h2 { font-size: 20px; font-weight: 700; color: #1A1A2E; }
+.section-title .left .sub { font-size: 13px; color: #999; margin-left: 8px; }
+.section-title .right { font-size: 13px; color: #999; display: flex; align-items: center; gap: 4px; }
+.section-title .right:hover { color: #FF4D2D; }
+
+/* ===== AI工具卡片 ===== */
+.ai-tool-card {
+  background: #fff; border-radius: 12px; padding: 28px 24px; border: 1px solid #F0F0F0;
+  transition: transform .25s, box-shadow .25s; position: relative; overflow: hidden;
+}
+.ai-tool-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,.1); }
+.ai-tool-card .corner-badge {
+  position: absolute; top: 0; right: 0; font-size: 10px; padding: 3px 10px;
+  border-radius: 0 12px 0 8px; color: #fff; font-weight: 600;
+}
+.ai-tool-card .tool-icon { width: 56px; height: 56px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 26px; color: #fff; margin-bottom: 16px; }
+.ai-tool-card h3 { font-size: 17px; font-weight: 700; color: #1A1A2E; margin-bottom: 8px; }
+.ai-tool-card .desc { font-size: 13px; color: #666; line-height: 1.6; margin-bottom: 16px; }
+.ai-tool-card .features { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+.ai-tool-card .features span { font-size: 11px; color: #999; background: #F5F6FA; padding: 3px 8px; border-radius: 3px; }
+.ai-tool-card .use-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: linear-gradient(135deg, #FF4D2D, #FF7849); color: #fff;
+  border: none; padding: 9px 24px; border-radius: 6px; font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: opacity .2s;
+}
+.ai-tool-card .use-btn:hover { opacity: .9; }
+
+/* ===== AI Demo ===== */
+.ai-demo {
+  background: #fff; border-radius: 12px; border: 1px solid #F0F0F0; overflow: hidden;
+}
+.ai-demo .demo-header { background: #1A1A2E; padding: 14px 20px; display: flex; align-items: center; gap: 10px; }
+.ai-demo .demo-header .dot { width: 10px; height: 10px; border-radius: 50%; }
+.ai-demo .demo-header .title { color: #fff; font-size: 14px; font-weight: 600; margin-left: 8px; }
+.ai-demo .demo-header .badge { margin-left: auto; font-size: 11px; color: #10B981; background: rgba(16,185,129,.15); padding: 2px 8px; border-radius: 3px; }
+.ai-demo .demo-body { display: grid; grid-template-columns: 1fr 1fr; gap: 0; min-height: 360px; }
+.ai-demo .input-area { padding: 24px; border-right: 1px solid #F0F0F0; }
+.ai-demo .output-area { padding: 24px; background: #FAFBFC; }
+.ai-demo .area-label { font-size: 13px; font-weight: 600; color: #999; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+.ai-demo textarea { width: 100%; min-height: 120px; border: 1px solid #E0E0E0; border-radius: 8px; padding: 12px; font-size: 13px; resize: none; outline: none; transition: border-color .2s; font-family: inherit; }
+.ai-demo textarea:focus { border-color: #FF4D2D; }
+.ai-demo .input-options { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.ai-demo .input-options .opt { font-size: 12px; padding: 4px 12px; border: 1px solid #E0E0E0; border-radius: 16px; color: #666; cursor: pointer; transition: all .2s; }
+.ai-demo .input-options .opt:hover, .ai-demo .input-options .opt.active { border-color: #FF4D2D; color: #FF4D2D; background: #FFF6F3; }
+.ai-demo .generate-btn {
+  display: inline-flex; align-items: center; gap: 6px; margin-top: 16px;
+  background: linear-gradient(135deg, #FF4D2D, #FF7849); color: #fff;
+  border: none; padding: 10px 28px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: opacity .2s;
+}
+.ai-demo .generate-btn:hover { opacity: .9; }
+.ai-demo .output-content { font-size: 13px; color: #333; line-height: 1.8; }
+.ai-demo .output-content .gen-title { font-size: 15px; font-weight: 700; color: #1A1A2E; margin-bottom: 10px; }
+.ai-demo .output-content .gen-item { padding: 8px 0; border-bottom: 1px dashed #E8E8E8; }
+.ai-demo .output-content .gen-item:last-child { border-bottom: none; }
+.ai-demo .output-content .gen-item .label { font-size: 12px; color: #FF4D2D; font-weight: 600; margin-bottom: 2px; }
+.ai-demo .output-actions { display: flex; gap: 8px; margin-top: 16px; }
+.ai-demo .output-actions button { font-size: 12px; padding: 6px 14px; border-radius: 6px; border: 1px solid #E0E0E0; background: #fff; color: #666; cursor: pointer; transition: all .2s; display: inline-flex; align-items: center; gap: 4px; }
+.ai-demo .output-actions button:hover { border-color: #FF4D2D; color: #FF4D2D; }
+
+/* ===== 统计卡片 ===== */
+.stat-card {
+  background: #fff; border-radius: 12px; padding: 24px; border: 1px solid #F0F0F0;
+  display: flex; align-items: center; gap: 16px; transition: transform .2s, box-shadow .2s;
+}
+.stat-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,.08); }
+.stat-card .s-icon { width: 56px; height: 56px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #fff; flex-shrink: 0; }
+.stat-card .s-data .num { font-size: 28px; font-weight: 800; color: #1A1A2E; }
+.stat-card .s-data .num small { font-size: 14px; font-weight: 400; color: #999; margin-left: 2px; }
+.stat-card .s-data .label { font-size: 13px; color: #999; margin-top: 2px; }
+.stat-card .s-data .change { font-size: 11px; margin-top: 4px; }
+
+/* ===== AI服务商列表 ===== */
+.ai-provider {
+  background: #fff; border-radius: 10px; padding: 20px; border: 1px solid #F0F0F0;
+  display: flex; align-items: center; gap: 16px; transition: transform .2s, box-shadow .2s;
+}
+.ai-provider:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.06); }
+.ai-provider .ap-avatar { width: 52px; height: 52px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #fff; flex-shrink: 0; }
+.ai-provider .ap-info { flex: 1; }
+.ai-provider .ap-info .name { font-size: 15px; font-weight: 600; color: #1A1A2E; }
+.ai-provider .ap-info .desc { font-size: 12px; color: #999; margin-top: 3px; }
+.ai-provider .ap-info .tags { display: flex; gap: 6px; margin-top: 6px; }
+.ai-provider .ap-info .tags span { font-size: 10px; color: #666; background: #F5F6FA; padding: 2px 8px; border-radius: 3px; }
+.ai-provider .ap-action { text-align: right; flex-shrink: 0; }
+.ai-provider .ap-action .price { font-size: 14px; font-weight: 700; color: #FF4D2D; }
+.ai-provider .ap-action .price-unit { font-size: 11px; color: #999; }
+.ai-provider .ap-action .contact-btn {
+  display: inline-flex; align-items: center; gap: 4px; margin-top: 6px;
+  border: 1px solid #FF4D2D; color: #FF4D2D; background: #fff;
+  padding: 5px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;
+  transition: all .2s;
+}
+.ai-provider .ap-action .contact-btn:hover { background: #FF4D2D; color: #fff; }
+
+/* ===== Footer ===== */
+.site-footer { background: #1A1A2E; color: #B0B0C0; padding: 48px 0 24px; margin-top: 48px; }
+.site-footer .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 40px; }
+.site-footer h4 { font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 16px; }
+.site-footer ul { list-style: none; }
+.site-footer ul li { margin-bottom: 8px; }
+.site-footer ul li a { font-size: 13px; color: #B0B0C0; }
+.site-footer ul li a:hover { color: #FF4D2D; }
+.site-footer .contact p { font-size: 13px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.site-footer .copyright {
+  text-align: center; padding-top: 24px; margin-top: 24px;
+  border-top: 1px solid rgba(255,255,255,.08); font-size: 12px;
+}
+
+/* ===== 按钮 ===== */
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: linear-gradient(135deg, #FF4D2D, #FF7849);
+  color: #fff; border: none; padding: 10px 24px; border-radius: 6px;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: opacity .2s, transform .2s;
+}
+.btn-primary:hover { opacity: .9; transform: translateY(-1px); }
+
+/* 动画 */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.fade-in { animation: fadeIn .5s ease; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .5; } }
+.pulse { animation: pulse 2s infinite; }
+</style>
+</head>
+<body>
+
+<!-- ==================== 顶部工具条 ==================== -->
+<div class="top-bar">
+  <div class="container" style="display:flex;align-items:center;justify-content:space-between;height:36px">
+    <div style="display:flex;align-items:center;gap:20px">
+      <span><i class="fas fa-map-marker-alt" style="color:#FF7849;margin-right:4px"></i>诸暨·大唐</span>
+      <a href="#"><i class="fas fa-mobile-alt" style="margin-right:3px"></i>手机版</a>
+      <a href="#">帮助中心</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px">
+      <a href="#"><i class="fas fa-globe" style="margin-right:3px"></i>中文</a>
+      <a href="#"><i class="fas fa-clipboard-list" style="margin-right:3px"></i>我的订单</a>
+      <a href="#" style="color:#FF7849">登录</a>
+      <a href="#" style="background:#FF4D2D;color:#fff;padding:2px 12px;border-radius:3px;font-size:11px">免费注册</a>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 主导航 ==================== -->
+<nav class="main-nav">
+  <div class="container" style="display:flex;align-items:center;justify-content:space-between;height:72px">
+    <a href="index-PC-门户.html" class="logo">
+      <div class="icon"><i class="fas fa-socks"></i></div>
+      <div class="text">袜<span>掌柜</span></div>
+    </a>
+    <ul class="nav-menu">
+      <li><a href="index-PC-门户.html">首页</a></li>
+      <li><a href="trend.html">爆款趋势</a></li>
+      <li><a href="service.html">找服务</a></li>
+      <li class="active"><a href="ai.html">找AI</a></li>
+      <li><a href="cross-border.html">跨境专区</a></li>
+      <li><a href="study-tour.html">研学文旅</a></li>
+      <li><a href="expo.html">袜博会</a></li>
+      <li><a href="chamber.html">袜业协会</a></li>
+      <li><a href="join.html" style="color:#FF4D2D;font-weight:600">商家入驻</a></li>
+      <li><a href="market-intro.html">市场介绍</a></li>
+    </ul>
+    <div class="search-box">
+      <input type="text" placeholder="搜索AI工具、服务...">
+      <button><i class="fas fa-search"></i></button>
+    </div>
+  </div>
+</nav>
+
+<!-- ==================== 页面Banner ==================== -->
+<div class="page-banner">
+  <div class="overlay"></div>
+  <i class="fas fa-robot deco-icon" style="left:8%;top:20%"></i>
+  <i class="fas fa-microchip deco-icon" style="right:10%;top:25%"></i>
+  <i class="fas fa-brain deco-icon" style="left:45%;top:50%;font-size:80px"></i>
+  <div class="content">
+    <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.15);padding:4px 14px;border-radius:20px;color:#fff;font-size:12px;margin-bottom:12px">
+      <i class="fas fa-bolt pulse" style="color:#FFD700"></i> AI赋能袜业 · 免费体验进行中
+    </div>
+    <h1>AI工具赋能中心</h1>
+    <p>AI选品 / AI文案 / AI图片 / AI视频 / AI翻译 / AI客服 · 让生意更智能</p>
+  </div>
+</div>
+
+<!-- ==================== AI工具矩阵 ==================== -->
+<div class="container" style="margin-top:28px">
+  <div class="section-title">
+    <div class="left">
+      <span class="bar"></span>
+      <h2>AI工具矩阵</h2>
+      <span class="sub">6大AI工具 · 覆盖运营全场景</span>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+
+    <!-- AI选品 -->
+    <div class="ai-tool-card">
+      <div class="corner-badge" style="background:#10B981">免费</div>
+      <div class="tool-icon" style="background:linear-gradient(135deg,#FF4D2D,#FF7849)"><i class="fas fa-chart-line"></i></div>
+      <h3>AI选品</h3>
+      <div class="desc">智能分析市场趋势与销售数据，推荐高潜力爆款品类，辅助选品决策。</div>
+      <div class="features">
+        <span>趋势预测</span><span>品类推荐</span><span>竞品分析</span>
+      </div>
+      <button class="use-btn"><i class="fas fa-magic"></i> 立即使用</button>
+    </div>
+
+    <!-- AI文案 -->
+    <div class="ai-tool-card">
+      <div class="corner-badge" style="background:#10B981">免费</div>
+      <div class="tool-icon" style="background:linear-gradient(135deg,#6366F1,#818CF8)"><i class="fas fa-pen-fancy"></i></div>
+      <h3>AI文案</h3>
+      <div class="desc">一键生成商品标题、详情页文案、营销话术，支持多种风格切换。</div>
+      <div class="features">
+        <span>商品标题</span><span>详情文案</span><span>营销话术</span>
+      </div>
+      <button class="use-btn"><i class="fas fa-magic"></i> 立即使用</button>
+    </div>
+
+    <!-- AI图片 -->
+    <div class="ai-tool-card">
+      <div class="corner-badge" style="background:#F59E0B">限免</div>
+      <div class="tool-icon" style="background:linear-gradient(135deg,#0EA5E9,#38BDF8)"><i class="fas fa-image"></i></div>
+      <h3>AI图片</h3>
+      <div class="desc">AI生成商品主图、场景图、详情页配图，智能抠图换背景，提升视觉效率。</div>
+      <div class="features">
+        <span>商品主图</span><span>场景生成</span><span>智能抠图</span>
+      </div>
+      <button class="use-btn"><i class="fas fa-magic"></i> 立即使用</button>
+    </div>
+
+    <!-- AI视频 -->
+    <div class="ai-tool-card">
+      <div class="corner-badge" style="background:#F59E0B">限免</div>
+      <div class="tool-icon" style="background:linear-gradient(135deg,#8B5CF6,#A78BFA)"><i class="fas fa-video"></i></div>
+      <h3>AI视频</h3>
+      <div class="desc">自动生成商品展示短视频、营销推广视频，一键发布多平台。</div>
+      <div class="features">
+        <span>商品视频</span><span>营销视频</span><span>多平台发布</span>
+      </div>
+      <button class="use-btn"><i class="fas fa-magic"></i> 立即使用</button>
+    </div>
+
+    <!-- AI翻译 -->
+    <div class="ai-tool-card">
+      <div class="corner-badge" style="background:#10B981">免费</div>
+      <div class="tool-icon" style="background:linear-gradient(135deg,#10B981,#34D399)"><i class="fas fa-language"></i></div>
+      <h3>AI翻译</h3>
+      <div class="desc">多语言精准翻译，支持商品信息、详情页、客服对话翻译，助力跨境贸易。</div>
+      <div class="features">
+        <span>多语言</span><span>商品翻译</span><span>实时对话</span>
+      </div>
+      <button class="use-btn"><i class="fas fa-magic"></i> 立即使用</button>
+    </div>
+
+    <!-- AI客服 -->
+    <div class="ai-tool-card">
+      <div class="corner-badge" style="background:#F59E0B">限免</div>
+      <div class="tool-icon" style="background:linear-gradient(135deg,#EC4899,#F472B6)"><i class="fas fa-headset"></i></div>
+      <h3>AI客服</h3>
+      <div class="desc">7x24小时智能客服自动应答，处理常见咨询，提升客户满意度。</div>
+      <div class="features">
+        <span>7x24在线</span><span>智能问答</span><span>自动接待</span>
+      </div>
+      <button class="use-btn"><i class="fas fa-magic"></i> 立即使用</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== AI工具演示 ==================== -->
+<div class="container" style="margin-top:36px">
+  <div class="section-title">
+    <div class="left">
+      <span class="bar"></span>
+      <h2>AI文案生成</h2>
+      <span class="sub">在线体验 · 输入关键词即刻生成营销文案</span>
+    </div>
+  </div>
+  <div class="ai-demo">
+    <div class="demo-header">
+      <div class="dot" style="background:#FF5F57"></div>
+      <div class="dot" style="background:#FEBC2E"></div>
+      <div class="dot" style="background:#28C840"></div>
+      <span class="title"><i class="fas fa-pen-fancy" style="margin-right:6px;color:#818CF8"></i>AI文案生成器</span>
+      <span class="badge"><i class="fas fa-circle" style="font-size:6px;margin-right:3px"></i> 在线</span>
+    </div>
+    <div class="demo-body">
+      <!-- 输入区 -->
+      <div class="input-area">
+        <div class="area-label"><i class="fas fa-keyboard" style="color:#6366F1"></i> 输入商品信息</div>
+        <textarea placeholder="请输入商品名称和卖点，例如：精梳棉商务男袜，四季透气，防臭抗菌，中筒设计">精梳棉商务男袜，四季透气，防臭抗菌银离子，中筒设计，适合职场穿搭</textarea>
+        <div class="input-options">
+          <span class="opt active">商品标题</span>
+          <span class="opt">详情文案</span>
+          <span class="opt">营销话术</span>
+          <span class="opt">直播脚本</span>
+        </div>
+        <div style="margin-top:12px">
+          <div style="font-size:12px;color:#999;margin-bottom:8px">文案风格：</div>
+          <div class="input-options">
+            <span class="opt active">专业商务</span>
+            <span class="opt">简约文艺</span>
+            <span class="opt">活力运动</span>
+            <span class="opt">促销吸睛</span>
+          </div>
+        </div>
+        <button class="generate-btn"><i class="fas fa-wand-magic-sparkles"></i> 生成文案</button>
+        <div style="margin-top:10px;font-size:11px;color:#999"><i class="fas fa-info-circle"></i> 今日剩余免费额度：8/10次</div>
+      </div>
+      <!-- 输出区 -->
+      <div class="output-area">
+        <div class="area-label"><i class="fas fa-file-lines" style="color:#10B981"></i> AI生成结果 <span style="margin-left:auto;font-size:11px;color:#10B981"><i class="fas fa-check-circle"></i> 生成成功 · 用时 1.2s</span></div>
+        <div class="output-content">
+          <div class="gen-title">推荐商品标题</div>
+          <div class="gen-item">
+            <div class="label">标题1</div>
+            <div>精梳棉商务男袜 银离子抗菌防臭 四季透气中筒袜 职场精英首选</div>
+          </div>
+          <div class="gen-item">
+            <div class="label">标题2</div>
+            <div>男士中筒商务袜 精梳棉透气防臭 银离子抗菌 适合四季穿戴</div>
+          </div>
+          <div class="gen-item">
+            <div class="label">标题3</div>
+            <div>职场达人必备 精梳棉防臭抗菌男袜 中筒透气 四季通用款</div>
+          </div>
+          <div class="gen-title" style="margin-top:16px">营销卖点文案</div>
+          <div class="gen-item">
+            <div>精选优质精梳棉，纤维细腻柔软，亲肤透气不闷脚。银离子抗菌技术，有效抑制细菌滋生，持久防臭。中筒设计贴合脚型，四季通勤皆宜，商务穿搭的隐形品味之选。</div>
+          </div>
+          <div class="output-actions">
+            <button><i class="fas fa-copy"></i> 复制</button>
+            <button><i class="fas fa-rotate"></i> 重新生成</button>
+            <button><i class="fas fa-thumbs-up"></i> 有用</button>
+            <button><i class="fas fa-download"></i> 导出</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== AI使用统计 ==================== -->
+<div class="container" style="margin-top:36px">
+  <div class="section-title">
+    <div class="left">
+      <span class="bar"></span>
+      <h2>AI使用统计</h2>
+      <span class="sub">实时数据 · 持续赋能袜业商家</span>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+
+    <div class="stat-card">
+      <div class="s-icon" style="background:linear-gradient(135deg,#FF4D2D,#FF7849)"><i class="fas fa-bolt"></i></div>
+      <div class="s-data">
+        <div class="num">12,358<small>次</small></div>
+        <div class="label">今日生成次数</div>
+        <div class="change" style="color:#EF4444"><i class="fas fa-arrow-trend-up"></i> 较昨日 ↑18.5%</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="s-icon" style="background:linear-gradient(135deg,#6366F1,#818CF8)"><i class="fas fa-database"></i></div>
+      <div class="s-data">
+        <div class="num">1,256,890<small>次</small></div>
+        <div class="label">累计生成</div>
+        <div class="change" style="color:#6366F1"><i class="fas fa-chart-line"></i> 持续增长中</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="s-icon" style="background:linear-gradient(135deg,#10B981,#34D399)"><i class="fas fa-users"></i></div>
+      <div class="s-data">
+        <div class="num">3,520<small>家</small></div>
+        <div class="label">使用商户数</div>
+        <div class="change" style="color:#10B981"><i class="fas fa-arrow-trend-up"></i> 本周新增 +126家</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="s-icon" style="background:linear-gradient(135deg,#F59E0B,#FBBF24)"><i class="fas fa-face-smile"></i></div>
+      <div class="s-data">
+        <div class="num">96.8<small>%</small></div>
+        <div class="label">用户满意度</div>
+        <div class="change" style="color:#F59E0B"><i class="fas fa-star"></i> 基于8,620条评价</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== AI服务市场 ==================== -->
+<div class="container" style="margin-top:36px">
+  <div class="section-title">
+    <div class="left">
+      <span class="bar"></span>
+      <h2>AI服务市场</h2>
+      <span class="sub">专业AI服务商 · 定制化解决方案</span>
+    </div>
+    <a href="#" class="right">更多服务商 <i class="fas fa-chevron-right"></i></a>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px">
+
+    <div class="ai-provider">
+      <div class="ap-avatar" style="background:linear-gradient(135deg,#FF4D2D,#FF7849)"><i class="fas fa-brain"></i></div>
+      <div class="ap-info">
+        <div class="name">智袜AI科技 <span style="font-size:10px;background:#FFF0EC;color:#FF4D2D;padding:1px 6px;border-radius:3px;margin-left:4px">官方推荐</span></div>
+        <div class="desc">专注袜业AI选品与数据分析，提供智能选品、库存预测、价格优化等定制方案</div>
+        <div class="tags"><span>AI选品</span><span>数据分析</span><span>库存预测</span></div>
+      </div>
+      <div class="ap-action">
+        <div><span class="price">¥299</span><span class="price-unit">/月起</span></div>
+        <button class="contact-btn"><i class="fas fa-comment-dots"></i> 咨询</button>
+      </div>
+    </div>
+
+    <div class="ai-provider">
+      <div class="ap-avatar" style="background:linear-gradient(135deg,#6366F1,#818CF8)"><i class="fas fa-pen-fancy"></i></div>
+      <div class="ap-info">
+        <div class="name">文采AI工作室</div>
+        <div class="desc">专业AI文案生成服务，商品描述、营销文案、品牌故事定制化创作</div>
+        <div class="tags"><span>AI文案</span><span>品牌策划</span><span>内容营销</span></div>
+      </div>
+      <div class="ap-action">
+        <div><span class="price">¥199</span><span class="price-unit">/月起</span></div>
+        <button class="contact-btn"><i class="fas fa-comment-dots"></i> 咨询</button>
+      </div>
+    </div>
+
+    <div class="ai-provider">
+      <div class="ap-avatar" style="background:linear-gradient(135deg,#0EA5E9,#38BDF8)"><i class="fas fa-image"></i></div>
+      <div class="ap-info">
+        <div class="name">视觉AI设计中心</div>
+        <div class="desc">AI商品图片生成与处理，主图设计、场景图合成、智能抠图、批量修图</div>
+        <div class="tags"><span>AI图片</span><span>智能抠图</span><span>批量修图</span></div>
+      </div>
+      <div class="ap-action">
+        <div><span class="price">¥399</span><span class="price-unit">/月起</span></div>
+        <button class="contact-btn"><i class="fas fa-comment-dots"></i> 咨询</button>
+      </div>
+    </div>
+
+    <div class="ai-provider">
+      <div class="ap-avatar" style="background:linear-gradient(135deg,#8B5CF6,#A78BFA)"><i class="fas fa-video"></i></div>
+      <div class="ap-info">
+        <div class="name">创视AI视频</div>
+        <div class="desc">AI视频自动生成，商品展示视频、短视频营销内容、直播切片制作</div>
+        <div class="tags"><span>AI视频</span><span>短视频制作</span><span>直播切片</span></div>
+      </div>
+      <div class="ap-action">
+        <div><span class="price">¥499</span><span class="price-unit">/月起</span></div>
+        <button class="contact-btn"><i class="fas fa-comment-dots"></i> 咨询</button>
+      </div>
+    </div>
+
+    <div class="ai-provider">
+      <div class="ap-avatar" style="background:linear-gradient(135deg,#10B981,#34D399)"><i class="fas fa-language"></i></div>
+      <div class="ap-info">
+        <div class="name">译达AI翻译</div>
+        <div class="desc">袜业专业术语多语言翻译，支持英语、日语、韩语、法语等12种语言</div>
+        <div class="tags"><span>AI翻译</span><span>多语言</span><span>行业术语</span></div>
+      </div>
+      <div class="ap-action">
+        <div><span class="price">¥99</span><span class="price-unit">/月起</span></div>
+        <button class="contact-btn"><i class="fas fa-comment-dots"></i> 咨询</button>
+      </div>
+    </div>
+
+    <div class="ai-provider">
+      <div class="ap-avatar" style="background:linear-gradient(135deg,#EC4899,#F472B6)"><i class="fas fa-headset"></i></div>
+      <div class="ap-info">
+        <div class="name">智能客服AI平台</div>
+        <div class="desc">7x24小时AI智能客服系统，自动应答、工单管理、客户画像分析</div>
+        <div class="tags"><span>AI客服</span><span>智能问答</span><span>工单管理</span></div>
+      </div>
+      <div class="ap-action">
+        <div><span class="price">¥299</span><span class="price-unit">/月起</span></div>
+        <button class="contact-btn"><i class="fas fa-comment-dots"></i> 咨询</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== AI赋能CTA ==================== -->
+<div class="container" style="margin-top:36px">
+  <div style="background:linear-gradient(135deg,#0F766E,#0D9488,#1A1A2E);border-radius:14px;padding:40px 48px;display:flex;align-items:center;justify-content:space-between;position:relative;overflow:hidden">
+    <div style="position:absolute;right:-40px;top:-40px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.08);font-size:90px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.1)"><i class="fas fa-robot"></i></div>
+    <div style="position:relative;z-index:1">
+      <h3 style="font-size:24px;font-weight:700;color:#fff">AI赋能，让袜业生意更智能</h3>
+      <p style="font-size:14px;color:rgba(255,255,255,.8);margin-top:8px">免费体验AI工具矩阵，数智化转型从这里开始</p>
+    </div>
+    <div style="display:flex;gap:12px;position:relative;z-index:1">
+      <a href="#" style="display:inline-flex;align-items:center;gap:6px;background:#fff;color:#0D9488;padding:12px 28px;border-radius:8px;font-size:15px;font-weight:600"><i class="fas fa-bolt"></i> 免费体验</a>
+      <a href="#" style="display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(255,255,255,.5);color:#fff;padding:11px 26px;border-radius:8px;font-size:15px;font-weight:500">查看教程 <i class="fas fa-chevron-right" style="font-size:12px"></i></a>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 底部 ==================== -->
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid" style="grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr">
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+          <div style="width:40px;height:40px;background:linear-gradient(135deg,#FF4D2D,#FF7849);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px"><i class="fas fa-socks"></i></div>
+          <span style="font-size:18px;font-weight:700;color:#fff">袜<span style="color:#FF4D2D">掌柜</span></span>
+        </div>
+        <p style="font-size:12px;line-height:1.8">大唐袜业产业互联网平台<br>全球袜业源头好货，一站直达</p>
+        <div style="display:flex;gap:10px;margin-top:16px">
+          <a href="#" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;color:#B0B0C0;font-size:14px"><i class="fab fa-weixin"></i></a>
+          <a href="#" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;color:#B0B0C0;font-size:14px"><i class="fab fa-weibo"></i></a>
+          <a href="#" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;color:#B0B0C0;font-size:14px"><i class="fab fa-tiktok"></i></a>
+        </div>
+      </div>
+      <div>
+        <h4>快速入口</h4>
+        <ul>
+          <li><a href="index-PC-门户.html">首页</a></li>
+          <li><a href="#">四大市场</a></li>
+          <li><a href="trend.html">趋势榜单</a></li>
+          <li><a href="#">逛市场</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>产品服务</h4>
+        <ul>
+          <li><a href="#">批发询价</a></li>
+          <li><a href="ai.html">AI找货</a></li>
+          <li><a href="#">拼单集采</a></li>
+          <li><a href="cross-border.html">跨境服务</a></li>
+          <li><a href="study-tour.html">研学申请</a></li>
+          <li><a href="expo.html">袜博展会</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>平台保障</h4>
+        <ul>
+          <li><a href="#">投诉与处理</a></li>
+          <li><a href="#">平台规则</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>关于我们</h4>
+        <ul>
+          <li><a href="market-intro.html">市场介绍</a></li>
+          <li><a href="expo.html">袜博会</a></li>
+          <li><a href="chamber.html">袜业协会</a></li>
+          <li><a href="join.html">商家入驻</a></li>
+          <li><a href="#">帮助中心</a></li>
+        </ul>
+      </div>
+      <div class="contact">
+        <h4>联系我们</h4>
+        <p><i class="fas fa-phone" style="color:#FF4D2D"></i> 0575-XXXX-XXXX</p>
+        <p><i class="fas fa-envelope" style="color:#FF4D2D"></i> service@wazhanggui.com</p>
+        <p><i class="fas fa-map-marker-alt" style="color:#FF4D2D"></i> 浙江省诸暨市大唐街道</p>
+        <p style="margin-top:8px;font-size:11px;color:#666">工作时间：周一至周六 8:30-17:30</p>
+      </div>
+    </div>
+    <div class="copyright">
+      <p>Copyright &copy; 2026 袜掌柜 wazhanggui.com 版权所有 | 浙ICP备XXXXXXXX号 | 增值电信业务经营许可证 | <a href="#" style="color:#FF7849">隐私政策</a> | <a href="#" style="color:#FF7849">用户协议</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

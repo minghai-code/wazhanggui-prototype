@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>产业服务市场 - 袜掌柜门户</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        primary: '#FF4D2D',
+        'primary-d': '#E63E20',
+        'primary-l': '#FF7849',
+        'primary-bg': '#FFF6F3'
+      }
+    }
+  }
+}
+</script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: #F5F6FA;
+  color: #333;
+  min-width: 1200px;
+}
+a { text-decoration: none; color: inherit; }
+.container { max-width: 1400px; margin: 0 auto; padding: 0 24px; }
+
+/* ===== 顶部工具条 ===== */
+.top-bar { background: #1A1A2E; color: #B0B0C0; font-size: 12px; height: 36px; }
+.top-bar a:hover { color: #fff; }
+
+/* ===== 主导航 ===== */
+.main-nav { background: #fff; height: 72px; box-shadow: 0 1px 8px rgba(0,0,0,.06); position: sticky; top: 0; z-index: 1000; }
+.main-nav .logo { display: flex; align-items: center; gap: 8px; }
+.main-nav .logo .icon { width: 40px; height: 40px; background: linear-gradient(135deg, #FF4D2D, #FF7849); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 20px; }
+.main-nav .logo .text { font-size: 18px; font-weight: 700; color: #1A1A2E; }
+.main-nav .logo .text span { color: #FF4D2D; }
+
+.nav-menu { display: flex; align-items: center; gap: 0; list-style: none; }
+.nav-menu>li { position: relative; }
+.nav-menu>li>a {
+  display: flex; align-items: center; gap: 4px;
+  padding: 24px 14px; font-size: 14px; font-weight: 500; color: #333;
+  transition: color .2s; white-space: nowrap;
+}
+.nav-menu>li>a:hover, .nav-menu>li.active>a { color: #FF4D2D; }
+.nav-menu>li.active::after {
+  content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 24px; height: 3px; background: #FF4D2D; border-radius: 2px;
+}
+
+/* 搜索框 */
+.search-box { display: flex; border: 2px solid #FF4D2D; border-radius: 20px; overflow: hidden; height: 38px; }
+.search-box input { border: none; outline: none; padding: 0 14px; width: 260px; font-size: 13px; }
+.search-box button { border: none; background: #FF4D2D; color: #fff; width: 52px; cursor: pointer; font-size: 14px; }
+.search-box button:hover { background: #E63E20; }
+
+/* ===== 页面Banner ===== */
+.page-banner {
+  position: relative; height: 200px; overflow: hidden;
+  background: linear-gradient(135deg, #1A1A2E 0%, #3D1F1F 50%, #FF4D2D 100%);
+  display: flex; align-items: center; justify-content: center;
+}
+.page-banner .overlay { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(26,26,46,.6) 0%, rgba(26,26,46,.2) 60%, rgba(26,26,46,.5) 100%); }
+.page-banner .content { position: relative; z-index: 2; text-align: center; }
+.page-banner h1 { font-size: 36px; font-weight: 800; color: #fff; margin-bottom: 10px; }
+.page-banner p { font-size: 15px; color: rgba(255,255,255,.8); }
+.page-banner .deco-icon { position: absolute; font-size: 120px; color: rgba(255,255,255,.05); z-index: 1; }
+
+/* ===== 通用section标题 ===== */
+.section-title { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.section-title .left { display: flex; align-items: center; gap: 10px; }
+.section-title .left .bar { width: 4px; height: 20px; background: #FF4D2D; border-radius: 2px; }
+.section-title .left h2 { font-size: 20px; font-weight: 700; color: #1A1A2E; }
+.section-title .left .sub { font-size: 13px; color: #999; margin-left: 8px; }
+.section-title .right { font-size: 13px; color: #999; display: flex; align-items: center; gap: 4px; }
+.section-title .right:hover { color: #FF4D2D; }
+
+/* ===== 服务分类导航 ===== */
+.cat-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 12px; }
+.cat-item {
+  background: #fff; border-radius: 10px; padding: 20px 12px; text-align: center;
+  border: 1px solid #F0F0F0; transition: all .25s; cursor: pointer;
+}
+.cat-item:hover { border-color: #FFD0C0; background: #FFF6F3; transform: translateY(-3px); box-shadow: 0 4px 12px rgba(255,77,45,.08); }
+.cat-item .icon-wrap { width: 48px; height: 48px; margin: 0 auto 10px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; color: #fff; }
+.cat-item .name { font-size: 13px; font-weight: 600; color: #333; }
+.cat-item .count { font-size: 10px; color: #B0B0B0; margin-top: 2px; }
+
+/* ===== 服务商卡片 ===== */
+.provider-card {
+  background: #fff; border-radius: 10px; padding: 20px; border: 1px solid #F0F0F0;
+  transition: transform .2s, box-shadow .2s; cursor: pointer;
+}
+.provider-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,.08); border-color: #FFD0C0; }
+.provider-card .header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.provider-card .header .avatar { width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; color: #fff; flex-shrink: 0; }
+.provider-card .header .meta .name { font-size: 15px; font-weight: 600; color: #1A1A2E; display: flex; align-items: center; gap: 6px; }
+.provider-card .header .meta .badge { font-size: 10px; padding: 1px 6px; border-radius: 3px; }
+.provider-card .header .meta .sub { font-size: 11px; color: #999; margin-top: 2px; }
+.provider-card .scope { font-size: 12px; color: #666; margin-bottom: 10px; line-height: 1.5; }
+.provider-card .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.provider-card .tags span { font-size: 10px; color: #666; background: #F5F6FA; padding: 2px 8px; border-radius: 3px; }
+.provider-card .bottom { display: flex; align-items: center; justify-content: space-between; padding-top: 12px; border-top: 1px solid #F5F5F5; }
+.provider-card .bottom .price { font-size: 16px; font-weight: 700; color: #FF4D2D; }
+.provider-card .bottom .price-unit { font-size: 11px; color: #999; font-weight: 400; }
+.provider-card .bottom .contact-btn {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: linear-gradient(135deg, #FF4D2D, #FF7849); color: #fff;
+  border: none; padding: 7px 16px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;
+  transition: opacity .2s;
+}
+.provider-card .bottom .contact-btn:hover { opacity: .9; }
+.provider-card .rating { display: flex; align-items: center; gap: 4px; font-size: 12px; }
+.provider-card .rating .stars { color: #F59E0B; }
+
+/* ===== 贸易保障卡片 ===== */
+.assurance-card {
+  background: #fff; border-radius: 12px; padding: 28px; border: 1px solid #F0F0F0;
+  text-align: center; transition: transform .2s, box-shadow .2s; position: relative; overflow: hidden;
+}
+.assurance-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,.08); }
+.assurance-card .a-icon { width: 64px; height: 64px; margin: 0 auto 16px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #fff; }
+.assurance-card h3 { font-size: 17px; font-weight: 700; color: #1A1A2E; margin-bottom: 10px; }
+.assurance-card p { font-size: 13px; color: #666; line-height: 1.7; }
+.assurance-card .features { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+.assurance-card .features div { font-size: 12px; color: #999; display: flex; align-items: center; gap: 6px; justify-content: center; }
+
+/* ===== 评价展示 ===== */
+.eval-card {
+  background: #fff; border-radius: 10px; padding: 20px; border: 1px solid #F0F0F0;
+  transition: transform .2s, box-shadow .2s;
+}
+.eval-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.06); }
+.eval-card .quote-mark { font-size: 32px; color: #FF4D2D; opacity: .15; line-height: 1; }
+.eval-card .content-text { font-size: 13px; color: #555; line-height: 1.7; margin: 8px 0 14px; }
+.eval-card .user-row { display: flex; align-items: center; gap: 10px; padding-top: 12px; border-top: 1px solid #F5F5F5; }
+.eval-card .user-row .avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #fff; flex-shrink: 0; }
+.eval-card .user-row .info .uname { font-size: 13px; font-weight: 600; color: #333; }
+.eval-card .user-row .info .uservice { font-size: 11px; color: #999; margin-top: 2px; }
+.eval-card .user-row .stars { margin-left: auto; color: #F59E0B; font-size: 12px; }
+
+/* ===== Footer ===== */
+.site-footer { background: #1A1A2E; color: #B0B0C0; padding: 48px 0 24px; margin-top: 48px; }
+.site-footer .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 40px; }
+.site-footer h4 { font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 16px; }
+.site-footer ul { list-style: none; }
+.site-footer ul li { margin-bottom: 8px; }
+.site-footer ul li a { font-size: 13px; color: #B0B0C0; }
+.site-footer ul li a:hover { color: #FF4D2D; }
+.site-footer .contact p { font-size: 13px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.site-footer .copyright {
+  text-align: center; padding-top: 24px; margin-top: 24px;
+  border-top: 1px solid rgba(255,255,255,.08); font-size: 12px;
+}
+
+/* ===== 按钮 ===== */
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: linear-gradient(135deg, #FF4D2D, #FF7849);
+  color: #fff; border: none; padding: 10px 24px; border-radius: 6px;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: opacity .2s, transform .2s;
+}
+.btn-primary:hover { opacity: .9; transform: translateY(-1px); }
+
+/* 动画 */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.fade-in { animation: fadeIn .5s ease; }
+</style>
+</head>
+<body>
+
+<!-- ==================== 顶部工具条 ==================== -->
+<div class="top-bar">
+  <div class="container" style="display:flex;align-items:center;justify-content:space-between;height:36px">
+    <div style="display:flex;align-items:center;gap:20px">
+      <span><i class="fas fa-map-marker-alt" style="color:#FF7849;margin-right:4px"></i>诸暨·大唐</span>
+      <a href="#"><i class="fas fa-mobile-alt" style="margin-right:3px"></i>手机版</a>
+      <a href="#">帮助中心</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px">
+      <a href="#"><i class="fas fa-globe" style="margin-right:3px"></i>中文</a>
+      <a href="#"><i class="fas fa-clipboard-list" style="margin-right:3px"></i>我的订单</a>
+      <a href="#" style="color:#FF7849">登录</a>
+      <a href="#" style="background:#FF4D2D;color:#fff;padding:2px 12px;border-radius:3px;font-size:11px">免费注册</a>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 主导航 ==================== -->
+<nav class="main-nav">
+  <div class="container" style="display:flex;align-items:center;justify-content:space-between;height:72px">
+    <a href="index-PC-门户.html" class="logo">
+      <div class="icon"><i class="fas fa-socks"></i></div>
+      <div class="text">袜<span>掌柜</span></div>
+    </a>
+    <ul class="nav-menu">
+      <li><a href="index-PC-门户.html">首页</a></li>
+      <li><a href="trend.html">爆款趋势</a></li>
+      <li class="active"><a href="service.html">找服务</a></li>
+      <li><a href="ai.html">找AI</a></li>
+      <li><a href="cross-border.html">跨境专区</a></li>
+      <li><a href="study-tour.html">研学文旅</a></li>
+      <li><a href="expo.html">袜博会</a></li>
+      <li><a href="chamber.html">袜业协会</a></li>
+      <li><a href="join.html" style="color:#FF4D2D;font-weight:600">商家入驻</a></li>
+      <li><a href="market-intro.html">市场介绍</a></li>
+    </ul>
+    <div class="search-box">
+      <input type="text" placeholder="搜索服务、商家、资讯...">
+      <button><i class="fas fa-search"></i></button>
+    </div>
+  </div>
+</nav>
+
+<!-- ==================== 页面Banner ==================== -->
+<div class="page-banner">
+  <div class="overlay"></div>
+  <i class="fas fa-handshake deco-icon" style="left:8%;top:25%"></i>
+  <i class="fas fa-tools deco-icon" style="right:10%;top:20%"></i>
+  <div class="content">
+    <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.15);padding:4px 14px;border-radius:20px;color:#fff;font-size:12px;margin-bottom:12px">
+      <i class="fas fa-shield-halved" style="color:#FFD700"></i> 一站式产业服务 · 平台保障交易安全
+    </div>
+    <h1>产业服务市场</h1>
+    <p>检测认证 / 设计开发 / 物流仓储 / 金融保险 · 覆盖袜业全产业链服务生态</p>
+  </div>
+</div>
+
+<!-- ==================== 服务分类导航 ==================== -->
+<div class="container" style="margin-top:28px">
+  <div class="section-title">
+    <div class="left">
+      <span class="bar"></span>
+      <h2>服务分类</h2>
+      <span class="sub">8大服务类目 · 覆盖全产业链</span>
+    </div>
+  </div>
+  <div class="cat-grid">
+    <a href="#" class="cat-item">
+      <div class="icon-wrap" style="background:linear-gradient(135deg,#FF4D2D,#FF7849)"><i class="fas fa-shield-virus"></i></div>
+      <div class="name">检测认证</div>
+      <div class="count">56家服务商</div>
+    </a>
+    <a href="#" class="cat-item">
+      <div class="icon-wrap" style="background:linear-gradient(135deg,#6366F1,#818CF8)"><i class="fas fa-palette"></i></div>
+      <div class="name">设计服务</div>
+      <div class="count">42家服务商</div>
+    </a>
+    <a href="#" class="cat-item">
+      <div class="icon-wrap" style="background:linear-gradient(135deg,#0EA5E9,#38BDF8)"><i class="fas fa-truck-fast"></i></div>
+      <div class="name">物流仓储</div>
+      <div class="count">68家服务商</div>
+    </a>
+    <a href="#" class="cat-item">
+      <div class="icon-wrap" style="background:linear-gradient(135deg,#10B981,#34D399)"><i class="fas fa-money-bill-trend-up"></i></div>
+      <div class="name">金融保险</div>
+      <div class="count">24家服务商</div>
+    </a>
+    <a href="#" class="cat-item">
+      <div class="icon-wrap" style="background:linear-gradient(135deg,#F59E0B,#FBBF24)"><i class="fas fa-gavel"></i></div>
+      <div class="name">法律咨询</div>
+      <div class="count">18家服务商</div>
+    </a>
+    <a href="#" class="cat-item">
+      <div class="icon-wrap" style="background:linear-gradient(135deg,#EC4899,#F472B6)"><i class="fas fa-lightbulb"></i></div>
+      <div class="name">知识产权</div>
+      <div class="count">22家服务商</div>
+    </a>
+    <a href="#" class="cat-item">
+      <div class="icon-wrap" style="background:linear-gradient(135deg,#8B5CF6,#A78BFA)"><i class="fas fa-industry"></i></div>
+      <div class="name">加工定制</div>
+      <div class="count">85家服务商</div>
+    </a>
+    <a href="#" class="cat-item">
+      <div class="icon-wrap" style="background:linear-gradient(135deg,#14B8A6,#2DD4BF)"><i class="fas fa-box"></i></div>
+      <div class="name">包装印刷</div>
+      <div class="count">36家服务商</div>
+    </a>
+  </div>
+</div>
+
+<!-- ==================== 优质服务商 ==================== -->
+<div class="container" style="margin-top:36px">
+  <div class="section-title">
+    <div class="left">
+      <span class="bar"></span>
+      <h2>优质服务商</h2>
+      <span class="sub">平台认证 · 品质保障</span>
+    </div>
+    <a href="#" class="right">全部服务商 <i class="fas fa-chevron-right"></i></a>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+
+    <!-- 服务商1 -->
+    <div class="provider-card">
+      <div class="header">
+        <div class="avatar" style="background:linear-gradient(135deg,#FF4D2D,#FF7849)"><i class="fas fa-shield-virus"></i></div>
+        <div class="meta">
+          <div class="name">大唐质量检测中心 <span class="badge" style="background:#FFF0EC;color:#FF4D2D">认证</span></div>
+          <div class="sub">检测认证 · 诸暨大唐</div>
+        </div>
+      </div>
+      <div class="scope">服务范围：袜子质量检测、纤维成分分析、色牢度测试、甲醛检测、pH值检测</div>
+      <div class="tags">
+        <span>CMA认证</span><span>CNAS认证</span><span>3天出报告</span>
+      </div>
+      <div class="bottom">
+        <div><span class="price">¥50-200</span><span class="price-unit">/次</span></div>
+        <button class="contact-btn"><i class="fas fa-comment-dots"></i> 立即咨询</button>
+      </div>
+      <div class="rating" style="margin-top:10px">
+        <span class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></span>
+        <span style="color:#666">5.0分</span>
+        <span style="color:#999">· 326单</span>
+      </div>
+    </div>
+
+    <!-- 服务商2 -->
+    <div class="provider-card">
+      <div class="header">
+        <div class="avatar" style="background:linear-gradient(135deg,#6366F1,#818CF8)"><i class="fas fa-palette"></i></div>
+        <div class="meta">
+          <div class="name">创意袜业设计工作室 <span class="badge" style="background:#FFF0EC;color:#FF4D2D">优选</span></div>
+          <div class="sub">设计服务 · 杭州滨江</div>
+        </div>
+      </div>
+      <div class="scope">服务范围：袜子花型设计、款式开发、3D建模效果图、包装视觉设计、品牌VI</div>
+      <div class="tags">
+        <span>原创设计</span><span>3D效果图</span><span>免费改稿2次</span>
+      </div>
+      <div class="bottom">
+        <div><span class="price">¥500-3000</span><span class="price-unit">/款</span></div>
+        <button class="contact-btn"><i class="fas fa-comment-dots"></i> 立即咨询</button>
+      </div>
+      <div class="rating" style="margin-top:10px">
+        <span class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></span>
+        <span style="color:#666">4.8分</span>
+        <span style="color:#999">· 158单</span>
+      </div>
+    </div>
+
+    <!-- 服务商3 -->
+    <div class="provider-card">
+      <div class="header">
+        <div class="avatar" style="background:linear-gradient(135deg,#0EA5E9,#38BDF8)"><i class="fas fa-truck-fast"></i></div>
+        <div class="meta">
+          <div class="name">顺达物流仓储服务 <span class="badge" style="background:#FFF0EC;color:#FF4D2D">认证</span></div>
+          <div class="sub">物流仓储 · 诸暨大唐</div>
+        </div>
+      </div>
+      <div class="scope">服务范围：仓储代管、一件代发、全国物流配送、跨境物流、库存管理系统</div>
+      <div class="tags">
+        <span>智能仓储</span><span>一件代发</span><span>48h全国达</span>
+      </div>
+      <div class="bottom">
+        <div><span class="price">¥0.5-3.0</span><span class="price-unit">/件</span></div>
+        <button class="contact-btn"><i class="fas fa-comment-dots"></i> 立即咨询</button>
+      </div>
+      <div class="rating" style="margin-top:10px">
+        <span class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i></span>
+        <span style="color:#666">4.7分</span>
+        <span style="color:#999">· 512单</span>
+      </div>
+    </div>
+
+    <!-- 服务商4 -->
+    <div class="provider-card">
+      <div class="header">
+        <div class="avatar" style="background:linear-gradient(135deg,#10B981,#34D399)"><i class="fas fa-money-bill-trend-up"></i></div>
+        <div class="meta">
+          <div class="name">中信银行企业金融 <span class="badge" style="background:#FFF0EC;color:#FF4D2D">官方</span></div>
+          <div class="sub">金融保险 · 诸暨支行</div>
+        </div>
+      </div>
+      <div class="scope">服务范围：企业贷款、信用证开立、供应链金融、出口退税融资、贸易保险</div>
+      <div class="tags">
+        <span>低息贷款</span><span>快速审批</span><span>专享利率</span>
+      </div>
+      <div class="bottom">
+        <div><span class="price">面议</span><span class="price-unit"></span></div>
+        <button class="contact-btn"><i class="fas fa-comment-dots"></i> 立即咨询</button>
+      </div>
+      <div class="rating" style="margin-top:10px">
+        <span class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></span>
+        <span style="color:#666">4.9分</span>
+        <span style="color:#999">· 89单</span>
+      </div>
+    </div>
+
+    <!-- 服务商5 -->
+    <div class="provider-card">
+      <div class="header">
+        <div class="avatar" style="background:linear-gradient(135deg,#F59E0B,#FBBF24)"><i class="fas fa-gavel"></i></div>
+        <div class="meta">
+          <div class="name">浙江律盟法律咨询 <span class="badge" style="background:#FFF0EC;color:#FF4D2D">认证</span></div>
+          <div class="sub">法律咨询 · 杭州西湖</div>
+        </div>
+      </div>
+      <div class="scope">服务范围：合同审查起草、劳动纠纷、商事仲裁、知识产权维权、企业合规</div>
+      <div class="tags">
+        <span>资深律师</span><span>合同审查</span><span>免费初询</span>
+      </div>
+      <div class="bottom">
+        <div><span class="price">¥300-800</span><span class="price-unit">/时</span></div>
+        <button class="contact-btn"><i class="fas fa-comment-dots"></i> 立即咨询</button>
+      </div>
+      <div class="rating" style="margin-top:10px">
+        <span class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i></span>
+        <span style="color:#666">4.6分</span>
+        <span style="color:#999">· 73单</span>
+      </div>
+    </div>
+
+    <!-- 服务商6 -->
+    <div class="provider-card">
+      <div class="header">
+        <div class="avatar" style="background:linear-gradient(135deg,#EC4899,#F472B6)"><i class="fas fa-lightbulb"></i></div>
+        <div class="meta">
+          <div class="name">华知知识产权代理 <span class="badge" style="background:#FFF0EC;color:#FF4D2D">认证</span></div>
+          <div class="sub">知识产权 · 诸暨大唐</div>
+        </div>
+      </div>
+      <div class="scope">服务范围：商标注册、专利申请、版权登记、知识产权诉讼、品牌保护</div>
+      <div class="tags">
+        <span>商标加急</span><span>专利布局</span><span>包通过</span>
+      </div>
+      <div class="bottom">
+        <div><span class="price">¥1000-5000</span><span class="price-unit">/项</span></div>
+        <button class="contact-btn"><i class="fas fa-comment-dots"></i> 立即咨询</button>
+      </div>
+      <div class="rating" style="margin-top:10px">
+        <span class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></span>
+        <span style="color:#666">4.8分</span>
+        <span style="color:#999">· 204单</span>
+      </div>
+    </div>
+
+    <!-- 服务商7 -->
+    <div class="provider-card">
+      <div class="header">
+        <div class="avatar" style="background:linear-gradient(135deg,#8B5CF6,#A78BFA)"><i class="fas fa-industry"></i></div>
+        <div class="meta">
+          <div class="name">智造袜业加工厂 <span class="badge" style="background:#FFF0EC;color:#FF4D2D">源头</span></div>
+          <div class="sub">加工定制 · 诸暨大唐</div>
+        </div>
+      </div>
+      <div class="scope">服务范围：OEM代工、ODM设计生产、来样定制、小批量打样、大批量生产</div>
+      <div class="tags">
+        <span>源头工厂</span><span>OEM/ODM</span><span>支持小单</span>
+      </div>
+      <div class="bottom">
+        <div><span class="price">¥2.0-8.0</span><span class="price-unit">/双</span></div>
+        <button class="contact-btn"><i class="fas fa-comment-dots"></i> 立即咨询</button>
+      </div>
+      <div class="rating" style="margin-top:10px">
+        <span class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i></span>
+        <span style="color:#666">4.7分</span>
+        <span style="color:#999">· 438单</span>
+      </div>
+    </div>
+
+    <!-- 服务商8 -->
+    <div class="provider-card">
+      <div class="header">
+        <div class="avatar" style="background:linear-gradient(135deg,#14B8A6,#2DD4BF)"><i class="fas fa-box"></i></div>
+        <div class="meta">
+          <div class="name">精美包装印刷厂 <span class="badge" style="background:#FFF0EC;color:#FF4D2D">认证</span></div>
+          <div class="sub">包装印刷 · 诸暨大唐</div>
+        </div>
+      </div>
+      <div class="scope">服务范围：袜子包装盒、OPP袋、吊牌设计印刷、礼盒定制、品牌包装</div>
+      <div class="tags">
+        <span>定制包装</span><span>环保材质</span><span>免费设计</span>
+      </div>
+      <div class="bottom">
+        <div><span class="price">¥0.1-2.0</span><span class="price-unit">/件</span></div>
+        <button class="contact-btn"><i class="fas fa-comment-dots"></i> 立即咨询</button>
+      </div>
+      <div class="rating" style="margin-top:10px">
+        <span class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i></span>
+        <span style="color:#666">4.5分</span>
+        <span style="color:#999">· 267单</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 贸易保障 ==================== -->
+<div class="container" style="margin-top:36px">
+  <div class="section-title">
+    <div class="left">
+      <span class="bar"></span>
+      <h2>贸易保障</h2>
+      <span class="sub">平台风控体系 · 交易安全无忧</span>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+
+    <!-- 企业核查 -->
+    <div class="assurance-card">
+      <div style="position:absolute;right:-20px;top:-20px;width:100px;height:100px;border-radius:50%;background:rgba(255,77,45,.04)"></div>
+      <div class="a-icon" style="background:linear-gradient(135deg,#FF4D2D,#FF7849)"><i class="fas fa-building-circle-check"></i></div>
+      <h3>企业核查</h3>
+      <p>核实企业工商注册信息、经营状态、注册资本、股东结构、信用评级等全方位资质，确保合作对象真实可靠。</p>
+      <div class="features">
+        <div><i class="fas fa-check-circle" style="color:#10B981"></i> 工商信息核验</div>
+        <div><i class="fas fa-check-circle" style="color:#10B981"></i> 经营状态查询</div>
+        <div><i class="fas fa-check-circle" style="color:#10B981"></i> 信用评级查看</div>
+      </div>
+      <a href="#" style="display:inline-flex;align-items:center;gap:4px;margin-top:16px;font-size:13px;color:#FF4D2D;font-weight:600">立即核查 <i class="fas fa-chevron-right" style="font-size:10px"></i></a>
+    </div>
+
+    <!-- 失信查询 -->
+    <div class="assurance-card">
+      <div style="position:absolute;right:-20px;top:-20px;width:100px;height:100px;border-radius:50%;background:rgba(245,158,11,.04)"></div>
+      <div class="a-icon" style="background:linear-gradient(135deg,#F59E0B,#FBBF24)"><i class="fas fa-user-xmark"></i></div>
+      <h3>失信查询</h3>
+      <p>查询企业及法人的失信被执行人记录、限制高消费、行政处罚等信息，提前规避不良商家，降低交易风险。</p>
+      <div class="features">
+        <div><i class="fas fa-check-circle" style="color:#10B981"></i> 失信被执行人查询</div>
+        <div><i class="fas fa-check-circle" style="color:#10B981"></i> 限制消费记录</div>
+        <div><i class="fas fa-check-circle" style="color:#10B981"></i> 行政处罚信息</div>
+      </div>
+      <a href="#" style="display:inline-flex;align-items:center;gap:4px;margin-top:16px;font-size:13px;color:#F59E0B;font-weight:600">立即查询 <i class="fas fa-chevron-right" style="font-size:10px"></i></a>
+    </div>
+
+    <!-- 风险预警 -->
+    <div class="assurance-card">
+      <div style="position:absolute;right:-20px;top:-20px;width:100px;height:100px;border-radius:50%;background:rgba(99,102,241,.04)"></div>
+      <div class="a-icon" style="background:linear-gradient(135deg,#6366F1,#818CF8)"><i class="fas fa-triangle-exclamation"></i></div>
+      <h3>风险预警</h3>
+      <p>实时监控交易过程中的异常行为，包括价格波动、物流异常、资金风险等，智能预警提醒，防患于未然。</p>
+      <div class="features">
+        <div><i class="fas fa-check-circle" style="color:#10B981"></i> 实时风险监控</div>
+        <div><i class="fas fa-check-circle" style="color:#10B981"></i> 智能预警推送</div>
+        <div><i class="fas fa-check-circle" style="color:#10B981"></i> 风险等级评估</div>
+      </div>
+      <a href="#" style="display:inline-flex;align-items:center;gap:4px;margin-top:16px;font-size:13px;color:#6366F1;font-weight:600">立即开启 <i class="fas fa-chevron-right" style="font-size:10px"></i></a>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 服务评价展示 ==================== -->
+<div class="container" style="margin-top:36px">
+  <div class="section-title">
+    <div class="left">
+      <span class="bar"></span>
+      <h2>服务评价</h2>
+      <span class="sub">真实用户反馈 · 口碑见证</span>
+    </div>
+    <a href="#" class="right">更多评价 <i class="fas fa-chevron-right"></i></a>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+
+    <!-- 评价1 -->
+    <div class="eval-card">
+      <div class="quote-mark"><i class="fas fa-quote-left"></i></div>
+      <div class="content-text">检测中心出报告很快，3天就拿到了，报告专业详尽，客户非常满意，后续所有质检都放这里了。</div>
+      <div class="user-row">
+        <div class="avatar" style="background:linear-gradient(135deg,#FF4D2D,#FF7849)"><i class="fas fa-user"></i></div>
+        <div class="info">
+          <div class="uname">李**华</div>
+          <div class="uservice">检测认证 · 大唐质检中心</div>
+        </div>
+        <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+      </div>
+    </div>
+
+    <!-- 评价2 -->
+    <div class="eval-card">
+      <div class="quote-mark"><i class="fas fa-quote-left"></i></div>
+      <div class="content-text">设计工作室的花型很有创意，3D效果图一目了然，改稿也很积极，新品上市后销量很好。</div>
+      <div class="user-row">
+        <div class="avatar" style="background:linear-gradient(135deg,#6366F1,#818CF8)"><i class="fas fa-user"></i></div>
+        <div class="info">
+          <div class="uname">王**芳</div>
+          <div class="uservice">设计服务 · 创意袜业设计</div>
+        </div>
+        <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+      </div>
+    </div>
+
+    <!-- 评价3 -->
+    <div class="eval-card">
+      <div class="quote-mark"><i class="fas fa-quote-left"></i></div>
+      <div class="content-text">仓储代发服务太方便了，不用自己囤货打包，一键代发，物流也快，省心省力。</div>
+      <div class="user-row">
+        <div class="avatar" style="background:linear-gradient(135deg,#0EA5E9,#38BDF8)"><i class="fas fa-user"></i></div>
+        <div class="info">
+          <div class="uname">张**强</div>
+          <div class="uservice">物流仓储 · 顺达物流</div>
+        </div>
+        <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i></div>
+      </div>
+    </div>
+
+    <!-- 评价4 -->
+    <div class="eval-card">
+      <div class="quote-mark"><i class="fas fa-quote-left"></i></div>
+      <div class="content-text">OEM代工品质稳定，交期准时，小批量也接单，对我们这种刚起步的电商非常友好。</div>
+      <div class="user-row">
+        <div class="avatar" style="background:linear-gradient(135deg,#8B5CF6,#A78BFA)"><i class="fas fa-user"></i></div>
+        <div class="info">
+          <div class="uname">陈**伟</div>
+          <div class="uservice">加工定制 · 智造袜业</div>
+        </div>
+        <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 服务入驻CTA ==================== -->
+<div class="container" style="margin-top:36px">
+  <div style="background:linear-gradient(135deg,#FF4D2D,#FF6B35,#FF8B5A);border-radius:14px;padding:40px 48px;display:flex;align-items:center;justify-content:space-between;position:relative;overflow:hidden">
+    <div style="position:absolute;right:-40px;top:-40px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.08);font-size:90px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.1)"><i class="fas fa-store-alt"></i></div>
+    <div style="position:relative;z-index:1">
+      <h3 style="font-size:24px;font-weight:700;color:#fff">服务商入驻</h3>
+      <p style="font-size:14px;color:rgba(255,255,255,.8);margin-top:8px">加入袜掌柜产业服务市场，触达3000+袜业商家，拓展业务渠道</p>
+    </div>
+    <div style="display:flex;gap:12px;position:relative;z-index:1">
+      <a href="#" style="display:inline-flex;align-items:center;gap:6px;background:#fff;color:#FF4D2D;padding:12px 28px;border-radius:8px;font-size:15px;font-weight:600"><i class="fas fa-store-alt"></i> 立即入驻</a>
+      <a href="#" style="display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(255,255,255,.5);color:#fff;padding:11px 26px;border-radius:8px;font-size:15px;font-weight:500">入驻指南 <i class="fas fa-chevron-right" style="font-size:12px"></i></a>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 底部 ==================== -->
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid" style="grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr">
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+          <div style="width:40px;height:40px;background:linear-gradient(135deg,#FF4D2D,#FF7849);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px"><i class="fas fa-socks"></i></div>
+          <span style="font-size:18px;font-weight:700;color:#fff">袜<span style="color:#FF4D2D">掌柜</span></span>
+        </div>
+        <p style="font-size:12px;line-height:1.8">大唐袜业产业互联网平台<br>全球袜业源头好货，一站直达</p>
+        <div style="display:flex;gap:10px;margin-top:16px">
+          <a href="#" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;color:#B0B0C0;font-size:14px"><i class="fab fa-weixin"></i></a>
+          <a href="#" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;color:#B0B0C0;font-size:14px"><i class="fab fa-weibo"></i></a>
+          <a href="#" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;color:#B0B0C0;font-size:14px"><i class="fab fa-tiktok"></i></a>
+        </div>
+      </div>
+      <div>
+        <h4>快速入口</h4>
+        <ul>
+          <li><a href="index-PC-门户.html">首页</a></li>
+          <li><a href="#">四大市场</a></li>
+          <li><a href="trend.html">趋势榜单</a></li>
+          <li><a href="#">逛市场</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>产品服务</h4>
+        <ul>
+          <li><a href="#">批发询价</a></li>
+          <li><a href="ai.html">AI找货</a></li>
+          <li><a href="#">拼单集采</a></li>
+          <li><a href="cross-border.html">跨境服务</a></li>
+          <li><a href="study-tour.html">研学申请</a></li>
+          <li><a href="expo.html">袜博展会</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>平台保障</h4>
+        <ul>
+          <li><a href="#">投诉与处理</a></li>
+          <li><a href="#">平台规则</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>关于我们</h4>
+        <ul>
+          <li><a href="market-intro.html">市场介绍</a></li>
+          <li><a href="expo.html">袜博会</a></li>
+          <li><a href="chamber.html">袜业协会</a></li>
+          <li><a href="join.html">商家入驻</a></li>
+          <li><a href="#">帮助中心</a></li>
+        </ul>
+      </div>
+      <div class="contact">
+        <h4>联系我们</h4>
+        <p><i class="fas fa-phone" style="color:#FF4D2D"></i> 0575-XXXX-XXXX</p>
+        <p><i class="fas fa-envelope" style="color:#FF4D2D"></i> service@wazhanggui.com</p>
+        <p><i class="fas fa-map-marker-alt" style="color:#FF4D2D"></i> 浙江省诸暨市大唐街道</p>
+        <p style="margin-top:8px;font-size:11px;color:#666">工作时间：周一至周六 8:30-17:30</p>
+      </div>
+    </div>
+    <div class="copyright">
+      <p>Copyright &copy; 2026 袜掌柜 wazhanggui.com 版权所有 | 浙ICP备XXXXXXXX号 | 增值电信业务经营许可证 | <a href="#" style="color:#FF7849">隐私政策</a> | <a href="#" style="color:#FF7849">用户协议</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

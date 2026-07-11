@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>商家入驻 - 袜掌柜门户</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        primary: '#FF4D2D',
+        'primary-d': '#E63E20',
+        'primary-l': '#FF7849',
+        'primary-bg': '#FFF6F3'
+      }
+    }
+  }
+}
+</script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: #F5F6FA;
+  color: #333;
+  min-width: 1200px;
+}
+a { text-decoration: none; color: inherit; }
+.container { max-width: 1400px; margin: 0 auto; padding: 0 24px; }
+
+/* ===== 顶部工具条 ===== */
+.top-bar { background: #1A1A2E; color: #B0B0C0; font-size: 12px; height: 36px; }
+.top-bar a:hover { color: #fff; }
+
+/* ===== 主导航 ===== */
+.main-nav { background: #fff; height: 72px; box-shadow: 0 1px 8px rgba(0,0,0,.06); position: sticky; top: 0; z-index: 1000; }
+.main-nav .logo { display: flex; align-items: center; gap: 8px; }
+.main-nav .logo .icon { width: 40px; height: 40px; background: linear-gradient(135deg, #FF4D2D, #FF7849); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 20px; }
+.main-nav .logo .text { font-size: 18px; font-weight: 700; color: #1A1A2E; }
+.main-nav .logo .text span { color: #FF4D2D; }
+
+.nav-menu { display: flex; align-items: center; gap: 0; list-style: none; }
+.nav-menu>li { position: relative; }
+.nav-menu>li>a {
+  display: flex; align-items: center; gap: 4px;
+  padding: 24px 14px; font-size: 14px; font-weight: 500; color: #333;
+  transition: color .2s; white-space: nowrap;
+}
+.nav-menu>li>a:hover, .nav-menu>li.active>a { color: #FF4D2D; }
+.nav-menu>li.active::after {
+  content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 24px; height: 3px; background: #FF4D2D; border-radius: 2px;
+}
+
+/* 搜索框 */
+.search-box { display: flex; border: 2px solid #FF4D2D; border-radius: 20px; overflow: hidden; height: 38px; }
+.search-box input { border: none; outline: none; padding: 0 14px; width: 260px; font-size: 13px; }
+.search-box button { border: none; background: #FF4D2D; color: #fff; width: 52px; cursor: pointer; font-size: 14px; }
+.search-box button:hover { background: #E63E20; }
+
+/* ===== 通用section标题 ===== */
+.section-title { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.section-title .left { display: flex; align-items: center; gap: 10px; }
+.section-title .left .bar { width: 4px; height: 20px; background: #FF4D2D; border-radius: 2px; }
+.section-title .left h2 { font-size: 20px; font-weight: 700; color: #1A1A2E; }
+.section-title .left .sub { font-size: 13px; color: #999; margin-left: 8px; }
+
+/* ===== Footer ===== */
+.site-footer { background: #1A1A2E; color: #B0B0C0; padding: 48px 0 24px; margin-top: 48px; }
+.site-footer .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 40px; }
+.site-footer h4 { font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 16px; }
+.site-footer ul { list-style: none; }
+.site-footer ul li { margin-bottom: 8px; }
+.site-footer ul li a { font-size: 13px; color: #B0B0C0; }
+.site-footer ul li a:hover { color: #FF4D2D; }
+.site-footer .contact p { font-size: 13px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.site-footer .copyright {
+  text-align: center; padding-top: 24px; margin-top: 24px;
+  border-top: 1px solid rgba(255,255,255,.08); font-size: 12px;
+}
+
+/* ===== 按钮样式 ===== */
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: linear-gradient(135deg, #FF4D2D, #FF7849);
+  color: #fff; border: none; padding: 10px 24px; border-radius: 6px;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: opacity .2s, transform .2s;
+}
+.btn-primary:hover { opacity: .9; transform: translateY(-1px); }
+.btn-outline {
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 1px solid rgba(255,255,255,.4); color: #fff;
+  padding: 9px 22px; border-radius: 6px; font-size: 14px; font-weight: 500;
+  cursor: pointer; transition: all .25s;
+}
+.btn-outline:hover { border-color: #fff; background: rgba(255,255,255,.1); }
+
+/* 表单样式 */
+.form-section { background: #fff; border-radius: 10px; padding: 24px 28px; border: 1px solid #F0F0F0; margin-bottom: 16px; }
+.form-section-title { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 700; color: #1A1A2E; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #F5F5F5; }
+.form-section-title i { color: #FF4D2D; }
+.form-row { display: flex; gap: 20px; margin-bottom: 16px; }
+.form-group { flex: 1; }
+.form-label { font-size: 13px; color: #555; margin-bottom: 6px; display: block; }
+.form-label .req { color: #FF4D2D; margin-right: 2px; }
+.form-input { width: 100%; height: 40px; border: 1px solid #E0E0E0; border-radius: 6px; padding: 0 14px; font-size: 13px; outline: none; transition: border-color .2s; }
+.form-input:focus { border-color: #FF4D2D; }
+.form-select { width: 100%; height: 40px; border: 1px solid #E0E0E0; border-radius: 6px; padding: 0 14px; font-size: 13px; outline: none; background: #fff; transition: border-color .2s; }
+.form-select:focus { border-color: #FF4D2D; }
+.upload-box { border: 2px dashed #E0E0E0; border-radius: 8px; padding: 24px; text-align: center; transition: all .25s; cursor: pointer; }
+.upload-box:hover { border-color: #FF4D2D; background: #FFF6F3; }
+
+/* FAQ */
+.faq-item { background: #fff; border-radius: 10px; border: 1px solid #F0F0F0; margin-bottom: 12px; overflow: hidden; transition: border-color .25s; }
+.faq-item:hover { border-color: #FFD0C0; }
+.faq-header { padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+.faq-header .q { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; color: #1A1A2E; }
+.faq-header .q .badge { width: 24px; height: 24px; border-radius: 6px; background: #FFF0EC; color: #FF4D2D; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+.faq-header .toggle { color: #999; transition: transform .3s; }
+.faq-item.open .faq-header .toggle { transform: rotate(180deg); }
+.faq-body { max-height: 0; overflow: hidden; transition: max-height .3s ease; padding: 0 20px; }
+.faq-item.open .faq-body { max-height: 200px; padding: 0 20px 16px; }
+.faq-body p { font-size: 13px; color: #888; line-height: 1.8; }
+
+/* 动画 */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.fade-in { animation: fadeIn .5s ease; }
+</style>
+</head>
+<body>
+
+<!-- ==================== 顶部工具条 ==================== -->
+<div class="top-bar">
+  <div class="container" style="display:flex;align-items:center;justify-content:space-between;height:36px">
+    <div style="display:flex;align-items:center;gap:20px">
+      <span><i class="fas fa-map-marker-alt" style="color:#FF7849;margin-right:4px"></i>诸暨·大唐</span>
+      <a href="#"><i class="fas fa-mobile-alt" style="margin-right:3px"></i>手机版</a>
+      <a href="#">帮助中心</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px">
+      <a href="#"><i class="fas fa-globe" style="margin-right:3px"></i>中文</a>
+      <a href="#"><i class="fas fa-clipboard-list" style="margin-right:3px"></i>我的订单</a>
+      <a href="#" style="color:#FF7849">登录</a>
+      <a href="#" style="background:#FF4D2D;color:#fff;padding:2px 12px;border-radius:3px;font-size:11px">免费注册</a>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 主导航 ==================== -->
+<nav class="main-nav">
+  <div class="container" style="display:flex;align-items:center;justify-content:space-between;height:72px">
+    <a href="index-PC-门户.html" class="logo">
+      <div class="icon"><i class="fas fa-socks"></i></div>
+      <div class="text">袜<span>掌柜</span></div>
+    </a>
+    <ul class="nav-menu">
+      <li><a href="index-PC-门户.html">首页</a></li>
+      <li><a href="trend.html">爆款趋势</a></li>
+      <li><a href="service.html">找服务</a></li>
+      <li><a href="ai.html">找AI</a></li>
+      <li><a href="cross-border.html">跨境专区</a></li>
+      <li><a href="study-tour.html">研学文旅</a></li>
+      <li><a href="expo.html">袜博会</a></li>
+      <li><a href="chamber.html">袜业协会</a></li>
+      <li class="active"><a href="join.html" style="color:#FF4D2D;font-weight:600">商家入驻</a></li>
+      <li><a href="market-intro.html">市场介绍</a></li>
+    </ul>
+    <div class="search-box">
+      <input type="text" placeholder="搜索商品、商家、资讯...">
+      <button><i class="fas fa-search"></i></button>
+    </div>
+  </div>
+</nav>
+
+<!-- ==================== 页面Banner ==================== -->
+<div style="position:relative;height:280px;overflow:hidden;background:linear-gradient(135deg,#FF4D2D 0%,#FF6B35 50%,#FF8B5A 100%)">
+  <div style="position:absolute;right:-60px;top:-60px;width:300px;height:300px;border-radius:50%;background:rgba(255,255,255,.08);font-size:120px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.1)"><i class="fas fa-store-alt"></i></div>
+  <div style="position:absolute;left:-40px;bottom:-40px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.05)"></div>
+  <div class="container" style="position:relative;z-index:2;height:100%;display:flex;flex-direction:column;justify-content:center">
+    <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.15);padding:4px 12px;border-radius:20px;color:#fff;font-size:12px;margin-bottom:16px;width:fit-content"><i class="fas fa-fire" style="color:#FFD700"></i> 招商火热进行中</div>
+    <h1 style="font-size:38px;font-weight:800;color:#fff;line-height:1.3">加入大唐袜业</h1>
+    <p style="font-size:16px;color:rgba(255,255,255,.85);margin-top:10px;max-width:560px">共享产业源头优势 · 精准流量入口 · 全链服务生态 · 政策红利加持</p>
+    <div style="display:flex;gap:16px;margin-top:28px">
+      <a href="#apply-form" style="display:inline-flex;align-items:center;gap:6px;background:#fff;color:#FF4D2D;padding:12px 32px;border-radius:8px;font-size:15px;font-weight:600"><i class="fas fa-file-signature"></i> 立即申请入驻</a>
+      <a href="#faq" class="btn-outline">常见问题 <i class="fas fa-question-circle"></i></a>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 招商政策 ==================== -->
+<div class="container" style="margin-top:36px">
+  <div class="section-title">
+    <div class="left">
+      <span class="bar"></span>
+      <h2>招商政策</h2>
+      <span class="sub">入驻即享多重优惠</span>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+    <!-- 政策1 -->
+    <div style="background:#fff;border-radius:12px;padding:28px;border:1px solid #F0F0F0;transition:all .25s;position:relative;overflow:hidden" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 24px rgba(255,77,45,.1)'" onmouseout="this.style.transform='none';this.style.boxShadow='none'">
+      <div style="position:absolute;right:-20px;top:-20px;width:80px;height:80px;border-radius:50%;background:#FFF0EC"></div>
+      <div style="position:relative;z-index:1">
+        <div style="width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#FF4D2D,#FF7849);display:flex;align-items:center;justify-content:center;font-size:24px;color:#fff;margin-bottom:16px"><i class="fas fa-gift"></i></div>
+        <h3 style="font-size:18px;font-weight:700;color:#1A1A2E;margin-bottom:8px">免租期优惠</h3>
+        <p style="font-size:13px;color:#888;line-height:1.7">新入驻商户享受最长6个月免租期，降低入驻成本，轻松起步经营</p>
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid #F5F5F5">
+          <div style="display:flex;align-items:baseline;gap:4px">
+            <span style="font-size:28px;font-weight:800;color:#FF4D2D">6</span>
+            <span style="font-size:14px;color:#FF4D2D;font-weight:600">个月免租</span>
+          </div>
+          <div style="font-size:12px;color:#999;margin-top:2px">入驻首年享免租政策</div>
+        </div>
+      </div>
+    </div>
+    <!-- 政策2 -->
+    <div style="background:#fff;border-radius:12px;padding:28px;border:1px solid #F0F0F0;transition:all .25s;position:relative;overflow:hidden" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 24px rgba(255,77,45,.1)'" onmouseout="this.style.transform='none';this.style.boxShadow='none'">
+      <div style="position:absolute;right:-20px;top:-20px;width:80px;height:80px;border-radius:50%;background:#E8F0FF"></div>
+      <div style="position:relative;z-index:1">
+        <div style="width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#6366F1,#818CF8);display:flex;align-items:center;justify-content:center;font-size:24px;color:#fff;margin-bottom:16px"><i class="fas fa-chart-line"></i></div>
+        <h3 style="font-size:18px;font-weight:700;color:#1A1A2E;margin-bottom:8px">流量扶持</h3>
+        <p style="font-size:13px;color:#888;line-height:1.7">入驻商家享平台流量倾斜，首页推荐、搜索加权、活动优先参与权</p>
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid #F5F5F5">
+          <div style="display:flex;align-items:baseline;gap:4px">
+            <span style="font-size:28px;font-weight:800;color:#6366F1">300</span>
+            <span style="font-size:14px;color:#6366F1;font-weight:600">万+曝光/年</span>
+          </div>
+          <div style="font-size:12px;color:#999;margin-top:2px">平台全域流量精准导流</div>
+        </div>
+      </div>
+    </div>
+    <!-- 政策3 -->
+    <div style="background:#fff;border-radius:12px;padding:28px;border:1px solid #F0F0F0;transition:all .25s;position:relative;overflow:hidden" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 24px rgba(255,77,45,.1)'" onmouseout="this.style.transform='none';this.style.boxShadow='none'">
+      <div style="position:absolute;right:-20px;top:-20px;width:80px;height:80px;border-radius:50%;background:#E6FAF6"></div>
+      <div style="position:relative;z-index:1">
+        <div style="width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#10B981,#34D399);display:flex;align-items:center;justify-content:center;font-size:24px;color:#fff;margin-bottom:16px"><i class="fas fa-robot"></i></div>
+        <h3 style="font-size:18px;font-weight:700;color:#1A1A2E;margin-bottom:8px">AI工具免费</h3>
+        <p style="font-size:13px;color:#888;line-height:1.7">入驻即赠AI创作工具包，AI文案、AI设计、AI翻译等工具全年免费使用</p>
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid #F5F5F5">
+          <div style="display:flex;align-items:baseline;gap:4px">
+            <span style="font-size:28px;font-weight:800;color:#10B981">12</span>
+            <span style="font-size:14px;color:#10B981;font-weight:600">款AI工具免费用</span>
+          </div>
+          <div style="font-size:12px;color:#999;margin-top:2px">价值万元AI工具礼包</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 入驻流程 ==================== -->
+<div class="container" style="margin-top:36px">
+  <div class="section-title">
+    <div class="left">
+      <span class="bar"></span>
+      <h2>入驻流程</h2>
+      <span class="sub">简单五步，快速开店</span>
+    </div>
+  </div>
+  <div style="background:#fff;border-radius:12px;padding:40px 32px;border:1px solid #F0F0F0">
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:0;position:relative">
+      <!-- 连接线 -->
+      <div style="position:absolute;top:32px;left:10%;right:10%;height:2px;background:linear-gradient(90deg,#FF4D2D,#FF7849,#FFD0C0,#FF7849,#FF4D2D);z-index:0"></div>
+      <!-- 步骤1 -->
+      <div style="text-align:center;position:relative;z-index:1">
+        <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#FF4D2D,#FF7849);display:flex;align-items:center;justify-content:center;color:#fff;font-size:24px;font-weight:800;margin:0 auto 14px;box-shadow:0 4px 12px rgba(255,77,45,.25)">1</div>
+        <div style="font-size:15px;font-weight:700;color:#1A1A2E;margin-bottom:6px">提交申请</div>
+        <div style="font-size:12px;color:#999;line-height:1.6">在线填写入驻<br>申请表单</div>
+      </div>
+      <!-- 步骤2 -->
+      <div style="text-align:center;position:relative;z-index:1">
+        <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#FF6B35,#FF8B5A);display:flex;align-items:center;justify-content:center;color:#fff;font-size:24px;font-weight:800;margin:0 auto 14px;box-shadow:0 4px 12px rgba(255,107,53,.25)">2</div>
+        <div style="font-size:15px;font-weight:700;color:#1A1A2E;margin-bottom:6px">资质审核</div>
+        <div style="font-size:12px;color:#999;line-height:1.6">平台审核企业<br>资质信息</div>
+      </div>
+      <!-- 步骤3 -->
+      <div style="text-align:center;position:relative;z-index:1">
+        <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#FF8B5A,#FFAA80);display:flex;align-items:center;justify-content:center;color:#fff;font-size:24px;font-weight:800;margin:0 auto 14px;box-shadow:0 4px 12px rgba(255,139,90,.25)">3</div>
+        <div style="font-size:15px;font-weight:700;color:#1A1A2E;margin-bottom:6px">签署合同</div>
+        <div style="font-size:12px;color:#999;line-height:1.6">签署入驻协议<br>确定商位</div>
+      </div>
+      <!-- 步骤4 -->
+      <div style="text-align:center;position:relative;z-index:1">
+        <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#FF7849,#FF9B70);display:flex;align-items:center;justify-content:center;color:#fff;font-size:24px;font-weight:800;margin:0 auto 14px;box-shadow:0 4px 12px rgba(255,120,73,.25)">4</div>
+        <div style="font-size:15px;font-weight:700;color:#1A1A2E;margin-bottom:6px">缴费入驻</div>
+        <div style="font-size:12px;color:#999;line-height:1.6">缴纳费用<br>正式入驻</div>
+      </div>
+      <!-- 步骤5 -->
+      <div style="text-align:center;position:relative;z-index:1">
+        <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#FF4D2D,#FF6B35);display:flex;align-items:center;justify-content:center;color:#fff;font-size:24px;font-weight:800;margin:0 auto 14px;box-shadow:0 4px 12px rgba(255,77,45,.25)">5</div>
+        <div style="font-size:15px;font-weight:700;color:#1A1A2E;margin-bottom:6px">开店营业</div>
+        <div style="font-size:12px;color:#999;line-height:1.6">店铺上线<br>开始经营</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 入驻申请表单 ==================== -->
+<div class="container" style="margin-top:36px" id="apply-form">
+  <div class="section-title">
+    <div class="left">
+      <span class="bar"></span>
+      <h2>入驻申请</h2>
+      <span class="sub">请如实填写以下信息</span>
+    </div>
+  </div>
+  <form style="max-width:1000px;margin:0 auto" onsubmit="return false">
+    <!-- 企业信息 -->
+    <div class="form-section">
+      <div class="form-section-title"><i class="fas fa-building"></i> 企业信息</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label"><span class="req">*</span>企业名称</label>
+          <input class="form-input" type="text" placeholder="请输入企业全称">
+        </div>
+        <div class="form-group">
+          <label class="form-label"><span class="req">*</span>统一社会信用代码</label>
+          <input class="form-input" type="text" placeholder="请输入18位信用代码">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label"><span class="req">*</span>法定代表人</label>
+          <input class="form-input" type="text" placeholder="请输入法定代表人姓名">
+        </div>
+        <div class="form-group">
+          <label class="form-label"><span class="req">*</span>联系电话</label>
+          <input class="form-input" type="text" placeholder="请输入手机号码">
+        </div>
+        <div class="form-group">
+          <label class="form-label">邮箱</label>
+          <input class="form-input" type="email" placeholder="请输入电子邮箱">
+        </div>
+      </div>
+    </div>
+
+    <!-- 经营信息 -->
+    <div class="form-section">
+      <div class="form-section-title"><i class="fas fa-chart-bar"></i> 经营信息</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label"><span class="req">*</span>主营品类</label>
+          <select class="form-select">
+            <option>请选择主营品类</option>
+            <option>男袜</option>
+            <option>女袜</option>
+            <option>童袜</option>
+            <option>运动袜</option>
+            <option>功能袜</option>
+            <option>原料纱线</option>
+            <option>袜机设备</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><span class="req">*</span>年销售额</label>
+          <select class="form-select">
+            <option>请选择年销售额范围</option>
+            <option>100万以下</option>
+            <option>100万-500万</option>
+            <option>500万-1000万</option>
+            <option>1000万-5000万</option>
+            <option>5000万以上</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">现有渠道</label>
+          <select class="form-select">
+            <option>请选择现有销售渠道</option>
+            <option>线下批发</option>
+            <option>电商平台</option>
+            <option>直播带货</option>
+            <option>跨境电商</option>
+            <option>多渠道综合</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">目标市场</label>
+          <select class="form-select">
+            <option>请选择目标市场</option>
+            <option>国内市场</option>
+            <option>东南亚市场</option>
+            <option>欧美市场</option>
+            <option>日韩市场</option>
+            <option>全球市场</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- 商位需求 -->
+    <div class="form-section">
+      <div class="form-section-title"><i class="fas fa-store"></i> 商位需求</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label"><span class="req">*</span>意向楼层</label>
+          <select class="form-select">
+            <option>请选择意向楼层</option>
+            <option>1F 袜子区</option>
+            <option>2F 袜子区</option>
+            <option>均可考虑</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><span class="req">*</span>面积需求</label>
+          <select class="form-select">
+            <option>请选择面积需求</option>
+            <option>20㎡以下</option>
+            <option>20-50㎡</option>
+            <option>50-100㎡</option>
+            <option>100㎡以上</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">预算范围</label>
+          <select class="form-select">
+            <option>请选择预算范围（年）</option>
+            <option>3万以下</option>
+            <option>3-5万</option>
+            <option>5-10万</option>
+            <option>10万以上</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- 资质上传 -->
+    <div class="form-section">
+      <div class="form-section-title"><i class="fas fa-upload"></i> 资质上传</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label"><span class="req">*</span>营业执照</label>
+          <div class="upload-box">
+            <i class="fas fa-cloud-upload-alt" style="font-size:32px;color:#FF4D2D;margin-bottom:8px"></i>
+            <div style="font-size:13px;color:#555;font-weight:600">点击上传营业执照</div>
+            <div style="font-size:11px;color:#999;margin-top:4px">支持 JPG/PNG/PDF 格式，文件不超过5MB</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">行业资质</label>
+          <div class="upload-box">
+            <i class="fas fa-file-alt" style="font-size:32px;color:#6366F1;margin-bottom:8px"></i>
+            <div style="font-size:13px;color:#555;font-weight:600">点击上传行业资质证书</div>
+            <div style="font-size:11px;color:#999;margin-top:4px">支持 JPG/PNG/PDF 格式，文件不超过5MB</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 提交 -->
+    <div style="text-align:center;padding:20px 0">
+      <button type="submit" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#FF4D2D,#FF7849);color:#fff;border:none;padding:14px 56px;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;transition:opacity .2s,transform .2s" onmouseover="this.style.opacity='.9';this.style.transform='translateY(-1px)'" onmouseout="this.style.opacity='1';this.style.transform='none'">
+        <i class="fas fa-paper-plane"></i> 提交入驻申请
+      </button>
+      <p style="font-size:12px;color:#999;margin-top:12px">提交后我们将在3个工作日内与您联系</p>
+    </div>
+  </form>
+</div>
+
+<!-- ==================== 入驻优势 ==================== -->
+<div class="container" style="margin-top:36px">
+  <div class="section-title">
+    <div class="left">
+      <span class="bar"></span>
+      <h2>入驻优势</h2>
+      <span class="sub">为什么选择大唐袜业</span>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+    <!-- 优势1 -->
+    <div style="background:#fff;border-radius:12px;padding:28px 24px;border:1px solid #F0F0F0;transition:all .25s;cursor:pointer;text-align:center" onmouseover="this.style.transform='translateY(-4px)';this.style.borderColor='#FFD0C0';this.style.boxShadow='0 8px 24px rgba(255,77,45,.08)'" onmouseout="this.style.transform='none';this.style.borderColor='#F0F0F0';this.style.boxShadow='none'">
+      <div style="width:64px;height:64px;border-radius:16px;background:linear-gradient(135deg,#FF4D2D,#FF7849);display:flex;align-items:center;justify-content:center;font-size:28px;color:#fff;margin:0 auto 16px"><i class="fas fa-industry"></i></div>
+      <h3 style="font-size:16px;font-weight:700;color:#1A1A2E;margin-bottom:8px">产业源头</h3>
+      <p style="font-size:13px;color:#888;line-height:1.6">坐落大唐袜业产业集群，3000+工厂直供，原材料、生产、物流全链路触达</p>
+    </div>
+    <!-- 优势2 -->
+    <div style="background:#fff;border-radius:12px;padding:28px 24px;border:1px solid #F0F0F0;transition:all .25s;cursor:pointer;text-align:center" onmouseover="this.style.transform='translateY(-4px)';this.style.borderColor='#FFD0C0';this.style.boxShadow='0 8px 24px rgba(255,77,45,.08)'" onmouseout="this.style.transform='none';this.style.borderColor='#F0F0F0';this.style.boxShadow='none'">
+      <div style="width:64px;height:64px;border-radius:16px;background:linear-gradient(135deg,#6366F1,#818CF8);display:flex;align-items:center;justify-content:center;font-size:28px;color:#fff;margin:0 auto 16px"><i class="fas fa-users"></i></div>
+      <h3 style="font-size:16px;font-weight:700;color:#1A1A2E;margin-bottom:8px">流量入口</h3>
+      <p style="font-size:13px;color:#888;line-height:1.6">平台日均10万+采购商访问，精准对接批发需求，高效触达目标客户</p>
+    </div>
+    <!-- 优势3 -->
+    <div style="background:#fff;border-radius:12px;padding:28px 24px;border:1px solid #F0F0F0;transition:all .25s;cursor:pointer;text-align:center" onmouseover="this.style.transform='translateY(-4px)';this.style.borderColor='#FFD0C0';this.style.boxShadow='0 8px 24px rgba(255,77,45,.08)'" onmouseout="this.style.transform='none';this.style.borderColor='#F0F0F0';this.style.boxShadow='none'">
+      <div style="width:64px;height:64px;border-radius:16px;background:linear-gradient(135deg,#0EA5E9,#38BDF8);display:flex;align-items:center;justify-content:center;font-size:28px;color:#fff;margin:0 auto 16px"><i class="fas fa-cogs"></i></div>
+      <h3 style="font-size:16px;font-weight:700;color:#1A1A2E;margin-bottom:8px">服务生态</h3>
+      <p style="font-size:13px;color:#888;line-height:1.6">仓储物流、金融服务、AI工具、跨境服务等一站式配套，降低运营成本</p>
+    </div>
+    <!-- 优势4 -->
+    <div style="background:#fff;border-radius:12px;padding:28px 24px;border:1px solid #F0F0F0;transition:all .25s;cursor:pointer;text-align:center" onmouseover="this.style.transform='translateY(-4px)';this.style.borderColor='#FFD0C0';this.style.boxShadow='0 8px 24px rgba(255,77,45,.08)'" onmouseout="this.style.transform='none';this.style.borderColor='#F0F0F0';this.style.boxShadow='none'">
+      <div style="width:64px;height:64px;border-radius:16px;background:linear-gradient(135deg,#10B981,#34D399);display:flex;align-items:center;justify-content:center;font-size:28px;color:#fff;margin:0 auto 16px"><i class="fas fa-gift"></i></div>
+      <h3 style="font-size:16px;font-weight:700;color:#1A1A2E;margin-bottom:8px">政策红利</h3>
+      <p style="font-size:13px;color:#888;line-height:1.6">享受地方政府专项扶持政策，免租补贴、税收优惠、人才引进等多重红利</p>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== FAQ ==================== -->
+<div class="container" style="margin-top:36px;margin-bottom:36px" id="faq">
+  <div class="section-title">
+    <div class="left">
+      <span class="bar"></span>
+      <h2>常见问题</h2>
+      <span class="sub">入驻相关问题解答</span>
+    </div>
+  </div>
+  <div style="max-width:1000px;margin:0 auto">
+    <div class="faq-item open" onclick="toggleFaq(this)">
+      <div class="faq-header">
+        <div class="q"><span class="badge">Q</span>入驻需要哪些资质条件？</div>
+        <i class="fas fa-chevron-down toggle"></i>
+      </div>
+      <div class="faq-body">
+        <p>入驻商家需具备以下资质：1）有效的营业执照；2）法定代表人身份证；3）相关行业资质证书（如生产许可证等）；4）产品质量检测报告。个体工商户和企业均可申请入驻，具体要求可咨询招商热线 0575-XXXX-XXXX。</p>
+      </div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-header">
+        <div class="q"><span class="badge">Q</span>入驻费用包含哪些？收费标准如何？</div>
+        <i class="fas fa-chevron-down toggle"></i>
+      </div>
+      <div class="faq-body">
+        <p>入驻费用主要包括商位租金和平台服务费两部分。商位租金根据楼层和面积不同，年租金3-10万元不等。新入驻商户可享受最长6个月免租期优惠。平台服务费按年收取，包含店铺运营、流量推广等基础服务。</p>
+      </div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-header">
+        <div class="q"><span class="badge">Q</span>入驻审核周期大概多久？</div>
+        <i class="fas fa-chevron-down toggle"></i>
+      </div>
+      <div class="faq-body">
+        <p>提交入驻申请后，平台将在3个工作日内完成资质审核。审核通过后，双方签署入驻协议并完成缴费，一般在7个工作日内即可完成店铺装修并正式上线营业。如遇特殊情况可加急处理。</p>
+      </div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-header">
+        <div class="q"><span class="badge">Q</span>免租期政策具体怎么享受？</div>
+        <i class="fas fa-chevron-down toggle"></i>
+      </div>
+      <div class="faq-body">
+        <p>新入驻商户自签约之日起享受免租期政策。首年入驻享受3个月免租，优质商家（品牌企业/年销售额500万以上）可享受最长6个月免租。免租期内免收商位租金，仅收取基础物业费。</p>
+      </div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-header">
+        <div class="q"><span class="badge">Q</span>平台提供哪些运营支持服务？</div>
+        <i class="fas fa-chevron-down toggle"></i>
+      </div>
+      <div class="faq-body">
+        <p>平台为入驻商家提供全方位运营支持：1）免费AI工具包（文案、设计、翻译等12款工具）；2）流量扶持（首页推荐、搜索加权）；3）店铺装修指导；4）运营培训课程；5）仓储物流对接；6）跨境贸易服务；7）金融服务支持等。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 底部 ==================== -->
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid" style="grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr">
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+          <div style="width:40px;height:40px;background:linear-gradient(135deg,#FF4D2D,#FF7849);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px"><i class="fas fa-socks"></i></div>
+          <span style="font-size:18px;font-weight:700;color:#fff">袜<span style="color:#FF4D2D">掌柜</span></span>
+        </div>
+        <p style="font-size:12px;line-height:1.8">大唐袜业产业互联网平台<br>全球袜业源头好货，一站直达</p>
+        <div style="display:flex;gap:10px;margin-top:16px">
+          <a href="#" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;color:#B0B0C0;font-size:14px"><i class="fab fa-weixin"></i></a>
+          <a href="#" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;color:#B0B0C0;font-size:14px"><i class="fab fa-weibo"></i></a>
+          <a href="#" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;color:#B0B0C0;font-size:14px"><i class="fab fa-tiktok"></i></a>
+        </div>
+      </div>
+      <div>
+        <h4>快速入口</h4>
+        <ul>
+          <li><a href="index-PC-门户.html">首页</a></li>
+          <li><a href="market-intro.html">四大市场</a></li>
+          <li><a href="trend.html">趋势榜单</a></li>
+          <li><a href="market-intro.html">逛市场</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>产品服务</h4>
+        <ul>
+          <li><a href="service.html">批发询价</a></li>
+          <li><a href="ai.html">AI找货</a></li>
+          <li><a href="service.html">拼单集采</a></li>
+          <li><a href="cross-border.html">跨境服务</a></li>
+          <li><a href="study-tour.html">研学申请</a></li>
+          <li><a href="expo.html">袜博展会</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>平台保障</h4>
+        <ul>
+          <li><a href="#">投诉与处理</a></li>
+          <li><a href="#">平台规则</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>关于我们</h4>
+        <ul>
+          <li><a href="market-intro.html">市场介绍</a></li>
+          <li><a href="expo.html">袜博会</a></li>
+          <li><a href="chamber.html">袜业协会</a></li>
+          <li><a href="join.html">商家入驻</a></li>
+          <li><a href="#">帮助中心</a></li>
+        </ul>
+      </div>
+      <div class="contact">
+        <h4>联系我们</h4>
+        <p><i class="fas fa-phone" style="color:#FF4D2D"></i> 0575-XXXX-XXXX</p>
+        <p><i class="fas fa-envelope" style="color:#FF4D2D"></i> service@wazhanggui.com</p>
+        <p><i class="fas fa-map-marker-alt" style="color:#FF4D2D"></i> 浙江省诸暨市大唐街道</p>
+        <p style="margin-top:8px;font-size:11px;color:#666">工作时间：周一至周六 8:30-17:30</p>
+      </div>
+    </div>
+    <div class="copyright">
+      <p>Copyright &copy; 2026 袜掌柜 wazhanggui.com 版权所有 | 浙ICP备XXXXXXXX号 | 增值电信业务经营许可证 | <a href="#" style="color:#FF7849">隐私政策</a> | <a href="#" style="color:#FF7849">用户协议</a></p>
+    </div>
+  </div>
+</footer>
+
+<script>
+function toggleFaq(el) {
+  el.classList.toggle('open');
+}
+</script>
+
+</body>
+</html>
