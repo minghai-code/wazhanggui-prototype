@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>活动运营 - 签到管理</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>
+tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D','primary-d':'#E63E20','primary-l':'#FF7849'}}}}
+</script>
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#f1f5f9}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
+.tab-active{color:#FF4D2D;border-bottom:2px solid #FF4D2D;font-weight:600}
+.status-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500}
+</style>
+</head>
+<body>
+
+<div class="p-6">
+
+  <!-- 页面标题 -->
+  <div class="flex items-center justify-between mb-5">
+    <div>
+      <h1 class="text-[18px] font-bold text-gray-800">活动运营</h1>
+      <p class="text-[12px] text-gray-400 mt-0.5">活动创建 · 报名管理 · 签到管理 · 效果统计</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="px-3 py-1.5 text-[12px] text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+      <button class="px-3 py-1.5 text-[12px] text-white rounded-lg transition" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)"><i class="fas fa-qrcode text-[10px] mr-1"></i>生成签到码</button>
+    </div>
+  </div>
+
+  <!-- Tab 导航 -->
+  <div class="flex items-center gap-6 mb-4 border-b border-gray-200">
+    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">活动创建</span>
+    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">报名管理</span>
+    <span class="tab-active py-2.5 text-[13px] cursor-pointer">签到管理</span>
+    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">效果统计</span>
+  </div>
+
+  <!-- 统计卡片 -->
+  <div class="grid grid-cols-4 gap-3 mb-5">
+    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
+      <p class="text-[11px] text-gray-400">应签到</p>
+      <p class="text-xl font-bold text-gray-600 mt-1">168</p>
+    </div>
+    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
+      <p class="text-[11px] text-gray-400">已签到</p>
+      <p class="text-xl font-bold text-green-500 mt-1">152</p>
+    </div>
+    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
+      <p class="text-[11px] text-gray-400">签到率</p>
+      <p class="text-xl font-bold text-primary mt-1">90.5%</p>
+    </div>
+    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
+      <p class="text-[11px] text-gray-400">未签到</p>
+      <p class="text-xl font-bold text-gray-400 mt-1">16</p>
+    </div>
+  </div>
+
+  <!-- 筛选栏 -->
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+    <div class="flex items-center gap-3 flex-wrap">
+      <div class="relative">
+        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+        <input type="text" placeholder="签到人 / 企业名称" class="w-56 pl-8 pr-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary focus:bg-white transition">
+      </div>
+      <select class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部活动</option>
+        <option>2026大唐袜业直采节</option>
+        <option>袜品设计大赛</option>
+        <option>电商直播培训</option>
+        <option>品牌运营沙龙</option>
+      </select>
+      <select class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部状态</option>
+        <option>已签到</option>
+        <option>未签到</option>
+        <option>迟到</option>
+      </select>
+      <select class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部签到方式</option>
+        <option>扫码</option>
+        <option>手动</option>
+      </select>
+      <button class="px-4 py-1.5 text-[13px] text-white rounded-lg" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)">查询</button>
+      <button class="px-4 py-1.5 text-[13px] text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition">重置</button>
+    </div>
+  </div>
+
+  <!-- 表格 -->
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <table class="w-full text-[13px]">
+      <thead>
+        <tr class="bg-gray-50 text-gray-500 text-[12px]">
+          <th class="px-4 py-3 text-left font-medium">活动名称</th>
+          <th class="px-4 py-3 text-left font-medium">签到人/企业</th>
+          <th class="px-4 py-3 text-left font-medium">联系方式</th>
+          <th class="px-4 py-3 text-left font-medium">签到方式</th>
+          <th class="px-4 py-3 text-left font-medium">签到时间</th>
+          <th class="px-4 py-3 text-left font-medium">状态</th>
+          <th class="px-4 py-3 text-center font-medium">操作</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-50">
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#FF8A4C,#FF4D2D)"><i class="fas fa-store"></i></div>
+              <span class="font-medium text-gray-800">2026大唐袜业直采节</span>
+            </div>
+          </td>
+          <td class="px-4 py-3 text-gray-600">王暖足 · 暖足坊袜业</td>
+          <td class="px-4 py-3 text-gray-600">139****6288</td>
+          <td class="px-4 py-3"><span class="status-badge bg-blue-50 text-blue-500"><i class="fas fa-qrcode text-[10px]"></i>扫码</span></td>
+          <td class="px-4 py-3 text-gray-400">2026-07-10 09:02</td>
+          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">已签到</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#FF8A4C,#FF4D2D)"><i class="fas fa-store"></i></div>
+              <span class="font-medium text-gray-800">2026大唐袜业直采节</span>
+            </div>
+          </td>
+          <td class="px-4 py-3 text-gray-600">李绿源 · 绿源纤维科技</td>
+          <td class="px-4 py-3 text-gray-600">138****3366</td>
+          <td class="px-4 py-3"><span class="status-badge bg-blue-50 text-blue-500"><i class="fas fa-qrcode text-[10px]"></i>扫码</span></td>
+          <td class="px-4 py-3 text-gray-400">2026-07-10 09:05</td>
+          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">已签到</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#A78BFA,#7C3AED)"><i class="fas fa-palette"></i></div>
+              <span class="font-medium text-gray-800">袜品设计大赛</span>
+            </div>
+          </td>
+          <td class="px-4 py-3 text-gray-600">张花间 · 花间舞袜业</td>
+          <td class="px-4 py-3 text-gray-600">137****8899</td>
+          <td class="px-4 py-3"><span class="status-badge bg-blue-50 text-blue-500"><i class="fas fa-qrcode text-[10px]"></i>扫码</span></td>
+          <td class="px-4 py-3 text-gray-400">2026-07-08 14:15</td>
+          <td class="px-4 py-3"><span class="status-badge bg-amber-50 text-amber-600">迟到</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#38BDF8,#3B82F6)"><i class="fas fa-video"></i></div>
+              <span class="font-medium text-gray-800">电商直播培训</span>
+            </div>
+          </td>
+          <td class="px-4 py-3 text-gray-600">陈极速 · 极速运动袜业</td>
+          <td class="px-4 py-3 text-gray-600">136****1122</td>
+          <td class="px-4 py-3"><span class="status-badge bg-gray-100 text-gray-500"><i class="fas fa-hand-pointer text-[10px]"></i>手动</span></td>
+          <td class="px-4 py-3 text-gray-400">2026-07-05 10:00</td>
+          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">已签到</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#38BDF8,#3B82F6)"><i class="fas fa-video"></i></div>
+              <span class="font-medium text-gray-800">电商直播培训</span>
+            </div>
+          </td>
+          <td class="px-4 py-3 text-gray-600">赵智造 · 智造袜机设备</td>
+          <td class="px-4 py-3 text-gray-600">135****5577</td>
+          <td class="px-4 py-3 text-gray-400">—</td>
+          <td class="px-4 py-3 text-gray-400">—</td>
+          <td class="px-4 py-3"><span class="status-badge bg-gray-100 text-gray-500">未签到</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-primary text-[12px] hover:underline mr-2">手动签到</button>
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)"><i class="fas fa-comments"></i></div>
+              <span class="font-medium text-gray-800">品牌运营沙龙</span>
+            </div>
+          </td>
+          <td class="px-4 py-3 text-gray-600">孙棉田 · 棉田纱线厂</td>
+          <td class="px-4 py-3 text-gray-600">134****4433</td>
+          <td class="px-4 py-3"><span class="status-badge bg-blue-50 text-blue-500"><i class="fas fa-qrcode text-[10px]"></i>扫码</span></td>
+          <td class="px-4 py-3 text-gray-400">2026-07-03 14:00</td>
+          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">已签到</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#FF8A4C,#FF4D2D)"><i class="fas fa-store"></i></div>
+              <span class="font-medium text-gray-800">2026大唐袜业直采节</span>
+            </div>
+          </td>
+          <td class="px-4 py-3 text-gray-600">李大唐 · 大唐袜业旗舰</td>
+          <td class="px-4 py-3 text-gray-600">133****8800</td>
+          <td class="px-4 py-3"><span class="status-badge bg-blue-50 text-blue-500"><i class="fas fa-qrcode text-[10px]"></i>扫码</span></td>
+          <td class="px-4 py-3 text-gray-400">2026-07-10 09:01</td>
+          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">已签到</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#A78BFA,#7C3AED)"><i class="fas fa-palette"></i></div>
+              <span class="font-medium text-gray-800">袜品设计大赛</span>
+            </div>
+          </td>
+          <td class="px-4 py-3 text-gray-600">周商贸 · 某商贸公司</td>
+          <td class="px-4 py-3 text-gray-600">132****2200</td>
+          <td class="px-4 py-3 text-gray-400">—</td>
+          <td class="px-4 py-3 text-gray-400">—</td>
+          <td class="px-4 py-3"><span class="status-badge bg-gray-100 text-gray-500">未签到</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-primary text-[12px] hover:underline mr-2">手动签到</button>
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <!-- 分页 -->
+    <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+      <span class="text-[12px] text-gray-400">共 168 条记录，第 1-8 条</span>
+      <div class="flex items-center gap-1">
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100"><i class="fas fa-chevron-left text-[10px]"></i></button>
+        <button class="w-7 h-7 flex items-center justify-center text-white text-[12px] rounded" style="background:#FF4D2D">1</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-600 text-[12px] rounded hover:bg-gray-100">2</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-600 text-[12px] rounded hover:bg-gray-100">3</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-600 text-[12px] rounded hover:bg-gray-100">4</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-600 text-[12px] rounded hover:bg-gray-100">5</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100"><i class="fas fa-chevron-right text-[10px]"></i></button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

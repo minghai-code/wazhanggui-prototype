@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>巡检整改 - 复核关闭</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>
+tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D','primary-d':'#E63E20','primary-l':'#FF7849'}}}}
+</script>
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#f1f5f9}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
+.tab-active{color:#FF4D2D;border-bottom:2px solid #FF4D2D;font-weight:600}
+.status-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500}
+</style>
+</head>
+<body>
+
+<div class="p-6">
+
+  <!-- 页面标题 -->
+  <div class="flex items-center justify-between mb-5">
+    <div>
+      <h1 class="text-[18px] font-bold text-gray-800">巡检整改</h1>
+      <p class="text-[12px] text-gray-400 mt-0.5">市场现场治理 · 问题上报 · 整改派发 · 复核关闭</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="px-3 py-1.5 text-[12px] text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+      <button class="px-3 py-1.5 text-[12px] text-white rounded-lg transition" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)"><i class="fas fa-check-double text-[10px] mr-1"></i>批量复核</button>
+    </div>
+  </div>
+
+  <!-- Tab 导航 -->
+  <div class="flex items-center gap-6 mb-4 border-b border-gray-200">
+    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">巡检任务管理</span>
+    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">问题上报</span>
+    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">整改派发</span>
+    <span class="tab-active py-2.5 text-[13px] cursor-pointer">复核关闭</span>
+  </div>
+
+  <!-- 统计卡片 -->
+  <div class="grid grid-cols-4 gap-3 mb-5">
+    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
+      <p class="text-[11px] text-gray-400">待复核</p>
+      <p class="text-xl font-bold text-amber-500 mt-1">4</p>
+    </div>
+    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
+      <p class="text-[11px] text-gray-400">本月已关闭</p>
+      <p class="text-xl font-bold text-green-500 mt-1">22</p>
+    </div>
+    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
+      <p class="text-[11px] text-gray-400">复核通过率</p>
+      <p class="text-xl font-bold text-primary mt-1">91.7%</p>
+    </div>
+    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
+      <p class="text-[11px] text-gray-400">退回重新整改</p>
+      <p class="text-xl font-bold text-red-500 mt-1">2</p>
+    </div>
+  </div>
+
+  <!-- 筛选栏 -->
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+    <div class="flex items-center gap-3 flex-wrap">
+      <div class="relative">
+        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+        <input type="text" placeholder="整改编号 / 商户名称" class="w-56 pl-8 pr-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary focus:bg-white transition">
+      </div>
+      <select class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部状态</option>
+        <option>待复核</option>
+        <option>已通过关闭</option>
+        <option>退回整改</option>
+      </select>
+      <input type="date" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+      <span class="text-gray-300 text-xs">至</span>
+      <input type="date" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+      <button class="px-4 py-1.5 text-[13px] text-white rounded-lg" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)">查询</button>
+      <button class="px-4 py-1.5 text-[13px] text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition">重置</button>
+    </div>
+  </div>
+
+  <!-- 表格 -->
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <table class="w-full text-[13px]">
+      <thead>
+        <tr class="bg-gray-50 text-gray-500 text-[12px]">
+          <th class="px-4 py-3 text-left font-medium">整改编号</th>
+          <th class="px-4 py-3 text-left font-medium">关联问题</th>
+          <th class="px-4 py-3 text-left font-medium">整改商户</th>
+          <th class="px-4 py-3 text-left font-medium">整改完成时间</th>
+          <th class="px-4 py-3 text-left font-medium">整改说明</th>
+          <th class="px-4 py-3 text-left font-medium">状态</th>
+          <th class="px-4 py-3 text-center font-medium">操作</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-50">
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3 text-gray-600">RT20260710005</td>
+          <td class="px-4 py-3 text-gray-600">IS20260710005 · 配电箱未锁</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)"><i class="fas fa-snowflake"></i></div>
+              <span class="font-medium text-gray-800">暖足坊袜业</span>
+            </div>
+          </td>
+          <td class="px-4 py-3 text-gray-400">2026-07-12 16:20</td>
+          <td class="px-4 py-3 text-gray-600">已更换配电箱锁具，张贴警示标识</td>
+          <td class="px-4 py-3"><span class="status-badge bg-amber-50 text-amber-600">待复核</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-primary text-[12px] hover:underline mr-2">复核</button>
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3 text-gray-600">RT20260710006</td>
+          <td class="px-4 py-3 text-gray-600">IS20260710006 · 卸货区污水</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#9CA3AF,#6B7280)"><i class="fas fa-truck"></i></div>
+              <span class="font-medium text-gray-800">物流服务中心</span>
+            </div>
+          </td>
+          <td class="px-4 py-3 text-gray-400">2026-07-11 14:00</td>
+          <td class="px-4 py-3 text-gray-600">已清理排水沟，修复破损地坪</td>
+          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">已通过关闭</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3 text-gray-600">RT20260708008</td>
+          <td class="px-4 py-3 text-gray-600">IS20260708008 · 货梯运行异响</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#38BDF8,#3B82F6)"><i class="fas fa-bolt"></i></div>
+              <span class="font-medium text-gray-800">极速运动袜业</span>
+            </div>
+          </td>
+          <td class="px-4 py-3 text-gray-400">2026-07-10 11:30</td>
+          <td class="px-4 py-3 text-gray-600">已更换导轨润滑油，紧固松动部件</td>
+          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">已通过关闭</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3 text-gray-600">RT20260707009</td>
+          <td class="px-4 py-3 text-gray-600">IS20260707009 · 灭火器过期</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#FF8A4C,#FF4D2D)"><i class="fas fa-crown"></i></div>
+              <span class="font-medium text-gray-800">大唐袜业旗舰</span>
+            </div>
+          </td>
+          <td class="px-4 py-3 text-gray-400">2026-07-09 10:00</td>
+          <td class="px-4 py-3 text-gray-600">已更换全部过期灭火器，共12具</td>
+          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">已通过关闭</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3 text-gray-600">RT20260706010</td>
+          <td class="px-4 py-3 text-gray-600">IS20260706010 · 货物占道堆放</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#FB7185,#EC4899)"><i class="fas fa-socks"></i></div>
+              <span class="font-medium text-gray-800">花间舞袜业</span>
+            </div>
+          </td>
+          <td class="px-4 py-3 text-gray-400">2026-07-08 15:20</td>
+          <td class="px-4 py-3 text-gray-600">已将货物搬入仓库，通道恢复畅通</td>
+          <td class="px-4 py-3"><span class="status-badge bg-red-50 text-red-500">退回整改</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-primary text-[12px] hover:underline mr-2">重新复核</button>
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3 text-gray-600">RT20260705011</td>
+          <td class="px-4 py-3 text-gray-600">IS20260705011 · 急停按钮损坏</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#A78BFA,#7C3AED)"><i class="fas fa-gears"></i></div>
+              <span class="font-medium text-gray-800">智造袜机设备</span>
+            </div>
+          </td>
+          <td class="px-4 py-3 text-gray-400">2026-07-07 09:15</td>
+          <td class="px-4 py-3 text-gray-600">已更换急停按钮，测试功能正常</td>
+          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">已通过关闭</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3 text-gray-600">RT20260704012</td>
+          <td class="px-4 py-3 text-gray-600">IS20260704012 · 垃圾未分类</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#2DD4BF,#14B8A6)"><i class="fas fa-leaf"></i></div>
+              <span class="font-medium text-gray-800">绿源纤维科技</span>
+            </div>
+          </td>
+          <td class="px-4 py-3 text-gray-400">2026-07-06 14:00</td>
+          <td class="px-4 py-3 text-gray-600">已配置分类垃圾桶，张贴分类指引</td>
+          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">已通过关闭</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3 text-gray-600">RT20260703013</td>
+          <td class="px-4 py-3 text-gray-600">IS20260703013 · 应急灯故障</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#34D399,#10B981)"><i class="fas fa-seedling"></i></div>
+              <span class="font-medium text-gray-800">棉田纱线厂</span>
+            </div>
+          </td>
+          <td class="px-4 py-3 text-gray-400">2026-07-05 11:00</td>
+          <td class="px-4 py-3 text-gray-600">已更换应急灯电池，测试放电正常</td>
+          <td class="px-4 py-3"><span class="status-badge bg-red-50 text-red-500">退回整改</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-primary text-[12px] hover:underline mr-2">重新复核</button>
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <!-- 分页 -->
+    <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+      <span class="text-[12px] text-gray-400">共 28 条记录，第 1-8 条</span>
+      <div class="flex items-center gap-1">
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100"><i class="fas fa-chevron-left text-[10px]"></i></button>
+        <button class="w-7 h-7 flex items-center justify-center text-white text-[12px] rounded" style="background:#FF4D2D">1</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-600 text-[12px] rounded hover:bg-gray-100">2</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-600 text-[12px] rounded hover:bg-gray-100">3</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-600 text-[12px] rounded hover:bg-gray-100">4</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100"><i class="fas fa-chevron-right text-[10px]"></i></button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

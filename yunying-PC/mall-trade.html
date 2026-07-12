@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>商城运营 - 交易监控</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>
+tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D','primary-d':'#E63E20','primary-l':'#FF7849'}}}}
+</script>
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#f1f5f9}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
+.tab-active{color:#FF4D2D;border-bottom:2px solid #FF4D2D;font-weight:600}
+.status-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500}
+</style>
+</head>
+<body>
+
+<div class="p-6">
+
+  <!-- 页面标题 -->
+  <div class="flex items-center justify-between mb-5">
+    <div>
+      <h1 class="text-[18px] font-bold text-gray-800">商城运营</h1>
+      <p class="text-[12px] text-gray-400 mt-0.5">B2B商城治理 · 商品审核 · 店铺审核 · 交易监控 · 纠纷仲裁 · 信用管理</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="px-3 py-1.5 text-[12px] text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+      <button class="px-3 py-1.5 text-[12px] text-white rounded-lg transition" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)"><i class="fas fa-sliders text-[10px] mr-1"></i>风控规则</button>
+    </div>
+  </div>
+
+  <!-- Tab 导航 -->
+  <div class="flex items-center gap-6 mb-4 border-b border-gray-200">
+    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">商品审核</span>
+    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">店铺审核</span>
+    <span class="tab-active py-2.5 text-[13px] cursor-pointer">交易监控</span>
+    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">纠纷仲裁</span>
+    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">信用管理</span>
+  </div>
+
+  <!-- 统计卡片 -->
+  <div class="grid grid-cols-4 gap-3 mb-5">
+    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
+      <p class="text-[11px] text-gray-400">今日交易额</p>
+      <p class="text-xl font-bold text-primary mt-1">¥86.2万</p>
+    </div>
+    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
+      <p class="text-[11px] text-gray-400">异常交易数</p>
+      <p class="text-xl font-bold text-amber-500 mt-1">12</p>
+    </div>
+    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
+      <p class="text-[11px] text-gray-400">大额退款</p>
+      <p class="text-xl font-bold text-red-500 mt-1">3</p>
+    </div>
+    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
+      <p class="text-[11px] text-gray-400">刷单嫌疑</p>
+      <p class="text-xl font-bold text-red-500 mt-1">2</p>
+    </div>
+  </div>
+
+  <!-- 筛选栏 -->
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+    <div class="flex items-center gap-3 flex-wrap">
+      <div class="relative">
+        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+        <input type="text" placeholder="订单号 / 监控编号 / 商户" class="w-56 pl-8 pr-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary focus:bg-white transition">
+      </div>
+      <select class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部类型</option>
+        <option>正常交易</option>
+        <option>大额退款</option>
+        <option>频繁交易</option>
+        <option>低价异常</option>
+      </select>
+      <select class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部风险</option>
+        <option>高风险</option>
+        <option>中风险</option>
+        <option>低风险</option>
+      </select>
+      <select class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部状态</option>
+        <option>正常</option>
+        <option>预警</option>
+        <option>异常</option>
+        <option>已处理</option>
+      </select>
+      <button class="px-4 py-1.5 text-[13px] text-white rounded-lg" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)">查询</button>
+      <button class="px-4 py-1.5 text-[13px] text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition">重置</button>
+    </div>
+  </div>
+
+  <!-- 表格 -->
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-[13px] min-w-[1100px]">
+        <thead>
+          <tr class="bg-gray-50 text-gray-500 text-[12px]">
+            <th class="px-4 py-3 text-left font-medium">监控编号</th>
+            <th class="px-4 py-3 text-left font-medium">订单号</th>
+            <th class="px-4 py-3 text-left font-medium">交易类型</th>
+            <th class="px-4 py-3 text-left font-medium">交易金额</th>
+            <th class="px-4 py-3 text-left font-medium">买卖双方</th>
+            <th class="px-4 py-3 text-left font-medium">触发规则</th>
+            <th class="px-4 py-3 text-left font-medium">风险等级</th>
+            <th class="px-4 py-3 text-left font-medium">状态</th>
+            <th class="px-4 py-3 text-center font-medium">操作</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+          <tr class="hover:bg-gray-50 transition">
+            <td class="px-4 py-3 text-gray-600">JK20260712001</td>
+            <td class="px-4 py-3 text-gray-600">SO20260712035</td>
+            <td class="px-4 py-3"><span class="status-badge bg-blue-50 text-blue-500">正常交易</span></td>
+            <td class="px-4 py-3 font-medium text-gray-800">¥12,580.00</td>
+            <td class="px-4 py-3 text-gray-600">大唐旗舰袜业 → 杭州某服饰</td>
+            <td class="px-4 py-3 text-gray-500 text-[12px]">-</td>
+            <td class="px-4 py-3"><span class="status-badge bg-blue-50 text-blue-500">低</span></td>
+            <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">正常</span></td>
+            <td class="px-4 py-3 text-center">
+              <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+            </td>
+          </tr>
+          <tr class="hover:bg-gray-50 transition">
+            <td class="px-4 py-3 text-gray-600">JK20260712002</td>
+            <td class="px-4 py-3 text-gray-600">SO20260711068</td>
+            <td class="px-4 py-3"><span class="status-badge bg-red-50 text-red-500">大额退款</span></td>
+            <td class="px-4 py-3 font-medium text-gray-800">¥86,400.00</td>
+            <td class="px-4 py-3 text-gray-600">极速运动袜业 → 深圳某电商</td>
+            <td class="px-4 py-3 text-gray-500 text-[12px]">退款金额>5万</td>
+            <td class="px-4 py-3"><span class="status-badge bg-red-50 text-red-500">高</span></td>
+            <td class="px-4 py-3"><span class="status-badge bg-red-50 text-red-500">异常</span></td>
+            <td class="px-4 py-3 text-center">
+              <button class="text-primary text-[12px] hover:underline mr-2">处理</button>
+              <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+            </td>
+          </tr>
+          <tr class="hover:bg-gray-50 transition">
+            <td class="px-4 py-3 text-gray-600">JK20260712003</td>
+            <td class="px-4 py-3 text-gray-600">SO20260711092</td>
+            <td class="px-4 py-3"><span class="status-badge bg-amber-50 text-amber-600">频繁交易</span></td>
+            <td class="px-4 py-3 font-medium text-gray-800">¥3,260.00</td>
+            <td class="px-4 py-3 text-gray-600">花间舞袜业 → 义乌某商行</td>
+            <td class="px-4 py-3 text-gray-500 text-[12px]">24h内同买卖5单</td>
+            <td class="px-4 py-3"><span class="status-badge bg-amber-50 text-amber-600">中</span></td>
+            <td class="px-4 py-3"><span class="status-badge bg-amber-50 text-amber-600">预警</span></td>
+            <td class="px-4 py-3 text-center">
+              <button class="text-primary text-[12px] hover:underline mr-2">处理</button>
+              <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+            </td>
+          </tr>
+          <tr class="hover:bg-gray-50 transition">
+            <td class="px-4 py-3 text-gray-600">JK20260712004</td>
+            <td class="px-4 py-3 text-gray-600">SO20260711088</td>
+            <td class="px-4 py-3"><span class="status-badge bg-red-50 text-red-500">低价异常</span></td>
+            <td class="px-4 py-3 font-medium text-gray-800">¥0.58/双</td>
+            <td class="px-4 py-3 text-gray-600">某低价袜店 → 某采购商</td>
+            <td class="px-4 py-3 text-gray-500 text-[12px]">低于市场均价60%</td>
+            <td class="px-4 py-3"><span class="status-badge bg-red-50 text-red-500">高</span></td>
+            <td class="px-4 py-3"><span class="status-badge bg-red-50 text-red-500">异常</span></td>
+            <td class="px-4 py-3 text-center">
+              <button class="text-primary text-[12px] hover:underline mr-2">处理</button>
+              <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+            </td>
+          </tr>
+          <tr class="hover:bg-gray-50 transition">
+            <td class="px-4 py-3 text-gray-600">JK20260711005</td>
+            <td class="px-4 py-3 text-gray-600">SO20260710045</td>
+            <td class="px-4 py-3"><span class="status-badge bg-blue-50 text-blue-500">正常交易</span></td>
+            <td class="px-4 py-3 font-medium text-gray-800">¥28,900.00</td>
+            <td class="px-4 py-3 text-gray-600">绿源纤维科技 → 棉田纱线厂</td>
+            <td class="px-4 py-3 text-gray-500 text-[12px]">-</td>
+            <td class="px-4 py-3"><span class="status-badge bg-blue-50 text-blue-500">低</span></td>
+            <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">正常</span></td>
+            <td class="px-4 py-3 text-center">
+              <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+            </td>
+          </tr>
+          <tr class="hover:bg-gray-50 transition">
+            <td class="px-4 py-3 text-gray-600">JK20260711006</td>
+            <td class="px-4 py-3 text-gray-600">SO20260710036</td>
+            <td class="px-4 py-3"><span class="status-badge bg-amber-50 text-amber-600">频繁交易</span></td>
+            <td class="px-4 py-3 font-medium text-gray-800">¥1,580.00</td>
+            <td class="px-4 py-3 text-gray-600">暖足坊袜业 → 某批发商</td>
+            <td class="px-4 py-3 text-gray-500 text-[12px]">疑似刷单·短时高频</td>
+            <td class="px-4 py-3"><span class="status-badge bg-red-50 text-red-500">高</span></td>
+            <td class="px-4 py-3"><span class="status-badge bg-amber-50 text-amber-600">预警</span></td>
+            <td class="px-4 py-3 text-center">
+              <button class="text-primary text-[12px] hover:underline mr-2">处理</button>
+              <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+            </td>
+          </tr>
+          <tr class="hover:bg-gray-50 transition">
+            <td class="px-4 py-3 text-gray-600">JK20260710007</td>
+            <td class="px-4 py-3 text-gray-600">SO20260709072</td>
+            <td class="px-4 py-3"><span class="status-badge bg-red-50 text-red-500">大额退款</span></td>
+            <td class="px-4 py-3 font-medium text-gray-800">¥52,300.00</td>
+            <td class="px-4 py-3 text-gray-600">智造袜机设备 → 某织造厂</td>
+            <td class="px-4 py-3 text-gray-500 text-[12px]">退款金额>5万</td>
+            <td class="px-4 py-3"><span class="status-badge bg-amber-50 text-amber-600">中</span></td>
+            <td class="px-4 py-3"><span class="status-badge bg-gray-100 text-gray-500">已处理</span></td>
+            <td class="px-4 py-3 text-center">
+              <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+            </td>
+          </tr>
+          <tr class="hover:bg-gray-50 transition">
+            <td class="px-4 py-3 text-gray-600">JK20260710008</td>
+            <td class="px-4 py-3 text-gray-600">SO20260709058</td>
+            <td class="px-4 py-3"><span class="status-badge bg-blue-50 text-blue-500">正常交易</span></td>
+            <td class="px-4 py-3 font-medium text-gray-800">¥6,720.00</td>
+            <td class="px-4 py-3 text-gray-600">棉田纱线厂 → 暖足坊袜业</td>
+            <td class="px-4 py-3 text-gray-500 text-[12px]">-</td>
+            <td class="px-4 py-3"><span class="status-badge bg-blue-50 text-blue-500">低</span></td>
+            <td class="px-4 py-3"><span class="status-badge bg-gray-100 text-gray-500">已处理</span></td>
+            <td class="px-4 py-3 text-center">
+              <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <!-- 分页 -->
+    <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+      <span class="text-[12px] text-gray-400">共 37 条记录，第 1-8 条</span>
+      <div class="flex items-center gap-1">
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100"><i class="fas fa-chevron-left text-[10px]"></i></button>
+        <button class="w-7 h-7 flex items-center justify-center text-white text-[12px] rounded" style="background:#FF4D2D">1</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-600 text-[12px] rounded hover:bg-gray-100">2</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-600 text-[12px] rounded hover:bg-gray-100">3</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100"><i class="fas fa-chevron-right text-[10px]"></i></button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

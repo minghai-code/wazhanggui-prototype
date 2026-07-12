@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>服务市场管理 - 服务分类管理</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>
+tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D','primary-d':'#E63E20','primary-l':'#FF7849'}}}}
+</script>
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#f1f5f9}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
+.tab-active{color:#FF4D2D;border-bottom:2px solid #FF4D2D;font-weight:600}
+.status-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500}
+</style>
+</head>
+<body>
+
+<div class="p-6">
+
+  <!-- 页面标题 -->
+  <div class="flex items-center justify-between mb-5">
+    <div>
+      <h1 class="text-[18px] font-bold text-gray-800">服务市场管理</h1>
+      <p class="text-[12px] text-gray-400 mt-0.5">产业服务市场运营管理 · 分类增删改查 · 分类排序 · 状态管理</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="px-3 py-1.5 text-[12px] text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+      <button class="px-3 py-1.5 text-[12px] text-white rounded-lg transition" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)"><i class="fas fa-plus text-[10px] mr-1"></i>新建分类</button>
+    </div>
+  </div>
+
+  <!-- Tab 导航 -->
+  <div class="flex items-center gap-6 mb-4 border-b border-gray-200">
+    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">服务商入驻审核</span>
+    <span class="tab-active py-2.5 text-[13px] cursor-pointer">服务分类管理</span>
+    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">评价管理</span>
+  </div>
+
+  <!-- 统计卡片 -->
+  <div class="grid grid-cols-4 gap-3 mb-5">
+    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
+      <p class="text-[11px] text-gray-400">一级分类</p>
+      <p class="text-xl font-bold text-primary mt-1">7</p>
+    </div>
+    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
+      <p class="text-[11px] text-gray-400">二级分类</p>
+      <p class="text-xl font-bold text-green-500 mt-1">28</p>
+    </div>
+    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
+      <p class="text-[11px] text-gray-400">关联服务数</p>
+      <p class="text-xl font-bold text-blue-500 mt-1">156</p>
+    </div>
+    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
+      <p class="text-[11px] text-gray-400">关联服务商</p>
+      <p class="text-xl font-bold text-amber-500 mt-1">82</p>
+    </div>
+  </div>
+
+  <!-- 筛选栏 -->
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+    <div class="flex items-center gap-3 flex-wrap">
+      <div class="relative">
+        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+        <input type="text" placeholder="分类编号 / 分类名称" class="w-56 pl-8 pr-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary focus:bg-white transition">
+      </div>
+      <select class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部分类层级</option>
+        <option>一级分类</option>
+        <option>二级分类</option>
+      </select>
+      <select class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部父分类</option>
+        <option>物流服务</option>
+        <option>质检服务</option>
+        <option>金融服务</option>
+        <option>设计服务</option>
+        <option>法律服务</option>
+        <option>营销服务</option>
+        <option>认证服务</option>
+      </select>
+      <select class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部状态</option>
+        <option>启用</option>
+        <option>禁用</option>
+      </select>
+      <button class="px-4 py-1.5 text-[13px] text-white rounded-lg" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)">查询</button>
+      <button class="px-4 py-1.5 text-[13px] text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition">重置</button>
+    </div>
+  </div>
+
+  <!-- 表格 -->
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <table class="w-full text-[13px]">
+      <thead>
+        <tr class="bg-gray-50 text-gray-500 text-[12px]">
+          <th class="px-4 py-3 text-left font-medium">分类编号</th>
+          <th class="px-4 py-3 text-left font-medium">分类名称</th>
+          <th class="px-4 py-3 text-left font-medium">分类层级</th>
+          <th class="px-4 py-3 text-left font-medium">父分类</th>
+          <th class="px-4 py-3 text-left font-medium">关联服务数</th>
+          <th class="px-4 py-3 text-left font-medium">排序权重</th>
+          <th class="px-4 py-3 text-left font-medium">状态</th>
+          <th class="px-4 py-3 text-center font-medium">操作</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-50">
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3 text-gray-600">SC1001</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#38BDF8,#3B82F6)"><i class="fas fa-truck"></i></div>
+              <span class="font-medium text-gray-800">物流服务</span>
+            </div>
+          </td>
+          <td class="px-4 py-3"><span class="status-badge bg-blue-50 text-blue-500">一级</span></td>
+          <td class="px-4 py-3 text-gray-400">—</td>
+          <td class="px-4 py-3 text-gray-600">42</td>
+          <td class="px-4 py-3 text-gray-600">100</td>
+          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">启用</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-primary text-[12px] hover:underline mr-2">编辑</button>
+            <button class="text-primary text-[12px] hover:underline mr-2">添加子分类</button>
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3 text-gray-600">SC1002</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#2DD4BF,#14B8A6)"><i class="fas fa-clipboard-check"></i></div>
+              <span class="font-medium text-gray-800">质检服务</span>
+            </div>
+          </td>
+          <td class="px-4 py-3"><span class="status-badge bg-blue-50 text-blue-500">一级</span></td>
+          <td class="px-4 py-3 text-gray-400">—</td>
+          <td class="px-4 py-3 text-gray-600">28</td>
+          <td class="px-4 py-3 text-gray-600">99</td>
+          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">启用</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-primary text-[12px] hover:underline mr-2">编辑</button>
+            <button class="text-primary text-[12px] hover:underline mr-2">添加子分类</button>
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3 text-gray-600">SC100201</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#2DD4BF,#14B8A6)"><i class="fas fa-socks"></i></div>
+              <span class="font-medium text-gray-800">袜品质量检测</span>
+            </div>
+          </td>
+          <td class="px-4 py-3"><span class="status-badge bg-gray-100 text-gray-500">二级</span></td>
+          <td class="px-4 py-3 text-gray-600">质检服务</td>
+          <td class="px-4 py-3 text-gray-600">16</td>
+          <td class="px-4 py-3 text-gray-600">10</td>
+          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">启用</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-primary text-[12px] hover:underline mr-2">编辑</button>
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3 text-gray-600">SC1003</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)"><i class="fas fa-yen-sign"></i></div>
+              <span class="font-medium text-gray-800">金融服务</span>
+            </div>
+          </td>
+          <td class="px-4 py-3"><span class="status-badge bg-blue-50 text-blue-500">一级</span></td>
+          <td class="px-4 py-3 text-gray-400">—</td>
+          <td class="px-4 py-3 text-gray-600">18</td>
+          <td class="px-4 py-3 text-gray-600">98</td>
+          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">启用</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-primary text-[12px] hover:underline mr-2">编辑</button>
+            <button class="text-primary text-[12px] hover:underline mr-2">添加子分类</button>
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3 text-gray-600">SC1004</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#A78BFA,#7C3AED)"><i class="fas fa-palette"></i></div>
+              <span class="font-medium text-gray-800">设计服务</span>
+            </div>
+          </td>
+          <td class="px-4 py-3"><span class="status-badge bg-blue-50 text-blue-500">一级</span></td>
+          <td class="px-4 py-3 text-gray-400">—</td>
+          <td class="px-4 py-3 text-gray-600">22</td>
+          <td class="px-4 py-3 text-gray-600">97</td>
+          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">启用</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-primary text-[12px] hover:underline mr-2">编辑</button>
+            <button class="text-primary text-[12px] hover:underline mr-2">添加子分类</button>
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3 text-gray-600">SC100401</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#A78BFA,#7C3AED)"><i class="fas fa-paintbrush"></i></div>
+              <span class="font-medium text-gray-800">袜款花型设计</span>
+            </div>
+          </td>
+          <td class="px-4 py-3"><span class="status-badge bg-gray-100 text-gray-500">二级</span></td>
+          <td class="px-4 py-3 text-gray-600">设计服务</td>
+          <td class="px-4 py-3 text-gray-600">12</td>
+          <td class="px-4 py-3 text-gray-600">10</td>
+          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">启用</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-primary text-[12px] hover:underline mr-2">编辑</button>
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3 text-gray-600">SC1005</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#9CA3AF,#6B7280)"><i class="fas fa-bullhorn"></i></div>
+              <span class="font-medium text-gray-800">营销服务</span>
+            </div>
+          </td>
+          <td class="px-4 py-3"><span class="status-badge bg-blue-50 text-blue-500">一级</span></td>
+          <td class="px-4 py-3 text-gray-400">—</td>
+          <td class="px-4 py-3 text-gray-600">20</td>
+          <td class="px-4 py-3 text-gray-600">96</td>
+          <td class="px-4 py-3"><span class="status-badge bg-gray-100 text-gray-500">禁用</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-primary text-[12px] hover:underline mr-2">编辑</button>
+            <button class="text-primary text-[12px] hover:underline mr-2">添加子分类</button>
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3 text-gray-600">SC1006</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#FF8A4C,#FF4D2D)"><i class="fas fa-certificate"></i></div>
+              <span class="font-medium text-gray-800">认证服务</span>
+            </div>
+          </td>
+          <td class="px-4 py-3"><span class="status-badge bg-blue-50 text-blue-500">一级</span></td>
+          <td class="px-4 py-3 text-gray-400">—</td>
+          <td class="px-4 py-3 text-gray-600">8</td>
+          <td class="px-4 py-3 text-gray-600">95</td>
+          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">启用</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-primary text-[12px] hover:underline mr-2">编辑</button>
+            <button class="text-primary text-[12px] hover:underline mr-2">添加子分类</button>
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <!-- 分页 -->
+    <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+      <span class="text-[12px] text-gray-400">共 35 条记录，第 1-8 条</span>
+      <div class="flex items-center gap-1">
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100"><i class="fas fa-chevron-left text-[10px]"></i></button>
+        <button class="w-7 h-7 flex items-center justify-center text-white text-[12px] rounded" style="background:#FF4D2D">1</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-600 text-[12px] rounded hover:bg-gray-100">2</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-600 text-[12px] rounded hover:bg-gray-100">3</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-600 text-[12px] rounded hover:bg-gray-100">...</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100"><i class="fas fa-chevron-right text-[10px]"></i></button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

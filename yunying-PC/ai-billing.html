@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI工具运营 - 计费策略</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>
+tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D','primary-d':'#E63E20','primary-l':'#FF7849'}}}}
+</script>
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#f1f5f9}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
+.tab-active{color:#FF4D2D;border-bottom:2px solid #FF4D2D;font-weight:600}
+.status-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500}
+</style>
+</head>
+<body>
+
+<div class="p-6">
+
+  <!-- 页面标题 -->
+  <div class="flex items-center justify-between mb-5">
+    <div>
+      <h1 class="text-[18px] font-bold text-gray-800">AI工具运营</h1>
+      <p class="text-[12px] text-gray-400 mt-0.5">AI能力服务运营管理 · 套餐管理 · 免费额度 · 计费规则配置</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="px-3 py-1.5 text-[12px] text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+      <button class="px-3 py-1.5 text-[12px] text-white rounded-lg transition" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)"><i class="fas fa-plus text-[10px] mr-1"></i>新建策略</button>
+    </div>
+  </div>
+
+  <!-- Tab 导航 -->
+  <div class="flex items-center gap-6 mb-4 border-b border-gray-200">
+    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">AI工具配置</span>
+    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">服务商管理</span>
+    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">使用统计</span>
+    <span class="tab-active py-2.5 text-[13px] cursor-pointer">计费策略</span>
+  </div>
+
+  <!-- 统计卡片 -->
+  <div class="grid grid-cols-4 gap-3 mb-5">
+    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
+      <p class="text-[11px] text-gray-400">生效中策略</p>
+      <p class="text-xl font-bold text-primary mt-1">9</p>
+    </div>
+    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
+      <p class="text-[11px] text-gray-400">免费额度配置</p>
+      <p class="text-xl font-bold text-green-500 mt-1">6</p>
+    </div>
+    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
+      <p class="text-[11px] text-gray-400">付费策略</p>
+      <p class="text-xl font-bold text-blue-500 mt-1">8</p>
+    </div>
+    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
+      <p class="text-[11px] text-gray-400">月收入</p>
+      <p class="text-xl font-bold text-amber-500 mt-1">¥86.2万</p>
+    </div>
+  </div>
+
+  <!-- 筛选栏 -->
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+    <div class="flex items-center gap-3 flex-wrap">
+      <div class="relative">
+        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+        <input type="text" placeholder="策略编号 / 策略名称" class="w-56 pl-8 pr-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary focus:bg-white transition">
+      </div>
+      <select class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部计费方式</option>
+        <option>按次</option>
+        <option>包月</option>
+        <option>包年</option>
+        <option>分成</option>
+      </select>
+      <select class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部状态</option>
+        <option>生效中</option>
+        <option>草稿</option>
+        <option>已停用</option>
+      </select>
+      <button class="px-4 py-1.5 text-[13px] text-white rounded-lg" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)">查询</button>
+      <button class="px-4 py-1.5 text-[13px] text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition">重置</button>
+    </div>
+  </div>
+
+  <!-- 表格 -->
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <table class="w-full text-[13px]">
+      <thead>
+        <tr class="bg-gray-50 text-gray-500 text-[12px]">
+          <th class="px-4 py-3 text-left font-medium">策略编号</th>
+          <th class="px-4 py-3 text-left font-medium">策略名称</th>
+          <th class="px-4 py-3 text-left font-medium">计费方式</th>
+          <th class="px-4 py-3 text-left font-medium">免费额度</th>
+          <th class="px-4 py-3 text-left font-medium">付费单价</th>
+          <th class="px-4 py-3 text-left font-medium">适用工具</th>
+          <th class="px-4 py-3 text-left font-medium">生效时间</th>
+          <th class="px-4 py-3 text-left font-medium">状态</th>
+          <th class="px-4 py-3 text-center font-medium">操作</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-50">
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3 text-gray-600">BP20260712001</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#FF8A4C,#FF4D2D)"><i class="fas fa-coins"></i></div>
+              <span class="font-medium text-gray-800">新手体验套餐</span>
+            </div>
+          </td>
+          <td class="px-4 py-3 text-gray-600">按次</td>
+          <td class="px-4 py-3 text-gray-600">100次/月</td>
+          <td class="px-4 py-3 text-gray-600">¥0.05/次</td>
+          <td class="px-4 py-3 text-gray-600">全部工具</td>
+          <td class="px-4 py-3 text-gray-400">2026-05-01</td>
+          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">生效中</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-primary text-[12px] hover:underline mr-2">编辑</button>
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3 text-gray-600">BP20260712002</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#38BDF8,#3B82F6)"><i class="fas fa-box"></i></div>
+              <span class="font-medium text-gray-800">图片生成包月套餐</span>
+            </div>
+          </td>
+          <td class="px-4 py-3 text-gray-600">包月</td>
+          <td class="px-4 py-3 text-gray-600">500次/月</td>
+          <td class="px-4 py-3 text-gray-600">¥299/月</td>
+          <td class="px-4 py-3 text-gray-600">AI商品主图生成</td>
+          <td class="px-4 py-3 text-gray-400">2026-05-15</td>
+          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">生效中</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-primary text-[12px] hover:underline mr-2">编辑</button>
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3 text-gray-600">BP20260711003</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#A78BFA,#7C3AED)"><i class="fas fa-crown"></i></div>
+              <span class="font-medium text-gray-800">企业年度全能包</span>
+            </div>
+          </td>
+          <td class="px-4 py-3 text-gray-600">包年</td>
+          <td class="px-4 py-3 text-gray-600">不限次</td>
+          <td class="px-4 py-3 text-gray-600">¥9,800/年</td>
+          <td class="px-4 py-3 text-gray-600">全部工具</td>
+          <td class="px-4 py-3 text-gray-400">2026-06-01</td>
+          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">生效中</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-primary text-[12px] hover:underline mr-2">编辑</button>
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3 text-gray-600">BP20260711004</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#2DD4BF,#14B8A6)"><i class="fas fa-handshake"></i></div>
+              <span class="font-medium text-gray-800">客服AI分成策略</span>
+            </div>
+          </td>
+          <td class="px-4 py-3 text-gray-600">分成</td>
+          <td class="px-4 py-3 text-gray-600">1,000次/月</td>
+          <td class="px-4 py-3 text-gray-600">20%分成</td>
+          <td class="px-4 py-3 text-gray-600">智能客服问答</td>
+          <td class="px-4 py-3 text-gray-400">2026-06-10</td>
+          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">生效中</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-primary text-[12px] hover:underline mr-2">编辑</button>
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3 text-gray-600">BP20260710005</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)"><i class="fas fa-film"></i></div>
+              <span class="font-medium text-gray-800">视频生成按次付费</span>
+            </div>
+          </td>
+          <td class="px-4 py-3 text-gray-600">按次</td>
+          <td class="px-4 py-3 text-gray-600">10次/月</td>
+          <td class="px-4 py-3 text-gray-600">¥2.5/次</td>
+          <td class="px-4 py-3 text-gray-600">商品视频自动生成</td>
+          <td class="px-4 py-3 text-gray-400">2026-06-20</td>
+          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">生效中</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-primary text-[12px] hover:underline mr-2">编辑</button>
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3 text-gray-600">BP20260709006</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#9CA3AF,#6B7280)"><i class="fas fa-file-pen"></i></div>
+              <span class="font-medium text-gray-800">文案生成包月套餐</span>
+            </div>
+          </td>
+          <td class="px-4 py-3 text-gray-600">包月</td>
+          <td class="px-4 py-3 text-gray-600">300次/月</td>
+          <td class="px-4 py-3 text-gray-600">¥199/月</td>
+          <td class="px-4 py-3 text-gray-600">袜业营销文案生成</td>
+          <td class="px-4 py-3 text-gray-400">2026-07-01</td>
+          <td class="px-4 py-3"><span class="status-badge bg-gray-100 text-gray-500">草稿</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-primary text-[12px] hover:underline mr-2">编辑</button>
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3 text-gray-600">BP20260708007</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#34D399,#10B981)"><i class="fas fa-language"></i></div>
+              <span class="font-medium text-gray-800">翻译工具加量包</span>
+            </div>
+          </td>
+          <td class="px-4 py-3 text-gray-600">按次</td>
+          <td class="px-4 py-3 text-gray-600">无</td>
+          <td class="px-4 py-3 text-gray-600">¥0.02/次</td>
+          <td class="px-4 py-3 text-gray-600">跨境商品翻译</td>
+          <td class="px-4 py-3 text-gray-400">2026-06-25</td>
+          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">生效中</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-primary text-[12px] hover:underline mr-2">编辑</button>
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3 text-gray-600">BP20260707008</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#FB7185,#EC4899)"><i class="fas fa-pen-fancy"></i></div>
+              <span class="font-medium text-gray-800">SEO优化按次策略</span>
+            </div>
+          </td>
+          <td class="px-4 py-3 text-gray-600">按次</td>
+          <td class="px-4 py-3 text-gray-600">50次/月</td>
+          <td class="px-4 py-3 text-gray-600">¥0.1/次</td>
+          <td class="px-4 py-3 text-gray-600">SEO标题优化</td>
+          <td class="px-4 py-3 text-gray-400">2026-06-15</td>
+          <td class="px-4 py-3"><span class="status-badge bg-red-50 text-red-500">已停用</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-primary text-[12px] hover:underline mr-2">编辑</button>
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <!-- 分页 -->
+    <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+      <span class="text-[12px] text-gray-400">共 14 条记录，第 1-8 条</span>
+      <div class="flex items-center gap-1">
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100"><i class="fas fa-chevron-left text-[10px]"></i></button>
+        <button class="w-7 h-7 flex items-center justify-center text-white text-[12px] rounded" style="background:#FF4D2D">1</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-600 text-[12px] rounded hover:bg-gray-100">2</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100"><i class="fas fa-chevron-right text-[10px]"></i></button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>招商管理 - 空置资源管理</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>
+tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D','primary-d':'#E63E20','primary-l':'#FF7849'}}}}
+</script>
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#f1f5f9}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
+.tab-active{color:#FF4D2D;border-bottom:2px solid #FF4D2D;font-weight:600}
+.status-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500}
+</style>
+</head>
+<body>
+
+<div class="p-6">
+
+  <!-- 页面标题 -->
+  <div class="flex items-center justify-between mb-5">
+    <div>
+      <h1 class="text-[18px] font-bold text-gray-800">招商管理</h1>
+      <p class="text-[12px] text-gray-400 mt-0.5">主动招商引资 · 线索管理 · 意向跟进 · 空置资源 · 政策配置</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="px-3 py-1.5 text-[12px] text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+      <button class="px-3 py-1.5 text-[12px] text-white rounded-lg transition" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)"><i class="fas fa-share-nodes text-[10px] mr-1"></i>推荐匹配</button>
+    </div>
+  </div>
+
+  <!-- Tab 导航 -->
+  <div class="flex items-center gap-6 mb-4 border-b border-gray-200">
+    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">招商线索</span>
+    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">意向跟进</span>
+    <span class="tab-active py-2.5 text-[13px] cursor-pointer">空置资源管理</span>
+    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">招商政策配置</span>
+  </div>
+
+  <!-- 统计卡片 -->
+  <div class="grid grid-cols-4 gap-3 mb-5">
+    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
+      <p class="text-[11px] text-gray-400">空置商铺总数</p>
+      <p class="text-xl font-bold text-red-500 mt-1">23</p>
+    </div>
+    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
+      <p class="text-[11px] text-gray-400">空置率</p>
+      <p class="text-xl font-bold text-amber-500 mt-1">8.5%</p>
+    </div>
+    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
+      <p class="text-[11px] text-gray-400">本月释放</p>
+      <p class="text-xl font-bold text-green-500 mt-1">5</p>
+    </div>
+    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
+      <p class="text-[11px] text-gray-400">平均空置天数</p>
+      <p class="text-xl font-bold text-primary mt-1">42</p>
+    </div>
+  </div>
+
+  <!-- 筛选栏 -->
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+    <div class="flex items-center gap-3 flex-wrap">
+      <div class="relative">
+        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+        <input type="text" placeholder="商位编号 / 原商户" class="w-56 pl-8 pr-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary focus:bg-white transition">
+      </div>
+      <select class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部楼层</option>
+        <option>1F</option>
+        <option>2F</option>
+        <option>3F</option>
+        <option>B1</option>
+      </select>
+      <select class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部状态</option>
+        <option>空置中</option>
+        <option>已推荐</option>
+        <option>预定中</option>
+        <option>已签约</option>
+      </select>
+      <button class="px-4 py-1.5 text-[13px] text-white rounded-lg" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)">查询</button>
+      <button class="px-4 py-1.5 text-[13px] text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition">重置</button>
+    </div>
+  </div>
+
+  <!-- 表格 -->
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <table class="w-full text-[13px]">
+      <thead>
+        <tr class="bg-gray-50 text-gray-500 text-[12px]">
+          <th class="px-4 py-3 text-left font-medium">商位编号</th>
+          <th class="px-4 py-3 text-left font-medium">楼栋楼层</th>
+          <th class="px-4 py-3 text-left font-medium">面积(㎡)</th>
+          <th class="px-4 py-3 text-left font-medium">原商户</th>
+          <th class="px-4 py-3 text-left font-medium">空置开始日期</th>
+          <th class="px-4 py-3 text-left font-medium">空置天数</th>
+          <th class="px-4 py-3 text-left font-medium">推荐状态</th>
+          <th class="px-4 py-3 text-center font-medium">操作</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-50">
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3 text-gray-600">1F-A08</td>
+          <td class="px-4 py-3 text-gray-600">1号楼 1层 A区</td>
+          <td class="px-4 py-3 text-gray-600">120</td>
+          <td class="px-4 py-3 text-gray-600">大唐袜业旗舰</td>
+          <td class="px-4 py-3 text-gray-400">2026-05-15</td>
+          <td class="px-4 py-3 text-red-500 font-medium">58天</td>
+          <td class="px-4 py-3"><span class="status-badge bg-red-50 text-red-500">空置中</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-primary text-[12px] hover:underline mr-2">推荐</button>
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3 text-gray-600">1F-B03</td>
+          <td class="px-4 py-3 text-gray-600">1号楼 1层 B区</td>
+          <td class="px-4 py-3 text-gray-600">85</td>
+          <td class="px-4 py-3 text-gray-600">暖足坊袜业</td>
+          <td class="px-4 py-3 text-gray-400">2026-06-20</td>
+          <td class="px-4 py-3 text-amber-500 font-medium">22天</td>
+          <td class="px-4 py-3"><span class="status-badge bg-blue-50 text-blue-500">已推荐</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-primary text-[12px] hover:underline mr-2">查看匹配</button>
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3 text-gray-600">2F-A05</td>
+          <td class="px-4 py-3 text-gray-600">1号楼 2层 A区</td>
+          <td class="px-4 py-3 text-gray-600">200</td>
+          <td class="px-4 py-3 text-gray-600">绿源纤维科技</td>
+          <td class="px-4 py-3 text-gray-400">2026-06-01</td>
+          <td class="px-4 py-3 text-red-500 font-medium">41天</td>
+          <td class="px-4 py-3"><span class="status-badge bg-amber-50 text-amber-600">预定中</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-primary text-[12px] hover:underline mr-2">查看预定</button>
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3 text-gray-600">1F-B08</td>
+          <td class="px-4 py-3 text-gray-600">1号楼 1层 B区</td>
+          <td class="px-4 py-3 text-gray-600">70</td>
+          <td class="px-4 py-3 text-gray-600">花间舞袜业</td>
+          <td class="px-4 py-3 text-gray-400">2026-06-28</td>
+          <td class="px-4 py-3 text-amber-500 font-medium">14天</td>
+          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">已签约</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3 text-gray-600">2F-B01</td>
+          <td class="px-4 py-3 text-gray-600">1号楼 2层 B区</td>
+          <td class="px-4 py-3 text-gray-600">180</td>
+          <td class="px-4 py-3 text-gray-600">棉田纱线厂</td>
+          <td class="px-4 py-3 text-gray-400">2026-05-28</td>
+          <td class="px-4 py-3 text-red-500 font-medium">45天</td>
+          <td class="px-4 py-3"><span class="status-badge bg-blue-50 text-blue-500">已推荐</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-primary text-[12px] hover:underline mr-2">查看匹配</button>
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3 text-gray-600">3F-C02</td>
+          <td class="px-4 py-3 text-gray-600">1号楼 3层 C区</td>
+          <td class="px-4 py-3 text-gray-600">250</td>
+          <td class="px-4 py-3 text-gray-600">智造袜机设备</td>
+          <td class="px-4 py-3 text-gray-400">2026-04-10</td>
+          <td class="px-4 py-3 text-red-500 font-medium">93天</td>
+          <td class="px-4 py-3"><span class="status-badge bg-red-50 text-red-500">空置中</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-primary text-[12px] hover:underline mr-2">推荐</button>
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3 text-gray-600">1F-A12</td>
+          <td class="px-4 py-3 text-gray-600">1号楼 1层 A区</td>
+          <td class="px-4 py-3 text-gray-600">110</td>
+          <td class="px-4 py-3 text-gray-600">极速运动袜业</td>
+          <td class="px-4 py-3 text-gray-400">2026-07-01</td>
+          <td class="px-4 py-3 text-gray-600 font-medium">11天</td>
+          <td class="px-4 py-3"><span class="status-badge bg-amber-50 text-amber-600">预定中</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-primary text-[12px] hover:underline mr-2">查看预定</button>
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3 text-gray-600">B1-D06</td>
+          <td class="px-4 py-3 text-gray-600">B1层 D区</td>
+          <td class="px-4 py-3 text-gray-600">300</td>
+          <td class="px-4 py-3 text-gray-600">物流配送中心</td>
+          <td class="px-4 py-3 text-gray-400">2026-06-15</td>
+          <td class="px-4 py-3 text-amber-500 font-medium">27天</td>
+          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">已签约</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <!-- 分页 -->
+    <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+      <span class="text-[12px] text-gray-400">共 23 条记录，第 1-8 条</span>
+      <div class="flex items-center gap-1">
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100"><i class="fas fa-chevron-left text-[10px]"></i></button>
+        <button class="w-7 h-7 flex items-center justify-center text-white text-[12px] rounded" style="background:#FF4D2D">1</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-600 text-[12px] rounded hover:bg-gray-100">2</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-600 text-[12px] rounded hover:bg-gray-100">3</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100"><i class="fas fa-chevron-right text-[10px]"></i></button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

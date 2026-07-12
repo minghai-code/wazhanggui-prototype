@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>外部数据源管理 - 数据采集监控</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>
+tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D','primary-d':'#E63E20','primary-l':'#FF7849'}}}}
+</script>
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#f1f5f9}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
+.tab-active{color:#FF4D2D;border-bottom:2px solid #FF4D2D;font-weight:600}
+.status-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500}
+</style>
+</head>
+<body>
+
+<div class="p-6">
+
+  <!-- 页面标题 -->
+  <div class="flex items-center justify-between mb-5">
+    <div>
+      <h1 class="text-[18px] font-bold text-gray-800">外部数据源管理</h1>
+      <p class="text-[12px] text-gray-400 mt-0.5">电商/行业数据源配置 · 采集监控 · 数据质量分析</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="px-3 py-1.5 text-[12px] text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+      <button class="px-3 py-1.5 text-[12px] text-white rounded-lg transition" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)"><i class="fas fa-bolt text-[10px] mr-1"></i>手动触发采集</button>
+    </div>
+  </div>
+
+  <!-- Tab 导航 -->
+  <div class="flex items-center gap-6 mb-4 border-b border-gray-200">
+    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">电商数据源配置</span>
+    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">行业数据源配置</span>
+    <span class="tab-active py-2.5 text-[13px] cursor-pointer">数据采集监控</span>
+  </div>
+
+  <!-- 统计卡片 -->
+  <div class="grid grid-cols-4 gap-3 mb-5">
+    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
+      <p class="text-[11px] text-gray-400">运行任务</p>
+      <p class="text-xl font-bold text-blue-500 mt-1">34</p>
+    </div>
+    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
+      <p class="text-[11px] text-gray-400">成功率</p>
+      <p class="text-xl font-bold text-green-500 mt-1">96.2%</p>
+    </div>
+    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
+      <p class="text-[11px] text-gray-400">异常任务</p>
+      <p class="text-xl font-bold text-red-500 mt-1">5</p>
+    </div>
+    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
+      <p class="text-[11px] text-gray-400">今日采集记录</p>
+      <p class="text-xl font-bold text-primary mt-1">165,474</p>
+    </div>
+  </div>
+
+  <!-- 筛选栏 -->
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+    <div class="flex items-center gap-3 flex-wrap">
+      <div class="relative">
+        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+        <input type="text" placeholder="任务编号 / 数据源名称" class="w-56 pl-8 pr-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary focus:bg-white transition">
+      </div>
+      <select class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部采集类型</option>
+        <option>销售数据</option>
+        <option>价格数据</option>
+        <option>关键词趋势</option>
+        <option>行业报告</option>
+        <option>原料价格</option>
+      </select>
+      <select class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部结果</option>
+        <option>成功</option>
+        <option>失败</option>
+        <option>部分成功</option>
+        <option>跳过</option>
+      </select>
+      <input type="date" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+      <span class="text-gray-300 text-xs">至</span>
+      <input type="date" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+      <button class="px-4 py-1.5 text-[13px] text-white rounded-lg" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)">查询</button>
+      <button class="px-4 py-1.5 text-[13px] text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition">重置</button>
+    </div>
+  </div>
+
+  <!-- 表格 -->
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <table class="w-full text-[13px]">
+      <thead>
+        <tr class="bg-gray-50 text-gray-500 text-[12px]">
+          <th class="px-4 py-3 text-left font-medium">任务编号</th>
+          <th class="px-4 py-3 text-left font-medium">数据源名称</th>
+          <th class="px-4 py-3 text-left font-medium">采集类型</th>
+          <th class="px-4 py-3 text-left font-medium">计划时间</th>
+          <th class="px-4 py-3 text-left font-medium">实际执行</th>
+          <th class="px-4 py-3 text-left font-medium">耗时</th>
+          <th class="px-4 py-3 text-left font-medium">采集记录数</th>
+          <th class="px-4 py-3 text-left font-medium">结果</th>
+          <th class="px-4 py-3 text-center font-medium">操作</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-50">
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3 text-gray-600">T20260712001</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#FB7185,#EC4899)"><i class="fas fa-shopping-bag"></i></div>
+              <span class="font-medium text-gray-800">淘宝袜业销售数据</span>
+            </div>
+          </td>
+          <td class="px-4 py-3 text-gray-600">销售数据</td>
+          <td class="px-4 py-3 text-gray-400">2026-07-12 02:00</td>
+          <td class="px-4 py-3 text-gray-400">2026-07-12 02:00</td>
+          <td class="px-4 py-3 text-gray-600">4分32秒</td>
+          <td class="px-4 py-3 text-gray-600">12,856</td>
+          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">成功</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-primary text-[12px] hover:underline mr-2">日志</button>
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3 text-gray-600">T20260712002</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)"><i class="fas fa-tags"></i></div>
+              <span class="font-medium text-gray-800">拼多多袜品价格监测</span>
+            </div>
+          </td>
+          <td class="px-4 py-3 text-gray-600">价格数据</td>
+          <td class="px-4 py-3 text-gray-400">2026-07-12 06:00</td>
+          <td class="px-4 py-3 text-gray-400">2026-07-12 06:00</td>
+          <td class="px-4 py-3 text-gray-600">2分18秒</td>
+          <td class="px-4 py-3 text-gray-600">8,342</td>
+          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">成功</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-primary text-[12px] hover:underline mr-2">日志</button>
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3 text-gray-600">T20260712003</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#1f2937,#000000)"><i class="fas fa-music"></i></div>
+              <span class="font-medium text-gray-800">抖音袜业直播销量</span>
+            </div>
+          </td>
+          <td class="px-4 py-3 text-gray-600">销售数据</td>
+          <td class="px-4 py-3 text-gray-400">2026-07-12 08:00</td>
+          <td class="px-4 py-3 text-gray-400">2026-07-12 08:00</td>
+          <td class="px-4 py-3 text-gray-600">-</td>
+          <td class="px-4 py-3 text-gray-600">0</td>
+          <td class="px-4 py-3"><span class="status-badge bg-red-50 text-red-500">失败</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-primary text-[12px] hover:underline mr-2">重试</button>
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3 text-gray-600">T20260712004</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#38BDF8,#3B82F6)"><i class="fas fa-file-chart-column"></i></div>
+              <span class="font-medium text-gray-800">中国袜业行业发展报告</span>
+            </div>
+          </td>
+          <td class="px-4 py-3 text-gray-600">行业报告</td>
+          <td class="px-4 py-3 text-gray-400">2026-07-12 08:00</td>
+          <td class="px-4 py-3 text-gray-400">2026-07-12 08:00</td>
+          <td class="px-4 py-3 text-gray-600">1分05秒</td>
+          <td class="px-4 py-3 text-gray-600">326</td>
+          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">成功</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-primary text-[12px] hover:underline mr-2">日志</button>
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3 text-gray-600">T20260712005</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)"><i class="fas fa-coins"></i></div>
+              <span class="font-medium text-gray-800">涤纶纱线价格指数</span>
+            </div>
+          </td>
+          <td class="px-4 py-3 text-gray-600">原料价格</td>
+          <td class="px-4 py-3 text-gray-400">2026-07-12 10:00</td>
+          <td class="px-4 py-3 text-gray-400">2026-07-12 10:00</td>
+          <td class="px-4 py-3 text-gray-600">48秒</td>
+          <td class="px-4 py-3 text-gray-600">128</td>
+          <td class="px-4 py-3"><span class="status-badge bg-amber-50 text-amber-600">部分成功</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-primary text-[12px] hover:underline mr-2">日志</button>
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3 text-gray-600">T20260712006</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#FB7185,#EC4899)"><i class="fas fa-seedling"></i></div>
+              <span class="font-medium text-gray-800">棉花现货价格行情</span>
+            </div>
+          </td>
+          <td class="px-4 py-3 text-gray-600">原料价格</td>
+          <td class="px-4 py-3 text-gray-400">2026-07-12 06:00</td>
+          <td class="px-4 py-3 text-gray-400">2026-07-12 06:00</td>
+          <td class="px-4 py-3 text-gray-600">3分22秒</td>
+          <td class="px-4 py-3 text-gray-600">642</td>
+          <td class="px-4 py-3"><span class="status-badge bg-red-50 text-red-500">失败</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-primary text-[12px] hover:underline mr-2">重试</button>
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3 text-gray-600">T20260712007</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#A78BFA,#7C3AED)"><i class="fas fa-chart-line"></i></div>
+              <span class="font-medium text-gray-800">淘宝关键词搜索趋势</span>
+            </div>
+          </td>
+          <td class="px-4 py-3 text-gray-600">关键词趋势</td>
+          <td class="px-4 py-3 text-gray-400">2026-07-12 10:00</td>
+          <td class="px-4 py-3 text-gray-400">2026-07-12 10:00</td>
+          <td class="px-4 py-3 text-gray-600">1分54秒</td>
+          <td class="px-4 py-3 text-gray-600">2,148</td>
+          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">成功</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-primary text-[12px] hover:underline mr-2">日志</button>
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3 text-gray-600">T20260712008</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#9CA3AF,#6B7280)"><i class="fas fa-database"></i></div>
+              <span class="font-medium text-gray-800">纺织服装出口月度统计</span>
+            </div>
+          </td>
+          <td class="px-4 py-3 text-gray-600">行业报告</td>
+          <td class="px-4 py-3 text-gray-400">2026-07-12 12:00</td>
+          <td class="px-4 py-3 text-gray-400">-</td>
+          <td class="px-4 py-3 text-gray-600">-</td>
+          <td class="px-4 py-3 text-gray-600">0</td>
+          <td class="px-4 py-3"><span class="status-badge bg-gray-100 text-gray-500">跳过</span></td>
+          <td class="px-4 py-3 text-center">
+            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <!-- 分页 -->
+    <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+      <span class="text-[12px] text-gray-400">共 89 条记录，第 1-8 条</span>
+      <div class="flex items-center gap-1">
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100"><i class="fas fa-chevron-left text-[10px]"></i></button>
+        <button class="w-7 h-7 flex items-center justify-center text-white text-[12px] rounded" style="background:#FF4D2D">1</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-600 text-[12px] rounded hover:bg-gray-100">2</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-600 text-[12px] rounded hover:bg-gray-100">3</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100"><i class="fas fa-chevron-right text-[10px]"></i></button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
