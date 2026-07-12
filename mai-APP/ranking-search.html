@@ -10,14 +10,26 @@
 tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D','primary-d':'#E63E20','primary-l':'#FF7849'}}}}
 </script>
 <style>
-:root{--p:#FF4D2D;--pl:#FF7849;--bg:#FFF6F3}
+:root{--p:#FF4D2D;--pl:#FF7849;--bg:#FFF7F4;--v1:#7C3AED;--v2:#FF2D78}
 *{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
 ::-webkit-scrollbar{width:2px;height:2px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:#dfdfdf;border-radius:1px}
-.grad-h{background:linear-gradient(160deg,#FF4D2D 0%,#FF6B35 50%,#FF8B5A 100%)}
-.shadow-soft{box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.no-bar::-webkit-scrollbar{display:none}
+.grad-h{background:linear-gradient(135deg,#FF6B35 0%,#FF4D2D 45%,#FF2D78 100%)}
+.shadow-card{box-shadow:0 8px 24px rgba(255,77,45,.14)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
+.tag-hot{background:linear-gradient(90deg,#FF4D2D,#FF7849)}
+.tag-brand{background:linear-gradient(90deg,#7C3AED,#C084FC)}
+.card{transition:transform .16s ease, box-shadow .16s ease}
+.card:active{transform:scale(.965)}
+.sec-title{font-size:17px;font-weight:800;letter-spacing:.3px;color:#1F2430}
+.sec-more{font-size:11px;color:#9aa0ac}
+.text-grad{background:linear-gradient(90deg,#FF4D2D,#FF2D78);-webkit-background-clip:text;background-clip:text;color:transparent}
+.h-scroll{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:3px}
+.h-scroll::-webkit-scrollbar{display:none}
+.h-scroll>*{scroll-snap-align:start;flex:0 0 auto}
 .fade-up{animation:fadeUp .4s ease both}
 @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .rank-num{width:24px;text-align:center;font-size:14px;font-weight:700;flex-shrink:0}
@@ -25,45 +37,51 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </head>
 <body>
 
-<!-- iOS状态栏 -->
-<div class="flex justify-between items-center px-6 text-white text-sm font-semibold grad-h" style="height:44px;padding-top:8px">
-<span>9:41</span>
-<div class="flex items-center gap-1.5">
-<i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i>
-</div>
+<!-- ===== 顶部：渐变 + 流动光斑 ===== -->
+<div class="relative px-4 pt-2 pb-7 overflow-hidden grad-h">
+  <!-- 流动光斑 -->
+  <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-50" style="background:#FF8A4C"></div>
+  <div class="absolute -top-6 right-[-30px] w-48 h-48 rounded-full blur-3xl opacity-40" style="background:#FF2D78"></div>
+  <div class="absolute -bottom-10 left-12 w-44 h-44 rounded-full blur-3xl opacity-35" style="background:#7C3AED"></div>
+
+  <!-- iOS状态栏 -->
+  <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5">
+      <i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i>
+    </div>
+  </div>
+
+  <!-- 标题 + 返回 -->
+  <div class="relative flex items-center gap-3 mt-1">
+    <a href="home.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+    <span class="text-white font-extrabold text-[22px] tracking-wide" style="text-shadow:0 2px 10px rgba(0,0,0,.18)">平台热搜榜</span>
+  </div>
+  <p class="relative text-white/80 text-[11px] mt-2 ml-12"><i class="fas fa-clock text-[9px] mr-1"></i>数据更新于 2026-07-09 · 每日更新</p>
 </div>
 
-<!-- 页面头部 -->
-<div class="grad-h px-4 pb-4">
-<div class="flex items-center gap-3">
-<a href="home.html" class="text-white"><i class="fas fa-chevron-left text-base"></i></a>
-<span class="text-white font-bold text-[17px]">平台热搜榜</span>
-</div>
-<p class="text-white/80 text-[11px] mt-2 ml-8"><i class="fas fa-clock text-[9px] mr-1"></i>数据更新于 2026-07-09 · 每日更新</p>
-</div>
-
-<!-- 热搜说明 -->
-<div class="px-3 pt-3">
-<div class="bg-white rounded-xl shadow-soft p-3 flex items-center gap-2">
-<div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:#FFF0E8"><i class="fas fa-fire" style="color:#FF4D2D"></i></div>
-<div class="flex-1">
-<p class="text-[12px] font-semibold text-gray-800">终端热搜词 TOP30</p>
-<p class="text-[10px] text-gray-400">基于淘宝/拼多多/抖音等平台搜索数据</p>
-</div>
-</div>
+<!-- 热搜说明（玻璃容器） -->
+<div class="px-3 -mt-4 relative z-10">
+  <div class="bg-white/70 backdrop-blur-xl rounded-3xl p-2.5 shadow-soft border border-white flex items-center gap-2">
+    <div class="w-10 h-10 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#FF8A4C,#FF4D2D)"><i class="fas fa-fire text-sm"></i></div>
+    <div class="flex-1">
+      <p class="text-[12px] font-semibold text-gray-800">终端热搜词 TOP30</p>
+      <p class="text-[10px] text-gray-400">基于淘宝/拼多多/抖音等平台搜索数据</p>
+    </div>
+  </div>
 </div>
 
 <!-- 热搜列表 -->
 <div class="px-3 pt-3 pb-28">
-<div class="bg-white rounded-xl shadow-soft overflow-hidden">
+<div class="bg-white/75 backdrop-blur-xl rounded-3xl shadow-soft overflow-hidden border border-white">
 
 <!-- TOP1 -->
-<a href="search.html" class="flex items-center gap-2.5 px-3 py-3 border-b border-gray-50 fade-up">
+<a href="search.html" class="card flex items-center gap-2.5 px-3 py-3 border-b border-gray-50 fade-up">
 <span class="rank-num" style="color:#FF4D2D">1</span>
 <div class="flex-1 min-w-0">
 <div class="flex items-center gap-1.5">
 <p class="text-[13px] font-semibold text-gray-800">纯棉防臭袜</p>
-<span class="text-[8px] text-white px-1 py-0.5 rounded" style="background:#FF4D2D">热</span>
+<span class="text-[8px] text-white px-1 py-0.5 rounded tag-hot">热</span>
 </div>
 <p class="text-[10px] text-gray-400 mt-0.5">搜索 18.5万次/天</p>
 </div>
@@ -71,7 +89,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </a>
 
 <!-- TOP2 -->
-<a href="search.html" class="flex items-center gap-2.5 px-3 py-3 border-b border-gray-50 fade-up" style="animation-delay:.03s">
+<a href="search.html" class="card flex items-center gap-2.5 px-3 py-3 border-b border-gray-50 fade-up" style="animation-delay:.03s">
 <span class="rank-num" style="color:#FF8B5A">2</span>
 <div class="flex-1 min-w-0">
 <div class="flex items-center gap-1.5">
@@ -84,7 +102,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </a>
 
 <!-- TOP3 -->
-<a href="search.html" class="flex items-center gap-2.5 px-3 py-3 border-b border-gray-50 fade-up" style="animation-delay:.06s">
+<a href="search.html" class="card flex items-center gap-2.5 px-3 py-3 border-b border-gray-50 fade-up" style="animation-delay:.06s">
 <span class="rank-num" style="color:#FFB088">3</span>
 <div class="flex-1 min-w-0">
 <p class="text-[13px] font-semibold text-gray-800">羊毛保暖袜</p>
@@ -94,7 +112,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </a>
 
 <!-- TOP4 -->
-<a href="search.html" class="flex items-center gap-2.5 px-3 py-3 border-b border-gray-50 fade-up" style="animation-delay:.09s">
+<a href="search.html" class="card flex items-center gap-2.5 px-3 py-3 border-b border-gray-50 fade-up" style="animation-delay:.09s">
 <span class="rank-num text-gray-400">4</span>
 <div class="flex-1 min-w-0">
 <p class="text-[13px] text-gray-700">条纹中筒袜</p>
@@ -104,7 +122,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </a>
 
 <!-- TOP5 -->
-<a href="search.html" class="flex items-center gap-2.5 px-3 py-3 border-b border-gray-50 fade-up" style="animation-delay:.12s">
+<a href="search.html" class="card flex items-center gap-2.5 px-3 py-3 border-b border-gray-50 fade-up" style="animation-delay:.12s">
 <span class="rank-num text-gray-400">5</span>
 <div class="flex-1 min-w-0">
 <p class="text-[13px] text-gray-700">卡通印花袜</p>
@@ -114,7 +132,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </a>
 
 <!-- TOP6 -->
-<a href="search.html" class="flex items-center gap-2.5 px-3 py-3 border-b border-gray-50 fade-up" style="animation-delay:.15s">
+<a href="search.html" class="card flex items-center gap-2.5 px-3 py-3 border-b border-gray-50 fade-up" style="animation-delay:.15s">
 <span class="rank-num text-gray-400">6</span>
 <div class="flex-1 min-w-0">
 <div class="flex items-center gap-1.5">
@@ -127,7 +145,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </a>
 
 <!-- TOP7 -->
-<a href="search.html" class="flex items-center gap-2.5 px-3 py-3 border-b border-gray-50 fade-up" style="animation-delay:.18s">
+<a href="search.html" class="card flex items-center gap-2.5 px-3 py-3 border-b border-gray-50 fade-up" style="animation-delay:.18s">
 <span class="rank-num text-gray-400">7</span>
 <div class="flex-1 min-w-0">
 <p class="text-[13px] text-gray-700">隐形船袜</p>
@@ -137,7 +155,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </a>
 
 <!-- TOP8 -->
-<a href="search.html" class="flex items-center gap-2.5 px-3 py-3 border-b border-gray-50 fade-up" style="animation-delay:.21s">
+<a href="search.html" class="card flex items-center gap-2.5 px-3 py-3 border-b border-gray-50 fade-up" style="animation-delay:.21s">
 <span class="rank-num text-gray-400">8</span>
 <div class="flex-1 min-w-0">
 <p class="text-[13px] text-gray-700">防勾丝丝袜</p>
@@ -147,7 +165,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </a>
 
 <!-- TOP9 -->
-<a href="search.html" class="flex items-center gap-2.5 px-3 py-3 border-b border-gray-50 fade-up" style="animation-delay:.24s">
+<a href="search.html" class="card flex items-center gap-2.5 px-3 py-3 border-b border-gray-50 fade-up" style="animation-delay:.24s">
 <span class="rank-num text-gray-400">9</span>
 <div class="flex-1 min-w-0">
 <p class="text-[13px] text-gray-700">抗菌防臭袜</p>
@@ -157,7 +175,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </a>
 
 <!-- TOP10 -->
-<a href="search.html" class="flex items-center gap-2.5 px-3 py-3 border-b border-gray-50 fade-up" style="animation-delay:.27s">
+<a href="search.html" class="card flex items-center gap-2.5 px-3 py-3 border-b border-gray-50 fade-up" style="animation-delay:.27s">
 <span class="rank-num text-gray-400">10</span>
 <div class="flex-1 min-w-0">
 <p class="text-[13px] text-gray-700">儿童防滑袜</p>
@@ -167,7 +185,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </a>
 
 <!-- TOP11 -->
-<a href="search.html" class="flex items-center gap-2.5 px-3 py-3 border-b border-gray-50 fade-up" style="animation-delay:.3s">
+<a href="search.html" class="card flex items-center gap-2.5 px-3 py-3 border-b border-gray-50 fade-up" style="animation-delay:.3s">
 <span class="rank-num text-gray-400">11</span>
 <div class="flex-1 min-w-0">
 <p class="text-[13px] text-gray-700">渐变潮流袜</p>
@@ -177,7 +195,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </a>
 
 <!-- TOP12 -->
-<a href="search.html" class="flex items-center gap-2.5 px-3 py-3 border-b border-gray-50 fade-up" style="animation-delay:.33s">
+<a href="search.html" class="card flex items-center gap-2.5 px-3 py-3 border-b border-gray-50 fade-up" style="animation-delay:.33s">
 <span class="rank-num text-gray-400">12</span>
 <div class="flex-1 min-w-0">
 <p class="text-[13px] text-gray-700">石墨烯袜</p>
@@ -187,7 +205,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </a>
 
 <!-- TOP13 -->
-<a href="search.html" class="flex items-center gap-2.5 px-3 py-3 border-b border-gray-50 fade-up" style="animation-delay:.36s">
+<a href="search.html" class="card flex items-center gap-2.5 px-3 py-3 border-b border-gray-50 fade-up" style="animation-delay:.36s">
 <span class="rank-num text-gray-400">13</span>
 <div class="flex-1 min-w-0">
 <p class="text-[13px] text-gray-700">艾草养生袜</p>
@@ -197,7 +215,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </a>
 
 <!-- TOP14 -->
-<a href="search.html" class="flex items-center gap-2.5 px-3 py-3 border-b border-gray-50 fade-up" style="animation-delay:.39s">
+<a href="search.html" class="card flex items-center gap-2.5 px-3 py-3 border-b border-gray-50 fade-up" style="animation-delay:.39s">
 <span class="rank-num text-gray-400">14</span>
 <div class="flex-1 min-w-0">
 <p class="text-[13px] text-gray-700">男士商务袜</p>
@@ -207,7 +225,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </a>
 
 <!-- TOP15 -->
-<a href="search.html" class="flex items-center gap-2.5 px-3 py-3 fade-up" style="animation-delay:.42s">
+<a href="search.html" class="card flex items-center gap-2.5 px-3 py-3 fade-up" style="animation-delay:.42s">
 <span class="rank-num text-gray-400">15</span>
 <div class="flex-1 min-w-0">
 <p class="text-[13px] text-gray-700">冬季加厚袜</p>

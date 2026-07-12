@@ -10,219 +10,252 @@
 tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D','primary-d':'#E63E20','primary-l':'#FF7849'}}}}
 </script>
 <style>
-:root{--p:#FF4D2D;--pl:#FF7849;--bg:#FFF6F3}
+:root{--p:#FF4D2D;--pl:#FF7849;--bg:#FFF7F4;--v1:#7C3AED;--v2:#FF2D78}
 *{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
 ::-webkit-scrollbar{width:2px;height:2px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:#dfdfdf;border-radius:1px}
 .no-bar::-webkit-scrollbar{display:none}
-.grad-h{background:linear-gradient(160deg,#FF4D2D 0%,#FF6B35 50%,#FF8B5A 100%)}
-.shadow-card{box-shadow:0 2px 12px rgba(255,77,45,.08)}
-.shadow-soft{box-shadow:0 1px 4px rgba(0,0,0,.06)}
+/* 通用渐变与主色变量 */
+.grad-h{background:linear-gradient(135deg,#FF6B35 0%,#FF4D2D 45%,#FF2D78 100%)}
+.shadow-card{box-shadow:0 8px 24px rgba(255,77,45,.14)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
 .tag-hot{background:linear-gradient(90deg,#FF4D2D,#FF7849)}
-.tag-brand{background:linear-gradient(90deg,#6366F1,#818CF8)}
-.fade-up{animation:fadeUp .4s ease both}
-@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-/* 四叶草高级感 */
-.clover{display:grid;grid-template-columns:1fr 1fr;gap:2px;border-radius:18px;overflow:hidden}
-.clover>a{position:relative;overflow:hidden;height:88px;padding:13px 14px;display:flex;flex-direction:column;justify-content:space-between}
+.tag-brand{background:linear-gradient(90deg,#7C3AED,#C084FC)}
+/* 四叶草市场入口 */
+.clover{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.clover>a{position:relative;overflow:hidden;height:90px;padding:14px 15px;border-radius:18px;display:flex;flex-direction:column;justify-content:space-between}
 .clover>a::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 25% 15%,rgba(255,255,255,.25),transparent 55%);pointer-events:none}
 .clover>a::after{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,.06) 1px,transparent 1px);background-size:10px 10px;pointer-events:none}
-.clover>a .wm{position:absolute;right:-6px;bottom:-8px;font-size:42px;opacity:.12;pointer-events:none}
+.clover>a .wm{position:absolute;right:-6px;bottom:-8px;font-size:42px;opacity:.14;pointer-events:none}
 .clover>a>div{position:relative;z-index:2}
 /* 3D楼层图 */
 .floor-3d{transform:perspective(700px) rotateX(22deg);transform-style:preserve-3d}
 .floor-cell{display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:600;color:#fff;border-radius:3px}
+/* 微交互 */
+.card{transition:transform .16s ease, box-shadow .16s ease}
+.card:active{transform:scale(.965)}
+/* 横向滚动条 */
+.h-scroll{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:3px}
+.h-scroll::-webkit-scrollbar{display:none}
+.h-scroll>*{scroll-snap-align:start;flex:0 0 auto}
+/* 区块标题 */
+.sec-title{font-size:17px;font-weight:800;letter-spacing:.3px;color:#1F2430}
+.sec-more{font-size:11px;color:#9aa0ac}
 /* 滚动Banner */
 .banner-track{display:flex;scroll-snap-type:x mandatory;overflow-x:auto;scrollbar-width:none}
 .banner-track::-webkit-scrollbar{display:none}
 .banner-track>div{scroll-snap-align:center;flex:0 0 100%}
-.b-dot{width:5px;height:5px;border-radius:3px;background:#E5D5D0;transition:.3s}
+.b-dot{width:5px;height:5px;border-radius:3px;background:#F0C9BF;transition:.3s}
 .b-dot.on{width:16px;background:var(--p)}
+/* 渐变文字 */
+.text-grad{background:linear-gradient(90deg,#FF4D2D,#FF2D78);-webkit-background-clip:text;background-clip:text;color:transparent}
 </style>
 </head>
 <body>
 
-<!-- iOS状态栏 -->
-<div class="flex justify-between items-center px-6 text-white text-sm font-semibold grad-h" style="height:44px;padding-top:8px">
-<span>9:41</span>
-<div class="flex items-center gap-1.5">
-<i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i>
-</div>
+<!-- ===== 顶部：渐变网格 + 玻璃搜索 ===== -->
+<div class="relative px-4 pt-2 pb-7 overflow-hidden">
+  <!-- 流动光斑 -->
+  <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-50" style="background:#FF8A4C"></div>
+  <div class="absolute -top-6 right-[-30px] w-48 h-48 rounded-full blur-3xl opacity-40" style="background:#FF2D78"></div>
+  <div class="absolute -bottom-10 left-12 w-44 h-44 rounded-full blur-3xl opacity-35" style="background:#7C3AED"></div>
+
+  <!-- iOS状态栏 -->
+  <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5">
+      <i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i>
+    </div>
+  </div>
+
+  <!-- 品牌 + 定位 + 消息 -->
+  <div class="relative flex items-end justify-between mt-1">
+    <div>
+      <div class="flex items-center gap-2">
+        <span class="text-white font-extrabold text-[26px] tracking-wide" style="text-shadow:0 2px 10px rgba(0,0,0,.18)">袜掌柜</span>
+        <span class="text-[10px] text-white/90 bg-white/20 rounded-full px-2 py-0.5 backdrop-blur">买家版</span>
+      </div>
+      <p class="text-white/80 text-[11px] mt-1"><i class="fas fa-location-dot"></i> 大唐·诸暨 国际袜业城</p>
+    </div>
+    <div class="flex gap-2">
+      <a href="ai.html" class="w-9 h-9 rounded-full bg-white/15 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-robot text-sm"></i></a>
+      <a href="mine.html" class="w-9 h-9 rounded-full bg-white/15 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-bell text-sm"></i></a>
+    </div>
+  </div>
+
+  <!-- 玻璃搜索条 -->
+  <div class="relative mt-3 flex items-center gap-2 bg-white/90 backdrop-blur rounded-full pl-4 pr-2 py-2.5 shadow-lg">
+    <i class="fas fa-search text-gray-400 text-sm"></i>
+    <input type="text" placeholder="搜袜子 / 原料 / 袜机 / 工厂…" class="flex-1 ml-1 text-[13px] bg-transparent outline-none text-gray-700" readonly>
+    <a href="photo-search.html" class="w-8 h-8 rounded-full bg-[#FFF0E8] flex items-center justify-center"><i class="fas fa-camera text-primary text-sm"></i></a>
+    <a href="ai-search.html" class="w-8 h-8 rounded-full flex items-center justify-center text-white" style="background:linear-gradient(135deg,#7C3AED,#C084FC)"><i class="fas fa-wand-magic-sparkles text-sm"></i></a>
+  </div>
 </div>
 
-<!-- 顶部搜索区 -->
-<div class="grad-h px-3.5 pb-5">
-<div class="flex items-center gap-2.5">
-<span class="text-white font-bold text-[17px] tracking-wide">袜掌柜</span>
-<div class="flex-1 flex items-center bg-white rounded-full px-3.5 py-2 shadow-soft">
-<i class="fas fa-search text-gray-400 text-sm"></i>
-<input type="text" placeholder="搜索袜子、原料、袜机…" class="flex-1 ml-2 text-[13px] bg-transparent outline-none text-gray-600" readonly>
-<a href="photo-search.html"><i class="fas fa-camera text-primary text-base"></i></a>
-</div>
-<a href="photo-search.html"><i class="fas fa-qrcode text-white text-xl"></i></a>
-</div>
-</div>
-
-<!-- 四大市场四叶草入口 -->
+<!-- ===== 四大市场入口（四叶草布局） ===== -->
 <div class="px-3 -mt-4 relative z-10">
-<div class="clover shadow-card">
-<a href="market-socks.html" style="background:linear-gradient(135deg,#FF6B35 0%,#E84E1C 100%)">
-<i class="fas fa-socks wm text-white"></i>
-<div class="text-white">
-<p class="font-bold text-[15px]" style="text-shadow:0 1px 4px rgba(0,0,0,.15)">袜子市场</p>
-<p class="text-[10px] text-white/85 mt-0.5">男袜·女袜·童袜·运动袜</p>
-</div>
-</a>
-<a href="market-material.html" style="background:linear-gradient(135deg,#10B981 0%,#059669 100%)">
-<i class="fas fa-seedling wm text-white"></i>
-<div class="text-white">
-<p class="font-bold text-[15px]" style="text-shadow:0 1px 4px rgba(0,0,0,.15)">原料市场</p>
-<p class="text-[10px] text-white/85 mt-0.5">纱线·辅料·染料·包装</p>
-</div>
-</a>
-<a href="market-machine.html" style="background:linear-gradient(135deg,#6366F1 0%,#4F46E5 100%)">
-<i class="fas fa-gears wm text-white"></i>
-<div class="text-white">
-<p class="font-bold text-[15px]" style="text-shadow:0 1px 4px rgba(0,0,0,.15)">袜机市场</p>
-<p class="text-[10px] text-white/85 mt-0.5">整机·配件·维修·改装</p>
-</div>
-</a>
-<a href="market-logistics.html" style="background:linear-gradient(135deg,#F59E0B 0%,#D97706 100%)">
-<i class="fas fa-truck-fast wm text-white"></i>
-<div class="text-white">
-<p class="font-bold text-[15px]" style="text-shadow:0 1px 4px rgba(0,0,0,.15)">物流市场</p>
-<p class="text-[10px] text-white/85 mt-0.5">仓储·运输·代发·共享仓</p>
-</div>
-</a>
-</div>
-</div>
-
-<!-- 金刚区 -->
-<div class="bg-white mx-3 mt-3 rounded-2xl shadow-soft px-2 py-3.5">
-<div class="grid grid-cols-4 gap-y-3.5">
-<a href="inquiry.html" class="flex flex-col items-center gap-1.5"><div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background:#FFF0E8"><i class="fas fa-handshake text-lg" style="color:#FF6B35"></i></div><span class="text-[11px] text-gray-700 font-medium">批发询价</span></a>
-<a href="photo-search.html" class="flex flex-col items-center gap-1.5"><div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background:#E8F0FF"><i class="fas fa-camera text-lg" style="color:#3B82F6"></i></div><span class="text-[11px] text-gray-700 font-medium">拍照找货</span></a>
-<a href="ai-search.html" class="flex flex-col items-center gap-1.5"><div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background:#F0EBFF"><i class="fas fa-wand-magic-sparkles text-lg" style="color:#8B5CF6"></i></div><span class="text-[11px] text-gray-700 font-medium">AI找货</span></a>
-<a href="group-buy.html" class="flex flex-col items-center gap-1.5"><div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background:#E6FAF6"><i class="fas fa-users text-lg" style="color:#14B8A6"></i></div><span class="text-[11px] text-gray-700 font-medium">拼单集采</span></a>
-<a href="sublease.html" class="flex flex-col items-center gap-1.5"><div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background:#FFF4E0"><i class="fas fa-right-left text-lg" style="color:#F59E0B"></i></div><span class="text-[11px] text-gray-700 font-medium">转租转让</span></a>
-<a href="cross-border.html" class="flex flex-col items-center gap-1.5"><div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background:#EBE8FF"><i class="fas fa-globe text-lg" style="color:#6366F1"></i></div><span class="text-[11px] text-gray-700 font-medium">跨境服务</span></a>
-<a href="study-tour.html" class="flex flex-col items-center gap-1.5"><div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background:#E8F8EF"><i class="fas fa-graduation-cap text-lg" style="color:#10B981"></i></div><span class="text-[11px] text-gray-700 font-medium">研学申请</span></a>
-<a href="expo.html" class="flex flex-col items-center gap-1.5"><div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background:#FFE8F0"><i class="fas fa-warehouse text-lg" style="color:#EC4899"></i></div><span class="text-[11px] text-gray-700 font-medium">袜博展会</span></a>
-</div>
+  <div class="bg-white/70 backdrop-blur-xl rounded-3xl p-2.5 shadow-soft">
+    <div class="clover">
+    <a href="market-socks.html" style="background:linear-gradient(135deg,#FF7A45 0%,#E84E1C 100%)">
+      <i class="fas fa-socks wm text-white"></i>
+      <div class="text-white">
+        <p class="font-bold text-[17px]" style="text-shadow:0 1px 4px rgba(0,0,0,.15)">袜子市场</p>
+        <p class="text-[11px] text-white/85 mt-1">男袜·女袜·童袜·运动袜</p>
+      </div>
+    </a>
+    <a href="market-material.html" style="background:linear-gradient(135deg,#34D399 0%,#059669 100%)">
+      <i class="fas fa-seedling wm text-white"></i>
+      <div class="text-white">
+        <p class="font-bold text-[17px]" style="text-shadow:0 1px 4px rgba(0,0,0,.15)">原料市场</p>
+        <p class="text-[11px] text-white/85 mt-1">纱线·辅料·染料·包装</p>
+      </div>
+    </a>
+    <a href="market-machine.html" style="background:linear-gradient(135deg,#818CF8 0%,#4F46E5 100%)">
+      <i class="fas fa-gears wm text-white"></i>
+      <div class="text-white">
+        <p class="font-bold text-[17px]" style="text-shadow:0 1px 4px rgba(0,0,0,.15)">袜机市场</p>
+        <p class="text-[11px] text-white/85 mt-1">整机·配件·维修·改装</p>
+      </div>
+    </a>
+    <a href="market-logistics.html" style="background:linear-gradient(135deg,#FBBF24 0%,#D97706 100%)">
+      <i class="fas fa-truck-fast wm text-white"></i>
+      <div class="text-white">
+        <p class="font-bold text-[17px]" style="text-shadow:0 1px 4px rgba(0,0,0,.15)">物流市场</p>
+        <p class="text-[11px] text-white/85 mt-1">仓储·运输·代发·共享仓</p>
+      </div>
+    </a>
+    </div>
+  </div>
 </div>
 
-<!-- 滚动Banner -->
+<!-- ===== 金刚区（玻璃卡片 + 渐变图标） ===== -->
 <div class="px-3 mt-3">
-<div class="banner-track rounded-xl overflow-hidden shadow-soft" id="promo-banner" style="height:80px">
-
-<div class="relative" style="background-image:url('images/sock_02.jpg');background-size:cover;background-position:center">
-<div class="absolute inset-0" style="background:linear-gradient(90deg,rgba(27,58,91,.9) 35%,rgba(27,58,91,.2) 100%)"></div>
-<div class="p-3.5 text-white relative z-10">
-<div class="flex items-center gap-1.5"><i class="fas fa-store text-yellow-300 text-xs"></i><p class="font-bold text-[13px]">诚邀入驻</p></div>
-<p class="text-[10px] text-white/85 mt-0.5 leading-relaxed">免费开通数字店铺 · 24小时在线接单<br>享平台流量扶持与集采订单对接</p>
-</div>
-</div>
-
-<div class="relative" style="background-image:url('images/sock_12.jpg');background-size:cover;background-position:center">
-<div class="absolute inset-0" style="background:linear-gradient(90deg,rgba(79,70,229,.9) 35%,rgba(79,70,229,.2) 100%)"></div>
-<div class="p-3.5 text-white relative z-10">
-<div class="flex items-center gap-1.5"><i class="fas fa-wand-magic-sparkles text-yellow-300 text-xs"></i><p class="font-bold text-[13px]">AI工具赋能</p></div>
-<p class="text-[10px] text-white/85 mt-0.5 leading-relaxed">AI商品图 · AI文案 · AI短视频脚本<br>一键生成，让小商家也能玩转营销</p>
-</div>
+  <div class="bg-white/75 backdrop-blur-xl rounded-3xl shadow-soft px-2.5 py-4 border border-white">
+    <div class="grid grid-cols-4 gap-y-4">
+      <a href="inquiry.html" class="flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#FF8A4C,#FF4D2D)"><i class="fas fa-handshake text-lg"></i></div><span class="text-[11px] text-gray-700 font-medium">批发询价</span></a>
+      <a href="photo-search.html" class="flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#38BDF8,#3B82F6)"><i class="fas fa-camera text-lg"></i></div><span class="text-[11px] text-gray-700 font-medium">拍照找货</span></a>
+      <a href="ai-search.html" class="flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#A78BFA,#7C3AED)"><i class="fas fa-wand-magic-sparkles text-lg"></i></div><span class="text-[11px] text-gray-700 font-medium">AI找货</span></a>
+      <a href="group-buy.html" class="flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#2DD4BF,#14B8A6)"><i class="fas fa-users text-lg"></i></div><span class="text-[11px] text-gray-700 font-medium">拼单集采</span></a>
+      <a href="sublease.html" class="flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)"><i class="fas fa-right-left text-lg"></i></div><span class="text-[11px] text-gray-700 font-medium">转租转让</span></a>
+      <a href="cross-border.html" class="flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#818CF8,#6366F1)"><i class="fas fa-globe text-lg"></i></div><span class="text-[11px] text-gray-700 font-medium">跨境服务</span></a>
+      <a href="study-tour.html" class="flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#34D399,#10B981)"><i class="fas fa-graduation-cap text-lg"></i></div><span class="text-[11px] text-gray-700 font-medium">研学申请</span></a>
+      <a href="expo.html" class="flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#FB7185,#EC4899)"><i class="fas fa-warehouse text-lg"></i></div><span class="text-[11px] text-gray-700 font-medium">袜博展会</span></a>
+    </div>
+  </div>
 </div>
 
-<div class="relative" style="background-image:url('images/scene_08.jpg');background-size:cover;background-position:center">
-<div class="absolute inset-0" style="background:linear-gradient(90deg,rgba(2,132,199,.9) 35%,rgba(2,132,199,.2) 100%)"></div>
-<div class="p-3.5 text-white relative z-10">
-<div class="flex items-center gap-1.5"><i class="fas fa-globe text-yellow-300 text-xs"></i><p class="font-bold text-[13px]">跨境合作</p></div>
-<p class="text-[10px] text-white/85 mt-0.5 leading-relaxed">独立站导航 · 第三方跨境运营<br>大唐袜业出海新通道，对接海外买家</p>
-</div>
-</div>
-
-<div class="relative" style="background-image:url('images/scene_11.jpg');background-size:cover;background-position:center">
-<div class="absolute inset-0" style="background:linear-gradient(90deg,rgba(5,150,105,.9) 35%,rgba(5,150,105,.2) 100%)"></div>
-<div class="p-3.5 text-white relative z-10">
-<div class="flex items-center gap-1.5"><i class="fas fa-graduation-cap text-yellow-300 text-xs"></i><p class="font-bold text-[13px]">研学活动</p></div>
-<p class="text-[10px] text-white/85 mt-0.5 leading-relaxed">大唐袜业研学之旅 · 学校在线申请<br>探秘袜业产业链，体验智能制造</p>
-</div>
-</div>
-
-</div>
-<div class="flex justify-center gap-1 mt-1.5" id="promo-dots">
-<span class="b-dot on"></span><span class="b-dot"></span><span class="b-dot"></span><span class="b-dot"></span>
-</div>
-</div>
-
-<!-- 榜单区 - 4个卡片各外露5条 -->
+<!-- ===== 滚动Banner（大圆角 + 玻璃文字） ===== -->
 <div class="px-3 mt-3">
-<div class="grid grid-cols-2 gap-2.5">
+  <div class="banner-track rounded-3xl overflow-hidden shadow-card" id="promo-banner" style="height:78px">
 
-<!-- 终端热销榜 -->
-<a href="ranking-terminal.html" class="bg-white rounded-xl shadow-soft p-2.5 block">
-<div class="flex items-center justify-between mb-2">
-<div class="flex items-center gap-1.5"><i class="fas fa-chart-line text-xs" style="color:#FF6B35"></i><span class="text-[11px] font-bold text-gray-800">终端热销榜</span></div>
-<i class="fas fa-chevron-right text-[8px] text-gray-300"></i>
-</div>
-<div class="space-y-1.5">
-<div class="flex items-center gap-1.5"><span class="text-[10px] font-bold w-3.5 text-center" style="color:#FF4D2D">1</span><span class="text-[10px] text-gray-600 flex-1 truncate">精梳棉商务男袜</span><span class="text-[9px] text-gray-400">2.3万</span></div>
-<div class="flex items-center gap-1.5"><span class="text-[10px] font-bold w-3.5 text-center" style="color:#FF8B5A">2</span><span class="text-[10px] text-gray-600 flex-1 truncate">女士碎花短袜</span><span class="text-[9px] text-gray-400">1.8万</span></div>
-<div class="flex items-center gap-1.5"><span class="text-[10px] font-bold w-3.5 text-center" style="color:#FFB088">3</span><span class="text-[10px] text-gray-600 flex-1 truncate">运动压缩跑步袜</span><span class="text-[9px] text-gray-400">1.2万</span></div>
-<div class="flex items-center gap-1.5"><span class="text-[10px] font-bold w-3.5 text-center text-gray-400">4</span><span class="text-[10px] text-gray-600 flex-1 truncate">竹纤维隐形船袜</span><span class="text-[9px] text-gray-400">9.5千</span></div>
-<div class="flex items-center gap-1.5"><span class="text-[10px] font-bold w-3.5 text-center text-gray-400">5</span><span class="text-[10px] text-gray-600 flex-1 truncate">儿童卡通动物袜</span><span class="text-[9px] text-gray-400">8.7千</span></div>
-</div>
-</a>
+    <div class="relative" style="background-image:url('images/sock_02.jpg');background-size:cover;background-position:center">
+      <div class="absolute inset-0" style="background:linear-gradient(100deg,rgba(214,40,40,.92) 30%,rgba(214,40,40,.15) 100%)"></div>
+      <div class="absolute inset-0 backdrop-blur-[1px]"></div>
+      <div class="p-3 text-white relative z-10 h-full flex flex-col justify-center">
+        <div class="flex items-center gap-1.5"><i class="fas fa-store text-yellow-300 text-xs"></i><p class="font-extrabold text-[15px]">诚邀入驻</p></div>
+        <p class="text-[11px] text-white/90 mt-1 leading-relaxed">免费开通数字店铺 · 24h在线接单<br>享平台流量扶持与集采对接</p>
+      </div>
+    </div>
 
-<!-- 平台热搜榜 -->
-<a href="ranking-search.html" class="bg-white rounded-xl shadow-soft p-2.5 block">
-<div class="flex items-center justify-between mb-2">
-<div class="flex items-center gap-1.5"><i class="fas fa-fire text-xs" style="color:#EF4444"></i><span class="text-[11px] font-bold text-gray-800">平台热搜榜</span></div>
-<i class="fas fa-chevron-right text-[8px] text-gray-300"></i>
-</div>
-<div class="space-y-1.5">
-<div class="flex items-center gap-1.5"><span class="text-[10px] font-bold w-3.5 text-center" style="color:#FF4D2D">1</span><span class="text-[10px] text-gray-600 flex-1 truncate">纯棉防臭袜</span><i class="fas fa-arrow-trend-up text-[7px]" style="color:#EF4444"></i></div>
-<div class="flex items-center gap-1.5"><span class="text-[10px] font-bold w-3.5 text-center" style="color:#FF8B5A">2</span><span class="text-[10px] text-gray-600 flex-1 truncate">冰丝透气袜</span><i class="fas fa-arrow-trend-up text-[7px]" style="color:#EF4444"></i></div>
-<div class="flex items-center gap-1.5"><span class="text-[10px] font-bold w-3.5 text-center" style="color:#FFB088">3</span><span class="text-[10px] text-gray-600 flex-1 truncate">羊毛保暖袜</span><i class="fas fa-minus text-[7px] text-gray-300"></i></div>
-<div class="flex items-center gap-1.5"><span class="text-[10px] font-bold w-3.5 text-center text-gray-400">4</span><span class="text-[10px] text-gray-600 flex-1 truncate">条纹中筒袜</span><i class="fas fa-arrow-trend-up text-[7px]" style="color:#EF4444"></i></div>
-<div class="flex items-center gap-1.5"><span class="text-[10px] font-bold w-3.5 text-center text-gray-400">5</span><span class="text-[10px] text-gray-600 flex-1 truncate">卡通印花袜</span><i class="fas fa-arrow-trend-down text-[7px]" style="color:#10B981"></i></div>
-</div>
-</a>
+    <div class="relative" style="background-image:url('images/sock_12.jpg');background-size:cover;background-position:center">
+      <div class="absolute inset-0" style="background:linear-gradient(100deg,rgba(99,58,229,.92) 30%,rgba(99,58,229,.15) 100%)"></div>
+      <div class="absolute inset-0 backdrop-blur-[1px]"></div>
+      <div class="p-3 text-white relative z-10 h-full flex flex-col justify-center">
+        <div class="flex items-center gap-1.5"><i class="fas fa-wand-magic-sparkles text-yellow-300 text-xs"></i><p class="font-extrabold text-[15px]">AI工具赋能</p></div>
+        <p class="text-[11px] text-white/90 mt-1 leading-relaxed">AI商品图 · AI文案 · AI短视频脚本<br>一键生成，小商家也能玩营销</p>
+      </div>
+    </div>
 
-<!-- 跨境热销榜 -->
-<a href="ranking-cross.html" class="bg-white rounded-xl shadow-soft p-2.5 block">
-<div class="flex items-center justify-between mb-2">
-<div class="flex items-center gap-1.5"><i class="fas fa-globe text-xs" style="color:#6366F1"></i><span class="text-[11px] font-bold text-gray-800">跨境热销榜</span></div>
-<i class="fas fa-chevron-right text-[8px] text-gray-300"></i>
-</div>
-<div class="space-y-1.5">
-<div class="flex items-center gap-1.5"><span class="text-[10px] font-bold w-3.5 text-center" style="color:#FF4D2D">1</span><span class="text-[10px] text-gray-600 flex-1 truncate">Compression Socks</span><span class="text-[9px] text-gray-400">$1.2</span></div>
-<div class="flex items-center gap-1.5"><span class="text-[10px] font-bold w-3.5 text-center" style="color:#FF8B5A">2</span><span class="text-[10px] text-gray-600 flex-1 truncate">Cotton Ankle Socks</span><span class="text-[9px] text-gray-400">$0.8</span></div>
-<div class="flex items-center gap-1.5"><span class="text-[10px] font-bold w-3.5 text-center" style="color:#FFB088">3</span><span class="text-[10px] text-gray-600 flex-1 truncate">Winter Wool Socks</span><span class="text-[9px] text-gray-400">$2.1</span></div>
-<div class="flex items-center gap-1.5"><span class="text-[10px] font-bold w-3.5 text-center text-gray-400">4</span><span class="text-[10px] text-gray-600 flex-1 truncate">Sports Running Socks</span><span class="text-[9px] text-gray-400">$1.5</span></div>
-<div class="flex items-center gap-1.5"><span class="text-[10px] font-bold w-3.5 text-center text-gray-400">5</span><span class="text-[10px] text-gray-600 flex-1 truncate">Invisible Boat Socks</span><span class="text-[9px] text-gray-400">$0.5</span></div>
-</div>
-</a>
+    <div class="relative" style="background-image:url('images/scene_08.jpg');background-size:cover;background-position:center">
+      <div class="absolute inset-0" style="background:linear-gradient(100deg,rgba(2,132,199,.92) 30%,rgba(2,132,199,.15) 100%)"></div>
+      <div class="absolute inset-0 backdrop-blur-[1px]"></div>
+      <div class="p-3 text-white relative z-10 h-full flex flex-col justify-center">
+        <div class="flex items-center gap-1.5"><i class="fas fa-globe text-yellow-300 text-xs"></i><p class="font-extrabold text-[15px]">跨境合作</p></div>
+        <p class="text-[11px] text-white/90 mt-1 leading-relaxed">独立站导航 · 第三方跨境运营<br>大唐袜业出海新通道</p>
+      </div>
+    </div>
 
-<!-- 新品关注榜 -->
-<a href="ranking-new.html" class="bg-white rounded-xl shadow-soft p-2.5 block">
-<div class="flex items-center justify-between mb-2">
-<div class="flex items-center gap-1.5"><i class="fas fa-seedling text-xs" style="color:#10B981"></i><span class="text-[11px] font-bold text-gray-800">新品关注榜</span></div>
-<i class="fas fa-chevron-right text-[8px] text-gray-300"></i>
-</div>
-<div class="space-y-1.5">
-<div class="flex items-center gap-1.5"><span class="text-[10px] font-bold w-3.5 text-center" style="color:#FF4D2D">1</span><span class="text-[10px] text-gray-600 flex-1 truncate">石墨烯抗菌袜</span><span class="text-[9px]" style="color:#10B981">NEW</span></div>
-<div class="flex items-center gap-1.5"><span class="text-[10px] font-bold w-3.5 text-center" style="color:#FF8B5A">2</span><span class="text-[10px] text-gray-600 flex-1 truncate">胶原蛋白丝袜</span><span class="text-[9px]" style="color:#10B981">NEW</span></div>
-<div class="flex items-center gap-1.5"><span class="text-[10px] font-bold w-3.5 text-center" style="color:#FFB088">3</span><span class="text-[10px] text-gray-600 flex-1 truncate">艾草养生袜</span><span class="text-[9px]" style="color:#10B981">NEW</span></div>
-<div class="flex items-center gap-1.5"><span class="text-[10px] font-bold w-3.5 text-center text-gray-400">4</span><span class="text-[10px] text-gray-600 flex-1 truncate">3D立体减震袜</span><span class="text-[9px]" style="color:#10B981">NEW</span></div>
-<div class="flex items-center gap-1.5"><span class="text-[10px] font-bold w-3.5 text-center text-gray-400">5</span><span class="text-[10px] text-gray-600 flex-1 truncate">咖啡碳发热袜</span><span class="text-[9px]" style="color:#10B981">NEW</span></div>
-</div>
-</a>
+    <div class="relative" style="background-image:url('images/scene_11.jpg');background-size:cover;background-position:center">
+      <div class="absolute inset-0" style="background:linear-gradient(100deg,rgba(5,150,105,.92) 30%,rgba(5,150,105,.15) 100%)"></div>
+      <div class="absolute inset-0 backdrop-blur-[1px]"></div>
+      <div class="p-3 text-white relative z-10 h-full flex flex-col justify-center">
+        <div class="flex items-center gap-1.5"><i class="fas fa-graduation-cap text-yellow-300 text-xs"></i><p class="font-extrabold text-[15px]">研学活动</p></div>
+        <p class="text-[11px] text-white/90 mt-1 leading-relaxed">大唐袜业研学之旅 · 学校在线申请<br>探秘产业链，体验智能制造</p>
+      </div>
+    </div>
 
-</div>
+  </div>
+  <div class="flex justify-center gap-1.5 mt-2" id="promo-dots">
+    <span class="b-dot on"></span><span class="b-dot"></span><span class="b-dot"></span><span class="b-dot"></span>
+  </div>
 </div>
 
-<!-- 市场爆款 -->
+<!-- ===== 榜单区（横向滚动榜单卡） ===== -->
+<div class="mt-4 px-3">
+  <div class="flex justify-between items-center mb-2.5">
+    <div class="flex items-center gap-1.5"><i class="fas fa-trophy text-yellow-500 text-sm"></i><span class="sec-title">热门榜单</span></div>
+    <span class="sec-more">实时更新 <i class="fas fa-chevron-right text-[9px]"></i></span>
+  </div>
+  <div class="h-scroll">
+
+    <a href="ranking-terminal.html" class="card w-[164px] bg-white rounded-2xl shadow-soft overflow-hidden">
+      <div class="px-3 py-2 flex items-center gap-1.5 text-white" style="background:linear-gradient(135deg,#FF6B35,#FF2D78)">
+        <i class="fas fa-chart-line text-xs"></i><span class="text-[12px] font-bold">终端热销榜</span>
+      </div>
+      <div class="p-2.5 space-y-1.5">
+        <div class="flex items-center gap-1.5"><span class="text-[10px] font-bold w-4 h-4 rounded-full text-white flex items-center justify-center" style="background:#FF4D2D">1</span><span class="text-[10px] text-gray-600 flex-1 truncate">精梳棉商务男袜</span><span class="text-[9px] text-gray-400">2.3万</span></div>
+        <div class="flex items-center gap-1.5"><span class="text-[10px] font-bold w-4 h-4 rounded-full text-white flex items-center justify-center" style="background:#FF8B5A">2</span><span class="text-[10px] text-gray-600 flex-1 truncate">女士碎花短袜</span><span class="text-[9px] text-gray-400">1.8万</span></div>
+        <div class="flex items-center gap-1.5"><span class="text-[10px] font-bold w-4 h-4 rounded-full text-white flex items-center justify-center" style="background:#FFB088">3</span><span class="text-[10px] text-gray-600 flex-1 truncate">运动压缩跑步袜</span><span class="text-[9px] text-gray-400">1.2万</span></div>
+        <div class="flex items-center gap-1.5"><span class="text-[10px] font-bold w-4 h-4 rounded-full text-white flex items-center justify-center bg-gray-300">4</span><span class="text-[10px] text-gray-600 flex-1 truncate">竹纤维隐形船袜</span><span class="text-[9px] text-gray-400">9.5千</span></div>
+        <div class="flex items-center gap-1.5"><span class="text-[10px] font-bold w-4 h-4 rounded-full text-white flex items-center justify-center bg-gray-300">5</span><span class="text-[10px] text-gray-600 flex-1 truncate">儿童卡通动物袜</span><span class="text-[9px] text-gray-400">8.7千</span></div>
+      </div>
+    </a>
+
+    <a href="ranking-search.html" class="card w-[164px] bg-white rounded-2xl shadow-soft overflow-hidden">
+      <div class="px-3 py-2 flex items-center gap-1.5 text-white" style="background:linear-gradient(135deg,#EF4444,#F97316)">
+        <i class="fas fa-fire text-xs"></i><span class="text-[12px] font-bold">平台热搜榜</span>
+      </div>
+      <div class="p-2.5 space-y-1.5">
+        <div class="flex items-center gap-1.5"><span class="text-[10px] font-bold w-4 h-4 rounded-full text-white flex items-center justify-center" style="background:#FF4D2D">1</span><span class="text-[10px] text-gray-600 flex-1 truncate">纯棉防臭袜</span><i class="fas fa-arrow-trend-up text-[8px]" style="color:#EF4444"></i></div>
+        <div class="flex items-center gap-1.5"><span class="text-[10px] font-bold w-4 h-4 rounded-full text-white flex items-center justify-center" style="background:#FF8B5A">2</span><span class="text-[10px] text-gray-600 flex-1 truncate">冰丝透气袜</span><i class="fas fa-arrow-trend-up text-[8px]" style="color:#EF4444"></i></div>
+        <div class="flex items-center gap-1.5"><span class="text-[10px] font-bold w-4 h-4 rounded-full text-white flex items-center justify-center" style="background:#FFB088">3</span><span class="text-[10px] text-gray-600 flex-1 truncate">羊毛保暖袜</span><i class="fas fa-minus text-[8px] text-gray-300"></i></div>
+        <div class="flex items-center gap-1.5"><span class="text-[10px] font-bold w-4 h-4 rounded-full text-white flex items-center justify-center bg-gray-300">4</span><span class="text-[10px] text-gray-600 flex-1 truncate">条纹中筒袜</span><i class="fas fa-arrow-trend-up text-[8px]" style="color:#EF4444"></i></div>
+        <div class="flex items-center gap-1.5"><span class="text-[10px] font-bold w-4 h-4 rounded-full text-white flex items-center justify-center bg-gray-300">5</span><span class="text-[10px] text-gray-600 flex-1 truncate">卡通印花袜</span><i class="fas fa-arrow-trend-down text-[8px]" style="color:#10B981"></i></div>
+      </div>
+    </a>
+
+    <a href="ranking-cross.html" class="card w-[164px] bg-white rounded-2xl shadow-soft overflow-hidden">
+      <div class="px-3 py-2 flex items-center gap-1.5 text-white" style="background:linear-gradient(135deg,#6366F1,#8B5CF6)">
+        <i class="fas fa-globe text-xs"></i><span class="text-[12px] font-bold">跨境热销榜</span>
+      </div>
+      <div class="p-2.5 space-y-1.5">
+        <div class="flex items-center gap-1.5"><span class="text-[10px] font-bold w-4 h-4 rounded-full text-white flex items-center justify-center" style="background:#FF4D2D">1</span><span class="text-[10px] text-gray-600 flex-1 truncate">Compression Socks</span><span class="text-[9px] text-gray-400">$1.2</span></div>
+        <div class="flex items-center gap-1.5"><span class="text-[10px] font-bold w-4 h-4 rounded-full text-white flex items-center justify-center" style="background:#FF8B5A">2</span><span class="text-[10px] text-gray-600 flex-1 truncate">Cotton Ankle Socks</span><span class="text-[9px] text-gray-400">$0.8</span></div>
+        <div class="flex items-center gap-1.5"><span class="text-[10px] font-bold w-4 h-4 rounded-full text-white flex items-center justify-center" style="background:#FFB088">3</span><span class="text-[10px] text-gray-600 flex-1 truncate">Winter Wool Socks</span><span class="text-[9px] text-gray-400">$2.1</span></div>
+        <div class="flex items-center gap-1.5"><span class="text-[10px] font-bold w-4 h-4 rounded-full text-white flex items-center justify-center bg-gray-300">4</span><span class="text-[10px] text-gray-600 flex-1 truncate">Sports Running Socks</span><span class="text-[9px] text-gray-400">$1.5</span></div>
+        <div class="flex items-center gap-1.5"><span class="text-[10px] font-bold w-4 h-4 rounded-full text-white flex items-center justify-center bg-gray-300">5</span><span class="text-[10px] text-gray-600 flex-1 truncate">Invisible Boat Socks</span><span class="text-[9px] text-gray-400">$0.5</span></div>
+      </div>
+    </a>
+
+    <a href="ranking-new.html" class="card w-[164px] bg-white rounded-2xl shadow-soft overflow-hidden">
+      <div class="px-3 py-2 flex items-center gap-1.5 text-white" style="background:linear-gradient(135deg,#10B981,#22C55E)">
+        <i class="fas fa-seedling text-xs"></i><span class="text-[12px] font-bold">新品关注榜</span>
+      </div>
+      <div class="p-2.5 space-y-1.5">
+        <div class="flex items-center gap-1.5"><span class="text-[10px] font-bold w-4 h-4 rounded-full text-white flex items-center justify-center" style="background:#FF4D2D">1</span><span class="text-[10px] text-gray-600 flex-1 truncate">石墨烯抗菌袜</span><span class="text-[9px] font-bold" style="color:#10B981">NEW</span></div>
+        <div class="flex items-center gap-1.5"><span class="text-[10px] font-bold w-4 h-4 rounded-full text-white flex items-center justify-center" style="background:#FF8B5A">2</span><span class="text-[10px] text-gray-600 flex-1 truncate">胶原蛋白丝袜</span><span class="text-[9px] font-bold" style="color:#10B981">NEW</span></div>
+        <div class="flex items-center gap-1.5"><span class="text-[10px] font-bold w-4 h-4 rounded-full text-white flex items-center justify-center" style="background:#FFB088">3</span><span class="text-[10px] text-gray-600 flex-1 truncate">艾草养生袜</span><span class="text-[9px] font-bold" style="color:#10B981">NEW</span></div>
+        <div class="flex items-center gap-1.5"><span class="text-[10px] font-bold w-4 h-4 rounded-full text-white flex items-center justify-center bg-gray-300">4</span><span class="text-[10px] text-gray-600 flex-1 truncate">3D立体减震袜</span><span class="text-[9px] font-bold" style="color:#10B981">NEW</span></div>
+        <div class="flex items-center gap-1.5"><span class="text-[10px] font-bold w-4 h-4 rounded-full text-white flex items-center justify-center bg-gray-300">5</span><span class="text-[10px] text-gray-600 flex-1 truncate">咖啡碳发热袜</span><span class="text-[9px] font-bold" style="color:#10B981">NEW</span></div>
+      </div>
+    </a>
+
+  </div>
+</div>
+
+<!-- ===== 市场爆款（保持不变） ===== -->
 <div class="mt-4 px-3">
 <div class="flex justify-between items-center mb-2.5">
 <div class="flex items-center gap-1.5"><i class="fas fa-fire text-primary text-sm"></i><span class="font-bold text-[15px] text-gray-800">市场爆款</span></div>
@@ -285,54 +318,54 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </div>
 </div>
 
-<!-- 品牌馆 -->
+<!-- ===== 品牌馆（横向滚动卡片） ===== -->
 <div class="mt-4 px-3">
-<div class="flex justify-between items-center mb-2.5">
-<div class="flex items-center gap-1.5"><i class="fas fa-crown text-indigo-500 text-sm"></i><span class="font-bold text-[15px] text-gray-800">品牌馆</span></div>
-<span class="text-[11px] text-gray-400">更多 <i class="fas fa-chevron-right text-[9px]"></i></span>
-</div>
-<div class="grid grid-cols-2 gap-2.5">
+  <div class="flex justify-between items-center mb-2.5">
+    <div class="flex items-center gap-1.5"><i class="fas fa-crown text-indigo-500 text-sm"></i><span class="sec-title">品牌馆</span></div>
+    <span class="sec-more">更多 <i class="fas fa-chevron-right text-[9px]"></i></span>
+  </div>
+  <div class="h-scroll">
 
-<a href="brand-detail.html" class="bg-white rounded-xl overflow-hidden shadow-soft fade-up">
-<div class="relative">
-<img src="images/sock_03.jpg" class="w-full h-[140px] object-cover">
-<span class="absolute top-1.5 left-1.5 tag-brand text-white text-[9px] font-bold px-1.5 py-0.5 rounded">品牌</span>
-<div class="absolute bottom-1.5 left-1.5 flex items-center gap-1 bg-black/30 backdrop-blur rounded-full px-1.5 py-0.5"><div class="w-4 h-4 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center"><i class="fas fa-socks text-white text-[7px]"></i></div><span class="text-white text-[9px] font-medium">浪莎</span></div>
-</div>
-<div class="p-2"><p class="text-[12px] text-gray-800 font-medium leading-tight line-clamp-1">精梳棉商务男袜礼盒装</p><div class="flex items-baseline gap-1 mt-0.5"><span class="text-primary font-bold text-sm">¥6.8</span><span class="text-[10px] text-gray-400">/双起</span></div></div>
-</a>
+    <a href="brand-detail.html" class="card w-[144px] bg-white rounded-2xl overflow-hidden shadow-soft">
+      <div class="relative">
+        <img src="images/sock_03.jpg" class="w-full h-[120px] object-cover">
+        <span class="absolute top-1.5 left-1.5 tag-brand text-white text-[9px] font-bold px-1.5 py-0.5 rounded">品牌</span>
+        <div class="absolute bottom-1.5 left-1.5 flex items-center gap-1 bg-black/30 backdrop-blur rounded-full px-1.5 py-0.5"><div class="w-4 h-4 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center"><i class="fas fa-socks text-white text-[7px]"></i></div><span class="text-white text-[9px] font-medium">浪莎</span></div>
+      </div>
+      <div class="p-2"><p class="text-[12px] text-gray-800 font-medium leading-tight line-clamp-1">精梳棉商务男袜礼盒装</p><div class="flex items-baseline gap-1 mt-0.5"><span class="text-primary font-bold text-sm">¥6.8</span><span class="text-[10px] text-gray-400">/双起</span></div></div>
+    </a>
 
-<a href="brand-detail.html" class="bg-white rounded-xl overflow-hidden shadow-soft fade-up" style="animation-delay:.05s">
-<div class="relative">
-<img src="images/sock_05.jpg" class="w-full h-[140px] object-cover">
-<span class="absolute top-1.5 left-1.5 tag-brand text-white text-[9px] font-bold px-1.5 py-0.5 rounded">品牌</span>
-<div class="absolute bottom-1.5 left-1.5 flex items-center gap-1 bg-black/30 backdrop-blur rounded-full px-1.5 py-0.5"><div class="w-4 h-4 rounded-full bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center"><i class="fas fa-socks text-white text-[7px]"></i></div><span class="text-white text-[9px] font-medium">梦娜</span></div>
-</div>
-<div class="p-2"><p class="text-[12px] text-gray-800 font-medium leading-tight line-clamp-1">女士花色棉袜四季款</p><div class="flex items-baseline gap-1 mt-0.5"><span class="text-primary font-bold text-sm">¥4.2</span><span class="text-[10px] text-gray-400">/双起</span></div></div>
-</a>
+    <a href="brand-detail.html" class="card w-[144px] bg-white rounded-2xl overflow-hidden shadow-soft">
+      <div class="relative">
+        <img src="images/sock_05.jpg" class="w-full h-[120px] object-cover">
+        <span class="absolute top-1.5 left-1.5 tag-brand text-white text-[9px] font-bold px-1.5 py-0.5 rounded">品牌</span>
+        <div class="absolute bottom-1.5 left-1.5 flex items-center gap-1 bg-black/30 backdrop-blur rounded-full px-1.5 py-0.5"><div class="w-4 h-4 rounded-full bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center"><i class="fas fa-socks text-white text-[7px]"></i></div><span class="text-white text-[9px] font-medium">梦娜</span></div>
+      </div>
+      <div class="p-2"><p class="text-[12px] text-gray-800 font-medium leading-tight line-clamp-1">女士花色棉袜四季款</p><div class="flex items-baseline gap-1 mt-0.5"><span class="text-primary font-bold text-sm">¥4.2</span><span class="text-[10px] text-gray-400">/双起</span></div></div>
+    </a>
 
-<a href="brand-detail.html" class="bg-white rounded-xl overflow-hidden shadow-soft fade-up" style="animation-delay:.1s">
-<div class="relative">
-<img src="images/sock_02.jpg" class="w-full h-[140px] object-cover">
-<span class="absolute top-1.5 left-1.5 tag-brand text-white text-[9px] font-bold px-1.5 py-0.5 rounded">品牌</span>
-<div class="absolute bottom-1.5 left-1.5 flex items-center gap-1 bg-black/30 backdrop-blur rounded-full px-1.5 py-0.5"><div class="w-4 h-4 rounded-full bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center"><i class="fas fa-socks text-white text-[7px]"></i></div><span class="text-white text-[9px] font-medium">耐尔</span></div>
-</div>
-<div class="p-2"><p class="text-[12px] text-gray-800 font-medium leading-tight line-clamp-1">专业运动压缩袜系列</p><div class="flex items-baseline gap-1 mt-0.5"><span class="text-primary font-bold text-sm">¥9.9</span><span class="text-[10px] text-gray-400">/双起</span></div></div>
-</a>
+    <a href="brand-detail.html" class="card w-[144px] bg-white rounded-2xl overflow-hidden shadow-soft">
+      <div class="relative">
+        <img src="images/sock_02.jpg" class="w-full h-[120px] object-cover">
+        <span class="absolute top-1.5 left-1.5 tag-brand text-white text-[9px] font-bold px-1.5 py-0.5 rounded">品牌</span>
+        <div class="absolute bottom-1.5 left-1.5 flex items-center gap-1 bg-black/30 backdrop-blur rounded-full px-1.5 py-0.5"><div class="w-4 h-4 rounded-full bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center"><i class="fas fa-socks text-white text-[7px]"></i></div><span class="text-white text-[9px] font-medium">耐尔</span></div>
+      </div>
+      <div class="p-2"><p class="text-[12px] text-gray-800 font-medium leading-tight line-clamp-1">专业运动压缩袜系列</p><div class="flex items-baseline gap-1 mt-0.5"><span class="text-primary font-bold text-sm">¥9.9</span><span class="text-[10px] text-gray-400">/双起</span></div></div>
+    </a>
 
-<a href="brand-detail.html" class="bg-white rounded-xl overflow-hidden shadow-soft fade-up" style="animation-delay:.15s">
-<div class="relative">
-<img src="images/sock_06.jpg" class="w-full h-[140px] object-cover">
-<span class="absolute top-1.5 left-1.5 tag-brand text-white text-[9px] font-bold px-1.5 py-0.5 rounded">品牌</span>
-<div class="absolute bottom-1.5 left-1.5 flex items-center gap-1 bg-black/30 backdrop-blur rounded-full px-1.5 py-0.5"><div class="w-4 h-4 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center"><i class="fas fa-socks text-white text-[7px]"></i></div><span class="text-white text-[9px] font-medium">情怡</span></div>
-</div>
-<div class="p-2"><p class="text-[12px] text-gray-800 font-medium leading-tight line-clamp-1">美羊毛保暖袜加厚款</p><div class="flex items-baseline gap-1 mt-0.5"><span class="text-primary font-bold text-sm">¥7.5</span><span class="text-[10px] text-gray-400">/双起</span></div></div>
-</a>
+    <a href="brand-detail.html" class="card w-[144px] bg-white rounded-2xl overflow-hidden shadow-soft">
+      <div class="relative">
+        <img src="images/sock_06.jpg" class="w-full h-[120px] object-cover">
+        <span class="absolute top-1.5 left-1.5 tag-brand text-white text-[9px] font-bold px-1.5 py-0.5 rounded">品牌</span>
+        <div class="absolute bottom-1.5 left-1.5 flex items-center gap-1 bg-black/30 backdrop-blur rounded-full px-1.5 py-0.5"><div class="w-4 h-4 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center"><i class="fas fa-socks text-white text-[7px]"></i></div><span class="text-white text-[9px] font-medium">情怡</span></div>
+      </div>
+      <div class="p-2"><p class="text-[12px] text-gray-800 font-medium leading-tight line-clamp-1">美羊毛保暖袜加厚款</p><div class="flex items-baseline gap-1 mt-0.5"><span class="text-primary font-bold text-sm">¥7.5</span><span class="text-[10px] text-gray-400">/双起</span></div></div>
+    </a>
 
-</div>
+  </div>
 </div>
 
-<!-- 逛市场 - 3D楼层图 -->
+<!-- ===== 逛市场 - 3D楼层图（保持不变） ===== -->
 <div class="mt-4 px-3">
 <div class="flex justify-between items-center mb-2.5">
 <div class="flex items-center gap-1.5"><i class="fas fa-store text-teal-500 text-sm"></i><span class="font-bold text-[15px] text-gray-800">逛市场</span></div>
@@ -393,7 +426,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 
 <a href="shop-detail.html" class="bg-white rounded-xl p-2.5 shadow-soft">
 <div class="flex items-center gap-2 mb-2">
-<div class="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center"><i class="fas fa-socks text-white text-xs"></i></div>
+<div class="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center"><i class="fas fa-crown text-white text-xs"></i></div>
 <div class="flex-1 min-w-0">
 <div class="flex items-center gap-1"><p class="text-[11px] font-semibold text-gray-800 truncate">大唐袜业旗舰</p><span class="bg-orange-50 text-primary text-[8px] px-1 py-0.5 rounded">实力</span></div>
 <p class="text-[9px] text-gray-400">1F-A08 · 男袜</p>
@@ -404,7 +437,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 
 <a href="shop-detail.html" class="bg-white rounded-xl p-2.5 shadow-soft">
 <div class="flex items-center gap-2 mb-2">
-<div class="w-9 h-9 rounded-lg bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center"><i class="fas fa-socks text-white text-xs"></i></div>
+<div class="w-9 h-9 rounded-lg bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center"><i class="fas fa-gem text-white text-xs"></i></div>
 <div class="flex-1 min-w-0">
 <div class="flex items-center gap-1"><p class="text-[11px] font-semibold text-gray-800 truncate">花样年华袜业</p><span class="bg-orange-50 text-primary text-[8px] px-1 py-0.5 rounded">实力</span></div>
 <p class="text-[9px] text-gray-400">1F-B12 · 女袜</p>
@@ -415,7 +448,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 
 <a href="shop-detail.html" class="bg-white rounded-xl p-2.5 shadow-soft">
 <div class="flex items-center gap-2 mb-2">
-<div class="w-9 h-9 rounded-lg bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center"><i class="fas fa-socks text-white text-xs"></i></div>
+<div class="w-9 h-9 rounded-lg bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center"><i class="fas fa-bolt text-white text-xs"></i></div>
 <div class="flex-1 min-w-0">
 <div class="flex items-center gap-1"><p class="text-[11px] font-semibold text-gray-800 truncate">动力袜业工厂</p><span class="bg-orange-50 text-primary text-[8px] px-1 py-0.5 rounded">实力</span></div>
 <p class="text-[9px] text-gray-400">1F-A15 · 运动袜</p>
@@ -426,7 +459,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 
 <a href="shop-detail.html" class="bg-white rounded-xl p-2.5 shadow-soft">
 <div class="flex items-center gap-2 mb-2">
-<div class="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center"><i class="fas fa-socks text-white text-xs"></i></div>
+<div class="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center"><i class="fas fa-snowflake text-white text-xs"></i></div>
 <div class="flex-1 min-w-0">
 <div class="flex items-center gap-1"><p class="text-[11px] font-semibold text-gray-800 truncate">暖足坊袜业</p><span class="bg-orange-50 text-primary text-[8px] px-1 py-0.5 rounded">实力</span></div>
 <p class="text-[9px] text-gray-400">1F-B03 · 保暖袜</p>
@@ -438,7 +471,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </div>
 </div>
 
-<!-- 袜业协会banner -->
+<!-- ===== 袜业协会banner（保持不变） ===== -->
 <div class="mt-4 px-3 mb-28">
 <a href="chamber.html" class="block rounded-2xl overflow-hidden relative shadow-card" style="height:84px;background:linear-gradient(135deg,#3D1F1F,#7C3A3A)">
 <div class="absolute right-0 top-0 bottom-0 w-32 opacity-20"><i class="fas fa-building-columns absolute right-4 top-1/2 -translate-y-1/2 text-white text-6xl"></i></div>
