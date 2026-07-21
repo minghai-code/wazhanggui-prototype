@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>订单 - 袜掌柜商户版</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>
+tailwind.config={theme:{extend:{colors:{primary:'#2563EB','primary-d':'#1D4ED8','primary-l':'#3B82F6'}}}}
+</script>
+<style>
+:root{--p:#2563EB;--pl:#3B82F6;--bg:#F0F6FF}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+::-webkit-scrollbar{width:2px;height:2px}
+::-webkit-scrollbar-thumb{background:#cfe0f8;border-radius:1px}
+.no-bar::-webkit-scrollbar{display:none}
+.grad-h{background:linear-gradient(135deg,#3B82F6 0%,#2563EB 50%,#1D4ED8 100%)}
+.shadow-card{box-shadow:0 8px 24px rgba(37,99,235,.16)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,40,80,.06)}
+.card{transition:transform .16s ease, box-shadow .16s ease}
+.card:active{transform:scale(.985)}
+.text-grad{background:linear-gradient(90deg,#2563EB,#06B6D4);-webkit-background-clip:text;background-clip:text;color:transparent}
+.fade-up{animation:fadeUp .4s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.num{font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+
+<!-- ===== 顶部：渐变 + 流动光斑 ===== -->
+<div class="relative px-4 pt-2 pb-7 overflow-hidden">
+  <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-50" style="background:#60A5FA"></div>
+  <div class="absolute -top-6 right-[-30px] w-48 h-48 rounded-full blur-3xl opacity-40" style="background:#06B6D4"></div>
+  <div class="absolute -bottom-10 left-12 w-44 h-44 rounded-full blur-3xl opacity-35" style="background:#8B5CF6"></div>
+
+  <!-- iOS状态栏 -->
+  <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5">
+      <i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i>
+    </div>
+  </div>
+
+  <!-- 标题 + 搜索 -->
+  <div class="relative flex items-end justify-between mt-1">
+    <div>
+      <div class="flex items-center gap-2">
+        <span class="text-white font-extrabold text-[26px] tracking-wide" style="text-shadow:0 2px 10px rgba(0,0,0,.18)">订单管理</span>
+        <span class="text-[10px] text-white/90 bg-white/20 rounded-full px-2 py-0.5 backdrop-blur">待发货 12</span>
+      </div>
+      <p class="text-white/80 text-[11px] mt-1"><i class="fas fa-truck-fast"></i> 及时履约 · 48h内发货</p>
+    </div>
+    <div class="flex gap-2">
+      <a href="#" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-magnifying-glass text-sm"></i></a>
+      <a href="#" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-filter text-sm"></i></a>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Tab切换（玻璃sticky） ===== -->
+<div class="px-3 -mt-4 relative z-20">
+  <div class="bg-white/80 backdrop-blur-xl rounded-2xl shadow-soft px-3 py-2.5 flex items-center gap-5 border border-white">
+    <a class="text-[13px] font-bold text-gray-800 relative pb-1">待发货<span class="text-[10px] text-gray-400 ml-0.5">12</span><span class="absolute bottom-0 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full" style="background:linear-gradient(90deg,#2563EB,#06B6D4)"></span></a>
+    <a class="text-[13px] text-gray-400 pb-1">已发货<span class="text-[10px] ml-0.5">38</span></a>
+    <a class="text-[13px] text-gray-400 pb-1">已完成</a>
+    <a class="text-[13px] text-gray-400 pb-1">售后<span class="text-[10px] ml-0.5">2</span></a>
+  </div>
+</div>
+
+<!-- 超时提醒条 -->
+<div class="px-3 mt-2">
+  <div class="bg-red-50 border border-red-100 rounded-xl px-3 py-2 flex items-center gap-2">
+    <i class="fas fa-circle-exclamation text-red-500 text-xs"></i>
+    <p class="text-[11px] text-red-600 flex-1">有 <span class="font-bold num">3</span> 单已超48h未发货，买家可能催发货</p>
+    <a href="#" class="text-[11px] text-red-500 font-bold">查看</a>
+  </div>
+</div>
+
+<!-- ===== 订单列表 ===== -->
+<div class="px-3 py-3 space-y-3" style="padding-bottom:90px">
+
+<!-- 订单1：待发货 + 超时 -->
+<div class="card bg-white rounded-2xl shadow-soft overflow-hidden fade-up">
+  <!-- 买家头 -->
+  <div class="flex items-center gap-2 px-3 py-2.5 border-b border-gray-50">
+    <div class="w-6 h-6 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#3B82F6,#1D4ED8)"><i class="fas fa-user text-white text-[8px]"></i></div>
+    <span class="text-[12px] font-semibold text-gray-800 truncate flex-1">杭州XX贸易·张经理</span>
+    <span class="bg-red-100 text-red-500 text-[8px] font-bold px-1 py-0.5 rounded">超时</span>
+    <span class="text-[10px] font-bold text-primary">待发货</span>
+  </div>
+  <!-- 商品 -->
+  <a href="order-detail.html" class="flex gap-2.5 p-3">
+    <img src="../mai-APP/images/sock_03.jpg" class="w-[72px] h-[72px] rounded-xl object-cover flex-shrink-0">
+    <div class="flex-1 min-w-0">
+      <p class="text-[12px] text-gray-800 font-medium leading-tight line-clamp-2">精梳棉商务男袜 透气防臭 10双装</p>
+      <p class="text-[10px] text-gray-400 mt-1 bg-gray-50 inline-block px-1.5 py-0.5 rounded">黑色 · 39-42码</p>
+      <div class="flex items-end justify-between mt-1.5">
+        <div><span class="text-primary font-bold text-[15px] num">¥3.5</span><span class="text-[9px] text-gray-400">/双</span></div>
+        <span class="text-[11px] text-gray-500 num">x100双</span>
+      </div>
+    </div>
+  </a>
+  <!-- 小计 -->
+  <div class="flex items-center justify-between px-3 py-2.5 border-t border-gray-50">
+    <span class="text-[10px] text-gray-400 num">SO20260720-001 · 2小时前</span>
+    <div class="flex items-center gap-1"><span class="text-[11px] text-gray-500">实收:</span><span class="text-grad font-bold text-[15px] num">¥340.0</span></div>
+  </div>
+  <!-- 操作 -->
+  <div class="flex gap-2 px-3 pb-3">
+    <a href="tel:13800138000" class="flex-1 py-2 rounded-lg border border-gray-200 text-[11px] text-gray-600 text-center"><i class="fas fa-phone text-[9px]"></i> 联系买家</a>
+    <a href="order-detail.html" class="flex-1 py-2 rounded-lg border border-gray-200 text-[11px] text-gray-600 text-center">订单详情</a>
+    <a href="shipping.html" class="flex-[1.3] py-2 rounded-lg text-white text-[11px] font-bold text-center shadow-card" style="background:linear-gradient(135deg,#3B82F6,#2563EB)"><i class="fas fa-truck text-[9px]"></i> 立即发货</a>
+  </div>
+</div>
+
+<!-- 订单2：待发货 -->
+<div class="card bg-white rounded-2xl shadow-soft overflow-hidden fade-up" style="animation-delay:.05s">
+  <div class="flex items-center gap-2 px-3 py-2.5 border-b border-gray-50">
+    <div class="w-6 h-6 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#EC4899,#BE185D)"><i class="fas fa-user text-white text-[8px]"></i></div>
+    <span class="text-[12px] font-semibold text-gray-800 truncate flex-1">上海花样百货</span>
+    <span class="text-[10px] font-bold text-primary">待发货</span>
+  </div>
+  <a href="order-detail.html" class="flex gap-2.5 p-3">
+    <img src="../mai-APP/images/sock_05.jpg" class="w-[72px] h-[72px] rounded-xl object-cover flex-shrink-0">
+    <div class="flex-1 min-w-0">
+      <p class="text-[12px] text-gray-800 font-medium leading-tight line-clamp-2">女士碎花短袜 纯棉透气 5双装</p>
+      <p class="text-[10px] text-gray-400 mt-1 bg-gray-50 inline-block px-1.5 py-0.5 rounded">碎花A · 均码</p>
+      <div class="flex items-end justify-between mt-1.5">
+        <div><span class="text-primary font-bold text-[15px] num">¥2.8</span><span class="text-[9px] text-gray-400">/双</span></div>
+        <span class="text-[11px] text-gray-500 num">x200双</span>
+      </div>
+    </div>
+  </a>
+  <div class="flex items-center justify-between px-3 py-2.5 border-t border-gray-50">
+    <span class="text-[10px] text-gray-400 num">SO20260720-002 · 5小时前</span>
+    <div class="flex items-center gap-1"><span class="text-[11px] text-gray-500">实收:</span><span class="text-grad font-bold text-[15px] num">¥560.0</span></div>
+  </div>
+  <div class="flex gap-2 px-3 pb-3">
+    <a href="tel:13800138001" class="flex-1 py-2 rounded-lg border border-gray-200 text-[11px] text-gray-600 text-center">联系买家</a>
+    <a href="order-detail.html" class="flex-1 py-2 rounded-lg border border-gray-200 text-[11px] text-gray-600 text-center">详情</a>
+    <a href="shipping.html" class="flex-[1.3] py-2 rounded-lg text-white text-[11px] font-bold text-center shadow-card" style="background:linear-gradient(135deg,#3B82F6,#2563EB)">立即发货</a>
+  </div>
+</div>
+
+<!-- 订单3：多商品 -->
+<div class="card bg-white rounded-2xl shadow-soft overflow-hidden fade-up" style="animation-delay:.1s">
+  <div class="flex items-center gap-2 px-3 py-2.5 border-b border-gray-50">
+    <div class="w-6 h-6 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#10B981,#047857)"><i class="fas fa-user text-white text-[8px]"></i></div>
+    <span class="text-[12px] font-semibold text-gray-800 truncate flex-1">义乌批发商王老板</span>
+    <span class="text-[10px] font-bold text-primary">待发货</span>
+  </div>
+  <!-- 商品1 -->
+  <a href="order-detail.html" class="flex gap-2.5 p-3 pb-2">
+    <img src="../mai-APP/images/sock_02.jpg" class="w-[72px] h-[72px] rounded-xl object-cover flex-shrink-0">
+    <div class="flex-1 min-w-0">
+      <p class="text-[12px] text-gray-800 font-medium leading-tight line-clamp-1">运动压缩跑步袜 减震防滑</p>
+      <p class="text-[10px] text-gray-400 mt-1 bg-gray-50 inline-block px-1.5 py-0.5 rounded">荧光绿 · 均码</p>
+      <div class="flex items-end justify-between mt-1.5">
+        <div><span class="text-primary font-bold text-[15px] num">¥5.8</span><span class="text-[9px] text-gray-400">/双</span></div>
+        <span class="text-[11px] text-gray-500 num">x150双</span>
+      </div>
+    </div>
+  </a>
+  <!-- 商品2 -->
+  <a href="order-detail.html" class="flex gap-2.5 px-3 pb-2">
+    <img src="../mai-APP/images/sock_06.jpg" class="w-[72px] h-[72px] rounded-xl object-cover flex-shrink-0">
+    <div class="flex-1 min-w-0">
+      <p class="text-[12px] text-gray-800 font-medium leading-tight line-clamp-1">美羊毛保暖袜加厚款</p>
+      <p class="text-[10px] text-gray-400 mt-1 bg-gray-50 inline-block px-1.5 py-0.5 rounded">灰色 · 均码</p>
+      <div class="flex items-end justify-between mt-1.5">
+        <div><span class="text-primary font-bold text-[15px] num">¥7.5</span><span class="text-[9px] text-gray-400">/双</span></div>
+        <span class="text-[11px] text-gray-500 num">x200双</span>
+      </div>
+    </div>
+  </a>
+  <!-- 更多商品 -->
+  <a href="order-detail.html" class="flex items-center justify-center gap-1 py-1.5 text-[10px] text-gray-400 border-t border-gray-50">共4种商品 <i class="fas fa-chevron-down text-[8px]"></i></a>
+  <div class="flex items-center justify-between px-3 py-2.5 border-t border-gray-50">
+    <span class="text-[10px] text-gray-400 num">SO20260719-088 · 昨天</span>
+    <div class="flex items-center gap-1"><span class="text-[11px] text-gray-500">实收:</span><span class="text-grad font-bold text-[15px] num">¥2,180.0</span></div>
+  </div>
+  <div class="flex gap-2 px-3 pb-3">
+    <a href="tel:13800138002" class="flex-1 py-2 rounded-lg border border-gray-200 text-[11px] text-gray-600 text-center">联系买家</a>
+    <a href="shipping.html" class="flex-[1.3] py-2 rounded-lg text-white text-[11px] font-bold text-center shadow-card" style="background:linear-gradient(135deg,#3B82F6,#2563EB)">立即发货</a>
+  </div>
+</div>
+
+<!-- 订单4：售后 -->
+<div class="card bg-white rounded-2xl shadow-soft overflow-hidden fade-up" style="animation-delay:.15s">
+  <div class="flex items-center gap-2 px-3 py-2.5 border-b border-gray-50">
+    <div class="w-6 h-6 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#06B6D4,#0E7490)"><i class="fas fa-user text-white text-[8px]"></i></div>
+    <span class="text-[12px] font-semibold text-gray-800 truncate flex-1">成都连锁便利店</span>
+    <span class="bg-orange-100 text-orange-500 text-[8px] font-bold px-1 py-0.5 rounded">售后</span>
+    <span class="text-[10px] font-bold text-orange-500">退款申请</span>
+  </div>
+  <a href="order-detail.html" class="flex gap-2.5 p-3">
+    <img src="../mai-APP/images/material_04.jpg" class="w-[72px] h-[72px] rounded-xl object-cover flex-shrink-0">
+    <div class="flex-1 min-w-0">
+      <p class="text-[12px] text-gray-800 font-medium leading-tight line-clamp-2">竹纤维隐形船袜 防滑不掉</p>
+      <p class="text-[10px] text-gray-400 mt-1 bg-orange-50 inline-block px-1.5 py-0.5 rounded text-orange-500">原因：部分色差</p>
+      <div class="flex items-end justify-between mt-1.5">
+        <div><span class="text-orange-500 font-bold text-[15px] num">-¥900.0</span></div>
+        <span class="text-[11px] text-gray-500 num">x500双</span>
+      </div>
+    </div>
+  </a>
+  <div class="flex items-center justify-between px-3 py-2.5 border-t border-gray-50">
+    <span class="text-[10px] text-red-500"><i class="fas fa-clock text-[9px]"></i> 48h内未响应买家可介入</span>
+    <span class="text-[10px] text-gray-400 num">SO20260718-056</span>
+  </div>
+  <div class="flex gap-2 px-3 pb-3">
+    <a href="order-detail.html" class="flex-1 py-2 rounded-lg border border-gray-200 text-[11px] text-gray-600 text-center">查看详情</a>
+    <a href="order-detail.html" class="flex-[1.3] py-2 rounded-lg text-white text-[11px] font-bold text-center" style="background:linear-gradient(135deg,#F59E0B,#D97706)">处理售后</a>
+  </div>
+</div>
+
+</div>
+
+<!-- 底部Tab栏 -->
+<div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100" style="height:65px;z-index:100;width:393px">
+  <div class="flex justify-around items-center h-full" style="padding-bottom:10px">
+    <a href="home.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-gauge-high text-[18px]"></i><span class="text-[9px]">工作台</span></a>
+    <a href="orders.html" class="flex flex-col items-center gap-0.5" style="color:#2563EB"><i class="fas fa-clipboard-list text-[18px]"></i><span class="text-[9px] font-semibold">订单</span></a>
+    <a href="messages.html" class="flex flex-col items-center gap-0.5 text-gray-400 relative"><i class="fas fa-comment-dots text-[18px]"></i><span class="text-[9px]">消息</span><span class="absolute top-0 right-2 bg-red-500 text-white text-[7px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center" style="min-width:14px;height:14px">5</span></a>
+    <a href="mine.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-user text-[18px]"></i><span class="text-[9px]">我的</span></a>
+  </div>
+</div>
+<div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none">
+  <div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:3px"></div>
+</div>
+
+</body>
+</html>
