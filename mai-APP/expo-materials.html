@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>资料下载 - 袜掌柜买家版</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--p:#FF4D2D;--pl:#FF7849;--bg:#FFF7F4}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+::-webkit-scrollbar{width:2px;height:2px}
+::-webkit-scrollbar-thumb{background:#dfdfdf;border-radius:1px}
+.shadow-card{box-shadow:0 8px 24px rgba(236,72,153,.14)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
+.card{transition:transform .16s ease}.card:active{transform:scale(.965)}
+.fade-up{animation:fadeUp .4s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.sec-title{font-size:15px;font-weight:800;letter-spacing:.3px;color:#1F2430}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:300;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.25);min-width:120px;justify-content:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.dl-btn{transition:.15s}
+.dl-btn:active{transform:scale(.95)}
+.progress-bar{height:4px;background:#FCE7F3;border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,#FB7185,#EC4899);border-radius:2px;transition:width .3s}
+</style>
+</head>
+<body>
+
+<!-- 顶部渐变区 -->
+<div class="relative px-4 pt-2 pb-5 overflow-hidden" style="background:linear-gradient(135deg,#8B5CF6 0%,#6366F1 40%,#7C3AED 100%)">
+<div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-50" style="background:#8B5CF6"></div>
+<div class="absolute -top-6 right-[-30px] w-48 h-48 rounded-full blur-3xl opacity-40" style="background:#6366F1"></div>
+<div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+<span>9:41</span>
+<div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+</div>
+<div class="relative flex items-center gap-2.5 mt-1">
+<a href="expo.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+<div>
+<h1 class="text-white font-extrabold text-[18px]" style="text-shadow:0 2px 10px rgba(0,0,0,.18)"><i class="fas fa-download text-[15px] mr-1"></i>资料下载</h1>
+<p class="text-white/70 text-[10px] mt-0.5">展会资料 · 一键下载</p>
+</div>
+</div>
+</div>
+
+<!-- 资料列表 -->
+<div class="px-3 mt-3" id="materialsList"></div>
+
+<!-- 提示 -->
+<div class="px-3 mt-3 mb-6">
+<div class="bg-white/85 backdrop-blur-xl rounded-xl p-3 border border-white">
+<p class="text-[10px] text-gray-400 leading-relaxed"><i class="fas fa-circle-info mr-1" style="color:#8B5CF6"></i>部分资料需登记参观后可下载。如需纸质版资料包，请在展会现场咨询服务台领取。</p>
+</div>
+</div>
+
+<div class="h-16"></div>
+
+<!-- 底部 -->
+<div class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-gray-100 flex items-center justify-between px-4" style="height:55px;z-index:100;width:393px;padding-bottom:8px">
+<span class="text-[10px] text-gray-400"><i class="fas fa-headset mr-1" style="color:#8B5CF6"></i>资料咨询 0575-8742xxxx</span>
+<a href="expo.html" class="text-[11px] text-gray-500 px-3 py-1.5 rounded-full bg-gray-100">返回</a>
+</div>
+<div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none"><div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:2px"></div></div>
+
+<div class="toast" id="toast"><i class="fas fa-circle-check" style="color:#4ADE80"></i><span id="toastTxt">操作成功</span></div>
+
+<script>
+function toast(msg){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;t.classList.add('on');setTimeout(function(){t.classList.remove('on')},2000)}
+
+var materials=[
+ {name:'展商名录（完整版）',desc:'800+展商信息·展位号·主营产品·联系方式',size:'5.2MB',type:'PDF',icon:'fas fa-book',color:'#FB7185',colorBg:'#FCE7F3',locked:false},
+ {name:'展位平面图（高清版）',desc:'A/B/C/D全馆展位分布·含展商名称',size:'3.8MB',type:'PDF',icon:'fas fa-map',color:'#7C3AED',colorBg:'#EDE9FE',locked:false},
+ {name:'展会日程手册',desc:'3天完整日程·论坛议程·活动详情',size:'2.1MB',type:'PDF',icon:'fas fa-calendar-days',color:'#34D399',colorBg:'#D1FAE5',locked:false},
+ {name:'参观指南',desc:'交通指南·入场流程·展馆服务·注意事项',size:'1.5MB',type:'PDF',icon:'fas fa-compass',color:'#38BDF8',colorBg:'#DBEAFE',locked:false},
+ {name:'媒体素材包',desc:'展会Logo·海报·现场图片·新闻通稿',size:'28.6MB',type:'ZIP',icon:'fas fa-images',color:'#FBBF24',colorBg:'#FEF3C7',locked:false},
+ {name:'2026袜业白皮书',desc:'行业数据·趋势分析·市场报告',size:'8.4MB',type:'PDF',icon:'fas fa-file-lines',color:'#EC4899',colorBg:'#FCE7F3',locked:true},
+ {name:'参展商合同模板',desc:'标准展位合同·含条款及附件',size:'0.8MB',type:'DOC',icon:'fas fa-file-signature',color:'#6366F1',colorBg:'#E0E7FF',locked:false},
+ {name:'品牌新品目录',desc:'30+品牌秋冬新品·含产品参数图',size:'4.6MB',type:'PDF',icon:'fas fa-socks',color:'#10B981',colorBg:'#D1FAE5',locked:true}
+];
+
+function renderMaterials(){
+ var html='';
+ materials.forEach(function(m,i){
+  html+='<div class="bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-3 border border-white mb-2.5 fade-up" style="animation-delay:'+(i*0.05)+'s">';
+  html+='<div class="flex items-center gap-3">';
+  html+='<div class="w-11 h-11 rounded-xl flex items-center justify-center text-white flex-shrink-0" style="background:linear-gradient(135deg,'+m.color+','+m.color+'99)"><i class="'+m.icon+' text-base"></i></div>';
+  html+='<div class="flex-1 min-w-0">';
+  html+='<div class="flex items-center gap-1.5">';
+  html+='<p class="text-[12px] font-bold text-gray-800 truncate">'+m.name+'</p>';
+  if(m.locked)html+='<i class="fas fa-lock text-[9px] text-gray-400"></i>';
+  html+='</div>';
+  html+='<p class="text-[9px] text-gray-400 mt-0.5 leading-relaxed">'+m.desc+'</p>';
+  html+='<div class="flex items-center gap-2 mt-1"><span class="text-[8px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">'+m.type+'</span><span class="text-[8px] text-gray-400">'+m.size+'</span></div>';
+  html+='</div>';
+  if(m.locked){
+   html+='<button onclick="goRegister()" class="dl-btn text-[10px] text-white px-3 py-2 rounded-full font-bold flex-shrink-0" style="background:linear-gradient(135deg,#FB7185,#EC4899)">登记解锁</button>';
+  }else{
+   html+='<button onclick="downloadFile('+i+')" class="dl-btn text-[10px] text-white px-3 py-2 rounded-full font-bold flex-shrink-0" id="dlBtn'+i+'" style="background:linear-gradient(135deg,#34D399,#10B981)"><i class="fas fa-download text-[9px] mr-0.5"></i>下载</button>';
+  }
+  html+='</div>';
+  html+='<div class="progress-bar mt-2.5" id="progress'+i+'" style="display:none"><div class="progress-fill" id="fill'+i+'" style="width:0%"></div></div>';
+  html+='</div>';
+ });
+ document.getElementById('materialsList').innerHTML=html;
+}
+
+function downloadFile(idx){
+ var btn=document.getElementById('dlBtn'+idx);
+ var bar=document.getElementById('progress'+idx);
+ var fill=document.getElementById('fill'+idx);
+ btn.innerHTML='<i class="fas fa-spinner fa-spin text-[9px] mr-0.5"></i>下载中';
+ btn.style.background='#9CA3AF';
+ bar.style.display='';
+ var progress=0;
+ var timer=setInterval(function(){
+  progress+=15;
+  if(progress>=100){
+   progress=100;
+   clearInterval(timer);
+   fill.style.width='100%';
+   btn.innerHTML='<i class="fas fa-check text-[9px] mr-0.5"></i>已下载';
+   btn.style.background='#10B981';
+   toast('下载完成：'+materials[idx].name);
+   setTimeout(function(){bar.style.display='none'},2000);
+  }
+  fill.style.width=progress+'%';
+ },200);
+}
+
+function goRegister(){
+ toast('请先完成参观登记');
+ setTimeout(function(){window.location.href='expo-visitor-apply.html'},1500);
+}
+
+renderMaterials();
+</script>
+</body>
+</html>

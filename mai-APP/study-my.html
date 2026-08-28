@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>研学报名详情 - 袜掌柜买家版</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--p:#FF4D2D;--pl:#FF7849;--bg:#FFF7F4}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+::-webkit-scrollbar{width:2px;height:2px}
+::-webkit-scrollbar-thumb{background:#dfdfdf;border-radius:1px}
+.shadow-card{box-shadow:0 8px 24px rgba(5,150,105,.14)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
+.card{transition:transform .16s ease}.card:active{transform:scale(.965)}
+.fade-up{animation:fadeUp .4s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.sec-title{font-size:15px;font-weight:800;letter-spacing:.3px;color:#1F2430}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:300;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.25);min-width:120px;justify-content:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;opacity:0;pointer-events:none;transition:.2s}
+.overlay.on{opacity:1;pointer-events:auto}
+#signCanvas{touch-action:none;cursor:crosshair;background:#fff;border-radius:12px;display:block}
+.step-done{color:#10B981}
+.step-current{color:#F59E0B}
+.step-pending{color:#D1D5DB}
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #F3F4F6}
+.info-row:last-child{border-bottom:none}
+.info-label{font-size:11px;color:#9CA3AF}
+.info-value{font-size:12px;font-weight:600;color:#1F2430}
+</style>
+</head>
+<body>
+
+<!-- 顶部渐变区 -->
+<div class="relative px-4 pt-2 pb-5 overflow-hidden" id="topBg">
+<div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-50" style="background:#34D399"></div>
+<div class="absolute -top-6 right-[-30px] w-48 h-48 rounded-full blur-3xl opacity-40" style="background:#2DD4BF"></div>
+<div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+<span>9:41</span>
+<div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+</div>
+<div class="relative flex items-center gap-2.5 mt-1">
+<a href="study-tour.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+<div>
+<h1 class="text-white font-extrabold text-[18px]" style="text-shadow:0 2px 10px rgba(0,0,0,.18)"><i class="fas fa-file-contract text-[15px] mr-1"></i>研学报名详情</h1>
+<p class="text-white/70 text-[10px] mt-0.5" id="subTitle">查看报名信息 · 签署责任书</p>
+</div>
+</div>
+</div>
+
+<!-- 报名信息卡片 -->
+<div class="px-3 -mt-2 relative z-10">
+<div class="card bg-white/90 backdrop-blur-xl rounded-2xl shadow-soft p-3.5 border border-white fade-up" id="regCard">
+<div class="flex items-start justify-between mb-2">
+<div class="flex-1">
+<p class="text-[14px] font-bold text-gray-800" id="regTitle"></p>
+<p class="text-[10px] text-gray-400 mt-0.5" id="regDate"></p>
+</div>
+<span id="statusBadge"></span>
+</div>
+<div class="grid grid-cols-2 gap-x-3" id="regInfo"></div>
+</div>
+</div>
+
+<!-- 报名进度 -->
+<div class="px-3 mt-3">
+<div class="flex items-center gap-1.5 mb-2.5">
+<div class="w-6 h-6 rounded-lg flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#34D399,#10B981)"><i class="fas fa-list-check text-[10px]"></i></div>
+<span class="sec-title">报名进度</span>
+</div>
+<div class="bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-3.5 border border-white">
+<div class="flex items-center justify-between">
+<div class="flex flex-col items-center" style="width:60px">
+<div class="w-9 h-9 rounded-full flex items-center justify-center text-white" style="background:#10B981"><i class="fas fa-check text-sm"></i></div>
+<span class="text-[9px] mt-1.5 step-done font-semibold">提交申请</span>
+</div>
+<div class="flex-1 h-1 mx-1 rounded" style="background:#10B981"></div>
+<div class="flex flex-col items-center" style="width:60px">
+<div class="w-9 h-9 rounded-full flex items-center justify-center text-white" style="background:#10B981"><i class="fas fa-check text-sm"></i></div>
+<span class="text-[9px] mt-1.5 step-done font-semibold">审核通过</span>
+</div>
+<div class="flex-1 h-1 mx-1 rounded" id="progress2"></div>
+<div class="flex flex-col items-center" style="width:60px">
+<div class="w-9 h-9 rounded-full flex items-center justify-center text-white" id="progress3Bg"><i class="fas fa-pen-nib text-sm" id="progress3Icon"></i></div>
+<span class="text-[9px] mt-1.5 font-semibold" id="progress3Text">签署责任书</span>
+</div>
+<div class="flex-1 h-1 mx-1 rounded" id="progress3"></div>
+<div class="flex flex-col items-center" style="width:60px">
+<div class="w-9 h-9 rounded-full flex items-center justify-center" id="progress4Bg" style="background:#E5E7EB"><i class="fas fa-person-walking text-sm" id="progress4Icon" style="color:#9CA3AF"></i></div>
+<span class="text-[9px] mt-1.5 font-semibold step-pending" id="progress4Text">线下研学</span>
+</div>
+</div>
+</div>
+</div>
+
+<!-- 内容区（签署/已签署） -->
+<div id="contentArea"></div>
+
+<div class="h-20"></div>
+
+<!-- 底部 -->
+<div class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-gray-100 flex items-center justify-between px-3" style="height:55px;z-index:100;width:393px;padding-bottom:8px">
+<a href="study-tour.html" class="text-[11px] text-gray-500 px-3 py-1.5 rounded-full bg-gray-100">返回研学</a>
+<span class="text-[10px] text-gray-400" id="bottomTip"><i class="fas fa-headset mr-1" style="color:#10B981"></i>咨询热线 0575-8742xxxx</span>
+</div>
+<div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none"><div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:2px"></div></div>
+
+<div class="toast" id="toast"><i class="fas fa-circle-check" style="color:#4ADE80"></i><span id="toastTxt">操作成功</span></div>
+<div class="overlay" id="overlay"></div>
+
+<script>
+function toast(msg){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;t.classList.add('on');setTimeout(function(){t.classList.remove('on')},2000)}
+
+var urlParams=new URLSearchParams(window.location.search);
+var id=parseInt(urlParams.get('id'))||1;
+var signed=id===1;
+
+var data={
+  1:{type:'personal',title:'智能制造工厂参观',date:'2026年9月15日（周六）· 半天',school:'大唐镇中心小学',people:'1人',contact:'王小明',phone:'138****6688',no:'YX20260915001',stuName:'王小明',stuAge:'10岁',stuGrade:'小学4年级',parentName:'王先生',parentRel:'父亲'},
+  2:{type:'group',title:'袜业博物馆文化游',date:'2026年10月12日（周六）· 2小时',school:'诸暨海亮小学',people:'48人',contact:'赵老师',phone:'139****2266',no:'YX20261012002',leader:'赵老师',leaderRole:'带队负责人'}
+};
+var d=data[id]||data[1];
+
+/* 渲染报名信息 */
+document.getElementById('regTitle').textContent=d.title;
+document.getElementById('regDate').textContent=d.date;
+var typeBadge=d.type==='personal'?'<span class="text-[8px] px-1.5 py-0.5 rounded font-bold ml-1" style="background:#DBEAFE;color:#2563EB">个人</span>':'<span class="text-[8px] px-1.5 py-0.5 rounded font-bold ml-1" style="background:#EDE9FE;color:#7C3AED">团体</span>';
+document.getElementById('regTitle').insertAdjacentHTML('beforeend',typeBadge);
+
+var infoHtml='';
+function infoRow(label,val){return '<div class="info-row"><span class="info-label">'+label+'</span><span class="info-value">'+val+'</span></div>'}
+if(d.type==='personal'){
+  infoHtml+=infoRow('学校',d.school);
+  infoHtml+=infoRow('学生',d.stuName+' ('+d.stuAge+')');
+  infoHtml+=infoRow('年级',d.stuGrade);
+  infoHtml+=infoRow('家长',d.parentName+' ('+d.parentRel+')');
+  infoHtml+=infoRow('联系电话',d.phone);
+  infoHtml+=infoRow('申请编号',d.no);
+  infoHtml+=infoRow('审核状态','<span style="color:#059669">审核通过</span>');
+}else{
+  infoHtml+=infoRow('学校',d.school);
+  infoHtml+=infoRow('人数',d.people);
+  infoHtml+=infoRow('负责人',d.contact);
+  infoHtml+=infoRow('联系电话',d.phone);
+  infoHtml+=infoRow('申请编号',d.no);
+  infoHtml+=infoRow('审核状态','<span style="color:#059669">审核通过</span>');
+}
+document.getElementById('regInfo').innerHTML=infoHtml;
+
+if(signed){
+  /* 已签署 */
+  document.getElementById('statusBadge').innerHTML='<span class="text-[9px] px-2 py-0.5 rounded-full font-bold" style="background:#D1FAE5;color:#059669">已签署</span>';
+  document.getElementById('topBg').style.background='linear-gradient(135deg,#34D399 0%,#10B981 40%,#059669 100%)';
+  document.getElementById('subTitle').textContent='责任书已签署 · 等待出行';
+  document.getElementById('progress2').style.background='#10B981';
+  document.getElementById('progress3').style.background='#10B981';
+  document.getElementById('progress3Bg').style.background='#10B981';
+  document.getElementById('progress3Icon').className='fas fa-check text-sm';
+  document.getElementById('progress3Text').className='text-[9px] mt-1.5 step-done font-semibold';
+  document.getElementById('progress3Text').textContent='已签署';
+  document.getElementById('progress4Bg').style.background='#FEF3C7';
+  document.getElementById('progress4Icon').className='fas fa-person-walking text-sm';
+  document.getElementById('progress4Icon').style.color='#D97706';
+  document.getElementById('progress4Text').className='text-[9px] mt-1.5 step-current font-semibold';
+  document.getElementById('progress4Text').textContent='待出行';
+  renderSigned();
+}else{
+  /* 未签署 */
+  document.getElementById('statusBadge').innerHTML='<span class="text-[9px] px-2 py-0.5 rounded-full font-bold" style="background:#FEF3C7;color:#D97706">未签署</span>';
+  document.getElementById('topBg').style.background='linear-gradient(135deg,#FBBF24 0%,#F59E0B 40%,#D97706 100%)';
+  document.getElementById('subTitle').textContent='请尽快签署安全责任书';
+  document.getElementById('progress2').style.background='#FDE68A';
+  document.getElementById('progress3Bg').style.background='#F59E0B';
+  document.getElementById('progress3Text').className='text-[9px] mt-1.5 step-current font-semibold';
+  document.getElementById('bottomTip').innerHTML='<i class="fas fa-pen-to-square mr-1" style="color:#F59E0B"></i>请签署责任书后完成报名';
+  renderUnsigned();
+}
+
+function renderSigned(){
+  var isPersonal=d.type==='personal';
+  var signerName=isPersonal?d.parentName:d.leader;
+  var signerLabel=isPersonal?'家长签字':'负责人签字';
+  var signerTitle=isPersonal?'安全责任书（家长已签署）':'安全责任书（负责人已签署）';
+  var partyB=isPersonal?'乙方（学生家长）：'+d.parentName+'（'+d.parentRel+'）':'乙方（研学参与方）：'+d.school;
+  var clauses=isPersonal
+    ?'<br>1. 乙方确认学生身体健康，无不适合研学活动的疾病。<br>2. 乙方负责学生往返途中安全护送，按时到达集合地点。<br>3. 乙方授权甲方及带队老师在紧急情况下代为处置。<br>4. 乙方须为学生购买意外保险，并提供保险信息。<br>5. 学生在研学期间须遵守纪律，听从指挥，不得擅自离队。<br>6. 本责任书自家长签字之日起生效，至研学活动结束止。'
+    :'<br>1. 甲方负责提供安全的研学场地和专业讲解服务。<br>2. 乙方负责学生安全管理和纪律维护，配备足够带队老师。<br>3. 乙方须为学生购买意外保险，并提交保险信息。<br>4. 研学过程中如发生意外，双方按照相关法规协商处理。<br>5. 乙方负责人签署后本责任书即生效，至研学活动结束止。';
+
+  var html='<div class="px-3 mt-3">';
+  html+='<div class="flex items-center gap-1.5 mb-2.5"><div class="w-6 h-6 rounded-lg flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#34D399,#10B981)"><i class="fas fa-file-signature text-[10px]"></i></div><span class="sec-title">'+signerTitle+'</span></div>';
+  html+='<div class="bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-3.5 border border-white">';
+  html+='<p class="text-[11px] text-gray-600 leading-relaxed mb-2">甲方（研学主办方）：大唐袜业城<br>'+partyB+'<br>'+clauses+'</p>';
+  html+='<div class="border-t border-gray-100 pt-2.5 mt-2.5">';
+  html+='<div class="flex justify-between items-end"><div><p class="text-[10px] text-gray-400 mb-1">'+signerLabel+'</p><div class="flex items-center gap-2"><span class="text-[13px] font-bold text-gray-800" style="font-family:cursive">'+signerName+'</span><i class="fas fa-circle-check text-[14px]" style="color:#10B981"></i></div><p class="text-[9px] text-gray-400 mt-0.5">签署日期：2026年9月8日</p></div>';
+  html+='<div class="text-right"><p class="text-[10px] text-gray-400 mb-1">甲方盖章</p><div class="w-12 h-12 rounded-full flex items-center justify-center text-[8px] font-bold text-white" style="background:linear-gradient(135deg,#34D399,#059669)">大唐袜业城</div></div></div>';
+  html+='</div></div></div>';
+
+  /* 出行须知 */
+  html+='<div class="px-3 mt-3">';
+  html+='<div class="flex items-center gap-1.5 mb-2.5"><div class="w-6 h-6 rounded-lg flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#34D399,#10B981)"><i class="fas fa-clipboard-list text-[10px]"></i></div><span class="sec-title">出行须知</span></div>';
+  html+='<div class="bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-3.5 border border-white space-y-2.5">';
+  html+='<div class="flex items-start gap-2"><div class="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold text-white flex-shrink-0 mt-0.5" style="background:#10B981">1</div><p class="text-[11px] text-gray-600 leading-relaxed">集合时间：'+d.date.split('·')[0]+'上午9:00，请提前10分钟到达</p></div>';
+  html+='<div class="flex items-start gap-2"><div class="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold text-white flex-shrink-0 mt-0.5" style="background:#10B981">2</div><p class="text-[11px] text-gray-600 leading-relaxed">集合地点：大唐袜业城游客服务中心一楼大厅</p></div>';
+  html+='<div class="flex items-start gap-2"><div class="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold text-white flex-shrink-0 mt-0.5" style="background:#10B981">3</div><p class="text-[11px] text-gray-600 leading-relaxed">请穿着舒适服装和运动鞋，勿穿高跟鞋或凉鞋</p></div>';
+  html+='<div class="flex items-start gap-2"><div class="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold text-white flex-shrink-0 mt-0.5" style="background:#10B981">4</div><p class="text-[11px] text-gray-600 leading-relaxed">工厂区域内请勿触碰设备，听从讲解员指挥</p></div>';
+  html+='<div class="flex items-start gap-2"><div class="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold text-white flex-shrink-0 mt-0.5" style="background:#10B981">5</div><p class="text-[11px] text-gray-600 leading-relaxed">携带物品：学生证/身份证、笔记本、水杯</p></div>';
+  html+='</div></div>';
+
+  /* 签到二维码 */
+  html+='<div class="px-3 mt-3 mb-2">';
+  html+='<div class="bg-gradient-to-br from-emerald-50 to-white rounded-2xl shadow-soft p-4 border border-emerald-100 text-center">';
+  html+='<div class="w-32 h-32 mx-auto mb-2 rounded-xl flex items-center justify-center" style="background:#fff;box-shadow:0 4px 12px rgba(5,150,105,.1)"><div class="grid grid-cols-6 gap-0.5 p-1.5" id="qrGrid"></div></div>';
+  html+='<p class="text-[11px] font-bold text-gray-800 mb-0.5">研学签到码</p>';
+  html+='<p class="text-[9px] text-gray-400">到场后出示此二维码完成签到</p>';
+  html+='</div></div>';
+
+  document.getElementById('contentArea').innerHTML=html;
+  renderQR();
+}
+
+function renderQR(){
+  var grid=document.getElementById('qrGrid');
+  if(!grid)return;
+  var pattern='101010101010010101101010101010010101101010101010010101101010101010010101101010101010010101101010101010010101101010101010010101101010101010010101101010101010010101101010101010010101101010101010010101';
+  var html='';
+  for(var i=0;i<36;i++){
+    html+='<div style="width:8px;height:8px;background:'+(pattern[i]==='1'?'#1F2430':'transparent')+'"></div>';
+  }
+  grid.innerHTML=html;
+}
+
+function renderUnsigned(){
+  var isPersonal=d.type==='personal';
+  var signerTitle=isPersonal?'家长手写签名':'负责人手写签名';
+  var signerHint=isPersonal?'请家长在此区域内手写签名':'请负责人在此区域内手写签名';
+  var partyB=isPersonal?'乙方（学生家长）：_______________':'乙方（研学参与方）：'+d.school;
+  var clauses=isPersonal
+    ?'<br>为保障研学活动安全顺利开展，乙方作为学生家长/监护人，同意并承诺：<br><br>1. 乙方确认学生身体健康，无不适合参加研学活动的疾病。<br>2. 乙方负责学生往返途中的安全护送，按时到达集合地点。<br>3. 研学期间，乙方授权甲方及带队老师在紧急情况下代为处置。<br>4. 乙方须为学生购买意外保险，并提供保险信息。<br>5. 学生在研学期间须遵守纪律，听从指挥，不得擅自离队。<br>6. 如因乙方或学生自身原因造成安全事故，甲方不承担责任。<br>7. 本责任书自家长签字之日起生效，至研学活动结束止。'
+    :'<br>1. 甲方负责提供安全的研学场地和专业讲解服务。<br>2. 乙方负责学生安全管理和纪律维护，配备足够带队老师。<br>3. 乙方须为学生购买意外保险，并提交保险信息。<br>4. 研学过程中如发生意外，双方按照相关法规协商处理。<br>5. 乙方负责人签署后本责任书即生效，至研学活动结束止。';
+  var alertText=isPersonal
+    ?'<i class="fas fa-triangle-exclamation mr-1"></i>请家长仔细阅读以上条款，确认无误后在下方手写签名。签署后责任书即生效，不可撤销。'
+    :'<i class="fas fa-triangle-exclamation mr-1"></i>请负责人仔细阅读以上条款，确认无误后在下方手写签名。签署后责任书即生效。';
+
+  var html='<div class="px-3 mt-3">';
+  html+='<div class="flex items-center gap-1.5 mb-2.5"><div class="w-6 h-6 rounded-lg flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#F59E0B,#D97706)"><i class="fas fa-file-signature text-[10px]"></i></div><span class="sec-title">安全责任书</span><span class="text-[9px] px-2 py-0.5 rounded-full font-bold ml-1" style="background:#FEF3C7;color:#D97706">待签署</span></div>';
+  html+='<div class="bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-3.5 border border-amber-100">';
+  html+='<p class="text-[11px] text-gray-600 leading-relaxed">甲方（研学主办方）：大唐袜业城<br>'+partyB+'</p>';
+  html+='<p class="text-[11px] text-gray-600 leading-relaxed mt-2">'+clauses+'</p>';
+  html+='<div class="bg-amber-50 rounded-lg p-2.5 mt-2.5 border border-amber-100"><p class="text-[10px] text-amber-700 leading-relaxed">'+alertText+'</p></div>';
+  html+='</div></div>';
+
+  /* 签名区 */
+  html+='<div class="px-3 mt-3">';
+  html+='<div class="flex items-center gap-1.5 mb-2.5"><div class="w-6 h-6 rounded-lg flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#F59E0B,#D97706)"><i class="fas fa-signature text-[10px]"></i></div><span class="sec-title">'+signerTitle+'</span></div>';
+  html+='<div class="bg-white/90 backdrop-blur-xl rounded-2xl shadow-soft p-3 border-2 border-dashed border-amber-300">';
+  html+='<div class="text-center mb-2"><p class="text-[10px] text-gray-400">'+signerHint+'</p></div>';
+  html+='<canvas id="signCanvas" width="335" height="160"></canvas>';
+  html+='<div class="flex items-center justify-between mt-2.5">';
+  html+='<button onclick="clearSign()" class="text-[11px] text-gray-500 px-3 py-1.5 rounded-full bg-gray-100"><i class="fas fa-eraser mr-1"></i>清除重签</button>';
+  html+='<span class="text-[9px] text-gray-400" id="signTip">签名后将自动保存</span>';
+  html+='</div>';
+  html+='</div>';
+  html+='<button onclick="submitSign()" class="w-full mt-3 py-3 rounded-full text-white font-bold text-[14px] shadow-card" style="background:linear-gradient(135deg,#34D399,#059669)"><i class="fas fa-check-circle text-[12px] mr-1"></i>确认签署并提交</button>';
+  html+='</div>';
+
+  document.getElementById('contentArea').innerHTML=html;
+  initCanvas();
+}
+
+/* ===== 签名画布 ===== */
+var canvas,ctx,drawing=false,lastX=0,lastY=0,hasDrawn=false;
+
+function initCanvas(){
+  canvas=document.getElementById('signCanvas');
+  if(!canvas)return;
+  ctx=canvas.getContext('2d');
+  ctx.strokeStyle='#1F2430';
+  ctx.lineWidth=2.5;
+  ctx.lineCap='round';
+  ctx.lineJoin='round';
+
+  canvas.addEventListener('mousedown',function(e){
+    drawing=true;hasDrawn=true;
+    var rect=canvas.getBoundingClientRect();
+    lastX=e.clientX-rect.left;
+    lastY=e.clientY-rect.top;
+  });
+  canvas.addEventListener('mousemove',function(e){
+    if(!drawing)return;
+    e.preventDefault();
+    var rect=canvas.getBoundingClientRect();
+    var x=e.clientX-rect.left;
+    var y=e.clientY-rect.top;
+    ctx.beginPath();
+    ctx.moveTo(lastX,lastY);
+    ctx.lineTo(x,y);
+    ctx.stroke();
+    lastX=x;lastY=y;
+  });
+  canvas.addEventListener('mouseup',function(){drawing=false});
+  canvas.addEventListener('mouseleave',function(){drawing=false});
+
+  /* 触摸支持 */
+  canvas.addEventListener('touchstart',function(e){
+    e.preventDefault();
+    drawing=true;hasDrawn=true;
+    var rect=canvas.getBoundingClientRect();
+    var t=e.touches[0];
+    lastX=t.clientX-rect.left;
+    lastY=t.clientY-rect.top;
+  });
+  canvas.addEventListener('touchmove',function(e){
+    e.preventDefault();
+    if(!drawing)return;
+    var rect=canvas.getBoundingClientRect();
+    var t=e.touches[0];
+    var x=t.clientX-rect.left;
+    var y=t.clientY-rect.top;
+    ctx.beginPath();
+    ctx.moveTo(lastX,lastY);
+    ctx.lineTo(x,y);
+    ctx.stroke();
+    lastX=x;lastY=y;
+  });
+  canvas.addEventListener('touchend',function(){drawing=false});
+}
+
+function clearSign(){
+  if(!canvas)return;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  hasDrawn=false;
+}
+
+function submitSign(){
+  if(!hasDrawn){
+    toast('请先手写签名');
+    return;
+  }
+  var overlay=document.getElementById('overlay');
+  overlay.classList.add('on');
+  toast('责任书签署成功');
+  setTimeout(function(){
+    overlay.classList.remove('on');
+    signed=true;
+    document.getElementById('statusBadge').innerHTML='<span class="text-[9px] px-2 py-0.5 rounded-full font-bold" style="background:#D1FAE5;color:#059669">已签署</span>';
+    document.getElementById('topBg').style.background='linear-gradient(135deg,#34D399 0%,#10B981 40%,#059669 100%)';
+    document.getElementById('subTitle').textContent='责任书已签署 · 等待出行';
+    document.getElementById('progress2').style.background='#10B981';
+    document.getElementById('progress3').style.background='#10B981';
+    document.getElementById('progress3Bg').style.background='#10B981';
+    document.getElementById('progress3Icon').className='fas fa-check text-sm';
+    document.getElementById('progress3Text').className='text-[9px] mt-1.5 step-done font-semibold';
+    document.getElementById('progress3Text').textContent='已签署';
+    document.getElementById('progress4Bg').style.background='#FEF3C7';
+    document.getElementById('progress4Icon').style.color='#D97706';
+    document.getElementById('progress4Text').className='text-[9px] mt-1.5 step-current font-semibold';
+    document.getElementById('progress4Text').textContent='待出行';
+    document.getElementById('bottomTip').innerHTML='<i class="fas fa-headset mr-1" style="color:#10B981"></i>咨询热线 0575-8742xxxx';
+    renderSigned();
+  },1500);
+}
+</script>
+</body>
+</html>

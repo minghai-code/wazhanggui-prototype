@@ -3,127 +3,291 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<title>文旅服务 - 袜掌柜买家版</title>
+<title>文旅活动 - 袜掌柜买家版</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<script>
-tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D','primary-d':'#E63E20','primary-l':'#FF7849'}}}}
-</script>
 <style>
-:root{--p:#FF4D2D;--pl:#FF7849;--bg:#FFF7F4;--v1:#7C3AED;--v2:#FF2D78}
+:root{--p:#FF4D2D;--pl:#FF7849;--bg:#FFF7F4}
 *{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
 ::-webkit-scrollbar{width:2px;height:2px}
-::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:#dfdfdf;border-radius:1px}
 .shadow-card{box-shadow:0 8px 24px rgba(255,77,45,.14)}
 .shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
-.card{transition:transform .16s ease}
-.card:active{transform:scale(.965)}
+.card{transition:transform .16s ease}.card:active{transform:scale(.965)}
 .fade-up{animation:fadeUp .4s ease both}
 @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:300;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.25);min-width:120px;justify-content:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.h-scroll{display:flex;gap:10px;overflow-x:auto;-webkit-overflow-scrolling:touch;touch-action:pan-x;scroll-snap-type:x proximity;padding-bottom:3px;width:100%;max-width:100%;cursor:grab;position:relative}
+.h-scroll.dragging{cursor:grabbing;user-select:none;-webkit-user-select:none}
+.h-scroll::-webkit-scrollbar{height:3px}
+.h-scroll::-webkit-scrollbar-track{background:transparent}
+.h-scroll::-webkit-scrollbar-thumb{background:#ddd;border-radius:3px}
+.h-scroll>*{scroll-snap-align:start;flex:0 0 auto;min-width:0}
+
+.timeline-dot{width:12px;height:12px;border-radius:50%;border:2.5px solid #FF4D2D;background:#fff;flex-shrink:0;margin-top:3px;z-index:2;position:relative}
+.timeline-dot.passed{border-color:#D1D5DB}
+.timeline-line{position:absolute;left:5.5px;top:0;bottom:0;width:2.5px;background:#FFD4C5}
+.status-badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:6px}
+.img-ph{background:linear-gradient(135deg,#f0f0f0,#e0e0e0);display:flex;align-items:center;justify-content:center}
+.img-loading{background:linear-gradient(90deg,#f5f5f5 25%,#ececec 50%,#f5f5f5 75%);background-size:200% 100%;animation:shimmer 1.5s infinite}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.month-pill{font-size:11px;padding:6px 14px;border-radius:20px;cursor:pointer;transition:.15s;font-weight:600;white-space:nowrap}
+.month-pill.on{background:linear-gradient(135deg,#FF6B35,#FF4D2D);color:#fff;box-shadow:0 4px 12px rgba(255,77,45,.25)}
+.month-pill:not(.on){color:#9aa0ac;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.04)}
 </style>
 </head>
 <body>
 
-<!-- ===== 顶部渐变区 ===== -->
-<div class="relative px-4 pt-2 pb-7 overflow-hidden" style="background:linear-gradient(135deg,#34D399 0%,#10B981 40%,#059669 100%)">
-  <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-50" style="background:#34D399"></div>
-  <div class="absolute -top-6 right-[-30px] w-48 h-48 rounded-full blur-3xl opacity-40" style="background:#10B981"></div>
-  <div class="absolute -bottom-10 left-12 w-44 h-44 rounded-full blur-3xl opacity-35" style="background:#059669"></div>
-
+<!-- 顶部渐变区 -->
+<div class="relative px-4 pt-2 pb-4 overflow-hidden" style="background:linear-gradient(135deg,#FBBF24 0%,#F59E0B 40%,#FF4D2D 100%)">
+  <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-50" style="background:#FBBF24"></div>
+  <div class="absolute -top-6 right-[-30px] w-48 h-48 rounded-full blur-3xl opacity-40" style="background:#FF4D2D"></div>
   <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
     <span>9:41</span>
     <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
   </div>
-
-  <div class="relative flex items-center gap-3 mt-1">
+  <div class="relative flex items-center gap-2.5 mt-1">
     <a href="home.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
     <div>
-      <span class="text-white font-extrabold text-[22px] tracking-wide" style="text-shadow:0 2px 10px rgba(0,0,0,.18)">文旅服务</span>
-      <p class="text-white/80 text-[11px] mt-0.5"><i class="fas fa-mug-hot"></i> 探秘袜业 · 体验文化</p>
+      <h1 class="text-white font-extrabold text-[18px]" style="text-shadow:0 2px 10px rgba(0,0,0,.18)"><i class="fas fa-calendar-days text-[15px] mr-1"></i>文旅活动</h1>
+      <p class="text-white/70 text-[10px] mt-0.5">大唐袜业文旅资源 · 活动日历 · 在线参与</p>
     </div>
   </div>
 </div>
 
-<!-- ===== 文旅服务入口 ===== -->
-<div class="px-3 -mt-3 relative z-10">
-  <div class="bg-white/75 backdrop-blur-xl rounded-3xl shadow-soft p-4 border border-white fade-up">
-    <div class="grid grid-cols-4 gap-y-5 gap-x-2">
-
-      <a href="study-tour.html" class="card flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#34D399,#10B981)"><i class="fas fa-graduation-cap text-lg"></i></div><span class="text-[11px] text-gray-700 font-medium">研学申请</span></a>
-
-      <a href="expo.html" class="card flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#FB7185,#EC4899)"><i class="fas fa-warehouse text-lg"></i></div><span class="text-[11px] text-gray-700 font-medium">袜博会</span></a>
-
-      <a href="#" class="card flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#FB7185,#EC4899)"><i class="fas fa-trophy text-lg"></i></div><span class="text-[11px] text-gray-700 font-medium">设计大赛</span></a>
-
-      <a href="#" class="card flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)"><i class="fas fa-bolt text-lg"></i></div><span class="text-[11px] text-gray-700 font-medium">快闪活动</span></a>
-
-      <a href="#" class="card flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#FF8A4C,#FF4D2D)"><i class="fas fa-paintbrush text-lg"></i></div><span class="text-[11px] text-gray-700 font-medium">现场DIY</span></a>
-
-      <a href="#" class="card flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#FF4D2D,#E63E20)"><i class="fas fa-video text-lg"></i></div><span class="text-[11px] text-gray-700 font-medium">工厂直播</span></a>
-
-      <a href="#" class="card flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#A78BFA,#7C3AED)"><i class="fas fa-socks text-lg"></i></div><span class="text-[11px] text-gray-700 font-medium">文博袜品</span></a>
-
-      <a href="#" class="card flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#2DD4BF,#14B8A6)"><i class="fas fa-newspaper text-lg"></i></div><span class="text-[11px] text-gray-700 font-medium">袜事真多</span></a>
-
+<!-- ===== 上半部分：文旅资源 ===== -->
+<div class="px-3 mt-3">
+  <div class="flex items-center justify-between mb-2.5">
+    <div class="flex items-center gap-1.5">
+      <div class="w-1 h-3.5 rounded-full" style="background:#3B82F6"></div>
+      <span class="text-[14px] font-bold text-gray-800">文旅资源</span>
     </div>
+    <span class="text-[10px] text-gray-400">大唐集团下辖 · 点击查看详情</span>
+  </div>
+
+  <!-- 资源卡片横向滚动 -->
+  <div class="h-scroll" id="resScroll"></div>
+</div>
+
+<!-- ===== 下半部分：袜业城文旅活动日历 ===== -->
+<div class="px-3 mt-5">
+  <div class="flex items-center justify-between mb-2.5">
+    <div class="flex items-center gap-1.5">
+      <div class="w-1 h-3.5 rounded-full" style="background:#FF4D2D"></div>
+      <span class="text-[14px] font-bold text-gray-800">袜业城文旅活动日历</span>
+    </div>
+    <span class="text-[10px] text-gray-400">7场活动</span>
+  </div>
+
+  <!-- 月份筛选 -->
+  <div class="flex gap-2 overflow-x-auto mb-3" style="scrollbar-width:none">
+    <span class="month-pill on" onclick="filterMonth(this,'all')">全部</span>
+    <span class="month-pill" onclick="filterMonth(this,'08')">8月</span>
+    <span class="month-pill" onclick="filterMonth(this,'09')">9月</span>
+    <span class="month-pill" onclick="filterMonth(this,'10')">10月</span>
+    <span class="month-pill" onclick="filterMonth(this,'11')">11月</span>
+    <span class="month-pill" onclick="filterMonth(this,'12')">12月</span>
+  </div>
+
+  <!-- 活动时间轴 -->
+  <div class="relative pl-4 mb-20">
+    <div class="timeline-line"></div>
+    <div id="actList"></div>
   </div>
 </div>
 
-<!-- ===== 精选活动推荐 ===== -->
-<div class="px-3 mt-4">
-  <div class="flex items-center gap-1.5 mb-2.5"><div class="w-1 h-3.5 rounded-full" style="background:#10B981"></div><span class="text-[13px] font-bold text-gray-800">精选活动</span></div>
-  <div class="space-y-2.5">
-
-    <a href="#" class="card block bg-white rounded-2xl shadow-soft overflow-hidden fade-up">
-      <div class="flex gap-3 p-3">
-        <img src="images/scene_05.jpg" class="w-20 h-20 rounded-xl object-cover">
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-1.5"><span class="tag-hot text-white text-[8px] px-1.5 py-0.5 rounded" style="background:linear-gradient(90deg,#34D399,#10B981)">报名中</span><p class="text-[13px] font-bold text-gray-800 truncate">2026大唐袜业研学季</p></div>
-          <p class="text-[10px] text-gray-400 mt-1 leading-relaxed line-clamp-2">走进大唐袜业城，参观智能工厂，体验袜品设计DIY，了解一双袜子的诞生</p>
-          <div class="flex items-center gap-2 mt-1.5"><span class="text-[9px] text-gray-400"><i class="fas fa-calendar mr-0.5"></i>7月-8月</span><span class="text-[9px] text-gray-400"><i class="fas fa-user-group mr-0.5"></i>已报名286人</span></div>
-        </div>
-      </div>
-    </a>
-
-    <a href="#" class="card block bg-white rounded-2xl shadow-soft overflow-hidden fade-up" style="animation-delay:.05s">
-      <div class="flex gap-3 p-3">
-        <img src="images/scene_08.jpg" class="w-20 h-20 rounded-xl object-cover">
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-1.5"><span class="tag-hot text-white text-[8px] px-1.5 py-0.5 rounded" style="background:linear-gradient(90deg,#FB7185,#EC4899)">热门</span><p class="text-[13px] font-bold text-gray-800 truncate">第18届大唐袜博会</p></div>
-          <p class="text-[10px] text-gray-400 mt-1 leading-relaxed line-clamp-2">全国袜业产业博览会，200+参展商，新品发布、采购对接、行业论坛</p>
-          <div class="flex items-center gap-2 mt-1.5"><span class="text-[9px] text-gray-400"><i class="fas fa-calendar mr-0.5"></i>10月15-17日</span><span class="text-[9px] text-gray-400"><i class="fas fa-location-dot mr-0.5"></i>大唐袜业城</span></div>
-        </div>
-      </div>
-    </a>
-
-    <a href="#" class="card block bg-white rounded-2xl shadow-soft overflow-hidden fade-up" style="animation-delay:.1s">
-      <div class="flex gap-3 p-3">
-        <img src="images/scene_10.jpg" class="w-20 h-20 rounded-xl object-cover">
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-1.5"><span class="tag-hot text-white text-[8px] px-1.5 py-0.5 rounded" style="background:linear-gradient(90deg,#FBBF24,#F59E0B)">即将开始</span><p class="text-[13px] font-bold text-gray-800 truncate">袜品设计大赛夏季赛</p></div>
-          <p class="text-[10px] text-gray-400 mt-1 leading-relaxed line-clamp-2">以"夏日清凉"为主题，面向全国设计师征集原创袜品设计方案，赢取奖金</p>
-          <div class="flex items-center gap-2 mt-1.5"><span class="text-[9px] text-gray-400"><i class="fas fa-calendar mr-0.5"></i>7月20日截止</span><span class="text-[9px] text-gray-400"><i class="fas fa-trophy mr-0.5"></i>奖金¥50,000</span></div>
-        </div>
-      </div>
-    </a>
-
-  </div>
+<!-- 底部 -->
+<div class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-gray-100 flex items-center justify-between px-4" style="height:55px;z-index:100;width:393px">
+  <span class="text-[10px] text-gray-400"><i class="fas fa-calendar-days mr-1" style="color:#F59E0B"></i>活动持续更新</span>
+  <a href="home.html" class="text-[11px] text-white px-3 py-1.5 rounded-full" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)">返回首页</a>
 </div>
+<div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none"><div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:2px"></div></div>
 
-<div class="h-28"></div>
+<div class="toast" id="toast"><i class="fas fa-circle-check" style="color:#4ADE80"></i><span id="toastTxt">操作成功</span></div>
 
-<!-- 底部Tab栏 -->
-<div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100" style="height:65px;z-index:100;width:393px">
-<div class="flex justify-around items-center h-full" style="padding-bottom:10px">
-<a href="home.html" class="flex flex-col items-center gap-0.5" style="color:#FF4D2D"><i class="fas fa-house text-[19px]"></i><span class="text-[9px] font-semibold">首页</span></a>
-<a href="video.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-video text-[19px]"></i><span class="text-[9px]">视频看货</span></a>
-<a href="purchase-order.html" class="flex flex-col items-center gap-0.5 text-gray-400 relative"><i class="fas fa-clipboard-list text-[19px]"></i><span class="text-[9px]">进货单</span><span class="absolute top-0 right-1 bg-primary text-white text-[7px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center" style="min-width:14px;height:14px">3</span></a>
-<a href="mine.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-user text-[19px]"></i><span class="text-[9px]">我的</span></a>
-</div>
-</div>
-<div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none"><div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:3px"></div></div>
+<script>
+function toast(msg){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;t.classList.add('on');setTimeout(function(){t.classList.remove('on')},1600)}
 
+function img(prompt,size){
+  return 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt='+encodeURIComponent(prompt)+'&image_size='+(size||'landscape_4_3');
+}
+
+/* ===== 文旅资源数据 ===== */
+var resources=[
+  {id:1,title:'大唐青少年宫',tag:'教育',tagBg:'#DBEAFE',tagColor:'#2563EB',
+   img:'Modern youth activity center building with glass facade science technology education facility outdoor daytime architectural photography blue sky',
+   desc:'青少年校外教育基地 · 科技创新+艺术培训+亲子活动',
+   addr:'大唐镇中心路88号',phone:'0575-8742xxxx'},
+  {id:2,title:'华夏金石学馆',tag:'文化',tagBg:'#EDE9FE',tagColor:'#7C3AED',
+   img:'Traditional Chinese stone inscription museum interior ancient rubbing art displays cultural artifacts warm ambient lighting heritage center',
+   desc:'金石传拓+古籍修复+印染文化 · 传统文化跨界体验基地',
+   addr:'大唐镇文化路12号',phone:'0575-8743xxxx'},
+  {id:3,title:'大唐生态公园',tag:'休闲',tagBg:'#D1FAE5',tagColor:'#059669',
+   img:'Beautiful ecological park with green walking trails lake view lush trees sunny day recreational park landscape',
+   desc:'袜业主题生态公园 · 步道+袜业文化长廊+亲子游乐',
+   addr:'大唐镇南环路',phone:'免费开放'},
+  {id:4,title:'大唐袜业博物馆',tag:'展馆',tagBg:'#FEF3C7',tagColor:'#D97706',
+   img:'Sock museum exhibition hall historical knitting machines and sock displays museum interior display cases warm lighting',
+   desc:'袜业历史+工艺演变+机械展陈 · 了解袜业发展全貌',
+   addr:'袜业城2F',phone:'免费参观'},
+  {id:5,title:'大唐文创设计中心',tag:'创意',tagBg:'#FFE4E6',tagColor:'#E11D48',
+   img:'Creative design center with modern art exhibition colorful sock art installations design studio space creative industry hub',
+   desc:'袜业文创设计+艺术展览+设计师孵化 · 创意产业基地',
+   addr:'袜业城3F',phone:'0575-8745xxxx'}
+];
+
+/* ===== 活动日历数据 ===== */
+var activities=[
+  {id:1,month:'08',status:'已结束',statusBg:'#F3F4F6',statusColor:'#9CA3AF',
+   date:'8月15日-17日',dateColor:'#9aa0ac',
+   title:'2026大唐袜业文化旅游节',
+   desc:'大唐袜业城广场 · 袜业文化展览+非遗体验+美食集市',
+   loc:'大唐袜业城广场',extra:'3200人参与',extraIcon:'fas fa-users',
+   img:'Outdoor cultural festival celebration stage colorful sock theme decorations crowd daytime event',
+   canSignup:false},
+  {id:2,month:'09',status:'报名中',statusBg:'#FEF3C7',statusColor:'#D97706',
+   date:'9月10日-12日',dateColor:'#FF4D2D',
+   title:'秋季袜业新品发布会暨选品会',
+   desc:'袜业城1F大厅 · 30+厂家新品发布 · 采购商选品对接',
+   loc:'袜业城1F大厅',extra:'128人已报名',extraIcon:'fas fa-user-plus',
+   img:'Trade show exhibition hall sock displays professional product launch event indoor industry',
+   canSignup:true},
+  {id:3,month:'09',status:'报名中',statusBg:'#FEF3C7',statusColor:'#D97706',
+   date:'9月20日',dateColor:'#FF4D2D',
+   title:'青少年袜业创意工坊',
+   desc:'青少年宫 · 亲子DIY袜子制作+3D打印体验',
+   loc:'大唐青少年宫',extra:'56人已报名',extraIcon:'fas fa-user-plus',
+   img:'Children DIY sock making workshop colorful creative crafts activities kids learning indoor',
+   canSignup:true},
+  {id:4,month:'10',status:'即将开始',statusBg:'#DBEAFE',statusColor:'#2563EB',
+   date:'10月1日-7日',dateColor:'#6b7280',
+   title:'国庆袜业文化周',
+   desc:'袜业城全馆 · 袜业历史展+智能制造体验+文创市集',
+   loc:'袜业城全馆',extra:'免费入场',extraIcon:'fas fa-ticket',
+   img:'National day cultural week celebration festive red decorations exhibition booths outdoor event',
+   canSignup:false},
+  {id:5,month:'10',status:'预告',statusBg:'#F3F4F6',statusColor:'#6B7280',
+   date:'10月18日-20日',dateColor:'#6b7280',
+   title:'2026大唐国际袜业博览会',
+   desc:'大唐国际袜业城 · 200+展商·行业论坛·新品发布',
+   loc:'大唐国际袜业城',extra:'预告中',extraIcon:'fas fa-clock',
+   img:'International sock industry expo large exhibition hall trade show booths professional event',
+   canSignup:false},
+  {id:6,month:'11',status:'预告',statusBg:'#F3F4F6',statusColor:'#6B7280',
+   date:'11月8日',dateColor:'#6b7280',
+   title:'华夏金石学馆文化体验日',
+   desc:'华夏金石学馆 · 金石传拓+袜业印染文化跨界体验',
+   loc:'华夏金石学馆',extra:'¥58/人',extraIcon:'fas fa-ticket',
+   img:'Traditional Chinese stone rubbing experience workshop cultural activity ancient art craft demonstration',
+   canSignup:false},
+  {id:7,month:'12',status:'预告',statusBg:'#F3F4F6',statusColor:'#6B7280',
+   date:'12月20日-25日',dateColor:'#6b7280',
+   title:'大唐袜业圣诞文创市集',
+   desc:'袜业城广场 · 圣诞主题袜品+文创手作+灯光秀',
+   loc:'袜业城广场',extra:'免费入场',extraIcon:'fas fa-ticket',
+   img:'Christmas themed creative night market festive lights colorful stalls outdoor holiday market',
+   canSignup:false}
+];
+
+/* ===== 渲染文旅资源卡片 ===== */
+var resHtml='';
+resources.forEach(function(r,i){
+  resHtml+='<a href="tourism-resource.html?id='+r.id+'" class="card block bg-white rounded-2xl shadow-soft overflow-hidden fade-up" style="width:230px;animation-delay:'+(i*0.05)+'s">'
+    +'<div class="relative h-28 overflow-hidden">'
+    +'<img src="'+img(r.img)+'" class="w-full h-full object-cover img-loading" onload="this.classList.remove(\'img-loading\')" onerror="this.style.display=\'none\';this.parentElement.classList.add(\'img-ph\')">'
+    +'<span class="absolute top-2 right-2 text-[8px] text-white px-2 py-0.5 rounded-full" style="background:rgba(0,0,0,.35)">外部资源</span>'
+    +'</div>'
+    +'<div class="p-2.5">'
+    +'<div class="flex items-center gap-1.5 mb-1"><p class="text-[12px] font-bold text-gray-800">'+r.title+'</p><span class="text-[8px] px-1.5 py-0.5 rounded" style="background:'+r.tagBg+';color:'+r.tagColor+'">'+r.tag+'</span></div>'
+    +'<p class="text-[9px] text-gray-400 leading-relaxed mb-1.5">'+r.desc+'</p>'
+    +'<div class="flex items-center gap-2"><span class="text-[8px] text-gray-400"><i class="fas fa-location-dot mr-0.5"></i>'+r.addr+'</span></div>'
+    +'</div>'
+    +'</a>';
+});
+document.getElementById('resScroll').innerHTML=resHtml;
+
+/* ===== 渲染活动时间轴 ===== */
+function renderActivities(month){
+  var actHtml='';
+  activities.forEach(function(a,i){
+    if(month!=='all'&&a.month!==month)return;
+    var dotClass=a.status==='已结束'?'timeline-dot passed':'timeline-dot';
+    var signupTag=a.canSignup?'<span class="ml-auto text-[9px] text-white px-2 py-0.5 rounded font-bold" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)">去报名 ›</span>':'';
+    actHtml+='<div class="relative mb-3" data-month="'+a.month+'">'
+      +'<div class="'+dotClass+' absolute -left-4 top-3"></div>'
+      +'<div class="card bg-white rounded-2xl shadow-soft overflow-hidden fade-up" style="animation-delay:'+(i*0.04)+'s;'+(a.canSignup?'border:1.5px solid #FFD4C5':'')+'" onclick="openActivity('+a.id+')">'
+      +'<div class="flex">'
+      +'<div class="w-20 h-20 flex-shrink-0 overflow-hidden img-loading">'
+      +'<img src="'+img(a.img,'square')+'" class="w-full h-full object-cover" onload="this.classList.remove(\'img-loading\')" onerror="this.style.display=\'none\';this.parentElement.classList.add(\'img-ph\')">'
+      +'</div>'
+      +'<div class="flex-1 p-2.5">'
+      +'<div class="flex items-center justify-between mb-1">'
+      +'<span class="text-[10px] font-bold" style="color:'+a.dateColor+'">'+a.date+'</span>'
+      +'<span class="status-badge" style="background:'+a.statusBg+';color:'+a.statusColor+'">'+a.status+'</span>'
+      +'</div>'
+      +'<p class="text-[12px] font-bold text-gray-800 mb-0.5">'+a.title+'</p>'
+      +'<p class="text-[9px] text-gray-400 leading-relaxed mb-1">'+a.desc+'</p>'
+      +'<div class="flex items-center gap-2">'
+      +'<span class="text-[8px] text-gray-400"><i class="fas fa-location-dot mr-0.5"></i>'+a.loc+'</span>'
+      +'<span class="text-[8px]" style="color:'+(a.canSignup?'#FF4D2D':'#9aa0ac')+'"><i class="'+a.extraIcon+' mr-0.5"></i>'+a.extra+'</span>'
+      +signupTag
+      +'</div>'
+      +'</div>'
+      +'</div>'
+      +'</div>'
+      +'</div>';
+  });
+  document.getElementById('actList').innerHTML=actHtml;
+}
+renderActivities('all');
+
+/* ===== 月份筛选 ===== */
+function filterMonth(el,month){
+  document.querySelectorAll('.month-pill').forEach(function(p){
+    p.classList.remove('on');
+  });
+  el.classList.add('on');
+  renderActivities(month);
+}
+
+/* ===== 打开活动详情 ===== */
+function openActivity(id){
+  window.location.href='tourism-detail.html?id=act'+id;
+}
+
+/* ===== 鼠标拖拽滚动 ===== */
+function initDragScroll(){
+  document.querySelectorAll('.h-scroll').forEach(function(container){
+    var isDown=false,startX,scrollLeft,moved=false;
+    container.addEventListener('mousedown',function(e){
+      isDown=true;moved=false;
+      startX=e.pageX-container.offsetLeft;
+      scrollLeft=container.scrollLeft;
+    });
+    container.addEventListener('mouseleave',function(){
+      isDown=false;container.classList.remove('dragging');
+    });
+    container.addEventListener('mouseup',function(e){
+      isDown=false;container.classList.remove('dragging');
+    });
+    container.addEventListener('mousemove',function(e){
+      if(!isDown)return;
+      e.preventDefault();
+      var x=e.pageX-container.offsetLeft;
+      var walk=(x-startX)*1.5;
+      if(Math.abs(walk)>3){moved=true;container.classList.add('dragging')}
+      container.scrollLeft=scrollLeft-walk;
+    });
+    container.querySelectorAll('a').forEach(function(link){
+      link.addEventListener('click',function(e){
+        if(moved){e.preventDefault()}
+      });
+    });
+  });
+}
+initDragScroll();
+</script>
 </body>
 </html>

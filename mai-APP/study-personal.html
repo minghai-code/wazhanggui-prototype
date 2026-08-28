@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>个人研学报名 - 袜掌柜买家版</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--p:#FF4D2D;--pl:#FF7849;--bg:#FFF7F4}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+::-webkit-scrollbar{width:2px;height:2px}
+::-webkit-scrollbar-thumb{background:#dfdfdf;border-radius:1px}
+.shadow-card{box-shadow:0 8px 24px rgba(5,150,105,.14)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
+.card{transition:transform .16s ease}.card:active{transform:scale(.965)}
+.fade-up{animation:fadeUp .4s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.sec-title{font-size:15px;font-weight:800;letter-spacing:.3px;color:#1F2430}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:300;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.25);min-width:120px;justify-content:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.field-label{font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;display:flex;align-items:center;gap:4px}
+.field-input{width:100%;border:1.5px solid #E5E7EB;border-radius:12px;padding:10px 14px;font-size:13px;color:#1F2430;background:#fff;transition:.15s;outline:none}
+.field-input:focus{border-color:#34D399;box-shadow:0 0 0 3px rgba(52,211,153,.1)}
+.field-input::placeholder{color:#C0C6CF}
+.field-select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239CA3AF' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;background-size:16px}
+.step-line{position:absolute;top:24px;left:24px;bottom:24px;width:2px;background:#D1FAE5;z-index:0}
+#signCanvas{touch-action:none;cursor:crosshair;background:#fff;border-radius:12px;display:block}
+.form-section{display:none}
+.form-section.active{display:block;animation:fadeUp .4s ease both}
+.step-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:bold;flex-shrink:0;transition:.2s}
+.step-dot.on{background:#10B981;color:#fff}
+.step-dot.done{background:#10B981;color:#fff}
+.step-dot:not(.on):not(.done){background:#E5E7EB;color:#9CA3AF}
+.step-bar{flex:1;height:2px;margin:0 4px;background:#E5E7EB;transition:.2s}
+.step-bar.done{background:#10B981}
+</style>
+</head>
+<body>
+
+<!-- 顶部渐变区 -->
+<div class="relative px-4 pt-2 pb-5 overflow-hidden" style="background:linear-gradient(135deg,#34D399 0%,#10B981 40%,#059669 100%)">
+<div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-50" style="background:#34D399"></div>
+<div class="absolute -top-6 right-[-30px] w-48 h-48 rounded-full blur-3xl opacity-40" style="background:#2DD4BF"></div>
+<div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+<span>9:41</span>
+<div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+</div>
+<div class="relative flex items-center gap-2.5 mt-1">
+<a href="javascript:history.back()" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+<div>
+<h1 class="text-white font-extrabold text-[18px]" style="text-shadow:0 2px 10px rgba(0,0,0,.18)"><i class="fas fa-user-pen text-[15px] mr-1"></i>个人研学报名</h1>
+<p class="text-white/70 text-[10px] mt-0.5">填写信息 · 家长签署责任书 · 提交报名</p>
+</div>
+</div>
+</div>
+
+<!-- 路线信息 -->
+<div class="px-3 mt-3">
+<div class="card bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-3 border border-white flex items-center gap-3 fade-up">
+<img src="" class="w-16 h-16 rounded-xl object-cover" id="routeImg">
+<div class="flex-1">
+<p class="text-[13px] font-bold text-gray-800" id="routeName">智能制造工厂参观</p>
+<p class="text-[10px] text-gray-400 mt-0.5" id="routeDate">2026年9月15日（周六）· 半天</p>
+<div class="flex items-center gap-2 mt-1">
+<span class="text-[9px] text-gray-400"><i class="fas fa-users mr-0.5"></i>余18席</span>
+<span class="text-[9px] px-1.5 py-0.5 rounded font-bold" style="background:#D1FAE5;color:#059669">可报名</span>
+</div>
+</div>
+</div>
+</div>
+
+<!-- 步骤进度 -->
+<div class="px-3 mt-3">
+<div class="flex items-center">
+<div class="step-dot on" id="dot1">1</div>
+<div class="step-bar" id="bar1"></div>
+<div class="step-dot" id="dot2">2</div>
+<div class="step-bar" id="bar2"></div>
+<div class="step-dot" id="dot3">3</div>
+</div>
+<div class="flex justify-between mt-1.5">
+<span class="text-[9px] font-semibold" style="color:#10B981;width:60px;text-align:center">填写信息</span>
+<span class="text-[9px] text-gray-400" style="width:60px;text-align:center">家长签署</span>
+<span class="text-[9px] text-gray-400" style="width:60px;text-align:center">提交报名</span>
+</div>
+</div>
+
+<!-- Step 1: 填写学生与家长信息 -->
+<div class="form-section active" id="step1">
+<div class="px-3 mt-3">
+<div class="flex items-center gap-1.5 mb-2.5">
+<div class="w-6 h-6 rounded-lg flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#34D399,#10B981)"><i class="fas fa-user-graduate text-[10px]"></i></div>
+<span class="sec-title">学生信息</span>
+</div>
+<div class="bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-4 border border-white space-y-3.5">
+<div>
+<label class="field-label"><i class="fas fa-user text-[10px] text-gray-400"></i>学生姓名 <span style="color:#EF4444">*</span></label>
+<input type="text" class="field-input" placeholder="请输入学生姓名" id="stuName" required>
+</div>
+<div class="grid grid-cols-2 gap-3">
+<div>
+<label class="field-label"><i class="fas fa-cake-candles text-[10px] text-gray-400"></i>年龄 <span style="color:#EF4444">*</span></label>
+<input type="number" class="field-input" placeholder="岁" min="6" max="18" id="stuAge" required>
+</div>
+<div>
+<label class="field-label"><i class="fas fa-venus-mars text-[10px] text-gray-400"></i>性别 <span style="color:#EF4444">*</span></label>
+<select class="field-input field-select" id="stuGender" required>
+<option value="">请选择</option>
+<option value="男">男</option>
+<option value="女">女</option>
+</select>
+</div>
+</div>
+<div>
+<label class="field-label"><i class="fas fa-school text-[10px] text-gray-400"></i>学校 <span style="color:#EF4444">*</span></label>
+<input type="text" class="field-input" placeholder="请输入学校名称" id="stuSchool" required>
+</div>
+<div>
+<label class="field-label"><i class="fas fa-book text-[10px] text-gray-400"></i>年级 <span style="color:#EF4444">*</span></label>
+<select class="field-input field-select" id="stuGrade" required>
+<option value="">请选择年级</option>
+<option value="小学1-3年级">小学1-3年级</option>
+<option value="小学4-6年级">小学4-6年级</option>
+<option value="初中">初中</option>
+<option value="高中">高中</option>
+</select>
+</div>
+</div>
+</div>
+
+<div class="px-3 mt-3">
+<div class="flex items-center gap-1.5 mb-2.5">
+<div class="w-6 h-6 rounded-lg flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#2DD4BF,#14B8A6)"><i class="fas fa-user-tag text-[10px]"></i></div>
+<span class="sec-title">家长/监护人信息</span>
+</div>
+<div class="bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-4 border border-white space-y-3.5">
+<div>
+<label class="field-label"><i class="fas fa-user text-[10px] text-gray-400"></i>家长姓名 <span style="color:#EF4444">*</span></label>
+<input type="text" class="field-input" placeholder="请输入家长姓名" id="parentName" required>
+</div>
+<div class="grid grid-cols-2 gap-3">
+<div>
+<label class="field-label"><i class="fas fa-phone text-[10px] text-gray-400"></i>手机号码 <span style="color:#EF4444">*</span></label>
+<input type="tel" class="field-input" placeholder="请输入手机号" maxlength="11" id="parentPhone" required>
+</div>
+<div>
+<label class="field-label"><i class="fas fa-people-arrows text-[10px] text-gray-400"></i>与学生关系 <span style="color:#EF4444">*</span></label>
+<select class="field-input field-select" id="parentRel" required>
+<option value="">请选择</option>
+<option value="父亲">父亲</option>
+<option value="母亲">母亲</option>
+<option value="其他">其他监护人</option>
+</select>
+</div>
+</div>
+</div>
+</div>
+
+<div class="px-3 mt-4">
+<button onclick="goStep2()" class="w-full py-3 rounded-full text-white font-bold text-[14px] shadow-card" style="background:linear-gradient(135deg,#34D399,#059669)">
+下一步：签署责任书 <i class="fas fa-arrow-right text-[12px] ml-1"></i>
+</button>
+</div>
+</div>
+
+<!-- Step 2: 家长签署责任书 -->
+<div class="form-section" id="step2">
+<div class="px-3 mt-3">
+<div class="flex items-center gap-1.5 mb-2.5">
+<div class="w-6 h-6 rounded-lg flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#F59E0B,#D97706)"><i class="fas fa-file-shield text-[10px]"></i></div>
+<span class="sec-title">研学安全责任书（家长签署）</span>
+</div>
+<div class="bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-3.5 border border-amber-100">
+<p class="text-[11px] text-gray-600 leading-relaxed">甲方（研学主办方）：大唐袜业城<br>乙方（学生家长）：_______________</p>
+<p class="text-[11px] text-gray-600 leading-relaxed mt-2">为保障研学活动安全顺利开展，乙方作为学生家长/监护人，同意并承诺如下：<br><br>1. 乙方确认学生身体健康，无不适合参加研学活动的疾病。<br>2. 乙方负责学生往返途中的安全护送，按时到达集合地点。<br>3. 研学期间，乙方授权甲方及带队老师在紧急情况下代为处置。<br>4. 乙方须为学生购买意外保险，并提供保险信息。<br>5. 学生在研学期间须遵守纪律，听从指挥，不得擅自离队。<br>6. 如因乙方或学生自身原因造成安全事故，甲方不承担责任。<br>7. 本责任书自家长签字之日起生效，至研学活动结束止。</p>
+<div class="bg-amber-50 rounded-lg p-2.5 mt-2.5 border border-amber-100">
+<p class="text-[10px] text-amber-700 leading-relaxed"><i class="fas fa-triangle-exclamation mr-1"></i>请家长仔细阅读以上条款，确认无误后在下方手写签名。签署后责任书即生效，不可撤销。</p>
+</div>
+</div>
+</div>
+
+<div class="px-3 mt-3">
+<div class="flex items-center gap-1.5 mb-2.5">
+<div class="w-6 h-6 rounded-lg flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#F59E0B,#D97706)"><i class="fas fa-signature text-[10px]"></i></div>
+<span class="sec-title">家长手写签名</span>
+</div>
+<div class="bg-white/90 backdrop-blur-xl rounded-2xl shadow-soft p-3 border-2 border-dashed border-amber-300">
+<div class="text-center mb-2"><p class="text-[10px] text-gray-400">请家长在此区域内手写签名</p></div>
+<canvas id="signCanvas" width="335" height="150"></canvas>
+<div class="flex items-center justify-between mt-2.5">
+<button onclick="clearSign()" class="text-[11px] text-gray-500 px-3 py-1.5 rounded-full bg-gray-100"><i class="fas fa-eraser mr-1"></i>清除重签</button>
+<span class="text-[9px] text-gray-400">签名后将提交并保存</span>
+</div>
+</div>
+</div>
+
+<div class="px-3 mt-4 flex gap-2.5">
+<button onclick="backToStep1()" class="px-4 py-3 rounded-full text-gray-500 font-bold text-[13px] bg-gray-100"><i class="fas fa-arrow-left"></i></button>
+<button onclick="goStep3()" class="flex-1 py-3 rounded-full text-white font-bold text-[14px] shadow-card" style="background:linear-gradient(135deg,#34D399,#059669)">
+下一步：确认提交 <i class="fas fa-arrow-right text-[12px] ml-1"></i>
+</button>
+</div>
+</div>
+
+<!-- Step 3: 确认提交 -->
+<div class="form-section" id="step3">
+<div class="px-3 mt-3">
+<div class="flex items-center gap-1.5 mb-2.5">
+<div class="w-6 h-6 rounded-lg flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#34D399,#10B981)"><i class="fas fa-clipboard-check text-[10px]"></i></div>
+<span class="sec-title">报名信息确认</span>
+</div>
+<div class="bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-3.5 border border-white space-y-2" id="confirmInfo">
+</div>
+</div>
+
+<div class="px-3 mt-3">
+<div class="bg-emerald-50 rounded-xl p-3 border border-emerald-100">
+<p class="text-[10px] text-emerald-700 leading-relaxed"><i class="fas fa-circle-info mr-1"></i>提交后将进入审核流程（1-3个工作日），审核结果将短信通知家长。审核通过后请在研学当日按时到达集合地点。</p>
+</div>
+</div>
+
+<div class="px-3 mt-4 flex gap-2.5">
+<button onclick="backToStep2()" class="px-4 py-3 rounded-full text-gray-500 font-bold text-[13px] bg-gray-100"><i class="fas fa-arrow-left"></i></button>
+<button onclick="submitAll()" class="flex-1 py-3 rounded-full text-white font-bold text-[14px] shadow-card" style="background:linear-gradient(135deg,#34D399,#059669)">
+<i class="fas fa-paper-plane text-[12px] mr-1"></i>确认提交报名
+</button>
+</div>
+</div>
+
+<div class="h-20"></div>
+
+<!-- 底部 -->
+<div class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-gray-100 flex items-center justify-between px-4" style="height:55px;z-index:100;width:393px">
+<span class="text-[10px] text-gray-400"><i class="fas fa-shield-halved mr-1" style="color:#10B981"></i>信息加密保护</span>
+<a href="study-tour.html" class="text-[11px] text-gray-500 px-3 py-1.5 rounded-full bg-gray-100">返回</a>
+</div>
+<div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none"><div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:2px"></div></div>
+
+<div class="toast" id="toast"><i class="fas fa-circle-check" style="color:#4ADE80"></i><span id="toastTxt">操作成功</span></div>
+
+<script>
+function toast(msg){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;t.classList.add('on');setTimeout(function(){t.classList.remove('on')},2000)}
+
+/* 路线数据 */
+var urlParams=new URLSearchParams(window.location.search);
+var rid=parseInt(urlParams.get('id'))||1;
+var dateIdx=urlParams.get('date')||0;
+var routes={
+  1:{name:'智能制造工厂参观',img:'images/machine_03.jpg',dates:['2026年9月15日（周六）· 半天','2026年9月22日（周六）· 半天','2026年10月13日（周一）· 半天','2026年10月20日（周一）· 半天']},
+  2:{name:'袜业博物馆文化游',img:'images/scene_14.jpg',dates:['2026年9月12日（周四）· 2小时','2026年9月19日（周四）· 2小时','2026年10月12日（周六）· 2小时','2026年10月19日（周六）· 2小时']},
+  3:{name:'织袜工艺体验营',img:'images/scene_09.jpg',dates:['2026年9月16日（周日）· 1天','2026年9月23日（周日）· 1天','2026年10月14日（周二）· 1天','2026年10月21日（周二）· 1天']}
+};
+var r=routes[rid]||routes[1];
+document.getElementById('routeName').textContent=r.name;
+document.getElementById('routeDate').textContent=r.dates[dateIdx]||r.dates[0];
+document.getElementById('routeImg').src=r.img;
+
+/* 步骤切换 */
+function updateDots(step){
+  for(var i=1;i<=3;i++){
+    var dot=document.getElementById('dot'+i);
+    dot.classList.remove('on','done');
+    if(i<step)dot.classList.add('done');
+    else if(i===step)dot.classList.add('on');
+  }
+  for(var i=1;i<=2;i++){
+    var bar=document.getElementById('bar'+i);
+    bar.classList.toggle('done',i<step);
+  }
+  document.querySelectorAll('.form-section').forEach(function(s){s.classList.remove('active')});
+  document.getElementById('step'+step).classList.add('active');
+}
+
+function goStep2(){
+  var required=['stuName','stuAge','stuGender','stuSchool','stuGrade','parentName','parentPhone','parentRel'];
+  for(var i=0;i<required.length;i++){
+    var el=document.getElementById(required[i]);
+    if(!el.value.trim()){toast('请填写完整信息');el.focus();return}
+  }
+  updateDots(2);
+  window.scrollTo(0,0);
+  initCanvas();
+}
+
+function backToStep1(){updateDots(1);window.scrollTo(0,0)}
+function goStep3(){
+  if(!hasDrawn){toast('请家长先手写签名');return}
+  renderConfirm();
+  updateDots(3);
+  window.scrollTo(0,0);
+}
+function backToStep2(){updateDots(2);window.scrollTo(0,0);initCanvas()}
+
+function renderConfirm(){
+  var html='';
+  html+='<div class="flex justify-between py-1.5 border-b border-gray-100"><span class="text-[11px] text-gray-400">研学路线</span><span class="text-[11px] font-semibold text-gray-800">'+r.name+'</span></div>';
+  html+='<div class="flex justify-between py-1.5 border-b border-gray-100"><span class="text-[11px] text-gray-400">研学日期</span><span class="text-[11px] font-semibold text-gray-800">'+(r.dates[dateIdx]||r.dates[0])+'</span></div>';
+  html+='<div class="flex justify-between py-1.5 border-b border-gray-100"><span class="text-[11px] text-gray-400">学生姓名</span><span class="text-[11px] font-semibold text-gray-800">'+document.getElementById('stuName').value+'</span></div>';
+  html+='<div class="flex justify-between py-1.5 border-b border-gray-100"><span class="text-[11px] text-gray-400">年龄/性别</span><span class="text-[11px] font-semibold text-gray-800">'+document.getElementById('stuAge').value+'岁 · '+document.getElementById('stuGender').value+'</span></div>';
+  html+='<div class="flex justify-between py-1.5 border-b border-gray-100"><span class="text-[11px] text-gray-400">学校年级</span><span class="text-[11px] font-semibold text-gray-800">'+document.getElementById('stuSchool').value+' · '+document.getElementById('stuGrade').value+'</span></div>';
+  html+='<div class="flex justify-between py-1.5 border-b border-gray-100"><span class="text-[11px] text-gray-400">家长姓名</span><span class="text-[11px] font-semibold text-gray-800">'+document.getElementById('parentName').value+'（'+document.getElementById('parentRel').value+'）</span></div>';
+  html+='<div class="flex justify-between py-1.5"><span class="text-[11px] text-gray-400">联系电话</span><span class="text-[11px] font-semibold text-gray-800">'+document.getElementById('parentPhone').value+'</span></div>';
+  document.getElementById('confirmInfo').innerHTML=html;
+}
+
+function submitAll(){
+  toast('报名提交成功，请等待审核');
+  setTimeout(function(){window.location.href='study-tour.html'},2000);
+}
+
+/* 签名画布 */
+var canvas,ctx,drawing=false,lastX=0,lastY=0,hasDrawn=false;
+
+function initCanvas(){
+  canvas=document.getElementById('signCanvas');
+  if(!canvas||canvas.dataset.init)return;
+  canvas.dataset.init='1';
+  ctx=canvas.getContext('2d');
+  ctx.strokeStyle='#1F2430';
+  ctx.lineWidth=2.5;
+  ctx.lineCap='round';
+  ctx.lineJoin='round';
+  canvas.addEventListener('mousedown',function(e){drawing=true;hasDrawn=true;var r=canvas.getBoundingClientRect();lastX=e.clientX-r.left;lastY=e.clientY-r.top});
+  canvas.addEventListener('mousemove',function(e){if(!drawing)return;e.preventDefault();var r=canvas.getBoundingClientRect();var x=e.clientX-r.left;var y=e.clientY-r.top;ctx.beginPath();ctx.moveTo(lastX,lastY);ctx.lineTo(x,y);ctx.stroke();lastX=x;lastY=y});
+  canvas.addEventListener('mouseup',function(){drawing=false});
+  canvas.addEventListener('mouseleave',function(){drawing=false});
+  canvas.addEventListener('touchstart',function(e){e.preventDefault();drawing=true;hasDrawn=true;var r=canvas.getBoundingClientRect();var t=e.touches[0];lastX=t.clientX-r.left;lastY=t.clientY-r.top});
+  canvas.addEventListener('touchmove',function(e){e.preventDefault();if(!drawing)return;var r=canvas.getBoundingClientRect();var t=e.touches[0];var x=t.clientX-r.left;var y=t.clientY-r.top;ctx.beginPath();ctx.moveTo(lastX,lastY);ctx.lineTo(x,y);ctx.stroke();lastX=x;lastY=y});
+  canvas.addEventListener('touchend',function(){drawing=false});
+}
+
+function clearSign(){
+  if(!canvas)return;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  hasDrawn=false;
+}
+</script>
+</body>
+</html>

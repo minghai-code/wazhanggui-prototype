@@ -6,208 +6,413 @@
 <title>袜博展会 - 袜掌柜买家版</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<script>
-tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D','primary-d':'#E63E20','primary-l':'#FF7849'}}}}
-</script>
+<script>tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D','primary-d':'#E63E20','primary-l':'#FF7849'}}}}</script>
 <style>
-:root{--p:#FF4D2D;--pl:#FF7849;--bg:#FFF7F4;--v1:#7C3AED;--v2:#FF2D78}
+:root{--p:#FF4D2D;--pl:#FF7849;--bg:#FFF7F4}
 *{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden;color:#1F2430}
 ::-webkit-scrollbar{width:2px;height:2px}
-::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:#dfdfdf;border-radius:1px}
 .no-bar::-webkit-scrollbar{display:none}
-.grad-h{background:linear-gradient(135deg,#FF6B35 0%,#FF4D2D 45%,#FF2D78 100%)}
-.shadow-card{box-shadow:0 8px 24px rgba(255,77,45,.14)}
-.shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
-.tag-hot{background:linear-gradient(90deg,#FF4D2D,#FF7849)}
-.tag-brand{background:linear-gradient(90deg,#7C3AED,#C084FC)}
-.card{transition:transform .16s ease, box-shadow .16s ease}
+
+/* 排版 */
+.font-serif{font-family:"Noto Serif SC","Songti SC","STSong",serif}
+.text-grad-expo{background:linear-gradient(135deg,#FB7185 0%,#EC4899 35%,#7C3AED 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.text-grad-gold{background:linear-gradient(135deg,#F59E0B 0%,#D97706 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* 氛围背景 */
+.mesh-bg{position:relative}
+.mesh-bg::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 15% 20%,rgba(251,113,133,.08),transparent 45%),radial-gradient(circle at 85% 30%,rgba(124,58,237,.06),transparent 40%),radial-gradient(circle at 50% 80%,rgba(236,72,153,.05),transparent 50%);pointer-events:none}
+
+/* 玻璃卡 */
+.glass{background:rgba(255,255,255,.75);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.8)}
+.glass-light{background:rgba(255,255,255,.6);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.6)}
+
+/* 微交互 */
+.card{transition:transform .2s cubic-bezier(.34,1.56,.64,1)}
 .card:active{transform:scale(.965)}
-.sec-title{font-size:17px;font-weight:800;letter-spacing:.3px;color:#1F2430}
-.sec-more{font-size:11px;color:#9aa0ac}
-.text-grad{background:linear-gradient(90deg,#FF4D2D,#FF2D78);-webkit-background-clip:text;background-clip:text;color:transparent}
-.h-scroll{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:3px}
-.h-scroll::-webkit-scrollbar{display:none}
+
+/* 动画 */
+.fade-up{animation:fadeUp .6s cubic-bezier(.22,1,.36,1) both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.float-slow{animation:floatSlow 6s ease-in-out infinite}
+@keyframes floatSlow{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.pulse-glow{animation:pulseGlow 3s ease-in-out infinite}
+@keyframes pulseGlow{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:.7;transform:scale(1.08)}}
+.countdown-tick{animation:tickPulse 1s ease-in-out infinite}
+@keyframes tickPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+
+/* 功能卡 */
+.func-card{position:relative;overflow:hidden;border-radius:20px;padding:16px 14px;text-align:center;transition:.2s;box-shadow:0 4px 16px rgba(0,0,0,.06)}
+.func-card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 20%,rgba(255,255,255,.2),transparent 60%);pointer-events:none}
+.func-card::after{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,.06) 1px,transparent 1px);background-size:8px 8px;pointer-events:none;opacity:.5}
+.func-card>i,.func-card>span,.func-card>p{position:relative;z-index:2}
+
+/* 日程卡 */
+.day-card{position:relative;border-radius:18px;overflow:hidden;transition:.2s}
+
+/* 展位格子 */
+.booth-cell{transition:.15s;cursor:pointer}
+.booth-cell:active{filter:brightness(1.15);transform:scale(.95)}
+
+/* 横向滚动 */
+.h-scroll{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x proximity;padding-bottom:4px;-webkit-overflow-scrolling:touch;touch-action:pan-x;cursor:grab}
+.h-scroll::-webkit-scrollbar{height:3px}
+.h-scroll::-webkit-scrollbar-thumb{background:rgba(236,72,153,.3);border-radius:2px}
 .h-scroll>*{scroll-snap-align:start;flex:0 0 auto}
-.fade-up{animation:fadeUp .4s ease both}
-@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.shadow-card{box-shadow:0 8px 24px rgba(236,72,153,.1)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
 </style>
 </head>
 <body>
 
-<!-- ===== 顶部：渐变网格 + 流动光斑 ===== -->
-<div class="relative px-4 pt-2 pb-8 overflow-hidden" style="background:linear-gradient(135deg,#FB7185 0%,#EC4899 40%,#7C3AED 100%)">
-  <!-- 流动光斑 -->
-  <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-50" style="background:#FB7185"></div>
-  <div class="absolute -top-6 right-[-30px] w-48 h-48 rounded-full blur-3xl opacity-40" style="background:#EC4899"></div>
-  <div class="absolute -bottom-10 left-12 w-44 h-44 rounded-full blur-3xl opacity-35" style="background:#7C3AED"></div>
+<!-- ===== 电影感 Hero ===== -->
+<div class="relative" style="height:460px">
+  <img src="images/scene_07.jpg" class="absolute inset-0 w-full h-full object-cover" style="filter:saturate(1.15) contrast(1.08)">
+  <!-- 渐变叠层：上方暗→下方过渡到暖底色 -->
+  <div class="absolute inset-0" style="background:linear-gradient(180deg,rgba(15,10,26,.5) 0%,rgba(15,10,26,.25) 25%,rgba(124,58,237,.3) 55%,rgba(255,247,244,.95) 100%)"></div>
+  <!-- 氛围光斑 -->
+  <div class="absolute top-10 left-5 w-40 h-40 rounded-full blur-3xl opacity-40 pulse-glow" style="background:#FB7185"></div>
+  <div class="absolute top-32 right-0 w-48 h-48 rounded-full blur-3xl opacity-30 float-slow" style="background:#7C3AED"></div>
 
   <!-- iOS状态栏 -->
-  <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+  <div class="relative flex justify-between items-center text-white text-sm font-semibold px-4" style="height:40px">
     <span>9:41</span>
-    <div class="flex items-center gap-1.5">
-      <i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i>
+    <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+  </div>
+  <a href="home.html" class="absolute top-11 left-3 w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+
+  <!-- 主标题区 -->
+  <div class="absolute bottom-0 left-0 right-0 px-5 pb-5 text-white">
+    <div class="flex items-center gap-2 mb-3">
+      <span class="bg-white/20 backdrop-blur text-[10px] font-bold px-2.5 py-1 rounded-full text-yellow-300">第 18 届</span>
+      <span class="text-[9px] text-white/50">EST. 2003</span>
+    </div>
+    <h1 class="font-serif text-[28px] leading-tight font-black" style="text-shadow:0 4px 24px rgba(0,0,0,.5)">
+      中国国际<span class="block text-grad-gold">袜业博览会</span>
+    </h1>
+    <p class="text-[11px] text-white/60 mt-2 font-medium tracking-widest">SOCK INDUSTRY EXPO 2026</p>
+    <div class="flex items-center gap-3 mt-3">
+      <span class="text-[13px] font-bold"><i class="fas fa-calendar-days mr-1.5 text-yellow-300/80"></i>10.18-20</span>
+      <span class="w-px h-3 bg-white/20"></span>
+      <span class="text-[13px] font-bold"><i class="fas fa-location-dot mr-1.5 text-yellow-300/80"></i>大唐袜业城</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 倒计时条 ===== -->
+<div class="relative -mt-1 z-10 px-3" style="background:linear-gradient(180deg,transparent 0%,var(--bg) 20%)">
+  <div class="glass rounded-2xl px-4 py-3 flex items-center justify-between shadow-soft fade-up" style="margin-top:8px">
+    <div>
+      <p class="text-[9px] text-gray-400 font-medium">距开幕还有</p>
+      <div class="flex items-baseline gap-1 mt-0.5">
+        <span class="text-[22px] font-black text-grad-expo countdown-tick" id="cdDays">51</span>
+        <span class="text-[10px] text-gray-400">天</span>
+        <span class="text-[22px] font-black text-grad-expo mx-1" id="cdHours">14</span>
+        <span class="text-[10px] text-gray-400">时</span>
+        <span class="text-[22px] font-black text-grad-expo" id="cdMins">23</span>
+        <span class="text-[10px] text-gray-400">分</span>
+      </div>
+    </div>
+    <a href="expo-visitor-apply.html" class="px-4 py-2.5 rounded-full text-[12px] font-bold text-white" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)">立即参观登记</a>
+  </div>
+</div>
+
+<!-- ===== 规模数据 ===== -->
+<div class="px-3 mt-3">
+  <div class="grid grid-cols-4 gap-2 fade-up" style="animation-delay:.05s">
+    <div class="text-center"><p class="text-[20px] font-black text-grad-expo">5万</p><p class="text-[8px] text-gray-400 mt-0.5">㎡展览面积</p></div>
+    <div class="text-center"><p class="text-[20px] font-black text-grad-expo">800+</p><p class="text-[8px] text-gray-400 mt-0.5">家展商</p></div>
+    <div class="text-center"><p class="text-[20px] font-black text-grad-expo">5万+</p><p class="text-[8px] text-gray-400 mt-0.5">名观众</p></div>
+    <div class="text-center"><p class="text-[20px] font-black text-grad-expo">2000+</p><p class="text-[8px] text-gray-400 mt-0.5">个展位</p></div>
+  </div>
+</div>
+
+<!-- ===== 我的展会 ===== -->
+<div class="px-3 mt-3">
+  <a href="expo-visitor-apply.html" class="card block bg-white rounded-2xl p-3 shadow-soft border border-white fade-up" style="animation-delay:.1s">
+    <div class="flex items-center gap-3">
+      <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background:#F0FDF4">
+        <i class="fas fa-id-card text-[16px]" style="color:#10B981"></i>
+      </div>
+      <div class="flex-1">
+        <div class="flex items-center gap-1.5">
+          <p class="text-[13px] font-bold text-gray-800">已登记参观</p>
+          <span class="text-[8px] px-1.5 py-0.5 rounded-full font-bold" style="background:#D1FAE5;color:#059669">已确认</span>
+        </div>
+        <p class="text-[9px] text-gray-400 mt-0.5">入场编号 V2026180001 · 凭码入场</p>
+      </div>
+      <i class="fas fa-chevron-right text-gray-300 text-sm"></i>
+    </div>
+  </a>
+</div>
+
+<!-- ===== 功能入口 ===== -->
+<div class="px-3 mt-4">
+  <div class="grid grid-cols-3 gap-2">
+    <a href="expo-info.html" class="card flex flex-col items-center gap-1.5 py-3 fade-up bg-white rounded-2xl shadow-soft border border-gray-50" style="animation-delay:.1s">
+      <div class="w-11 h-11 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#FB7185,#EC4899)"><i class="fas fa-circle-info text-base"></i></div>
+      <span class="text-[11px] font-medium text-gray-700">展会介绍</span>
+    </a>
+    <a href="expo-booth-apply.html" class="card flex flex-col items-center gap-1.5 py-3 fade-up bg-white rounded-2xl shadow-soft border border-gray-50" style="animation-delay:.15s">
+      <div class="w-11 h-11 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#A78BFA,#7C3AED)"><i class="fas fa-store text-base"></i></div>
+      <span class="text-[11px] font-medium text-gray-700">展位申请</span>
+    </a>
+    <a href="expo-visitor-apply.html" class="card flex flex-col items-center gap-1.5 py-3 fade-up bg-white rounded-2xl shadow-soft border border-gray-50" style="animation-delay:.2s">
+      <div class="w-11 h-11 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#34D399,#10B981)"><i class="fas fa-user-plus text-base"></i></div>
+      <span class="text-[11px] font-medium text-gray-700">参观申请</span>
+    </a>
+    <a href="expo-schedule.html" class="card flex flex-col items-center gap-1.5 py-3 fade-up bg-white rounded-2xl shadow-soft border border-gray-50" style="animation-delay:.25s">
+      <div class="w-11 h-11 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#8B5CF6,#6366F1)"><i class="fas fa-calendar-check text-base"></i></div>
+      <span class="text-[11px] font-medium text-gray-700">日程安排</span>
+    </a>
+    <a href="#" onclick="alert('请到展会现场扫码签到');return false" class="card flex flex-col items-center gap-1.5 py-3 fade-up bg-white rounded-2xl shadow-soft border border-gray-50" style="animation-delay:.3s">
+      <div class="w-11 h-11 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)"><i class="fas fa-qrcode text-base"></i></div>
+      <span class="text-[11px] font-medium text-gray-700">扫码签到</span>
+    </a>
+    <a href="expo-materials.html" class="card flex flex-col items-center gap-1.5 py-3 fade-up bg-white rounded-2xl shadow-soft border border-gray-50" style="animation-delay:.35s">
+      <div class="w-11 h-11 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#EC4899,#FB7185)"><i class="fas fa-download text-base"></i></div>
+      <span class="text-[11px] font-medium text-gray-700">资料下载</span>
+    </a>
+  </div>
+</div>
+
+<!-- ===== 展会日程（视觉化卡片） ===== -->
+<div class="mt-5 px-3">
+  <div class="flex items-center justify-between mb-3">
+    <div class="flex items-center gap-2">
+      <div class="w-1 h-5 rounded-full" style="background:linear-gradient(180deg,#FB7185,#7C3AED)"></div>
+      <span class="font-bold text-[15px] text-gray-800">展会日程</span>
+    </div>
+    <a href="expo-schedule.html" class="text-[10px] text-gray-400">完整日程 <i class="fas fa-arrow-right text-[8px]"></i></a>
+  </div>
+
+  <!-- Day1 -->
+  <div class="day-card mb-2.5 fade-up" style="animation-delay:.1s">
+    <div class="relative overflow-hidden rounded-2xl bg-white shadow-soft border border-pink-100">
+      <div class="absolute top-0 right-0 w-20 h-20 rounded-full blur-2xl opacity-20" style="background:#FB7185"></div>
+      <div class="relative p-3.5">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-2">
+            <span class="text-white text-[9px] font-black px-2 py-1 rounded-md" style="background:linear-gradient(135deg,#EC4899,#FB7185)">DAY 1</span>
+            <span class="text-[13px] font-bold text-gray-800">10.18 开幕日</span>
+          </div>
+          <span class="text-[9px] font-medium" style="color:#EC4899"><i class="fas fa-fire mr-0.5"></i>重磅</span>
+        </div>
+        <div class="space-y-2">
+          <a href="expo-session-detail.html?day=1&session=1" class="card flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-pink-50"><span class="text-[9px] text-gray-400 font-mono">09:00</span><span class="w-1 h-1 rounded-full bg-pink-400 flex-shrink-0"></span><span class="text-[10px] text-gray-600 flex-1">开幕仪式 · 展馆开放</span><i class="fas fa-chevron-right text-gray-300 text-[7px]"></i></a>
+          <a href="expo-session-detail.html?day=1&session=3" class="card flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-pink-50"><span class="text-[9px] text-gray-400 font-mono">10:00</span><span class="w-1 h-1 rounded-full bg-violet-400 flex-shrink-0"></span><span class="text-[10px] text-gray-600 flex-1">袜业高质量发展论坛</span><i class="fas fa-chevron-right text-gray-300 text-[7px]"></i></a>
+          <a href="expo-session-detail.html?day=1&session=6" class="card flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-pink-50"><span class="text-[9px] text-gray-400 font-mono">15:00</span><span class="w-1 h-1 rounded-full bg-pink-400 flex-shrink-0"></span><span class="text-[10px] text-gray-600 flex-1">品牌展商新品路演</span><i class="fas fa-chevron-right text-gray-300 text-[7px]"></i></a>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- 返回按钮 + 标题 -->
-  <div class="relative flex items-center gap-2.5 mt-1">
-    <a href="home.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
-    <span class="text-white font-extrabold text-[20px]" style="text-shadow:0 2px 10px rgba(0,0,0,.18)">袜博展会</span>
+  <!-- Day2 -->
+  <div class="day-card mb-2.5 fade-up" style="animation-delay:.15s">
+    <div class="relative overflow-hidden rounded-2xl bg-white shadow-soft border border-blue-100">
+      <div class="absolute top-0 right-0 w-20 h-20 rounded-full blur-2xl opacity-15" style="background:#3B82F6"></div>
+      <div class="relative p-3.5">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-2">
+            <span class="text-white text-[9px] font-black px-2 py-1 rounded-md" style="background:linear-gradient(135deg,#3B82F6,#6366F1)">DAY 2</span>
+            <span class="text-[13px] font-bold text-gray-800">10.19 专业日</span>
+          </div>
+          <span class="text-[9px] font-medium" style="color:#2563EB"><i class="fas fa-handshake mr-0.5"></i>对接</span>
+        </div>
+        <div class="space-y-2">
+          <a href="expo-session-detail.html?day=2&session=0" class="card flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-blue-50"><span class="text-[9px] text-gray-400 font-mono">09:00</span><span class="w-1 h-1 rounded-full bg-blue-400 flex-shrink-0"></span><span class="text-[10px] text-gray-600 flex-1">供需精准对接会</span><i class="fas fa-chevron-right text-gray-300 text-[7px]"></i></a>
+          <a href="expo-session-detail.html?day=2&session=2" class="card flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-blue-50"><span class="text-[9px] text-gray-400 font-mono">10:30</span><span class="w-1 h-1 rounded-full bg-violet-400 flex-shrink-0"></span><span class="text-[10px] text-gray-600 flex-1">新材料·新工艺发布会</span><i class="fas fa-chevron-right text-gray-300 text-[7px]"></i></a>
+          <a href="expo-session-detail.html?day=2&session=5" class="card flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-blue-50"><span class="text-[9px] text-gray-400 font-mono">16:00</span><span class="w-1 h-1 rounded-full bg-pink-400 flex-shrink-0"></span><span class="text-[10px] text-gray-600 flex-1">袜业设计大赛决赛</span><i class="fas fa-chevron-right text-gray-300 text-[7px]"></i></a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Day3 -->
+  <div class="day-card fade-up" style="animation-delay:.2s">
+    <div class="relative overflow-hidden rounded-2xl bg-white shadow-soft border border-green-100">
+      <div class="absolute top-0 right-0 w-20 h-20 rounded-full blur-2xl opacity-15" style="background:#34D399"></div>
+      <div class="relative p-3.5">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-2">
+            <span class="text-white text-[9px] font-black px-2 py-1 rounded-md" style="background:linear-gradient(135deg,#34D399,#10B981)">DAY 3</span>
+            <span class="text-[13px] font-bold text-gray-800">10.20 公众日</span>
+          </div>
+          <span class="text-[9px] font-medium" style="color:#059669"><i class="fas fa-users mr-0.5"></i>公众</span>
+        </div>
+        <div class="space-y-2">
+          <a href="expo-session-detail.html?day=3&session=1" class="card flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-green-50"><span class="text-[9px] text-gray-400 font-mono">09:30</span><span class="w-1 h-1 rounded-full bg-green-400 flex-shrink-0"></span><span class="text-[10px] text-gray-600 flex-1">网红达人探馆直播</span><i class="fas fa-chevron-right text-gray-300 text-[7px]"></i></a>
+          <a href="expo-session-detail.html?day=3&session=3" class="card flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-green-50"><span class="text-[9px] text-gray-400 font-mono">14:00</span><span class="w-1 h-1 rounded-full bg-pink-400 flex-shrink-0"></span><span class="text-[10px] text-gray-600 flex-1">颁奖典礼 · 闭幕仪式</span><i class="fas fa-chevron-right text-gray-300 text-[7px]"></i></a>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
-<!-- 展会主Banner -->
-<div class="px-3 -mt-4 relative z-10">
-<div class="card rounded-2xl overflow-hidden shadow-card relative" style="height:150px">
-<img src="images/scene_07.jpg" class="w-full h-full object-cover">
-<div class="absolute inset-0" style="background:linear-gradient(180deg,rgba(236,72,153,.2) 0%,rgba(124,58,237,.85) 100%)"></div>
-<div class="absolute -top-4 right-4 w-28 h-28 rounded-full blur-3xl opacity-30" style="background:#FB7185"></div>
-<div class="absolute bottom-0 left-0 p-4 text-white">
-<div class="flex items-center gap-1.5"><span class="bg-yellow-400 text-gray-900 text-[9px] font-bold px-1.5 py-0.5 rounded">第18届</span></div>
-<p class="font-bold text-[18px] mt-1">中国国际袜业博览会</p>
-<p class="text-[11px] text-white/85 mt-0.5">2026.10.18 - 10.20 · 大唐袜业城</p>
+<!-- ===== 展位平面图 ===== -->
+<div class="mt-5 px-3">
+  <div class="flex items-center justify-between mb-3">
+    <div class="flex items-center gap-2">
+      <div class="w-1 h-5 rounded-full" style="background:linear-gradient(180deg,#7C3AED,#A78BFA)"></div>
+      <span class="font-bold text-[15px] text-gray-800">展位平面图</span>
+    </div>
+    <a href="expo-materials.html" class="text-[10px] text-gray-400">查看大图 <i class="fas fa-arrow-right text-[8px]"></i></a>
+  </div>
+  <div class="bg-white rounded-2xl p-3 shadow-soft border border-gray-100 fade-up" style="animation-delay:.1s">
+    <div class="text-center text-[9px] text-gray-400 mb-2 font-medium">A馆 · 袜品区</div>
+    <div class="grid grid-cols-6 gap-1" style="grid-template-rows:repeat(3,28px)">
+      <div class="booth-cell flex items-center justify-center text-[8px] font-bold text-white rounded" style="background:linear-gradient(135deg,#FB7185,#EC4899)">A01</div>
+      <div class="booth-cell flex items-center justify-center text-[8px] font-bold text-white rounded" style="background:linear-gradient(135deg,#FB7185,#EC4899)">A02</div>
+      <div class="booth-cell flex items-center justify-center text-[8px] font-bold text-white rounded" style="background:linear-gradient(135deg,#FB7185,#EC4899)">A03</div>
+      <div class="booth-cell flex items-center justify-center text-[8px] font-bold text-white rounded" style="background:linear-gradient(135deg,#FB7185,#EC4899)">A04</div>
+      <div class="booth-cell flex items-center justify-center text-[8px] font-bold text-white rounded" style="background:linear-gradient(135deg,#FB7185,#EC4899)">A05</div>
+      <div class="booth-cell flex items-center justify-center text-[8px] font-bold text-white rounded" style="background:linear-gradient(135deg,#FB7185,#EC4899)">A06</div>
+      <div class="col-span-6 flex items-center justify-center text-[7px] text-gray-300 rounded" style="background:rgba(0,0,0,.03);height:14px">— 主 通 道 —</div>
+      <div class="booth-cell flex items-center justify-center text-[8px] font-bold text-white rounded" style="background:linear-gradient(135deg,#FB7185,#EC4899)">B01</div>
+      <div class="booth-cell flex items-center justify-center text-[8px] font-bold text-white rounded" style="background:linear-gradient(135deg,#FB7185,#EC4899)">B02</div>
+      <div class="booth-cell flex items-center justify-center text-white rounded" style="background:linear-gradient(135deg,#60A5FA,#3B82F6)"><i class="fas fa-door-open text-[8px]"></i></div>
+      <div class="booth-cell flex items-center justify-center text-[8px] font-bold text-white rounded" style="background:linear-gradient(135deg,#FB7185,#EC4899)">B03</div>
+      <div class="booth-cell flex items-center justify-center text-[8px] font-bold text-white rounded" style="background:linear-gradient(135deg,#FB7185,#EC4899)">B04</div>
+      <div class="booth-cell flex items-center justify-center text-[8px] font-bold text-white rounded" style="background:linear-gradient(135deg,#FB7185,#EC4899)">B05</div>
+    </div>
+    <div class="flex items-center gap-3 mt-2.5">
+      <span class="flex items-center gap-1 text-[9px] text-gray-400"><span class="w-2.5 h-2.5 rounded" style="background:#EC4899"></span>展位</span>
+      <span class="flex items-center gap-1 text-[9px] text-gray-400"><span class="w-2.5 h-2.5 rounded" style="background:#3B82F6"></span>入口</span>
+    </div>
+    <a href="expo-booth-apply.html" class="block text-center text-[10px] mt-2.5 pt-2.5 border-t border-gray-100" style="color:#7C3AED"><i class="fas fa-plus-circle text-[9px] mr-0.5"></i>申请展位 <i class="fas fa-arrow-right text-[8px]"></i></a>
+  </div>
 </div>
+
+<!-- ===== 精选展商 ===== -->
+<div class="mt-5 px-3">
+  <div class="flex items-center justify-between mb-3">
+    <div class="flex items-center gap-2">
+      <div class="w-1 h-5 rounded-full" style="background:linear-gradient(180deg,#38BDF8,#3B82F6)"></div>
+      <span class="font-bold text-[15px] text-gray-800">精选展商</span>
+    </div>
+    <span class="text-[10px] text-gray-400">800+家 <i class="fas fa-chevron-right text-[9px]"></i></span>
+  </div>
+  <div class="h-scroll pb-1">
+    <div class="card w-[155px] rounded-2xl overflow-hidden shadow-soft fade-up bg-white border border-gray-100" style="animation-delay:.05s">
+      <div class="relative h-[85px] overflow-hidden">
+        <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=%E5%B1%95%E4%BC%9A%E5%93%81%E7%89%8C%E5%B1%95%E4%BD%8D%E5%8D%8E%E4%B8%BD%E7%81%AF%E5%85%89%E4%B8%8B%E7%B2%BE%E7%BE%8E%E8%A2%9C%E5%93%81%E5%B1%95%E7%A4%BA%E6%9F%9C%E5%8F%B0%E7%8E%B0%E4%BB%A3%E7%AE%80%E6%B4%81&image_size=square" class="w-full h-full object-cover">
+        <div class="absolute inset-0" style="background:linear-gradient(180deg,transparent 40%,rgba(255,255,255,.9) 100%)"></div>
+        <span class="absolute top-2 left-2 text-[7px] text-white font-bold px-1.5 py-0.5 rounded" style="background:linear-gradient(90deg,#FB7185,#EC4899)">品牌展商</span>
+      </div>
+      <div class="p-2.5">
+        <p class="text-[12px] font-bold text-gray-800">丹吉娅</p>
+        <p class="text-[9px] text-gray-400 mt-0.5">A01-A02 · 袜品</p>
+      </div>
+    </div>
+    <div class="card w-[155px] rounded-2xl overflow-hidden shadow-soft fade-up bg-white border border-gray-100" style="animation-delay:.1s">
+      <div class="relative h-[85px] overflow-hidden">
+        <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=%E6%99%BA%E8%83%BD%E8%A2%8C%E6%9C%BA%E8%AE%BE%E5%A4%87%E5%B1%95%E4%BD%8D%E7%8E%B0%E4%BB%A3%E5%B7%A5%E4%B8%9A%E9%A3%8E%E6%A0%BC%E7%B2%BE%E5%AF%86%E9%87%91%E5%B1%9E%E8%B4%A8%E6%84%9F&image_size=square" class="w-full h-full object-cover">
+        <div class="absolute inset-0" style="background:linear-gradient(180deg,transparent 40%,rgba(255,255,255,.9) 100%)"></div>
+        <span class="absolute top-2 left-2 text-[7px] text-white font-bold px-1.5 py-0.5 rounded" style="background:linear-gradient(90deg,#A78BFA,#7C3AED)">智能袜机</span>
+      </div>
+      <div class="p-2.5">
+        <p class="text-[12px] font-bold text-gray-800">步人堂</p>
+        <p class="text-[9px] text-gray-400 mt-0.5">C05 · 袜机设备</p>
+      </div>
+    </div>
+    <div class="card w-[155px] rounded-2xl overflow-hidden shadow-soft fade-up bg-white border border-gray-100" style="animation-delay:.15s">
+      <div class="relative h-[85px] overflow-hidden">
+        <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=%E7%94%9F%E4%B8%9D%E8%A2%9C%E5%B1%95%E7%A4%BA%E5%8C%85%E8%A3%85%E7%9B%92%E7%B2%BE%E8%87%B4%E6%97%B6%E5%B0%9A%E5%B1%95%E7%BD%A9%E7%81%AF%E5%85%89&image_size=square" class="w-full h-full object-cover">
+        <div class="absolute inset-0" style="background:linear-gradient(180deg,transparent 40%,rgba(255,255,255,.9) 100%)"></div>
+        <span class="absolute top-2 left-2 text-[7px] text-white font-bold px-1.5 py-0.5 rounded" style="background:linear-gradient(90deg,#34D399,#10B981)">丝袜</span>
+      </div>
+      <div class="p-2.5">
+        <p class="text-[12px] font-bold text-gray-800">宝娜斯</p>
+        <p class="text-[9px] text-gray-400 mt-0.5">A03-A04 · 袜品</p>
+      </div>
+    </div>
+    <div class="card w-[155px] rounded-2xl overflow-hidden shadow-soft fade-up bg-white border border-gray-100" style="animation-delay:.2s">
+      <div class="relative h-[85px] overflow-hidden">
+        <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=%E8%BF%90%E5%8A%A8%E8%A2%8C%E5%B1%95%E7%A4%BA%E6%97%B6%E5%B0%9A%E5%B1%95%E4%BD%8D%E6%B4%BB%E5%8A%9B%E6%98%8E%E4%BA%AE%E7%81%AF%E5%85%89&image_size=square" class="w-full h-full object-cover">
+        <div class="absolute inset-0" style="background:linear-gradient(180deg,transparent 40%,rgba(255,255,255,.9) 100%)"></div>
+        <span class="absolute top-2 left-2 text-[7px] text-white font-bold px-1.5 py-0.5 rounded" style="background:linear-gradient(90deg,#FBBF24,#F59E0B)">运动袜</span>
+      </div>
+      <div class="p-2.5">
+        <p class="text-[12px] font-bold text-gray-800">情怡袜业</p>
+        <p class="text-[9px] text-gray-400 mt-0.5">B01-B02 · 袜品</p>
+      </div>
+    </div>
+  </div>
 </div>
+
+<!-- ===== 往届回顾 ===== -->
+<div class="mt-5 px-3 mb-4">
+  <div class="flex items-center justify-between mb-3">
+    <div class="flex items-center gap-2">
+      <div class="w-1 h-5 rounded-full" style="background:linear-gradient(180deg,#C084FC,#7C3AED)"></div>
+      <span class="font-bold text-[15px] text-gray-800">往届回顾</span>
+    </div>
+  </div>
+  <div class="grid grid-cols-3 gap-2">
+    <div class="card relative rounded-xl overflow-hidden shadow-soft fade-up" style="height:100px">
+      <img src="images/scene_09.jpg" class="w-full h-full object-cover">
+      <div class="absolute inset-0" style="background:linear-gradient(180deg,transparent 50%,rgba(0,0,0,.6) 100%)"></div>
+      <p class="absolute bottom-1.5 left-2 text-white text-[8px] font-medium">第17届现场</p>
+    </div>
+    <div class="card relative rounded-xl overflow-hidden shadow-soft fade-up" style="height:100px;animation-delay:.05s">
+      <img src="images/scene_02.jpg" class="w-full h-full object-cover">
+      <div class="absolute inset-0" style="background:linear-gradient(180deg,transparent 50%,rgba(0,0,0,.6) 100%)"></div>
+      <p class="absolute bottom-1.5 left-2 text-white text-[8px] font-medium">开幕仪式</p>
+    </div>
+    <div class="card relative rounded-xl overflow-hidden shadow-soft fade-up" style="height:100px;animation-delay:.1s">
+      <img src="images/scene_03.jpg" class="w-full h-full object-cover">
+      <div class="absolute inset-0" style="background:linear-gradient(180deg,transparent 50%,rgba(0,0,0,.6) 100%)"></div>
+      <p class="absolute bottom-1.5 left-2 text-white text-[8px] font-medium">新品展示</p>
+    </div>
+  </div>
 </div>
 
 <!-- 展会信息卡 -->
-<div class="px-3 mt-3">
-<div class="bg-white/75 backdrop-blur-xl rounded-3xl shadow-soft p-3.5 border border-white">
-<div class="grid grid-cols-2 gap-3">
-<div class="flex items-center gap-2">
-<div class="w-10 h-10 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#FB7185,#EC4899)"><i class="fas fa-calendar-days text-sm"></i></div>
-<div><p class="text-[9px] text-gray-400">展会时间</p><p class="text-[11px] font-semibold text-gray-800">10.18-10.20</p></div>
-</div>
-<div class="flex items-center gap-2">
-<div class="w-10 h-10 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#38BDF8,#3B82F6)"><i class="fas fa-location-dot text-sm"></i></div>
-<div><p class="text-[9px] text-gray-400">展会地点</p><p class="text-[11px] font-semibold text-gray-800">大唐袜业城</p></div>
-</div>
-<div class="flex items-center gap-2">
-<div class="w-10 h-10 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#34D399,#10B981)"><i class="fas fa-warehouse text-sm"></i></div>
-<div><p class="text-[9px] text-gray-400">展览规模</p><p class="text-[11px] font-semibold text-gray-800">5万㎡</p></div>
-</div>
-<div class="flex items-center gap-2">
-<div class="w-10 h-10 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#A78BFA,#7C3AED)"><i class="fas fa-store text-sm"></i></div>
-<div><p class="text-[9px] text-gray-400">展商数量</p><p class="text-[11px] font-semibold text-gray-800">800+家</p></div>
-</div>
-</div>
-</div>
+<div class="px-3 mb-28">
+  <div class="bg-white rounded-2xl p-3 shadow-soft border border-gray-100">
+    <div class="grid grid-cols-2 gap-3 text-center">
+      <div class="border-r border-gray-100">
+        <p class="text-[9px] text-gray-400">展会时间</p>
+        <p class="text-[11px] font-bold text-gray-800 mt-0.5">10.18-10.20</p>
+      </div>
+      <div>
+        <p class="text-[9px] text-gray-400">展会地点</p>
+        <p class="text-[11px] font-bold text-gray-800 mt-0.5">大唐袜业城</p>
+      </div>
+    </div>
+  </div>
 </div>
 
-<!-- 功能入口宫格 -->
-<div class="px-3 mt-3">
-<div class="bg-white/75 backdrop-blur-xl rounded-3xl shadow-soft px-2.5 py-3.5 border border-white">
-<div class="grid grid-cols-3 gap-y-3.5">
-<a href="#" class="card flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#FB7185,#EC4899)"><i class="fas fa-circle-info text-lg"></i></div><span class="text-[11px] text-gray-700 font-medium">展会介绍</span></a>
-<a href="#" class="card flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#A78BFA,#7C3AED)"><i class="fas fa-store text-lg"></i></div><span class="text-[11px] text-gray-700 font-medium">展位申请</span></a>
-<a href="#" class="card flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#34D399,#10B981)"><i class="fas fa-user-plus text-lg"></i></div><span class="text-[11px] text-gray-700 font-medium">参观申请</span></a>
-<a href="#" class="card flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)"><i class="fas fa-qrcode text-lg"></i></div><span class="text-[11px] text-gray-700 font-medium">扫码签到</span></a>
-<a href="#" class="card flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#8B5CF6,#6366F1)"><i class="fas fa-calendar-check text-lg"></i></div><span class="text-[11px] text-gray-700 font-medium">日程安排</span></a>
-<a href="#" class="card flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#EC4899,#FB7185)"><i class="fas fa-download text-lg"></i></div><span class="text-[11px] text-gray-700 font-medium">资料下载</span></a>
-</div>
-</div>
-</div>
-
-<!-- 展会日程时间轴 -->
-<div class="mt-4 px-3">
-<div class="flex items-center gap-1.5 mb-2.5">
-<div class="w-7 h-7 rounded-lg flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#EC4899,#FB7185)"><i class="fas fa-calendar-day text-xs"></i></div>
-<span class="sec-title">展会日程</span>
-</div>
-<div class="bg-white/75 backdrop-blur-xl rounded-3xl shadow-soft p-3.5 border border-white">
-<div class="relative pl-4">
-<div class="absolute left-[5px] top-1 bottom-1 w-0.5 bg-gray-100"></div>
-<div class="relative mb-4">
-<div class="absolute -left-4 top-0.5 w-2.5 h-2.5 rounded-full" style="background:#EC4899;box-shadow:0 0 0 3px #FCE7F3"></div>
-<div class="flex items-center gap-1.5"><span class="text-white text-[9px] font-bold px-1.5 py-0.5 rounded" style="background:linear-gradient(90deg,#EC4899,#FB7185)">Day1</span><span class="text-[11px] font-bold text-gray-800">10.18 开幕日</span></div>
-<p class="text-[10px] text-gray-500 mt-1.5 leading-relaxed">09:00 开幕仪式 · 10:00 展馆开放<br>14:00 袜业高质量发展论坛</p>
-</div>
-<div class="relative mb-4">
-<div class="absolute -left-4 top-0.5 w-2.5 h-2.5 rounded-full bg-gray-300"></div>
-<div class="flex items-center gap-1.5"><span class="bg-gray-200 text-gray-600 text-[9px] font-bold px-1.5 py-0.5 rounded">Day2</span><span class="text-[11px] font-bold text-gray-800">10.19 专业日</span></div>
-<p class="text-[10px] text-gray-500 mt-1.5 leading-relaxed">09:00 供需对接会 · 14:00 新品发布<br>16:00 跨境电商选品大会</p>
-</div>
-<div class="relative">
-<div class="absolute -left-4 top-0.5 w-2.5 h-2.5 rounded-full bg-gray-300"></div>
-<div class="flex items-center gap-1.5"><span class="bg-gray-200 text-gray-600 text-[9px] font-bold px-1.5 py-0.5 rounded">Day3</span><span class="text-[11px] font-bold text-gray-800">10.20 公众日</span></div>
-<p class="text-[10px] text-gray-500 mt-1.5 leading-relaxed">09:00 公众参观 · 14:00 颁奖典礼<br>16:00 闭幕仪式</p>
-</div>
-</div>
-</div>
-</div>
-
-<!-- 展位平面图 -->
-<div class="mt-4 px-3">
-<div class="flex items-center gap-1.5 mb-2.5">
-<div class="w-7 h-7 rounded-lg flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#7C3AED,#A78BFA)"><i class="fas fa-map text-xs"></i></div>
-<span class="sec-title">展位平面图</span>
-</div>
-<div class="bg-white/75 backdrop-blur-xl rounded-3xl shadow-soft p-3 border border-white">
-<div class="rounded-lg overflow-hidden" style="background:#F8F9FB;padding:8px">
-<div class="text-center text-[9px] text-gray-400 mb-1.5">A馆 · 袜品区</div>
-<div class="grid grid-cols-6 gap-1" style="grid-template-rows:repeat(3,24px)">
-<div class="flex items-center justify-center text-[8px] font-semibold text-white rounded" style="background:linear-gradient(135deg,#FB7185,#EC4899)">A01</div>
-<div class="flex items-center justify-center text-[8px] font-semibold text-white rounded" style="background:linear-gradient(135deg,#FB7185,#EC4899)">A02</div>
-<div class="flex items-center justify-center text-[8px] font-semibold text-white rounded" style="background:linear-gradient(135deg,#FB7185,#EC4899)">A03</div>
-<div class="flex items-center justify-center text-[8px] font-semibold text-white rounded" style="background:linear-gradient(135deg,#FB7185,#EC4899)">A04</div>
-<div class="flex items-center justify-center text-[8px] font-semibold text-white rounded" style="background:linear-gradient(135deg,#FB7185,#EC4899)">A05</div>
-<div class="flex items-center justify-center text-[8px] font-semibold text-white rounded" style="background:linear-gradient(135deg,#FB7185,#EC4899)">A06</div>
-<div class="col-span-6 flex items-center justify-center text-[7px] text-gray-400 rounded" style="background:#E8EAED;height:14px">主通道</div>
-<div class="flex items-center justify-center text-[8px] font-semibold text-white rounded" style="background:linear-gradient(135deg,#FB7185,#EC4899)">B01</div>
-<div class="flex items-center justify-center text-[8px] font-semibold text-white rounded" style="background:linear-gradient(135deg,#FB7185,#EC4899)">B02</div>
-<div class="flex items-center justify-center text-[8px] font-semibold text-white rounded" style="background:linear-gradient(135deg,#60A5FA,#3B82F6)"><i class="fas fa-door-open text-[8px]"></i></div>
-<div class="flex items-center justify-center text-[8px] font-semibold text-white rounded" style="background:linear-gradient(135deg,#FB7185,#EC4899)">B03</div>
-<div class="flex items-center justify-center text-[8px] font-semibold text-white rounded" style="background:linear-gradient(135deg,#FB7185,#EC4899)">B04</div>
-<div class="flex items-center justify-center text-[8px] font-semibold text-white rounded" style="background:linear-gradient(135deg,#FB7185,#EC4899)">B05</div>
-</div>
-</div>
-<div class="flex items-center gap-3 mt-2">
-<span class="flex items-center gap-1 text-[9px] text-gray-500"><span class="w-2.5 h-2.5 rounded" style="background:#EC4899"></span>展位</span>
-<span class="flex items-center gap-1 text-[9px] text-gray-500"><span class="w-2.5 h-2.5 rounded" style="background:#3B82F6"></span>入口</span>
-<span class="flex items-center gap-1 text-[9px] text-gray-500"><span class="w-2.5 h-2.5 rounded" style="background:#E8EAED"></span>通道</span>
-<span class="text-[9px] ml-auto" style="color:#EC4899">查看大图 <i class="fas fa-chevron-right text-[8px]"></i></span>
-</div>
-</div>
-</div>
-
-<!-- 往届回顾 -->
-<div class="mt-4 px-3 mb-28">
-<div class="flex items-center gap-1.5 mb-2.5">
-<div class="w-7 h-7 rounded-lg flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#C084FC,#7C3AED)"><i class="fas fa-images text-xs"></i></div>
-<span class="sec-title">往届回顾</span>
-</div>
-<div class="grid grid-cols-3 gap-2">
-<div class="card relative rounded-xl overflow-hidden shadow-soft fade-up" style="height:90px">
-<img src="images/scene_09.jpg" class="w-full h-full object-cover">
-<div class="absolute bottom-0 left-0 right-0 px-1.5 py-1"><p class="text-white text-[8px] font-medium">第17届现场</p></div>
-<div class="absolute inset-0" style="background:linear-gradient(180deg,transparent 50%,rgba(0,0,0,.6) 100%)"></div>
-</div>
-<div class="card relative rounded-xl overflow-hidden shadow-soft fade-up" style="height:90px;animation-delay:.05s">
-<img src="images/scene_02.jpg" class="w-full h-full object-cover">
-<div class="absolute bottom-0 left-0 right-0 px-1.5 py-1"><p class="text-white text-[8px] font-medium">开幕仪式</p></div>
-<div class="absolute inset-0" style="background:linear-gradient(180deg,transparent 50%,rgba(0,0,0,.6) 100%)"></div>
-</div>
-<div class="card relative rounded-xl overflow-hidden shadow-soft fade-up" style="height:90px;animation-delay:.1s">
-<img src="images/scene_03.jpg" class="w-full h-full object-cover">
-<div class="absolute bottom-0 left-0 right-0 px-1.5 py-1"><p class="text-white text-[8px] font-medium">新品展示</p></div>
-<div class="absolute inset-0" style="background:linear-gradient(180deg,transparent 50%,rgba(0,0,0,.6) 100%)"></div>
-</div>
-</div>
-</div>
-
-<!-- 底部Tab栏 5Tab -->
-<div class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-gray-100" style="height:65px;z-index:100;width:393px">
-<div class="flex justify-around items-center h-full" style="padding-bottom:10px">
-<a href="home.html" class="flex flex-col items-center gap-0.5" style="color:#FF4D2D"><i class="fas fa-house text-[18px]"></i><span class="text-[9px] font-semibold">首页</span></a>
-<a href="video.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-video text-[18px]"></i><span class="text-[9px]">视频看货</span></a>
-<a href="purchase-order.html" class="flex flex-col items-center gap-0.5 text-gray-400 relative"><i class="fas fa-clipboard-list text-[18px]"></i><span class="text-[9px]">进货单</span><span class="absolute top-0 right-1 bg-primary text-white text-[7px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center" style="min-width:14px;height:14px">3</span></a>
-<a href="property.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-building text-[18px]"></i><span class="text-[9px]">物业</span></a>
-<a href="mine.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-user text-[18px]"></i><span class="text-[9px]">我的</span></a>
-</div>
+<!-- ===== 底部Tab栏（与全App统一白色） ===== -->
+<div class="fixed bottom-0 left-0 right-0 border-t border-gray-100" style="height:65px;z-index:100;width:393px;background:rgba(255,255,255,.92);backdrop-filter:blur(20px)">
+  <div class="flex justify-around items-center h-full" style="padding-bottom:10px">
+    <a href="home.html" class="flex flex-col items-center gap-0.5" style="color:#EC4899"><i class="fas fa-house text-[18px]"></i><span class="text-[9px] font-semibold">首页</span></a>
+    <a href="video.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-video text-[18px]"></i><span class="text-[9px]">视频看货</span></a>
+    <a href="purchase-order.html" class="flex flex-col items-center gap-0.5 text-gray-400 relative"><i class="fas fa-clipboard-list text-[18px]"></i><span class="text-[9px]">进货单</span><span class="absolute top-0 right-1 text-white text-[7px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center" style="background:#FF4D2D;min-width:14px;height:14px">3</span></a>
+    <a href="property.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-building text-[18px]"></i><span class="text-[9px]">物业</span></a>
+    <a href="mine.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-user text-[18px]"></i><span class="text-[9px]">我的</span></a>
+  </div>
 </div>
 <div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none"><div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:3px"></div></div>
 
+<script>
+function initDrag(){document.querySelectorAll('.h-scroll').forEach(function(c){var d=false,sx,sl,m=false;c.addEventListener('mousedown',function(e){d=true;m=false;sx=e.pageX-c.offsetLeft;sl=c.scrollLeft});c.addEventListener('mouseleave',function(){d=false});c.addEventListener('mouseup',function(){d=false});c.addEventListener('mousemove',function(e){if(!d)return;e.preventDefault();var w=(e.pageX-c.offsetLeft-sx)*1.5;if(Math.abs(w)>3){m=true}c.scrollLeft=sl-w});c.querySelectorAll('a').forEach(function(l){l.addEventListener('click',function(e){if(m)e.preventDefault()})})})}
+initDrag();
+
+function updateCountdown(){
+  var target=new Date('2026-10-18T09:00:00').getTime();
+  var now=new Date().getTime();
+  var diff=Math.max(0,target-now);
+  var days=Math.floor(diff/86400000);
+  var hours=Math.floor(diff%86400000/3600000);
+  var mins=Math.floor(diff%3600000/60000);
+  document.getElementById('cdDays').textContent=days;
+  document.getElementById('cdHours').textContent=hours;
+  document.getElementById('cdMins').textContent=mins;
+}
+updateCountdown();
+setInterval(updateCountdown,60000);
+</script>
 </body>
 </html>

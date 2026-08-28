@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>研学路线详情 - 袜掌柜买家版</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--p:#FF4D2D;--pl:#FF7849;--bg:#FFF7F4}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+::-webkit-scrollbar{width:2px;height:2px}
+::-webkit-scrollbar-thumb{background:#dfdfdf;border-radius:1px}
+.shadow-card{box-shadow:0 8px 24px rgba(5,150,105,.14)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
+.card{transition:transform .16s ease}.card:active{transform:scale(.965)}
+.fade-up{animation:fadeUp .4s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.sec-title{font-size:15px;font-weight:800;letter-spacing:.3px;color:#1F2430}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:300;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.25);min-width:120px;justify-content:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.sub-tab{font-size:12px;padding:6px 14px;border-radius:20px;cursor:pointer;transition:.15s;font-weight:600;white-space:nowrap}
+.sub-tab.on{background:linear-gradient(135deg,#34D399,#059669);color:#fff;box-shadow:0 4px 12px rgba(5,150,105,.25)}
+.sub-tab:not(.on){color:#9aa0ac;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.timeline-dot{width:10px;height:10px;border-radius:50%;border:2.5px solid #10B981;background:#fff;flex-shrink:0;margin-top:3px;z-index:2;position:relative}
+.timeline-line{position:absolute;left:4px;top:0;bottom:0;width:2px;background:#D1FAE5}
+.itinerary-item{position:relative;padding-left:24px;padding-bottom:16px}
+.itinerary-item:last-child{padding-bottom:0}
+.itinerary-item::before{content:'';position:absolute;left:4px;top:3px;width:10px;height:10px;border-radius:50%;border:2.5px solid #10B981;background:#fff;z-index:2}
+.itinerary-item::after{content:'';position:absolute;left:8px;top:14px;bottom:0;width:2px;background:#D1FAE5}
+.itinerary-item:last-child::after{display:none}
+.star-active{color:#FBBF24}
+.img-loading{background:linear-gradient(90deg,#f5f5f5 25%,#ececec 50%,#f5f5f5 75%);background-size:200% 100%;animation:shimmer 1.5s infinite}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+</style>
+</head>
+<body>
+
+<!-- 顶部封面 -->
+<div class="relative h-52 overflow-hidden">
+<img src="" class="absolute inset-0 w-full h-full object-cover" id="coverImg" style="display:none">
+<div class="absolute inset-0" id="coverBg" style="background:linear-gradient(135deg,#34D399,#059669)"></div>
+<div class="absolute inset-0" style="background:linear-gradient(180deg,rgba(0,0,0,.15) 0%,rgba(0,0,0,.05) 50%,rgba(0,0,0,.45) 100%)"></div>
+<div class="absolute top-0 left-0 right-0 px-4 pt-2 flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+<span>9:41</span>
+<div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+</div>
+<a href="study-tour.html" class="absolute top-11 left-3 w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+<div class="absolute bottom-0 left-0 right-0 p-4 text-white">
+<div id="routeTags" class="flex gap-1.5 mb-1.5"></div>
+<h1 class="font-extrabold text-[19px]" id="routeTitle" style="text-shadow:0 2px 8px rgba(0,0,0,.3)"></h1>
+<div class="flex items-center gap-3 mt-1.5 text-[11px] text-white/90">
+<span><i class="fas fa-clock mr-1"></i><span id="routeDuration"></span></span>
+<span><i class="fas fa-users mr-1"></i><span id="routeGroup"></span></span>
+<span><i class="fas fa-star mr-1 text-yellow-300"></i><span id="routeRating"></span></span>
+</div>
+</div>
+</div>
+
+<!-- Tab切换 -->
+<div class="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-gray-100 px-3 py-2.5">
+<div class="flex gap-2 overflow-x-auto" style="scrollbar-width:none">
+<span class="sub-tab on" onclick="switchTab('intro',this)">路线介绍</span>
+<span class="sub-tab" onclick="switchTab('calendar',this)">活动日历</span>
+<span class="sub-tab" onclick="switchTab('history',this)">历史风采</span>
+<span class="sub-tab" onclick="switchTab('comments',this)">精选留言</span>
+</div>
+</div>
+
+<!-- 内容区 -->
+<div class="px-3 mt-3" id="contentArea"></div>
+
+<div class="h-20"></div>
+
+<!-- 底部报名栏 -->
+<div class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-gray-100 flex items-center gap-2 px-3" style="height:60px;z-index:100;width:393px;padding-bottom:8px">
+<div class="flex flex-col items-center" style="color:#10B981"><i class="fas fa-headset text-[16px]"></i><span class="text-[8px] mt-0.5">咨询</span></div>
+<div class="flex flex-col items-center text-gray-400"><i class="fas fa-share-nodes text-[16px]"></i><span class="text-[8px] mt-0.5">分享</span></div>
+<button onclick="goApply()" class="flex-1 py-3 rounded-full text-white font-bold text-[14px] shadow-card" style="background:linear-gradient(135deg,#34D399,#059669)">
+<i class="fas fa-user-pen text-[12px] mr-1"></i>个人报名
+</button>
+</div>
+<div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none"><div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:2px"></div></div>
+
+<div class="toast" id="toast"><i class="fas fa-circle-check" style="color:#4ADE80"></i><span id="toastTxt">操作成功</span></div>
+
+<script>
+function img(prompt,size){
+  return 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt='+encodeURIComponent(prompt)+'&image_size='+(size||'landscape_16_9');
+}
+function toast(msg){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;t.classList.add('on');setTimeout(function(){t.classList.remove('on')},2000)}
+
+var routes={
+  1:{
+    title:'智能制造工厂参观',tag:'工艺体验',tagBg:'linear-gradient(90deg,#34D399,#059669)',
+    cover:'images/machine_03.jpg',duration:'半天',group:'20-50人',rating:'4.9',
+    desc:'走进大唐袜业智能制造工厂，零距离观察从纱线到成品袜子的全自动化生产流程。专业讲解员全程陪同，了解1500台智能袜机如何日产百万双袜子，感受科技赋能传统产业的震撼力量。',
+    highlights:['全自动化生产线参观','智能袜机操作演示','纱线原料认知','品质检测体验','智能仓储物流','互动问答环节'],
+    itinerary:[
+      {time:'09:00',title:'集合签到',desc:'袜业城游客服务中心集合，分发研学手册和防护用品'},
+      {time:'09:30',title:'工厂参观',desc:'参观全自动化生产线，观看织袜、缝头、定型全流程'},
+      {time:'10:30',title:'互动体验',desc:'在技师指导下近距离观察智能袜机运作，了解编程织袜原理'},
+      {time:'11:00',title:'品质检测',desc:'参观品质检测中心，体验袜子弹性、色牢度检测'},
+      {time:'11:30',title:'总结问答',desc:'互动问答环节，颁发研学证书'}
+    ],
+    calendar:[
+      {date:'2026年9月15日',day:'周六',status:'可报名',color:'#059669',bg:'#D1FAE5',spots:'余18席'},
+      {date:'2026年9月22日',day:'周六',status:'可报名',color:'#059669',bg:'#D1FAE5',spots:'余32席'},
+      {date:'2026年10月13日',day:'周一',status:'仅剩少量',color:'#D97706',bg:'#FEF3C7',spots:'余6席'},
+      {date:'2026年10月20日',day:'周一',status:'已满',color:'#9CA3AF',bg:'#F3F4F6',spots:'候补中'}
+    ],
+    history:[
+      {img:img('Students visiting sock factory production line with machines','square'),title:'浙江大学研学团',date:'2026年5月',count:'42人'},
+      {img:img('School students learning about sock manufacturing technology','square'),title:'绍兴一中研学团',date:'2026年4月',count:'35人'},
+      {img:img('Children watching automated sock knitting machines in factory','square'),title:'大唐镇中心小学',date:'2026年3月',count:'28人'},
+      {img:img('Students group photo at sock factory entrance with teacher','square'),title:'杭州外国语学校',date:'2026年3月',count:'50人'}
+    ]
+  },
+  2:{
+    title:'袜业博物馆文化游',tag:'文化课堂',tagBg:'linear-gradient(90deg,#FF8A4C,#FF4D2D)',
+    cover:'images/scene_14.jpg',duration:'2小时',group:'30-80人',rating:'4.8',
+    desc:'漫步大唐袜业博物馆，穿越千年袜业文化长河。从古代"足衣"到现代智能袜业，500余件珍贵展品讲述着大唐袜业40年辉煌历程。VR体验区让你身临其境感受织袜工艺演变，互动展区让文化知识变得生动有趣。',
+    highlights:['500+实物展品','清代手摇织袜机','VR织袜体验','袜业文化长廊','互动答题区','文创纪念品'],
+    itinerary:[
+      {time:'09:00',title:'集合入馆',desc:'博物馆入口集合，分发讲解器，观看袜业文化短片'},
+      {time:'09:20',title:'历史篇',desc:'参观古代足衣展区，了解袜子起源与演变历程'},
+      {time:'09:50',title:'工艺篇',desc:'观看清代手摇织袜机演示，了解传统织袜工艺'},
+      {time:'10:20',title:'品牌篇',desc:'参观大唐袜业品牌矩阵，了解产业集群发展'},
+      {time:'10:40',title:'VR体验',desc:'VR体验区，沉浸式感受现代智能袜机工作场景'},
+      {time:'11:00',title:'互动答题',desc:'互动答题区，完成研学任务卡，领取纪念品'}
+    ],
+    calendar:[
+      {date:'2026年9月12日',day:'周四',status:'可报名',color:'#059669',bg:'#D1FAE5',spots:'余45席'},
+      {date:'2026年9月19日',day:'周四',status:'可报名',color:'#059669',bg:'#D1FAE5',spots:'余60席'},
+      {date:'2026年10月12日',day:'周六',status:'仅剩少量',color:'#D97706',bg:'#FEF3C7',spots:'余8席'},
+      {date:'2026年10月19日',day:'周六',status:'可报名',color:'#059669',bg:'#D1FAE5',spots:'余50席'}
+    ],
+    history:[
+      {img:img('Students visiting sock museum exhibition hall with displays','square'),title:'诸暨海亮小学',date:'2026年6月',count:'56人'},
+      {img:img('Children experiencing VR sock knitting at museum interactive zone','square'),title:'金华外国语学校',date:'2026年5月',count:'48人'},
+      {img:img('School group listening to museum guide at sock history display','square'),title:'绍兴文理学院附中',date:'2026年4月',count:'62人'},
+      {img:img('Students at sock museum interactive answering quiz area','square'),title:'杭州学军中学',date:'2026年3月',count:'40人'}
+    ]
+  },
+  3:{
+    title:'织袜工艺体验营',tag:'工厂参观',tagBg:'linear-gradient(90deg,#38BDF8,#3B82F6)',
+    cover:'images/scene_09.jpg',duration:'1天',group:'15-40人',rating:'4.9',
+    desc:'沉浸式织袜工艺体验，从选纱到成品全程动手参与。在专业技师指导下，亲手操作半自动织袜机，设计并织造属于自己的专属袜品。一日研学，深度体验袜业制造的魅力，带走独一无二的研学纪念品。',
+    highlights:['亲手操作织袜机','专属袜品设计','纱线染色体验','成品带走留念','技师一对一指导','研学证书颁发'],
+    itinerary:[
+      {time:'09:00',title:'开营仪式',desc:'体验基地集合，分发工服和工具包，讲解安全须知'},
+      {time:'09:30',title:'纱线认知',desc:'认识不同材质纱线，了解棉、尼龙、氨纶的特性与用途'},
+      {time:'10:00',title:'设计环节',desc:'在设计师指导下设计专属袜品图案，选择颜色搭配'},
+      {time:'10:30',title:'织袜体验',desc:'亲手操作半自动织袜机，在技师指导下完成织造'},
+      {time:'12:00',title:'午餐休息',desc:'袜业城餐厅用餐，休息'},
+      {time:'13:30',title:'缝头定型',desc:'完成袜品缝头、定型和质检工序'},
+      {time:'14:00',title:'染色印图',desc:'袜品染色或印花体验，添加个性化图案'},
+      {time:'15:00',title:'成果展示',desc:'展示各自作品，互评交流，颁发研学证书和纪念品'}
+    ],
+    calendar:[
+      {date:'2026年9月16日',day:'周日',status:'可报名',color:'#059669',bg:'#D1FAE5',spots:'余12席'},
+      {date:'2026年9月23日',day:'周日',status:'仅剩少量',color:'#D97706',bg:'#FEF3C7',spots:'余5席'},
+      {date:'2026年10月14日',day:'周二',status:'可报名',color:'#059669',bg:'#D1FAE5',spots:'余20席'},
+      {date:'2026年10月21日',day:'周二',status:'已满',color:'#9CA3AF',bg:'#F3F4F6',spots:'候补中'}
+    ],
+    history:[
+      {img:img('Students making socks at workshop with knitting machines','square'),title:'杭州二中研学团',date:'2026年6月',count:'24人'},
+      {img:img('Children designing colorful socks at creative workshop','square'),title:'宁波诺丁汉附校',date:'2026年5月',count:'18人'},
+      {img:img('Students showing handmade sock creations proudly','square'),title:'温州实验中学',date:'2026年4月',count:'30人'},
+      {img:img('Kids learning yarn dyeing process at sock workshop','square'),title:'嘉兴一中研学团',date:'2026年3月',count:'22人'}
+    ]
+  }
+};
+
+var comments=[
+  {name:'王老师',school:'浙江大学',avatar:'W',avatarBg:'#3B82F6',rating:5,content:'研学内容丰富，讲解专业，学生们对智能制造有了直观认识。特别是互动体验环节，每个学生都能近距离观察袜机运作，收获很大。',date:'2026-06-20',route:1},
+  {name:'李老师',school:'杭州学军中学',avatar:'L',avatarBg:'#7C3AED',rating:5,content:'博物馆的文化底蕴很深厚，VR体验区是最大亮点，学生们排队体验意犹未尽。研学任务卡设计得很好，寓教于乐。',date:'2026-06-15',route:2},
+  {name:'张老师',school:'杭州二中',avatar:'Z',avatarBg:'#059669',rating:5,content:'体验营一日行程安排合理，技师耐心指导，每个学生都带走了自己织的袜子。这种动手实践的研学模式非常值得推广。',date:'2026-06-10',route:3},
+  {name:'陈老师',school:'绍兴一中',avatar:'C',avatarBg:'#FF4D2D',rating:4,content:'工厂参观环节很震撼，1500台袜机同时运作的场景令人印象深刻。建议增加更多互动体验时间。',date:'2026-05-28',route:1},
+  {name:'赵老师',school:'诸暨海亮小学',avatar:'Z',avatarBg:'#D97706',rating:5,content:'小学生也能看懂听懂，讲解员很会跟孩子互动。VR体验让孩子们尖叫连连，回去后写作文素材满满。',date:'2026-05-20',route:2},
+  {name:'周老师',school:'温州实验中学',avatar:'Z',avatarBg:'#0EA5E9',rating:5,content:'亲手织袜的体验太棒了！学生们穿着自己做的袜子回去，特别有成就感。午餐也很丰盛，整体服务周到。',date:'2026-05-15',route:3}
+];
+
+var urlParams=new URLSearchParams(window.location.search);
+var rid=parseInt(urlParams.get('id'))||1;
+var r=routes[rid]||routes[1];
+
+/* 渲染封面 */
+document.getElementById('coverImg').src=r.cover;
+document.getElementById('coverImg').onload=function(){this.style.display='';document.getElementById('coverBg').style.display='none'};
+document.getElementById('routeTitle').textContent=r.title;
+document.getElementById('routeDuration').textContent=r.duration;
+document.getElementById('routeGroup').textContent=r.group;
+document.getElementById('routeRating').textContent=r.rating;
+document.getElementById('routeTags').innerHTML='<span class="text-white text-[9px] px-2 py-0.5 rounded font-medium" style="background:'+r.tagBg+'">'+r.tag+'</span><span class="text-white text-[9px] px-2 py-0.5 rounded font-medium bg-black/30">研学基地</span>';
+
+/* Tab切换 */
+function switchTab(tab,el){
+  document.querySelectorAll('.sub-tab').forEach(function(t){t.classList.remove('on')});
+  el.classList.add('on');
+  renderContent(tab);
+}
+
+function renderContent(tab){
+  var html='';
+  if(tab==='intro'){
+    /* 路线介绍 */
+    html+='<div class="fade-up">';
+    html+='<div class="flex items-center gap-1.5 mb-2"><div class="w-6 h-6 rounded-lg flex items-center justify-center text-white" style="background:linear-gradient(135deg,#34D399,#059669)"><i class="fas fa-book text-[10px]"></i></div><span class="sec-title">路线介绍</span></div>';
+    html+='<div class="bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-3.5 border border-white mb-3"><p class="text-[12px] text-gray-600 leading-relaxed">'+r.desc+'</p></div>';
+    html+='<div class="flex items-center gap-1.5 mb-2 mt-3"><div class="w-6 h-6 rounded-lg flex items-center justify-center text-white" style="background:linear-gradient(135deg,#34D399,#059669)"><i class="fas fa-star text-[10px]"></i></div><span class="sec-title">研学亮点</span></div>';
+    html+='<div class="grid grid-cols-2 gap-2 mb-3">';
+    r.highlights.forEach(function(h,i){
+      html+='<div class="bg-white/85 backdrop-blur-xl rounded-xl shadow-soft p-2.5 border border-white flex items-center gap-2"><i class="fas fa-circle-check text-[12px]" style="color:#10B981"></i><span class="text-[11px] text-gray-700 font-medium">'+h+'</span></div>';
+    });
+    html+='</div>';
+    html+='<div class="flex items-center gap-1.5 mb-2 mt-3"><div class="w-6 h-6 rounded-lg flex items-center justify-center text-white" style="background:linear-gradient(135deg,#34D399,#059669)"><i class="fas fa-list-ol text-[10px]"></i></div><span class="sec-title">行程安排</span></div>';
+    html+='<div class="bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-3.5 border border-white">';
+    r.itinerary.forEach(function(it){
+      html+='<div class="itinerary-item"><div class="flex items-center gap-2 mb-1"><span class="text-[11px] font-bold" style="color:#059669">'+it.time+'</span><span class="text-[12px] font-bold text-gray-800">'+it.title+'</span></div><p class="text-[10px] text-gray-500 leading-relaxed">'+it.desc+'</p></div>';
+    });
+    html+='</div>';
+    html+='</div>';
+  }else if(tab==='calendar'){
+    /* 活动日历 */
+    html+='<div class="fade-up">';
+    html+='<div class="flex items-center gap-1.5 mb-2"><div class="w-6 h-6 rounded-lg flex items-center justify-center text-white" style="background:linear-gradient(135deg,#34D399,#059669)"><i class="fas fa-calendar-days text-[10px]"></i></div><span class="sec-title">活动日历及报名</span></div>';
+    r.calendar.forEach(function(c,i){
+      var disabled=c.status==='已满';
+      html+='<div class="bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-3 border border-white mb-2.5 flex items-center justify-between'+(disabled?' opacity-60':'')+'">';
+      html+='<div><div class="flex items-center gap-2 mb-1"><p class="text-[13px] font-bold text-gray-800">'+c.date+'</p><span class="text-[10px] text-gray-400">'+c.day+'</span></div>';
+      html+='<div class="flex items-center gap-2"><span class="text-[9px] px-2 py-0.5 rounded-full font-bold" style="background:'+c.bg+';color:'+c.color+'">'+c.status+'</span>';
+      html+='<span class="text-[9px] text-gray-400"><i class="fas fa-users mr-0.5"></i>'+c.spots+'</span></div></div>';
+      if(disabled){
+        html+='<button class="text-[11px] text-gray-400 px-3 py-1.5 rounded-full bg-gray-100" disabled>已满</button>';
+      }else{
+        html+='<button onclick="goApplyDate('+i+')" class="text-[11px] text-white px-3 py-1.5 rounded-full font-bold" style="background:linear-gradient(135deg,#34D399,#059669)">个人报名</button>';
+      }
+      html+='</div>';
+    });
+    html+='<div class="bg-emerald-50 rounded-xl p-3 mt-2 border border-emerald-100"><p class="text-[10px] text-emerald-700 leading-relaxed"><i class="fas fa-circle-info mr-1"></i>个人报名：选择日期点击「个人报名」，家长需在线签署安全责任书。团体研学请使用<a href="study-apply.html" class="font-bold underline">团体研学申请</a>。</p></div>';
+    html+='</div>';
+  }else if(tab==='history'){
+    /* 历史风采 */
+    html+='<div class="fade-up">';
+    html+='<div class="flex items-center gap-1.5 mb-2"><div class="w-6 h-6 rounded-lg flex items-center justify-center text-white" style="background:linear-gradient(135deg,#34D399,#059669)"><i class="fas fa-camera text-[10px]"></i></div><span class="sec-title">历史活动风采</span></div>';
+    html+='<div class="grid grid-cols-2 gap-2.5">';
+    r.history.forEach(function(h){
+      html+='<div class="card relative rounded-2xl overflow-hidden shadow-soft fade-up" style="height:130px">';
+      html+='<div class="w-full h-full img-loading"><img src="'+h.img+'" class="w-full h-full object-cover" onload="this.parentElement.classList.remove(\'img-loading\')" onerror="this.style.display=\'none\'"></div>';
+      html+='<div class="absolute inset-0" style="background:linear-gradient(180deg,transparent 40%,rgba(0,0,0,.75) 100%)"></div>';
+      html+='<div class="absolute bottom-0 left-0 right-0 p-2"><p class="text-white text-[11px] font-bold">'+h.title+'</p><div class="flex items-center gap-1.5 mt-0.5"><span class="text-white/70 text-[8px]">'+h.date+'</span><span class="text-white/70 text-[8px]">·</span><span class="text-white/70 text-[8px]">'+h.count+'</span></div></div>';
+      html+='</div>';
+    });
+    html+='</div>';
+    var totalPeople=r.history.reduce(function(s,h){return s+parseInt(h.count)},0);
+    html+='<div class="bg-white/85 backdrop-blur-xl rounded-xl shadow-soft p-3 border border-white mt-3 flex items-center justify-around">';
+    html+='<div class="text-center"><p class="text-[18px] font-extrabold" style="color:#059669">'+r.history.length+'</p><p class="text-[9px] text-gray-400 mt-0.5">已开展场次</p></div>';
+    html+='<div class="w-px h-8 bg-gray-200"></div>';
+    html+='<div class="text-center"><p class="text-[18px] font-extrabold" style="color:#059669">'+totalPeople+'</p><p class="text-[9px] text-gray-400 mt-0.5">累计参与人数</p></div>';
+    html+='<div class="w-px h-8 bg-gray-200"></div>';
+    html+='<div class="text-center"><p class="text-[18px] font-extrabold" style="color:#059669">'+r.rating+'</p><p class="text-[9px] text-gray-400 mt-0.5">综合评分</p></div>';
+    html+='</div></div>';
+  }else if(tab==='comments'){
+    /* 精选留言 */
+    html+='<div class="fade-up">';
+    html+='<div class="flex items-center gap-1.5 mb-2"><div class="w-6 h-6 rounded-lg flex items-center justify-center text-white" style="background:linear-gradient(135deg,#34D399,#059669)"><i class="fas fa-comments text-[10px]"></i></div><span class="sec-title">精选留言</span></div>';
+    var routeComments=comments.filter(function(c){return c.route===rid});
+    routeComments.forEach(function(c){
+      var stars='';
+      for(var i=0;i<5;i++){stars+='<i class="fas fa-star text-[8px] '+(i<c.rating?'star-active':'text-gray-300')+'"></i>'}
+      html+='<div class="bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-3 border border-white mb-2.5">';
+      html+='<div class="flex items-start gap-2.5">';
+      html+='<div class="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-[13px] flex-shrink-0" style="background:'+c.avatarBg+'">'+c.avatar+'</div>';
+      html+='<div class="flex-1"><div class="flex items-center justify-between mb-0.5"><p class="text-[12px] font-bold text-gray-800">'+c.name+'</p><div class="flex items-center gap-0.5">'+stars+'</div></div>';
+      html+='<p class="text-[10px] text-gray-400 mb-1.5">'+c.school+' · '+c.date+'</p>';
+      html+='<p class="text-[11px] text-gray-600 leading-relaxed">'+c.content+'</p></div></div></div>';
+    });
+    html+='</div>';
+  }
+  document.getElementById('contentArea').innerHTML=html;
+}
+
+renderContent('intro');
+
+function goApply(){
+  window.location.href='study-personal.html?id='+rid;
+}
+function goApplyDate(idx){
+  window.location.href='study-personal.html?id='+rid+'&date='+idx;
+}
+</script>
+</body>
+</html>

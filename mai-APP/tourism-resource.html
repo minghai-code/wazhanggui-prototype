@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>文旅资源详情 - 袜掌柜买家版</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--p:#FF4D2D;--pl:#FF7849;--bg:#FFF7F4}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+::-webkit-scrollbar{width:2px;height:2px}
+::-webkit-scrollbar-thumb{background:#dfdfdf;border-radius:1px}
+.shadow-card{box-shadow:0 8px 24px rgba(255,77,45,.14)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
+.card{transition:transform .16s ease}.card:active{transform:scale(.965)}
+.fade-up{animation:fadeUp .4s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:300;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.25);min-width:120px;justify-content:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.tag-pill{font-size:9px;font-weight:600;padding:2px 8px;border-radius:6px;display:inline-flex;align-items:center;gap:3px}
+.img-loading{background:linear-gradient(90deg,#f5f5f5 25%,#ececec 50%,#f5f5f5 75%);background-size:200% 100%;animation:shimmer 1.5s infinite}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+</style>
+</head>
+<body>
+
+<!-- 顶部封面区 -->
+<div class="relative h-48 overflow-hidden">
+  <img src="" class="absolute inset-0 w-full h-full object-cover" id="coverImg" style="display:none">
+  <div class="absolute inset-0" id="coverBg"></div>
+  <div class="absolute inset-0 flex items-center justify-center"><i class="fas fa-landmark text-white/60 text-[55px]" id="coverIcon"></i></div>
+  <div class="absolute inset-0" style="background:linear-gradient(180deg,rgba(0,0,0,.15) 0%,rgba(0,0,0,.05) 50%,rgba(0,0,0,.35) 100%)"></div>
+  <div class="absolute top-2 left-2 right-2 flex justify-between items-center text-white text-sm font-semibold" style="height:40px;z-index:5">
+    <a href="tourism.html" class="w-9 h-9 rounded-full bg-black/20 backdrop-blur flex items-center justify-center"><i class="fas fa-chevron-left text-sm"></i></a>
+    <a href="home.html" class="w-9 h-9 rounded-full bg-black/20 backdrop-blur flex items-center justify-center"><i class="fas fa-house text-sm"></i></a>
+  </div>
+  <div class="absolute bottom-0 left-0 right-0 p-3 text-white">
+    <span class="tag-pill" style="background:rgba(0,0,0,.25);color:#fff" id="resTag">外部资源</span>
+    <h1 class="text-[20px] font-extrabold mt-1.5" style="text-shadow:0 2px 8px rgba(0,0,0,.3)" id="resTitle">资源名称</h1>
+    <p class="text-[11px] text-white/80 mt-0.5" id="resSubtitle">副标题</p>
+  </div>
+</div>
+
+<!-- 基本信息 -->
+<div class="px-3 mt-3">
+  <div class="bg-white rounded-2xl shadow-soft p-3 space-y-2.5 fade-up">
+    <div class="flex items-center gap-2.5">
+      <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:#FEF3C7"><i class="fas fa-location-dot text-[12px]" style="color:#D97706"></i></div>
+      <div><p class="text-[10px] text-gray-400">地址</p><p class="text-[12px] text-gray-800 font-medium" id="resLocation">地址</p></div>
+    </div>
+    <div class="flex items-center gap-2.5">
+      <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:#DBEAFE"><i class="fas fa-clock text-[12px]" style="color:#2563EB"></i></div>
+      <div><p class="text-[10px] text-gray-400">开放时间</p><p class="text-[12px] text-gray-800 font-medium" id="resHours">时间</p></div>
+    </div>
+    <div class="flex items-center gap-2.5">
+      <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:#D1FAE5"><i class="fas fa-phone text-[12px]" style="color:#059669"></i></div>
+      <div><p class="text-[10px] text-gray-400">联系电话</p><p class="text-[12px] text-gray-800 font-medium" id="resPhone">电话</p></div>
+    </div>
+    <div class="flex items-center gap-2.5">
+      <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:#FFE4E6"><i class="fas fa-ticket text-[12px]" style="color:#E11D48"></i></div>
+      <div><p class="text-[10px] text-gray-400">门票/费用</p><p class="text-[12px] text-gray-800 font-medium" id="resFee">费用</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- 资源介绍 -->
+<div class="px-3 mt-3">
+  <div class="bg-white rounded-2xl shadow-soft p-3 fade-up" style="animation-delay:.05s">
+    <p class="text-[13px] font-bold text-gray-800 mb-2"><i class="fas fa-align-left text-[10px] mr-1" style="color:#FF4D2D"></i>资源介绍</p>
+    <p class="text-[11px] text-gray-600 leading-relaxed" id="resDesc">介绍内容</p>
+  </div>
+</div>
+
+<!-- 图集展示 -->
+<div class="px-3 mt-3">
+  <div class="bg-white rounded-2xl shadow-soft p-3 fade-up" style="animation-delay:.1s">
+    <p class="text-[13px] font-bold text-gray-800 mb-2"><i class="fas fa-images text-[10px] mr-1" style="color:#FF4D2D"></i>图集展示</p>
+    <div class="grid grid-cols-3 gap-1.5" id="resGallery"></div>
+  </div>
+</div>
+
+<!-- 设施/特色 -->
+<div class="px-3 mt-3">
+  <div class="bg-white rounded-2xl shadow-soft p-3 fade-up" style="animation-delay:.15s">
+    <p class="text-[13px] font-bold text-gray-800 mb-2"><i class="fas fa-star text-[10px] mr-1" style="color:#FF4D2D"></i>特色亮点</p>
+    <div class="flex flex-wrap gap-1.5" id="resFeatures"></div>
+  </div>
+</div>
+
+<!-- 交通指引 -->
+<div class="px-3 mt-3">
+  <div class="bg-white rounded-2xl shadow-soft p-3 fade-up" style="animation-delay:.2s">
+    <p class="text-[13px] font-bold text-gray-800 mb-2"><i class="fas fa-route text-[10px] mr-1" style="color:#FF4D2D"></i>交通指引</p>
+    <div class="space-y-1.5" id="resTransport"></div>
+  </div>
+</div>
+
+<!-- 温馨提示 -->
+<div class="px-3 mt-3 mb-24">
+  <div class="rounded-xl p-3 fade-up" style="background:linear-gradient(135deg,#FFF0EB,#FFF7F4);border:1px solid #FFD4C5;animation-delay:.25s">
+    <p class="text-[10px] text-gray-500 leading-relaxed"><i class="fas fa-circle-info mr-1" style="color:#FF4D2D"></i><span id="resTip">提示内容</span></p>
+  </div>
+</div>
+
+<!-- 底部操作 -->
+<div class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-gray-100 px-3 flex items-center gap-2" style="height:60px;z-index:100;width:393px">
+  <button onclick="window.location.href='tourism.html'" class="flex flex-col items-center justify-center px-3 py-1.5 rounded-xl" style="background:#f5f5f5">
+    <i class="fas fa-calendar-days text-[14px] text-gray-600"></i><span class="text-[8px] text-gray-500 mt-0.5">返回日历</span>
+  </button>
+  <button onclick="toast('已收藏资源')" class="flex flex-col items-center justify-center px-3 py-1.5 rounded-xl" style="background:#f5f5f5">
+    <i class="far fa-heart text-[14px] text-gray-600"></i><span class="text-[8px] text-gray-500 mt-0.5">收藏</span>
+  </button>
+  <button onclick="visitExternal()" class="flex-1 py-3 rounded-full text-[14px] font-bold text-white shadow-card" style="background:linear-gradient(135deg,#3B82F6,#6366F1)">
+    <i class="fas fa-circle-info text-[11px] mr-1"></i>了解更多
+  </button>
+</div>
+<div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none"><div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:2px"></div></div>
+
+<div class="toast" id="toast"><i class="fas fa-circle-check" style="color:#4ADE80"></i><span id="toastTxt">操作成功</span></div>
+
+<script>
+function toast(msg){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;t.classList.add('on');setTimeout(function(){t.classList.remove('on')},1600)}
+
+var resources={
+  1:{
+    title:'大唐青少年宫',
+    subtitle:'青少年校外教育 · 科技创新 · 艺术培训',
+    tag:'教育基地',
+    tagBg:'#DBEAFE',tagColor:'#2563EB',
+    coverBg:'linear-gradient(135deg,#3B82F6,#1D4ED8)',
+    icon:'fa-user-graduate',
+    imgPrompt:'Modern youth activity center building with glass facade science technology education facility outdoor daytime architectural photography blue sky',
+    location:'大唐镇中心路88号',
+    hours:'周二至周日 9:00-17:00（周一闭馆）',
+    phone:'0575-8742xxxx',
+    fee:'部分课程收费，参观免费',
+    desc:'大唐青少年宫是面向青少年群体的综合性校外教育阵地，占地面积约5000平方米，设有科技创新馆、艺术培训中心、亲子活动区三大功能区。青少年宫以"启智、育美、创新"为宗旨，开设有编程机器人、3D打印、创意美术、舞蹈形体、亲子手工等二十余门课程，年服务青少年超8000人次。同时与袜业城合作开展"小小袜业设计师"系列研学活动，将工业文化与青少年教育有机结合。',
+    features:['科技创新馆','3D打印体验','亲子手工坊','舞蹈形体教室','编程机器人','研学基地'],
+    transport:['自驾：导航"大唐青少年宫"，院内免费停车','公交：大唐2路至中心路站，步行2分钟','距袜业城步行约10分钟'],
+    tip:'部分体验课程需提前预约，建议电话咨询或关注"大唐青少年宫"微信公众号。',
+    galleryPrompts:['Children learning robotics and programming in modern classroom','3D printing workshop with colorful creations','Art classroom with paintings and crafts','Dance studio with mirrors and barres','Kids doing DIY handcraft activities','Science exhibition hall with interactive displays']
+  },
+  2:{
+    title:'华夏金石学馆',
+    subtitle:'金石传拓 · 古籍修复 · 印染文化',
+    tag:'文化体验',
+    tagBg:'#EDE9FE',tagColor:'#7C3AED',
+    coverBg:'linear-gradient(135deg,#A78BFA,#7C3AED)',
+    icon:'fa-scroll',
+    imgPrompt:'Traditional Chinese stone inscription museum interior ancient rubbing art displays cultural artifacts warm ambient lighting heritage center',
+    location:'大唐镇文化路12号',
+    hours:'周三至周日 13:00-17:00（周一周二闭馆）',
+    phone:'0575-8743xxxx',
+    fee:'参观免费，体验项目¥38-128/人',
+    desc:'华夏金石学馆是一所以金石文化为主题的传统文化体验基地，馆藏历代金石拓片300余件、古籍善本80余册。学馆设有金石传拓体验区、古籍修复展示区、印染文化跨界展区三大空间。其中"金石与袜业印染"跨界展是国内首个将金石传拓技艺与袜业印染工艺进行对比展示的特色展览，让参观者深入了解从古老拓印到现代印染的技术演进脉络。学馆定期举办传拓体验日、古籍修复观摩等活动。',
+    features:['金石传拓体验','古籍修复展示','印染文化跨界展','拓片纪念品','研学课程','专家讲座'],
+    transport:['自驾：导航"华夏金石学馆"，门口有3个停车位','公交：大唐3路至文化路站，步行3分钟','距袜业城步行约15分钟'],
+    tip:'传拓体验为限定项目，每场限12人，建议提前电话预约。学馆为文化遗产保护场所，参观请勿大声喧哗。',
+    galleryPrompts:['Ancient Chinese stone inscription rubbing display on wall','Traditional book restoration workshop with old texts','Dyeing and printing cultural exhibition with fabrics','Stone rubbing tools and materials closeup','Calligraphy and seal carving display','Cultural heritage museum interior warm lighting']
+  },
+  3:{
+    title:'大唐生态公园',
+    subtitle:'袜业主题生态公园 · 步道 · 亲子游乐',
+    tag:'休闲公园',
+    tagBg:'#D1FAE5',tagColor:'#059669',
+    coverBg:'linear-gradient(135deg,#34D399,#059669)',
+    icon:'fa-mountain-sun',
+    imgPrompt:'Beautiful ecological park with green walking trails lake view lush trees sunny day recreational park landscape',
+    location:'大唐镇南环路',
+    hours:'全天开放（6:00-21:00）',
+    phone:'-',
+    fee:'免费开放',
+    desc:'大唐生态公园是融合袜业文化元素的城镇生态休闲公园，占地约120亩，绿化覆盖率达75%。公园内设有1.2公里环湖步道、袜业文化长廊、亲子游乐区、林下休憩区四大功能板块。其中袜业文化长廊全长300米，以浮雕和图文并茂的形式展示大唐袜业从手工作坊到智能制造的发展历程，是了解袜业文化的户外课堂。公园湖面可泛舟，亲子游乐区设有袜业主题滑梯、跷跷板等设施，是家庭休闲的好去处。',
+    features:['1.2km环湖步道','袜业文化长廊','亲子游乐区','林下休憩区','湖面泛舟','免费WiFi'],
+    transport:['自驾：导航"大唐生态公园"，南北门各有停车场','公交：大唐1路至南环路口站','距袜业城步行约8分钟'],
+    tip:'公园为开放式管理，无需门票。夜间有景观照明至21:00。湖边游玩请注意安全，看护好儿童。',
+    galleryPrompts:['Green walking trail through lush trees in ecological park','Lake view with paddle boats and reflections','Outdoor cultural corridor with sock industry history reliefs','Children playground with themed slide and seesaw','Rest area under trees with benches and shade','Aerial view of ecological park with greenery and lake']
+  },
+  4:{
+    title:'大唐袜业博物馆',
+    subtitle:'袜业历史 · 工艺演变 · 机械展陈',
+    tag:'主题博物馆',
+    tagBg:'#FEF3C7',tagColor:'#D97706',
+    coverBg:'linear-gradient(135deg,#FBBF24,#D97706)',
+    icon:'fa-landmark',
+    imgPrompt:'Sock museum exhibition hall historical knitting machines and sock displays museum interior display cases warm lighting',
+    location:'大唐袜业城2F',
+    hours:'每日 9:00-17:30（16:30停止入场）',
+    phone:'0575-8744xxxx',
+    fee:'免费参观（需登记）',
+    desc:'大唐袜业博物馆是国内首个以袜业为主题的专题博物馆，建筑面积2000平方米，馆藏实物展品500余件。博物馆设有序厅、历史篇、工艺篇、品牌篇、未来篇五大展区，完整呈现了从古代"足衣"到现代智能袜业的千年演进历程。镇馆之宝包括清代手摇织袜机、民国时期大唐第一批袜子产品、以及现代全自动化袜机模型。馆内设有互动体验区，可亲身感受织袜工艺的演变。博物馆同时也是浙江省中小学生研学实践教育基地。',
+    features:['500+实物展品','清代手摇织袜机','互动体验区','研学教育基地','VR织袜体验','文创纪念品'],
+    transport:['位于袜业城2F，直接乘坐电梯即可到达','自驾：导航"大唐袜业城"，商场有大型停车场','公交：大唐1路/2路至袜业城站'],
+    tip:'参观需在入口处免费登记。团体参观（20人以上）可提前预约讲解服务。馆内请勿触摸展品，禁止使用闪光灯。',
+    galleryPrompts:['Historical hand-cranked sock knitting machine museum display','Antique sock collection from different eras in display cases','Modern automated sock machine model in museum','Interactive experience zone with sock making demonstration','Museum exhibition hall with chronological sock history displays','Cultural creative souvenirs and sock themed gifts shop']
+  },
+  5:{
+    title:'大唐文创设计中心',
+    subtitle:'袜业文创 · 艺术展览 · 设计师孵化',
+    tag:'创意基地',
+    tagBg:'#FFE4E6',tagColor:'#E11D48',
+    coverBg:'linear-gradient(135deg,#FB7185,#E11D48)',
+    icon:'fa-palette',
+    imgPrompt:'Creative design center with modern art exhibition colorful sock art installations design studio space creative industry hub',
+    location:'大唐袜业城3F',
+    hours:'周二至周日 10:00-18:00（周一闭馆）',
+    phone:'0575-8745xxxx',
+    fee:'展览免费，部分体验收费',
+    desc:'大唐文创设计中心是聚焦袜业文化创意转化和设计师孵化的创新平台，面积1500平方米。中心设有主题展览区、设计工作室、文创商店、DIY体验区四大空间。定期举办袜业文创设计展、设计师联展等艺术活动。已孵化出"大唐造物""袜语者"等10余个文创品牌，开发出袜子盲盒、袜业文化丝巾、创意文创礼盒等上百款文创产品。DIY体验区可亲手制作个性化袜业文创纪念品，深受年轻游客喜爱。',
+    features:['文创主题展览','设计师工作室','文创商店','DIY体验区','袜子盲盒','品牌孵化'],
+    transport:['位于袜业城3F，乘电梯或扶梯可达','自驾：导航"大唐袜业城"，商场有大型停车场','公交：大唐1路/2路至袜业城站'],
+    tip:'DIY体验项目每场约40分钟，费用¥28-68不等。文创商店部分商品仅在线下销售。建议关注"大唐文创"公众号获取最新展览信息。',
+    galleryPrompts:['Modern art exhibition with colorful sock art installations','Design studio workspace with creative materials and sketches','Creative gift shop with sock themed products and blind boxes','DIY workshop area with hands on crafting stations','Designer showcase wall with innovative sock designs','Creative industry hub interior with modern decor']
+  }
+};
+
+function img(prompt,size){
+  return 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt='+encodeURIComponent(prompt)+'&image_size='+(size||'landscape_4_3');
+}
+
+var urlParams=new URLSearchParams(window.location.search);
+var id=parseInt(urlParams.get('id'))||1;
+var d=resources[id]||resources[1];
+
+var coverImg=document.getElementById('coverImg');
+var coverBg=document.getElementById('coverBg');
+coverBg.style.background=d.coverBg;
+if(d.imgPrompt){
+  coverImg.src=img(d.imgPrompt,'landscape_16_9');
+  coverImg.onload=function(){coverImg.style.display='';coverBg.style.display='none';document.getElementById('coverIcon').style.display='none'};
+}
+document.getElementById('coverIcon').className='fas '+d.icon+' text-white/60 text-[55px]';
+document.getElementById('resTitle').textContent=d.title;
+document.getElementById('resSubtitle').textContent=d.subtitle;
+document.getElementById('resTag').textContent=d.tag;
+document.getElementById('resTag').style.background=d.tagBg;
+document.getElementById('resTag').style.color=d.tagColor;
+document.getElementById('resLocation').textContent=d.location;
+document.getElementById('resHours').textContent=d.hours;
+document.getElementById('resPhone').textContent=d.phone;
+document.getElementById('resFee').textContent=d.fee;
+document.getElementById('resDesc').textContent=d.desc;
+document.getElementById('resTip').textContent=d.tip;
+
+var featHtml='';
+d.features.forEach(function(f){
+  featHtml+='<span class="tag-pill" style="background:'+d.tagBg+';color:'+d.tagColor+'"><i class="fas fa-check text-[8px]"></i>'+f+'</span>';
+});
+document.getElementById('resFeatures').innerHTML=featHtml;
+
+var galleryHtml='';
+d.galleryPrompts.forEach(function(p,i){
+  galleryHtml+='<div class="rounded-lg overflow-hidden h-20 img-loading"><img src="'+img(p,'square')+'" class="w-full h-full object-cover" onload="this.parentElement.classList.remove(\'img-loading\')" onerror="this.style.display=\'none\'"></div>';
+});
+document.getElementById('resGallery').innerHTML=galleryHtml;
+
+var transportHtml='';
+d.transport.forEach(function(t){
+  transportHtml+='<div class="flex items-start gap-1.5"><i class="fas fa-circle text-[5px] mt-1.5 flex-shrink-0" style="color:#FF4D2D"></i><span class="text-[10px] text-gray-500 leading-relaxed">'+t+'</span></div>';
+});
+document.getElementById('resTransport').innerHTML=transportHtml;
+
+function visitExternal(){
+  toast('跳转外部页面（原型模拟）');
+}
+</script>
+</body>
+</html>

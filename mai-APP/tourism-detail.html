@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>活动详情 - 袜掌柜买家版</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--p:#FF4D2D;--pl:#FF7849;--bg:#FFF7F4}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+::-webkit-scrollbar{width:2px;height:2px}
+::-webkit-scrollbar-thumb{background:#dfdfdf;border-radius:1px}
+.shadow-card{box-shadow:0 8px 24px rgba(255,77,45,.14)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
+.card{transition:transform .16s ease}.card:active{transform:scale(.965)}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:300;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.25);min-width:120px;justify-content:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:150;opacity:0;pointer-events:none;transition:.3s}
+.overlay.on{opacity:1;pointer-events:auto}
+.panel{position:fixed;bottom:0;left:0;right:0;background:#fff;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.12);z-index:200;transform:translateY(100%);transition:transform .3s ease;width:393px;max-height:80vh;overflow-y:auto}
+.panel.on{transform:translateY(0)}
+.tag-sel{font-size:11px;color:#6b7080;background:#f5f5f5;border-radius:8px;padding:6px 12px;cursor:pointer;transition:.15s;font-weight:500}
+.tag-sel.on{background:#FF4D2D;color:#fff;font-weight:600}
+.fade-up{animation:fadeUp .4s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.img-loading{background:linear-gradient(90deg,#f5f5f5 25%,#ececec 50%,#f5f5f5 75%);background-size:200% 100%;animation:shimmer 1.5s infinite}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+</style>
+</head>
+<body>
+
+<!-- 顶部封面区 -->
+<div class="relative h-44 overflow-hidden" id="coverArea">
+  <img src="" class="absolute inset-0 w-full h-full object-cover" id="coverImg" style="display:none">
+  <div class="absolute inset-0" id="coverBg" style="background:linear-gradient(135deg,#FBBF24 0%,#F59E0B 40%,#FF4D2D 100%)"></div>
+  <div class="absolute inset-0" style="background:linear-gradient(180deg,rgba(0,0,0,.15) 0%,rgba(0,0,0,.05) 50%,rgba(0,0,0,.35) 100%)"></div>
+  <div class="absolute top-2 left-2 right-2 flex justify-between items-center text-white text-sm font-semibold" style="height:40px;z-index:5">
+    <a href="tourism.html" class="w-9 h-9 rounded-full bg-black/20 backdrop-blur flex items-center justify-center"><i class="fas fa-chevron-left text-sm"></i></a>
+    <a href="home.html" class="w-9 h-9 rounded-full bg-black/20 backdrop-blur flex items-center justify-center"><i class="fas fa-house text-sm"></i></a>
+  </div>
+  <div class="absolute bottom-0 left-0 right-0 p-3 text-white" id="coverInfo">
+    <span class="status-badge text-[10px] font-bold px-2 py-0.5 rounded" style="background:#FEF3C7;color:#D97706" id="statusBadge">报名中</span>
+    <h1 class="text-[18px] font-extrabold mt-1.5" style="text-shadow:0 2px 8px rgba(0,0,0,.3)" id="actTitle">活动标题</h1>
+    <p class="text-[11px] text-white/80 mt-0.5" id="actDate">日期</p>
+  </div>
+</div>
+
+<!-- 基本信息 -->
+<div class="px-3 mt-3">
+  <div class="bg-white rounded-2xl shadow-soft p-3 space-y-2.5 fade-up">
+    <div class="flex items-center gap-2.5">
+      <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:#FEF3C7"><i class="fas fa-location-dot text-[12px]" style="color:#D97706"></i></div>
+      <div><p class="text-[10px] text-gray-400">活动地点</p><p class="text-[12px] text-gray-800 font-medium" id="actLocation">地点</p></div>
+    </div>
+    <div class="flex items-center gap-2.5">
+      <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:#DBEAFE"><i class="fas fa-clock text-[12px]" style="color:#2563EB"></i></div>
+      <div><p class="text-[10px] text-gray-400">活动时间</p><p class="text-[12px] text-gray-800 font-medium" id="actTime">时间</p></div>
+    </div>
+    <div class="flex items-center gap-2.5">
+      <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:#D1FAE5"><i class="fas fa-users text-[12px]" style="color:#059669"></i></div>
+      <div><p class="text-[10px] text-gray-400">参与人数</p><p class="text-[12px] text-gray-800 font-medium" id="actParticipants">人数</p></div>
+    </div>
+    <div class="flex items-center gap-2.5">
+      <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:#FFE4E6"><i class="fas fa-ticket text-[12px]" style="color:#E11D48"></i></div>
+      <div><p class="text-[10px] text-gray-400">参与费用</p><p class="text-[12px] text-gray-800 font-medium" id="actFee">费用</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- 活动介绍 -->
+<div class="px-3 mt-3">
+  <div class="bg-white rounded-2xl shadow-soft p-3 fade-up" style="animation-delay:.05s">
+    <p class="text-[13px] font-bold text-gray-800 mb-2"><i class="fas fa-align-left text-[10px] mr-1" style="color:#FF4D2D"></i>活动介绍</p>
+    <p class="text-[11px] text-gray-600 leading-relaxed" id="actDesc">活动介绍内容</p>
+    <div class="grid grid-cols-2 gap-2 mt-3" id="actImages">
+      <div class="rounded-xl overflow-hidden h-20 img-loading"><img src="" class="w-full h-full object-cover" id="galImg1" alt="活动图片1"></div>
+      <div class="rounded-xl overflow-hidden h-20 img-loading"><img src="" class="w-full h-full object-cover" id="galImg2" alt="活动图片2"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 活动流程 -->
+<div class="px-3 mt-3">
+  <div class="bg-white rounded-2xl shadow-soft p-3 fade-up" style="animation-delay:.1s">
+    <p class="text-[13px] font-bold text-gray-800 mb-2.5"><i class="fas fa-list-ol text-[10px] mr-1" style="color:#FF4D2D"></i>活动流程</p>
+    <div class="space-y-2.5" id="actSchedule">
+    </div>
+  </div>
+</div>
+
+<!-- 主办方 -->
+<div class="px-3 mt-3">
+  <div class="bg-white rounded-2xl shadow-soft p-3 fade-up" style="animation-delay:.15s">
+    <p class="text-[13px] font-bold text-gray-800 mb-2"><i class="fas fa-building text-[10px] mr-1" style="color:#FF4D2D"></i>主办方</p>
+    <div class="flex items-center gap-2.5">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)"><i class="fas fa-building text-sm"></i></div>
+      <div>
+        <p class="text-[12px] font-bold text-gray-800" id="actOrganizer">大唐袜业城管委会</p>
+        <p class="text-[10px] text-gray-400">联系方式: 0575-8741-xxxx</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 参与须知 -->
+<div class="px-3 mt-3 mb-24">
+  <div class="bg-white rounded-2xl shadow-soft p-3 fade-up" style="animation-delay:.2s">
+    <p class="text-[13px] font-bold text-gray-800 mb-2"><i class="fas fa-circle-info text-[10px] mr-1" style="color:#FF4D2D"></i>参与须知</p>
+    <div class="space-y-1.5" id="actNotes">
+    </div>
+  </div>
+</div>
+
+<!-- 底部操作 -->
+<div class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-gray-100 px-3 flex items-center gap-2" style="height:60px;z-index:100;width:393px">
+  <button onclick="toast('已收藏活动')" class="flex flex-col items-center justify-center px-3 py-1.5 rounded-xl" style="background:#f5f5f5">
+    <i class="far fa-heart text-[14px] text-gray-600"></i><span class="text-[8px] text-gray-500 mt-0.5">收藏</span>
+  </button>
+  <button onclick="shareActivity()" class="flex flex-col items-center justify-center px-3 py-1.5 rounded-xl" style="background:#f5f5f5">
+    <i class="fas fa-share-nodes text-[14px] text-gray-600"></i><span class="text-[8px] text-gray-500 mt-0.5">分享</span>
+  </button>
+  <button onclick="openSignup()" class="flex-1 py-3 rounded-full text-[14px] font-bold text-white shadow-card" style="background:linear-gradient(135deg,#FBBF24,#F59E0B,#FF4D2D)" id="actionBtn">立即报名</button>
+</div>
+<div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none"><div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:2px"></div></div>
+
+<!-- 报名面板 -->
+<div class="overlay" id="signupOverlay" onclick="closeSignup()"></div>
+<div class="panel" id="signupPanel">
+  <div class="flex justify-center pt-2 pb-1"><div style="width:36px;height:4px;background:#E5E7EB;border-radius:2px"></div></div>
+  <div class="px-4 pb-6">
+    <div class="flex items-center justify-between mb-3">
+      <p class="text-[14px] font-bold text-gray-800">活动报名</p>
+      <button onclick="closeSignup()" class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center"><i class="fas fa-times text-[12px] text-gray-500"></i></button>
+    </div>
+    <div class="rounded-xl p-2.5 mb-3" style="background:#FFF0EB;border:1px solid #FFD4C5">
+      <p class="text-[12px] font-bold text-gray-800" id="signupActName">活动名称</p>
+      <p class="text-[10px] text-gray-400 mt-0.5" id="signupActInfo">时间地点</p>
+    </div>
+    <div class="space-y-3">
+      <div>
+        <p class="text-[11px] text-gray-400 mb-1.5">参与人姓名</p>
+        <input type="text" placeholder="请输入姓名" class="w-full text-[12px] px-3 py-2.5 rounded-xl outline-none" style="border:1.5px solid #eceef0" id="signupName" value="张先生">
+      </div>
+      <div>
+        <p class="text-[11px] text-gray-400 mb-1.5">手机号</p>
+        <input type="text" placeholder="请输入手机号" class="w-full text-[12px] px-3 py-2.5 rounded-xl outline-none" style="border:1.5px solid #eceef0" id="signupPhone" value="138****6688">
+      </div>
+      <div id="ticketArea">
+        <p class="text-[11px] text-gray-400 mb-1.5">参与票种</p>
+        <div class="space-y-2" id="ticketList">
+          <label class="flex items-center justify-between p-2.5 rounded-xl cursor-pointer" style="border:1.5px solid #FFD4C5;background:#FFF0EB">
+            <div><p class="text-[12px] font-bold text-gray-800">普通票</p><p class="text-[9px] text-gray-400">免费 · 含活动物料</p></div>
+            <div class="flex items-center gap-1.5"><span class="text-[14px] font-bold" style="color:#FF4D2D">免费</span><input type="radio" name="ticket" checked style="accent-color:#FF4D2D"></div>
+          </label>
+          <label class="flex items-center justify-between p-2.5 rounded-xl cursor-pointer" style="border:1.5px solid #eceef0">
+            <div><p class="text-[12px] font-bold text-gray-800">VIP票</p><p class="text-[9px] text-gray-400">¥58 · 含物料+午餐+前排</p></div>
+            <div class="flex items-center gap-1.5"><span class="text-[14px] font-bold" style="color:#FF4D2D">¥58</span><input type="radio" name="ticket" style="accent-color:#FF4D2D"></div>
+          </label>
+        </div>
+      </div>
+      <div>
+        <p class="text-[11px] text-gray-400 mb-1.5">参与人数</p>
+        <div class="flex items-center gap-3">
+          <button onclick="changeCount(-1)" class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:#f5f5f5"><i class="fas fa-minus text-[12px] text-gray-600"></i></button>
+          <span class="text-[16px] font-bold text-gray-800" id="signupCount">1</span>
+          <button onclick="changeCount(1)" class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:#f5f5f5"><i class="fas fa-plus text-[12px] text-gray-600"></i></button>
+        </div>
+      </div>
+      <div>
+        <p class="text-[11px] text-gray-400 mb-1.5">备注</p>
+        <textarea placeholder="如有特殊需求请备注" class="w-full text-[12px] px-3 py-2.5 rounded-xl outline-none resize-none" style="border:1.5px solid #eceef0;min-height:50px"></textarea>
+      </div>
+      <label class="flex items-center gap-1.5 cursor-pointer">
+        <input type="checkbox" checked style="accent-color:#FF4D2D" class="w-4 h-4">
+        <span class="text-[10px] text-gray-500">已阅读并同意《活动参与协议》</span>
+      </label>
+    </div>
+    <button onclick="submitSignup()" class="card w-full text-center py-3 rounded-full text-[14px] font-bold text-white shadow-card mt-4" style="background:linear-gradient(135deg,#FBBF24,#F59E0B,#FF4D2D)">确认报名</button>
+  </div>
+</div>
+
+<!-- 报名成功弹层 -->
+<div class="overlay" id="successOverlay" onclick="closeSuccess()"></div>
+<div class="panel" id="successPanel">
+  <div class="flex justify-center pt-2 pb-1"><div style="width:36px;height:4px;background:#E5E7EB;border-radius:2px"></div></div>
+  <div class="px-4 pb-6 text-center">
+    <div class="w-16 h-16 rounded-full mx-auto mb-3 flex items-center justify-center" style="background:linear-gradient(135deg,#34D399,#10B981)"><i class="fas fa-check text-white text-[28px]"></i></div>
+    <p class="text-[16px] font-bold text-gray-800 mb-1">报名成功</p>
+    <p class="text-[11px] text-gray-400 mb-3">活动报名信息已提交，请留意短信通知</p>
+    <div class="bg-gray-50 rounded-xl p-3 mb-4 text-left">
+      <div class="flex items-center justify-between mb-2"><span class="text-[10px] text-gray-400">报名编号</span><span class="text-[12px] font-bold" style="color:#FF4D2D" id="signupNo">BM20260828001</span></div>
+      <div class="flex items-center justify-between mb-2"><span class="text-[10px] text-gray-400">活动名称</span><span class="text-[11px] text-gray-700" id="signupTitle">活动名称</span></div>
+      <div class="flex items-center justify-between"><span class="text-[10px] text-gray-400">活动时间</span><span class="text-[11px] text-gray-700" id="signupDate">活动时间</span></div>
+    </div>
+    <div class="flex gap-2">
+      <button onclick="closeSuccess()" class="flex-1 py-2.5 rounded-full text-[12px] font-bold" style="background:#f5f5f5;color:#6b7080">关闭</button>
+      <a href="tourism.html" class="flex-1 py-2.5 rounded-full text-[12px] font-bold text-white shadow-card" style="background:linear-gradient(135deg,#FBBF24,#F59E0B,#FF4D2D)">返回日历</a>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><i class="fas fa-circle-check" style="color:#4ADE80"></i><span id="toastTxt">操作成功</span></div>
+
+<script>
+function toast(msg){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;t.classList.add('on');setTimeout(function(){t.classList.remove('on')},1600)}
+
+var activities={
+  act1:{title:'2026大唐袜业文化旅游节',date:'2026年8月15日-17日',time:'每日9:00-18:00',location:'大唐袜业城广场',participants:'3200人参与',fee:'免费入场',status:'已结束',statusBg:'#F3F4F6',statusColor:'#9CA3AF',coverBg:'linear-gradient(135deg,#10B981,#059669)',icon:'fa-festival',desc:'大唐袜业文化旅游节是每年夏季最具盛大的袜业文化庆典活动。活动期间将举办袜业历史文化展、非遗织袜技艺体验、大唐特色美食集市、歌舞文艺演出等丰富内容，全方位展示大唐袜业小镇的独特魅力。三天活动累计接待游客3200余人次，已成为大唐文旅品牌名片。',schedule:[{t:'8月15日 9:00',n:'开幕仪式+文化展开幕'},{t:'8月15日 10:00-18:00',n:'非遗织袜体验+美食集市'},{t:'8月16日 14:00',n:'袜业文化论坛'},{t:'8月17日 19:00',n:'闭幕晚会+抽奖'}],organizer:'大唐袜业城管委会',notes:['活动已圆满结束','感谢各位游客的参与','期待明年再聚']},
+
+  act2:{title:'秋季袜业新品发布会暨选品会',date:'2026年9月10日-12日',time:'每日9:00-17:00',location:'大唐袜业城1F大厅',participants:'128人已报名',fee:'免费（需提前报名）',status:'报名中',statusBg:'#FEF3C7',statusColor:'#D97706',coverBg:'linear-gradient(135deg,#FBBF24,#FF4D2D)',icon:'fa-tag',desc:'秋季袜业新品发布会汇聚30+袜业厂家，集中发布2026秋季新品。采购商可现场选品、看样、洽谈，一站式对接厂家资源。同期举办新品趋势论坛和选品指导活动，帮助采购商精准选品、提前锁定爆款。',schedule:[{t:'9月10日 9:00',n:'签到+开幕式'},{t:'9月10日 10:00-17:00',n:'新品展示+选品对接'},{t:'9月11日 14:00',n:'秋季袜品趋势论坛'},{t:'9月12日 10:00-16:00',n:'深度洽谈+下单对接'},{t:'9月12日 16:30',n:'闭幕+抽奖'}],organizer:'大唐袜业城管委会+袜业协会',notes:['面向采购商免费开放','需提前在线报名审核','到场赠送选品手册+伴手礼']},
+
+  act3:{title:'青少年袜业创意工坊',date:'2026年9月20日',time:'14:00-17:00',location:'大唐青少年宫',participants:'56人已报名',fee:'¥38/组（亲子）',status:'报名中',statusBg:'#FEF3C7',statusColor:'#D97706',coverBg:'linear-gradient(135deg,#3B82F6,#818CF8)',icon:'fa-child-reaching',desc:'青少年袜业创意工坊是面向6-15岁青少年的亲子DIY活动。孩子们将在专业老师指导下，亲手设计制作属于自己的创意袜子，体验从选色、绘图到成品的完整创作过程。同时设有3D打印体验区，感受科技与袜业的创新融合。',schedule:[{t:'14:00-14:30',n:'签到+破冰游戏'},{t:'14:30-15:30',n:'袜业知识小课堂'},{t:'15:30-16:30',n:'DIY袜子制作'},{t:'16:30-17:00',n:'3D打印体验+合影'}],organizer:'大唐青少年宫+大唐袜业城',notes:['适合6-15岁青少年','需至少一名家长陪同','材料费已含在报名费中','成品可带走作为纪念']},
+
+  act4:{title:'国庆袜业文化周',date:'2026年10月1日-7日',time:'每日9:00-18:00',location:'大唐袜业城全馆',participants:'预计5000+',fee:'免费入场',status:'即将开始',statusBg:'#DBEAFE',statusColor:'#2563EB',coverBg:'linear-gradient(135deg,#EF4444,#F59E0B)',icon:'fa-flag',desc:'国庆七天长假，大唐袜业城全馆联动打造袜业文化周。1F袜子区特价采购、2F品牌馆互动展、3F文创市集，另有袜业历史展、智能制造体验、文创手作DIY等丰富内容。每天前100名游客赠送文创礼品，全家出行好去处。',schedule:[{t:'10月1日',n:'开幕+升旗+文化展开幕'},{t:'10月2-3日',n:'智能制造体验日'},{t:'10月4-5日',n:'文创手作DIY'},{t:'10月6日',n:'亲子活动日'},{t:'10月7日',n:'闭幕+抽奖'}],organizer:'大唐袜业城管委会',notes:['国庆7天免费入场','每日前100名赠礼品','部分DIY活动需现场报名','建议错峰出行']},
+
+  act5:{title:'2026大唐国际袜业博览会',date:'2026年10月18日-20日',time:'每日9:00-17:30',location:'大唐国际袜业城',participants:'200+展商',fee:'预登记免费',status:'预告',statusBg:'#F3F4F6',statusColor:'#6B7280',coverBg:'linear-gradient(135deg,#7C3AED,#6366F1)',icon:'fa-warehouse',desc:'大唐国际袜业博览会是袜业行业年度盛会，汇聚200+国内外展商，涵盖袜品、原料、机械、辅料全产业链。同期举办行业高峰论坛、新品发布会、采购对接会等专业活动，是袜业人不可错过的行业盛宴。',schedule:[{t:'10月18日 9:00',n:'开幕式+主论坛'},{t:'10月18-19日',n:'展览+新品发布'},{t:'10月19日 14:00',n:'采购对接会'},{t:'10月20日',n:'工厂参观+闭幕'}],organizer:'中国袜业协会+大唐镇政府',notes:['面向行业专业人士','预登记免费入场','现场登记¥50/人','建议提前预登记']},
+
+  act6:{title:'华夏金石学馆文化体验日',date:'2026年11月8日',time:'13:00-16:30',location:'华夏金石学馆',participants:'限50人',fee:'¥58/人',status:'预告',statusBg:'#F3F4F6',statusColor:'#6B7280',coverBg:'linear-gradient(135deg,#A78BFA,#7C3AED)',icon:'fa-scroll',desc:'华夏金石学馆文化体验日是一次传统文化与袜业印染跨界碰撞的独特体验。参与者将体验金石传拓技艺，了解古代印染与袜业工艺的历史渊源，亲手制作拓印作品。在文化氛围浓厚的学馆中，感受传统与现代袜业工艺的对话。',schedule:[{t:'13:00-13:30',n:'签到+学馆参观'},{t:'13:30-14:30',n:'金石文化讲座'},{t:'14:30-16:00',n:'传拓体验+印染讲解'},{t:'16:00-16:30',n:'作品展示+合影'}],organizer:'华夏金石学馆',notes:['适合文化爱好者','限50人，需预约','体验材料费已含','拓印作品可带走']},
+
+  act7:{title:'大唐袜业圣诞文创市集',date:'2026年12月20日-25日',time:'每日15:00-21:00',location:'大唐袜业城广场',participants:'免费入场',fee:'免费',status:'预告',statusBg:'#F3F4F6',statusColor:'#6B7280',coverBg:'linear-gradient(135deg,#10B981,#EF4444)',icon:'fa-tree',desc:'圣诞季大唐袜业城广场变身文创市集！圣诞主题袜品、手工文创、特色美食、灯光秀...一场融合袜业与节日氛围的创意集市。每晚19:00灯光秀准时上演，更有圣诞老人派发袜业文创小礼品。冬日里最温暖的文化体验。',schedule:[{t:'12月20日 15:00',n:'开幕+灯光秀首演'},{t:'12月21-23日',n:'市集+每日灯光秀'},{t:'12月24日',n:'圣诞前夜特别活动'},{t:'12月25日 21:00',n:'闭幕+抽奖'}],organizer:'大唐袜业城管委会+文创设计中心',notes:['免费入场','每晚19:00灯光秀','部分摊位仅收现金','冬季注意保暖']}
+};
+
+function img(prompt,size){
+  return 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt='+encodeURIComponent(prompt)+'&image_size='+(size||'landscape_16_9');
+}
+
+var actImgs={
+  act1:'Outdoor cultural festival celebration stage colorful sock theme decorations crowd daytime event performance',
+  act2:'Trade show exhibition hall sock displays professional product launch event indoor industry expo',
+  act3:'Children DIY sock making workshop colorful creative crafts activities kids learning indoor',
+  act4:'National day cultural week celebration festive red decorations exhibition booths outdoor event',
+  act5:'International sock industry expo large exhibition hall trade show booths professional event',
+  act6:'Traditional Chinese stone rubbing experience workshop cultural activity ancient art craft',
+  act7:'Christmas themed creative night market festive lights colorful stalls outdoor holiday market'
+};
+
+var urlParams=new URLSearchParams(window.location.search);
+var id=urlParams.get('id')||'act2';
+var actKey='act'+id.replace('act','');
+var d=activities[actKey]||activities['act2'];
+
+var coverImg=document.getElementById('coverImg');
+var coverBg=document.getElementById('coverBg');
+if(actImgs[actKey]){
+  coverImg.src=img(actImgs[actKey],'landscape_16_9');
+  coverImg.onload=function(){coverImg.style.display='';coverBg.style.display='none'};
+}else{
+  coverBg.style.background=d.coverBg;
+}
+
+var gal1=document.getElementById('galImg1');
+var gal2=document.getElementById('galImg2');
+if(actImgs[actKey]){
+  gal1.src=img(actImgs[actKey]+' closeup detail view','square');
+  gal2.src=img(d.title+' sock industry cultural activity scene','square');
+  gal1.onload=function(){gal1.parentElement.classList.remove('img-loading')};
+  gal2.onload=function(){gal2.parentElement.classList.remove('img-loading')};
+}
+document.getElementById('coverInfo').innerHTML='<span class="status-badge text-[10px] font-bold px-2 py-0.5 rounded" style="background:'+d.statusBg+';color:'+d.statusColor+'">'+d.status+'</span><h1 class="text-[18px] font-extrabold mt-1.5" style="text-shadow:0 2px 8px rgba(0,0,0,.3)">'+d.title+'</h1><p class="text-[11px] text-white/80 mt-0.5">'+d.date+'</p>';
+document.getElementById('actTitle').textContent=d.title;
+document.getElementById('actDate').textContent=d.date;
+document.getElementById('statusBadge').textContent=d.status;
+document.getElementById('statusBadge').style.background=d.statusBg;
+document.getElementById('statusBadge').style.color=d.statusColor;
+document.getElementById('actLocation').textContent=d.location;
+document.getElementById('actTime').textContent=d.time;
+document.getElementById('actParticipants').textContent=d.participants;
+document.getElementById('actFee').textContent=d.fee;
+document.getElementById('actDesc').textContent=d.desc;
+document.getElementById('actOrganizer').textContent=d.organizer;
+
+var schHtml='';
+d.schedule.forEach(function(s){
+  schHtml+='<div class="flex items-start gap-2"><div class="w-2 h-2 rounded-full mt-1.5 flex-shrink-0" style="background:#FF4D2D"></div><div><p class="text-[10px] font-bold text-gray-700">'+s.t+'</p><p class="text-[10px] text-gray-400">'+s.n+'</p></div></div>';
+});
+document.getElementById('actSchedule').innerHTML=schHtml;
+
+var notesHtml='';
+d.notes.forEach(function(n){
+  notesHtml+='<div class="flex items-start gap-1.5"><i class="fas fa-check text-[9px] mt-0.5" style="color:#10B981"></i><span class="text-[10px] text-gray-500 leading-relaxed">'+n+'</span></div>';
+});
+document.getElementById('actNotes').innerHTML=notesHtml;
+
+var actionBtn=document.getElementById('actionBtn');
+if(d.status==='已结束'){actionBtn.textContent='活动已结束';actionBtn.style.background='#E5E7EB';actionBtn.style.color='#9CA3AF';actionBtn.onclick=function(){toast('该活动已结束')};}
+else if(d.status==='报名中'){actionBtn.textContent='立即报名';actionBtn.onclick=openSignup;}
+else{actionBtn.textContent='查看详情';actionBtn.style.background='linear-gradient(135deg,#FBBF24,#F59E0B)';actionBtn.onclick=function(){toast('活动即将开放报名，请关注后续通知')};}
+
+document.getElementById('signupActName').textContent=d.title;
+document.getElementById('signupActInfo').textContent=d.date+' · '+d.location;
+document.getElementById('signupTitle').textContent=d.title;
+document.getElementById('signupDate').textContent=d.date;
+
+var signupCount=1;
+function changeCount(delta){signupCount=Math.max(1,signupCount+delta);document.getElementById('signupCount').textContent=signupCount}
+
+function openSignup(){
+  document.getElementById('signupPanel').classList.add('on');
+  document.getElementById('signupOverlay').classList.add('on');
+}
+function closeSignup(){document.getElementById('signupPanel').classList.remove('on');document.getElementById('signupOverlay').classList.remove('on')}
+
+function submitSignup(){
+  var name=document.getElementById('signupName').value.trim();
+  if(!name){toast('请填写姓名');return;}
+  var no='BM'+new Date().toISOString().slice(0,10).replace(/-/g,'')+String(Math.floor(Math.random()*900+100));
+  document.getElementById('signupNo').textContent=no;
+  closeSignup();
+  setTimeout(function(){
+    document.getElementById('successPanel').classList.add('on');
+    document.getElementById('successOverlay').classList.add('on');
+  },200);
+}
+function closeSuccess(){document.getElementById('successPanel').classList.remove('on');document.getElementById('successOverlay').classList.remove('on')}
+
+function shareActivity(){toast('分享链接已复制')}
+</script>
+</body>
+</html>
