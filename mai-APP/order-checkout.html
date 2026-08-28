@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>确认订单 - 袜掌柜买家版</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>
+tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D','primary-d':'#E63E20','primary-l':'#FF7849'}}}}
+</script>
+<style>
+:root{--p:#FF4D2D;--pl:#FF7849;--bg:#FFF7F4;--v1:#7C3AED;--v2:#FF2D78}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+::-webkit-scrollbar{width:2px;height:2px}
+.card{transition:transform .16s ease}
+.card:active{transform:scale(.965)}
+.grad-h{background:linear-gradient(135deg,#FF6B35 0%,#FF4D2D 45%,#FF2D78 100%)}
+.shadow-card{box-shadow:0 8px 24px rgba(255,77,45,.14)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
+.text-grad{background:linear-gradient(90deg,#FF4D2D,#FF2D78);-webkit-background-clip:text;background-clip:text;color:transparent}
+.fade-up{animation:fadeUp .4s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:200;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.25);min-width:140px;justify-content:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.tag-opt{font-size:11px;color:#6b7080;background:#fff;border:1.5px solid #eceef0;border-radius:10px;padding:6px 12px;cursor:pointer;transition:.15s;font-weight:500}
+.tag-opt.on{border-color:#FF4D2D;color:#FF4D2D;background:#FFF0EB;font-weight:600}
+.addr-card{border:1.5px solid #FF4D2D;border-radius:14px;padding:12px;background:#FFF0EB;cursor:pointer;position:relative}
+.addr-card .def-tag{font-size:8px;color:#FF4D2D;border:1px solid #FF4D2D;border-radius:4px;padding:1px 4px}
+.logis-card{border:1.5px solid #eceef0;border-radius:12px;padding:10px 12px;cursor:pointer;transition:.15s;background:#fff}
+.logis-card.on{border-color:#FF4D2D;background:#FFF0EB}
+</style>
+</head>
+<body>
+
+<!-- ===== 顶部渐变 ===== -->
+<div class="relative px-4 pt-2 pb-4 overflow-hidden" style="background:linear-gradient(135deg,#FF6B35 0%,#FF4D2D 50%,#FF2D78 100%)">
+  <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-50" style="background:#FF8A4C"></div>
+  <div class="absolute -top-6 right-[-30px] w-48 h-48 rounded-full blur-3xl opacity-40" style="background:#FF2D78"></div>
+
+  <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+  </div>
+
+  <div class="relative flex items-center gap-3">
+    <a href="purchase-order.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+    <span class="text-white font-extrabold text-[20px] tracking-wide" style="text-shadow:0 2px 10px rgba(0,0,0,.18)">确认订单</span>
+  </div>
+</div>
+
+<!-- ===== 收货地址 ===== -->
+<div class="px-3 pt-3">
+  <div class="addr-card" onclick="toast('选择收货地址')">
+    <div class="flex items-center justify-between mb-1.5">
+      <div class="flex items-center gap-1.5">
+        <i class="fas fa-location-dot text-primary text-[12px]"></i>
+        <span class="text-[12px] font-bold text-gray-800">张建国</span>
+        <span class="text-[11px] text-gray-500">138****5678</span>
+        <span class="def-tag">默认</span>
+      </div>
+      <i class="fas fa-chevron-right text-gray-300 text-[10px]"></i>
+    </div>
+    <p class="text-[11px] text-gray-600 leading-relaxed">浙江省 绍兴市 诸暨市 大唐街道 袜业城A区3楼128号</p>
+  </div>
+</div>
+
+<!-- ===== 商品清单 ===== -->
+<div class="px-3 mt-3">
+  <div class="bg-white rounded-2xl shadow-soft p-3.5">
+    <div class="flex items-center gap-2 mb-3">
+      <div class="w-6 h-6 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#3B82F6,#1D4ED8)"><i class="fas fa-crown text-white text-[8px]"></i></div>
+      <span class="text-[12px] font-semibold text-gray-800">大唐袜业旗舰</span>
+    </div>
+
+    <!-- 商品1 -->
+    <div class="flex gap-2.5 mb-3">
+      <img src="images/sock_03.jpg" class="w-[64px] h-[64px] rounded-xl object-cover flex-shrink-0">
+      <div class="flex-1 min-w-0">
+        <p class="text-[12px] text-gray-800 font-medium leading-tight line-clamp-2">精梳棉商务男袜 透气防臭 10双装</p>
+        <p class="text-[9px] text-gray-400 mt-0.5">藏青色 · 均码</p>
+        <div class="flex items-center justify-between mt-1">
+          <span class="text-primary font-bold text-[13px]">¥3.5<span class="text-[9px] text-gray-400 font-normal">/双</span></span>
+          <span class="text-[11px] text-gray-500">× 120双</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 商品2 -->
+    <div class="flex gap-2.5">
+      <img src="images/sock_02.jpg" class="w-[64px] h-[64px] rounded-xl object-cover flex-shrink-0">
+      <div class="flex-1 min-w-0">
+        <p class="text-[12px] text-gray-800 font-medium leading-tight line-clamp-2">运动压缩跑步袜 减震防滑 6双装</p>
+        <p class="text-[9px] text-gray-400 mt-0.5">荧光绿 · 均码</p>
+        <div class="flex items-center justify-between mt-1">
+          <span class="text-primary font-bold text-[13px]">¥5.8<span class="text-[9px] text-gray-400 font-normal">/双</span></span>
+          <span class="text-[11px] text-gray-500">× 80双</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="h-px bg-gray-100 my-3"></div>
+
+    <!-- 店铺小计 -->
+    <div class="flex items-center justify-between text-[11px]">
+      <span class="text-gray-500">商品小计</span>
+      <span class="text-gray-800 font-medium">¥884.00</span>
+    </div>
+    <div class="flex items-center justify-between text-[11px] mt-1.5">
+      <span class="text-gray-500">运费</span>
+      <span class="text-gray-800 font-medium">¥28.00</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 物流方式 ===== -->
+<div class="px-3 mt-3">
+  <div class="bg-white rounded-2xl shadow-soft p-3.5">
+    <p class="text-[12px] font-bold text-gray-800 mb-2.5">物流方式</p>
+    <div class="space-y-2">
+      <div class="logis-card on flex items-center justify-between" onclick="selectLogis(this)" data-fee="28">
+        <div class="flex items-center gap-2">
+          <i class="fas fa-van-shuttle text-primary text-[12px]"></i>
+          <div>
+            <p class="text-[11px] font-medium text-gray-800">第三方物流 <span class="text-[9px] text-white bg-primary rounded px-1 py-0.5">推荐</span></p>
+            <p class="text-[9px] text-gray-400">韵达/中通/圆通，预计3-4天送达</p>
+          </div>
+        </div>
+        <span class="text-[11px] text-gray-500">¥28.00</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 优惠券 & 积分 ===== -->
+<div class="px-3 mt-3">
+  <div class="bg-white rounded-2xl shadow-soft overflow-hidden">
+    <div class="flex items-center justify-between px-3.5 py-3 border-b border-gray-50 cursor-pointer" onclick="toast('选择优惠券')">
+      <div class="flex items-center gap-2">
+        <i class="fas fa-ticket text-[#FF4D2D] text-[12px]"></i>
+        <span class="text-[12px] text-gray-700">优惠券</span>
+      </div>
+      <div class="flex items-center gap-1">
+        <span class="text-[10px] text-primary">2张可用</span>
+        <span class="text-[11px] text-gray-400">-¥20.00</span>
+        <i class="fas fa-chevron-right text-gray-300 text-[9px]"></i>
+      </div>
+    </div>
+    <div class="flex items-center justify-between px-3.5 py-3 cursor-pointer" onclick="togglePoints(this)">
+      <div class="flex items-center gap-2">
+        <i class="fas fa-coins text-amber-400 text-[12px]"></i>
+        <span class="text-[12px] text-gray-700">积分抵扣</span>
+        <span class="text-[9px] text-gray-400">可用 1,280 积分</span>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <span class="text-[11px] text-gray-400" id="pointsTxt">未使用</span>
+        <div class="w-9 h-5 rounded-full bg-gray-200 relative transition-colors" id="pointsSwitch" style="transition:.2s">
+          <div class="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-all" id="pointsKnob" style="transition:.2s"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 买家留言 ===== -->
+<div class="px-3 mt-3">
+  <div class="bg-white rounded-2xl shadow-soft p-3.5">
+    <label class="text-[12px] font-bold text-gray-800 block mb-2">买家留言</label>
+    <textarea class="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2.5 text-[11px] outline-none resize-none" rows="2" placeholder="补充包装要求、发票信息、送货时间等..."></textarea>
+  </div>
+</div>
+
+<!-- ===== 价格汇总 ===== -->
+<div class="px-3 mt-3 mb-28">
+  <div class="bg-white rounded-2xl shadow-soft p-3.5">
+    <p class="text-[12px] font-bold text-gray-800 mb-2.5">价格明细</p>
+    <div class="space-y-1.5 text-[11px]">
+      <div class="flex justify-between"><span class="text-gray-500">商品总价</span><span class="text-gray-700">¥884.00</span></div>
+      <div class="flex justify-between"><span class="text-gray-500">运费</span><span class="text-gray-700" id="feeLine">¥28.00</span></div>
+      <div class="flex justify-between"><span class="text-gray-500">优惠券</span><span class="text-primary">-¥20.00</span></div>
+      <div class="flex justify-between" id="pointsLine" style="display:none"><span class="text-gray-500">积分抵扣</span><span class="text-primary">-¥12.80</span></div>
+      <div class="h-px bg-gray-100 my-1.5"></div>
+      <div class="flex justify-between items-center"><span class="text-gray-600 font-medium">应付总额</span><span class="text-grad font-bold text-[18px]" id="totalPrice">¥892.00</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 底部提交栏 ===== -->
+<div class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-gray-100 px-3 flex items-center" style="height:60px;z-index:100;width:393px">
+  <div class="flex-1">
+    <div class="flex items-baseline gap-1"><span class="text-[10px] text-gray-400">应付:</span><span class="text-grad font-bold text-[18px]" id="bottomTotal">¥892.00</span></div>
+    <p class="text-[9px] text-gray-400">共2件商品 · 优惠¥20.00</p>
+  </div>
+  <button class="card px-6 py-2.5 rounded-full text-white text-[13px] font-bold shadow-card grad-h" onclick="submitOrder()">提交订单</button>
+</div>
+<div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none"><div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:2px"></div></div>
+
+<!-- 支付弹窗 -->
+<div class="fixed inset-0 flex items-center justify-center" id="payMask" style="display:none;background:rgba(0,0,0,.5);z-index:300">
+  <div class="bg-white rounded-3xl mx-6 p-5 text-center shadow-card" style="max-width:300px;animation:fadeUp .35s ease both">
+    <div class="w-14 h-14 mx-auto rounded-full flex items-center justify-center mb-3" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D);box-shadow:0 8px 24px rgba(255,77,45,.3)"><i class="fas fa-file-invoice text-white text-xl"></i></div>
+    <p class="text-[16px] font-bold text-gray-800">订单提交成功</p>
+    <p class="text-[11px] text-gray-500 mt-1">订单号：DD20260825001</p>
+    <div class="bg-gray-50 rounded-xl p-3 mt-3 text-left space-y-1">
+      <div class="flex justify-between text-[11px]"><span class="text-gray-500">应付金额</span><span class="text-primary font-bold">¥864.00</span></div>
+      <div class="flex justify-between text-[11px]"><span class="text-gray-500">支付方式</span><span class="text-gray-700">微信支付</span></div>
+    </div>
+    <div class="flex gap-2 mt-4">
+      <a href="purchase-order.html" class="card flex-1 py-2 rounded-xl text-[12px] font-medium text-gray-500 bg-gray-100">返回进货单</a>
+      <button class="card flex-1 py-2 rounded-xl text-[12px] font-medium text-white grad-h" onclick="toast('调起微信支付')">立即支付</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><i class="fas fa-circle-check text-[#4ADE80]"></i><span id="toastTxt">操作成功</span></div>
+
+<script>
+var toastTimer;
+function toast(msg){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},1600)}
+
+var curFee=28,pointsUsed=false;
+function selectLogis(el){
+  var cards=document.querySelectorAll('.logis-card');
+  cards.forEach(function(c){c.classList.remove('on');var ic=c.querySelector('i');if(ic)ic.className=ic.className.replace('text-primary','text-gray-400');});
+  el.classList.add('on');
+  var icon=el.querySelector('i');if(icon)icon.className=icon.className.replace('text-gray-400','text-primary');
+  curFee=parseFloat(el.dataset.fee);
+  updateTotal();
+}
+function togglePoints(el){
+  pointsUsed=!pointsUsed;
+  var sw=document.getElementById('pointsSwitch');
+  var kn=document.getElementById('pointsKnob');
+  var txt=document.getElementById('pointsTxt');
+  var line=document.getElementById('pointsLine');
+  if(pointsUsed){
+    sw.style.background='#FF4D2D';
+    kn.style.left='calc(100% - 18px)';
+    txt.textContent='-¥12.80';
+    txt.style.color='#FF4D2D';
+    line.style.display='flex';
+  }else{
+    sw.style.background='#e5e7eb';
+    kn.style.left='2px';
+    txt.textContent='未使用';
+    txt.style.color='#9ca3af';
+    line.style.display='none';
+  }
+  updateTotal();
+}
+function updateTotal(){
+  var base=884-20;
+  var fee=curFee;
+  var pts=pointsUsed?12.8:0;
+  var total=base+fee-pts;
+  var txt='¥'+total.toFixed(2);
+  document.getElementById('feeLine').textContent='¥'+fee.toFixed(2);
+  document.getElementById('totalPrice').textContent=txt;
+  document.getElementById('bottomTotal').textContent=txt;
+}
+function submitOrder(){document.getElementById('payMask').style.display='flex'}
+
+// 拼单模式
+var isGroup=new URLSearchParams(window.location.search).get('mode')==='group';
+if(isGroup){
+  document.querySelector('title').textContent='拼单确认 - 袜掌柜买家版';
+  document.querySelector('span[style*="text-shadow"]')?.remove();
+  var titleEl=document.querySelector('.relative.flex.items-center.gap-3 span');
+  if(titleEl){titleEl.innerHTML='拼单确认 <span class="text-[9px] px-1.5 py-0.5 rounded ml-1" style="background:rgba(255,255,255,.2)">拼单</span>';}
+  // hide product2
+  var items=document.querySelectorAll('.flex.gap-2\\.5');
+  if(items.length>=2){items[1].style.display='none';}
+  // update product1 to group pricing
+  var price1=document.querySelectorAll('.flex.items-center.justify-between.mt-1')[0];
+  if(price1){
+    price1.querySelector('span:first-child').innerHTML='¥2.9<span class="text-[9px] text-gray-400 font-normal">/双</span>';
+    price1.querySelector('span:last-child').textContent='× 50双';
+    price1.querySelector('span:first-child').style.color='#059669';
+  }
+  // update shop name
+  var shopEl=document.querySelector('.flex.items-center.gap-2.mb-3 span:last-child');
+  if(shopEl){shopEl.textContent='大唐袜业旗舰 · 拼单集采';}
+  // insert group info card after product list
+  var productCard=document.querySelectorAll('.px-3.mt-3 .bg-white')[0];
+  if(productCard){
+    var gInfo=document.createElement('div');
+    gInfo.className='bg-green-50 rounded-xl p-2.5 mt-2 flex items-center gap-2';
+    gInfo.innerHTML='<i class="fas fa-bolt text-[10px]" style="color:#059669"></i><span class="text-[10px] text-gray-600">拼单价 ¥2.9/双（原价¥3.5），成团后统一发货</span>';
+    productCard.appendChild(gInfo);
+  }
+  // update subtotal
+  var subtotal=document.querySelectorAll('.flex.items-center.justify-between.text-\\[11px\\]')[0];
+  if(subtotal){subtotal.querySelector('span:last-child').textContent='¥145.00';}
+  // update price details
+  document.querySelectorAll('.space-y-1\\.5 .flex.justify-between span:last-child')[0].textContent='¥145.00';
+  document.querySelectorAll('.space-y-1\\.5 .flex.justify-between span:last-child')[1].textContent='¥28.00';
+  document.querySelectorAll('.space-y-1\\.5 .flex.justify-between span:last-child')[2].innerHTML='<span class="text-primary">-¥20.00</span>';
+  var totalEl=document.getElementById('totalPrice');
+  if(totalEl){totalEl.textContent='¥153.00';}
+  var btEl=document.getElementById('bottomTotal');
+  if(btEl){btEl.textContent='¥153.00';}
+  var bottomInfo=document.querySelector('.fixed.bottom-0 p');
+  if(bottomInfo){bottomInfo.textContent='共50双 · 拼单价 · 运费¥28 · 优惠¥20.00';}
+  var btn=document.querySelector('.fixed.bottom-0 button');
+  if(btn){btn.textContent='参与拼单并付款';}
+  // update pay popup
+  var payAmt=document.querySelectorAll('#payMask .flex.justify-between.text-\\[11px\\] span:last-child')[0];
+  if(payAmt){payAmt.textContent='¥153.00';}
+  var payMsg=document.querySelector('#payMask p:nth-of-type(1)');
+  if(payMsg){payMsg.textContent='拼单已提交！';}
+  // adjust base for updateTotal
+  window.updateTotal=function(){
+    var base=145-20;
+    var fee=curFee;
+    var pts=pointsUsed?12.8:0;
+    var total=base+fee-pts;
+    var txt='¥'+total.toFixed(2);
+    document.getElementById('feeLine').textContent='¥'+fee.toFixed(2);
+    document.getElementById('totalPrice').textContent=txt;
+    document.getElementById('bottomTotal').textContent=txt;
+  };
+}
+</script>
+</body>
+</html>

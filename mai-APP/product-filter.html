@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>筛选结果 - 袜掌柜买家版</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>
+tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D','primary-d':'#E63E20','primary-l':'#FF7849'}}}}
+</script>
+<style>
+:root{--p:#FF4D2D;--pl:#FF7849;--bg:#FFF7F4;--v1:#7C3AED;--v2:#FF2D78}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+::-webkit-scrollbar{width:2px;height:2px}
+.card{transition:transform .16s ease}
+.card:active{transform:scale(.965)}
+.grad-h{background:linear-gradient(135deg,#FF6B35 0%,#FF4D2D 45%,#FF2D78 100%)}
+.shadow-card{box-shadow:0 8px 24px rgba(255,77,45,.14)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
+.text-grad{background:linear-gradient(90deg,#FF4D2D,#FF2D78);-webkit-background-clip:text;background-clip:text;color:transparent}
+.fade-up{animation:fadeUp .4s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:200;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.25);min-width:140px;justify-content:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.tag-opt{font-size:11px;color:#6b7080;background:#fff;border:1.5px solid #eceef0;border-radius:10px;padding:6px 12px;cursor:pointer;transition:.15s;font-weight:500}
+.tag-opt.on{border-color:#FF4D2D;color:#FF4D2D;background:#FFF0EB;font-weight:600}
+.sort-item{padding:8px 16px;font-size:12px;color:#6b7080;cursor:pointer;transition:.15s;white-space:nowrap}
+.sort-item.on{color:#FF4D2D;font-weight:700;position:relative}
+.sort-item.on::after{content:'';position:absolute;bottom:0;left:16px;right:16px;height:2px;background:#FF4D2D;border-radius:1px}
+</style>
+</head>
+<body>
+
+<!-- 顶部渐变 -->
+<div class="relative px-4 pt-2 pb-3 overflow-hidden" style="background:linear-gradient(135deg,#FF6B35 0%,#FF4D2D 50%,#FF2D78 100%)">
+  <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-50" style="background:#FF8A4C"></div>
+  <div class="absolute -top-6 right-[-30px] w-48 h-48 rounded-full blur-3xl opacity-40" style="background:#FF2D78"></div>
+
+  <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+  </div>
+
+  <div class="relative flex items-center gap-3">
+    <a href="market-socks.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+    <span class="text-white font-extrabold text-[20px] tracking-wide" style="text-shadow:0 2px 10px rgba(0,0,0,.18)">筛选结果</span>
+    <span class="ml-1 px-2 py-0.5 rounded-full bg-white/20 text-white text-[10px]">12件</span>
+  </div>
+</div>
+
+<!-- 已选条件 -->
+<div class="px-3 pt-3">
+  <div class="bg-white rounded-2xl shadow-soft p-3">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-[11px] text-gray-500">已选条件</span>
+      <button onclick="toast('筛选条件已重置')" class="text-[10px] text-primary">清空全部</button>
+    </div>
+    <div class="flex flex-wrap gap-1.5">
+      <span class="text-[10px] text-primary bg-[#FFF0EB] px-2 py-1 rounded-full">男袜 <i class="fas fa-xmark text-[8px]"></i></span>
+      <span class="text-[10px] text-primary bg-[#FFF0EB] px-2 py-1 rounded-full">3-5元 <i class="fas fa-xmark text-[8px]"></i></span>
+      <span class="text-[10px] text-primary bg-[#FFF0EB] px-2 py-1 rounded-full">精梳棉 <i class="fas fa-xmark text-[8px]"></i></span>
+      <span class="text-[10px] text-primary bg-[#FFF0EB] px-2 py-1 rounded-full">无骨缝头 <i class="fas fa-xmark text-[8px]"></i></span>
+    </div>
+  </div>
+</div>
+
+<!-- 排序 -->
+<div class="px-3 pt-2.5">
+  <div class="bg-white rounded-2xl shadow-soft overflow-hidden">
+    <div class="flex overflow-x-auto no-bar border-b border-gray-50">
+      <span class="sort-item on">综合推荐</span>
+      <span class="sort-item">销量优先</span>
+      <span class="sort-item">价格从低到高</span>
+      <span class="sort-item">好评优先</span>
+    </div>
+  </div>
+</div>
+
+<!-- 商品列表 -->
+<div class="px-3 mt-3 pb-24">
+  <!-- 商品1 -->
+  <a href="product-detail.html" class="card bg-white rounded-2xl shadow-soft flex gap-3 p-3 mb-2.5 fade-up">
+    <img src="images/sock_03.jpg" class="w-[100px] h-[100px] rounded-xl object-cover flex-shrink-0">
+    <div class="flex-1 min-w-0">
+      <p class="text-[12px] font-medium text-gray-800 leading-tight line-clamp-2">精梳棉商务男袜 无骨缝头 透气防臭 10双装</p>
+      <div class="flex items-center gap-1 mt-1">
+        <span class="text-[9px] text-white px-1.5 py-0.5 rounded" style="background:#FF4D2D">热销</span>
+        <span class="text-[9px] text-primary bg-[#FFF0EB] px-1.5 py-0.5 rounded">精梳棉</span>
+        <span class="text-[9px] text-primary bg-[#FFF0EB] px-1.5 py-0.5 rounded">无骨缝头</span>
+      </div>
+      <div class="flex items-center gap-1 mt-1.5">
+        <span class="text-grad font-bold text-[15px]">¥3.5<span class="text-[9px] text-gray-400 font-normal">/双</span></span>
+        <span class="text-[9px] text-gray-400 ml-2">起批100双</span>
+      </div>
+      <div class="flex items-center justify-between mt-1">
+        <div class="flex items-center gap-1"><i class="fas fa-star text-[8px] text-amber-400"></i><span class="text-[10px] text-gray-500">4.9分</span><span class="text-[9px] text-gray-400">已售2.3万</span></div>
+        <span class="text-[9px] text-gray-400">大唐袜业</span>
+      </div>
+    </div>
+  </a>
+
+  <!-- 商品2 -->
+  <a href="product-detail.html" class="card bg-white rounded-2xl shadow-soft flex gap-3 p-3 mb-2.5 fade-up" style="animation-delay:.05s">
+    <img src="images/sock_01.jpg" class="w-[100px] h-[100px] rounded-xl object-cover flex-shrink-0">
+    <div class="flex-1 min-w-0">
+      <p class="text-[12px] font-medium text-gray-800 leading-tight line-clamp-2">纯棉抗菌商务袜 手工对目 加厚中筒袜 12双装</p>
+      <div class="flex items-center gap-1 mt-1">
+        <span class="text-[9px] text-white px-1.5 py-0.5 rounded" style="background:#8B5CF6">新品</span>
+        <span class="text-[9px] text-primary bg-[#FFF0EB] px-1.5 py-0.5 rounded">精梳棉</span>
+        <span class="text-[9px] text-primary bg-[#FFF0EB] px-1.5 py-0.5 rounded">手工对目</span>
+      </div>
+      <div class="flex items-center gap-1 mt-1.5">
+        <span class="text-grad font-bold text-[15px]">¥4.2<span class="text-[9px] text-gray-400 font-normal">/双</span></span>
+        <span class="text-[9px] text-gray-400 ml-2">起批100双</span>
+      </div>
+      <div class="flex items-center justify-between mt-1">
+        <div class="flex items-center gap-1"><i class="fas fa-star text-[8px] text-amber-400"></i><span class="text-[10px] text-gray-500">4.8分</span><span class="text-[9px] text-gray-400">已售1.1万</span></div>
+        <span class="text-[9px] text-gray-400">浪莎</span>
+      </div>
+    </div>
+  </a>
+
+  <!-- 商品3 -->
+  <a href="product-detail.html" class="card bg-white rounded-2xl shadow-soft flex gap-3 p-3 mb-2.5 fade-up" style="animation-delay:.1s">
+    <img src="images/sock_05.jpg" class="w-[100px] h-[100px] rounded-xl object-cover flex-shrink-0">
+    <div class="flex-1 min-w-0">
+      <p class="text-[12px] font-medium text-gray-800 leading-tight line-clamp-2">竹纤维商务男袜 抗菌防臭 中筒袜 10双装</p>
+      <div class="flex items-center gap-1 mt-1">
+        <span class="text-[9px] text-primary bg-[#FFF0EB] px-1.5 py-0.5 rounded">竹纤维</span>
+        <span class="text-[9px] text-primary bg-[#FFF0EB] px-1.5 py-0.5 rounded">抗菌处理</span>
+      </div>
+      <div class="flex items-center gap-1 mt-1.5">
+        <span class="text-grad font-bold text-[15px]">¥4.8<span class="text-[9px] text-gray-400 font-normal">/双</span></span>
+        <span class="text-[9px] text-gray-400 ml-2">起批100双</span>
+      </div>
+      <div class="flex items-center justify-between mt-1">
+        <div class="flex items-center gap-1"><i class="fas fa-star text-[8px] text-amber-400"></i><span class="text-[10px] text-gray-500">4.7分</span><span class="text-[9px] text-gray-400">已售8,500</span></div>
+        <span class="text-[9px] text-gray-400">梦娜</span>
+      </div>
+    </div>
+  </a>
+
+  <!-- 商品4 -->
+  <a href="product-detail.html" class="card bg-white rounded-2xl shadow-soft flex gap-3 p-3 mb-2.5 fade-up" style="animation-delay:.15s">
+    <img src="images/sock_07.jpg" class="w-[100px] h-[100px] rounded-xl object-cover flex-shrink-0">
+    <div class="flex-1 min-w-0">
+      <p class="text-[12px] font-medium text-gray-800 leading-tight line-clamp-2">石墨烯抗菌男袜 无骨缝头 透气网孔 8双装</p>
+      <div class="flex items-center gap-1 mt-1">
+        <span class="text-[9px] text-white px-1.5 py-0.5 rounded" style="background:#FF4D2D">热销</span>
+        <span class="text-[9px] text-primary bg-[#FFF0EB] px-1.5 py-0.5 rounded">石墨烯</span>
+        <span class="text-[9px] text-primary bg-[#FFF0EB] px-1.5 py-0.5 rounded">无骨缝头</span>
+      </div>
+      <div class="flex items-center gap-1 mt-1.5">
+        <span class="text-grad font-bold text-[15px]">¥3.9<span class="text-[9px] text-gray-400 font-normal">/双</span></span>
+        <span class="text-[9px] text-gray-400 ml-2">起批100双</span>
+      </div>
+      <div class="flex items-center justify-between mt-1">
+        <div class="flex items-center gap-1"><i class="fas fa-star text-[8px] text-amber-400"></i><span class="text-[10px] text-gray-500">4.9分</span><span class="text-[9px] text-gray-400">已售3.1万</span></div>
+        <span class="text-[9px] text-gray-400">耐尔</span>
+      </div>
+    </div>
+  </a>
+
+  <!-- 商品5 -->
+  <a href="product-detail.html" class="card bg-white rounded-2xl shadow-soft flex gap-3 p-3 mb-2.5 fade-up" style="animation-delay:.2s">
+    <img src="images/sock_09.jpg" class="w-[100px] h-[100px] rounded-xl object-cover flex-shrink-0">
+    <div class="flex-1 min-w-0">
+      <p class="text-[12px] font-medium text-gray-800 leading-tight line-clamp-2">精梳棉隐形船袜 无骨缝头 防滑硅胶 20双装</p>
+      <div class="flex items-center gap-1 mt-1">
+        <span class="text-[9px] text-primary bg-[#FFF0EB] px-1.5 py-0.5 rounded">精梳棉</span>
+        <span class="text-[9px] text-primary bg-[#FFF0EB] px-1.5 py-0.5 rounded">无骨缝头</span>
+      </div>
+      <div class="flex items-center gap-1 mt-1.5">
+        <span class="text-grad font-bold text-[15px]">¥2.8<span class="text-[9px] text-gray-400 font-normal">/双</span></span>
+        <span class="text-[9px] text-gray-400 ml-2">起批100双</span>
+      </div>
+      <div class="flex items-center justify-between mt-1">
+        <div class="flex items-center gap-1"><i class="fas fa-star text-[8px] text-amber-400"></i><span class="text-[10px] text-gray-500">4.6分</span><span class="text-[9px] text-gray-400">已售6,200</span></div>
+        <span class="text-[9px] text-gray-400">倍怡</span>
+      </div>
+    </div>
+  </a>
+
+  <!-- 商品6 -->
+  <a href="product-detail.html" class="card bg-white rounded-2xl shadow-soft flex gap-3 p-3 mb-2.5 fade-up" style="animation-delay:.25s">
+    <img src="images/sock_11.jpg" class="w-[100px] h-[100px] rounded-xl object-cover flex-shrink-0">
+    <div class="flex-1 min-w-0">
+      <p class="text-[12px] font-medium text-gray-800 leading-tight line-clamp-2">美利奴羊毛男袜 加厚保暖 无骨缝头 6双装</p>
+      <div class="flex items-center gap-1 mt-1">
+        <span class="text-[9px] text-white px-1.5 py-0.5 rounded" style="background:#8B5CF6">新品</span>
+        <span class="text-[9px] text-primary bg-[#FFF0EB] px-1.5 py-0.5 rounded">美利奴羊毛</span>
+      </div>
+      <div class="flex items-center gap-1 mt-1.5">
+        <span class="text-grad font-bold text-[15px]">¥8.5<span class="text-[9px] text-gray-400 font-normal">/双</span></span>
+        <span class="text-[9px] text-gray-400 ml-2">起批50双</span>
+      </div>
+      <div class="flex items-center justify-between mt-1">
+        <div class="flex items-center gap-1"><i class="fas fa-star text-[8px] text-amber-400"></i><span class="text-[10px] text-gray-500">4.9分</span><span class="text-[9px] text-gray-400">已售4,800</span></div>
+        <span class="text-[9px] text-gray-400">南极人</span>
+      </div>
+    </div>
+  </a>
+</div>
+
+<!-- 底部重新筛选 -->
+<div class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-gray-100 px-3 flex items-center" style="height:60px;z-index:100;width:393px">
+  <a href="market-socks.html" class="card flex-1 mr-2 py-2.5 rounded-full text-center text-[13px] font-medium text-gray-500 bg-gray-100 border border-gray-200">返回市场</a>
+  <button onclick="toast('重新打开筛选面板')" class="card flex-1 py-2.5 rounded-full text-[13px] font-bold text-white shadow-card grad-h">重新筛选</button>
+</div>
+
+<div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none"><div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:2px"></div></div>
+
+<div class="toast" id="toast"><i class="fas fa-circle-check text-[#4ADE80]"></i><span id="toastTxt">操作成功</span></div>
+
+<script>
+var toastTimer;
+function toast(msg){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},1600)}
+</script>
+
+</body>
+</html>

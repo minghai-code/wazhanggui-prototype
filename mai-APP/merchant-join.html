@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>商户入驻 - 袜掌柜</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>
+tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D','primary-d':'#E63E20','primary-l':'#FF7849'}}}}
+</script>
+<style>
+:root{--p:#FF4D2D;--pl:#FF7849;--bg:#FFF7F4;--v1:#7C3AED;--v2:#FF2D78}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+::-webkit-scrollbar{width:2px;height:2px}
+.card{transition:transform .16s ease}
+.card:active{transform:scale(.965)}
+.grad-h{background:linear-gradient(135deg,#FF6B35 0%,#FF4D2D 45%,#FF2D78 100%)}
+.shadow-card{box-shadow:0 8px 24px rgba(255,77,45,.14)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
+.fade-up{animation:fadeUp .4s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.inp{width:100%;background:rgba(248,249,250,.8);border:1px solid rgba(240,240,240,.8);border-radius:12px;padding:11px 13px;font-size:13px;color:#1F2430;outline:none;transition:border-color .16s ease,background .16s ease}
+.inp::placeholder{color:#C0C0C0}
+.inp:focus{border-color:#FF4D2D;background:#fff}
+.lbl{font-size:11px;color:#6b7080;font-weight:500;display:block;margin-bottom:6px}
+.lbl b{color:#FF4D2D}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:200;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.25);min-width:140px;justify-content:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.progress{position:relative;z-index:5;display:flex;align-items:center}
+.progress .dot{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:700;transition:.2s}
+.progress .dot.done{background:#FF4D2D}
+.progress .dot.cur{background:#FF4D2D;box-shadow:0 0 0 4px rgba(255,77,45,.15)}
+.progress .dot.todo{background:#D1D5DB}
+.progress .line{flex:1;height:2px;margin:0 4px;border-radius:2px;background:#E5E7EB;transition:.2s}
+.progress .line.done{background:#FF4D2D}
+.tag-opt{font-size:11px;color:#6b7080;background:#fff;border:1px solid #eceef0;border-radius:10px;padding:6px 12px;cursor:pointer;transition:.15s;font-weight:500}
+.tag-opt.on{border-color:#FF4D2D;color:#FF4D2D;background:#FFF0E8;font-weight:600}
+.upload-box{border:1.5px dashed #D1D5DB;border-radius:12px;padding:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;transition:.15s}
+.upload-box:active{border-color:#FF4D2D;background:#FFF0E8}
+.step-panel{display:none}
+.step-panel.on{display:block;animation:fadeUp .35s ease both}
+</style>
+</head>
+<body>
+
+<!-- ===== 顶部渐变头部 ===== -->
+<div class="relative px-4 pt-2 pb-5 overflow-hidden" style="background:linear-gradient(135deg,#D62828 0%,#FF4D2D 50%,#FF6B35 100%)">
+  <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-50" style="background:#FF8A4C"></div>
+  <div class="absolute -top-6 right-[-30px] w-48 h-48 rounded-full blur-3xl opacity-40" style="background:#FF2D78"></div>
+
+  <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+  </div>
+
+  <div class="relative flex items-center gap-3">
+    <a href="home.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white flex-shrink-0"><i class="fas fa-chevron-left text-sm"></i></a>
+    <span class="text-white font-extrabold text-[20px] tracking-wide" style="text-shadow:0 2px 10px rgba(0,0,0,.18)">商户入驻申请</span>
+  </div>
+
+  <!-- 步骤条 -->
+  <div class="relative mt-4 px-2">
+    <div class="progress">
+      <div class="flex flex-col items-center" style="width:60px">
+        <div class="dot cur" id="dot1">1</div>
+        <span class="text-[9px] text-white/90 font-medium mt-1.5">个人信息</span>
+      </div>
+      <div class="line" id="line1"></div>
+      <div class="flex flex-col items-center" style="width:60px">
+        <div class="dot todo" id="dot2">2</div>
+        <span class="text-[9px] text-white/60 font-medium mt-1.5">商户信息</span>
+      </div>
+      <div class="line" id="line2"></div>
+      <div class="flex flex-col items-center" style="width:60px">
+        <div class="dot todo" id="dot3">3</div>
+        <span class="text-[9px] text-white/60 font-medium mt-1.5">档口信息</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 表单区 ===== -->
+<div class="px-3 pt-4 pb-32">
+
+  <!-- Step 1: 个人信息 -->
+  <div class="step-panel on" id="step1">
+    <div class="bg-white rounded-2xl shadow-soft p-3.5 fade-up">
+      <div class="flex items-center gap-2 mb-3">
+        <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white" style="background:linear-gradient(135deg,#FF8A4C,#FF4D2D)"><i class="fas fa-user text-[11px]"></i></div>
+        <span class="text-[13px] font-bold text-gray-800">个人身份信息</span>
+      </div>
+
+      <div class="mb-3">
+        <label class="lbl">真实姓名 <b>*</b></label>
+        <input type="text" class="inp" placeholder="请输入身份证上的真实姓名">
+      </div>
+      <div class="mb-3">
+        <label class="lbl">手机号码 <b>*</b></label>
+        <div class="flex gap-2">
+          <input type="text" class="inp" style="width:80px;text-align:center" value="+86" readonly>
+          <input type="tel" class="inp flex-1" placeholder="请输入手机号" maxlength="11">
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="lbl">验证码 <b>*</b></label>
+        <div class="flex gap-2">
+          <input type="text" class="inp flex-1" placeholder="请输入短信验证码" maxlength="6">
+          <button class="card px-3 rounded-xl text-[12px] font-medium text-white" style="background:linear-gradient(135deg,#FF8A4C,#FF4D2D);min-width:90px" onclick="sendCode(this)">获取验证码</button>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="lbl">身份证号 <b>*</b></label>
+        <input type="text" class="inp" placeholder="请输入18位身份证号码" maxlength="18">
+      </div>
+      <div class="mb-1">
+        <label class="lbl">身份证照片 <b>*</b></label>
+        <div class="grid grid-cols-2 gap-2">
+          <div class="upload-box" onclick="toast('选择身份证人像面')">
+            <i class="fas fa-id-card text-2xl text-gray-300"></i>
+            <span class="text-[10px] text-gray-400 mt-1">人像面</span>
+          </div>
+          <div class="upload-box" onclick="toast('选择身份证国徽面')">
+            <i class="fas fa-id-card-clip text-2xl text-gray-300"></i>
+            <span class="text-[10px] text-gray-400 mt-1">国徽面</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button class="card w-full mt-4 py-3 rounded-2xl text-white text-[14px] font-bold shadow-card grad-h" onclick="nextStep(2)">下一步：商户信息</button>
+  </div>
+
+  <!-- Step 2: 商户信息 -->
+  <div class="step-panel" id="step2">
+    <div class="bg-white rounded-2xl shadow-soft p-3.5 fade-up">
+      <div class="flex items-center gap-2 mb-3">
+        <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white" style="background:linear-gradient(135deg,#FF8A4C,#FF4D2D)"><i class="fas fa-store text-[11px]"></i></div>
+        <span class="text-[13px] font-bold text-gray-800">商户基本信息</span>
+      </div>
+
+      <div class="mb-3">
+        <label class="lbl">商户/店铺名称 <b>*</b></label>
+        <input type="text" class="inp" placeholder="如：大唐袜业旗舰店">
+      </div>
+      <div class="mb-3">
+        <label class="lbl">经营主体类型 <b>*</b></label>
+        <div class="flex flex-wrap gap-1.5">
+          <span class="tag-opt on" onclick="tagSelect(this)">个体工商户</span>
+          <span class="tag-opt" onclick="tagSelect(this)">企业</span>
+          <span class="tag-opt" onclick="tagSelect(this)">工厂/制造商</span>
+          <span class="tag-opt" onclick="tagSelect(this)">档口商户</span>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="lbl">主营品类 <b>*</b></label>
+        <div class="flex flex-wrap gap-1.5">
+          <span class="tag-opt on" onclick="tagSelect(this)">男袜</span>
+          <span class="tag-opt" onclick="tagSelect(this)">女袜</span>
+          <span class="tag-opt" onclick="tagSelect(this)">童袜</span>
+          <span class="tag-opt" onclick="tagSelect(this)">运动袜</span>
+          <span class="tag-opt" onclick="tagSelect(this)">保暖袜</span>
+          <span class="tag-opt" onclick="tagSelect(this)">功能袜</span>
+          <span class="tag-opt" onclick="tagSelect(this)">其他</span>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="lbl">营业执照号 <b>*</b></label>
+        <input type="text" class="inp" placeholder="统一社会信用代码">
+      </div>
+      <div class="mb-3">
+        <label class="lbl">营业执照照片 <b>*</b></label>
+        <div class="upload-box" onclick="toast('选择营业执照照片')">
+          <i class="fas fa-file-lines text-2xl text-gray-300"></i>
+          <span class="text-[10px] text-gray-400 mt-1">上传营业执照</span>
+        </div>
+      </div>
+      <div class="mb-1">
+        <label class="lbl">商户Logo</label>
+        <div class="upload-box" onclick="toast('选择商户Logo')">
+          <i class="fas fa-image text-2xl text-gray-300"></i>
+          <span class="text-[10px] text-gray-400 mt-1">上传店铺Logo（选填）</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex gap-2 mt-4">
+      <button class="card flex-1 py-3 rounded-2xl text-[14px] font-bold text-gray-600 bg-white border border-gray-200" onclick="nextStep(1)">上一步</button>
+      <button class="card flex-1 py-3 rounded-2xl text-white text-[14px] font-bold shadow-card grad-h" onclick="nextStep(3)">下一步：档口信息</button>
+    </div>
+  </div>
+
+  <!-- Step 3: 档口信息 -->
+  <div class="step-panel" id="step3">
+    <div class="bg-white rounded-2xl shadow-soft p-3.5 fade-up">
+      <div class="flex items-center gap-2 mb-3">
+        <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white" style="background:linear-gradient(135deg,#FF8A4C,#FF4D2D)"><i class="fas fa-warehouse text-[11px]"></i></div>
+        <span class="text-[13px] font-bold text-gray-800">线下档口信息</span>
+      </div>
+
+      <div class="mb-3">
+        <label class="lbl">是否有线下档口 <b>*</b></label>
+        <div class="flex gap-2">
+          <div class="card flex-1 rounded-xl border-2 border-primary bg-[#FFF0E8] py-2.5 text-center" onclick="selectHasShop(this,true)">
+            <i class="fas fa-check-circle text-primary text-sm"></i>
+            <span class="text-[12px] font-medium text-primary ml-1">有档口</span>
+          </div>
+          <div class="card flex-1 rounded-xl border border-gray-200 bg-white py-2.5 text-center" onclick="selectHasShop(this,false)">
+            <i class="far fa-circle text-gray-300 text-sm"></i>
+            <span class="text-[12px] font-medium text-gray-500 ml-1">无档口（纯线上）</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="shopFields">
+        <div class="mb-3">
+          <label class="lbl">所在市场 <b>*</b></label>
+          <div class="flex flex-wrap gap-1.5">
+            <span class="tag-opt on" onclick="tagSelect(this)">大唐国际袜业城</span>
+          <span class="tag-opt" onclick="tagSelect(this)">其他</span>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="lbl">档口位置 <b>*</b></label>
+          <input type="text" class="inp" placeholder="如：1F-A08">
+        </div>
+        <div class="mb-3">
+          <label class="lbl">档口面积（㎡）</label>
+          <input type="text" class="inp" placeholder="如：80">
+        </div>
+        <div class="mb-3">
+          <label class="lbl">档口照片</label>
+          <div class="grid grid-cols-3 gap-2">
+            <div class="upload-box" onclick="toast('选择档口照片')"><i class="fas fa-camera text-xl text-gray-300"></i></div>
+            <div class="upload-box" onclick="toast('选择档口照片')"><i class="fas fa-camera text-xl text-gray-300"></i></div>
+            <div class="upload-box" onclick="toast('选择档口照片')"><i class="fas fa-camera text-xl text-gray-300"></i></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="lbl">登录密码 <b>*</b></label>
+        <input type="password" class="inp" placeholder="设置6-20位登录密码">
+      </div>
+      <div class="mb-1">
+        <label class="lbl">确认密码 <b>*</b></label>
+        <input type="password" class="inp" placeholder="再次输入登录密码">
+      </div>
+    </div>
+
+    <!-- 入驻权益 -->
+    <div class="bg-white rounded-2xl shadow-soft p-3.5 mt-3 fade-up">
+      <div class="flex items-center gap-2 mb-2.5">
+        <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white" style="background:linear-gradient(135deg,#7C3AED,#C084FC)"><i class="fas fa-gift text-[11px]"></i></div>
+        <span class="text-[13px] font-bold text-gray-800">入驻权益</span>
+      </div>
+      <div class="space-y-2">
+        <div class="flex items-center gap-2"><i class="fas fa-circle-check text-[#10B981] text-[11px]"></i><span class="text-[11px] text-gray-600">免费开通数字店铺，24h在线接单</span></div>
+        <div class="flex items-center gap-2"><i class="fas fa-circle-check text-[#10B981] text-[11px]"></i><span class="text-[11px] text-gray-600">平台流量扶持，首月首页推荐曝光</span></div>
+        <div class="flex items-center gap-2"><i class="fas fa-circle-check text-[#10B981] text-[11px]"></i><span class="text-[11px] text-gray-600">对接集采订单与跨境采购商资源</span></div>
+        <div class="flex items-center gap-2"><i class="fas fa-circle-check text-[#10B981] text-[11px]"></i><span class="text-[11px] text-gray-600">免费使用AI商品图、AI文案等营销工具</span></div>
+      </div>
+    </div>
+
+    <!-- 协议 -->
+    <div class="flex items-center gap-2 mt-3 px-1">
+      <input type="checkbox" id="agreeBox" class="w-4 h-4 accent-[#FF4D2D]">
+      <label for="agreeBox" class="text-[11px] text-gray-500">我已阅读并同意<span class="text-primary font-medium" onclick="toast('商户入驻协议')">《商户入驻协议》</span>及<span class="text-primary font-medium" onclick="toast('隐私政策')">《隐私政策》</span></label>
+    </div>
+
+    <div class="flex gap-2 mt-4">
+      <button class="card flex-1 py-3 rounded-2xl text-[14px] font-bold text-gray-600 bg-white border border-gray-200" onclick="nextStep(2)">上一步</button>
+      <button class="card flex-1 py-3 rounded-2xl text-white text-[14px] font-bold shadow-card grad-h" onclick="submitForm()">提交申请</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- 提交成功弹窗 -->
+<div class="fixed inset-0 flex items-center justify-center" id="successMask" style="display:none;background:rgba(0,0,0,.5);z-index:300">
+  <div class="bg-white rounded-3xl mx-6 p-6 text-center shadow-card" style="max-width:280px;animation:fadeUp .35s ease both">
+    <div class="w-16 h-16 mx-auto rounded-full flex items-center justify-center" style="background:linear-gradient(135deg,#34D399,#10B981);box-shadow:0 8px 24px rgba(16,185,129,.3)">
+      <i class="fas fa-check text-white text-2xl"></i>
+    </div>
+    <p class="text-[16px] font-bold text-gray-800 mt-4">申请已提交</p>
+    <p class="text-[12px] text-gray-500 mt-1.5 leading-relaxed">工作人员将在1-3个工作日内完成审核<br>审核通过后即可使用商户端登录</p>
+    <a href="home.html" class="card block w-full mt-4 py-2.5 rounded-xl text-white text-[13px] font-bold" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)">返回首页</a>
+  </div>
+</div>
+
+<!-- Home Indicator -->
+<div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none">
+<div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:3px"></div>
+</div>
+
+<div class="toast" id="toast"><i class="fas fa-circle-check text-[#4ADE80]"></i><span id="toastTxt">操作成功</span></div>
+
+<script>
+var toastTimer;
+function toast(msg){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},1600)}
+function tagSelect(el){el.classList.toggle('on')}
+function sendCode(btn){var n=60;btn.textContent=n+'s后重试';btn.style.opacity='.6';btn.disabled=true;var iv=setInterval(function(){n--;if(n<=0){clearInterval(iv);btn.textContent='获取验证码';btn.style.opacity='1';btn.disabled=false}else{btn.textContent=n+'s后重试'}},1000)}
+function selectHasShop(el,has){var p=el.parentElement;p.children[0].className='card flex-1 rounded-xl border py-2.5 text-center '+(has?'border-2 border-primary bg-[#FFF0E8]':'border border-gray-200 bg-white');p.children[0].innerHTML=(has?'<i class="fas fa-check-circle text-primary text-sm"></i>':'<i class="far fa-circle text-gray-300 text-sm"></i>')+'<span class="text-[12px] font-medium '+(has?'text-primary':'text-gray-500')+' ml-1">有档口</span>';p.children[1].className='card flex-1 rounded-xl border py-2.5 text-center '+(!has?'border-2 border-primary bg-[#FFF0E8]':'border border-gray-200 bg-white');p.children[1].innerHTML=(!has?'<i class="fas fa-check-circle text-primary text-sm"></i>':'<i class="far fa-circle text-gray-300 text-sm"></i>')+'<span class="text-[12px] font-medium '+(!has?'text-primary':'text-gray-500')+' ml-1">无档口（纯线上）</span>';document.getElementById('shopFields').style.display=has?'block':'none'}
+function nextStep(n){
+  for(var i=1;i<=3;i++){document.getElementById('step'+i).classList.remove('on')}
+  document.getElementById('step'+n).classList.add('on');
+  for(var j=1;j<=3;j++){var d=document.getElementById('dot'+j);d.className='dot '+(j<n?'done':j===n?'cur':'todo');if(j<n)d.innerHTML='<i class="fas fa-check text-[9px]"></i>';else d.textContent=j}
+  document.getElementById('line1').className='line'+(n>1?' done':'');
+  document.getElementById('line2').className='line'+(n>2?' done':'');
+  window.scrollTo(0,0);
+}
+function submitForm(){
+  if(!document.getElementById('agreeBox').checked){toast('请先勾选同意协议');return}
+  document.getElementById('successMask').style.display='flex';
+}
+</script>
+</body>
+</html>

@@ -42,6 +42,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 .vt{flex:1;padding:8px 0;border-radius:22px;font-size:13px;text-align:center;transition:.2s;cursor:pointer}
 .vt.on{color:#fff;font-weight:600;background:linear-gradient(90deg,#FF4D2D,#FF7849);box-shadow:0 4px 12px rgba(255,77,45,.25)}
 .vt.off{color:#9aa0ac;font-weight:500;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+/* 最新成交滚动播报 */
+.deal-ticker{height:44px;overflow:hidden;position:relative}
+.deal-track{animation:dealScroll 20s linear infinite}
+.deal-track:hover{animation-play-state:paused}
+@keyframes dealScroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}
+.deal-item{height:22px;display:flex;align-items:center;gap:5px;padding:0 2px;white-space:nowrap}
+.deal-badge{flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:6px 8px}
+/* 筛选标签 */
+.tag-opt{font-size:11px;color:#6b7080;background:#fff;border:1.5px solid #eceef0;border-radius:10px;padding:6px 12px;cursor:pointer;transition:.15s;font-weight:500}
+.tag-opt.on{border-color:#FF4D2D;color:#FF4D2D;background:#FFF0EB;font-weight:600}
+/* Toast */
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:9999;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.25);min-width:140px;justify-content:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
 </style>
 </head>
 <body>
@@ -76,6 +89,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
   </div>
 </div>
 
+<!-- 历史成交滚动播报 -->
+<div class="px-3 mt-2 relative z-10">
+  <div class="bg-white/80 backdrop-blur rounded-2xl shadow-soft border border-white flex items-stretch overflow-hidden">
+    <div class="deal-badge" style="background:linear-gradient(135deg,#FFF0E8,#FFE4D6)">
+      <i class="fas fa-bolt text-[11px]" style="color:#FF4D2D"></i>
+      <span class="text-[8px] font-bold text-gray-700 leading-tight text-center">历史<br>成交</span>
+    </div>
+    <div class="flex-1 deal-ticker py-1">
+      <div class="deal-track" id="dealTrackMarket"></div>
+    </div>
+  </div>
+</div>
+
 <!-- 逛线上/线下 切换 -->
 <div class="px-3 mt-2 flex gap-2">
   <div class="vt on" id="vtOnline" onclick="switchView('online')">逛线上商城</div>
@@ -88,11 +114,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <!-- 服务入口 -->
 <div class="px-3 mt-3">
   <div class="bg-white/75 backdrop-blur-xl rounded-3xl shadow-soft px-3 py-3.5 border border-white">
-    <div class="grid grid-cols-4 gap-y-3.5">
+    <div class="grid grid-cols-5 gap-y-3.5">
       <a href="ai-search.html" class="flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#A78BFA,#7C3AED)"><i class="fas fa-wand-magic-sparkles text-lg"></i></div><span class="text-[11px] text-gray-700 font-medium">AI找货</span></a>
-      <a href="inquiry.html" class="flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#FF8A4C,#FF4D2D)"><i class="fas fa-handshake text-lg"></i></div><span class="text-[11px] text-gray-700 font-medium">批发询价</span></a>
+      <a href="inquiry.html" class="flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#FF8A4C,#FF4D2D)"><i class="fas fa-bullhorn text-lg"></i></div><span class="text-[11px] text-gray-700 font-medium">采购询价</span></a>
       <a href="group-buy.html" class="flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#2DD4BF,#14B8A6)"><i class="fas fa-users text-lg"></i></div><span class="text-[11px] text-gray-700 font-medium">拼单集采</span></a>
-      <a href="#" class="flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#FB7185,#EC4899)"><i class="fas fa-pen-ruler text-lg"></i></div><span class="text-[11px] text-gray-700 font-medium">我要定制</span></a>
+      <a href="custom-design.html" class="flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#FB7185,#EC4899)"><i class="fas fa-pen-ruler text-lg"></i></div><span class="text-[11px] text-gray-700 font-medium">个性定制</span></a>
+      <a href="bulk-custom.html" class="flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#3B82F6,#1D4ED8)"><i class="fas fa-building text-lg"></i></div><span class="text-[11px] text-gray-700 font-medium">批量定制</span></a>
     </div>
   </div>
 </div>
@@ -152,13 +179,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <!-- 分类Tab横向滚动 -->
 <div class="px-3 mt-4">
   <div class="bg-white/70 backdrop-blur-xl rounded-3xl shadow-soft border border-white px-2">
-    <div class="flex gap-4 py-2.5 overflow-x-auto no-bar">
+    <div class="flex gap-3 py-2.5 overflow-x-auto no-bar items-center">
       <span class="text-[13px] font-bold whitespace-nowrap pb-0.5" style="color:#FF4D2D;border-bottom:2px solid #FF4D2D">全部</span>
       <span class="text-[13px] text-gray-500 whitespace-nowrap">男袜</span>
       <span class="text-[13px] text-gray-500 whitespace-nowrap">女袜</span>
       <span class="text-[13px] text-gray-500 whitespace-nowrap">童袜</span>
       <span class="text-[13px] text-gray-500 whitespace-nowrap">运动袜</span>
       <span class="text-[13px] text-gray-500 whitespace-nowrap">功能袜</span>
+      <button onclick="openFilterPanel()" class="flex items-center gap-1 ml-auto px-2.5 py-1 rounded-full text-[11px] font-medium text-white grad-h shadow-card whitespace-nowrap">
+        <i class="fas fa-sliders text-[9px]"></i>筛选
+      </button>
     </div>
   </div>
 </div>
@@ -263,7 +293,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
     <span class="sec-more">更多 ›</span>
   </div>
   <div class="h-scroll">
-    <a href="product-detail.html" class="card w-[120px] bg-white rounded-2xl shadow-soft overflow-hidden">
+    <a href="product-detail.html?mode=clearance" class="card w-[120px] bg-white rounded-2xl shadow-soft overflow-hidden">
       <img src="images/sock_07.jpg" class="w-full h-[120px] object-cover">
       <div class="p-2">
         <p class="text-[11px] text-gray-800 font-medium line-clamp-1">石墨烯抗菌袜</p>
@@ -271,7 +301,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
         <div class="flex items-baseline gap-1 mt-0.5"><span class="text-grad font-bold text-sm">¥8.8</span><span class="text-[9px] text-gray-400">/双</span></div>
       </div>
     </a>
-    <a href="product-detail.html" class="card w-[120px] bg-white rounded-2xl shadow-soft overflow-hidden">
+    <a href="product-detail.html?mode=clearance" class="card w-[120px] bg-white rounded-2xl shadow-soft overflow-hidden">
       <img src="images/material_01.jpg" class="w-full h-[120px] object-cover">
       <div class="p-2">
         <p class="text-[11px] text-gray-800 font-medium line-clamp-1">胶原蛋白丝袜</p>
@@ -279,7 +309,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
         <div class="flex items-baseline gap-1 mt-0.5"><span class="text-grad font-bold text-sm">¥12.5</span><span class="text-[9px] text-gray-400">/双</span></div>
       </div>
     </a>
-    <a href="product-detail.html" class="card w-[120px] bg-white rounded-2xl shadow-soft overflow-hidden">
+    <a href="product-detail.html?mode=clearance" class="card w-[120px] bg-white rounded-2xl shadow-soft overflow-hidden">
       <img src="images/sock_11.jpg" class="w-full h-[120px] object-cover">
       <div class="p-2">
         <p class="text-[11px] text-gray-800 font-medium line-clamp-1">艾草养生袜</p>
@@ -287,7 +317,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
         <div class="flex items-baseline gap-1 mt-0.5"><span class="text-grad font-bold text-sm">¥6.5</span><span class="text-[9px] text-gray-400">/双</span></div>
       </div>
     </a>
-    <a href="product-detail.html" class="card w-[120px] bg-white rounded-2xl shadow-soft overflow-hidden">
+    <a href="product-detail.html?mode=clearance" class="card w-[120px] bg-white rounded-2xl shadow-soft overflow-hidden">
       <img src="images/sock_01.jpg" class="w-full h-[120px] object-cover">
       <div class="p-2">
         <p class="text-[11px] text-gray-800 font-medium line-clamp-1">3D立体减震袜</p>
@@ -356,34 +386,35 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 
 <!-- 楼层导览 -->
 <div class="px-3 mt-4">
-<div class="flex items-center gap-1.5 mb-2.5"><div class="w-1 h-3.5 rounded-full" style="background:#FF4D2D"></div><span class="sec-title">楼层导览</span></div>
+<div class="flex items-center gap-1.5 mb-2.5">
+<div class="w-1 h-3.5 rounded-full" style="background:#FF4D2D"></div><span class="sec-title">楼层导览</span>
+<a href="market-map.html" class="ml-auto text-[11px] text-gray-400">查看导航 ›</a>
+</div>
 <div class="flex gap-2 mb-2.5">
 <span class="px-3 py-1 rounded-full text-white text-[11px] font-medium" style="background:#FF4D2D">1F 袜子区</span>
 <span class="px-3 py-1 rounded-full bg-white text-gray-500 text-[11px] shadow-soft">2F 品牌馆</span>
 </div>
-<div class="bg-white rounded-2xl shadow-soft p-3">
-<div style="transform:perspective(700px) rotateX(22deg);transform-style:preserve-3d" class="rounded-lg overflow-hidden bg-gray-50 p-1.5">
-<div class="grid grid-cols-5 gap-1" style="grid-template-rows:repeat(5,24px)">
-<div class="flex items-center justify-center text-[7px] font-semibold text-white rounded" style="background:linear-gradient(135deg,#FF8B5A,#FF6B35)">A01</div>
-<div class="flex items-center justify-center text-[7px] font-semibold text-white rounded" style="background:linear-gradient(135deg,#FF8B5A,#FF6B35)">A02</div>
-<div class="flex items-center justify-center text-[7px] font-semibold text-white rounded" style="background:linear-gradient(135deg,#FF8B5A,#FF6B35)">A03</div>
-<div class="flex items-center justify-center text-[7px] font-semibold text-white rounded" style="background:linear-gradient(135deg,#FF8B5A,#FF6B35)">A04</div>
-<div class="flex items-center justify-center text-[7px] font-semibold text-white rounded" style="background:linear-gradient(135deg,#FF8B5A,#FF6B35)">A05</div>
+<div class="bg-white rounded-2xl shadow-soft p-3" onclick="window.location.href='market-map.html'" style="cursor:pointer">
+<div class="grid grid-cols-5 gap-1" style="grid-template-rows:repeat(5,32px)">
+<div class="flex items-center justify-center text-[10px] font-bold text-white rounded" style="background:linear-gradient(135deg,#FF8B5A,#FF6B35)">男袜</div>
+<div class="flex items-center justify-center text-[10px] font-bold text-white rounded" style="background:linear-gradient(135deg,#FF8B5A,#FF6B35)">运动袜</div>
+<div class="flex items-center justify-center text-[10px] font-bold text-white rounded" style="background:linear-gradient(135deg,#FF8B5A,#FF6B35)">时尚袜</div>
+<div class="flex items-center justify-center text-[10px] font-bold text-white rounded" style="background:linear-gradient(135deg,#FF8B5A,#FF6B35)">童袜</div>
+<div class="flex items-center justify-center text-[10px] font-bold text-white rounded" style="background:linear-gradient(135deg,#FF8B5A,#FF6B35)">功能袜</div>
 <div class="col-span-5 flex items-center justify-center text-[6px] text-gray-400 rounded" style="background:#E8EAED">主通道</div>
-<div class="flex items-center justify-center text-[7px] font-semibold text-white rounded" style="background:linear-gradient(135deg,#FF8B5A,#FF6B35)">B01</div>
-<div class="flex items-center justify-center text-[7px] font-semibold text-white rounded" style="background:linear-gradient(135deg,#FF8B5A,#FF6B35)">B02</div>
+<div class="flex items-center justify-center text-[10px] font-bold text-white rounded" style="background:linear-gradient(135deg,#FF8B5A,#FF6B35)">童袜</div>
+<div class="flex items-center justify-center text-[10px] font-bold text-white rounded" style="background:linear-gradient(135deg,#FF8B5A,#FF6B35)">运动袜</div>
 <div class="flex items-center justify-center rounded" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)"><i class="fas fa-utensils text-white text-[8px]"></i></div>
-<div class="flex items-center justify-center text-[7px] font-semibold text-white rounded" style="background:linear-gradient(135deg,#FF8B5A,#FF6B35)">B03</div>
-<div class="flex items-center justify-center text-[7px] font-semibold text-white rounded" style="background:linear-gradient(135deg,#FF8B5A,#FF6B35)">B04</div>
+<div class="flex items-center justify-center text-[10px] font-bold text-white rounded" style="background:linear-gradient(135deg,#FF8B5A,#FF6B35)">功能袜</div>
+<div class="flex items-center justify-center text-[10px] font-bold text-white rounded" style="background:linear-gradient(135deg,#FF8B5A,#FF6B35)">童袜</div>
 <div class="flex items-center justify-center rounded" style="background:linear-gradient(135deg,#60A5FA,#3B82F6)"><i class="fas fa-restroom text-white text-[7px]"></i></div>
 <div class="flex items-center justify-center rounded" style="background:linear-gradient(135deg,#9CA3AF,#6B7280)"><i class="fas fa-elevator text-white text-[7px]"></i></div>
 <div class="flex items-center justify-center rounded" style="background:linear-gradient(135deg,#34D399,#10B981)"><i class="fas fa-door-open text-white text-[7px]"></i></div>
-<div class="flex items-center justify-center text-[7px] font-semibold text-white rounded" style="background:linear-gradient(135deg,#FF8B5A,#FF6B35)">B05</div>
-<div class="flex items-center justify-center text-[7px] font-semibold text-white rounded" style="background:linear-gradient(135deg,#FF8B5A,#FF6B35)">B06</div>
-<div class="flex items-center justify-center text-[7px] font-semibold text-white rounded" style="background:linear-gradient(135deg,#FF8B5A,#FF6B35)">B07</div>
-<div class="flex items-center justify-center text-[7px] font-semibold text-white rounded" style="background:linear-gradient(135deg,#FF8B5A,#FF6B35)">B08</div>
-<div class="flex items-center justify-center text-[7px] font-semibold text-white rounded" style="background:linear-gradient(135deg,#FF8B5A,#FF6B35)">B09</div>
-<div class="flex items-center justify-center text-[7px] font-semibold text-white rounded" style="background:linear-gradient(135deg,#FF8B5A,#FF6B35)">B10</div>
+<div class="flex items-center justify-center text-[10px] font-bold text-white rounded" style="background:linear-gradient(135deg,#FF8B5A,#FF6B35)">男袜</div>
+<div class="flex items-center justify-center text-[10px] font-bold text-white rounded" style="background:linear-gradient(135deg,#FF8B5A,#FF6B35)">功能袜</div>
+<div class="flex items-center justify-center text-[10px] font-bold text-white rounded" style="background:linear-gradient(135deg,#FF8B5A,#FF6B35)">时尚袜</div>
+<div class="flex items-center justify-center text-[10px] font-bold text-white rounded" style="background:linear-gradient(135deg,#FF8B5A,#FF6B35)">童袜</div>
+<div class="flex items-center justify-center text-[10px] font-bold text-white rounded" style="background:linear-gradient(135deg,#FF8B5A,#FF6B35)">女袜</div>
 </div>
 </div>
 <div class="flex flex-wrap gap-2 mt-2">
@@ -542,5 +573,185 @@ function closeVideo(){
   document.getElementById('videoOverlay').classList.remove('on');
 }
 </script>
+<script>
+var dealDataM=[
+  {t:'2分钟前',u:'周**',p:'精梳棉商务男袜',q:'500双',a:'¥1,750'},
+  {t:'5分钟前',u:'吴**',p:'纯棉抗菌运动袜',q:'800双',a:'¥2,560'},
+  {t:'8分钟前',u:'郑**',p:'儿童卡通袜',q:'300双',a:'¥840'},
+  {t:'10分钟前',u:'马**',p:'竹纤维船袜',q:'1000双',a:'¥3,200'},
+  {t:'14分钟前',u:'黄**',p:'条纹中筒袜',q:'500双',a:'¥1,500'},
+  {t:'18分钟前',u:'林**',p:'冰丝隐形袜',q:'600双',a:'¥1,800'},
+  {t:'22分钟前',u:'何**',p:'运动压缩袜',q:'400双',a:'¥1,440'},
+  {t:'26分钟前',u:'高**',p:'防臭商务男袜',q:'1000双',a:'¥3,500'},
+  {t:'30分钟前',u:'罗**',p:'卡通短袜',q:'500双',a:'¥1,200'},
+  {t:'35分钟前',u:'梁**',p:'毛圈运动袜',q:'700双',a:'¥2,170'},
+  {t:'40分钟前',u:'宋**',p:'棉混纺女袜',q:'500双',a:'¥1,350'},
+  {t:'45分钟前',u:'谢**',p:'无骨缝头袜',q:'600双',a:'¥1,920'}
+];
+function renderDealTrackM(){
+  var track=document.getElementById('dealTrackMarket');if(!track)return;
+  var html='';var all=dealDataM.concat(dealDataM);
+  all.forEach(function(d){
+    html+='<div class="deal-item">'+
+      '<span class="text-[9px] text-gray-400 shrink-0">'+d.t+'</span>'+
+      '<span class="text-[11px] text-gray-700 font-medium shrink-0">'+d.u+'</span>'+
+      '<span class="text-[9px] text-gray-400 shrink-0">采购</span>'+
+      '<span class="text-[11px] font-medium truncate" style="color:#FF4D2D">'+d.p+'</span>'+
+      '<span class="text-[10px] text-gray-500 shrink-0">'+d.q+'</span>'+
+      '<span class="text-[11px] font-bold shrink-0" style="color:#FF4D2D">'+d.a+'</span>'+
+    '</div>';
+  });
+  track.innerHTML=html;
+}
+renderDealTrackM();
+</script>
+
+<!-- 筛选面板 -->
+<div class="fixed inset-0" id="filterMask" style="display:none;background:rgba(0,0,0,.45);z-index:200" onclick="closeFilterPanel()"></div>
+<div class="fixed top-0 right-0 bottom-0 bg-white" id="filterPanel" style="display:none;z-index:210;width:320px;transform:translateX(100%);transition:transform .3s ease;overflow-y:auto">
+  <div class="sticky top-0 bg-white z-10 flex items-center justify-between px-4 py-3 border-b border-gray-100">
+    <span class="text-[14px] font-bold text-gray-800">商品筛选</span>
+    <button onclick="closeFilterPanel()" class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-400"><i class="fas fa-xmark text-xs"></i></button>
+  </div>
+
+  <div class="px-4 py-3">
+    <!-- 排序 -->
+    <p class="text-[12px] font-bold text-gray-800 mb-2">排序方式</p>
+    <div class="flex flex-wrap gap-2 mb-4">
+      <span class="tag-opt on" onclick="filterSingle(this,'sort')" data-v="default">综合推荐</span>
+      <span class="tag-opt" onclick="filterSingle(this,'sort')" data-v="sales">销量优先</span>
+      <span class="tag-opt" onclick="filterSingle(this,'sort')" data-v="price_asc">价格从低到高</span>
+      <span class="tag-opt" onclick="filterSingle(this,'sort')" data-v="price_desc">价格从高到低</span>
+      <span class="tag-opt" onclick="filterSingle(this,'sort')" data-v="rating">好评优先</span>
+    </div>
+
+    <!-- 品类 -->
+    <p class="text-[12px] font-bold text-gray-800 mb-2">品类</p>
+    <div class="flex flex-wrap gap-2 mb-4">
+      <span class="tag-opt on" onclick="filterSingle(this,'cat')">男袜</span>
+      <span class="tag-opt" onclick="filterSingle(this,'cat')">女袜</span>
+      <span class="tag-opt" onclick="filterSingle(this,'cat')">童袜</span>
+      <span class="tag-opt" onclick="filterSingle(this,'cat')">运动袜</span>
+      <span class="tag-opt" onclick="filterSingle(this,'cat')">功能袜</span>
+      <span class="tag-opt" onclick="filterSingle(this,'cat')">船袜</span>
+      <span class="tag-opt" onclick="filterSingle(this,'cat')">中筒袜</span>
+      <span class="tag-opt" onclick="filterSingle(this,'cat')">长筒袜</span>
+    </div>
+
+    <!-- 价格区间 -->
+    <p class="text-[12px] font-bold text-gray-800 mb-2">价格区间 (元/双)</p>
+    <div class="flex flex-wrap gap-2 mb-4">
+      <span class="tag-opt on" onclick="filterSingle(this,'price')">不限</span>
+      <span class="tag-opt" onclick="filterSingle(this,'price')">1元以下</span>
+      <span class="tag-opt" onclick="filterSingle(this,'price')">1-3元</span>
+      <span class="tag-opt" onclick="filterSingle(this,'price')">3-5元</span>
+      <span class="tag-opt" onclick="filterSingle(this,'price')">5-10元</span>
+      <span class="tag-opt" onclick="filterSingle(this,'price')">10元以上</span>
+    </div>
+
+    <!-- 品牌 -->
+    <p class="text-[12px] font-bold text-gray-800 mb-2">品牌</p>
+    <div class="flex flex-wrap gap-2 mb-4">
+      <span class="tag-opt on" onclick="filterSingle(this,'brand')">不限</span>
+      <span class="tag-opt" onclick="filterSingle(this,'brand')">大唐袜业</span>
+      <span class="tag-opt" onclick="filterSingle(this,'brand')">浪莎</span>
+      <span class="tag-opt" onclick="filterSingle(this,'brand')">梦娜</span>
+      <span class="tag-opt" onclick="filterSingle(this,'brand')">耐尔</span>
+      <span class="tag-opt" onclick="filterSingle(this,'brand')">倍怡</span>
+      <span class="tag-opt" onclick="filterSingle(this,'brand')">南极人</span>
+    </div>
+
+    <!-- 材质 -->
+    <p class="text-[12px] font-bold text-gray-800 mb-2">材质</p>
+    <div class="flex flex-wrap gap-2 mb-4">
+      <span class="tag-opt on" onclick="filterSingle(this,'material')">不限</span>
+      <span class="tag-opt" onclick="filterSingle(this,'material')">精梳棉</span>
+      <span class="tag-opt" onclick="filterSingle(this,'material')">竹纤维</span>
+      <span class="tag-opt" onclick="filterSingle(this,'material')">美利奴羊毛</span>
+      <span class="tag-opt" onclick="filterSingle(this,'material')">冰丝</span>
+      <span class="tag-opt" onclick="filterSingle(this,'material')">Coolmax</span>
+      <span class="tag-opt" onclick="filterSingle(this,'material')">莫代尔</span>
+      <span class="tag-opt" onclick="filterSingle(this,'material')">石墨烯</span>
+    </div>
+
+    <!-- 工艺 -->
+    <p class="text-[12px] font-bold text-gray-800 mb-2">工艺</p>
+    <div class="flex flex-wrap gap-2 mb-4">
+      <span class="tag-opt on" onclick="filterSingle(this,'craft')">不限</span>
+      <span class="tag-opt" onclick="filterSingle(this,'craft')">无骨缝头</span>
+      <span class="tag-opt" onclick="filterSingle(this,'craft')">手工对目</span>
+      <span class="tag-opt" onclick="filterSingle(this,'craft')">抗菌处理</span>
+      <span class="tag-opt" onclick="filterSingle(this,'craft')">防臭涂层</span>
+      <span class="tag-opt" onclick="filterSingle(this,'craft')">压力编织</span>
+      <span class="tag-opt" onclick="filterSingle(this,'craft')">提花工艺</span>
+    </div>
+
+    <!-- 销量 -->
+    <p class="text-[12px] font-bold text-gray-800 mb-2">最低销量</p>
+    <div class="flex flex-wrap gap-2 mb-4">
+      <span class="tag-opt on" onclick="filterSingle(this,'minSales')">不限</span>
+      <span class="tag-opt" onclick="filterSingle(this,'minSales')">100+</span>
+      <span class="tag-opt" onclick="filterSingle(this,'minSales')">1000+</span>
+      <span class="tag-opt" onclick="filterSingle(this,'minSales')">5000+</span>
+      <span class="tag-opt" onclick="filterSingle(this,'minSales')">10000+</span>
+    </div>
+
+    <!-- 评价 -->
+    <p class="text-[12px] font-bold text-gray-800 mb-2">最低评分</p>
+    <div class="flex flex-wrap gap-2 mb-6">
+      <span class="tag-opt on" onclick="filterSingle(this,'rating')">不限</span>
+      <span class="tag-opt" onclick="filterSingle(this,'rating')">4.0+</span>
+      <span class="tag-opt" onclick="filterSingle(this,'rating')">4.5+</span>
+      <span class="tag-opt" onclick="filterSingle(this,'rating')">4.8+</span>
+      <span class="tag-opt" onclick="filterSingle(this,'rating')">5.0</span>
+    </div>
+  </div>
+
+  <!-- 底部操作 -->
+  <div class="sticky bottom-0 bg-white border-t border-gray-100 px-4 py-3 flex gap-2">
+    <button onclick="resetFilter()" class="card flex-1 py-2.5 rounded-full text-[13px] font-medium text-gray-500 bg-gray-100">重置</button>
+    <button onclick="confirmFilter()" class="card flex-1 py-2.5 rounded-full text-[13px] font-bold text-white shadow-card grad-h">确定 (12件)</button>
+  </div>
+</div>
+
+<script>
+var toastTimer;
+function toast(msg){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},1600)}
+function openFilterPanel(){
+  var mask=document.getElementById('filterMask');
+  var panel=document.getElementById('filterPanel');
+  mask.style.display='block';
+  panel.style.display='block';
+  setTimeout(function(){panel.style.transform='translateX(0)';},10);
+}
+function closeFilterPanel(){
+  var mask=document.getElementById('filterMask');
+  var panel=document.getElementById('filterPanel');
+  panel.style.transform='translateX(100%)';
+  setTimeout(function(){mask.style.display='none';panel.style.display='none';},250);
+}
+function filterSingle(el,group){
+  var wrap=el.parentElement;
+  var items=wrap.querySelectorAll('.tag-opt');
+  items.forEach(function(i){i.classList.remove('on')});
+  el.classList.add('on');
+}
+function resetFilter(){
+  var panels=document.querySelectorAll('#filterPanel .tag-opt');
+  panels.forEach(function(t){t.classList.remove('on')});
+  var groups=['sort','cat','price','brand','material','craft','minSales','rating'];
+  groups.forEach(function(g){
+    var first=document.querySelector('#filterPanel .tag-opt[onclick*="'+g+'"]');
+    if(first)first.classList.add('on');
+  });
+  toast('筛选条件已重置');
+}
+function confirmFilter(){
+  closeFilterPanel();
+  setTimeout(function(){window.location.href='product-filter.html';},300);
+}
+</script>
+
+<div class="toast" id="toast"><i class="fas fa-circle-check text-[#4ADE80]"></i><span id="toastTxt">操作成功</span></div>
 </body>
 </html>

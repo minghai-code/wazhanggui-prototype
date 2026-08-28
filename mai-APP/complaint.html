@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>投诉建议 - 袜掌柜买家版</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--p:#FF4D2D;--pl:#FF7849;--bg:#FFF7F4}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+::-webkit-scrollbar{width:2px;height:2px}
+::-webkit-scrollbar-thumb{background:#dfdfdf;border-radius:1px}
+.shadow-card{box-shadow:0 8px 24px rgba(255,77,45,.14)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
+.card{transition:transform .16s ease}.card:active{transform:scale(.965)}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:300;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.25);min-width:120px;justify-content:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.type-tag{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:14px;padding:12px 6px;cursor:pointer;transition:.15s;border:2px solid #eceef0;background:#fff}
+.type-tag.on{border-color:#FF4D2D;background:#FFF0EB}
+.type-tag i{font-size:18px}
+.type-tag span{font-size:10px;font-weight:600;color:#6b7080}
+.type-tag.on span{color:#FF4D2D}
+.type-tag.on i{color:#FF4D2D}
+.tag-sel{font-size:11px;color:#6b7080;background:#f5f5f5;border-radius:8px;padding:6px 12px;cursor:pointer;transition:.15s;font-weight:500}
+.tag-sel.on{background:#FF4D2D;color:#fff;font-weight:600}
+.upload-box{width:100%;aspect-ratio:1;border-radius:12px;border:1.5px dashed #d0d3d8;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.15s;background:#FAFAFB}
+.upload-box:active{border-color:#FF4D2D;background:#FFF0EB}
+.upload-box.has-img{border-style:solid;border-color:#FF4D2D;overflow:hidden;padding:0}
+.fade-in{animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.step-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.step-dot.done{background:#10B981;color:#fff}
+.step-dot.cur{background:#FF4D2D;color:#fff}
+.step-dot.todo{background:#E5E7EB;color:#9CA3AF}
+.step-line{flex:1;height:2px;background:#E5E7EB;margin:0 4px}
+.step-line.done{background:#10B981}
+.panel{position:fixed;bottom:0;left:0;right:0;background:#fff;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.12);z-index:200;transform:translateY(100%);transition:transform .3s ease;width:393px;max-height:80vh;overflow-y:auto}
+.panel.on{transform:translateY(0)}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:150;opacity:0;pointer-events:none;transition:.3s}
+.overlay.on{opacity:1;pointer-events:auto}
+</style>
+</head>
+<body>
+
+<!-- 顶部渐变区 -->
+<div class="relative px-4 pt-2 pb-4 overflow-hidden" style="background:linear-gradient(135deg,#FF6B35 0%,#FF4D2D 45%,#FF2D78 100%)">
+  <div class="absolute -top-16 -left-10 w-52 h-52 rounded-full blur-3xl opacity-50" style="background:#FF8A4C"></div>
+  <div class="absolute -top-8 right-[-40px] w-56 h-56 rounded-full blur-3xl opacity-40" style="background:#FF2D78"></div>
+  <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+  </div>
+  <div class="relative flex items-center gap-3">
+    <a href="mine.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+    <div>
+      <h1 class="text-white font-extrabold text-[18px] tracking-wide flex items-center gap-1.5" style="text-shadow:0 2px 10px rgba(0,0,0,.18)">
+        <i class="fas fa-bullhorn text-[15px]"></i>投诉建议
+      </h1>
+      <p class="text-white/70 text-[10px] mt-0.5">您的声音，我们倾听 · 闭环管理 · 件件有回音</p>
+    </div>
+  </div>
+</div>
+
+<!-- Tab切换 -->
+<div class="px-3 mt-3">
+  <div class="flex gap-2">
+    <button onclick="switchTab('new',this)" class="flex-1 py-2.5 rounded-xl text-[13px] font-bold text-white shadow-card" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D,#FF2D78)" id="tabNew">
+      <i class="fas fa-pen-to-square text-[11px] mr-1"></i>提交投诉/建议
+    </button>
+    <button onclick="switchTab('list',this)" class="flex-1 py-2.5 rounded-xl text-[13px] font-bold text-gray-500 bg-white shadow-soft" id="tabList">
+      <i class="fas fa-list text-[11px] mr-1"></i>我的提交记录
+    </button>
+  </div>
+</div>
+
+<!-- ===== 提交表单 ===== -->
+<div id="formArea" class="px-3 mt-3 mb-24 fade-in">
+  <!-- 投诉类型 -->
+  <div class="bg-white rounded-2xl shadow-soft p-3 mb-3">
+    <p class="text-[12px] font-bold text-gray-800 mb-2.5"><i class="fas fa-tag text-[10px] mr-1" style="color:#FF4D2D"></i>选择类型</p>
+    <div class="grid grid-cols-4 gap-2">
+      <div class="type-tag on" onclick="selectType(this,'market')"><i class="fas fa-building"></i><span>市场管理</span></div>
+      <div class="type-tag" onclick="selectType(this,'shop')"><i class="fas fa-store"></i><span>商铺服务</span></div>
+      <div class="type-tag" onclick="selectType(this,'facility')"><i class="fas fa-restroom"></i><span>环境设施</span></div>
+      <div class="type-tag" onclick="selectType(this,'other')"><i class="fas fa-ellipsis"></i><span>其他</span></div>
+    </div>
+  </div>
+
+  <!-- 投诉对象 -->
+  <div class="bg-white rounded-2xl shadow-soft p-3 mb-3" id="targetBox">
+    <p class="text-[12px] font-bold text-gray-800 mb-2"><i class="fas fa-bullseye text-[10px] mr-1" style="color:#FF4D2D"></i>投诉对象<span class="text-gray-400 font-normal text-[10px] ml-1">（选填）</span></p>
+    <input type="text" placeholder="如：A区01号 大唐袜业批发" class="w-full text-[12px] px-3 py-2.5 rounded-xl outline-none" style="border:1.5px solid #eceef0" id="targetInput">
+  </div>
+
+  <!-- 问题分类 -->
+  <div class="bg-white rounded-2xl shadow-soft p-3 mb-3" id="catBox">
+    <p class="text-[12px] font-bold text-gray-800 mb-2"><i class="fas fa-layer-group text-[10px] mr-1" style="color:#FF4D2D"></i>问题分类</p>
+    <div class="flex flex-wrap gap-2" id="catTags">
+      <span class="tag-sel on" onclick="selectCat(this)">服务态度</span>
+      <span class="tag-sel" onclick="selectCat(this)">产品质量</span>
+      <span class="tag-sel" onclick="selectCat(this)">价格纠纷</span>
+      <span class="tag-sel" onclick="selectCat(this)">环境卫生</span>
+      <span class="tag-sel" onclick="selectCat(this)">设施损坏</span>
+      <span class="tag-sel" onclick="selectCat(this)">安全隐患</span>
+      <span class="tag-sel" onclick="selectCat(this)">虚假宣传</span>
+      <span class="tag-sel" onclick="selectCat(this)">其他</span>
+    </div>
+  </div>
+
+  <!-- 紧急程度 -->
+  <div class="bg-white rounded-2xl shadow-soft p-3 mb-3">
+    <p class="text-[12px] font-bold text-gray-800 mb-2"><i class="fas fa-triangle-exclamation text-[10px] mr-1" style="color:#FF4D2D"></i>紧急程度</p>
+    <div class="flex gap-2">
+      <span class="tag-sel" onclick="selectUrgency(this,'low')" style="border-radius:10px;padding:8px 16px">一般</span>
+      <span class="tag-sel on" onclick="selectUrgency(this,'mid')" style="border-radius:10px;padding:8px 16px">较急</span>
+      <span class="tag-sel" onclick="selectUrgency(this,'high')" style="border-radius:10px;padding:8px 16px;background:#FEF2F2;color:#EF4444;border-color:#FECACA">紧急</span>
+    </div>
+  </div>
+
+  <!-- 内容描述 -->
+  <div class="bg-white rounded-2xl shadow-soft p-3 mb-3">
+    <p class="text-[12px] font-bold text-gray-800 mb-2"><i class="fas fa-pen text-[10px] mr-1" style="color:#FF4D2D"></i>详细描述</p>
+    <textarea placeholder="请详细描述您遇到的问题或建议，以便我们快速处理..." class="w-full text-[12px] px-3 py-2.5 rounded-xl outline-none resize-none" style="border:1.5px solid #eceef0;min-height:100px" id="contentInput" oninput="updateCount(this)"></textarea>
+    <p class="text-right text-[10px] text-gray-400 mt-1"><span id="charCount">0</span>/500</p>
+  </div>
+
+  <!-- 图片上传 -->
+  <div class="bg-white rounded-2xl shadow-soft p-3 mb-3">
+    <p class="text-[12px] font-bold text-gray-800 mb-2"><i class="fas fa-image text-[10px] mr-1" style="color:#FF4D2D"></i>上传图片<span class="text-gray-400 font-normal text-[10px] ml-1">最多6张</span></p>
+    <div class="grid grid-cols-4 gap-2" id="imgGrid">
+      <div class="upload-box" onclick="simulateUpload(this)"><i class="fas fa-camera text-gray-300 text-[18px]"></i></div>
+    </div>
+  </div>
+
+  <!-- 联系方式 -->
+  <div class="bg-white rounded-2xl shadow-soft p-3 mb-3">
+    <p class="text-[12px] font-bold text-gray-800 mb-2"><i class="fas fa-phone text-[10px] mr-1" style="color:#FF4D2D"></i>联系方式</p>
+    <input type="text" placeholder="手机号码（方便我们反馈处理结果）" class="w-full text-[12px] px-3 py-2.5 rounded-xl outline-none" style="border:1.5px solid #eceef0" value="138****6688" id="phoneInput">
+    <div class="flex items-center gap-2 mt-2.5">
+      <label class="flex items-center gap-1.5 cursor-pointer">
+        <input type="checkbox" checked class="w-4 h-4 rounded" style="accent-color:#FF4D2D">
+        <span class="text-[10px] text-gray-500">同意《投诉建议处理须知》</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- 提交按钮 -->
+  <button onclick="submitComplaint()" class="card w-full text-center py-3 rounded-full text-[14px] font-bold text-white shadow-card" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D,#FF2D78)">
+    <i class="fas fa-paper-plane text-[13px] mr-1"></i>提交
+  </button>
+</div>
+
+<!-- ===== 提交记录列表 ===== -->
+<div id="listArea" class="px-3 mt-3 mb-24" style="display:none">
+  <!-- 记录1：已办结 -->
+  <div class="bg-white rounded-2xl shadow-soft p-3 mb-2.5 fade-in" onclick="viewDetail('TS20260820001')">
+    <div class="flex items-center justify-between mb-2">
+      <div class="flex items-center gap-2">
+        <span class="text-[10px] font-bold px-2 py-0.5 rounded" style="background:#DCFCE7;color:#16A34A">已办结</span>
+        <span class="text-[10px] text-gray-400">市场管理</span>
+      </div>
+      <span class="text-[9px] text-gray-300">2026-08-20</span>
+    </div>
+    <p class="text-[12px] text-gray-800 font-medium mb-1">B区卫生间设施损坏，水管漏水多日</p>
+    <p class="text-[10px] text-gray-400 leading-relaxed">B区卫生间水管漏水已经一周了，地面湿滑存在安全隐患，请尽快维修...</p>
+    <div class="flex items-center gap-2 mt-2 pt-2 border-t border-gray-50">
+      <i class="fas fa-comment-dots text-[9px] text-green-500"></i>
+      <span class="text-[10px] text-gray-500">物业管理部已处理：水管已更换维修，感谢反馈</span>
+      <i class="fas fa-chevron-right text-[9px] text-gray-300 ml-auto"></i>
+    </div>
+  </div>
+
+  <!-- 记录2：处理中 -->
+  <div class="bg-white rounded-2xl shadow-soft p-3 mb-2.5 fade-in" onclick="viewDetail('TS20260824002')">
+    <div class="flex items-center justify-between mb-2">
+      <div class="flex items-center gap-2">
+        <span class="text-[10px] font-bold px-2 py-0.5 rounded" style="background:#FEF3C7;color:#D97706">处理中</span>
+        <span class="text-[10px] text-gray-400">商铺服务</span>
+      </div>
+      <span class="text-[9px] text-gray-300">2026-08-24</span>
+    </div>
+    <p class="text-[12px] text-gray-800 font-medium mb-1">A区03号永盛袜业服务态度问题</p>
+    <p class="text-[10px] text-gray-400 leading-relaxed">店主对询价态度敷衍，报价后反复变更价格，沟通体验很差...</p>
+    <div class="flex items-center gap-2 mt-2 pt-2 border-t border-gray-50">
+      <i class="fas fa-clock text-[9px] text-amber-500"></i>
+      <span class="text-[10px] text-gray-500">市场管理部正在核查中</span>
+      <i class="fas fa-chevron-right text-[9px] text-gray-300 ml-auto"></i>
+    </div>
+  </div>
+
+  <!-- 记录3：已受理 -->
+  <div class="bg-white rounded-2xl shadow-soft p-3 mb-2.5 fade-in" onclick="viewDetail('TS20260826003')">
+    <div class="flex items-center justify-between mb-2">
+      <div class="flex items-center gap-2">
+        <span class="text-[10px] font-bold px-2 py-0.5 rounded" style="background:#DBEAFE;color:#2563EB">已受理</span>
+        <span class="text-[10px] text-gray-400">环境设施</span>
+      </div>
+      <span class="text-[9px] text-gray-300">2026-08-26</span>
+    </div>
+    <p class="text-[12px] text-gray-800 font-medium mb-1">1F主通道照明灯不亮</p>
+    <p class="text-[10px] text-gray-400 leading-relaxed">1F袜子区A排和B排之间主通道有2盏灯不亮，影响看货...</p>
+    <div class="flex items-center gap-2 mt-2 pt-2 border-t border-gray-50">
+      <i class="fas fa-inbox text-[9px] text-blue-500"></i>
+      <span class="text-[10px] text-gray-500">物业部已受理，预计明日维修</span>
+      <i class="fas fa-chevron-right text-[9px] text-gray-300 ml-auto"></i>
+    </div>
+  </div>
+
+  <!-- 记录4：已办结-建议 -->
+  <div class="bg-white rounded-2xl shadow-soft p-3 mb-2.5 fade-in" onclick="viewDetail('TS20260815004')">
+    <div class="flex items-center justify-between mb-2">
+      <div class="flex items-center gap-2">
+        <span class="text-[10px] font-bold px-2 py-0.5 rounded" style="background:#DCFCE7;color:#16A34A">已办结</span>
+        <span class="text-[10px] text-gray-400">其他·建议</span>
+      </div>
+      <span class="text-[9px] text-gray-300">2026-08-15</span>
+    </div>
+    <p class="text-[12px] text-gray-800 font-medium mb-1">建议增加市场休息座椅</p>
+    <p class="text-[10px] text-gray-400 leading-relaxed">逛市场时间长了没地方休息，建议在每排通道中间增加休息座椅...</p>
+    <div class="flex items-center gap-2 mt-2 pt-2 border-t border-gray-50">
+      <i class="fas fa-thumbs-up text-[9px] text-green-500"></i>
+      <span class="text-[10px] text-gray-500">采纳：已安排在A/B/C/D排通道增设座椅</span>
+      <i class="fas fa-chevron-right text-[9px] text-gray-300 ml-auto"></i>
+    </div>
+  </div>
+</div>
+
+<!-- 底部说明 -->
+<div class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-gray-100 px-4 flex items-center justify-between" style="height:55px;z-index:100;width:393px">
+  <div class="flex items-center gap-2">
+    <i class="fas fa-headset text-[14px]" style="color:#FF4D2D"></i>
+    <span class="text-[11px] text-gray-500">投诉热线</span>
+    <span class="text-[13px] font-bold" style="color:#FF4D2D">0575-8765-4321</span>
+  </div>
+  <a href="mine.html" class="text-[11px] text-gray-400 px-3 py-1.5 rounded-full" style="background:#f5f5f5">返回</a>
+</div>
+<div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none"><div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:2px"></div></div>
+
+<!-- 详情面板 -->
+<div class="overlay" id="detailOverlay" onclick="closeDetail()"></div>
+<div class="panel" id="detailPanel">
+  <div class="flex justify-center pt-2 pb-1"><div style="width:36px;height:4px;background:#E5E7EB;border-radius:2px"></div></div>
+  <div class="px-4 pb-6">
+    <div class="flex items-center justify-between mb-3">
+      <p class="text-[14px] font-bold text-gray-800">投诉详情</p>
+      <button onclick="closeDetail()" class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center"><i class="fas fa-times text-[12px] text-gray-500"></i></button>
+    </div>
+    <div id="detailContent"></div>
+  </div>
+</div>
+
+<!-- 提交成功弹层 -->
+<div class="overlay" id="successOverlay" onclick="closeSuccess()"></div>
+<div class="panel" id="successPanel">
+  <div class="flex justify-center pt-2 pb-1"><div style="width:36px;height:4px;background:#E5E7EB;border-radius:2px"></div></div>
+  <div class="px-4 pb-6 text-center">
+    <div class="w-16 h-16 rounded-full mx-auto mb-3 flex items-center justify-center" style="background:linear-gradient(135deg,#34D399,#10B981)">
+      <i class="fas fa-check text-white text-[28px]"></i>
+    </div>
+    <p class="text-[16px] font-bold text-gray-800 mb-1">提交成功</p>
+    <p class="text-[11px] text-gray-400 mb-3">您的投诉建议已提交，系统已自动流转至对应部门</p>
+    <div class="bg-gray-50 rounded-xl p-3 mb-4 text-left">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-[10px] text-gray-400">受理编号</span>
+        <span class="text-[12px] font-bold" style="color:#FF4D2D" id="ticketNo">TS20260827005</span>
+      </div>
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-[10px] text-gray-400">流转部门</span>
+        <span class="text-[11px] text-gray-700" id="ticketDept">市场管理部</span>
+      </div>
+      <div class="flex items-center justify-between">
+        <span class="text-[10px] text-gray-400">预计回复</span>
+        <span class="text-[11px] text-gray-700">2个工作日内</span>
+      </div>
+    </div>
+    <div class="bg-blue-50 rounded-xl p-2.5 mb-4">
+      <p class="text-[10px] text-blue-600 leading-relaxed"><i class="fas fa-circle-info mr-1"></i>处理结果将通过消息中心通知您，请注意查收</p>
+    </div>
+    <div class="flex gap-2">
+      <button onclick="closeSuccess();switchTab('list',document.getElementById('tabList'))" class="flex-1 py-2.5 rounded-full text-[12px] font-bold" style="background:#FFF0EB;color:#FF4D2D;border:1.5px solid #FFD4C5">查看记录</button>
+      <button onclick="closeSuccess()" class="flex-1 py-2.5 rounded-full text-[12px] font-bold text-white shadow-card" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D,#FF2D78)">继续提交</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><i class="fas fa-circle-check" style="color:#4ADE80"></i><span id="toastTxt">操作成功</span></div>
+
+<script>
+var toastTimer;
+function toast(msg){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},1600)}
+
+var currentType='market';
+var currentCat='服务态度';
+var currentUrgency='mid';
+
+function switchTab(tab,el){
+  document.getElementById('tabNew').className='flex-1 py-2.5 rounded-xl text-[13px] font-bold text-gray-500 bg-white shadow-soft';
+  document.getElementById('tabList').className='flex-1 py-2.5 rounded-xl text-[13px] font-bold text-gray-500 bg-white shadow-soft';
+  el.className='flex-1 py-2.5 rounded-xl text-[13px] font-bold text-white shadow-card';
+  el.style.background='linear-gradient(135deg,#FF6B35,#FF4D2D,#FF2D78)';
+  document.getElementById('formArea').style.display=tab==='new'?'':'none';
+  document.getElementById('listArea').style.display=tab==='list'?'':'none';
+  if(tab==='new'){
+    document.getElementById('tabList').style.background='';
+    document.getElementById('tabList').className='flex-1 py-2.5 rounded-xl text-[13px] font-bold text-gray-500 bg-white shadow-soft';
+  }else{
+    document.getElementById('tabNew').style.background='';
+    document.getElementById('tabNew').className='flex-1 py-2.5 rounded-xl text-[13px] font-bold text-gray-500 bg-white shadow-soft';
+  }
+}
+
+function selectType(el,type){
+  document.querySelectorAll('.type-tag').forEach(function(t){t.classList.remove('on')});
+  el.classList.add('on');
+  currentType=type;
+  var cats={
+    market:['服务态度','价格纠纷','安全隐患','环境卫生','设施损坏','管理规范','违规经营','其他'],
+    shop:['服务态度','产品质量','价格纠纷','虚假宣传','发货问题','售后问题','其他'],
+    facility:['设施损坏','环境卫生','安全隐患','照明问题','空调通风','电梯问题','其他'],
+    other:['建议','咨询','表扬','其他']
+  };
+  var html='';
+  cats[type].forEach(function(c,i){
+    html+='<span class="tag-sel'+(i===0?' on':'')+'" onclick="selectCat(this)">'+c+'</span>';
+  });
+  document.getElementById('catTags').innerHTML=html;
+  currentCat=cats[type][0];
+  var targetBox=document.getElementById('targetBox');
+  if(type==='shop'){targetBox.style.display='';}
+  else{targetBox.style.display='';}
+}
+
+function selectCat(el){
+  document.querySelectorAll('#catTags .tag-sel').forEach(function(t){t.classList.remove('on')});
+  el.classList.add('on');
+  currentCat=el.textContent;
+}
+
+function selectUrgency(el,level){
+  document.querySelectorAll('#catBox').length;
+  currentUrgency=level;
+}
+
+function updateCount(el){
+  var n=el.value.length;
+  if(n>500){el.value=el.value.substring(0,500);n=500;}
+  document.getElementById('charCount').textContent=n;
+}
+
+function simulateUpload(el){
+  el.classList.add('has-img');
+  var colors=['#FF6B35','#3B82F6','#10B981','#F59E0B'];
+  var c=colors[Math.floor(Math.random()*colors.length)];
+  el.innerHTML='<div style="width:100%;height:100%;background:linear-gradient(135deg,'+c+','+c+'88);display:flex;align-items:center;justify-content:center;border-radius:10px"><i class="fas fa-image text-white text-[16px]"></i></div>';
+  var grid=document.getElementById('imgGrid');
+  var count=grid.querySelectorAll('.has-img').length;
+  if(count<6){
+    grid.insertAdjacentHTML('beforeend','<div class="upload-box" onclick="simulateUpload(this)"><i class="fas fa-camera text-gray-300 text-[18px]"></i></div>');
+  }
+}
+
+function submitComplaint(){
+  var content=document.getElementById('contentInput').value.trim();
+  if(!content){toast('请填写详细描述');return;}
+  var phone=document.getElementById('phoneInput').value.trim();
+  if(!phone){toast('请填写联系方式');return;}
+  var typeMap={market:'市场管理部',shop:'商铺服务部',facility:'物业管理部',other:'综合服务部'};
+  var ticketNo='TS20260827'+String(Math.floor(Math.random()*900+100));
+  document.getElementById('ticketNo').textContent=ticketNo;
+  document.getElementById('ticketDept').textContent=typeMap[currentType]||'综合服务部';
+  document.getElementById('successPanel').classList.add('on');
+  document.getElementById('successOverlay').classList.add('on');
+  document.getElementById('contentInput').value='';
+  document.getElementById('charCount').textContent='0';
+}
+
+function closeSuccess(){
+  document.getElementById('successPanel').classList.remove('on');
+  document.getElementById('successOverlay').classList.remove('on');
+}
+
+function viewDetail(id){
+  var data={
+    'TS20260820001':{type:'市场管理',cat:'设施损坏',status:'已办结',statusColor:'#16A34A',statusBg:'#DCFCE7',date:'2026-08-20 14:32',target:'B区卫生间',content:'B区卫生间水管漏水已经一周了，地面湿滑存在安全隐患，请尽快维修。附图3张。',steps:[{t:'提交投诉',d:'2026-08-20 14:32',s:'done'},{t:'物业部受理',d:'2026-08-20 15:10',s:'done'},{t:'维修派单',d:'2026-08-20 16:00',s:'done'},{t:'维修完成',d:'2026-08-21 10:30',s:'done'},{t:'办结反馈',d:'2026-08-21 11:00',s:'done'}],reply:'水管已更换维修完毕，地面已清理干燥。感谢您的反馈，后续如有问题随时联系我们。'},
+    'TS20260824002':{type:'商铺服务',cat:'服务态度',status:'处理中',statusColor:'#D97706',statusBg:'#FEF3C7',date:'2026-08-24 09:15',target:'A区03号 永盛袜业',content:'店主对询价态度敷衍，报价后反复变更价格，沟通体验很差。希望市场方介入协调。',steps:[{t:'提交投诉',d:'2026-08-24 09:15',s:'done'},{t:'市场管理部受理',d:'2026-08-24 10:00',s:'done'},{t:'调查核实',d:'处理中...',s:'cur'},{t:'调解处理',d:'',s:'todo'},{t:'办结反馈',d:'',s:'todo'}],reply:''},
+    'TS20260826003':{type:'环境设施',cat:'照明问题',status:'已受理',statusColor:'#2563EB',statusBg:'#DBEAFE',date:'2026-08-26 16:20',target:'1F主通道',content:'1F袜子区A排和B排之间主通道有2盏灯不亮，影响看货，望尽快处理。',steps:[{t:'提交投诉',d:'2026-08-26 16:20',s:'done'},{t:'物业部受理',d:'2026-08-26 17:00',s:'done'},{t:'维修排期',d:'预计明日',s:'cur'},{t:'维修完成',d:'',s:'todo'},{t:'办结反馈',d:'',s:'todo'}],reply:''},
+    'TS20260815004':{type:'其他·建议',cat:'建议',status:'已办结',statusColor:'#16A34A',statusBg:'#DCFCE7',date:'2026-08-15 10:00',target:'全市场',content:'逛市场时间长了没地方休息，建议在每排通道中间增加休息座椅，提升采购体验。',steps:[{t:'提交建议',d:'2026-08-15 10:00',s:'done'},{t:'综合部受理',d:'2026-08-15 11:00',s:'done'},{t:'方案评审',d:'2026-08-16 14:00',s:'done'},{t:'采纳实施',d:'2026-08-18 09:00',s:'done'},{t:'办结反馈',d:'2026-08-18 10:00',s:'done'}],reply:'感谢您的建议！已采纳并安排在A/B/C/D排通道增设休息座椅，已安装完毕，欢迎体验。'}
+  };
+  var d=data[id];
+  if(!d)return;
+  var stepsHtml='<div class="flex items-center mb-3">';
+  d.steps.forEach(function(s,i){
+    var cls=s.s==='done'?'step-dot done':s.s==='cur'?'step-dot cur':'step-dot todo';
+    var icon=s.s==='done'?'<i class="fas fa-check text-[8px]"></i>':(s.s==='cur'?'<i class="fas fa-clock text-[8px]"></i>':(i+1));
+    stepsHtml+='<div class="'+cls+'">'+icon+'</div>';
+    if(i<d.steps.length-1){stepsHtml+='<div class="step-line'+(s.s==='done'?' done':'')+'"></div>';}
+  });
+  stepsHtml+='</div>';
+  var stepsList='<div class="space-y-2.5 mb-3">';
+  d.steps.forEach(function(s){
+    var dot=s.s==='done'?'bg-green-500':s.s==='cur'?'bg-orange-500':'bg-gray-300';
+    stepsList+='<div class="flex items-start gap-2"><div class="w-2 h-2 rounded-full mt-1 '+dot+' flex-shrink-0"></div><div><p class="text-[11px] font-medium text-gray-700">'+s.t+'</p><p class="text-[9px] text-gray-400">'+s.d+'</p></div></div>';
+  });
+  stepsList+='</div>';
+  var html='<div class="flex items-center gap-2 mb-3"><span class="text-[10px] font-bold px-2 py-0.5 rounded" style="background:'+d.statusBg+';color:'+d.statusColor+'">'+d.status+'</span><span class="text-[10px] text-gray-400">'+d.type+'</span><span class="text-[9px] text-gray-300 ml-auto">'+id+'</span></div>'+
+    '<div class="bg-gray-50 rounded-xl p-3 mb-3"><div class="grid grid-cols-2 gap-2 mb-2"><div><p class="text-[9px] text-gray-400">问题分类</p><p class="text-[11px] text-gray-700">'+d.cat+'</p></div><div><p class="text-[9px] text-gray-400">提交时间</p><p class="text-[11px] text-gray-700">'+d.date+'</p></div></div><div><p class="text-[9px] text-gray-400">投诉对象</p><p class="text-[11px] text-gray-700">'+d.target+'</p></div></div>'+
+    '<p class="text-[10px] text-gray-400 mb-1">详细描述</p><p class="text-[11px] text-gray-700 leading-relaxed mb-3">'+d.content+'</p>'+
+    stepsHtml+stepsList;
+  if(d.reply){
+    html+='<div class="rounded-xl p-3 mb-2" style="background:#FFF0EB;border:1px solid #FFD4C5"><p class="text-[10px] font-bold mb-1" style="color:#FF4D2D"><i class="fas fa-reply mr-1"></i>部门回复</p><p class="text-[11px] text-gray-700 leading-relaxed">'+d.reply+'</p></div>';
+  }else{
+    html+='<div class="rounded-xl p-3 mb-2" style="background:#FEF3C7"><p class="text-[10px] text-amber-600"><i class="fas fa-clock mr-1"></i>正在处理中，请耐心等待，处理结果将通过消息中心通知您</p></div>';
+  }
+  html+='<div class="flex gap-2 mt-3"><button onclick="toast(\'已催办，请耐心等待\')" class="flex-1 py-2 rounded-full text-[11px] font-bold" style="background:#f5f5f5;color:#6b7080"><i class="fas fa-bell text-[10px] mr-1"></i>催办</button><button onclick="toast(\'评价已提交\')" class="flex-1 py-2 rounded-full text-[11px] font-bold text-white" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)">满意度评价</button></div>';
+  document.getElementById('detailContent').innerHTML=html;
+  document.getElementById('detailPanel').classList.add('on');
+  document.getElementById('detailOverlay').classList.add('on');
+}
+
+function closeDetail(){
+  document.getElementById('detailPanel').classList.remove('on');
+  document.getElementById('detailOverlay').classList.remove('on');
+}
+</script>
+</body>
+</html>

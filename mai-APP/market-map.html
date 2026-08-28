@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>市场导览 - 袜掌柜买家版</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--p:#FF4D2D;--pl:#FF7849;--bg:#FFF7F4}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+::-webkit-scrollbar{width:2px;height:2px}
+.card{transition:transform .16s ease}.card:active{transform:scale(.965)}
+.shadow-card{box-shadow:0 8px 24px rgba(255,77,45,.14)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
+.grad-h{background:linear-gradient(135deg,#FF6B35 0%,#FF4D2D 45%,#FF2D78 100%)}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:300;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.25);min-width:120px;justify-content:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.floor-tab{flex:1;text-align:center;padding:9px 0;font-size:12px;font-weight:600;color:rgba(255,255,255,.6);cursor:pointer;transition:.2s;border-radius:10px}
+.floor-tab.on{color:#fff;background:rgba(255,255,255,.18)}
+.shop-cell{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;border-radius:4px;cursor:pointer;transition:.15s;height:34px;line-height:1.1;text-align:center}
+.shop-cell:active{transform:scale(.92)}
+.shop-cell.hl{box-shadow:0 0 0 2px #FFD700,0 0 12px rgba(255,215,0,.5);transform:scale(1.08)}
+.shop-cell.busy{background:linear-gradient(135deg,#FF8B5A,#FF6B35)!important}
+.shop-cell.idle{background:linear-gradient(135deg,#E0E0E0,#BDBDBD)!important;color:#666}
+.shop-cell.facility{background:linear-gradient(135deg,#60A5FA,#3B82F6)}
+.shop-cell.food{background:linear-gradient(135deg,#FBBF24,#F59E0B)}
+.shop-cell.restroom{background:linear-gradient(135deg,#9CA3AF,#6B7280)}
+.shop-cell.elevator{background:linear-gradient(135deg,#9CA3AF,#6B7280)}
+.shop-cell.entrance{background:linear-gradient(135deg,#34D399,#10B981)}
+.filter-tag{font-size:10px;color:#6b7080;background:#fff;border:1.5px solid #eceef0;border-radius:8px;padding:5px 10px;cursor:pointer;transition:.15s;font-weight:500;white-space:nowrap}
+.filter-tag.on{border-color:#FF4D2D;color:#FF4D2D;background:#FFF0EB;font-weight:600}
+.fade-in{animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.h-scroll{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:0 16px 4px;scrollbar-width:none}
+.h-scroll::-webkit-scrollbar{display:none}
+.shop-panel{position:fixed;bottom:0;left:0;right:0;background:#fff;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.12);z-index:200;transform:translateY(100%);transition:transform .3s ease;width:393px}
+.shop-panel.on{transform:translateY(0)}
+.shop-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:150;opacity:0;pointer-events:none;transition:.3s}
+.shop-overlay.on{opacity:1;pointer-events:auto}
+</style>
+</head>
+<body>
+
+<!-- 顶部渐变区 -->
+<div class="relative px-4 pt-2 pb-0 overflow-hidden" style="background:linear-gradient(135deg,#FF6B35 0%,#FF4D2D 45%,#FF2D78 100%)">
+  <div class="absolute -top-16 -left-10 w-52 h-52 rounded-full blur-3xl opacity-50" style="background:#FF8A4C"></div>
+  <div class="absolute -top-8 right-[-40px] w-56 h-56 rounded-full blur-3xl opacity-40" style="background:#FF2D78"></div>
+  <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+  </div>
+  <div class="relative flex items-center gap-3">
+    <a href="market-socks.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+    <div>
+      <h1 class="text-white font-extrabold text-[18px] tracking-wide flex items-center gap-1.5" style="text-shadow:0 2px 10px rgba(0,0,0,.18)">
+        <i class="fas fa-map-location-dot text-[15px]"></i>市场导览
+      </h1>
+      <p class="text-white/70 text-[10px] mt-0.5">大唐国际袜业城 · 可视化导航</p>
+    </div>
+    <button onclick="toast('地图全屏模式')" class="ml-auto w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-expand text-[13px]"></i></button>
+  </div>
+  <!-- 楼层Tab -->
+  <div class="relative flex gap-1 mt-3 pb-2" id="floorTabs">
+    <div class="floor-tab on" onclick="switchFloor(1,this)">1F 袜子区</div>
+    <div class="floor-tab" onclick="switchFloor(2,this)">2F 品牌馆</div>
+    <div class="floor-tab" onclick="switchFloor(4,this)">B1 停车场</div>
+  </div>
+</div>
+
+<!-- 搜索栏 -->
+<div class="px-3 mt-3">
+  <div class="bg-white rounded-2xl shadow-soft p-2.5">
+    <div class="flex items-center gap-2">
+      <i class="fas fa-magnifying-glass text-[12px] text-gray-400"></i>
+      <input type="text" id="shopSearch" placeholder="输入商铺号（如A01）或商铺名称搜索..." class="flex-1 text-[11px] outline-none" style="border:none;background:transparent" oninput="searchShop(this.value)">
+      <button onclick="document.getElementById('shopSearch').value='';searchShop('')" class="text-[10px] text-gray-400 px-1" id="clearBtn" style="display:none"><i class="fas fa-times-circle text-[14px]"></i></button>
+    </div>
+    <div id="searchResult" style="display:none" class="mt-2 pt-2" >
+    </div>
+  </div>
+</div>
+
+<!-- 筛选栏 -->
+<div class="px-3 mt-3">
+  <div class="bg-white rounded-2xl shadow-soft p-2.5">
+    <div class="flex items-center gap-2 mb-2">
+      <i class="fas fa-filter text-[10px] text-gray-400"></i>
+      <span class="text-[10px] text-gray-400">按品类筛选</span>
+    </div>
+    <div class="h-scroll" id="catFilter">
+      <span class="filter-tag on" onclick="filterCat('all',this)">全部</span>
+      <span class="filter-tag" onclick="filterCat('men',this)">男袜</span>
+      <span class="filter-tag" onclick="filterCat('women',this)">女袜</span>
+      <span class="filter-tag" onclick="filterCat('kids',this)">童袜</span>
+      <span class="filter-tag" onclick="filterCat('sport',this)">运动袜</span>
+      <span class="filter-tag" onclick="filterCat('fashion',this)">时尚袜</span>
+      <span class="filter-tag" onclick="filterCat('function',this)">功能袜</span>
+    </div>
+  </div>
+</div>
+
+<!-- 可视化地图 -->
+<div class="px-3 mt-3">
+  <div class="bg-white rounded-2xl shadow-soft p-3">
+    <div class="flex items-center justify-between mb-2.5">
+      <p class="text-[12px] font-bold text-gray-800" id="floorTitle"><i class="fas fa-building text-[11px] mr-1" style="color:#FF4D2D"></i>1F 袜子批发区</p>
+      <span class="text-[10px] text-gray-400" id="floorStat">46家商铺 · 3家空闲</span>
+    </div>
+    <!-- 地图网格 -->
+    <div id="mapArea" style="background:#F9FAFB;border-radius:12px;padding:8px">
+      <!-- 1F -->
+      <div id="floor1" class="fade-in">
+        <div class="grid grid-cols-6 gap-1">
+          <!-- Row A -->
+          <div class="shop-cell busy" data-code="A01" data-name="大唐袜业批发" onclick="openShop('A01','大唐袜业批发','男袜·女袜','A区01号',5,1280)">男袜</div>
+          <div class="shop-cell busy" data-code="A02" data-name="金袜坊" onclick="openShop('A02','金袜坊','男袜·运动袜','A区02号',4,860)">运动袜</div>
+          <div class="shop-cell busy" data-code="A03" data-name="永盛袜业" onclick="openShop('A03','永盛袜业','女袜·时尚袜','A区03号',5,920)">时尚袜</div>
+          <div class="shop-cell busy" data-code="A04" data-name="利达袜行" onclick="openShop('A04','利达袜行','童袜·男袜','A区04号',3,450)">童袜</div>
+          <div class="shop-cell busy" data-code="A05" data-name="华盛袜批" onclick="openShop('A05','华盛袜批','男袜·功能袜','A区05号',4,720)">功能袜</div>
+          <div class="shop-cell busy" data-code="A06" data-name="锦程袜业" onclick="openShop('A06','锦程袜业','女袜·时尚袜','A区06号',5,1100)">女袜</div>
+          <!-- 通道 -->
+          <div class="col-span-6 flex items-center justify-center text-[6px] text-gray-400 rounded" style="background:#E8EAED;height:14px">主 通 道</div>
+          <!-- Row B -->
+          <div class="shop-cell busy" data-code="B01" data-name="东方红袜业" onclick="openShop('B01','东方红袜业','男袜·童袜','B区01号',4,680)">童袜</div>
+          <div class="shop-cell busy" data-code="B02" data-name="恒源袜行" onclick="openShop('B02','恒源袜行','女袜·运动袜','B区02号',5,940)">运动袜</div>
+          <div class="shop-cell food" onclick="toast('餐饮区：奶茶/小吃')"><i class="fas fa-utensils text-[8px]"></i></div>
+          <div class="shop-cell busy" data-code="B03" data-name="顺发袜业" onclick="openShop('B03','顺发袜业','男袜·功能袜','B区03号',3,520)">功能袜</div>
+          <div class="shop-cell busy" data-code="B04" data-name="华联袜批" onclick="openShop('B04','华联袜批','女袜·童袜','B区04号',4,830)">童袜</div>
+          <div class="shop-cell restroom" onclick="toast('卫生间')"><i class="fas fa-restroom text-[7px]"></i></div>
+          <!-- Row C -->
+          <div class="shop-cell busy" data-code="C01" data-name="腾飞袜业" onclick="openShop('C01','腾飞袜业','运动袜·功能袜','C区01号',5,1350)">运动袜</div>
+          <div class="shop-cell idle" data-code="C02" data-name="空闲商铺" onclick="openShop('C02','空闲商铺','待招商','C区02号',0,0)">空闲</div>
+          <div class="shop-cell busy" data-code="C03" data-name="金利来袜行" onclick="openShop('C03','金利来袜行','男袜·时尚袜','C区03号',4,760)">时尚袜</div>
+          <div class="shop-cell elevator" onclick="toast('电梯/楼梯')"><i class="fas fa-elevator text-[7px]"></i></div>
+          <div class="shop-cell entrance" onclick="toast('东门入口')"><i class="fas fa-door-open text-[7px]"></i></div>
+          <div class="shop-cell busy" data-code="C04" data-name="大发袜业" onclick="openShop('C04','大发袜业','女袜·童袜','C区04号',3,480)">童袜</div>
+          <!-- Row D -->
+          <div class="shop-cell busy" data-code="D01" data-name="兴业袜批" onclick="openShop('D01','兴业袜批','男袜·运动袜','D区01号',4,890)">运动袜</div>
+          <div class="shop-cell busy" data-code="D02" data-name="明达袜业" onclick="openShop('D02','明达袜业','童袜·功能袜','D区02号',5,1020)">功能袜</div>
+          <div class="shop-cell busy" data-code="D03" data-name="恒达袜行" onclick="openShop('D03','恒达袜行','女袜·时尚袜','D区03号',4,670)">时尚袜</div>
+          <div class="shop-cell busy" data-code="D04" data-name="金马袜业" onclick="openShop('D04','金马袜业','男袜·功能袜','D区04号',3,540)">功能袜</div>
+          <div class="shop-cell busy" data-code="D05" data-name="顺通袜批" onclick="openShop('D05','顺通袜批','运动袜·童袜','D区05号',5,1150)">童袜</div>
+          <div class="shop-cell busy" data-code="D06" data-name="永泰袜业" onclick="openShop('D06','永泰袜业','女袜·男袜','D区06号',4,780)">男袜</div>
+        </div>
+      </div>
+      <!-- 2F -->
+      <div id="floor2" style="display:none">
+        <div class="grid grid-cols-6 gap-1">
+          <!-- Row A -->
+          <div class="shop-cell busy" style="background:linear-gradient(135deg,#3B82F6,#6366F1);font-size:9px" data-code="2A01" data-name="浪莎品牌馆" onclick="openShop('2A01','浪莎品牌馆','品牌男袜·女袜','2F A区01号',5,2100)">浪莎</div>
+          <div class="shop-cell busy" style="background:linear-gradient(135deg,#EC4899,#F43F5E);font-size:9px" data-code="2A02" data-name="梦娜品牌馆" onclick="openShop('2A02','梦娜品牌馆','品牌女袜·时尚袜','2F A区02号',5,1800)">梦娜</div>
+          <div class="shop-cell busy" style="background:linear-gradient(135deg,#10B981,#059669);font-size:9px" data-code="2A03" data-name="耐尔品牌馆" onclick="openShop('2A03','耐尔品牌馆','品牌运动袜','2F A区03号',4,1600)">耐尔</div>
+          <div class="shop-cell busy" style="background:linear-gradient(135deg,#F59E0B,#D97706);font-size:9px" data-code="2A04" data-name="情怡品牌馆" onclick="openShop('2A04','情怡品牌馆','品牌童袜','2F A区04号',4,920)">情怡</div>
+          <div class="shop-cell busy" style="background:linear-gradient(135deg,#8B5CF6,#7C3AED);font-size:9px" data-code="2A05" data-name="宝娜斯馆" onclick="openShop('2A05','宝娜斯馆','品牌女袜','2F A区05号',5,1750)">宝娜斯</div>
+          <div class="shop-cell busy" style="background:linear-gradient(135deg,#14B8A6,#0D9488);font-size:9px" data-code="2A06" data-name="丹吉娅馆" onclick="openShop('2A06','丹吉娅馆','品牌男袜','2F A区06号',4,1300)">丹吉娅</div>
+          <!-- 通道 -->
+          <div class="col-span-6 flex items-center justify-center text-[6px] text-gray-400 rounded" style="background:#E8EAED;height:14px">主 通 道</div>
+          <!-- Row B -->
+          <div class="shop-cell busy" style="background:linear-gradient(135deg,#F43F5E,#E11D48);font-size:9px" data-code="2B01" data-name="安莉品牌馆" onclick="openShop('2B01','安莉品牌馆','品牌女袜','2F B区01号',5,1900)">安莉</div>
+          <div class="shop-cell busy" style="background:linear-gradient(135deg,#0EA5E9,#0284C7);font-size:8px" data-code="2B02" data-name="花花公子袜" onclick="openShop('2B02','花花公子袜','品牌男袜','2F B区02号',4,1450)">花花公子</div>
+          <div class="shop-cell food" onclick="toast('咖啡厅')"><i class="fas fa-mug-saucer text-[8px]"></i></div>
+          <div class="shop-cell busy" style="background:linear-gradient(135deg,#6366F1,#4F46E5);font-size:9px" data-code="2B03" data-name="南极人袜馆" onclick="openShop('2B03','南极人袜馆','品牌功能袜','2F B区03号',4,1100)">南极人</div>
+          <div class="shop-cell busy" style="background:linear-gradient(135deg,#A855F7,#9333EA);font-size:9px" data-code="2C02" data-name="猫人袜馆" onclick="openShop('2C02','猫人袜馆','品牌时尚袜','2F C区02号',5,1650)">猫人</div>
+          <div class="shop-cell restroom" onclick="toast('卫生间')"><i class="fas fa-restroom text-[7px]"></i></div>
+          <!-- Row C -->
+          <div class="shop-cell busy" style="background:linear-gradient(135deg,#059669,#047857);font-size:8px" data-code="2C03" data-name="七匹狼袜馆" onclick="openShop('2C03','七匹狼袜馆','品牌运动袜','2F C区03号',4,1380)">七匹狼</div>
+          <div class="shop-cell busy" style="background:linear-gradient(135deg,#EF4444,#DC2626);font-size:9px" data-code="2C01" data-name="北极绒袜馆" onclick="openShop('2C01','北极绒袜馆','品牌男袜','2F C区01号',4,1200)">北极绒</div>
+          <div class="shop-cell elevator" onclick="toast('电梯/楼梯')"><i class="fas fa-elevator text-[7px]"></i></div>
+          <div class="shop-cell entrance" onclick="toast('品牌馆入口')"><i class="fas fa-door-open text-[7px]"></i></div>
+          <div class="shop-cell busy" style="background:linear-gradient(135deg,#F97316,#EA580C);font-size:9px" data-code="2B04" data-name="红豆袜业馆" onclick="openShop('2B04','红豆袜业馆','品牌童袜','2F B区04号',3,860)">红豆</div>
+          <div class="shop-cell idle" data-code="2C04" data-name="空闲商铺" onclick="openShop('2C04','空闲商铺','待招商','2F C区04号',0,0)" style="font-size:8px">招商中</div>
+        </div>
+      </div>
+      <!-- B1 -->
+      <div id="floor4" style="display:none">
+        <div class="rounded-xl p-4 text-center" style="background:#F3F4F6">
+          <i class="fas fa-square-parking text-[32px] text-gray-400 mb-2"></i>
+          <p class="text-[12px] font-bold text-gray-700">B1 地下停车场</p>
+          <p class="text-[10px] text-gray-400 mt-1">车位 120 个 · 剩余 38 个</p>
+          <div class="grid grid-cols-6 gap-1 mt-3">
+            <div class="shop-cell" style="background:#10B981;height:20px"></div>
+            <div class="shop-cell" style="background:#EF4444;height:20px"></div>
+            <div class="shop-cell" style="background:#10B981;height:20px"></div>
+            <div class="shop-cell" style="background:#10B981;height:20px"></div>
+            <div class="shop-cell" style="background:#EF4444;height:20px"></div>
+            <div class="shop-cell" style="background:#10B981;height:20px"></div>
+            <div class="shop-cell" style="background:#10B981;height:20px"></div>
+            <div class="shop-cell" style="background:#10B981;height:20px"></div>
+            <div class="shop-cell" style="background:#EF4444;height:20px"></div>
+            <div class="shop-cell" style="background:#10B981;height:20px"></div>
+            <div class="shop-cell" style="background:#EF4444;height:20px"></div>
+            <div class="shop-cell" style="background:#10B981;height:20px"></div>
+          </div>
+          <div class="flex justify-center gap-3 mt-2">
+            <span class="flex items-center gap-1 text-[9px] text-gray-500"><span class="w-2.5 h-2.5 rounded" style="background:#10B981"></span>空闲</span>
+            <span class="flex items-center gap-1 text-[9px] text-gray-500"><span class="w-2.5 h-2.5 rounded" style="background:#EF4444"></span>已占</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- 图例 -->
+    <div class="flex flex-wrap gap-2 mt-2.5">
+      <span class="flex items-center gap-1 text-[9px] text-gray-500"><span class="w-2.5 h-2.5 rounded" style="background:#FF6B35"></span>营业中</span>
+      <span class="flex items-center gap-1 text-[9px] text-gray-500"><span class="w-2.5 h-2.5 rounded" style="background:#BDBDBD"></span>空闲</span>
+      <span class="flex items-center gap-1 text-[9px] text-gray-500"><span class="w-2.5 h-2.5 rounded" style="background:#F59E0B"></span>餐饮</span>
+      <span class="flex items-center gap-1 text-[9px] text-gray-500"><span class="w-2.5 h-2.5 rounded" style="background:#3B82F6"></span>品牌馆</span>
+      <span class="flex items-center gap-1 text-[9px] text-gray-500"><span class="w-2.5 h-2.5 rounded" style="background:#6B7280"></span>电梯/卫生间</span>
+      <span class="flex items-center gap-1 text-[9px] text-gray-500"><span class="w-2.5 h-2.5 rounded" style="background:#10B981"></span>入口</span>
+    </div>
+  </div>
+</div>
+
+<!-- 热门商铺推荐 -->
+<div class="px-3 mt-3 mb-24">
+  <div class="flex items-center justify-between mb-2">
+    <p class="text-[13px] font-bold text-gray-800"><i class="fas fa-fire text-[11px] mr-1" style="color:#FF4D2D"></i>热门商铺</p>
+    <span class="text-[10px] text-gray-400">查看全部 ›</span>
+  </div>
+  <div class="h-scroll">
+    <div class="card bg-white rounded-xl shadow-soft overflow-hidden" style="width:140px;flex-shrink:0" onclick="openShop('A01','大唐袜业批发','男袜·女袜','A区01号',5,1280)">
+      <img src="images/sock_01.jpg" class="w-full h-[70px] object-cover">
+      <div class="p-2">
+        <p class="text-[11px] font-bold text-gray-800">大唐袜业批发</p>
+        <p class="text-[9px] text-gray-400">A区01号 · 男袜·女袜</p>
+        <div class="flex items-center gap-1 mt-1"><span class="text-[9px] text-orange-500 font-bold">★5.0</span><span class="text-[8px] text-gray-300">1280单</span></div>
+      </div>
+    </div>
+    <div class="card bg-white rounded-xl shadow-soft overflow-hidden" style="width:140px;flex-shrink:0" onclick="openShop('C01','腾飞袜业','运动袜·功能袜','C区01号',5,1350)">
+      <img src="images/sock_05.jpg" class="w-full h-[70px] object-cover">
+      <div class="p-2">
+        <p class="text-[11px] font-bold text-gray-800">腾飞袜业</p>
+        <p class="text-[9px] text-gray-400">C区01号 · 运动袜</p>
+        <div class="flex items-center gap-1 mt-1"><span class="text-[9px] text-orange-500 font-bold">★5.0</span><span class="text-[8px] text-gray-300">1350单</span></div>
+      </div>
+    </div>
+    <div class="card bg-white rounded-xl shadow-soft overflow-hidden" style="width:140px;flex-shrink:0" onclick="openShop('D05','顺通袜批','运动袜·童袜','D区05号',5,1150)">
+      <img src="images/sock_09.jpg" class="w-full h-[70px] object-cover">
+      <div class="p-2">
+        <p class="text-[11px] font-bold text-gray-800">顺通袜批</p>
+        <p class="text-[9px] text-gray-400">D区05号 · 童袜</p>
+        <div class="flex items-center gap-1 mt-1"><span class="text-[9px] text-orange-500 font-bold">★5.0</span><span class="text-[8px] text-gray-300">1150单</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 底部操作 -->
+<div class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-gray-100 px-3 flex items-center gap-2" style="height:60px;z-index:100;width:393px">
+  <button onclick="toast('导航至市场')" class="card flex-1 text-center py-2.5 rounded-full text-[13px] font-bold text-white shadow-card" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D,#FF2D78)">
+    <i class="fas fa-route text-[13px] mr-1"></i>导航到市场
+  </button>
+  <button onclick="toast('联系市场管理')" class="card flex flex-col items-center justify-center px-4 py-1.5 rounded-xl text-gray-500" style="border:1px solid #eceef0">
+    <i class="fas fa-headset text-[14px]"></i><span class="text-[8px] mt-0.5">客服</span>
+  </button>
+</div>
+<div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none"><div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:2px"></div></div>
+
+<!-- 商铺详情面板 -->
+<div class="shop-overlay" id="shopOverlay" onclick="closeShop()"></div>
+<div class="shop-panel" id="shopPanel">
+  <div class="flex justify-center pt-2 pb-1"><div style="width:36px;height:4px;background:#E5E7EB;border-radius:2px"></div></div>
+  <div class="px-4 pb-5">
+    <div class="flex items-center justify-between mb-3">
+      <p class="text-[14px] font-bold text-gray-800" id="spName">商铺名称</p>
+      <button onclick="closeShop()" class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center"><i class="fas fa-times text-[12px] text-gray-500"></i></button>
+    </div>
+    <div class="flex items-center gap-2 mb-3">
+      <span class="text-[10px] bg-orange-50 text-orange-600 px-2 py-0.5 rounded" id="spLocation">A区01号</span>
+      <span class="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded" id="spCat">男袜·女袜</span>
+      <span class="text-[10px] bg-green-50 text-green-600 px-2 py-0.5 rounded" id="spStatus">营业中</span>
+    </div>
+    <div class="bg-gray-50 rounded-xl p-3 mb-3">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-[10px] text-gray-400">商铺评分</span>
+        <span class="text-[12px] font-bold text-orange-500" id="spRating">★5.0</span>
+      </div>
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-[10px] text-gray-400">累计订单</span>
+        <span class="text-[12px] font-bold text-gray-700" id="spOrders">1280单</span>
+      </div>
+      <div class="flex items-center justify-between">
+        <span class="text-[10px] text-gray-400">主营品类</span>
+        <span class="text-[11px] text-gray-700" id="spCatDetail">男袜·女袜</span>
+      </div>
+    </div>
+    <p class="text-[11px] text-gray-500 mb-3 leading-relaxed" id="spDesc">本商铺主营男女袜品批发，经营多年，品质稳定，支持小批量起批，量大从优。欢迎到店看货或线上询价。</p>
+    <div class="grid grid-cols-3 gap-2 mb-4">
+      <img src="images/sock_01.jpg" class="w-full h-[60px] object-cover rounded-lg">
+      <img src="images/sock_03.jpg" class="w-full h-[60px] object-cover rounded-lg">
+      <img src="images/sock_05.jpg" class="w-full h-[60px] object-cover rounded-lg">
+    </div>
+    <div class="flex gap-2">
+      <button onclick="toast('已收藏商铺')" class="card flex-1 text-center py-2.5 rounded-full text-[12px] font-bold" style="background:#FFF0EB;color:#FF4D2D;border:1.5px solid #FFD4C5">
+        <i class="fas fa-bookmark text-[11px] mr-1"></i>收藏
+      </button>
+      <button onclick="toast('正在跳转商铺...');setTimeout(function(){window.location.href='shop-detail.html'},500)" class="card flex-1 text-center py-2.5 rounded-full text-[12px] font-bold text-white shadow-card" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D,#FF2D78)">
+        进入商铺
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><i class="fas fa-circle-check" style="color:#4ADE80"></i><span id="toastTxt">操作成功</span></div>
+
+<script>
+var toastTimer;
+function toast(msg){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},1600)}
+
+function switchFloor(n,el){
+  document.querySelectorAll('.floor-tab').forEach(function(t){t.classList.remove('on')});
+  el.classList.add('on');
+  document.querySelectorAll('#mapArea > div').forEach(function(d){d.style.display='none'});
+  var target=document.getElementById('floor'+n);
+  if(!target)return;
+  target.style.display='';
+  target.classList.remove('fade-in');
+  void target.offsetWidth;
+  target.classList.add('fade-in');
+  var titles={1:'1F 袜子批发区',2:'2F 品牌馆',4:'B1 停车场'};
+  var stats={1:'46家商铺 · 3家空闲',2:'28家品牌 · 2家空闲',4:'120个车位 · 剩余38个'};
+  document.getElementById('floorTitle').innerHTML='<i class="fas fa-building text-[11px] mr-1" style="color:#FF4D2D"></i>'+titles[n];
+  document.getElementById('floorStat').textContent=stats[n];
+}
+
+function filterCat(cat,el){
+  document.querySelectorAll('#catFilter .filter-tag').forEach(function(t){t.classList.remove('on')});
+  el.classList.add('on');
+  var labels={all:'全部',men:'男袜',women:'女袜',kids:'童袜',sport:'运动袜',fashion:'时尚袜',function:'功能袜'};
+  if(cat==='all'){
+    toast('已显示全部商铺');
+    document.querySelectorAll('#mapArea .shop-cell.busy').forEach(function(c){c.style.opacity='1';});
+  }else{
+    toast('筛选：'+labels[cat]);
+    document.querySelectorAll('#mapArea .shop-cell.busy').forEach(function(c){
+      if(c.textContent.indexOf(labels[cat])>-1){c.style.opacity='1';}
+      else{c.style.opacity='0.25';}
+    });
+  }
+}
+
+function searchShop(val){
+  var box=document.getElementById('searchResult');
+  var clearBtn=document.getElementById('clearBtn');
+  document.querySelectorAll('#mapArea .shop-cell').forEach(function(c){c.classList.remove('hl');});
+  if(!val||!val.trim()){
+    box.style.display='none';
+    clearBtn.style.display='none';
+    return;
+  }
+  clearBtn.style.display='';
+  val=val.trim().toLowerCase();
+  var matches=[];
+  document.querySelectorAll('#mapArea .shop-cell[data-code]').forEach(function(c){
+    var code=(c.getAttribute('data-code')||'').toLowerCase();
+    var name=(c.getAttribute('data-name')||'').toLowerCase();
+    if(code.indexOf(val)>-1||name.indexOf(val)>-1){
+      matches.push({code:c.getAttribute('data-code'),name:c.getAttribute('data-name'),el:c});
+    }
+  });
+  if(matches.length===0){
+    box.style.display='';
+    box.innerHTML='<p class="text-[10px] text-gray-400 text-center py-1">未找到匹配商铺</p>';
+  }else{
+    box.style.display='';
+    var html='<div class="flex items-center gap-1 mb-1.5"><i class="fas fa-bullseye text-[9px]" style="color:#FF4D2D"></i><span class="text-[9px] text-gray-400">找到'+matches.length+'家，已高亮</span></div><div class="flex flex-wrap gap-1.5">';
+    matches.forEach(function(m){
+      html+='<span class="card text-[10px] px-2 py-1 rounded-lg font-medium" style="background:#FFF0EB;color:#FF4D2D;border:1px solid #FFD4C5" onclick="highlightShop(\''+m.code+'\')">'+m.code+' '+m.name+'</span>';
+      m.el.classList.add('hl');
+    });
+    html+='</div>';
+    box.innerHTML=html;
+  }
+}
+
+function highlightShop(code){
+  document.querySelectorAll('#mapArea .shop-cell').forEach(function(c){
+    if(c.getAttribute('data-code')===code){
+      c.classList.add('hl');
+      c.scrollIntoView({block:'center',behavior:'smooth'});
+      toast('已定位到 '+code);
+    }
+  });
+}
+
+function openShop(code,name,cat,location,rating,orders){
+  var panel=document.getElementById('shopPanel');
+  var overlay=document.getElementById('shopOverlay');
+  document.getElementById('spName').textContent=name;
+  document.getElementById('spLocation').textContent=location;
+  document.getElementById('spCat').textContent=cat;
+  document.getElementById('spCatDetail').textContent=cat;
+  document.getElementById('spRating').textContent='★'+rating.toFixed(1);
+  if(orders>0){
+    document.getElementById('spOrders').textContent=orders+'单';
+    document.getElementById('spStatus').textContent='营业中';
+    document.getElementById('spStatus').className='text-[10px] bg-green-50 text-green-600 px-2 py-0.5 rounded';
+  }else{
+    document.getElementById('spOrders').textContent='—';
+    document.getElementById('spStatus').textContent='空闲招商';
+    document.getElementById('spStatus').className='text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded';
+  }
+  panel.classList.add('on');
+  overlay.classList.add('on');
+}
+
+function closeShop(){
+  document.getElementById('shopPanel').classList.remove('on');
+  document.getElementById('shopOverlay').classList.remove('on');
+}
+</script>
+</body>
+</html>

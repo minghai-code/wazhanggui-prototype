@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>批量定制 - 袜掌柜买家版</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>
+tailwind.config={theme:{extend:{colors:{primary:'#3B82F6','primary-d':'#1D4ED8','primary-l':'#60A5FA'}}}}
+</script>
+<style>
+:root{--p:#3B82F6;--pl:#60A5FA;--bg:#F0F5FF;--v1:#1D4ED8;--v2:#2563EB}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+::-webkit-scrollbar{width:2px;height:2px}
+.card{transition:transform .16s ease}
+.card:active{transform:scale(.965)}
+.grad-h{background:linear-gradient(135deg,#3B82F6 0%,#2563EB 45%,#1D4ED8 100%)}
+.shadow-card{box-shadow:0 8px 24px rgba(59,130,246,.14)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
+.fade-up{animation:fadeUp .4s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:200;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.25);min-width:140px;justify-content:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.tag-opt{font-size:11px;color:#6b7080;background:#fff;border:1.5px solid #eceef0;border-radius:10px;padding:6px 12px;cursor:pointer;transition:.15s;font-weight:500}
+.tag-opt.on{border-color:#3B82F6;color:#3B82F6;background:#EFF6FF;font-weight:600}
+.upload-box{border:1.5px dashed #C7D2FE;border-radius:12px;padding:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;transition:.15s;background:#fff}
+.upload-box:active{border-color:#3B82F6;background:#EFF6FF}
+input[type=range]{-webkit-appearance:none;width:100%;height:4px;border-radius:2px;background:#E5E7EB;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#3B82F6;box-shadow:0 2px 6px rgba(59,130,246,.4);cursor:pointer}
+.fac-card{border:1.5px solid #E5E7EB;border-radius:14px;padding:12px;cursor:pointer;transition:.15s;background:#fff}
+.fac-card.on{border-color:#3B82F6;background:#EFF6FF;box-shadow:0 4px 12px rgba(59,130,246,.1)}
+.fac-card .check{display:none}
+.fac-card.on .check{display:inline}
+</style>
+</head>
+<body>
+
+<!-- ===== 顶部渐变头部 ===== -->
+<div class="relative px-4 pt-2 pb-4 overflow-hidden" style="background:linear-gradient(135deg,#3B82F6 0%,#2563EB 50%,#1E40AF 100%)">
+  <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-40" style="background:#60A5FA"></div>
+  <div class="absolute -top-6 right-[-30px] w-48 h-48 rounded-full blur-3xl opacity-30" style="background:#818CF8"></div>
+
+  <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+  </div>
+
+  <div class="relative flex items-center gap-3">
+    <a href="market-socks.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+    <div class="flex-1">
+      <div class="flex items-center gap-2">
+        <span class="text-white font-extrabold text-[20px] tracking-wide" style="text-shadow:0 2px 10px rgba(0,0,0,.18)">批量定制</span>
+        <span class="text-[9px] text-white/90 bg-white/20 rounded-full px-2 py-0.5 backdrop-blur">企业采购</span>
+      </div>
+      <p class="text-white/80 text-[11px] mt-0.5">大额定制·智能匹配厂家·一站式采购</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 上传设计稿 ===== -->
+<div class="px-3 pt-3">
+  <div class="bg-white rounded-2xl shadow-soft p-3.5">
+    <div class="flex items-center gap-2 mb-3">
+      <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white" style="background:linear-gradient(135deg,#60A5FA,#3B82F6)"><i class="fas fa-cloud-arrow-up text-[11px]"></i></div>
+      <span class="text-[13px] font-bold text-gray-800">上传定制设计稿</span>
+      <span class="text-[9px] text-gray-400 ml-auto">支持 JPG / PNG / AI</span>
+    </div>
+    <div class="grid grid-cols-3 gap-2">
+      <div class="upload-box" onclick="toast('上传正面设计稿')"><i class="fas fa-image text-2xl text-blue-300"></i><span class="text-[10px] text-gray-400 mt-1">正面图案</span></div>
+      <div class="upload-box" onclick="toast('上传侧面设计稿')"><i class="fas fa-image text-2xl text-blue-300"></i><span class="text-[10px] text-gray-400 mt-1">侧面图案</span></div>
+      <div class="upload-box" onclick="toast('上传工艺说明')"><i class="fas fa-file-lines text-2xl text-blue-300"></i><span class="text-[10px] text-gray-400 mt-1">工艺说明</span></div>
+    </div>
+    <div class="mt-2.5 flex items-center gap-2 text-[10px] text-gray-400">
+      <i class="fas fa-circle-info text-blue-400"></i>
+      <span>文件大小不超过20MB，AI文件请转PDF后上传</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 定制参数 ===== -->
+<div class="px-3 mt-3">
+  <div class="bg-white rounded-2xl shadow-soft p-3.5">
+    <div class="flex items-center gap-2 mb-3">
+      <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white" style="background:linear-gradient(135deg,#60A5FA,#3B82F6)"><i class="fas fa-sliders text-[11px]"></i></div>
+      <span class="text-[13px] font-bold text-gray-800">定制参数</span>
+    </div>
+
+    <div class="mb-3">
+      <label class="text-[11px] font-medium text-gray-500 block mb-2">定制品类</label>
+      <div class="flex flex-wrap gap-1.5">
+        <span class="tag-opt on" onclick="tagToggle(this)">男袜</span>
+        <span class="tag-opt" onclick="tagToggle(this)">女袜</span>
+        <span class="tag-opt" onclick="tagToggle(this)">童袜</span>
+        <span class="tag-opt" onclick="tagToggle(this)">运动袜</span>
+        <span class="tag-opt" onclick="tagToggle(this)">船袜</span>
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label class="text-[11px] font-medium text-gray-500 block mb-2">材质选择</label>
+      <div class="flex flex-wrap gap-1.5">
+        <span class="tag-opt on" onclick="tagSingle(this,'mat');updatePrice()">精梳棉</span>
+        <span class="tag-opt" onclick="tagSingle(this,'mat');updatePrice()">竹纤维</span>
+        <span class="tag-opt" onclick="tagSingle(this,'mat');updatePrice()">美利奴羊毛</span>
+        <span class="tag-opt" onclick="tagSingle(this,'mat');updatePrice()">冰丝</span>
+        <span class="tag-opt" onclick="tagSingle(this,'mat');updatePrice()">Coolmax</span>
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label class="text-[11px] font-medium text-gray-500 block mb-2">筒高</label>
+      <div class="flex flex-wrap gap-1.5">
+        <span class="tag-opt" onclick="tagSingle(this,'height')">船袜</span>
+        <span class="tag-opt" onclick="tagSingle(this,'height')">短筒</span>
+        <span class="tag-opt on" onclick="tagSingle(this,'height')">中筒</span>
+        <span class="tag-opt" onclick="tagSingle(this,'height')">长筒</span>
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label class="text-[11px] font-medium text-gray-500 block mb-2">尺码范围</label>
+      <div class="flex flex-wrap gap-1.5">
+        <span class="tag-opt on" onclick="tagSingle(this,'size')">35-38</span>
+        <span class="tag-opt" onclick="tagSingle(this,'size')">39-42</span>
+        <span class="tag-opt" onclick="tagSingle(this,'size')">43-46</span>
+        <span class="tag-opt" onclick="tagSingle(this,'size')">均码</span>
+        <span class="tag-opt" onclick="tagSingle(this,'size')">多码混批</span>
+      </div>
+    </div>
+
+    <div class="mb-1">
+      <label class="text-[11px] font-medium text-gray-500 block mb-2">工艺要求</label>
+      <div class="flex flex-wrap gap-1.5">
+        <span class="tag-opt on" onclick="tagToggle(this)">200针提花</span>
+        <span class="tag-opt" onclick="tagToggle(this)">168针</span>
+        <span class="tag-opt" onclick="tagToggle(this)">144针</span>
+        <span class="tag-opt" onclick="tagToggle(this)">无骨缝头</span>
+        <span class="tag-opt" onclick="tagToggle(this)">网眼透气</span>
+        <span class="tag-opt" onclick="tagToggle(this)">抗菌处理</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 数量与交期 ===== -->
+<div class="px-3 mt-3">
+  <div class="bg-white rounded-2xl shadow-soft p-3.5">
+    <div class="flex items-center gap-2 mb-3">
+      <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white" style="background:linear-gradient(135deg,#60A5FA,#3B82F6)"><i class="fas fa-boxes-stacked text-[11px]"></i></div>
+      <span class="text-[13px] font-bold text-gray-800">数量与交期</span>
+    </div>
+
+    <div class="mb-3">
+      <div class="flex items-center justify-between mb-1.5">
+        <label class="text-[11px] font-medium text-gray-500">定制数量（双）</label>
+        <span class="text-[12px] text-primary font-bold" id="qtyDisplay">1,000 双</span>
+      </div>
+      <input type="range" min="500" max="10000" step="500" value="1000" id="qtyRange" oninput="updateQty(this)">
+      <div class="flex justify-between text-[9px] text-gray-400 mt-1"><span>500</span><span>5,000</span><span>10,000</span></div>
+    </div>
+
+    <div class="mb-3">
+      <div class="flex items-center justify-between mb-1.5">
+        <label class="text-[11px] font-medium text-gray-500">期望交期</label>
+        <span class="text-[12px] text-primary font-bold" id="dayDisplay">15 天</span>
+      </div>
+      <input type="range" min="7" max="60" step="1" value="15" id="dayRange" oninput="updateDay(this)">
+      <div class="flex justify-between text-[9px] text-gray-400 mt-1"><span>7天</span><span>30天</span><span>60天</span></div>
+    </div>
+
+    <div class="p-2.5 bg-blue-50 rounded-xl flex items-start gap-2">
+      <i class="fas fa-circle-info text-blue-500 text-[11px] mt-0.5"></i>
+      <p class="text-[10px] text-gray-600 leading-relaxed">数量≥3000双可享受阶梯价优惠；加急订单（≤10天）单价上浮15%；支持分批交付</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 智能厂家匹配 ===== -->
+<div class="px-3 mt-3">
+  <div class="bg-white rounded-2xl shadow-soft p-3.5">
+    <div class="flex items-center justify-between mb-3">
+      <div class="flex items-center gap-2">
+        <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white" style="background:linear-gradient(135deg,#60A5FA,#3B82F6)"><i class="fas fa-robot text-[11px]"></i></div>
+        <span class="text-[13px] font-bold text-gray-800">智能厂家匹配</span>
+      </div>
+      <span class="text-[9px] text-gray-400 bg-gray-50 rounded-full px-2 py-0.5">已匹配 3 家</span>
+    </div>
+
+    <div class="space-y-2.5" id="factoryList">
+      <!-- 厂家1 -->
+      <div class="fac-card on" onclick="selectFac(this,4.20)" data-price="4.20">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-[12px] shrink-0" style="background:linear-gradient(135deg,#3B82F6,#1D4ED8)">A</div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-1.5">
+              <p class="text-[12px] font-bold text-gray-800">大唐精工袜业</p>
+              <span class="text-[8px] text-white bg-green-500 rounded px-1 py-0.5">优选</span>
+            </div>
+            <div class="flex items-center gap-2 mt-0.5">
+              <span class="text-[9px] text-gray-400">月产能 50万双</span>
+              <span class="text-[9px] text-gray-300">|</span>
+              <span class="text-[9px] text-gray-400">评分 4.9</span>
+              <span class="text-[9px] text-gray-300">|</span>
+              <span class="text-[9px] text-primary font-medium">¥4.20/双</span>
+            </div>
+          </div>
+          <i class="fas fa-check-circle text-primary text-[16px] check"></i>
+          <i class="far fa-circle text-gray-300 text-[16px] uncheck"></i>
+        </div>
+      </div>
+
+      <!-- 厂家2 -->
+      <div class="fac-card" onclick="selectFac(this,3.95)" data-price="3.95">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-[12px] shrink-0" style="background:linear-gradient(135deg,#60A5FA,#3B82F6)">B</div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-1.5">
+              <p class="text-[12px] font-bold text-gray-800">织云智造工厂</p>
+            </div>
+            <div class="flex items-center gap-2 mt-0.5">
+              <span class="text-[9px] text-gray-400">月产能 80万双</span>
+              <span class="text-[9px] text-gray-300">|</span>
+              <span class="text-[9px] text-gray-400">评分 4.7</span>
+              <span class="text-[9px] text-gray-300">|</span>
+              <span class="text-[9px] text-primary font-medium">¥3.95/双</span>
+            </div>
+          </div>
+          <i class="fas fa-check-circle text-primary text-[16px] check"></i>
+          <i class="far fa-circle text-gray-300 text-[16px] uncheck"></i>
+        </div>
+      </div>
+
+      <!-- 厂家3 -->
+      <div class="fac-card" onclick="selectFac(this,4.50)" data-price="4.50">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-[12px] shrink-0" style="background:linear-gradient(135deg,#818CF8,#6366F1)">C</div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-1.5">
+              <p class="text-[12px] font-bold text-gray-800">恒达纺织科技</p>
+              <span class="text-[8px] text-white bg-orange-500 rounded px-1 py-0.5">快反</span>
+            </div>
+            <div class="flex items-center gap-2 mt-0.5">
+              <span class="text-[9px] text-gray-400">月产能 30万双</span>
+              <span class="text-[9px] text-gray-300">|</span>
+              <span class="text-[9px] text-gray-400">评分 4.8</span>
+              <span class="text-[9px] text-gray-300">|</span>
+              <span class="text-[9px] text-primary font-medium">¥4.50/双</span>
+            </div>
+          </div>
+          <i class="fas fa-check-circle text-primary text-[16px] check"></i>
+          <i class="far fa-circle text-gray-300 text-[16px] uncheck"></i>
+        </div>
+      </div>
+    </div>
+
+    <button class="card w-full mt-3 py-2 rounded-xl text-[11px] font-medium text-primary border border-blue-200 bg-blue-50" onclick="toast('查看更多匹配厂家')">查看全部 12 家匹配厂家 ›</button>
+  </div>
+</div>
+
+<!-- ===== 报价汇总 ===== -->
+<div class="px-3 mt-3">
+  <div class="bg-white rounded-2xl shadow-soft p-3.5">
+    <div class="flex items-center gap-2 mb-3">
+      <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white" style="background:linear-gradient(135deg,#60A5FA,#3B82F6)"><i class="fas fa-calculator text-[11px]"></i></div>
+      <span class="text-[13px] font-bold text-gray-800">报价汇总</span>
+    </div>
+    <div class="space-y-2">
+      <div class="flex justify-between text-[11px]"><span class="text-gray-500">定制数量</span><span class="text-gray-800 font-medium" id="sumQty">1,000 双</span></div>
+      <div class="flex justify-between text-[11px]"><span class="text-gray-500">选中厂家单价</span><span class="text-primary font-bold" id="sumPrice">¥4.20/双</span></div>
+      <div class="flex justify-between text-[11px]"><span class="text-gray-500">打样费（可抵扣）</span><span class="text-gray-800 font-medium">¥500</span></div>
+      <div class="flex justify-between text-[11px]"><span class="text-gray-500">预计大货交期</span><span class="text-gray-800 font-medium" id="sumDay">15 天</span></div>
+      <div class="h-px bg-gray-100 my-2"></div>
+      <div class="flex justify-between items-center"><span class="text-[11px] text-gray-500">预估总价</span><span class="text-primary font-bold text-[16px]" id="sumTotal">¥4,700</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 企业信息 ===== -->
+<div class="px-3 mt-3 mb-32">
+  <div class="bg-white rounded-2xl shadow-soft p-3.5">
+    <div class="flex items-center gap-2 mb-3">
+      <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white" style="background:linear-gradient(135deg,#60A5FA,#3B82F6)"><i class="fas fa-building text-[11px]"></i></div>
+      <span class="text-[13px] font-bold text-gray-800">企业采购信息</span>
+    </div>
+    <div class="mb-3">
+      <label class="text-[11px] font-medium text-gray-500 block mb-1.5">企业名称</label>
+      <input type="text" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-[12px] outline-none" placeholder="请输入企业全称">
+    </div>
+    <div class="mb-3">
+      <label class="text-[11px] font-medium text-gray-500 block mb-1.5">联系人 / 手机号</label>
+      <div class="flex gap-2">
+        <input type="text" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-[12px] outline-none" placeholder="联系人姓名">
+        <input type="tel" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-[12px] outline-none" placeholder="手机号">
+      </div>
+    </div>
+    <div class="mb-1">
+      <label class="text-[11px] font-medium text-gray-500 block mb-1.5">备注需求</label>
+      <textarea class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-[12px] outline-none resize-none" rows="2" placeholder="补充包装要求、物流方式、发票信息等…"></textarea>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 底部操作栏 ===== -->
+<div class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-gray-100 flex items-center px-3 gap-2" style="height:60px;z-index:100;width:393px">
+  <div class="flex flex-col items-end mr-2">
+    <span class="text-[9px] text-gray-400">预估总价</span>
+    <span class="text-primary font-bold text-[14px]" id="bottomTotal">¥4,700</span>
+  </div>
+  <button class="card flex-1 rounded-full text-center font-bold text-[13px] py-2.5 text-white shadow-card grad-h" onclick="submitBulk()">提交定制询价</button>
+</div>
+<div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none"><div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:2px"></div></div>
+
+<!-- 提交成功弹窗 -->
+<div class="fixed inset-0 flex items-center justify-center" id="successMask" style="display:none;background:rgba(0,0,0,.5);z-index:300">
+  <div class="bg-white rounded-3xl mx-6 p-6 text-center shadow-card" style="max-width:280px;animation:fadeUp .35s ease both">
+    <div class="w-16 h-16 mx-auto rounded-full flex items-center justify-center" style="background:linear-gradient(135deg,#34D399,#10B981);box-shadow:0 8px 24px rgba(16,185,129,.3)"><i class="fas fa-check text-white text-2xl"></i></div>
+    <p class="text-[16px] font-bold text-gray-800 mt-4">询价已提交</p>
+    <p class="text-[12px] text-gray-500 mt-1.5 leading-relaxed">平台已通知匹配厂家报价<br>预计 2 小时内收到厂家回复</p>
+    <div class="bg-blue-50 rounded-xl p-3 mt-3 text-left">
+      <p class="text-[10px] text-gray-500">询价单号：<span class="text-gray-700 font-medium">BC20260825001</span></p>
+      <p class="text-[10px] text-gray-500 mt-0.5">匹配厂家：<span class="text-gray-700 font-medium">大唐精工袜业 等3家</span></p>
+    </div>
+    <a href="market-socks.html" class="card block w-full mt-4 py-2.5 rounded-xl text-white text-[13px] font-bold" style="background:linear-gradient(135deg,#3B82F6,#2563EB)">返回袜子市场</a>
+  </div>
+</div>
+
+<div class="toast" id="toast"><i class="fas fa-circle-check text-[#4ADE80]"></i><span id="toastTxt">操作成功</span></div>
+
+<script>
+var toastTimer;
+function toast(msg){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},1600)}
+function tagToggle(el){el.classList.toggle('on')}
+function tagSingle(el,group){var parent=el.parentElement;var items=parent.querySelectorAll('.tag-opt');items.forEach(function(i){i.classList.remove('on')});el.classList.add('on')}
+
+var curQty=1000,curDay=15,curPrice=4.20;
+function updateQty(el){curQty=parseInt(el.value);document.getElementById('qtyDisplay').textContent=curQty.toLocaleString()+' 双';document.getElementById('sumQty').textContent=curQty.toLocaleString()+' 双';updateTotal()}
+function updateDay(el){curDay=parseInt(el.value);document.getElementById('dayDisplay').textContent=curDay+' 天';document.getElementById('sumDay').textContent=curDay+' 天'}
+function selectFac(el,price){
+  var cards=document.querySelectorAll('.fac-card');
+  cards.forEach(function(c){c.classList.remove('on');var check=c.querySelector('.check');var uncheck=c.querySelector('.uncheck');if(check)check.style.display='none';if(uncheck)uncheck.style.display='inline'});
+  el.classList.add('on');
+  var ch=el.querySelector('.check');var un=el.querySelector('.uncheck');if(ch)ch.style.display='inline';if(un)un.style.display='none';
+  curPrice=price;updateTotal();
+}
+function updateTotal(){
+  var total=curQty*curPrice+500;
+  document.getElementById('sumPrice').textContent='¥'+curPrice.toFixed(2)+'/双';
+  document.getElementById('sumTotal').textContent='¥'+total.toLocaleString('zh-CN',{minimumFractionDigits:0,maximumFractionDigits:0});
+  document.getElementById('bottomTotal').textContent='¥'+total.toLocaleString('zh-CN',{minimumFractionDigits:0,maximumFractionDigits:0});
+}
+function updatePrice(){}
+function submitBulk(){document.getElementById('successMask').style.display='flex'}
+</script>
+</body>
+</html>
