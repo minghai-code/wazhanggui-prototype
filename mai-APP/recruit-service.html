@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>人才招聘 - 袜掌柜买家版</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D'}}}}</script>
+<style>
+:root{--bg:#FFF7F4;--pink:#EC4899;--pink-l:#FB7185}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden;color:#1F2430}
+::-webkit-scrollbar{width:2px;height:2px}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
+.shadow-pink{box-shadow:0 8px 22px rgba(236,72,153,.32)}
+.card{transition:transform .16s ease}.card:active{transform:scale(.965)}
+.fade-up{animation:fadeUp .4s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+/* 顶部Tab */
+.tabbar{position:sticky;top:0;z-index:60;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid #f3eef0}
+.tabs{display:flex;padding:10px 12px 0;gap:6px}
+.tab{flex:1;text-align:center;padding:9px 0;border-radius:12px;font-size:13px;color:#7a7f8a;font-weight:500;transition:.2s;cursor:pointer}
+.tab.on{color:#fff;font-weight:700;background:linear-gradient(135deg,#FB7185,#EC4899);box-shadow:0 4px 12px rgba(236,72,153,.3)}
+/* 表单 */
+.inp{width:100%;background:rgba(248,249,250,.8);border:1px solid rgba(240,240,240,.8);border-radius:12px;padding:11px 13px;font-size:13px;color:#1F2430;outline:none;transition:border-color .16s ease,background .16s ease}
+.inp::placeholder{color:#C0C0C0}
+.inp:focus{border-color:#EC4899;background:#fff}
+.lbl{font-size:11px;color:#6b7080;font-weight:500;display:block;margin-bottom:6px}
+.lbl b{color:#EC4899}
+.tag-opt{font-size:11px;color:#6b7080;background:#fff;border:1px solid #eceef0;border-radius:10px;padding:6px 12px;cursor:pointer;transition:.15s;font-weight:500}
+.tag-opt.on{border-color:#EC4899;color:#EC4899;background:#FCE7F3;font-weight:600}
+/* 底部弹层 */
+.sheet-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;opacity:0;pointer-events:none;transition:opacity .25s ease}
+.sheet-mask.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;background:#fff;border-radius:22px 22px 0 0;z-index:201;transform:translateY(100%);transition:transform .28s cubic-bezier(.32,.72,.24,1);max-height:88vh;overflow-y:auto;width:393px}
+.sheet.on{transform:translateY(0)}
+.sheet-handle{width:38px;height:4px;background:#e5e5e5;border-radius:3px;margin:10px auto 6px}
+/* 详情弹层 */
+.modal-mask{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:center;justify-content:center;padding:0 14px}
+.modal-mask.on{display:flex}
+.modal-card{background:#fff;border-radius:22px;max-width:365px;width:100%;max-height:84vh;overflow-y:auto;animation:fadeUp .3s ease both}
+/* toast */
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:300;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.25);min-width:140px;justify-content:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+/* 悬浮按钮 */
+.fab{position:fixed;left:14px;right:14px;bottom:78px;height:46px;border-radius:23px;background:linear-gradient(135deg,#FB7185,#EC4899);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:700;box-shadow:0 8px 22px rgba(236,72,153,.4);z-index:120;cursor:pointer;transition:.18s;gap:6px}
+.fab:active{transform:scale(.97)}
+.info-lbl{font-size:10px;color:#7a7f8a;background:#f6f4f5;border-radius:8px;padding:3px 8px;white-space:nowrap;display:inline-flex;align-items:center;gap:3px}
+.match-ring{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0}
+</style>
+</head>
+<body>
+
+<!-- ===== 顶部渐变头部 ===== -->
+<div class="relative px-4 pt-2 pb-5 overflow-hidden" style="background:linear-gradient(135deg,#FB7185 0%,#EC4899 50%,#DB2777 100%)">
+  <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-40" style="background:#FBA8B5"></div>
+  <div class="absolute -top-6 right-[-30px] w-48 h-48 rounded-full blur-3xl opacity-30" style="background:#EC4899"></div>
+  <div class="absolute -bottom-10 left-12 w-40 h-40 rounded-full blur-3xl opacity-25" style="background:#F472B6"></div>
+
+  <!-- iOS状态栏 -->
+  <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+  </div>
+
+  <!-- 返回 + 标题 -->
+  <div class="relative flex items-center gap-2.5 mt-1">
+    <a href="industry-services.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+    <div>
+      <span class="text-white font-extrabold text-[20px] tracking-wide block" style="text-shadow:0 2px 10px rgba(0,0,0,.18)">人才招聘</span>
+      <p class="text-white/80 text-[11px] mt-0.5"><i class="fas fa-user-tie text-[9px] mr-1"></i>袜业人才在线对接 · 企业招聘 · 求职投递</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 统计概览 ===== -->
+<div class="px-3 -mt-3 relative z-10">
+  <div class="bg-white rounded-2xl shadow-soft p-3.5 fade-up border border-white grid grid-cols-3 gap-2 text-center">
+    <div class="border-r border-gray-100"><p class="text-[18px] font-black" style="color:#EC4899">128</p><p class="text-[9px] text-gray-400 mt-0.5">入驻企业</p></div>
+    <div class="border-r border-gray-100"><p class="text-[18px] font-black" style="color:#FB7185">56</p><p class="text-[9px] text-gray-400 mt-0.5">在招岗位</p></div>
+    <div><p class="text-[18px] font-black" style="color:#F472B6">2400+</p><p class="text-[9px] text-gray-400 mt-0.5">简历库</p></div>
+  </div>
+</div>
+
+<!-- ===== 顶部双Tab ===== -->
+<div class="tabbar mt-3">
+  <div class="tabs">
+    <div class="tab on" id="tabHire" onclick="switchTab('hire')"><i class="fas fa-briefcase mr-1"></i>我要招人</div>
+    <div class="tab" id="tabSeek" onclick="switchTab('seek')"><i class="fas fa-magnifying-glass mr-1"></i>我要找工作</div>
+  </div>
+</div>
+
+<!-- ===== Tab1 我要招人 ===== -->
+<div id="viewHire" class="px-3 pt-3 pb-36">
+
+  <!-- 招聘管理入口 -->
+  <div class="bg-white rounded-2xl shadow-soft p-3 fade-up mb-3">
+    <div class="flex items-center gap-2 mb-3">
+      <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white" style="background:linear-gradient(135deg,#FB7185,#EC4899)"><i class="fas fa-folder-open text-[11px]"></i></div>
+      <span class="text-[13px] font-bold text-gray-800">招聘管理</span>
+    </div>
+    <div class="grid grid-cols-2 gap-2">
+      <a href="javascript:void(0)" onclick="toast('查看在招岗位')" class="card block rounded-xl p-3 text-center" style="background:linear-gradient(135deg,#FFF1F5,#FCE7F3)">
+        <div class="w-9 h-9 mx-auto rounded-full flex items-center justify-center text-white" style="background:linear-gradient(135deg,#FB7185,#EC4899)"><i class="fas fa-bullhorn text-[12px]"></i></div>
+        <p class="text-[18px] font-black mt-1.5" style="color:#EC4899">3</p>
+        <p class="text-[10px] text-gray-500">在招岗位</p>
+      </a>
+      <a href="javascript:void(0)" onclick="toast('查看收到简历')" class="card block rounded-xl p-3 text-center" style="background:linear-gradient(135deg,#FFF1F5,#FCE7F3)">
+        <div class="w-9 h-9 mx-auto rounded-full flex items-center justify-center text-white" style="background:linear-gradient(135deg,#F472B6,#DB2777)"><i class="fas fa-envelope-open-text text-[12px]"></i></div>
+        <p class="text-[18px] font-black mt-1.5" style="color:#DB2777">28</p>
+        <p class="text-[10px] text-gray-500">收到简历</p>
+      </a>
+    </div>
+  </div>
+
+  <!-- 推荐简历 -->
+  <div class="flex items-center justify-between mb-2 mt-1">
+    <div class="flex items-center gap-1.5">
+      <span class="w-1 h-3.5 rounded-full" style="background:linear-gradient(180deg,#FB7185,#EC4899)"></span>
+      <span class="text-[14px] font-bold text-gray-800">推荐简历</span>
+      <span class="text-[10px] text-gray-400">智能匹配</span>
+    </div>
+    <span class="text-[10px] text-gray-400"><i class="fas fa-arrows-rotate mr-0.5"></i>换一批</span>
+  </div>
+
+  <div id="resumeList" class="space-y-2.5"></div>
+
+  <div class="bg-white rounded-2xl shadow-soft p-3 fade-up mt-2.5 flex items-center gap-3" style="background:linear-gradient(135deg,#FFF1F5,#fff)">
+    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white flex-shrink-0" style="background:linear-gradient(135deg,#FB7185,#EC4899)"><i class="fas fa-database text-sm"></i></div>
+    <div class="flex-1 min-w-0">
+      <p class="text-[12px] font-bold text-gray-800">简历库检索</p>
+      <p class="text-[10px] text-gray-400 mt-0.5">2400+ 袜业人才，按岗位精准筛选</p>
+    </div>
+    <button class="text-[11px] font-semibold text-white px-3 py-1.5 rounded-full" style="background:linear-gradient(135deg,#FB7185,#EC4899)" onclick="toast('进入简历库')">去检索</button>
+  </div>
+</div>
+
+<!-- ===== Tab2 我要找工作 ===== -->
+<div id="viewSeek" class="px-3 pt-3 pb-36" style="display:none">
+
+  <!-- 我的投递入口 -->
+  <div class="bg-white rounded-2xl shadow-soft p-3 fade-up mb-3 flex items-center gap-3">
+    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white flex-shrink-0" style="background:linear-gradient(135deg,#FB7185,#EC4899)"><i class="fas fa-paper-plane text-sm"></i></div>
+    <div class="flex-1 min-w-0">
+      <p class="text-[12px] font-bold text-gray-800">我的投递</p>
+      <p class="text-[10px] text-gray-400 mt-0.5">已投递 5 个岗位 · 2 个查看中</p>
+    </div>
+    <button class="text-[11px] font-semibold px-3 py-1.5 rounded-full" style="background:#FCE7F3;color:#EC4899" onclick="toast('查看投递记录')">查看记录</button>
+  </div>
+
+  <!-- 在招岗位标题 -->
+  <div class="flex items-center justify-between mb-2">
+    <div class="flex items-center gap-1.5">
+      <span class="w-1 h-3.5 rounded-full" style="background:linear-gradient(180deg,#FB7185,#EC4899)"></span>
+      <span class="text-[14px] font-bold text-gray-800">在招岗位</span>
+      <span class="text-[10px] text-gray-400">56个</span>
+    </div>
+    <div class="flex items-center gap-1 text-[10px] text-gray-400"><i class="fas fa-filter"></i>筛选</div>
+  </div>
+
+  <div id="jobList" class="space-y-2.5"></div>
+
+  <p class="text-center text-[10px] text-gray-400 mt-4"><i class="fas fa-circle-info mr-0.5"></i>更多岗位请使用上方筛选条件</p>
+</div>
+
+<!-- ===== 悬浮发布招聘按钮（仅招人Tab显示） ===== -->
+<div id="fabBar" class="fab" onclick="openSheet()"><i class="fas fa-plus"></i>发布招聘</div>
+
+<!-- ===== 底部Tab栏 ===== -->
+<div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100" style="height:65px;z-index:100;width:393px">
+  <div class="flex justify-around items-center h-full" style="padding-bottom:10px">
+    <a href="home.html" class="flex flex-col items-center gap-0.5" style="color:#FF4D2D"><i class="fas fa-house text-[18px]"></i><span class="text-[9px] font-semibold">首页</span></a>
+    <a href="video.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-video text-[18px]"></i><span class="text-[9px]">视频看货</span></a>
+    <a href="purchase-order.html" class="flex flex-col items-center gap-0.5 text-gray-400 relative"><i class="fas fa-clipboard-list text-[18px]"></i><span class="text-[9px]">进货单</span><span class="absolute top-0 right-1 bg-primary text-white text-[7px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center" style="min-width:14px;height:14px">3</span></a>
+    <a href="property.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-building text-[18px]"></i><span class="text-[9px]">物业</span></a>
+    <a href="mine.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-user text-[18px]"></i><span class="text-[9px]">我的</span></a>
+  </div>
+</div>
+<div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none"><div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:3px"></div></div>
+
+<!-- ===== 发布招聘底部弹层 ===== -->
+<div class="sheet-mask" id="sheetMask" onclick="closeSheet()"></div>
+<div class="sheet" id="publishSheet">
+  <div class="sheet-handle"></div>
+  <div class="flex items-center justify-between px-4 pb-2">
+    <span class="text-[16px] font-extrabold text-gray-800">发布招聘信息</span>
+    <i class="fas fa-xmark text-gray-400 text-lg" onclick="closeSheet()"></i>
+  </div>
+  <p class="px-4 text-[11px] text-gray-400 mb-3">填写岗位信息，平台将智能推送给匹配求职者</p>
+
+  <div class="px-4 pb-6 space-y-3.5">
+    <div>
+      <label class="lbl">岗位名称 <b>*</b></label>
+      <input type="text" class="inp" placeholder="如：袜子设计师" id="fPos">
+    </div>
+    <div>
+      <label class="lbl">薪资范围 <b>*</b></label>
+      <div class="flex gap-2 items-center">
+        <input type="text" class="inp" placeholder="最低 K" id="fSalLow">
+        <span class="text-gray-400 text-xs">—</span>
+        <input type="text" class="inp" placeholder="最高 K" id="fSalHigh">
+        <span class="text-[11px] text-gray-400">元/月</span>
+      </div>
+    </div>
+    <div>
+      <label class="lbl">学历要求</label>
+      <div class="flex flex-wrap gap-1.5" id="fEdu">
+        <span class="tag-opt" onclick="tagSingle(this,'fEdu')">不限</span>
+        <span class="tag-opt on" onclick="tagSingle(this,'fEdu')">大专</span>
+        <span class="tag-opt" onclick="tagSingle(this,'fEdu')">本科</span>
+        <span class="tag-opt" onclick="tagSingle(this,'fEdu')">高中/中专</span>
+      </div>
+    </div>
+    <div>
+      <label class="lbl">经验要求</label>
+      <div class="flex flex-wrap gap-1.5" id="fExp">
+        <span class="tag-opt" onclick="tagSingle(this,'fExp')">不限</span>
+        <span class="tag-opt on" onclick="tagSingle(this,'fExp')">1-3年</span>
+        <span class="tag-opt" onclick="tagSingle(this,'fExp')">3-5年</span>
+        <span class="tag-opt" onclick="tagSingle(this,'fExp')">5-10年</span>
+      </div>
+    </div>
+    <div>
+      <label class="lbl">岗位描述</label>
+      <textarea class="inp" rows="3" placeholder="描述岗位职责、工作内容等…" style="resize:none"></textarea>
+    </div>
+    <div>
+      <label class="lbl">工作地址</label>
+      <input type="text" class="inp" placeholder="如：浙江省诸暨市大唐袜业城">
+    </div>
+    <button class="card w-full py-3 rounded-xl text-white text-[14px] font-bold shadow-pink" style="background:linear-gradient(135deg,#FB7185,#EC4899)" onclick="submitPublish()">立即发布</button>
+  </div>
+</div>
+
+<!-- ===== 岗位详情弹层 ===== -->
+<div class="modal-mask" id="jobModal" onclick="closeJobModal(event)">
+  <div class="modal-card" id="jobModalCard"></div>
+</div>
+
+<!-- ===== 发布成功弹窗 ===== -->
+<div class="modal-mask" id="pubModal" onclick="if(event.target===this)closePubModal()">
+  <div class="modal-card text-center p-6">
+    <div class="w-16 h-16 mx-auto rounded-full flex items-center justify-center" style="background:linear-gradient(135deg,#FB7185,#EC4899);box-shadow:0 8px 24px rgba(236,72,153,.35)"><i class="fas fa-check text-white text-2xl"></i></div>
+    <p class="text-[16px] font-bold text-gray-800 mt-4">招聘信息已发布</p>
+    <p class="text-[12px] text-gray-500 mt-1.5 leading-relaxed">平台已将岗位推送给匹配求职者<br>预计 24 小时内收到首批简历</p>
+    <button class="card block w-full mt-4 py-2.5 rounded-xl text-white text-[13px] font-bold" style="background:linear-gradient(135deg,#FB7185,#EC4899)" onclick="closePubModal()">好的，知道了</button>
+  </div>
+</div>
+
+<!-- toast -->
+<div class="toast" id="toast"><i class="fas fa-circle-check text-[#4ADE80]"></i><span id="toastTxt">操作成功</span></div>
+
+<script>
+/* ===== 数据 ===== */
+var resumes=[
+  {name:'李明',age:28,exp:'5年',want:'袜子设计师',tag:['图案设计','配色','懂针织工艺'],match:92,avatar:'#FB7185',edu:'本科'},
+  {name:'王芳',age:32,exp:'8年',want:'针织机操作工',tag:['罗松机','电脑机','全电脑提花'],match:88,avatar:'#EC4899',edu:'高中'},
+  {name:'陈静',age:30,exp:'6年',want:'质检员',tag:['AQL抽检','色差管控','ISO9001'],match:90,avatar:'#F472B6',edu:'大专'},
+  {name:'张伟',age:25,exp:'3年',want:'电商运营',tag:['直播带货','店铺运营','数据分析'],match:85,avatar:'#DB2777',edu:'大专'}
+];
+
+var jobs=[
+  {pos:'袜子设计师',sal:'8-12K',com:'诸暨大唐袜业研究院',addr:'浙江·绍兴',edu:'大专',exp:'3-5年',logo:'#FB7185',tag:['设计软件','配色','原创设计'],hot:true,duty:['根据市场趋势独立完成袜子花型、款式设计','对接打样，跟进生产工艺落实','参与每季新品企划与流行趋势调研'],req:['服装/纺织设计相关专业，3年以上袜品设计经验','熟练 PS、AI、CorelDRAW 等设计软件','对色彩、图案敏感，有原创能力'],welfare:['五险一金','项目奖金','弹性工作','年度旅游','免费餐饮']},
+  {pos:'针织机操作工',sal:'6-9K',com:'梦娜针织集团',addr:'浙江·诸暨',edu:'高中',exp:'1-3年',logo:'#EC4899',tag:['罗松机','电脑机','倒缝'],hot:false,duty:['操作全电脑提花针织机，完成袜子编织','日常设备点检与简单故障排除','记录产量并保证产品质量达标'],req:['高中及以上学历，1年以上针织机操作经验','能适应两班倒工作制','工作认真负责，服从生产安排'],welfare:['包吃包住','夜班补贴','节日福利','工龄奖','健康体检']},
+  {pos:'电商运营',sal:'7-10K',com:'袜趣科技有限公司',addr:'浙江·杭州',edu:'大专',exp:'3-5年',logo:'#F472B6',tag:['直播带货','店铺运营','天猫'],hot:true,duty:['负责天猫/抖音店铺整体运营与活动策划','分析销售数据，优化产品与推广策略','协同直播团队，提升店铺流量与转化'],req:['大专及以上学历，3年以上电商运营经验','熟悉天猫/抖音规则与推广工具','具备数据分析与活动策划能力'],welfare:['五险一金','绩效奖金','下午茶','晋升通道','双休']},
+  {pos:'质检员',sal:'5-7K',com:'丹吉娅集团',addr:'浙江·绍兴',edu:'中专',exp:'1-3年',logo:'#DB2777',tag:['AQL抽检','色差','成品检验'],hot:false,duty:['按 AQL 标准对成品袜子进行抽检','管控色差、破洞、花型偏差等品质问题','填写检验记录，出具质检报告'],req:['中专及以上学历，1年以上纺织质检经验','熟悉 AQL 抽样标准与色差判定','责任心强，能坚持原则'],welfare:['五险','餐补','加班补贴','节日礼品','定期培训']},
+  {pos:'仓库管理员',sal:'4.5-6K',com:'步人袜业',addr:'浙江·诸暨',edu:'高中',exp:'不限',logo:'#FB7185',tag:['出入库','盘点','ERP'],hot:false,duty:['负责成品袜子的收货、上架、发货管理','使用 ERP 系统录入出入库数据','定期盘点，确保账物相符'],req:['高中及以上学历，经验不限','会使用 ERP/WMS 系统优先','吃苦耐劳，做事细心'],welfare:['包住','餐补','全勤奖','节日福利','年终奖']},
+  {pos:'外贸业务员',sal:'6-12K',com:'海丽雅纺织',addr:'浙江·宁波',edu:'大专',exp:'1-3年',logo:'#EC4899',tag:['英语','客户开发','阿里国际站'],hot:true,duty:['通过阿里国际站及展会开发海外客户','跟进询盘、报价、打样及订单跟进','维护老客户，开拓新市场'],req:['大专及以上学历，英语四级以上','1年以上外贸经验，熟悉袜品出口优先','沟通能力强，能独立跟进订单'],welfare:['五险一金','提成上不封顶','展会机会','出差补贴','团队旅游']}
+];
+
+/* ===== 渲染推荐简历 ===== */
+function renderResumes(){
+  var html='';
+  resumes.forEach(function(r,i){
+    var tags=r.tag.map(function(t){return '<span class="info-lbl">'+t+'</span>'}).join('');
+    var matchColor=r.match>=90?'#10B981':(r.match>=85?'#FB7185':'#F59E0B');
+    html+='<div class="card bg-white rounded-2xl shadow-soft p-3 fade-up" style="animation-delay:'+(i*0.05)+'s">';
+    html+='<div class="flex items-start gap-3">';
+    html+='<div class="match-ring" style="background:linear-gradient(135deg,'+r.avatar+','+matchColor+'CC)">'+r.name.charAt(0)+'</div>';
+    html+='<div class="flex-1 min-w-0">';
+    html+='<div class="flex items-center gap-2"><span class="text-[14px] font-bold text-gray-800">'+r.name+'</span><span class="text-[10px] text-gray-400">'+r.age+'岁 · '+r.exp+'经验</span></div>';
+    html+='<p class="text-[11px] text-gray-500 mt-0.5">期望：<span style="color:#EC4899;font-weight:600">'+r.want+'</span> · '+r.edu+'</p>';
+    html+='<div class="flex flex-wrap gap-1 mt-1.5">'+tags+'</div>';
+    html+='</div>';
+    html+='<div class="text-center flex-shrink-0">';
+    html+='<div class="text-[16px] font-black" style="color:'+matchColor+'">'+r.match+'%</div>';
+    html+='<div class="text-[9px] text-gray-400">匹配度</div>';
+    html+='</div>';
+    html+='</div>';
+    html+='<div class="flex items-center justify-between mt-2.5 pt-2.5 border-t border-gray-50">';
+    html+='<span class="text-[10px] text-gray-400"><i class="fas fa-clock mr-0.5"></i>近期活跃</span>';
+    html+='<button class="text-[11px] font-semibold text-white px-3.5 py-1.5 rounded-full shadow-pink" style="background:linear-gradient(135deg,#FB7185,#EC4899)" onclick="toast(\'查看简历详情\')"><i class="fas fa-file-lines mr-0.5"></i>查看简历</button>';
+    html+='</div></div>';
+  });
+  document.getElementById('resumeList').innerHTML=html;
+}
+
+/* ===== 渲染在招岗位 ===== */
+function renderJobs(){
+  var html='';
+  jobs.forEach(function(j,i){
+    var tags=j.tag.map(function(t){return '<span class="info-lbl">'+t+'</span>'}).join('');
+    var hot=j.hot?'<span class="text-[9px] text-white px-1.5 py-0.5 rounded-full ml-1" style="background:linear-gradient(90deg,#FB7185,#EC4899)">热招</span>':'';
+    html+='<div class="card bg-white rounded-2xl shadow-soft p-3 fade-up" style="animation-delay:'+(i*0.05)+'s" onclick="openJob('+i+')">';
+    html+='<div class="flex items-start gap-3">';
+    html+='<div class="w-11 h-11 rounded-xl flex items-center justify-center text-white flex-shrink-0" style="background:linear-gradient(135deg,'+j.logo+','+j.logo+'CC)"><i class="fas fa-socks text-base"></i></div>';
+    html+='<div class="flex-1 min-w-0">';
+    html+='<div class="flex items-center"><span class="text-[14px] font-bold text-gray-800">'+j.pos+'</span>'+hot+'</div>';
+    html+='<p class="text-[12px] font-bold mt-0.5" style="color:#EC4899">'+j.sal+'<span class="text-[10px] text-gray-400 font-normal">/月</span></p>';
+    html+='<p class="text-[10px] text-gray-400 mt-0.5"><i class="fas fa-building mr-0.5"></i>'+j.com+'</p>';
+    html+='</div>';
+    html+='<i class="fas fa-chevron-right text-gray-300 text-[10px] mt-1"></i>';
+    html+='</div>';
+    html+='<div class="flex flex-wrap gap-1.5 mt-2.5">';
+    html+='<span class="info-lbl"><i class="fas fa-location-dot"></i>'+j.addr+'</span>';
+    html+='<span class="info-lbl"><i class="fas fa-graduation-cap"></i>'+j.edu+'</span>';
+    html+='<span class="info-lbl"><i class="fas fa-briefcase"></i>'+j.exp+'</span>';
+    html+='</div>';
+    html+='<div class="flex items-center justify-between mt-2.5 pt-2.5 border-t border-gray-50">';
+    html+='<span class="text-[10px] text-gray-400"><i class="fas fa-eye mr-0.5"></i>'+(120+i*38)+'人浏览 · '+(8+i*3)+'人投递</span>';
+    html+='<button class="text-[11px] font-semibold text-white px-3.5 py-1.5 rounded-full shadow-pink" style="background:linear-gradient(135deg,#FB7185,#EC4899)" onclick="event.stopPropagation();applyJob(\''+j.pos.replace(/'/g,'')+'\')"><i class="fas fa-paper-plane mr-0.5"></i>投递简历</button>';
+    html+='</div></div>';
+  });
+  document.getElementById('jobList').innerHTML=html;
+}
+
+/* ===== 岗位详情弹层 ===== */
+function openJob(i){
+  var j=jobs[i];
+  var duty=j.duty.map(function(d){return '<li class="flex items-start gap-2 text-[11px] text-gray-600 leading-relaxed"><i class="fas fa-check-circle text-[#EC4899] mt-0.5 text-[10px]"></i><span>'+d+'</span></li>'}).join('');
+  var req=j.req.map(function(d){return '<li class="flex items-start gap-2 text-[11px] text-gray-600 leading-relaxed"><i class="fas fa-dot-circle text-[#FB7185] mt-0.5 text-[10px]"></i><span>'+d+'</span></li>'}).join('');
+  var wel=j.welfare.map(function(w){return '<span class="info-lbl" style="background:#FFF1F5;color:#DB2777"><i class="fas fa-gift"></i>'+w+'</span>'}).join('');
+  var html='<div class="relative p-4 pb-5" style="background:linear-gradient(135deg,#FB7185,#EC4899)">';
+  html+='<div class="flex items-center justify-between text-white"><div class="flex items-center gap-2"><div class="w-9 h-9 rounded-xl bg-white/25 flex items-center justify-center"><i class="fas fa-socks text-sm"></i></div><span class="text-[15px] font-bold">'+j.pos+'</span></div><i class="fas fa-xmark text-white/80 text-lg" onclick="closeJobModal()"></i></div>';
+  html+='<p class="text-white text-[18px] font-black mt-2">'+j.sal+'<span class="text-[11px] font-normal">/月</span></p>';
+  html+='<div class="flex flex-wrap gap-1.5 mt-1.5">';
+  html+='<span class="text-[10px] text-white bg-white/20 rounded-full px-2 py-0.5"><i class="fas fa-location-dot mr-0.5"></i>'+j.addr+'</span>';
+  html+='<span class="text-[10px] text-white bg-white/20 rounded-full px-2 py-0.5"><i class="fas fa-graduation-cap mr-0.5"></i>'+j.edu+'</span>';
+  html+='<span class="text-[10px] text-white bg-white/20 rounded-full px-2 py-0.5"><i class="fas fa-briefcase mr-0.5"></i>'+j.exp+'</span>';
+  html+='</div></div>';
+  html+='<div class="px-4 py-3">';
+  html+='<p class="text-[10px] text-gray-400 mb-2"><i class="fas fa-building mr-0.5"></i>'+j.com+'</p>';
+  html+='<div class="mb-3"><p class="text-[12px] font-bold text-gray-800 mb-2"><i class="fas fa-list-check mr-1" style="color:#EC4899"></i>岗位职责</p><ul class="space-y-1.5">'+duty+'</ul></div>';
+  html+='<div class="mb-3"><p class="text-[12px] font-bold text-gray-800 mb-2"><i class="fas fa-user-check mr-1" style="color:#FB7185"></i>任职要求</p><ul class="space-y-1.5">'+req+'</ul></div>';
+  html+='<div class="mb-4"><p class="text-[12px] font-bold text-gray-800 mb-2"><i class="fas fa-gift mr-1" style="color:#DB2777"></i>福利待遇</p><div class="flex flex-wrap gap-1.5">'+wel+'</div></div>';
+  html+='<button class="card w-full py-3 rounded-xl text-white text-[14px] font-bold shadow-pink" style="background:linear-gradient(135deg,#FB7185,#EC4899)" onclick="applyJob(\''+j.pos.replace(/'/g,'')+'\')"><i class="fas fa-paper-plane mr-1"></i>立即投递简历</button>';
+  html+='<p class="text-center text-[10px] text-gray-400 mt-2">投递后企业将在3个工作日内查看</p>';
+  html+='</div>';
+  document.getElementById('jobModalCard').innerHTML=html;
+  document.getElementById('jobModal').classList.add('on');
+}
+function closeJobModal(e){if(e&&e.target!==e.currentTarget)return;document.getElementById('jobModal').classList.remove('on')}
+
+/* ===== 投递 ===== */
+function applyJob(pos){
+  closeJobModal();
+  toast('简历投递成功');
+}
+
+/* ===== Tab切换 ===== */
+function switchTab(t){
+  if(t==='hire'){
+    document.getElementById('tabHire').classList.add('on');document.getElementById('tabSeek').classList.remove('on');
+    document.getElementById('viewHire').style.display='';document.getElementById('viewSeek').style.display='none';
+    document.getElementById('fabBar').style.display='flex';
+  }else{
+    document.getElementById('tabHire').classList.remove('on');document.getElementById('tabSeek').classList.add('on');
+    document.getElementById('viewHire').style.display='none';document.getElementById('viewSeek').style.display='';
+    document.getElementById('fabBar').style.display='none';
+  }
+}
+
+/* ===== 发布招聘弹层 ===== */
+function openSheet(){document.getElementById('sheetMask').classList.add('on');document.getElementById('publishSheet').classList.add('on')}
+function closeSheet(){document.getElementById('sheetMask').classList.remove('on');document.getElementById('publishSheet').classList.remove('on')}
+function submitPublish(){
+  var p=document.getElementById('fPos').value.trim();
+  if(!p){toast('请填写岗位名称');return}
+  var lo=document.getElementById('fSalLow').value.trim(),hi=document.getElementById('fSalHigh').value.trim();
+  if(!lo||!hi){toast('请填写薪资范围');return}
+  closeSheet();
+  document.getElementById('pubModal').classList.add('on');
+}
+function closePubModal(){document.getElementById('pubModal').classList.remove('on')}
+
+/* ===== 通用 ===== */
+function toast(msg){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;t.classList.add('on');clearTimeout(t._timer);t._timer=setTimeout(function(){t.classList.remove('on')},1600)}
+function tagToggle(el){el.classList.toggle('on')}
+function tagSingle(el,group){var p=el.parentElement;var items=p.querySelectorAll('.tag-opt');items.forEach(function(i){i.classList.remove('on')});el.classList.add('on')}
+
+renderResumes();
+renderJobs();
+</script>
+</body>
+</html>

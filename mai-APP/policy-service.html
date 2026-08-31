@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>政策兑现 - 袜掌柜买家版</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D'}}}}</script>
+<style>
+:root{--bg:#FFF7F4}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden;color:#1F2430}
+::-webkit-scrollbar{width:2px;height:2px}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
+.card{transition:transform .16s ease}.card:active{transform:scale(.965)}
+.fade-up{animation:fadeUp .4s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:300;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.25);min-width:120px;justify-content:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.detail-wrap{max-height:0;overflow:hidden;transition:max-height .35s ease,opacity .25s ease;opacity:0}
+.detail-wrap.open{max-height:900px;opacity:1}
+.tab-item{transition:all .2s}
+.tab-item.on{color:#fff;font-weight:700}
+.step-line::before{content:'';position:absolute;left:11px;top:24px;bottom:-12px;width:2px;background:#EDE9FE}
+.step-line:last-child::before{display:none}
+</style>
+</head>
+<body>
+
+<!-- 顶部 -->
+<div class="relative px-4 pt-2 pb-5 overflow-hidden" style="background:linear-gradient(135deg,#8B5CF6 0%,#7C3AED 45%,#6D28D9 100%)">
+<div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-40" style="background:#A78BFA"></div>
+<div class="absolute -top-6 right-[-30px] w-48 h-48 rounded-full blur-3xl opacity-30" style="background:#7C3AED"></div>
+<div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px"><span>9:41</span><div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div></div>
+<div class="relative flex items-center gap-2.5 mt-1">
+<a href="industry-services.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+<span class="text-white font-extrabold text-[20px]" style="text-shadow:0 2px 10px rgba(0,0,0,.18)">政策兑现</span>
+</div>
+<p class="text-white/70 text-[11px] mt-2 relative">及时获取政策红利，助力企业发展</p>
+</div>
+
+<!-- 概览统计 -->
+<div class="px-3 -mt-3 relative z-10">
+<div class="bg-white rounded-2xl shadow-soft p-3.5 fade-up border border-white grid grid-cols-3 gap-2 text-center">
+<div class="border-r border-gray-100"><p class="text-[18px] font-black" style="color:#8B5CF6">6</p><p class="text-[9px] text-gray-400 mt-0.5">在申报政策</p></div>
+<div class="border-r border-gray-100"><p class="text-[18px] font-black" style="color:#10B981">2</p><p class="text-[9px] text-gray-400 mt-0.5">即将截止</p></div>
+<div><p class="text-[18px] font-black" style="color:#F59E0B">￥6800<span class="text-[10px]">万</span></p><p class="text-[9px] text-gray-400 mt-0.5">补贴总额</p></div>
+</div>
+</div>
+
+<!-- 政策分类Tab -->
+<div class="mt-3 px-3">
+<div class="flex items-center gap-1.5 overflow-x-auto" style="scrollbar-width:none;-ms-overflow-style:none" id="catTabBar">
+<button class="tab-item on flex-shrink-0 px-3.5 py-1.5 rounded-full text-[11px]" style="background:linear-gradient(135deg,#8B5CF6,#7C3AED);color:#fff" data-cat="全部">全部</button>
+<button class="tab-item flex-shrink-0 px-3.5 py-1.5 rounded-full text-[11px] text-gray-500 bg-white shadow-soft" data-cat="税收优惠">税收优惠</button>
+<button class="tab-item flex-shrink-0 px-3.5 py-1.5 rounded-full text-[11px] text-gray-500 bg-white shadow-soft" data-cat="资金补贴">资金补贴</button>
+<button class="tab-item flex-shrink-0 px-3.5 py-1.5 rounded-full text-[11px] text-gray-500 bg-white shadow-soft" data-cat="人才政策">人才政策</button>
+<button class="tab-item flex-shrink-0 px-3.5 py-1.5 rounded-full text-[11px] text-gray-500 bg-white shadow-soft" data-cat="创新支持">创新支持</button>
+</div>
+</div>
+
+<!-- 政策列表 -->
+<div class="px-3 mt-3 space-y-2.5" id="policyList"></div>
+
+<!-- 申报日历 -->
+<div class="px-3 mt-4 mb-28">
+<div class="flex items-center gap-2 mb-2.5">
+<div class="w-1 h-4 rounded-full" style="background:#8B5CF6"></div>
+<span class="text-[13px] font-bold text-gray-800">本月申报日历</span>
+<span class="text-[10px] text-gray-400">2026年8月</span>
+</div>
+<div class="bg-white rounded-2xl shadow-soft p-3.5 fade-up">
+<div class="relative pl-7 pb-3 step-line">
+<div class="absolute left-0 top-0.5 w-6 h-6 rounded-full flex items-center justify-center" style="background:#EDE9FE"><i class="fas fa-circle-check text-[11px]" style="color:#8B5CF6"></i></div>
+<p class="text-[12px] font-semibold text-gray-800">中小企业信贷支持 <span class="text-[9px] text-gray-400 font-normal">· 8月15日开放</span></p>
+<p class="text-[10px] text-gray-400 mt-0.5">申报中 · 剩余12天截止</p>
+</div>
+<div class="relative pl-7 pb-3 step-line">
+<div class="absolute left-0 top-0.5 w-6 h-6 rounded-full flex items-center justify-center" style="background:#FEF3C7"><i class="fas fa-clock text-[11px]" style="color:#F59E0B"></i></div>
+<p class="text-[12px] font-semibold text-gray-800">数字化改造奖励 <span class="text-[9px] text-gray-400 font-normal">· 8月25日开放</span></p>
+<p class="text-[10px] mt-0.5" style="color:#F59E0B">即将截止 · 仅剩6天</p>
+</div>
+<div class="relative pl-7 pb-3 step-line">
+<div class="absolute left-0 top-0.5 w-6 h-6 rounded-full flex items-center justify-center" style="background:#EDE9FE"><i class="fas fa-circle-check text-[11px]" style="color:#8B5CF6"></i></div>
+<p class="text-[12px] font-semibold text-gray-800">技术研发补贴 <span class="text-[9px] text-gray-400 font-normal">· 8月28日开放</span></p>
+<p class="text-[10px] text-gray-400 mt-0.5">即将开放申报</p>
+</div>
+<div class="relative pl-7 step-line">
+<div class="absolute left-0 top-0.5 w-6 h-6 rounded-full flex items-center justify-center" style="background:#FEE2E2"><i class="fas fa-flag text-[10px]" style="color:#EF4444"></i></div>
+<p class="text-[12px] font-semibold text-gray-800">人才引进安家补贴 <span class="text-[9px] text-gray-400 font-normal">· 8月30日截止</span></p>
+<p class="text-[10px] mt-0.5" style="color:#EF4444">最后3天 · 紧急</p>
+</div>
+</div>
+</div>
+
+<!-- 底部Tab栏 -->
+<div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100" style="height:65px;z-index:100;width:393px">
+<div class="flex justify-around items-center h-full" style="padding-bottom:10px">
+<a href="home.html" class="flex flex-col items-center gap-0.5" style="color:#FF4D2D"><i class="fas fa-house text-[18px]"></i><span class="text-[9px] font-semibold">首页</span></a>
+<a href="video.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-video text-[18px]"></i><span class="text-[9px]">视频看货</span></a>
+<a href="purchase-order.html" class="flex flex-col items-center gap-0.5 text-gray-400 relative"><i class="fas fa-clipboard-list text-[18px]"></i><span class="text-[9px]">进货单</span><span class="absolute top-0 right-1 bg-primary text-white text-[7px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center" style="min-width:14px;height:14px">3</span></a>
+<a href="property.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-building text-[18px]"></i><span class="text-[9px]">物业</span></a>
+<a href="mine.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-user text-[18px]"></i><span class="text-[9px]">我的</span></a>
+</div>
+</div>
+<div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none"><div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:3px"></div></div>
+
+<!-- Toast -->
+<div class="toast" id="toast"><i class="fas fa-circle-check"></i><span>申报提交成功</span></div>
+
+<script>
+var policies=[
+ {
+  cat:'资金补贴',
+  icon:'fa-industry',
+  title:'大唐袜业产业转型升级专项资金',
+  dept:'诸暨市经信局',
+  tag:'申报中',tagColor:'#10B981',tagBg:'#D1FAE5',
+  amount:'50-200万元',
+  target:'规上袜业企业',
+  content:'为推动大唐袜业产业转型升级，对实施智能化改造、品牌建设、研发创新的规上袜业企业给予专项资金支持，重点扶持数字化车间建设、自主品牌培育和绿色生产改造项目。',
+  conditions:['在大唐镇注册纳税的规模以上袜业企业','上年度主营业务收入达2000万元以上','具备独立研发或技术改造能力','近三年无严重失信记录'],
+  materials:['企业营业执照副本','近两年财务审计报告','项目可行性研究报告','技改/研发投入明细表','相关知识产权证明材料'],
+  steps:['线上提交申报材料','经信局初审与现场核查','专家评审与资金核定','公示后拨付专项资金'],
+  deadline:'2026年9月30日'
+ },
+ {
+  cat:'税收优惠',
+  icon:'fa-percent',
+  title:'高新技术企业税收减免',
+  dept:'国家税务总局诸暨市税务局',
+  tag:'长期有效',tagColor:'#3B82F6',tagBg:'#DBEAFE',
+  amount:'减按15%税率',
+  target:'高新技术企业',
+  content:'对认定的国家高新技术企业，企业所得税减按15%的税率征收，较法定25%税率降低10个百分点。同时对研发费用实行100%加计扣除，助力科技型企业降本增效。',
+  conditions:['通过国家高新技术企业认定','拥有核心自主知识产权','研发费用占收入比例达标','高新技术产品收入占比超60%'],
+  materials:['高新技术企业证书','企业所得税年度纳税申报表','研发费用辅助账','知识产权权属证明','高新技术产品收入明细'],
+  steps:['登录电子税务局申报','提交税收优惠备案材料','税务部门审核确认','享受税率优惠及加计扣除'],
+  deadline:'长期有效（随年度申报）'
+ },
+ {
+  cat:'资金补贴',
+  icon:'fa-hand-holding-dollar',
+  title:'中小企业信贷支持',
+  dept:'浙江省科技厅 · 浙江省银保监局',
+  tag:'申报中',tagColor:'#10B981',tagBg:'#D1FAE5',
+  amount:'100-500万元',
+  target:'中小微企业',
+  content:'面向有融资需求的科技型中小微企业提供低息信贷支持，由政府性融资担保机构提供担保，贷款利率优惠，重点支持生产经营周转、技术改造和订单履约等资金需求。',
+  conditions:['在诸暨市注册经营的中小微企业','持续经营满2年以上','信用记录良好无不良贷款','有真实生产经营资金需求'],
+  materials:['企业基本信息表','近两年经营流水及财务报表','贷款用途说明及还款计划','企业信用报告','担保机构要求的其它材料'],
+  steps:['线上提交信贷申请','担保机构风险评估','银行审批放款','按约定还本付息'],
+  deadline:'2026年9月15日'
+ },
+ {
+  cat:'创新支持',
+  icon:'fa-flask',
+  title:'技术研发补贴',
+  dept:'诸暨市经信局',
+  tag:'即将截止',tagColor:'#F59E0B',tagBg:'#FEF3C7',
+  amount:'20-100万元',
+  target:'科技型中小企业',
+  content:'鼓励袜业企业开展新材料、新工艺、新产品技术研发，对符合条件的研发项目按实际投入给予最高100万元补贴，重点支持功能性纱线开发、智能织造工艺和环保材料应用研究。',
+  conditions:['市级以上科技型中小企业认定','拥有研发团队及固定研发场所','研发项目符合产业导向','项目研发投入不低于50万元'],
+  materials:['研发立项报告及审批文件','研发费用专项审计报告','研发人员社保及学历证明','研发成果证明材料','项目验收报告'],
+  steps:['提交研发项目备案','阶段性报告与进度跟踪','项目结题验收评审','补贴资金拨付'],
+  deadline:'2026年8月28日'
+ },
+ {
+  cat:'人才政策',
+  icon:'fa-user-tie',
+  title:'人才引进安家补贴',
+  dept:'诸暨市人力资源和社会保障局',
+  tag:'即将截止',tagColor:'#F59E0B',tagBg:'#FEF3C7',
+  amount:'10-50万元',
+  target:'所有企业引进人才',
+  content:'对企业引进的全日制硕士、博士及高层次人才给予安家补贴，硕士最高10万元，博士最高30万元，省级以上人才最高50万元，分三年发放，助力企业吸引和留住核心人才。',
+  conditions:['企业引进并签订3年以上劳动合同','人才在诸暨市首次缴纳社保','学历/职称符合分类标准','人才在诸暨无自有住房'],
+  materials:['人才身份及学历证明','劳动合同及社保证明','企业引进人才确认书','住房情况核查证明','职称/人才认定证书'],
+  steps:['企业提交人才引进申请','人社部门资格审核','人才分类认定与公示','安家补贴分期发放'],
+  deadline:'2026年8月30日'
+ },
+ {
+  cat:'创新支持',
+  icon:'fa-laptop-code',
+  title:'数字化改造奖励',
+  dept:'浙江省经济和信息化厅',
+  tag:'即将截止',tagColor:'#F59E0B',tagBg:'#FEF3C7',
+  amount:'30-150万元',
+  target:'规上制造业企业',
+  content:'推动制造业企业数字化转型，对企业实施ERP/MES/智能仓储等数字化改造项目给予奖励，按项目实际投入的20%给予最高150万元奖励，加速袜业企业迈向智能制造。',
+  conditions:['规以上制造业企业','数字化改造项目投资不低于150万元','项目包含至少2个数字化系统模块','项目已竣工并投入使用'],
+  materials:['数字化改造项目方案','项目投入明细及发票','系统上线验收报告','数字化应用成效报告','企业数字化水平评估表'],
+  steps:['项目竣工提交验收申请','第三方投入审计评估','经信部门现场核查','奖励资金公示拨付'],
+  deadline:'2026年8月25日'
+ }
+];
+
+var currentCat='全部';
+
+function renderPolicies(cat){
+ var list=cat==='全部'?policies:policies.filter(function(p){return p.cat===cat});
+ var html='';
+ list.forEach(function(p,i){
+  var stepsHtml=p.steps.map(function(s,idx){
+   return '<div class="relative pl-7 pb-2.5 step-line"><div class="absolute left-0 top-0 w-6 h-6 rounded-full flex items-center justify-center text-white text-[9px] font-bold" style="background:linear-gradient(135deg,#8B5CF6,#7C3AED)">'+(idx+1)+'</div><p class="text-[11px] text-gray-600 leading-relaxed pt-0.5">'+s+'</p></div>';
+  }).join('');
+  var condHtml=p.conditions.map(function(c){return '<div class="flex items-start gap-1.5 mb-1"><i class="fas fa-check text-[8px] mt-1" style="color:#10B981"></i><span class="text-[11px] text-gray-600 leading-snug">'+c+'</span></div>'}).join('');
+  var matHtml=p.materials.map(function(m){return '<div class="flex items-start gap-1.5 mb-1"><i class="fas fa-file-lines text-[8px] mt-1" style="color:#8B5CF6"></i><span class="text-[11px] text-gray-600 leading-snug">'+m+'</span></div>'}).join('');
+  html+='<div class="card bg-white rounded-2xl shadow-soft p-3.5 fade-up" style="animation-delay:'+(i*0.06)+'s" data-idx="'+i+'">';
+  html+='<div class="flex items-start gap-2.5">';
+  html+='<div class="w-10 h-10 rounded-xl flex items-center justify-center text-white flex-shrink-0" style="background:linear-gradient(135deg,#8B5CF6,#7C3AED)"><i class="fas '+p.icon+' text-sm"></i></div>';
+  html+='<div class="flex-1 min-w-0">';
+  html+='<p class="text-[13px] font-bold text-gray-800 leading-snug">'+p.title+'</p>';
+  html+='<div class="flex items-center gap-1.5 mt-1"><i class="fas fa-building text-[8px] text-gray-300"></i><span class="text-[10px] text-gray-400">'+p.dept+'</span></div>';
+  html+='</div>';
+  html+='<span class="text-[9px] px-2 py-0.5 rounded-full font-semibold flex-shrink-0" style="background:'+p.tagBg+';color:'+p.tagColor+'">'+p.tag+'</span>';
+  html+='</div>';
+  html+='<div class="flex items-center gap-3 mt-2.5 pt-2.5 border-t border-gray-50">';
+  html+='<div class="flex-1"><p class="text-[9px] text-gray-400">补贴金额</p><p class="text-[12px] font-bold" style="color:#8B5CF6">'+p.amount+'</p></div>';
+  html+='<div class="w-px h-7 bg-gray-100"></div>';
+  html+='<div class="flex-1"><p class="text-[9px] text-gray-400">适用对象</p><p class="text-[11px] font-semibold text-gray-700 truncate">'+p.target+'</p></div>';
+  html+='</div>';
+  html+='<button class="toggleBtn w-full mt-2.5 py-2 rounded-xl text-[11px] font-semibold flex items-center justify-center gap-1.5" style="background:#F5F3FF;color:#7C3AED">查看详情<i class="fas fa-chevron-down text-[9px] transition-transform chevron"></i></button>';
+  html+='<div class="detail-wrap">';
+  html+='<div class="pt-3 space-y-3">';
+  html+='<div><p class="text-[10px] font-bold text-gray-400 mb-1.5 flex items-center gap-1"><i class="fas fa-align-left text-[9px]"></i>政策内容</p><p class="text-[11px] text-gray-600 leading-relaxed">'+p.content+'</p></div>';
+  html+='<div><p class="text-[10px] font-bold text-gray-400 mb-1.5 flex items-center gap-1"><i class="fas fa-list-check text-[9px]"></i>申报条件</p>'+condHtml+'</div>';
+  html+='<div><p class="text-[10px] font-bold text-gray-400 mb-1.5 flex items-center gap-1"><i class="fas fa-folder-open text-[9px]"></i>申报材料</p>'+matHtml+'</div>';
+  html+='<div><p class="text-[10px] font-bold text-gray-400 mb-2 flex items-center gap-1"><i class="fas fa-route text-[9px]"></i>兑现流程</p>'+stepsHtml+'</div>';
+  html+='<div class="flex items-center gap-2 px-2.5 py-2 rounded-xl" style="background:#FEF2F2"><i class="fas fa-calendar-day text-[10px]" style="color:#EF4444"></i><span class="text-[10px] text-gray-500">申报截止日期</span><span class="text-[11px] font-bold" style="color:#EF4444">'+p.deadline+'</span></div>';
+  html+='<button class="applyBtn w-full py-2.5 rounded-xl text-[12px] font-bold text-white flex items-center justify-center gap-1.5" style="background:linear-gradient(135deg,#8B5CF6,#7C3AED)"><i class="fas fa-paper-plane text-[10px]"></i>在线申报</button>';
+  html+='</div>';
+  html+='</div>';
+  html+='</div>';
+ });
+ document.getElementById('policyList').innerHTML=html;
+ bindEvents();
+}
+
+function bindEvents(){
+ document.querySelectorAll('.toggleBtn').forEach(function(btn){
+  btn.addEventListener('click',function(){
+   var wrap=btn.nextElementSibling;
+   var chev=btn.querySelector('.chevron');
+   var open=wrap.classList.toggle('open');
+   if(open){chev.style.transform='rotate(180deg)';btn.innerHTML='收起详情<i class="fas fa-chevron-up text-[9px]"></i>';}
+   else{chev.style.transform='rotate(0)';btn.innerHTML='查看详情<i class="fas fa-chevron-down text-[9px]"></i>';}
+  });
+ });
+ document.querySelectorAll('.applyBtn').forEach(function(btn){
+  btn.addEventListener('click',function(){
+   var t=document.getElementById('toast');
+   t.classList.add('on');
+   setTimeout(function(){t.classList.remove('on');},1800);
+  });
+ });
+}
+
+document.querySelectorAll('#catTabBar .tab-item').forEach(function(tab){
+ tab.addEventListener('click',function(){
+  document.querySelectorAll('#catTabBar .tab-item').forEach(function(t){
+   t.classList.remove('on');
+   t.style.background='#fff';
+   t.style.color='#6B7280';
+   t.classList.remove('shadow-soft');
+  });
+  tab.classList.add('on');
+  tab.style.background='linear-gradient(135deg,#8B5CF6,#7C3AED)';
+  tab.style.color='#fff';
+  tab.classList.add('shadow-soft');
+  currentCat=tab.dataset.cat;
+  renderPolicies(currentCat);
+ });
+});
+
+renderPolicies('全部');
+</script>
+</body>
+</html>

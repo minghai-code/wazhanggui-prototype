@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>技术共享 - 袜掌柜买家版</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D'}}}}</script>
+<style>
+:root{--bg:#FFF7F4;--blue:#3B82F6;--blue-d:#2563EB}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden;color:#1F2430}
+::-webkit-scrollbar{width:2px;height:2px}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
+.card{transition:transform .16s ease}.card:active{transform:scale(.965)}
+.fade-up{animation:fadeUp .4s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.sec-title{font-size:16px;font-weight:800;letter-spacing:.3px;color:#1F2430}
+/* 顶部Tab */
+.tabbar{position:sticky;top:0;z-index:60;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid #f3f0ec}
+.tabs{display:flex;padding:10px 12px 0;gap:6px}
+.tab{flex:1;text-align:center;padding:9px 0;border-radius:12px;font-size:13px;color:#7a7f8a;font-weight:500;transition:.2s;cursor:pointer}
+.tab.on{color:#fff;font-weight:700;background:linear-gradient(135deg,#3B82F6,#2563EB);box-shadow:0 4px 12px rgba(37,99,235,.28)}
+.tabbar .counttip{font-size:10px;margin-left:3px;padding:1px 5px;border-radius:8px;background:#EAF2FF;color:#2563EB}
+.tabbar .tab.on .counttip{background:rgba(255,255,255,.25);color:#fff}
+/* 成果/需求卡片 */
+.dcard{background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(20,20,40,.05);padding:12px;margin-bottom:10px;transition:transform .16s ease}
+.dcard:active{transform:scale(.968)}
+.pill{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:600;padding:2px 7px;border-radius:8px}
+.pill-ready{background:#E8F8EF;color:#10B981}
+.pill-talk{background:#FEF3C7;color:#D97706}
+.pill-done{background:#F1F3F6;color:#6b7280}
+.pill-open{background:#EAF2FF;color:#2563EB}
+.field-tag{font-size:9px;font-weight:600;padding:2px 7px;border-radius:8px;white-space:nowrap}
+.ft-new{background:#EFF6FF;color:#2563EB}
+.ft-craft{background:#FCE7F3;color:#DB2777}
+.ft-smart{background:#EDE9FE;color:#7C3AED}
+.ft-func{background:#D1FAE5;color:#059669}
+.act-btn{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:#fff;padding:6px 13px;border-radius:999px;background:linear-gradient(135deg,#3B82F6,#2563EB);box-shadow:0 4px 10px rgba(37,99,235,.28);transition:.16s}
+.act-btn:active{transform:scale(.94)}
+.expert-btn{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:#2563EB;padding:5px 11px;border-radius:999px;background:#EAF2FF;transition:.16s}
+.expert-btn:active{transform:scale(.94)}
+.quote-btn{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:#fff;padding:6px 13px;border-radius:999px;background:linear-gradient(135deg,#FF6B35,#FF4D2D);box-shadow:0 4px 10px rgba(255,77,45,.28);transition:.16s}
+.quote-btn:active{transform:scale(.94)}
+.info-lbl{font-size:11px;color:#9aa0ac;background:rgba(248,249,250,.9);border-radius:8px;padding:4px 8px;white-space:nowrap}
+/* 流程步骤 */
+.step-dot{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;font-weight:700;flex-shrink:0}
+/* 悬浮发布按钮 */
+.fab{position:fixed;right:14px;bottom:84px;display:inline-flex;align-items:center;gap:6px;height:46px;padding:0 18px;border-radius:999px;background:linear-gradient(135deg,#3B82F6,#2563EB);color:#fff;font-size:13px;font-weight:700;box-shadow:0 8px 22px rgba(37,99,235,.42);z-index:120;cursor:pointer;transition:.18s}
+.fab:active{transform:scale(.92)}
+.fab::after{content:"";position:absolute;inset:-5px;border-radius:999px;border:2px solid rgba(59,130,246,.35);animation:pulse 2s infinite}
+@keyframes pulse{0%{transform:scale(.9);opacity:.8}70%{transform:scale(1.18);opacity:0}100%{opacity:0}}
+/* 弹层与底部表单 */
+.overlay{position:fixed;inset:0;background:rgba(15,18,26,.5);z-index:300;opacity:0;pointer-events:none;transition:.25s;backdrop-filter:blur(2px)}
+.overlay.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;bottom:0;left:0;width:393px;background:#fff;border-radius:22px 22px 0 0;z-index:301;transform:translateY(100%);transition:transform .3s cubic-bezier(.22,.61,.36,1);max-height:88vh;overflow-y:auto;box-shadow:0 -8px 30px rgba(0,0,0,.18)}
+.sheet.on{transform:translateY(0)}
+.inp{width:100%;background:rgba(248,249,250,.8);border:1px solid rgba(240,240,240,.8);border-radius:12px;padding:11px 13px;font-size:13px;color:#1F2430;outline:none;transition:border-color .16s ease,background .16s ease}
+.inp::placeholder{color:#C0C0C0}
+.inp:focus{border-color:#3B82F6;background:#fff}
+.lbl{font-size:11px;color:#6b7080;font-weight:500;display:block;margin-bottom:6px}
+.lbl b{color:#FF4D2D}
+.tag-opt{font-size:11px;color:#6b7080;background:#fff;border:1px solid #eceef0;border-radius:10px;padding:6px 12px;cursor:pointer;transition:.15s;font-weight:500}
+.tag-opt.on{border-color:#3B82F6;color:#2563EB;background:#EAF2FF;font-weight:600}
+/* toast */
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:400;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.25);min-width:130px;justify-content:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+</style>
+</head>
+<body>
+
+<!-- ===== 顶部：蓝色渐变 ===== -->
+<div class="relative px-4 pt-2 pb-5 overflow-hidden" style="background:linear-gradient(135deg,#3B82F6 0%,#2563EB 40%,#1D4ED8 100%)">
+  <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-45" style="background:#60A5FA"></div>
+  <div class="absolute -top-6 right-[-30px] w-48 h-48 rounded-full blur-3xl opacity-35" style="background:#3B82F6"></div>
+  <div class="absolute -bottom-10 left-12 w-44 h-44 rounded-full blur-3xl opacity-30" style="background:#2563EB"></div>
+
+  <!-- iOS状态栏 -->
+  <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+  </div>
+
+  <!-- 返回 + 标题 -->
+  <div class="relative flex items-center gap-3 mt-1">
+    <a href="industry-services.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white flex-shrink-0"><i class="fas fa-chevron-left text-sm"></i></a>
+    <div>
+      <span class="text-white font-extrabold text-[20px] tracking-wide block" style="text-shadow:0 2px 10px rgba(0,0,0,.18)">技术共享</span>
+      <p class="text-white/80 text-[11px] mt-0.5"><i class="fas fa-flask text-[9px] mr-1"></i>汇聚行业成果 · 对接技术需求 · 促进成果转化</p>
+    </div>
+  </div>
+</div>
+
+<!-- 概览统计 -->
+<div class="px-3 -mt-3 relative z-10">
+  <div class="bg-white rounded-2xl shadow-soft p-3.5 fade-up border border-white grid grid-cols-3 gap-2 text-center">
+    <div class="border-r border-gray-100"><p class="text-[18px] font-black" style="color:#3B82F6">86</p><p class="text-[9px] text-gray-400 mt-0.5">技术成果</p></div>
+    <div class="border-r border-gray-100"><p class="text-[18px] font-black" style="color:#10B981">24</p><p class="text-[9px] text-gray-400 mt-0.5">合作机构</p></div>
+    <div><p class="text-[18px] font-black" style="color:#F59E0B">156</p><p class="text-[9px] text-gray-400 mt-0.5">成功转化</p></div>
+  </div>
+</div>
+
+<!-- ===== 顶部双Tab ===== -->
+<div class="tabbar mt-3">
+  <div class="tabs">
+    <div class="tab on" id="tabAchieve" onclick="switchTab('achieve')"><i class="fas fa-microscope mr-1"></i>技术成果</div>
+    <div class="tab" id="tabDemand" onclick="switchTab('demand')"><i class="fas fa-bullhorn mr-1"></i>技术需求<span class="counttip">3</span></div>
+  </div>
+</div>
+
+<!-- ===== Tab1 技术成果 ===== -->
+<div id="viewAchieve" class="px-3 pt-3 pb-4">
+  <div class="flex items-center justify-between mb-2.5">
+    <div class="flex items-center gap-1.5"><div class="w-1.5 h-3.5 rounded-full" style="background:#2563EB"></div><span class="sec-title">行业先进技术成果</span></div>
+    <span class="text-[11px] text-gray-400">共 86 项</span>
+  </div>
+
+  <!-- 成果1 -->
+  <div class="dcard fade-up">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-1.5">
+        <div class="w-7 h-7 rounded-full flex items-center justify-center text-white text-[11px] font-bold" style="background:linear-gradient(135deg,#3B82F6,#6366F1)">浙</div>
+        <div>
+          <p class="text-[12px] font-bold text-gray-800 leading-none">浙江理工大学</p>
+          <p class="text-[9px] text-gray-400 mt-0.5">高校 · 3天前更新</p>
+        </div>
+      </div>
+      <span class="pill pill-ready"><i class="fas fa-circle-check"></i>可转化</span>
+    </div>
+    <p class="text-[14px] font-semibold text-gray-900 mt-2.5">纳米银离子抗菌纤维技术</p>
+    <p class="text-[11px] text-gray-500 mt-1 leading-relaxed">采用纳米银离子复合纺丝工艺，赋予袜品持久抗菌除臭功能，洗涤50次抑菌率仍达99%，适用于运动袜与商务袜。</p>
+    <div class="flex gap-1.5 mt-2 flex-wrap">
+      <span class="field-tag ft-new">新材料</span>
+      <span class="field-tag ft-func">功能性</span>
+      <span class="field-tag ft-smart">智能制造</span>
+    </div>
+    <div class="flex items-center justify-between mt-3 pt-2.5 border-t border-gray-50">
+      <span class="text-[10px] text-gray-400"><i class="fas fa-eye mr-0.5"></i>328人浏览 · 12人咨询</span>
+      <span class="act-btn" onclick="toast('已提交对接申请，机构将在1个工作日内回复','fa-paper-plane')"><i class="fas fa-handshake text-[11px]"></i>联系对接</span>
+    </div>
+  </div>
+
+  <!-- 成果2 -->
+  <div class="dcard fade-up" style="animation-delay:.05s">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-1.5">
+        <div class="w-7 h-7 rounded-full flex items-center justify-center text-white text-[11px] font-bold" style="background:linear-gradient(135deg,#7C3AED,#9333EA)">东</div>
+        <div>
+          <p class="text-[12px] font-bold text-gray-800 leading-none">东华大学</p>
+          <p class="text-[9px] text-gray-400 mt-0.5">高校 · 5天前更新</p>
+        </div>
+      </div>
+      <span class="pill pill-talk"><i class="fas fa-comments"></i>洽谈中</span>
+    </div>
+    <p class="text-[14px] font-semibold text-gray-900 mt-2.5">3D无缝成型织造工艺</p>
+    <p class="text-[11px] text-gray-500 mt-1 leading-relaxed">基于全成型电脑横机一次织造成型，无骨缝拼接，贴合足型，减少摩擦，提升穿着舒适度与生产效率。</p>
+    <div class="flex gap-1.5 mt-2 flex-wrap">
+      <span class="field-tag ft-craft">新工艺</span>
+      <span class="field-tag ft-smart">智能制造</span>
+    </div>
+    <div class="flex items-center justify-between mt-3 pt-2.5 border-t border-gray-50">
+      <span class="text-[10px] text-gray-400"><i class="fas fa-eye mr-0.5"></i>276人浏览 · 8人咨询</span>
+      <span class="act-btn" onclick="toast('已提交对接申请，机构将在1个工作日内回复','fa-paper-plane')"><i class="fas fa-handshake text-[11px]"></i>联系对接</span>
+    </div>
+  </div>
+
+  <!-- 成果3 -->
+  <div class="dcard fade-up" style="animation-delay:.1s">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-1.5">
+        <div class="w-7 h-7 rounded-full flex items-center justify-center text-white text-[11px] font-bold" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)">纺</div>
+        <div>
+          <p class="text-[12px] font-bold text-gray-800 leading-none">纺织科学研究所</p>
+          <p class="text-[9px] text-gray-400 mt-0.5">研究所 · 1周前更新</p>
+        </div>
+      </div>
+      <span class="pill pill-ready"><i class="fas fa-circle-check"></i>可转化</span>
+    </div>
+    <p class="text-[14px] font-semibold text-gray-900 mt-2.5">智能温控纤维材料</p>
+    <p class="text-[11px] text-gray-500 mt-1 leading-relaxed">相变储能微胶囊纤维，随体温自动调节温度，冬季保暖夏季清凉，为户外与功能性袜品提供温控解决方案。</p>
+    <div class="flex gap-1.5 mt-2 flex-wrap">
+      <span class="field-tag ft-new">新材料</span>
+      <span class="field-tag ft-func">功能性</span>
+    </div>
+    <div class="flex items-center justify-between mt-3 pt-2.5 border-t border-gray-50">
+      <span class="text-[10px] text-gray-400"><i class="fas fa-eye mr-0.5"></i>412人浏览 · 15人咨询</span>
+      <span class="act-btn" onclick="toast('已提交对接申请，机构将在1个工作日内回复','fa-paper-plane')"><i class="fas fa-handshake text-[11px]"></i>联系对接</span>
+    </div>
+  </div>
+
+  <!-- 成果4 -->
+  <div class="dcard fade-up" style="animation-delay:.15s">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-1.5">
+        <div class="w-7 h-7 rounded-full flex items-center justify-center text-white text-[11px] font-bold" style="background:linear-gradient(135deg,#10B981,#059669)">江</div>
+        <div>
+          <p class="text-[12px] font-bold text-gray-800 leading-none">江南大学</p>
+          <p class="text-[9px] text-gray-400 mt-0.5">高校 · 2周前更新</p>
+        </div>
+      </div>
+      <span class="pill pill-done"><i class="fas fa-flag-checkered"></i>已转化</span>
+    </div>
+    <p class="text-[14px] font-semibold text-gray-900 mt-2.5">仿生导湿排汗织造技术</p>
+    <p class="text-[11px] text-gray-500 mt-1 leading-relaxed">模仿植物毛细结构的多层导湿织造，实现汗液单向导排、快干不返潮，已成功应用于多家品牌运动袜。</p>
+    <div class="flex gap-1.5 mt-2 flex-wrap">
+      <span class="field-tag ft-craft">新工艺</span>
+      <span class="field-tag ft-func">功能性</span>
+    </div>
+    <div class="flex items-center justify-between mt-3 pt-2.5 border-t border-gray-50">
+      <span class="text-[10px] text-gray-400"><i class="fas fa-eye mr-0.5"></i>508人浏览 · 已转化3家</span>
+      <span class="act-btn" style="background:#e5e7eb;color:#9ca3af;box-shadow:none" onclick="toast('该成果已转化，可咨询相似技术','fa-circle-info')"><i class="fas fa-handshake text-[11px]"></i>联系对接</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Tab2 技术需求 ===== -->
+<div id="viewDemand" class="px-3 pt-3 pb-4" style="display:none">
+  <div class="flex items-center justify-between mb-2.5">
+    <div class="flex items-center gap-1.5"><div class="w-1.5 h-3.5 rounded-full" style="background:#2563EB"></div><span class="sec-title">企业技术需求发布</span></div>
+    <span class="text-[11px] text-gray-400">共 3 条</span>
+  </div>
+
+  <!-- 需求1 -->
+  <div class="dcard fade-up">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-1.5">
+        <div class="w-7 h-7 rounded-full flex items-center justify-center text-white text-[11px] font-bold" style="background:linear-gradient(135deg,#3B82F6,#6366F1)">杭</div>
+        <div>
+          <p class="text-[12px] font-bold text-gray-800 leading-none">杭州酷袜商贸</p>
+          <p class="text-[9px] text-gray-400 mt-0.5">企业认证 · 2小时前</p>
+        </div>
+      </div>
+      <span class="pill pill-open"><i class="fas fa-bolt"></i>4家报价</span>
+    </div>
+    <p class="text-[14px] font-semibold text-gray-900 mt-2.5">抗菌防臭袜品技术</p>
+    <p class="text-[11px] text-gray-500 mt-1 leading-relaxed">寻求长效抗菌防臭解决方案，棉混纺材质，洗涤30次抑菌率≥95%，可应用于商务与运动系列。</p>
+    <div class="flex gap-1.5 mt-2.5 flex-wrap">
+      <span class="info-lbl"><i class="fas fa-tag mr-1 text-gray-300"></i>新材料</span>
+      <span class="info-lbl"><i class="fas fa-coins mr-1" style="color:#FF4D2D"></i>预算 ¥5-10万</span>
+    </div>
+    <div class="flex items-center justify-between mt-3 pt-2.5 border-t border-gray-50">
+      <span class="text-[10px] text-gray-400"><i class="fas fa-eye mr-0.5"></i>156人浏览</span>
+      <span class="quote-btn" onclick="toast('已查看4家技术方报价','fa-file-invoice-dollar')"><i class="fas fa-file-invoice-dollar text-[11px]"></i>查看报价</span>
+    </div>
+  </div>
+
+  <!-- 需求2 -->
+  <div class="dcard fade-up" style="animation-delay:.05s">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-1.5">
+        <div class="w-7 h-7 rounded-full flex items-center justify-center text-white text-[11px] font-bold" style="background:linear-gradient(135deg,#F59E0B,#D97706)">广</div>
+        <div>
+          <p class="text-[12px] font-bold text-gray-800 leading-none">广东劲步体育</p>
+          <p class="text-[9px] text-gray-400 mt-0.5">企业认证 · 1天前</p>
+        </div>
+      </div>
+      <span class="pill pill-talk"><i class="fas fa-clock"></i>报价中 · 2家</span>
+    </div>
+    <p class="text-[14px] font-semibold text-gray-900 mt-2.5">运动压缩袜编织工艺</p>
+    <p class="text-[11px] text-gray-500 mt-1 leading-relaxed">需梯度压缩编织工艺，足弓支撑加压，提升运动表现与恢复，兼容200针精梳棉。</p>
+    <div class="flex gap-1.5 mt-2.5 flex-wrap">
+      <span class="info-lbl"><i class="fas fa-tag mr-1 text-gray-300"></i>新工艺</span>
+      <span class="info-lbl"><i class="fas fa-coins mr-1" style="color:#FF4D2D"></i>预算 ¥8-15万</span>
+    </div>
+    <div class="flex items-center justify-between mt-3 pt-2.5 border-t border-gray-50">
+      <span class="text-[10px] text-gray-400"><i class="fas fa-eye mr-0.5"></i>98人浏览</span>
+      <span class="quote-btn" onclick="toast('已查看2家技术方报价','fa-file-invoice-dollar')"><i class="fas fa-file-invoice-dollar text-[11px]"></i>查看报价</span>
+    </div>
+  </div>
+
+  <!-- 需求3 -->
+  <div class="dcard fade-up" style="animation-delay:.1s">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-1.5">
+        <div class="w-7 h-7 rounded-full flex items-center justify-center text-white text-[11px] font-bold" style="background:linear-gradient(135deg,#10B981,#059669)">上</div>
+        <div>
+          <p class="text-[12px] font-bold text-gray-800 leading-none">上海织语电商</p>
+          <p class="text-[9px] text-gray-400 mt-0.5">企业认证 · 2天前</p>
+        </div>
+      </div>
+      <span class="pill pill-open"><i class="fas fa-bolt"></i>6家报价</span>
+    </div>
+    <p class="text-[14px] font-semibold text-gray-900 mt-2.5">环保可降解袜料研发</p>
+    <p class="text-[11px] text-gray-500 mt-1 leading-relaxed">研发PLA/PBAT基可降解袜用纱线，保持穿着强度，废弃后180天内降解率≥60%。</p>
+    <div class="flex gap-1.5 mt-2.5 flex-wrap">
+      <span class="info-lbl"><i class="fas fa-tag mr-1 text-gray-300"></i>新材料</span>
+      <span class="info-lbl"><i class="fas fa-coins mr-1" style="color:#FF4D2D"></i>预算 ¥10-20万</span>
+    </div>
+    <div class="flex items-center justify-between mt-3 pt-2.5 border-t border-gray-50">
+      <span class="text-[10px] text-gray-400"><i class="fas fa-eye mr-0.5"></i>203人浏览</span>
+      <span class="quote-btn" onclick="toast('已查看6家技术方报价','fa-file-invoice-dollar')"><i class="fas fa-file-invoice-dollar text-[11px]"></i>查看报价</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 技术专家（公共区） ===== -->
+<div class="px-3 mt-2 mb-4">
+  <div class="flex items-center justify-between mb-2.5">
+    <div class="flex items-center gap-1.5"><div class="w-1.5 h-3.5 rounded-full" style="background:#7C3AED"></div><span class="sec-title">技术专家</span></div>
+    <span class="text-[11px] text-gray-400">在线咨询 <i class="fas fa-chevron-right text-[8px]"></i></span>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-soft p-3 divide-y divide-gray-50 fade-up">
+    <!-- 专家1 -->
+    <div class="flex items-center gap-2.5 pb-2.5">
+      <div class="w-11 h-11 rounded-full flex items-center justify-center text-white text-[14px] font-bold flex-shrink-0" style="background:linear-gradient(135deg,#3B82F6,#6366F1)">张</div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-1.5">
+          <p class="text-[13px] font-bold text-gray-900">张明远</p>
+          <span class="text-[9px] font-semibold px-1.5 py-0.5 rounded" style="background:#EAF2FF;color:#2563EB">教授/博导</span>
+          <span class="w-1.5 h-1.5 rounded-full" style="background:#10B981" title="在线"></span>
+        </div>
+        <p class="text-[10px] text-gray-500 mt-0.5"><i class="fas fa-microscope mr-0.5 text-gray-300"></i>功能性纤维材料 · 浙江理工大学</p>
+      </div>
+      <span class="expert-btn" onclick="toast('正在为您连接张明远教授','fa-comment-dots')"><i class="fas fa-comment-dots text-[10px]"></i>在线咨询</span>
+    </div>
+    <!-- 专家2 -->
+    <div class="flex items-center gap-2.5 py-2.5">
+      <div class="w-11 h-11 rounded-full flex items-center justify-center text-white text-[14px] font-bold flex-shrink-0" style="background:linear-gradient(135deg,#7C3AED,#9333EA)">李</div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-1.5">
+          <p class="text-[13px] font-bold text-gray-900">李素华</p>
+          <span class="text-[9px] font-semibold px-1.5 py-0.5 rounded" style="background:#EDE9FE;color:#7C3AED">研究员</span>
+          <span class="w-1.5 h-1.5 rounded-full" style="background:#10B981"></span>
+        </div>
+        <p class="text-[10px] text-gray-500 mt-0.5"><i class="fas fa-microscope mr-0.5 text-gray-300"></i>智能纺织工艺 · 东华大学</p>
+      </div>
+      <span class="expert-btn" onclick="toast('正在为您连接李素华研究员','fa-comment-dots')"><i class="fas fa-comment-dots text-[10px]"></i>在线咨询</span>
+    </div>
+    <!-- 专家3 -->
+    <div class="flex items-center gap-2.5 pt-2.5">
+      <div class="w-11 h-11 rounded-full flex items-center justify-center text-white text-[14px] font-bold flex-shrink-0" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)">王</div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-1.5">
+          <p class="text-[13px] font-bold text-gray-900">王建国</p>
+          <span class="text-[9px] font-semibold px-1.5 py-0.5 rounded" style="background:#DBEAFE;color:#0284C7">高级工程师</span>
+          <span class="w-1.5 h-1.5 rounded-full" style="background:#9ca3af"></span>
+        </div>
+        <p class="text-[10px] text-gray-500 mt-0.5"><i class="fas fa-microscope mr-0.5 text-gray-300"></i>袜业智能制造 · 纺织科学研究所</p>
+      </div>
+      <span class="expert-btn" onclick="toast('专家离线，已发送留言通知','fa-envelope')"><i class="fas fa-comment-dots text-[10px]"></i>在线咨询</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 对接流程（公共区） ===== -->
+<div class="px-3 mb-28">
+  <div class="flex items-center gap-1.5 mb-2.5"><div class="w-1.5 h-3.5 rounded-full" style="background:#2563EB"></div><span class="sec-title">技术对接流程</span></div>
+  <div class="bg-white rounded-2xl shadow-soft p-4 fade-up">
+    <div class="flex items-start justify-between">
+      <div class="flex flex-col items-center" style="width:60px">
+        <div class="step-dot" style="background:linear-gradient(135deg,#3B82F6,#2563EB)"><i class="fas fa-search text-[13px]"></i></div>
+        <p class="text-[10px] font-semibold text-gray-700 mt-1.5 text-center leading-tight">浏览成果<br>发布需求</p>
+      </div>
+      <div class="flex-1 mt-[18px] mx-1"><div class="h-[2px] rounded" style="background:linear-gradient(90deg,#3B82F6,#60A5FA)"></div><i class="fas fa-chevron-right text-[8px] text-gray-300 -mt-[3px] block text-right"></i></div>
+      <div class="flex flex-col items-center" style="width:60px">
+        <div class="step-dot" style="background:linear-gradient(135deg,#6366F1,#7C3AED)"><i class="fas fa-comments text-[13px]"></i></div>
+        <p class="text-[10px] font-semibold text-gray-700 mt-1.5 text-center leading-tight">在线对接</p>
+      </div>
+      <div class="flex-1 mt-[18px] mx-1"><div class="h-[2px] rounded" style="background:linear-gradient(90deg,#7C3AED,#A78BFA)"></div><i class="fas fa-chevron-right text-[8px] text-gray-300 -mt-[3px] block text-right"></i></div>
+      <div class="flex flex-col items-center" style="width:60px">
+        <div class="step-dot" style="background:linear-gradient(135deg,#8B5CF6,#A78BFA)"><i class="fas fa-file-signature text-[13px]"></i></div>
+        <p class="text-[10px] font-semibold text-gray-700 mt-1.5 text-center leading-tight">签订协议</p>
+      </div>
+      <div class="flex-1 mt-[18px] mx-1"><div class="h-[2px] rounded" style="background:linear-gradient(90deg,#A78BFA,#34D399)"></div><i class="fas fa-chevron-right text-[8px] text-gray-300 -mt-[3px] block text-right"></i></div>
+      <div class="flex flex-col items-center" style="width:60px">
+        <div class="step-dot" style="background:linear-gradient(135deg,#10B981,#059669)"><i class="fas fa-rocket text-[13px]"></i></div>
+        <p class="text-[10px] font-semibold text-gray-700 mt-1.5 text-center leading-tight">成果转化</p>
+      </div>
+    </div>
+    <p class="text-[10px] text-gray-400 text-center mt-3 pt-3 border-t border-gray-50"><i class="fas fa-shield-halved mr-1" style="color:#10B981"></i>平台提供全程对接保障，确保技术转化安全合规</p>
+  </div>
+</div>
+
+<!-- 悬浮发布按钮（仅Tab2显示） -->
+<div class="fab" id="fabPublish" style="display:none" onclick="openSheet()">
+  <i class="fas fa-plus text-[12px]"></i><span>发布技术需求</span>
+</div>
+
+<!-- 底部Tab栏 5Tab -->
+<div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100" style="height:65px;z-index:100;width:393px">
+<div class="flex justify-around items-center h-full" style="padding-bottom:10px">
+<a href="home.html" class="flex flex-col items-center gap-0.5" style="color:#FF4D2D"><i class="fas fa-house text-[18px]"></i><span class="text-[9px] font-semibold">首页</span></a>
+<a href="video.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-video text-[18px]"></i><span class="text-[9px]">视频看货</span></a>
+<a href="purchase-order.html" class="flex flex-col items-center gap-0.5 text-gray-400 relative"><i class="fas fa-clipboard-list text-[18px]"></i><span class="text-[9px]">进货单</span><span class="absolute top-0 right-1 bg-primary text-white text-[7px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center" style="min-width:14px;height:14px">3</span></a>
+<a href="property.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-building text-[18px]"></i><span class="text-[9px]">物业</span></a>
+<a href="mine.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-user text-[18px]"></i><span class="text-[9px]">我的</span></a>
+</div>
+</div>
+<!-- Home Indicator -->
+<div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none"><div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:3px"></div></div>
+
+<!-- 遮罩 -->
+<div class="overlay" id="overlay" onclick="closeSheet()"></div>
+
+<!-- 底部表单：发布技术需求 -->
+<div class="sheet" id="sheet">
+  <div class="sticky top-0 bg-white px-4 pt-4 pb-3 border-b border-gray-100 rounded-t-[22px]">
+    <div class="w-9 h-1 rounded-full bg-gray-200 mx-auto mb-3"></div>
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="w-7 h-7 rounded-xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#3B82F6,#2563EB)"><i class="fas fa-bullhorn text-xs"></i></div>
+        <p class="text-[14px] font-bold text-gray-800">发布技术需求</p>
+      </div>
+      <i class="fas fa-xmark text-gray-400 text-lg card" onclick="closeSheet()"></i>
+    </div>
+  </div>
+
+  <div class="px-4 py-4">
+    <div class="mb-3">
+      <label class="lbl">需求名称 <b>*</b></label>
+      <input type="text" class="inp" id="fName" placeholder="如：抗菌防臭袜品技术">
+    </div>
+
+    <div class="mb-3">
+      <label class="lbl">技术领域 <b>*</b></label>
+      <div class="flex flex-wrap gap-1.5" id="fieldBox">
+        <span class="tag-opt on" data-f="新材料">新材料</span>
+        <span class="tag-opt" data-f="新工艺">新工艺</span>
+        <span class="tag-opt" data-f="智能制造">智能制造</span>
+        <span class="tag-opt" data-f="功能性">功能性</span>
+        <span class="tag-opt" data-f="检测认证">检测认证</span>
+        <span class="tag-opt" data-f="环保可降解">环保可降解</span>
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label class="lbl">需求描述 <b>*</b></label>
+      <textarea class="inp" id="fDesc" rows="3" placeholder="请描述技术目标、性能指标、应用场景等…" style="resize:none"></textarea>
+    </div>
+
+    <div class="mb-3">
+      <label class="lbl">预算范围 <b>*</b></label>
+      <select class="inp" style="appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%2210%22 viewBox=%220 0 10 10%22%3E%3Cpath fill=%22%23999%22 d=%22M2 4l3 3 3-3z%22/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 12px center;padding-right:30px">
+        <option>¥1万以下</option><option>¥1-5万</option><option selected>¥5-10万</option><option>¥10-20万</option><option>¥20万以上</option><option>面议</option>
+      </select>
+    </div>
+
+    <div class="grid grid-cols-2 gap-2 mb-4">
+      <div>
+        <label class="lbl">联系人 <b>*</b></label>
+        <input type="text" class="inp" id="fContact" placeholder="您的姓名">
+      </div>
+      <div>
+        <label class="lbl">联系电话 <b>*</b></label>
+        <input type="tel" class="inp" id="fPhone" placeholder="手机号码">
+      </div>
+    </div>
+
+    <button class="w-full py-3 rounded-full text-white text-[15px] font-bold" style="background:linear-gradient(135deg,#3B82F6,#2563EB);box-shadow:0 8px 18px rgba(37,99,235,.3)" onclick="submitDemand()">
+      <i class="fas fa-paper-plane text-xs mr-1"></i>立即发布
+    </button>
+    <p class="text-center text-[10px] text-gray-400 mt-2"><i class="fas fa-shield-halved mr-1" style="color:#10B981"></i>平台审核后发布，保障需求真实有效</p>
+  </div>
+</div>
+
+<!-- toast -->
+<div class="toast" id="toast"><i class="fas fa-circle-check text-[#4ADE80]"></i><span id="toastTxt">操作成功</span></div>
+
+<script>
+var tabMap={achieve:['tabAchieve','viewAchieve'],demand:['tabDemand','viewDemand']};
+function switchTab(k){
+  Object.keys(tabMap).forEach(function(t){
+    var o=tabMap[t];
+    document.getElementById(o[0]).className='tab'+(t===k?' on':'');
+    document.getElementById(o[1]).style.display=(t===k?'':'none');
+  });
+  // 悬浮发布按钮仅在"技术需求"Tab显示
+  document.getElementById('fabPublish').style.display=(k==='demand'?'inline-flex':'none');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+var toastTimer;
+function toast(msg,icon){
+  var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;
+  t.querySelector('i').className='fas '+(icon||'fa-circle-check')+' text-[#4ADE80]';
+  t.classList.add('on');
+  clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},1800);
+}
+
+/* 领域标签多选 */
+var fieldEls=document.querySelectorAll('#fieldBox .tag-opt');
+fieldEls.forEach(function(el){el.addEventListener('click',function(){el.classList.toggle('on')})});
+
+/* 底部表单 */
+function openSheet(){
+  document.getElementById('overlay').classList.add('on');
+  document.getElementById('sheet').classList.add('on');
+  document.body.style.overflow='hidden';
+}
+function closeSheet(){
+  document.getElementById('overlay').classList.remove('on');
+  document.getElementById('sheet').classList.remove('on');
+  document.body.style.overflow='';
+}
+function submitDemand(){
+  var n=document.getElementById('fName').value.trim();
+  var d=document.getElementById('fDesc').value.trim();
+  var c=document.getElementById('fContact').value.trim();
+  var p=document.getElementById('fPhone').value.trim();
+  if(!n){toast('请填写需求名称','fa-circle-exclamation');return}
+  if(!d){toast('请填写需求描述','fa-circle-exclamation');return}
+  if(!c||!p){toast('请填写联系人与电话','fa-circle-exclamation');return}
+  if(!/^1\d{10}$/.test(p)){toast('请输入正确的手机号','fa-circle-exclamation');return}
+  closeSheet();
+  setTimeout(function(){toast('需求已发布，等待技术方对接','fa-paper-plane')},280);
+}
+</script>
+</body>
+</html>

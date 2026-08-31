@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>中介服务 - 袜掌柜买家版</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>
+tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D','primary-d':'#E63E20','primary-l':'#FF7849'}}}}
+</script>
+<style>
+:root{--p:#FF4D2D;--pl:#FF7849;--bg:#FFF7F4;--og:#F97316;--ogd:#EA580C}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden;color:#1F2430}
+::-webkit-scrollbar{width:2px;height:2px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#dfdfdf;border-radius:1px}
+.no-bar::-webkit-scrollbar{display:none}
+.h-scroll{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x proximity;padding-bottom:3px}
+.h-scroll::-webkit-scrollbar{display:none}
+.h-scroll>*{scroll-snap-align:start;flex:0 0 auto}
+.rec-card{width:120px}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
+.card{transition:transform .16s ease, box-shadow .16s ease}
+.card:active{transform:scale(.965)}
+.fade-up{animation:fadeUp .5s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+/* 橙色系头部渐变 */
+.grad-orange{background:linear-gradient(135deg,#F97316 0%,#EA580C 100%)}
+/* 服务类型标签色 */
+.t-finance{color:#10B981;background:rgba(16,185,129,.10)}
+.t-legal{color:#3B82F6;background:rgba(59,130,246,.10)}
+.t-consult{color:#8B5CF6;background:rgba(139,92,246,.10)}
+.t-cert{color:#F59E0B;background:rgba(245,158,11,.10)}
+/* 操作按钮 */
+.btn-pri{background:linear-gradient(90deg,#F97316,#EA580C);color:#fff;box-shadow:0 3px 10px rgba(234,88,12,.25)}
+.btn-ghost{background:#fff;color:#6b7280;border:1px solid #ececf0}
+.btn-pri:active,.btn-ghost:active{transform:scale(.94)}
+/* 星级 */
+.star-on{color:#FBBF24}
+.star-off{color:#E5E7EB}
+/* toast */
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:12px 20px;border-radius:14px;font-size:13px;z-index:300;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.25);min-width:120px;justify-content:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+/* 弹窗遮罩 */
+.mask{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;opacity:0;pointer-events:none;transition:.25s}
+.mask.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:210;background:#fff;border-radius:20px 20px 0 0;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);max-height:88vh;overflow-y:auto;width:393px}
+.sheet.on{transform:translateY(0)}
+.sheet-bar{width:36px;height:4px;background:#E5E7EB;border-radius:2px;margin:8px auto 4px}
+/* 表单输入 */
+.field-label{font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;display:flex;align-items:center;gap:4px}
+.field-input{width:100%;font-size:13px;padding:10px 12px;border-radius:12px;border:1px solid #EAEAF0;background:#F9FAFB;outline:none;transition:.2s}
+.field-input:focus{border-color:#F97316;background:#fff;box-shadow:0 0 0 3px rgba(249,115,22,.10)}
+textarea.field-input{resize:none;line-height:1.5}
+select.field-input{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='3'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+/* 推荐卡片 */
+.rec-card{flex:0 0 140px;width:140px}
+</style>
+</head>
+<body>
+
+<!-- ===== 顶部渐变头部 ===== -->
+<div class="relative overflow-hidden grad-orange">
+  <!-- 流动光斑 -->
+  <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-40" style="background:#FB923C"></div>
+  <div class="absolute -top-6 right-[-30px] w-48 h-48 rounded-full blur-3xl opacity-30" style="background:#F97316"></div>
+
+  <!-- iOS状态栏 -->
+  <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px;padding:0 16px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5">
+      <i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i>
+    </div>
+  </div>
+
+  <!-- 标题栏 + 返回 -->
+  <div class="relative flex items-center px-3" style="height:48px">
+    <a href="industry-services.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white">
+      <i class="fas fa-chevron-left text-sm"></i>
+    </a>
+    <h1 class="absolute left-0 right-0 text-center text-white font-extrabold text-[18px]" style="text-shadow:0 2px 8px rgba(0,0,0,.12)">中介服务</h1>
+  </div>
+
+  <!-- Banner副标题 -->
+  <div class="relative px-4 pb-5 pt-1">
+    <div class="flex items-center gap-2">
+      <i class="fas fa-briefcase text-white/80 text-[14px]"></i>
+      <p class="text-white/85 text-[13px] font-medium">专业中介服务资源，降低企业寻找成本</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 数据概览 ===== -->
+<div class="px-3 -mt-3 relative z-10">
+  <div class="bg-white rounded-2xl shadow-soft p-3.5 fade-up border border-white grid grid-cols-3 gap-2 text-center">
+    <div class="border-r border-gray-100">
+      <p class="text-[18px] font-black" style="color:#F97316">36</p>
+      <p class="text-[9px] text-gray-400 mt-0.5">入驻服务商</p>
+    </div>
+    <div class="border-r border-gray-100">
+      <p class="text-[18px] font-black" style="color:#10B981">1280+</p>
+      <p class="text-[9px] text-gray-400 mt-0.5">服务企业</p>
+    </div>
+    <div>
+      <p class="text-[18px] font-black" style="color:#F59E0B">4.8</p>
+      <p class="text-[9px] text-gray-400 mt-0.5">平均评分</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 筛选Tab ===== -->
+<div class="sticky top-0 z-30 bg-[#FFF7F4] shadow-soft" style="padding:10px 12px">
+  <div class="flex gap-2 overflow-x-auto no-bar" id="filterBar">
+    <button class="tab-item text-[12px] font-semibold px-3.5 py-2 rounded-full" data-filter="all" style="background:linear-gradient(90deg,#F97316,#EA580C);color:#fff;box-shadow:0 4px 12px rgba(234,88,12,.32)">全部</button>
+    <button class="tab-item text-[12px] font-semibold px-3.5 py-2 rounded-full bg-white text-gray-500 shadow-soft" data-filter="finance">财务服务</button>
+    <button class="tab-item text-[12px] font-semibold px-3.5 py-2 rounded-full bg-white text-gray-500 shadow-soft" data-filter="legal">法律咨询</button>
+    <button class="tab-item text-[12px] font-semibold px-3.5 py-2 rounded-full bg-white text-gray-500 shadow-soft" data-filter="consult">管理咨询</button>
+    <button class="tab-item text-[12px] font-semibold px-3.5 py-2 rounded-full bg-white text-gray-500 shadow-soft" data-filter="cert">认证检测</button>
+  </div>
+</div>
+
+<!-- ===== 服务商列表 ===== -->
+<div class="px-3 mt-3 space-y-3" id="providerList"></div>
+
+<!-- ===== 推荐服务商（横向滚动） ===== -->
+<div class="mt-5 mb-3">
+  <div class="flex items-center justify-between px-3 mb-2.5">
+    <div class="flex items-center gap-1.5">
+      <i class="fas fa-award text-[14px]" style="color:#F97316"></i>
+      <h2 class="text-[15px] font-extrabold text-gray-800">推荐服务商</h2>
+    </div>
+    <span class="text-[10px] text-gray-400">平台严选 · 值得信赖</span>
+  </div>
+  <div class="h-scroll px-3" id="recList"></div>
+</div>
+
+<!-- 底部占位 -->
+<div style="height:80px"></div>
+
+<!-- ===== 底部Tab栏 5Tab ===== -->
+<div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100" style="height:65px;z-index:100;width:393px">
+  <div class="flex justify-around items-center h-full" style="padding-bottom:10px">
+    <a href="home.html" class="flex flex-col items-center gap-0.5" style="color:#FF4D2D"><i class="fas fa-house text-[18px]"></i><span class="text-[9px] font-semibold">首页</span></a>
+    <a href="video.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-video text-[18px]"></i><span class="text-[9px]">视频看货</span></a>
+    <a href="purchase-order.html" class="flex flex-col items-center gap-0.5 text-gray-400 relative"><i class="fas fa-clipboard-list text-[18px]"></i><span class="text-[9px]">进货单</span><span class="absolute top-0 right-1 bg-primary text-white text-[7px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center" style="min-width:14px;height:14px">3</span></a>
+    <a href="property.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-building text-[18px]"></i><span class="text-[9px]">物业</span></a>
+    <a href="mine.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-user text-[18px]"></i><span class="text-[9px]">我的</span></a>
+  </div>
+</div>
+<div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none"><div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:3px"></div></div>
+
+<!-- ===== Toast ===== -->
+<div class="toast" id="toast"><i class="fas fa-circle-check" style="color:#4ADE80"></i><span id="toastTxt">操作成功</span></div>
+
+<!-- ===== 预约弹窗 ===== -->
+<div class="mask" id="mask"></div>
+<div class="sheet" id="sheet">
+  <div class="sheet-bar"></div>
+  <div class="px-4 pb-5">
+    <!-- 弹窗头部 -->
+    <div class="flex items-center justify-between mb-3">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,#F97316,#EA580C)">
+          <i class="fas fa-calendar-check text-white text-[13px]"></i>
+        </div>
+        <div>
+          <h3 class="text-[15px] font-extrabold text-gray-800">在线预约服务</h3>
+          <p class="text-[10px] text-gray-400" id="sheetProvider">请填写预约信息</p>
+        </div>
+      </div>
+      <button onclick="closeSheet()" class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center">
+        <i class="fas fa-xmark text-gray-500 text-[12px]"></i>
+      </button>
+    </div>
+
+    <!-- 表单 -->
+    <div class="space-y-3">
+      <!-- 服务类型 -->
+      <div>
+        <div class="field-label"><i class="fas fa-tags text-[10px]" style="color:#F97316"></i>服务类型</div>
+        <select class="field-input" id="fType">
+          <option value="财税代理">财税代理</option>
+          <option value="税务筹划">税务筹划</option>
+          <option value="审计验资">审计验资</option>
+          <option value="法律顾问">法律顾问</option>
+          <option value="合同审查">合同审查</option>
+          <option value="管理体系认证">管理体系认证</option>
+          <option value="产品检测">产品检测</option>
+          <option value="其他咨询">其他咨询</option>
+        </select>
+      </div>
+      <!-- 预约时间 -->
+      <div>
+        <div class="field-label"><i class="far fa-clock text-[10px]" style="color:#F97316"></i>预约时间</div>
+        <input type="datetime-local" class="field-input" id="fTime" value="2026-09-03T10:00">
+      </div>
+      <!-- 企业名称 -->
+      <div>
+        <div class="field-label"><i class="fas fa-building text-[10px]" style="color:#F97316"></i>企业名称</div>
+        <input type="text" class="field-input" id="fCompany" placeholder="请输入企业全称">
+      </div>
+      <!-- 联系人 -->
+      <div class="flex gap-2.5">
+        <div class="flex-1">
+          <div class="field-label"><i class="fas fa-user text-[10px]" style="color:#F97316"></i>联系人</div>
+          <input type="text" class="field-input" id="fContact" placeholder="请输入姓名">
+        </div>
+        <div class="flex-1">
+          <div class="field-label"><i class="fas fa-phone text-[10px]" style="color:#F97316"></i>联系电话</div>
+          <input type="tel" class="field-input" id="fPhone" placeholder="手机号码" maxlength="11">
+        </div>
+      </div>
+      <!-- 需求描述 -->
+      <div>
+        <div class="field-label"><i class="fas fa-comment-dots text-[10px]" style="color:#F97316"></i>需求描述</div>
+        <textarea class="field-input" id="fDesc" rows="3" placeholder="请简要描述您的服务需求，以便服务商提前了解"></textarea>
+      </div>
+    </div>
+
+    <!-- 提交按钮 -->
+    <button onclick="submitForm()" class="btn-pri card w-full mt-4 py-3 rounded-2xl text-[14px] font-bold flex items-center justify-center gap-2">
+      <i class="fas fa-paper-plane text-[12px]"></i>提交预约
+    </button>
+    <p class="text-[10px] text-gray-400 text-center mt-2.5">提交后服务商将在1个工作日内与您联系</p>
+  </div>
+</div>
+
+<script>
+/* ===================== 数据 ===================== */
+var providers=[
+  {
+    name:'诸暨诚信财税咨询',
+    initial:'诚',
+    g1:'#10B981',g2:'#059669',
+    type:'finance',typeLabel:'财务服务',typeCls:'t-finance',
+    rating:4.9,count:860,
+    desc:'代理记账·税务申报·审计验资·财税筹划，专注诸暨本地中小企业财税服务15年',
+    price:'¥300起/月',
+    tags:['代理记账','税务申报','审计验资']
+  },
+  {
+    name:'大唐法律服务站',
+    initial:'法',
+    g1:'#3B82F6',g2:'#1D4ED8',
+    type:'legal',typeLabel:'法律咨询',typeCls:'t-legal',
+    rating:4.8,count:620,
+    desc:'企业法律顾问·合同审查·劳动纠纷·知识产权保护，大唐街道首家袜业法律服务平台',
+    price:'¥500起/次',
+    tags:['法律顾问','合同审查','知识产权']
+  },
+  {
+    name:'华夏企业管理咨询',
+    initial:'华',
+    g1:'#8B5CF6',g2:'#6D28D9',
+    type:'consult',typeLabel:'管理咨询',typeCls:'t-consult',
+    rating:4.7,count:430,
+    desc:'战略规划·组织架构优化·精益生产辅导·数字化转型咨询，助力袜业企业升级',
+    price:'¥2000起/项目',
+    tags:['战略规划','精益生产','数字化转型']
+  },
+  {
+    name:'浙江纺织检测中心',
+    initial:'检',
+    g1:'#F59E0B',g2:'#D97706',
+    type:'cert',typeLabel:'认证检测',typeCls:'t-cert',
+    rating:4.9,count:1180,
+    desc:'袜品质量检测·色牢度测试·纤维成分分析·国标/欧标检测报告，CMA/CNAS资质',
+    price:'¥200起/项',
+    tags:['质量检测','色牢度','成分分析']
+  },
+  {
+    name:'中品标质量认证',
+    initial:'标',
+    g1:'#F97316',g2:'#EA580C',
+    type:'cert',typeLabel:'认证检测',typeCls:'t-cert',
+    rating:4.8,count:750,
+    desc:'ISO9001·OEKO-TEX·CE认证·BSCI验厂辅导，一站式认证解决方案',
+    price:'¥8000起/体系',
+    tags:['ISO认证','OEKO-TEX','CE认证']
+  },
+  {
+    name:'诸暨和信会计事务',
+    initial:'信',
+    g1:'#0EA5E9',g2:'#0284C7',
+    type:'finance',typeLabel:'财务服务',typeCls:'t-finance',
+    rating:4.7,count:540,
+    desc:'工商注册·代理记账·税务筹划·出口退税，为袜业出口企业提供一站式财税服务',
+    price:'¥500起/月',
+    tags:['工商注册','代理记账','出口退税']
+  }
+];
+
+var recommends=[
+  {name:'诸暨诚信财税咨询',initial:'诚',g1:'#10B981',g2:'#059669',typeLabel:'财务服务',rating:4.9,count:860},
+  {name:'大唐法律服务站',initial:'法',g1:'#3B82F6',g2:'#1D4ED8',typeLabel:'法律咨询',rating:4.8,count:620},
+  {name:'浙江纺织检测中心',initial:'检',g1:'#F59E0B',g2:'#D97706',typeLabel:'认证检测',rating:4.9,count:1180},
+  {name:'华夏企业管理咨询',initial:'华',g1:'#8B5CF6',g2:'#6D28D9',typeLabel:'管理咨询',rating:4.7,count:430},
+  {name:'中品标质量认证',initial:'标',g1:'#F97316',g2:'#EA580C',typeLabel:'认证检测',rating:4.8,count:750},
+  {name:'诸暨和信会计事务',initial:'信',g1:'#0EA5E9',g2:'#0284C7',typeLabel:'财务服务',rating:4.7,count:540}
+];
+
+/* ===================== 星级渲染 ===================== */
+function renderStars(rating){
+  var html='';
+  for(var i=1;i<=5;i++){
+    if(rating>=i){html+='<i class="fas fa-star star-on text-[9px]"></i>';}
+    else if(rating>=i-0.5){html+='<i class="fas fa-star-half-stroke star-on text-[9px]"></i>';}
+    else{html+='<i class="fas fa-star star-off text-[9px]"></i>';}
+  }
+  return html;
+}
+
+/* ===================== 渲染服务商列表 ===================== */
+function renderProviders(filter){
+  var html='';
+  var list = filter==='all' ? providers : providers.filter(function(p){return p.type===filter;});
+  list.forEach(function(p,i){
+    var tagsHtml=p.tags.map(function(t){return '<span class="text-[9px] px-1.5 py-0.5 rounded-full bg-gray-50 text-gray-500">'+t+'</span>';}).join('');
+    html+='<div class="bg-white rounded-2xl shadow-soft fade-up overflow-hidden card" data-type="'+p.type+'" style="animation-delay:'+(i*0.06)+'s">';
+    html+='<div class="p-3.5">';
+    // 顶部：Logo + 名称 + 标签
+    html+='<div class="flex items-start gap-3">';
+    html+='<div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-extrabold text-[18px] flex-shrink-0 shadow-soft" style="background:linear-gradient(135deg,'+p.g1+','+p.g2+')">'+p.initial+'</div>';
+    html+='<div class="flex-1 min-w-0">';
+    html+='<div class="flex items-center gap-1.5 flex-wrap">';
+    html+='<p class="text-[14px] font-bold text-gray-800">'+p.name+'</p>';
+    html+='<span class="'+p.typeCls+' text-[9px] font-semibold px-1.5 py-0.5 rounded">'+p.typeLabel+'</span>';
+    html+='</div>';
+    // 评分 + 服务次数
+    html+='<div class="flex items-center gap-2 mt-1">';
+    html+='<div class="flex items-center gap-0.5">'+renderStars(p.rating)+'</div>';
+    html+='<span class="text-[11px] font-semibold" style="color:#F59E0B">'+p.rating.toFixed(1)+'</span>';
+    html+='<span class="text-[10px] text-gray-300">|</span>';
+    html+='<span class="text-[10px] text-gray-400">服务 '+p.count+' 次</span>';
+    html+='</div>';
+    html+='</div>';
+    html+='</div>';
+    // 主营业务
+    html+='<p class="text-[11px] text-gray-500 mt-2.5 leading-relaxed">'+p.desc+'</p>';
+    // 标签
+    html+='<div class="flex gap-1.5 mt-2">'+tagsHtml+'</div>';
+    // 底部：价格 + 预约按钮
+    html+='<div class="flex items-center justify-between mt-3 pt-2.5 border-t border-gray-50">';
+    html+='<div class="flex items-baseline gap-1">';
+    html+='<span class="text-[10px] text-gray-400">服务价格</span>';
+    html+='<span class="text-[14px] font-extrabold" style="color:#F97316">'+p.price+'</span>';
+    html+='</div>';
+    html+='<button onclick="openSheet(\''+p.name+'\')" class="btn-pri card text-[12px] font-semibold px-4 py-2 rounded-full flex items-center gap-1.5">';
+    html+='<i class="fas fa-calendar-plus text-[10px]"></i>在线预约';
+    html+='</button>';
+    html+='</div>';
+    html+='</div>';
+    html+='</div>';
+  });
+  document.getElementById('providerList').innerHTML=html;
+}
+
+/* ===================== 渲染推荐服务商 ===================== */
+function renderRecommends(){
+  var html='';
+  recommends.forEach(function(p,i){
+    html+='<div class="rec-card bg-white rounded-2xl shadow-soft p-3 fade-up card" style="animation-delay:'+(i*0.05)+'s" onclick="openSheet(\''+p.name+'\')">';
+    html+='<div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-extrabold text-[18px] mx-auto shadow-soft" style="background:linear-gradient(135deg,'+p.g1+','+p.g2+')">'+p.initial+'</div>';
+    html+='<p class="text-[12px] font-bold text-gray-800 mt-2 text-center leading-tight">'+p.name+'</p>';
+    html+='<p class="text-[9px] text-gray-400 mt-1 text-center">'+p.typeLabel+'</p>';
+    html+='<div class="flex items-center justify-center gap-1 mt-1.5">';
+    html+='<div class="flex items-center gap-0.5">'+renderStars(p.rating)+'</div>';
+    html+='<span class="text-[10px] font-semibold" style="color:#F59E0B">'+p.rating.toFixed(1)+'</span>';
+    html+='</div>';
+    html+='<p class="text-[9px] text-gray-400 mt-1 text-center">服务 '+p.count+' 次</p>';
+    html+='</div>';
+  });
+  document.getElementById('recList').innerHTML=html;
+}
+
+/* ===================== 筛选 ===================== */
+var filterBar=document.getElementById('filterBar');
+filterBar.addEventListener('click',function(e){
+  var btn=e.target.closest('.tab-item');
+  if(!btn)return;
+  var filter=btn.dataset.filter;
+  filterBar.querySelectorAll('.tab-item').forEach(function(b){
+    b.className='tab-item text-[12px] font-semibold px-3.5 py-2 rounded-full bg-white text-gray-500 shadow-soft';
+    b.style.background='';b.style.color='';b.style.boxShadow='';
+  });
+  btn.className='tab-item text-[12px] font-semibold px-3.5 py-2 rounded-full';
+  btn.style.background='linear-gradient(90deg,#F97316,#EA580C)';
+  btn.style.color='#fff';
+  btn.style.boxShadow='0 4px 12px rgba(234,88,12,.32)';
+  renderProviders(filter);
+});
+
+/* ===================== Toast ===================== */
+var toastTimer;
+function toast(msg){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},2000)}
+
+/* ===================== 预约弹窗 ===================== */
+var mask=document.getElementById('mask');
+var sheet=document.getElementById('sheet');
+var currentProvider='';
+
+function openSheet(name){
+  currentProvider=name||'';
+  document.getElementById('sheetProvider').textContent=currentProvider?('向「'+currentProvider+'」预约服务'):'请填写预约信息';
+  mask.classList.add('on');
+  sheet.classList.add('on');
+  document.body.style.overflow='hidden';
+}
+
+function closeSheet(){
+  mask.classList.remove('on');
+  sheet.classList.remove('on');
+  document.body.style.overflow='';
+}
+
+mask.addEventListener('click',closeSheet);
+
+function submitForm(){
+  var type=document.getElementById('fType').value;
+  var time=document.getElementById('fTime').value;
+  var company=document.getElementById('fCompany').value.trim();
+  var contact=document.getElementById('fContact').value.trim();
+  var phone=document.getElementById('fPhone').value.trim();
+  var desc=document.getElementById('fDesc').value.trim();
+
+  if(!time){toast('请选择预约时间');return;}
+  if(!company){toast('请输入企业名称');document.getElementById('fCompany').focus();return;}
+  if(!contact){toast('请输入联系人姓名');document.getElementById('fContact').focus();return;}
+  if(!phone||phone.length<11){toast('请输入正确的手机号码');document.getElementById('fPhone').focus();return;}
+
+  closeSheet();
+  toast('预约成功，服务商将尽快联系您');
+
+  // 重置表单
+  document.getElementById('fCompany').value='';
+  document.getElementById('fContact').value='';
+  document.getElementById('fPhone').value='';
+  document.getElementById('fDesc').value='';
+}
+
+/* ===================== 初始化 ===================== */
+renderProviders('all');
+renderRecommends();
+</script>
+
+</body>
+</html>
