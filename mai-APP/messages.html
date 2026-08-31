@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>消息中心 - 袜掌柜买家版</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D'}}}}</script>
+<style>
+:root{--bg:#FFF7F4}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden;color:#1F2430}
+::-webkit-scrollbar{width:2px;height:2px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#dfdfdf;border-radius:1px}
+.no-bar::-webkit-scrollbar{display:none}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
+.card{transition:transform .16s ease, box-shadow .16s ease}
+.card:active{transform:scale(.965)}
+.fade-up{animation:fadeUp .4s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.text-grad{background:linear-gradient(90deg,#FF4D2D,#FF2D78);-webkit-background-clip:text;background-clip:text;color:transparent}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:300;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.25);min-width:120px;justify-content:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.msg-enter{animation:msgIn .35s ease both}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+
+<!-- 顶部 -->
+<div class="relative px-4 pt-2 pb-5 overflow-hidden" style="background:linear-gradient(135deg,#FF6B35 0%,#FF4D2D 45%,#FF2D78 100%)">
+  <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-50" style="background:#FF8A4C"></div>
+  <div class="absolute -top-6 right-[-30px] w-48 h-48 rounded-full blur-3xl opacity-40" style="background:#FF2D78"></div>
+  <!-- iOS状态栏 -->
+  <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+  </div>
+  <!-- 返回 + 标题 + 全部已读 -->
+  <div class="relative flex items-center justify-between mt-1">
+    <div class="flex items-center gap-2.5">
+      <a href="mine.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+      <span class="text-white font-extrabold text-[20px]" style="text-shadow:0 2px 10px rgba(0,0,0,.18)">消息中心</span>
+    </div>
+    <button onclick="markAllRead()" class="text-white/85 text-[12px] font-medium flex items-center gap-1 bg-white/15 backdrop-blur rounded-full px-2.5 py-1">
+      <i class="fas fa-check-double text-[10px]"></i>全部已读
+    </button>
+  </div>
+</div>
+
+<!-- 分类Tab -->
+<div class="sticky top-0 z-20 bg-[#FFF7F4] px-3 pt-3 pb-2.5">
+  <div class="bg-white rounded-full shadow-soft p-1 flex border border-gray-50">
+    <button onclick="switchTab('all')" data-tab="all" class="tab-btn flex-1 py-1.5 rounded-full text-[12px] font-bold text-white transition" style="background:linear-gradient(90deg,#FF4D2D,#FF7849)">全部</button>
+    <button onclick="switchTab('order')" data-tab="order" class="tab-btn flex-1 py-1.5 rounded-full text-[12px] font-bold text-gray-500 transition">订单消息</button>
+    <button onclick="switchTab('inquiry')" data-tab="inquiry" class="tab-btn flex-1 py-1.5 rounded-full text-[12px] font-bold text-gray-500 transition">询价消息</button>
+    <button onclick="switchTab('system')" data-tab="system" class="tab-btn flex-1 py-1.5 rounded-full text-[12px] font-bold text-gray-500 transition">系统通知</button>
+  </div>
+</div>
+
+<!-- 消息列表 -->
+<div id="msgList" class="px-3 mt-1 space-y-2.5 mb-28">
+  <!-- 消息由JS渲染 -->
+</div>
+
+<!-- 空状态 -->
+<div id="emptyState" class="hidden text-center pt-16 pb-10">
+  <div class="w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-3" style="background:#FFF0E8"><i class="fas fa-comment-dots text-[30px]" style="color:#FFB89A"></i></div>
+  <p class="text-[13px] text-gray-400">暂无消息</p>
+</div>
+
+<!-- 底部Tab栏 5Tab -->
+<div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100" style="height:65px;z-index:100;width:393px">
+  <div class="flex justify-around items-center h-full" style="padding-bottom:10px">
+    <a href="home.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-house text-[18px]"></i><span class="text-[9px]">首页</span></a>
+    <a href="video.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-video text-[18px]"></i><span class="text-[9px]">视频看货</span></a>
+    <a href="purchase-order.html" class="flex flex-col items-center gap-0.5 text-gray-400 relative"><i class="fas fa-clipboard-list text-[18px]"></i><span class="text-[9px]">进货单</span><span class="absolute top-0 right-1 bg-primary text-white text-[7px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center" style="min-width:14px;height:14px">3</span></a>
+    <a href="property.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-building text-[18px]"></i><span class="text-[9px]">物业</span></a>
+    <a href="mine.html" class="flex flex-col items-center gap-0.5" style="color:#FF4D2D"><i class="fas fa-user text-[18px]"></i><span class="text-[9px] font-semibold">我的</span></a>
+  </div>
+</div>
+<div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none"><div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:3px"></div></div>
+
+<div class="toast" id="toast"><i class="fas fa-circle-check" style="color:#4ADE80"></i><span id="toastTxt">操作成功</span></div>
+
+<script>
+// 消息数据
+var MSGS=[
+  // 订单消息
+  {id:1,type:'order',icon:'fa-truck-fast',bg:'linear-gradient(135deg,#FF8A4C,#FF4D2D)',title:'订单已发货',summary:'您的订单 #DD20260831001 已发货，顺丰陆运，预计明日送达',time:'10分钟前',unread:true,link:'order-detail.html'},
+  {id:2,type:'order',icon:'fa-box-open',bg:'linear-gradient(135deg,#38BDF8,#3B82F6)',title:'确认收货提醒',summary:'订单 #DD20260828007 已送达3天，请尽快确认收货',time:'2小时前',unread:true,link:'order-detail.html'},
+  {id:3,type:'order',icon:'fa-circle-check',bg:'linear-gradient(135deg,#34D399,#10B981)',title:'付款成功',summary:'订单 #DD20260831005 付款成功，商家正在备货',time:'今天 09:21',unread:false,link:'order-detail.html'},
+  {id:4,type:'order',icon:'fa-rotate-left',bg:'linear-gradient(135deg,#FB7185,#EF4444)',title:'退款已到账',summary:'订单 #DD20260820031 退款 ¥1,280 已原路退回',time:'昨天 16:30',unread:false,link:'order-detail.html'},
+  // 询价消息
+  {id:5,type:'inquiry',icon:'fa-eye',bg:'linear-gradient(135deg,#2DD4BF,#14B8A6)',title:'你的报价已被查看',summary:'您对"纯棉中筒袜"的报价已被3家商户查看',time:'5分钟前',unread:true,link:'inquiry-myquote.html'},
+  {id:6,type:'inquiry',icon:'fa-comment-dollar',bg:'linear-gradient(135deg,#FBBF24,#F59E0B)',title:'有新的报价',summary:'有2位商户对您的"全棉船袜"询价提交了报价',time:'1小时前',unread:true,link:'inquiry-mypublish.html'},
+  {id:7,type:'inquiry',icon:'fa-comments',bg:'linear-gradient(135deg,#A78BFA,#7C3AED)',title:'询价已回复',summary:'您发布的"夏季薄款短袜"询盘收到5条回复',time:'今天 14:02',unread:false,link:'inquiry-mypublish.html'},
+  // 系统通知
+  {id:8,type:'system',icon:'fa-screwdriver-wrench',bg:'linear-gradient(135deg,#60A5FA,#3B82F6)',title:'系统升级公告',summary:'平台将于2026年9月3日凌晨 2:00-4:00 进行系统升级维护，期间部分功能暂不可用',time:'今天 11:00',unread:false,link:'#'},
+  {id:9,type:'system',icon:'fa-gift',bg:'linear-gradient(135deg,#F472B6,#EC4899)',title:'9月采购节活动开启',summary:'满500减50，券最高减200，活动持续至9月15日，快来囤货',time:'昨天 18:00',unread:false,link:'#'},
+  {id:10,type:'system',icon:'fa-id-card',bg:'linear-gradient(135deg,#94A3B8,#64748B)',title:'实名认证到期提醒',summary:'您的实名认证将于30天后到期，请及时续期以免影响采购',time:'3天前',unread:false,link:'#'}
+];
+
+var TYPE_LABEL={order:'订单消息',inquiry:'询价消息',system:'系统通知'};
+var currentTab='all';
+
+function renderList(){
+  var list=document.getElementById('msgList');
+  var empty=document.getElementById('emptyState');
+  var arr=currentTab==='all'?MSGS:MSGS.filter(function(m){return m.type===currentTab});
+  if(!arr.length){list.innerHTML='';empty.classList.remove('hidden');return;}
+  empty.classList.add('hidden');
+  var html='';
+  arr.forEach(function(m,i){
+    var href=m.link&&m.link!=='#'?m.link:'#';
+    var click=m.link==='#'?'onclick="toast(\'系统通知暂无详情页\');return false;"':'';
+    html+='<a href="'+href+'" '+click+' class="card block bg-white rounded-2xl shadow-soft border border-gray-50 p-3 flex items-start gap-3 msg-enter" style="animation-delay:'+(i*0.04)+'s">';
+    html+='<div class="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-soft shrink-0" style="background:'+m.bg+'"><i class="fas '+m.icon+' text-sm"></i></div>';
+    html+='<div class="flex-1 min-w-0">';
+    html+='<div class="flex items-center justify-between gap-2">';
+    html+='<div class="flex items-center gap-1.5 min-w-0">';
+    html+='<span class="text-[13px] font-bold text-gray-800 truncate">'+m.title+'</span>';
+    if(m.unread)html+='<span class="bg-primary w-1.5 h-1.5 rounded-full shrink-0"></span>';
+    html+='</div>';
+    html+='<span class="text-[10px] text-gray-400 shrink-0">'+m.time+'</span>';
+    html+='</div>';
+    html+='<p class="text-[11px] text-gray-500 mt-1 leading-relaxed line-clamp-2">'+m.summary+'</p>';
+    html+='<div class="flex items-center justify-between mt-1.5">';
+    html+='<span class="text-[9px] text-gray-400 px-1.5 py-0.5 rounded" style="background:#F5F6F8">'+TYPE_LABEL[m.type]+'</span>';
+    html+='<span class="text-[10px] text-primary font-medium flex items-center gap-0.5">查看详情<i class="fas fa-chevron-right text-[8px]"></i></span>';
+    html+='</div>';
+    html+='</div></a>';
+  });
+  list.innerHTML=html;
+}
+
+function switchTab(tab){
+  currentTab=tab;
+  var btns=document.querySelectorAll('.tab-btn');
+  btns.forEach(function(b){
+    if(b.dataset.tab===tab){
+      b.className='tab-btn flex-1 py-1.5 rounded-full text-[12px] font-bold text-white transition';
+      b.style.background='linear-gradient(90deg,#FF4D2D,#FF7849)';
+    }else{
+      b.className='tab-btn flex-1 py-1.5 rounded-full text-[12px] font-bold text-gray-500 transition';
+      b.style.background='';
+    }
+  });
+  renderList();
+}
+
+function markAllRead(){
+  MSGS.forEach(function(m){m.unread=false;});
+  renderList();
+  toast('全部消息已标为已读');
+}
+
+function toast(msg){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;t.classList.add('on');setTimeout(function(){t.classList.remove('on')},2000)}
+
+renderList();
+</script>
+</body>
+</html>

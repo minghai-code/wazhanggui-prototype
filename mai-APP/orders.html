@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>我的订单 - 袜掌柜买家版</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>
+tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D','primary-d':'#E63E20','primary-l':'#FF7849'}}}}
+</script>
+<style>
+:root{--p:#FF4D2D;--pl:#FF7849;--bg:#FFF7F4;--v1:#7C3AED;--v2:#FF2D78}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+::-webkit-scrollbar{width:2px;height:2px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#dfdfdf;border-radius:1px}
+.no-bar::-webkit-scrollbar{display:none}
+.grad-h{background:linear-gradient(135deg,#FF6B35 0%,#FF4D2D 45%,#FF2D78 100%)}
+.shadow-card{box-shadow:0 8px 24px rgba(255,77,45,.14)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
+/* 微交互 */
+.card{transition:transform .16s ease, box-shadow .16s ease}
+.card:active{transform:scale(.965)}
+/* Tab 样式 */
+.tab-item{transition:all .2s ease;white-space:nowrap}
+.tab-active{background:linear-gradient(90deg,#FF4D2D,#FF7849);color:#fff;box-shadow:0 4px 12px rgba(255,77,45,.32)}
+.tab-inactive{background:#fff;color:#9aa0ac;box-shadow:0 1px 4px rgba(20,20,40,.04)}
+/* 订单状态标签颜色 */
+.st-pay{color:#FF4D2D;background:rgba(255,77,45,.10)}
+.st-ship{color:#3B82F6;background:rgba(59,130,246,.10)}
+.st-receipt{color:#06B6D4;background:rgba(6,182,212,.10)}
+.st-review{color:#F59E0B;background:rgba(245,158,11,.10)}
+.st-after{color:#EC4899;background:rgba(236,72,153,.10)}
+/* 操作按钮 */
+.btn-pri{background:linear-gradient(90deg,#FF4D2D,#FF7849);color:#fff;box-shadow:0 3px 10px rgba(255,77,45,.28)}
+.btn-ghost{background:#fff;color:#6b7280;border:1px solid #ececf0}
+.btn-ghost:active,.btn-pri:active{transform:scale(.94)}
+/* 渐变文字 */
+.text-grad{background:linear-gradient(90deg,#FF4D2D,#FF2D78);-webkit-background-clip:text;background-clip:text;color:transparent}
+.fade-up{animation:fadeUp .45s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+</style>
+</head>
+<body>
+
+<!-- ===== 顶部渐变头部 ===== -->
+<div class="relative overflow-hidden" style="background:linear-gradient(135deg,#FF6B35 0%,#FF4D2D 45%,#FF2D78 100%)">
+  <!-- 流动光斑 -->
+  <div class="absolute -top-10 -left-10 w-44 h-44 rounded-full blur-3xl opacity-40" style="background:#FF8A4C"></div>
+  <div class="absolute -top-4 right-[-30px] w-44 h-44 rounded-full blur-3xl opacity-35" style="background:#FF2D78"></div>
+
+  <!-- iOS状态栏 -->
+  <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px;padding:0 16px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5">
+      <i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i>
+    </div>
+  </div>
+
+  <!-- 标题栏 + 返回 -->
+  <div class="relative flex items-center px-3" style="height:48px">
+    <a href="mine.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white">
+      <i class="fas fa-chevron-left text-sm"></i>
+    </a>
+    <h1 class="absolute left-0 right-0 text-center text-white font-extrabold text-[18px]" style="text-shadow:0 2px 8px rgba(0,0,0,.12)">我的订单</h1>
+  </div>
+</div>
+
+<!-- ===== 状态 Tab 横排可滚动 ===== -->
+<div class="sticky top-0 z-30 bg-[#FFF7F4] shadow-soft" style="padding:10px 0">
+  <div class="flex gap-2 overflow-x-auto no-bar px-3" id="tabBar">
+    <button class="tab-item tab-active text-[12px] font-semibold px-3.5 py-2 rounded-full" data-tab="all">全部</button>
+    <button class="tab-item tab-inactive text-[12px] font-semibold px-3.5 py-2 rounded-full flex items-center gap-1" data-tab="pay">待付款<span class="bg-primary text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full leading-none">2</span></button>
+    <button class="tab-item tab-inactive text-[12px] font-semibold px-3.5 py-2 rounded-full" data-tab="ship">待发货</button>
+    <button class="tab-item tab-inactive text-[12px] font-semibold px-3.5 py-2 rounded-full flex items-center gap-1" data-tab="receipt">待收货<span class="bg-primary text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full leading-none">1</span></button>
+    <button class="tab-item tab-inactive text-[12px] font-semibold px-3.5 py-2 rounded-full flex items-center gap-1" data-tab="review">待评价<span class="bg-primary text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full leading-none">3</span></button>
+    <button class="tab-item tab-inactive text-[12px] font-semibold px-3.5 py-2 rounded-full" data-tab="after">售后</button>
+  </div>
+</div>
+
+<!-- ===== 订单列表容器 ===== -->
+<div class="px-3 pt-3 pb-28" style="min-height:60vh">
+
+  <!-- ===== 全部 Tab ===== -->
+  <div class="tab-panel active" id="panel-all"></div>
+  <!-- ===== 待付款 Tab ===== -->
+  <div class="tab-panel" id="panel-pay"></div>
+  <!-- ===== 待发货 Tab ===== -->
+  <div class="tab-panel" id="panel-ship"></div>
+  <!-- ===== 待收货 Tab ===== -->
+  <div class="tab-panel" id="panel-receipt"></div>
+  <!-- ===== 待评价 Tab ===== -->
+  <div class="tab-panel" id="panel-review"></div>
+  <!-- ===== 售后 Tab ===== -->
+  <div class="tab-panel" id="panel-after"></div>
+
+</div>
+
+<!-- ===== 底部Tab栏 5Tab ===== -->
+<div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100" style="height:65px;z-index:100;width:393px">
+<div class="flex justify-around items-center h-full" style="padding-bottom:10px">
+<a href="home.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-house text-[18px]"></i><span class="text-[9px]">首页</span></a>
+<a href="video.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-video text-[18px]"></i><span class="text-[9px]">视频看货</span></a>
+<a href="purchase-order.html" class="flex flex-col items-center gap-0.5 text-gray-400 relative"><i class="fas fa-clipboard-list text-[18px]"></i><span class="text-[9px]">进货单</span><span class="absolute top-0 right-1 bg-primary text-white text-[7px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center" style="min-width:14px;height:14px">3</span></a>
+<a href="property.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-building text-[18px]"></i><span class="text-[9px]">物业</span></a>
+<a href="mine.html" class="flex flex-col items-center gap-0.5" style="color:#FF4D2D"><i class="fas fa-user text-[18px]"></i><span class="text-[9px] font-semibold">我的</span></a>
+</div>
+</div>
+<!-- Home Indicator -->
+<div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none"><div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:3px"></div></div>
+
+<script>
+/* ===== 订单数据：覆盖5种状态，共8单 ===== */
+const imgBase='https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=';
+const orders=[
+  {id:'2026083145',status:'pay',statusText:'待付款',stClass:'st-pay',shop:'棉袜世家旗舰店',img:imgBase+'白色纯棉商务袜展示图&image_size=square',name:'精梳棉纯色商务袜 5双装',spec:'白色 / 均码 / 40-44',qty:5,price:12.80,shopIcon:'fas fa-store',shopColor:'linear-gradient(135deg,#FF8A4C,#FF4D2D)'},
+  {id:'2026083144',status:'pay',statusText:'待付款',stClass:'st-pay',shop:'优品袜业直营店',img:imgBase+'黑色隐形船袜产品图&image_size=square',name:'隐形无痕船袜 10双装',spec:'黑色 / 均码 / 35-40',qty:1,price:29.90,shopIcon:'fas fa-store',shopColor:'linear-gradient(135deg,#38BDF8,#3B82F6)'},
+  {id:'2026083138',status:'ship',statusText:'待发货',stClass:'st-ship',shop:'运动袜品专营店',img:imgBase+'条纹运动长筒袜展示图&image_size=square',name:'透气网眼运动长筒袜 3双装',spec:'蓝白条纹 / L码 / 42-46',qty:2,price:19.90,shopIcon:'fas fa-store',shopColor:'linear-gradient(135deg,#2DD4BF,#14B8A6)'},
+  {id:'2026083125',status:'receipt',statusText:'待收货',stClass:'st-receipt',shop:'甜美袜坊生活馆',img:imgBase+'粉色少女棉袜展示图&image_size=square',name:'甜美卡通棉袜 5双装',spec:'粉色印花 / M码 / 36-40',qty:3,price:15.80,shopIcon:'fas fa-store',shopColor:'linear-gradient(135deg,#F472B6,#EC4899)'},
+  {id:'2026083116',status:'review',statusText:'待评价',stClass:'st-review',shop:'经典袜业官方店',img:imgBase+'灰色男士商务袜展示图&image_size=square',name:'抗菌除臭商务袜 6双装',spec:'深灰 / XL码 / 43-47',qty:2,price:32.90,shopIcon:'fas fa-store',shopColor:'linear-gradient(135deg,#9CA3AF,#6B7280)'},
+  {id:'2026083102',status:'review',statusText:'待评价',stClass:'st-review',shop:'时尚潮袜集合店',img:imgBase+'条纹中筒袜潮流展示图&image_size=square',name:'日系条纹中筒袜 4双装',spec:'米色条纹 / L码 / 42-46',qty:1,price:24.50,shopIcon:'fas fa-store',shopColor:'linear-gradient(135deg,#FBBF24,#F59E0B)'},
+  {id:'2026083091',status:'review',statusText:'待评价',stClass:'st-review',shop:'宝贝袜屋母婴店',img:imgBase+'婴儿纯棉袜产品图&image_size=square',name:'A类婴儿纯棉袜 8双装',spec:'奶白色 / 0-1岁',qty:2,price:26.80,shopIcon:'fas fa-store',shopColor:'linear-gradient(135deg,#34D399,#10B981)'},
+  {id:'2026083083',status:'after',statusText:'售后中',stClass:'st-after',shop:'雅致袜铺旗舰店',img:imgBase+'蕾丝花边短袜展示图&image_size=square',name:'法式蕾丝花边短袜 3双装',spec:'白色蕾丝 / 均码 / 35-40',qty:1,price:18.90,shopIcon:'fas fa-store',shopColor:'linear-gradient(135deg,#A78BFA,#7C3AED)'}
+];
+
+/* 按钮配置（按状态） */
+const btnConfig={
+  pay:[{t:'取消订单',cls:'btn-ghost'},{t:'去付款',cls:'btn-pri'}],
+  ship:[{t:'退款',cls:'btn-ghost'},{t:'催发货',cls:'btn-pri'}],
+  receipt:[{t:'查看物流',cls:'btn-ghost'},{t:'确认收货',cls:'btn-pri'}],
+  review:[{t:'追加评价',cls:'btn-ghost'},{t:'去评价',cls:'btn-pri'}],
+  after:[{t:'查看进度',cls:'btn-pri'}]
+};
+const allBtn=[{t:'查看详情',cls:'btn-ghost'}];
+
+/* 渲染单个订单卡片 */
+function renderCard(o,delay){
+  const total=(o.price*o.qty).toFixed(2);
+  const btns=(o.status==='after'?allBtn:(btnConfig[o.status]||allBtn));
+  return `
+  <div class="card bg-white rounded-2xl shadow-soft overflow-hidden fade-up" style="animation-delay:${delay}s;margin-bottom:12px">
+    <!-- 顶部：店铺 + 状态 + 订单号 -->
+    <div class="flex items-center justify-between px-3.5 pt-3 pb-2">
+      <div class="flex items-center gap-2 min-w-0">
+        <div class="w-5 h-5 rounded-full flex items-center justify-center text-white text-[8px]" style="background:${o.shopColor}">
+          <i class="${o.shopIcon}"></i>
+        </div>
+        <span class="text-[13px] font-semibold text-gray-800 truncate">${o.shop}</span>
+        <i class="fas fa-chevron-right text-gray-300 text-[10px]"></i>
+      </div>
+      <span class="text-[11px] font-bold px-2 py-0.5 rounded-full ${o.stClass} flex-shrink-0">${o.statusText}</span>
+    </div>
+    <!-- 订单号 -->
+    <div class="px-3.5 pb-2 text-[10px] text-gray-400">订单号：${o.id}</div>
+    <!-- 中部：商品 -->
+    <div class="flex gap-3 px-3.5 pb-3">
+      <img src="${o.img}" class="w-[68px] h-[68px] rounded-xl object-cover flex-shrink-0 bg-gray-50" alt="${o.name}">
+      <div class="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+        <div>
+          <p class="text-[13px] text-gray-800 font-medium leading-snug line-clamp-2">${o.name}</p>
+          <p class="text-[10px] text-gray-400 mt-1 truncate">${o.spec}</p>
+        </div>
+        <div class="flex items-end justify-between">
+          <span class="text-[10px] text-gray-400">x${o.qty}</span>
+          <span class="text-[13px] text-gray-700 font-semibold">¥${o.price.toFixed(2)}</span>
+        </div>
+      </div>
+    </div>
+    <!-- 底部：合计 + 操作 -->
+    <div class="flex items-center justify-between px-3.5 pb-3 pt-1 border-t border-gray-50">
+      <span class="text-[11px] text-gray-500">共${o.qty}件 合计 <span class="text-primary font-bold text-[15px]">¥${total}</span></span>
+      <div class="flex gap-2">
+        ${btns.map(b=>`<button class="${b.cls} text-[11px] font-medium px-3 py-1.5 rounded-full">${b.t}</button>`).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+/* 渲染各 Tab 面板 */
+function renderPanels(){
+  const map={all:'panel-all',pay:'panel-pay',ship:'panel-ship',receipt:'panel-receipt',review:'panel-review',after:'panel-after'};
+  for(const key in map){
+    const list = key==='all'? orders : orders.filter(o=>o.status===key);
+    const el=document.getElementById(map[key]);
+    if(list.length){
+      el.innerHTML=list.map((o,i)=>renderCard(o,i*0.06)).join('');
+    }else{
+      el.innerHTML=`<div class="text-center py-16"><i class="fas fa-box-open text-gray-200 text-5xl"></i><p class="text-[12px] text-gray-400 mt-3">暂无相关订单</p></div>`;
+    }
+  }
+}
+renderPanels();
+
+/* Tab 切换 */
+const tabBar=document.getElementById('tabBar');
+tabBar.addEventListener('click',e=>{
+  const btn=e.target.closest('.tab-item');
+  if(!btn) return;
+  const tab=btn.dataset.tab;
+  // 更新按钮样式
+  tabBar.querySelectorAll('.tab-item').forEach(b=>{
+    b.classList.remove('tab-active');b.classList.add('tab-inactive');
+  });
+  btn.classList.remove('tab-inactive');btn.classList.add('tab-active');
+  // 切换面板
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+tab).classList.add('active');
+  // 滚动到顶部
+  window.scrollTo({top:0,behavior:'smooth'});
+});
+</script>
+
+</body>
+</html>

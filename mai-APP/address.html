@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>收货地址 - 袜掌柜买家版</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D'}}}}</script>
+<style>
+:root{--bg:#FFF7F4}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden;color:#1F2430}
+::-webkit-scrollbar{width:2px;height:2px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#dfdfdf;border-radius:1px}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
+.card{transition:transform .16s ease, box-shadow .16s ease}
+.card:active{transform:scale(.965)}
+.fade-up{animation:fadeUp .4s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:300;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.25);min-width:120px;justify-content:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+/* 底部表单弹出层 */
+.sheet-mask{position:fixed;inset:0;background:rgba(15,18,26,.5);z-index:200;opacity:0;pointer-events:none;transition:opacity .25s ease;backdrop-filter:blur(2px)}
+.sheet-mask.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;background:#fff;border-radius:24px 24px 0 0;z-index:201;transform:translateY(100%);transition:transform .3s cubic-bezier(.22,1,.36,1);max-height:88vh;overflow-y:auto;width:393px}
+.sheet.on{transform:translateY(0)}
+.sheet-handle{width:36px;height:4px;background:#E5E7EB;border-radius:2px;margin:10px auto 6px}
+.input-field{width:100%;border:1.5px solid #F0F1F3;border-radius:12px;padding:11px 12px;font-size:13px;color:#1F2430;background:#FAFAFB;outline:none;transition:.2s}
+.input-field:focus{border-color:#FF4D2D;background:#fff;box-shadow:0 0 0 3px rgba(255,77,45,.1)}
+textarea.input-field{resize:none;line-height:1.5}
+</style>
+</head>
+<body>
+
+<!-- 顶部 -->
+<div class="relative px-4 pt-2 pb-5 overflow-hidden" style="background:linear-gradient(135deg,#FF6B35 0%,#FF4D2D 45%,#FF2D78 100%)">
+  <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-50" style="background:#FF8A4C"></div>
+  <div class="absolute -top-6 right-[-30px] w-48 h-48 rounded-full blur-3xl opacity-40" style="background:#FF2D78"></div>
+  <!-- iOS状态栏 -->
+  <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+  </div>
+  <!-- 返回 + 标题 -->
+  <div class="relative flex items-center gap-2.5 mt-1">
+    <a href="mine.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+    <span class="text-white font-extrabold text-[20px]" style="text-shadow:0 2px 10px rgba(0,0,0,.18)">收货地址</span>
+    <span class="text-white/70 text-[12px] ml-0.5">共 <span id="addrCount">4</span> 条</span>
+  </div>
+</div>
+
+<!-- 提示条 -->
+<div class="px-3 pt-3">
+  <div class="flex items-center gap-2 bg-white rounded-xl shadow-soft px-3 py-2.5 border border-gray-50 fade-up">
+    <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style="background:#FFF0E8"><i class="fas fa-location-dot text-[11px]" style="color:#FF4D2D"></i></div>
+    <p class="text-[11px] text-gray-500 leading-relaxed">默认地址将作为下单时的首选收货地址，最多可保存20条地址</p>
+  </div>
+</div>
+
+<!-- 地址列表 -->
+<div id="addrList" class="px-3 mt-3 space-y-2.5 pb-36">
+  <!-- 由JS渲染 -->
+</div>
+
+<!-- 新增收货地址按钮 -->
+<div class="fixed left-0 right-0 px-3 pb-2 pt-3" style="bottom:65px;z-index:90;width:393px;background:linear-gradient(180deg,rgba(255,247,244,0) 0%,#FFF7F4 30%)">
+  <button onclick="openSheet()" class="card w-full py-3.5 rounded-full text-[15px] font-bold text-white flex items-center justify-center gap-1.5" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D);box-shadow:0 8px 20px rgba(255,77,45,.25)">
+    <i class="fas fa-plus text-sm"></i>新增收货地址
+  </button>
+</div>
+
+<!-- 底部Tab栏 5Tab -->
+<div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100" style="height:65px;z-index:100;width:393px">
+  <div class="flex justify-around items-center h-full" style="padding-bottom:10px">
+    <a href="home.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-house text-[18px]"></i><span class="text-[9px]">首页</span></a>
+    <a href="video.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-video text-[18px]"></i><span class="text-[9px]">视频看货</span></a>
+    <a href="purchase-order.html" class="flex flex-col items-center gap-0.5 text-gray-400 relative"><i class="fas fa-clipboard-list text-[18px]"></i><span class="text-[9px]">进货单</span><span class="absolute top-0 right-1 bg-primary text-white text-[7px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center" style="min-width:14px;height:14px">3</span></a>
+    <a href="property.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-building text-[18px]"></i><span class="text-[9px]">物业</span></a>
+    <a href="mine.html" class="flex flex-col items-center gap-0.5" style="color:#FF4D2D"><i class="fas fa-user text-[18px]"></i><span class="text-[9px] font-semibold">我的</span></a>
+  </div>
+</div>
+<div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none"><div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:3px"></div></div>
+
+<!-- 底部表单弹出层 -->
+<div class="sheet-mask" id="sheetMask" onclick="closeSheet()"></div>
+<div class="sheet" id="sheet">
+  <div class="sheet-handle"></div>
+  <div class="flex items-center justify-between px-4 pb-3 border-b border-gray-50">
+    <span id="sheetTitle" class="text-[16px] font-extrabold text-gray-800">新增收货地址</span>
+    <button onclick="closeSheet()" class="w-7 h-7 rounded-full flex items-center justify-center bg-gray-100"><i class="fas fa-xmark text-[12px] text-gray-500"></i></button>
+  </div>
+  <div class="px-4 py-3.5 space-y-2.5">
+    <!-- 姓名 -->
+    <div>
+      <label class="text-[11px] text-gray-500 font-medium block mb-1.5">收货人 <span style="color:#FF4D2D">*</span></label>
+      <input id="f_name" type="text" class="input-field" placeholder="请输入收货人姓名" maxlength="10">
+    </div>
+    <!-- 电话 -->
+    <div>
+      <label class="text-[11px] text-gray-500 font-medium block mb-1.5">手机号码 <span style="color:#FF4D2D">*</span></label>
+      <input id="f_phone" type="tel" class="input-field" placeholder="请输入11位手机号" maxlength="11">
+    </div>
+    <!-- 省市区 -->
+    <div>
+      <label class="text-[11px] text-gray-500 font-medium block mb-1.5">所在地区 <span style="color:#FF4D2D">*</span></label>
+      <div class="grid grid-cols-3 gap-2">
+        <select id="f_prov" class="input-field" onchange="syncCity()">
+          <option value="">省份</option>
+          <option value="浙江省">浙江省</option>
+          <option value="广东省">广东省</option>
+          <option value="江苏省">江苏省</option>
+        </select>
+        <select id="f_city" class="input-field">
+          <option value="">市</option>
+        </select>
+        <select id="f_dist" class="input-field">
+          <option value="">区/县</option>
+        </select>
+      </div>
+    </div>
+    <!-- 详细地址 -->
+    <div>
+      <label class="text-[11px] text-gray-500 font-medium block mb-1.5">详细地址 <span style="color:#FF4D2D">*</span></label>
+      <textarea id="f_detail" class="input-field" rows="3" placeholder="请输入详细收货地址，如街道、楼栋、门牌号" maxlength="60"></textarea>
+      <p class="text-[9px] text-gray-300 mt-1 text-right"><span id="f_count">0</span>/60</p>
+    </div>
+    <!-- 标签 -->
+    <div>
+      <label class="text-[11px] text-gray-500 font-medium block mb-1.5">地址标签</label>
+      <div class="flex gap-2" id="tagWrap">
+        <button onclick="pickTag(this,'家')" class="tag-btn px-3 py-1 rounded-full text-[11px] font-medium border border-gray-200 text-gray-500">家</button>
+        <button onclick="pickTag(this,'公司')" class="tag-btn px-3 py-1 rounded-full text-[11px] font-medium border border-gray-200 text-gray-500">公司</button>
+        <button onclick="pickTag(this,'仓库')" class="tag-btn px-3 py-1 rounded-full text-[11px] font-medium border border-gray-200 text-gray-500">仓库</button>
+        <button onclick="pickTag(this,'工厂')" class="tag-btn px-3 py-1 rounded-full text-[11px] font-medium border border-gray-200 text-gray-500">工厂</button>
+      </div>
+    </div>
+    <!-- 设为默认 -->
+    <div class="flex items-center justify-between bg-[#FAFAFB] rounded-xl px-3 py-2.5 border border-gray-50">
+      <div class="flex items-center gap-2">
+        <i class="fas fa-star text-[12px]" style="color:#F59E0B"></i>
+        <span class="text-[12px] text-gray-700 font-medium">设为默认地址</span>
+      </div>
+      <label class="relative inline-flex cursor-pointer">
+        <input id="f_default" type="checkbox" class="sr-only peer">
+        <div class="w-10 h-5 bg-gray-200 rounded-full peer-checked:after:translate-x-5 peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+      </label>
+    </div>
+  </div>
+  <div class="px-4 pb-6 pt-2 flex gap-2.5">
+    <button onclick="closeSheet()" class="card flex-1 py-3 rounded-full text-[14px] font-bold text-gray-500 bg-gray-100">取消</button>
+    <button onclick="saveAddr()" class="card flex-1 py-3 rounded-full text-[14px] font-bold text-white" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D);box-shadow:0 6px 16px rgba(255,77,45,.2)">保存</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"><i class="fas fa-circle-check" style="color:#4ADE80"></i><span id="toastTxt">操作成功</span></div>
+
+<script>
+// 地址数据
+var ADDRS=[
+  {id:1,name:'张伟',phone:'138****8888',full:'浙江省杭州市余杭区良渚街道袜业大厦A座801室',tag:'家',isDefault:true},
+  {id:2,name:'张伟',phone:'138****8888',full:'浙江省诸暨市大唐街道袜业城B区12栋3楼301室',tag:'公司',isDefault:false},
+  {id:3,name:'李芳',phone:'139****6666',full:'浙江省义乌市稠江街道国际商贸城H区2楼2088号',tag:'仓库',isDefault:false},
+  {id:4,name:'张伟',phone:'138****8888',full:'浙江省海宁市长安镇袜业产业园5号楼西侧3层',tag:'工厂',isDefault:false}
+];
+
+var TAG_BG={
+  '默认':'background:linear-gradient(90deg,#FF4D2D,#FF7849);color:#fff',
+  '家':'background:#FFF0E8;color:#FF4D2D',
+  '公司':'background:#E0F2FE;color:#3B82F6',
+  '仓库':'background:#D1FAE5;color:#10B981',
+  '工厂':'background:#FEF3C7;color:#F59E0B'
+};
+
+var editingId=null;
+var pickedTag='';
+
+function renderList(){
+  var list=document.getElementById('addrList');
+  var html='';
+  ADDRS.forEach(function(a,i){
+    var tag=a.isDefault?'默认':a.tag;
+    html+='<div class="card bg-white rounded-2xl shadow-soft border border-gray-50 p-3.5 fade-up" style="animation-delay:'+(i*0.05)+'s">';
+    html+='<div class="flex items-start justify-between gap-2">';
+    html+='<div class="flex items-center gap-2 min-w-0">';
+    html+='<span class="text-[15px] font-extrabold text-gray-800">'+a.name+'</span>';
+    html+='<span class="text-[12px] text-gray-500">'+a.phone+'</span>';
+    html+='<span class="text-[9px] px-1.5 py-0.5 rounded-full font-medium shrink-0" style="'+(TAG_BG[tag]||'')+'">'+tag+'</span>';
+    if(a.isDefault)html+='<span class="text-[9px] text-primary font-bold shrink-0"><i class="fas fa-star text-[8px]"></i> 默认</span>';
+    html+='</div>';
+    html+='</div>';
+    html+='<div class="flex items-start gap-1.5 mt-2">';
+    html+='<i class="fas fa-location-dot text-[11px] mt-0.5 shrink-0" style="color:#FF4D2D"></i>';
+    html+='<p class="text-[12px] text-gray-600 leading-relaxed">'+a.full+'</p>';
+    html+='</div>';
+    html+='<div class="flex items-center justify-between mt-3 pt-2.5 border-t border-gray-50">';
+    html+='<button onclick="setDefault('+a.id+')" class="text-[11px] flex items-center gap-1 '+(a.isDefault?'text-primary font-bold':'text-gray-400')+'"><i class="fas '+(a.isDefault?'fa-circle-check':'fa-circle')+' text-[10px]"></i>'+(a.isDefault?'默认地址':'设为默认')+'</button>';
+    html+='<div class="flex items-center gap-2">';
+    html+='<button onclick="openEdit('+a.id+')" class="text-[11px] text-gray-500 flex items-center gap-1 bg-gray-50 rounded-full px-2.5 py-1"><i class="fas fa-pen text-[9px]"></i>编辑</button>';
+    html+='<button onclick="delAddr('+a.id+')" class="text-[11px] flex items-center gap-1 rounded-full px-2.5 py-1" style="background:#FEF2F2;color:#EF4444"><i class="fas fa-trash text-[9px]"></i>删除</button>';
+    html+='</div>';
+    html+='</div>';
+    html+='</div>';
+  });
+  list.innerHTML=html;
+  document.getElementById('addrCount').textContent=ADDRS.length;
+}
+
+function setDefault(id){
+  ADDRS.forEach(function(a){a.isDefault=(a.id===id);});
+  renderList();
+  toast('已设为默认地址');
+}
+
+function delAddr(id){
+  var def=ADDRS.find(function(a){return a.id===id&&a.isDefault;});
+  if(def){toast('默认地址不可删除');return;}
+  var idx=ADDRS.findIndex(function(a){return a.id===id;});
+  if(idx>-1)ADDRS.splice(idx,1);
+  renderList();
+  toast('地址已删除');
+}
+
+function openSheet(){
+  editingId=null;
+  document.getElementById('sheetTitle').textContent='新增收货地址';
+  resetForm();
+  showSheet();
+}
+
+function openEdit(id){
+  var a=ADDRS.find(function(x){return x.id===id;});
+  if(!a)return;
+  editingId=id;
+  document.getElementById('sheetTitle').textContent='编辑收货地址';
+  resetForm();
+  document.getElementById('f_name').value=a.name;
+  document.getElementById('f_phone').value=a.phone;
+  document.getElementById('f_detail').value=a.full;
+  document.getElementById('f_count').textContent=a.full.length;
+  pickedTag=a.tag;
+  syncTagBtns();
+  document.getElementById('f_default').checked=a.isDefault;
+  showSheet();
+}
+
+function showSheet(){
+  document.getElementById('sheetMask').classList.add('on');
+  document.getElementById('sheet').classList.add('on');
+}
+
+function closeSheet(){
+  document.getElementById('sheetMask').classList.remove('on');
+  document.getElementById('sheet').classList.remove('on');
+}
+
+function resetForm(){
+  ['f_name','f_phone','f_detail'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('f_count').textContent='0';
+  document.getElementById('f_prov').selectedIndex=0;
+  document.getElementById('f_city').innerHTML='<option value="">市</option>';
+  document.getElementById('f_dist').innerHTML='<option value="">区/县</option>';
+  document.getElementById('f_default').checked=false;
+  pickedTag='';
+  syncTagBtns();
+}
+
+function pickTag(btn,tag){
+  pickedTag=tag;
+  syncTagBtns();
+}
+
+function syncTagBtns(){
+  document.querySelectorAll('#tagWrap .tag-btn').forEach(function(b){
+    var isOn=b.textContent===pickedTag;
+    if(isOn){b.className='tag-btn px-3 py-1 rounded-full text-[11px] font-bold border border-primary text-white';b.style.background='linear-gradient(90deg,#FF4D2D,#FF7849)';b.style.borderColor='transparent';}
+    else{b.className='tag-btn px-3 py-1 rounded-full text-[11px] font-medium border border-gray-200 text-gray-500';b.style.background='';b.style.borderColor='';}
+  });
+}
+
+// 省市联动（模拟）
+var CITY={
+  '浙江省':{'杭州市':['余杭区','西湖区','萧山区'],'诸暨市':['大唐街道','暨阳街道'],'义乌市':['稠江街道','稠城街道'],'海宁市':['长安镇','硖石街道']},
+  '广东省':{'广州市':['越秀区','天河区'],'深圳市':['南山区','福田区']},
+  '江苏省':{'苏州市':['吴中区','姑苏区'],'南京市':['鼓楼区','玄武区']}
+};
+function syncCity(){
+  var p=document.getElementById('f_prov').value;
+  var c=document.getElementById('f_city');
+  var d=document.getElementById('f_dist');
+  c.innerHTML='<option value="">市</option>';
+  d.innerHTML='<option value="">区/县</option>';
+  if(p&&CITY[p]){
+    Object.keys(CITY[p]).forEach(function(city){c.insertAdjacentHTML('beforeend','<option value="'+city+'">'+city+'</option>');});
+  }
+  c.onchange=function(){
+    d.innerHTML='<option value="">区/县</option>';
+    var cv=c.value;
+    if(cv&&CITY[p][cv]){CITY[p][cv].forEach(function(dist){d.insertAdjacentHTML('beforeend','<option value="'+dist+'">'+dist+'</option>');});}
+  };
+}
+
+// 详细地址字数
+document.getElementById('f_detail').addEventListener('input',function(){
+  document.getElementById('f_count').textContent=this.value.length;
+});
+
+function saveAddr(){
+  var name=document.getElementById('f_name').value.trim();
+  var phone=document.getElementById('f_phone').value.trim();
+  var prov=document.getElementById('f_prov').value;
+  var city=document.getElementById('f_city').value;
+  var dist=document.getElementById('f_dist').value;
+  var detail=document.getElementById('f_detail').value.trim();
+  var def=document.getElementById('f_default').checked;
+  if(!name){toast('请填写收货人');return;}
+  if(!/^\d{11}$/.test(phone.replace(/\*/g,'0'))&&phone.length<6){toast('请填写正确手机号');return;}
+  if(!prov||!city||!dist){toast('请选择所在地区');return;}
+  if(!detail){toast('请填写详细地址');return;}
+  var full=prov+city+dist+detail;
+  if(def)ADDRS.forEach(function(a){a.isDefault=false;});
+  if(editingId){
+    var a=ADDRS.find(function(x){return x.id===editingId;});
+    if(a){a.name=name;a.phone=phone;a.full=full;a.tag=pickedTag||'家';a.isDefault=def;}
+    toast('地址已更新');
+  }else{
+    var newId=ADDRS.length?Math.max.apply(null,ADDRS.map(function(x){return x.id;}))+1:1;
+    ADDRS.push({id:newId,name:name,phone:phone,full:full,tag:pickedTag||'家',isDefault:def});
+    toast('地址已保存');
+  }
+  renderList();
+  closeSheet();
+}
+
+function toast(msg){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;t.classList.add('on');setTimeout(function(){t.classList.remove('on')},2000)}
+
+renderList();
+</script>
+</body>
+</html>

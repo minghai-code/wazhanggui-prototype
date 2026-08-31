@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>物流跟踪 - 袜掌柜买家版</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>
+tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D','primary-d':'#E63E20','primary-l':'#FF7849'}}}}
+</script>
+<style>
+:root{--p:#FF4D2D;--pl:#FF7849;--bg:#FFF7F4}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+::-webkit-scrollbar{width:2px;height:2px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#dfdfdf;border-radius:1px}
+.no-bar::-webkit-scrollbar{display:none}
+.grad-h{background:linear-gradient(135deg,#FF6B35 0%,#FF4D2D 45%,#FF2D78 100%)}
+.shadow-card{box-shadow:0 8px 24px rgba(255,77,45,.14)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
+.card{transition:transform .16s ease, box-shadow .16s ease}
+.card:active{transform:scale(.965)}
+.fade-up{animation:fadeUp .5s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.text-grad{background:linear-gradient(90deg,#FF4D2D,#FF2D78);-webkit-background-clip:text;background-clip:text;color:transparent}
+/* 物流状态标签 */
+.st-transit{color:#3B82F6;background:rgba(59,130,246,.10)}
+.st-pickup{color:#8B5CF6;background:rgba(139,92,246,.10)}
+.st-deliver{color:#FF4D2D;background:rgba(255,77,45,.10)}
+/* 时间线 */
+.tl-line{width:2px;flex:1;background:#E5E7EB;min-height:18px}
+.tl-line.done{background:#10B981}
+.tl-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;border:2px solid #E5E7EB;background:#fff;position:relative;z-index:1}
+.tl-dot.done{border-color:#10B981;background:#10B981}
+.tl-dot.cur{border-color:#FF4D2D;background:#FF4D2D;box-shadow:0 0 0 4px rgba(255,77,45,.15)}
+.tl-dot.todo{border-color:#E5E7EB;background:#fff}
+/* 操作按钮 */
+.btn-pri{background:linear-gradient(90deg,#FF4D2D,#FF7849);color:#fff;box-shadow:0 3px 10px rgba(255,77,45,.22)}
+.btn-ghost{background:#fff;color:#6b7280;border:1px solid #ececf0}
+.btn-pri:active,.btn-ghost:active{transform:scale(.94)}
+/* toast */
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:12px 20px;border-radius:14px;font-size:13px;z-index:300;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.25);min-width:120px;justify-content:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+</style>
+</head>
+<body>
+
+<!-- ===== 顶部渐变头部 ===== -->
+<div class="relative overflow-hidden" style="background:linear-gradient(135deg,#FF6B35 0%,#FF4D2D 45%,#FF2D78 100%)">
+  <!-- 流动光斑 -->
+  <div class="absolute -top-10 -left-10 w-44 h-44 rounded-full blur-3xl opacity-40" style="background:#FF8A4C"></div>
+  <div class="absolute -top-4 right-[-30px] w-44 h-44 rounded-full blur-3xl opacity-35" style="background:#FF2D78"></div>
+
+  <!-- iOS状态栏 -->
+  <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px;padding:0 16px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5">
+      <i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i>
+    </div>
+  </div>
+
+  <!-- 标题栏 + 返回 -->
+  <div class="relative flex items-center px-3" style="height:48px">
+    <a href="mine.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white">
+      <i class="fas fa-chevron-left text-sm"></i>
+    </a>
+    <h1 class="absolute left-0 right-0 text-center text-white font-extrabold text-[18px]" style="text-shadow:0 2px 8px rgba(0,0,0,.12)">物流跟踪</h1>
+  </div>
+
+  <!-- 摘要信息 -->
+  <div class="relative flex items-center justify-around px-4 pb-4 pt-1">
+    <div class="text-center">
+      <p class="text-white font-extrabold text-[20px]">3</p>
+      <p class="text-white/70 text-[10px]">在途订单</p>
+    </div>
+    <div class="w-px h-7 bg-white/20"></div>
+    <div class="text-center">
+      <p class="text-white font-extrabold text-[20px]">1</p>
+      <p class="text-white/70 text-[10px]">派送中</p>
+    </div>
+    <div class="w-px h-7 bg-white/20"></div>
+    <div class="text-center">
+      <p class="text-white font-extrabold text-[20px]">2</p>
+      <p class="text-white/70 text-[10px]">运输中</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 筛选条 ===== -->
+<div class="sticky top-0 z-30 bg-[#FFF7F4] shadow-soft" style="padding:10px 12px">
+  <div class="flex gap-2 overflow-x-auto no-bar" id="filterBar">
+    <button class="tab-item tab-active text-[12px] font-semibold px-3.5 py-2 rounded-full" data-filter="all" style="background:linear-gradient(90deg,#FF4D2D,#FF7849);color:#fff;box-shadow:0 4px 12px rgba(255,77,45,.32)">全部</button>
+    <button class="tab-item text-[12px] font-semibold px-3.5 py-2 rounded-full bg-white text-gray-500 shadow-soft" data-filter="pickup">已揽收</button>
+    <button class="tab-item text-[12px] font-semibold px-3.5 py-2 rounded-full bg-white text-gray-500 shadow-soft" data-filter="transit">运输中</button>
+    <button class="tab-item text-[12px] font-semibold px-3.5 py-2 rounded-full bg-white text-gray-500 shadow-soft" data-filter="deliver">派送中</button>
+  </div>
+</div>
+
+<!-- ===== 物流订单列表 ===== -->
+<div class="px-3 mt-3 mb-28" id="orderList">
+
+  <!-- 订单1：运输中 -->
+  <div class="bg-white rounded-2xl shadow-soft mb-3 fade-up overflow-hidden card" data-status="transit" style="animation-delay:0s">
+    <!-- 顶部：订单号 + 状态 -->
+    <div class="flex items-center justify-between px-3.5 pt-3 pb-2.5">
+      <div class="flex items-center gap-2">
+        <i class="fas fa-truck-fast text-[12px]" style="color:#3B82F6"></i>
+        <span class="text-[11px] text-gray-500">订单号</span>
+        <span class="text-[12px] font-semibold text-gray-800">SO20260829001</span>
+      </div>
+      <span class="st-transit text-[10px] font-bold px-2 py-0.5 rounded">运输中</span>
+    </div>
+
+    <!-- 商品信息 -->
+    <div class="flex gap-3 px-3.5 pb-3 border-b border-gray-50">
+      <div class="w-[60px] h-[60px] rounded-xl flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)">
+        <i class="fas fa-socks text-white text-[20px]"></i>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-[13px] text-gray-800 font-medium leading-snug">纯棉中筒袜男士防臭抗菌 10双装</p>
+        <p class="text-[10px] text-gray-400 mt-1">规格：黑色混装 · 均码</p>
+        <div class="flex items-center justify-between mt-1">
+          <span class="text-[10px] text-gray-400">x20包</span>
+          <span class="text-[12px] text-gray-700 font-semibold">¥1,560.00</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 物流公司 + 运单号 -->
+    <div class="flex items-center justify-between px-3.5 py-2.5 bg-gray-50/60">
+      <div class="flex items-center gap-2">
+        <i class="fas fa-building-circle-check text-[11px] text-gray-400"></i>
+        <span class="text-[11px] text-gray-500">顺丰速运</span>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <span class="text-[11px] text-gray-400">运单号</span>
+        <span class="text-[11px] font-mono font-semibold text-gray-700" id="tn1">SF1234567890</span>
+        <button onclick="copyNo('tn1','SF1234567890')" class="w-6 h-6 rounded-full flex items-center justify-center" style="background:#FFF0EB">
+          <i class="fas fa-copy text-[10px]" style="color:#FF4D2D"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- 物流轨迹时间线 -->
+    <div class="px-3.5 py-3">
+      <div class="flex items-center gap-1 mb-2">
+        <span class="text-[10px] font-bold text-gray-700">物流轨迹</span>
+        <span class="text-[9px] text-gray-300">· 最新更新 08-31 08:25</span>
+      </div>
+      <div class="flex">
+        <!-- 左侧竖线节点 -->
+        <div class="flex flex-col items-center mr-3" style="padding-top:2px">
+          <div class="tl-dot done"></div>
+          <div class="tl-line done"></div>
+          <div class="tl-dot done"></div>
+          <div class="tl-line done"></div>
+          <div class="tl-dot cur"></div>
+          <div class="tl-line"></div>
+          <div class="tl-dot todo"></div>
+        </div>
+        <!-- 右侧内容 -->
+        <div class="flex-1 space-y-3">
+          <div>
+            <p class="text-[11px] text-gray-500 font-medium">已下单</p>
+            <p class="text-[9px] text-gray-400 mt-0.5">08-29 14:30 · 订单已提交，等待商家发货</p>
+          </div>
+          <div>
+            <p class="text-[11px] text-gray-500 font-medium">已揽收</p>
+            <p class="text-[9px] text-gray-400 mt-0.5">08-30 09:15 · 顺丰快递员已取件，离开大唐袜业档口</p>
+          </div>
+          <div>
+            <p class="text-[11px] font-bold" style="color:#FF4D2D">运输中</p>
+            <p class="text-[9px] text-gray-500 mt-0.5">08-31 08:25 · 快件已到达【诸暨转运中心】，正发往义乌分拨中心</p>
+          </div>
+          <div>
+            <p class="text-[11px] text-gray-300 font-medium">派送中</p>
+            <p class="text-[9px] text-gray-300 mt-0.5">待派送</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 底部操作 -->
+    <div class="flex items-center justify-end gap-2 px-3.5 py-3 border-t border-gray-50">
+      <button onclick="copyNo('tn1','SF1234567890')" class="btn-ghost card text-[11px] font-medium px-3.5 py-1.5 rounded-full">
+        <i class="fas fa-copy text-[10px] mr-1"></i>复制单号
+      </button>
+      <a href="order-detail.html" class="btn-pri card text-[11px] font-medium px-3.5 py-1.5 rounded-full">
+        <i class="fas fa-eye text-[10px] mr-1"></i>查看订单
+      </a>
+    </div>
+  </div>
+
+  <!-- 订单2：派送中 -->
+  <div class="bg-white rounded-2xl shadow-soft mb-3 fade-up overflow-hidden card" data-status="deliver" style="animation-delay:.06s">
+    <!-- 顶部 -->
+    <div class="flex items-center justify-between px-3.5 pt-3 pb-2.5">
+      <div class="flex items-center gap-2">
+        <i class="fas fa-motorcycle text-[12px]" style="color:#FF4D2D"></i>
+        <span class="text-[11px] text-gray-500">订单号</span>
+        <span class="text-[12px] font-semibold text-gray-800">SO20260827008</span>
+      </div>
+      <span class="st-deliver text-[10px] font-bold px-2 py-0.5 rounded">派送中</span>
+    </div>
+
+    <!-- 商品信息 -->
+    <div class="flex gap-3 px-3.5 pb-3 border-b border-gray-50">
+      <div class="w-[60px] h-[60px] rounded-xl flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,#7C3AED,#C084FC)">
+        <i class="fas fa-socks text-white text-[20px]"></i>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-[13px] text-gray-800 font-medium leading-snug">女士隐形船袜浅口防滑硅胶底 5双装</p>
+        <p class="text-[10px] text-gray-400 mt-1">规格：肤色混装 · 36-39</p>
+        <div class="flex items-center justify-between mt-1">
+          <span class="text-[10px] text-gray-400">x15包</span>
+          <span class="text-[12px] text-gray-700 font-semibold">¥525.00</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 物流公司 + 运单号 -->
+    <div class="flex items-center justify-between px-3.5 py-2.5 bg-gray-50/60">
+      <div class="flex items-center gap-2">
+        <i class="fas fa-building-circle-check text-[11px] text-gray-400"></i>
+        <span class="text-[11px] text-gray-500">中通快递</span>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <span class="text-[11px] text-gray-400">运单号</span>
+        <span class="text-[11px] font-mono font-semibold text-gray-700" id="tn2">ZT9876543210</span>
+        <button onclick="copyNo('tn2','ZT9876543210')" class="w-6 h-6 rounded-full flex items-center justify-center" style="background:#FFF0EB">
+          <i class="fas fa-copy text-[10px]" style="color:#FF4D2D"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- 物流轨迹时间线 -->
+    <div class="px-3.5 py-3">
+      <div class="flex items-center gap-1 mb-2">
+        <span class="text-[10px] font-bold text-gray-700">物流轨迹</span>
+        <span class="text-[9px] text-gray-300">· 最新更新 08-31 10:42</span>
+      </div>
+      <div class="flex">
+        <div class="flex flex-col items-center mr-3" style="padding-top:2px">
+          <div class="tl-dot done"></div>
+          <div class="tl-line done"></div>
+          <div class="tl-dot done"></div>
+          <div class="tl-line done"></div>
+          <div class="tl-dot done"></div>
+          <div class="tl-line done"></div>
+          <div class="tl-dot cur"></div>
+        </div>
+        <div class="flex-1 space-y-3">
+          <div>
+            <p class="text-[11px] text-gray-500 font-medium">已下单</p>
+            <p class="text-[9px] text-gray-400 mt-0.5">08-27 16:20 · 订单已提交，等待商家发货</p>
+          </div>
+          <div>
+            <p class="text-[11px] text-gray-500 font-medium">已揽收</p>
+            <p class="text-[9px] text-gray-400 mt-0.5">08-28 10:05 · 中通快递员已取件</p>
+          </div>
+          <div>
+            <p class="text-[11px] text-gray-500 font-medium">运输中</p>
+            <p class="text-[9px] text-gray-400 mt-0.5">08-30 06:18 · 快件已到达【义乌转运中心】</p>
+          </div>
+          <div>
+            <p class="text-[11px] font-bold" style="color:#FF4D2D">派送中</p>
+            <p class="text-[9px] text-gray-500 mt-0.5">08-31 10:42 · 快件正在派送中，派送员【张师傅 138****1234】，预计今日送达</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 底部操作 -->
+    <div class="flex items-center justify-between px-3.5 py-3 border-t border-gray-50">
+      <div class="flex items-center gap-1.5">
+        <i class="fas fa-phone text-[10px]" style="color:#10B981"></i>
+        <span class="text-[11px] text-gray-500">联系派送员</span>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="copyNo('tn2','ZT9876543210')" class="btn-ghost card text-[11px] font-medium px-3.5 py-1.5 rounded-full">
+          <i class="fas fa-copy text-[10px] mr-1"></i>复制单号
+        </button>
+        <a href="order-detail.html" class="btn-pri card text-[11px] font-medium px-3.5 py-1.5 rounded-full">
+          <i class="fas fa-eye text-[10px] mr-1"></i>查看订单
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 订单3：已揽收 -->
+  <div class="bg-white rounded-2xl shadow-soft mb-3 fade-up overflow-hidden card" data-status="pickup" style="animation-delay:.12s">
+    <!-- 顶部 -->
+    <div class="flex items-center justify-between px-3.5 pt-3 pb-2.5">
+      <div class="flex items-center gap-2">
+        <i class="fas fa-box-archive text-[12px]" style="color:#8B5CF6"></i>
+        <span class="text-[11px] text-gray-500">订单号</span>
+        <span class="text-[12px] font-semibold text-gray-800">SO20260830015</span>
+      </div>
+      <span class="st-pickup text-[10px] font-bold px-2 py-0.5 rounded">已揽收</span>
+    </div>
+
+    <!-- 商品信息 -->
+    <div class="flex gap-3 px-3.5 pb-3 border-b border-gray-50">
+      <div class="w-[60px] h-[60px] rounded-xl flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,#10B981,#34D399)">
+        <i class="fas fa-socks text-white text-[20px]"></i>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-[13px] text-gray-800 font-medium leading-snug">儿童防滑地板袜加厚保暖 8双装</p>
+        <p class="text-[10px] text-gray-400 mt-1">规格：卡通图案混装 · 5-8岁</p>
+        <div class="flex items-center justify-between mt-1">
+          <span class="text-[10px] text-gray-400">x12盒</span>
+          <span class="text-[12px] text-gray-700 font-semibold">¥816.00</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 物流公司 + 运单号 -->
+    <div class="flex items-center justify-between px-3.5 py-2.5 bg-gray-50/60">
+      <div class="flex items-center gap-2">
+        <i class="fas fa-building-circle-check text-[11px] text-gray-400"></i>
+        <span class="text-[11px] text-gray-500">韵达快递</span>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <span class="text-[11px] text-gray-400">运单号</span>
+        <span class="text-[11px] font-mono font-semibold text-gray-700" id="tn3">YD5678901234</span>
+        <button onclick="copyNo('tn3','YD5678901234')" class="w-6 h-6 rounded-full flex items-center justify-center" style="background:#FFF0EB">
+          <i class="fas fa-copy text-[10px]" style="color:#FF4D2D"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- 物流轨迹时间线 -->
+    <div class="px-3.5 py-3">
+      <div class="flex items-center gap-1 mb-2">
+        <span class="text-[10px] font-bold text-gray-700">物流轨迹</span>
+        <span class="text-[9px] text-gray-300">· 最新更新 08-31 07:50</span>
+      </div>
+      <div class="flex">
+        <div class="flex flex-col items-center mr-3" style="padding-top:2px">
+          <div class="tl-dot done"></div>
+          <div class="tl-line done"></div>
+          <div class="tl-dot cur"></div>
+          <div class="tl-line"></div>
+          <div class="tl-dot todo"></div>
+          <div class="tl-line"></div>
+          <div class="tl-dot todo"></div>
+        </div>
+        <div class="flex-1 space-y-3">
+          <div>
+            <p class="text-[11px] text-gray-500 font-medium">已下单</p>
+            <p class="text-[9px] text-gray-400 mt-0.5">08-30 11:00 · 订单已提交，等待商家发货</p>
+          </div>
+          <div>
+            <p class="text-[11px] font-bold" style="color:#FF4D2D">已揽收</p>
+            <p class="text-[9px] text-gray-500 mt-0.5">08-31 07:50 · 韵达快递员已取件，离开永盛袜业档口</p>
+          </div>
+          <div>
+            <p class="text-[11px] text-gray-300 font-medium">运输中</p>
+            <p class="text-[9px] text-gray-300 mt-0.5">待运输</p>
+          </div>
+          <div>
+            <p class="text-[11px] text-gray-300 font-medium">派送中</p>
+            <p class="text-[9px] text-gray-300 mt-0.5">待派送</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 底部操作 -->
+    <div class="flex items-center justify-end gap-2 px-3.5 py-3 border-t border-gray-50">
+      <button onclick="copyNo('tn3','YD5678901234')" class="btn-ghost card text-[11px] font-medium px-3.5 py-1.5 rounded-full">
+        <i class="fas fa-copy text-[10px] mr-1"></i>复制单号
+      </button>
+      <a href="order-detail.html" class="btn-pri card text-[11px] font-medium px-3.5 py-1.5 rounded-full">
+        <i class="fas fa-eye text-[10px] mr-1"></i>查看订单
+      </a>
+    </div>
+  </div>
+
+</div>
+
+<!-- 底部Tab栏 5Tab -->
+<div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100" style="height:65px;z-index:100;width:393px">
+<div class="flex justify-around items-center h-full" style="padding-bottom:10px">
+<a href="home.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-house text-[18px]"></i><span class="text-[9px]">首页</span></a>
+<a href="video.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-video text-[18px]"></i><span class="text-[9px]">视频看货</span></a>
+<a href="purchase-order.html" class="flex flex-col items-center gap-0.5 text-gray-400 relative"><i class="fas fa-clipboard-list text-[18px]"></i><span class="text-[9px]">进货单</span><span class="absolute top-0 right-1 bg-primary text-white text-[7px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center" style="min-width:14px;height:14px">3</span></a>
+<a href="property.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-building text-[18px]"></i><span class="text-[9px]">物业</span></a>
+<a href="mine.html" class="flex flex-col items-center gap-0.5" style="color:#FF4D2D"><i class="fas fa-user text-[18px]"></i><span class="text-[9px] font-semibold">我的</span></a>
+</div>
+</div>
+<div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none"><div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:3px"></div></div>
+
+<div class="toast" id="toast"><i class="fas fa-circle-check" style="color:#4ADE80"></i><span id="toastTxt">操作成功</span></div>
+
+<script>
+var toastTimer;
+function toast(msg){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},1600)}
+
+function copyNo(id,no){
+  var text=no;
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(function(){toast('运单号已复制');})['catch'](function(){fallbackCopy(text);});
+  }else{
+    fallbackCopy(text);
+  }
+}
+function fallbackCopy(text){
+  var ta=document.createElement('textarea');
+  ta.value=text;
+  ta.style.position='fixed';
+  ta.style.opacity='0';
+  document.body.appendChild(ta);
+  ta.select();
+  try{document.execCommand('copy');toast('运单号已复制');}catch(e){toast('复制失败，请手动复制');}
+  document.body.removeChild(ta);
+}
+
+/* 筛选 */
+var filterBar=document.getElementById('filterBar');
+filterBar.addEventListener('click',function(e){
+  var btn=e.target.closest('.tab-item');
+  if(!btn)return;
+  var filter=btn.dataset.filter;
+  filterBar.querySelectorAll('.tab-item').forEach(function(b){
+    b.className='tab-item text-[12px] font-semibold px-3.5 py-2 rounded-full bg-white text-gray-500 shadow-soft';
+  });
+  btn.className='tab-item text-[12px] font-semibold px-3.5 py-2 rounded-full';
+  btn.style.background='linear-gradient(90deg,#FF4D2D,#FF7849)';
+  btn.style.color='#fff';
+  btn.style.boxShadow='0 4px 12px rgba(255,77,45,.32)';
+  filterBar.querySelectorAll('.tab-item').forEach(function(b){if(b!==btn){b.style.background='';b.style.color='';b.style.boxShadow='';}});
+  document.querySelectorAll('#orderList > div').forEach(function(card){
+    if(filter==='all'){card.style.display='';}
+    else{card.style.display=card.dataset.status===filter?'':'none';}
+  });
+});
+</script>
+
+</body>
+</html>
