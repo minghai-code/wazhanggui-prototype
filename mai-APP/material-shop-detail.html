@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>商户主页 - 袜掌柜买家版</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D','primary-d':'#E63E20','primary-l':'#FF7849'}}}}</script>
+<style>
+:root{--bg:#FFF7F4}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+::-webkit-scrollbar{width:2px;height:2px}
+::-webkit-scrollbar-thumb{background:#dfdfdf;border-radius:1px}
+.no-bar::-webkit-scrollbar{display:none}
+.card{transition:transform .16s ease}.card:active{transform:scale(.965)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
+.shadow-card{box-shadow:0 8px 24px rgba(255,77,45,.14)}
+.fade-up{animation:fadeUp .4s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:400;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.25);min-width:150px;justify-content:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.stab{flex:1;text-align:center;padding:9px 0;font-size:12px;color:#9aa0ac;cursor:pointer;position:relative;transition:.18s}
+.stab.on{color:#1F2430;font-weight:800}
+.stab.on::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:24px;height:3px;border-radius:2px;background:linear-gradient(90deg,#34D399,#059669)}
+.h-scroll{display:flex;gap:8px;overflow-x:auto;padding-bottom:3px}
+.h-scroll::-webkit-scrollbar{display:none}
+.h-scroll>*{flex:0 0 auto}
+.text-grad{background:linear-gradient(90deg,#FF4D2D,#FF2D78);-webkit-background-clip:text;background-clip:text;color:transparent}
+</style>
+</head>
+<body>
+
+<!-- ===== 店铺头图 ===== -->
+<div class="relative overflow-hidden" style="height:180px">
+  <img id="shopBanner" src="images/scene_02.jpg" class="w-full h-full object-cover absolute inset-0">
+  <div class="absolute inset-0" style="background:linear-gradient(180deg,rgba(0,0,0,.35) 0%,rgba(0,0,0,0) 40%,rgba(0,0,0,.55) 100%)"></div>
+  <div class="relative flex justify-between items-center text-white text-sm font-semibold px-4" style="height:40px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+  </div>
+  <div class="relative flex items-center justify-between px-4 mt-1">
+    <a href="material-merchants.html" class="w-9 h-9 rounded-full bg-black/30 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+    <div class="flex items-center gap-2">
+      <button onclick="toggleFav()" class="w-9 h-9 rounded-full bg-black/30 backdrop-blur flex items-center justify-center text-white"><i class="far fa-heart text-sm" id="favIcon"></i></button>
+      <button onclick="toast('店铺主页已复制，可分享给同行')" class="w-9 h-9 rounded-full bg-black/30 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-share-nodes text-[13px]"></i></button>
+    </div>
+  </div>
+  <div class="absolute left-4 right-4 bottom-3 flex items-end gap-3">
+    <div id="shopLogo" class="w-14 h-14 rounded-2xl flex items-center justify-center text-white flex-shrink-0 shadow-card"><i class="fas fa-store text-lg"></i></div>
+    <div class="flex-1 min-w-0 pb-0.5">
+      <p class="text-white font-extrabold text-[17px] truncate" id="shopName">商户名称</p>
+      <p class="text-white/80 text-[9px] mt-0.5" id="shopSub">A区12号 · 8年店</p>
+    </div>
+  </div>
+</div>
+
+<!-- 商户数据卡 -->
+<div class="px-3 -mt-2 relative z-10">
+  <div class="bg-white rounded-2xl shadow-soft p-3">
+    <div class="grid grid-cols-4 text-center">
+      <div><p class="text-[15px] font-bold text-amber-500" id="dRating">4.9</p><p class="text-[9px] text-gray-400 mt-0.5">店铺评分</p></div>
+      <div><p class="text-[15px] font-bold" style="color:#059669" id="dSku">86</p><p class="text-[9px] text-gray-400 mt-0.5">在售商品</p></div>
+      <div><p class="text-[15px] font-bold text-gray-700" id="dYears">8</p><p class="text-[9px] text-gray-400 mt-0.5">经营年限</p></div>
+      <div><p class="text-[15px] font-bold text-gray-700" id="dOrders">1.2万</p><p class="text-[9px] text-gray-400 mt-0.5">累计成交</p></div>
+    </div>
+    <div class="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-gray-50" id="dTags"></div>
+  </div>
+</div>
+
+<!-- Tab -->
+<div class="px-3 mt-2.5">
+  <div class="bg-white rounded-2xl shadow-soft flex">
+    <div class="stab on" id="tabHome" onclick="switchTab('home')">店铺首页</div>
+    <div class="stab" id="tabGoods" onclick="switchTab('goods')">全部商品</div>
+    <div class="stab" id="tabIntro" onclick="switchTab('intro')">商户介绍</div>
+  </div>
+</div>
+
+<!-- ===== 店铺首页 ===== -->
+<div id="homeView">
+  <!-- 公告 -->
+  <div class="px-3 mt-2.5">
+    <div class="bg-white rounded-2xl shadow-soft p-3 flex items-start gap-2">
+      <span class="text-[9px] px-1.5 py-0.5 rounded font-bold text-white flex-shrink-0 mt-0.5" style="background:#059669">公告</span>
+      <p class="text-[10px] text-gray-600 leading-relaxed flex-1" id="dNotice">—</p>
+    </div>
+  </div>
+
+  <!-- 主营业务 -->
+  <div class="px-3 mt-2.5">
+    <div class="rounded-2xl p-3.5" style="background:linear-gradient(135deg,#ECFDF5,#D1FAE5)">
+      <p class="text-[9px] text-gray-500 mb-1">主营业务</p>
+      <p class="text-[13px] font-bold" style="color:#047857" id="dMain">—</p>
+      <p class="text-[10px] text-gray-600 mt-2 leading-relaxed" id="dDesc">—</p>
+    </div>
+  </div>
+
+  <!-- 门店商品 -->
+  <div class="px-3 mt-4" id="goodsBlock">
+    <div class="flex items-center justify-between mb-2.5">
+      <div class="flex items-center gap-1.5"><div class="w-1 h-3.5 rounded-full" style="background:#059669"></div><p class="text-[13px] font-bold text-gray-800">门店商品</p></div>
+      <span onclick="switchTab('goods')" class="text-[10px]" style="color:#059669">全部 <span id="goodsCount">0</span> 件 ›</span>
+    </div>
+    <div class="h-scroll" id="hGoods"></div>
+  </div>
+  <div class="px-3 mt-2.5" id="emptyBlock" style="display:none">
+    <div class="bg-white rounded-2xl shadow-soft py-8 text-center">
+      <i class="fas fa-box-open text-gray-300 text-xl mb-2"></i>
+      <p class="text-[11px] text-gray-400">该商户暂未上传线上商品</p>
+      <p class="text-[10px] text-gray-300 mt-1">可直接电话联系或到店看货</p>
+      <button onclick="callShop()" class="mt-3 px-4 py-1.5 rounded-full text-[11px] font-semibold" style="background:#ECFDF5;color:#059669"><i class="fas fa-phone text-[10px] mr-1"></i>电话联系商户</button>
+    </div>
+  </div>
+
+  <!-- 资质证书 -->
+  <div class="px-3 mt-4">
+    <div class="flex items-center gap-1.5 mb-2.5"><div class="w-1 h-3.5 rounded-full" style="background:#7C3AED"></div><p class="text-[13px] font-bold text-gray-800">资质证书</p></div>
+    <div class="bg-white rounded-2xl shadow-soft p-3">
+      <div class="grid grid-cols-3 gap-2" id="dCerts"></div>
+    </div>
+  </div>
+
+  <!-- 店铺信息 -->
+  <div class="px-3 mt-4">
+    <div class="flex items-center gap-1.5 mb-2.5"><div class="w-1 h-3.5 rounded-full" style="background:#F59E0B"></div><p class="text-[13px] font-bold text-gray-800">店铺信息</p></div>
+    <div class="bg-white rounded-2xl shadow-soft p-3.5 space-y-2.5">
+      <div class="flex items-center gap-2">
+        <i class="fas fa-location-dot text-[11px] w-3.5" style="color:#059669"></i>
+        <p class="text-[10px] text-gray-600 flex-1" id="dAddr">—</p>
+        <button onclick="toast('正在打开地图导航至该商户')" class="text-[9px] px-2 py-0.5 rounded-full" style="background:#ECFDF5;color:#059669">导航</button>
+      </div>
+      <div class="flex items-center gap-2">
+        <i class="fas fa-phone text-[11px] w-3.5" style="color:#059669"></i>
+        <p class="text-[10px] text-gray-600 flex-1" id="dTel">—</p>
+        <button onclick="callShop()" class="text-[9px] px-2 py-0.5 rounded-full" style="background:#ECFDF5;color:#059669">拨打</button>
+      </div>
+      <div class="flex items-center gap-2">
+        <i class="far fa-clock text-[11px] w-3.5" style="color:#059669"></i>
+        <p class="text-[10px] text-gray-600 flex-1">营业时间 08:00-17:30（旺季延至 20:00）</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <i class="fas fa-user-tie text-[11px] w-3.5" style="color:#059669"></i>
+        <p class="text-[10px] text-gray-600 flex-1" id="dContact">联系人：—</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 相似商户 -->
+  <div class="px-3 mt-4">
+    <div class="flex items-center gap-1.5 mb-2.5"><div class="w-1 h-3.5 rounded-full" style="background:#3B82F6"></div><p class="text-[13px] font-bold text-gray-800">同品类商户</p></div>
+    <div class="h-scroll" id="simShops"></div>
+  </div>
+  <div class="h-24"></div>
+</div>
+
+<!-- ===== 全部商品 ===== -->
+<div id="goodsView" style="display:none">
+  <div class="px-3 mt-2.5">
+    <div class="bg-white rounded-2xl shadow-soft p-2.5 mb-2.5 flex items-center gap-2">
+      <i class="fas fa-magnifying-glass text-[10px] text-gray-400"></i>
+      <input type="text" id="gSearch" placeholder="在本店搜索商品" class="flex-1 text-[11px] outline-none border-none bg-transparent" oninput="renderGoods()">
+    </div>
+    <p class="text-[10px] text-gray-400 mb-2 px-1">共 <span id="gCount">0</span> 件商品</p>
+    <div class="grid grid-cols-2 gap-2.5" id="gGrid"></div>
+  </div>
+  <div class="h-24"></div>
+</div>
+
+<!-- ===== 商户介绍 ===== -->
+<div id="introView" style="display:none">
+  <div class="px-3 mt-2.5">
+    <div class="bg-white rounded-2xl shadow-soft p-3.5">
+      <p class="text-[13px] font-bold text-gray-800 mb-2">业务介绍</p>
+      <p class="text-[11px] text-gray-600 leading-relaxed" id="iDesc">—</p>
+    </div>
+  </div>
+
+  <div class="px-3 mt-2.5">
+    <div class="bg-white rounded-2xl shadow-soft p-3.5">
+      <p class="text-[13px] font-bold text-gray-800 mb-2.5">经营范围</p>
+      <div class="flex flex-wrap gap-1.5" id="iScope"></div>
+    </div>
+  </div>
+
+  <div class="px-3 mt-2.5">
+    <div class="bg-white rounded-2xl shadow-soft p-3.5">
+      <p class="text-[13px] font-bold text-gray-800 mb-2.5">服务承诺</p>
+      <div class="space-y-2" id="iPromise"></div>
+    </div>
+  </div>
+
+  <div class="px-3 mt-2.5">
+    <div class="bg-white rounded-2xl shadow-soft p-3.5">
+      <p class="text-[13px] font-bold text-gray-800 mb-2.5">工商信息</p>
+      <div class="space-y-2 text-[10px]" id="iBiz"></div>
+    </div>
+  </div>
+
+  <div class="px-3 mt-2.5">
+    <div class="bg-white rounded-2xl shadow-soft p-3.5">
+      <p class="text-[13px] font-bold text-gray-800 mb-2.5">合作客户</p>
+      <div class="flex flex-wrap gap-1.5" id="iClients"></div>
+    </div>
+  </div>
+  <div class="h-24"></div>
+</div>
+
+<!-- 底部操作 -->
+<div class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-gray-100 px-3 flex items-center gap-2" style="height:60px;z-index:100;width:393px">
+  <button onclick="callShop()" class="card flex flex-col items-center justify-center px-3 py-1.5 rounded-xl text-gray-500" style="border:1px solid #eceef0">
+    <i class="fas fa-phone text-[14px]"></i><span class="text-[8px] mt-0.5">电话</span>
+  </button>
+  <button onclick="toast('正在接入在线客服，请稍候')" class="card flex flex-col items-center justify-center px-3 py-1.5 rounded-xl text-gray-500" style="border:1px solid #eceef0">
+    <i class="fas fa-comment-dots text-[14px]"></i><span class="text-[8px] mt-0.5">咨询</span>
+  </button>
+  <button onclick="toggleFav()" class="card flex flex-col items-center justify-center px-3 py-1.5 rounded-xl" style="border:1px solid #A7F3D0;background:#ECFDF5;color:#059669">
+    <i class="far fa-heart text-[14px]" id="favIcon2"></i><span class="text-[8px] mt-0.5" id="favTxt">收藏</span>
+  </button>
+  <button onclick="switchTab('goods')" class="card flex-1 text-center py-2.5 rounded-full text-[13px] font-bold text-white shadow-card" style="background:linear-gradient(135deg,#34D399,#059669)">查看全部商品</button>
+</div>
+<div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none"><div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:2px"></div></div>
+
+<div class="toast" id="toast"><i class="fas fa-circle-check text-[#4ADE80]"></i><span id="toastTxt">操作成功</span></div>
+
+<script>
+var toastTimer;
+function toast(msg){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},1600)}
+
+var shops=[
+ {id:'A12',name:'华源纱业',cat:'纱线',key:'yarn',color:'#10B981',icon:'fa-seedling',tel:'0575-8775 2218',rating:4.9,years:8,sku:86,orders:'1.2万',dist:0.8,loc:'A区12号',banner:'scene_02.jpg',
+  main:'精梳棉纱 · 涤棉混纺纱 · 色纺纱',
+  desc:'大唐本地规模棉纱供应商，常备现货 800 吨，32支/40支精梳棉纱为主力，支持 25kg 小批起批打样，提供第三方检测报告。',
+  notice:'本店 6 月开展夏季备货季活动，棉纱整吨采购享阶梯价，满 5 吨再降 3%，支持 25kg 起打样，3 天出样。',
+  tags:['厂家直营','现货800吨','支持小批','提供检测报告'],
+  scope:['精梳棉纱','普梳棉纱','涤棉混纺纱','竹纤维纱','色纺纱','筒纱/绞纱'],
+  certs:['营业执照','OEKO-TEX','质检报告'],
+  contact:'陈经理 138 5755 2218',
+  addr:'浙江省诸暨市大唐街道袜业路 · 原料交易区 A区12号',
+  clients:['浪莎','梦娜','耐尔','宝娜斯','本地袜厂 200+'],
+  goods:[{n:'精梳棉纱32支 原棉纺纱',p:'28',u:'/千克',moq:'起批500kg',sold:'已售85吨',img:'material_02.jpg'},
+         {n:'精梳棉纱40支 高配棉',p:'31',u:'/千克',moq:'起批500kg',sold:'已售62吨',img:'material_01.jpg'},
+         {n:'涤棉混纺纱 45支 T65/C35',p:'24',u:'/千克',moq:'起批1吨',sold:'已售130吨',img:'material_04.jpg'},
+         {n:'竹纤维纱 32支 抗菌',p:'42',u:'/千克',moq:'起批25kg',sold:'已售18吨',img:'material_03.jpg'},
+         {n:'精梳棉纱21支 普梳级',p:'22',u:'/千克',moq:'起批1吨',sold:'已售210吨',img:'material_02.jpg'},
+         {n:'色纺纱 32支 麻灰',p:'34',u:'/千克',moq:'起批300kg',sold:'已售46吨',img:'material_01.jpg'}]},
+ {id:'A05',name:'新昌棉纺',cat:'纱线',key:'yarn',color:'#10B981',icon:'fa-seedling',tel:'0575-8776 1120',rating:4.7,years:9,sku:68,orders:'8,600',dist:0.9,loc:'A区05号',banner:'scene_03.jpg',
+  main:'气流纺纱 · 竹纤维纱 · 羊毛混纺纱',
+  desc:'自有纺纱厂 3 万锭，主营气流纺纱、竹纤维纱与羊毛混纺纱，可按需定制支数与捻度，老客户支持账期结算。',
+  notice:'新到羊毛混纺纱 28 支，适合秋冬保暖袜，现支持 100kg 起批试单，量大可申请账期。',
+  tags:['自有工厂','来样定制','可账期'],
+  scope:['气流纺纱','竹纤维纱','羊毛混纺纱','再生棉纱','来样定制'],
+  certs:['营业执照','质检报告','ISO9001'],
+  contact:'周厂长 139 5756 1120',
+  addr:'浙江省诸暨市大唐街道袜业路 · 原料交易区 A区05号',
+  clients:['情怡','步人','本地针织厂 80+'],
+  goods:[{n:'气流纺纱 21支 本色',p:'22',u:'/千克',moq:'起批1吨',sold:'已售210吨',img:'material_01.jpg'},
+         {n:'竹纤维纱 32支 环保',p:'42',u:'/千克',moq:'起批25kg',sold:'已售16吨',img:'material_02.jpg'},
+         {n:'羊毛混纺纱 28支 保暖',p:'58',u:'/千克',moq:'起批100kg',sold:'已售7.5吨',img:'material_04.jpg'}]},
+ {id:'B03',name:'恒力化纤',cat:'化纤长丝',key:'fiber',color:'#3B82F6',icon:'fa-circle-nodes',tel:'0575-8778 6602',rating:4.8,years:6,sku:72,orders:'9,800',dist:1.1,loc:'B区03号',banner:'scene_04.jpg',
+  main:'涤纶DTY · 锦纶长丝 · 涤棉复合丝',
+  desc:'国内一线化纤品牌区域代理，涤纶DTY、锦纶 70D/140D 全规格常备，万吨级仓储，整吨采购可享阶梯价。',
+  notice:'化纤全线库存充足，DTY 150D/48F 整吨起批享阶梯价，20 吨以上可申请专车直送。',
+  tags:['一级代理','万吨仓储','阶梯价'],
+  scope:['涤纶DTY','涤纶FDY','锦纶长丝','涤棉复合丝','阳离子丝'],
+  certs:['营业执照','品牌授权','质检报告'],
+  contact:'吴经理 137 5758 6602',
+  addr:'浙江省诸暨市大唐街道袜业路 · 原料交易区 B区03号',
+  clients:['浪莎','丹吉娅','义乌袜业集群'],
+  goods:[{n:'涤纶低弹丝DTY 150D/48F',p:'12',u:'/千克',moq:'起批1吨',sold:'已售120吨',img:'material_01.jpg'},
+         {n:'锦纶高弹丝 70D/24F',p:'35',u:'/千克',moq:'起批300kg',sold:'已售62吨',img:'material_03.jpg'},
+         {n:'涤纶全拉伸丝 FDY 50D',p:'14',u:'/千克',moq:'起批1吨',sold:'已售95吨',img:'material_02.jpg'},
+         {n:'阳离子涤纶丝 可染',p:'16',u:'/千克',moq:'起批500kg',sold:'已售58吨',img:'material_04.jpg'}]},
+ {id:'B06',name:'金诚氨纶',cat:'化纤长丝',key:'fiber',color:'#3B82F6',icon:'fa-circle-nodes',tel:'0575-8779 3341',rating:4.8,years:4,sku:61,orders:'6,200',dist:1.2,loc:'B区06号',banner:'scene_06.jpg',
+  main:'氨纶20D/40D · 氨纶包覆纱 · 橡筋线',
+  desc:'专注弹性材料，氨纶包覆纱日产能 12 吨，弹力回复率稳定，广泛用于袜口、运动袜与压力袜生产。',
+  notice:'氨纶包覆纱支持来样定制包覆规格，常规 2070/3070 常备现货，当日下单当日发出。',
+  tags:['日产12吨','弹力稳定','整吨优惠'],
+  scope:['氨纶20D','氨纶40D','氨纶包覆纱','橡筋线','弹力复合丝'],
+  certs:['营业执照','质检报告','SGS检测'],
+  contact:'郑经理 136 5759 3341',
+  addr:'浙江省诸暨市大唐街道袜业路 · 原料交易区 B区06号',
+  clients:['运动袜工厂 60+','压力袜品牌'],
+  goods:[{n:'氨纶 20D 高弹丝',p:'45',u:'/千克',moq:'起批200kg',sold:'已售38吨',img:'material_03.jpg'},
+         {n:'氨纶包覆纱 2070 双包',p:'52',u:'/千克',moq:'起批300kg',sold:'已售26吨',img:'material_01.jpg'},
+         {n:'高回弹橡筋线 100D',p:'32',u:'/千克',moq:'起批100kg',sold:'已售15吨',img:'material_04.jpg'}]},
+ {id:'C08',name:'闰土染化',cat:'染料助剂',key:'dye',color:'#A855F7',icon:'fa-flask',tel:'0575-8777 8856',rating:4.7,years:10,sku:54,orders:'5,400',dist:1.5,loc:'C区08号',banner:'scene_07.jpg',
+  main:'活性染料 · 分散染料 · 环保助剂',
+  desc:'上市染化企业服务站，提供全套棉用活性染料与涤纶分散染料，配套固色剂、柔软剂，可提供 OEKO-TEX 环保认证。',
+  notice:'提供免费配色服务，来样 24 小时内出配方，染料均符合 OEKO-TEX 环保标准，可提供检测报告。',
+  tags:['上市公司','环保认证','配色服务'],
+  scope:['活性染料','分散染料','酸性染料','固色剂','柔软剂','匀染剂'],
+  certs:['营业执照','OEKO-TEX','排污许可'],
+  contact:'孙工 135 5757 8856',
+  addr:'浙江省诸暨市大唐街道袜业路 · 原料交易区 C区08号',
+  clients:['本地印染厂 40+','品牌代工厂'],
+  goods:[{n:'棉用活性染料 藏青 BFN',p:'45',u:'/千克',moq:'起批25kg',sold:'已售3.8吨',img:'material_03.jpg'},
+         {n:'棉用活性染料 大红 3BS',p:'48',u:'/千克',moq:'起批25kg',sold:'已售2.6吨',img:'material_04.jpg'},
+         {n:'涤纶分散染料 高温型',p:'52',u:'/千克',moq:'起批25kg',sold:'已售2.1吨',img:'material_02.jpg'},
+         {n:'无醛环保固色剂',p:'28',u:'/千克',moq:'起批50kg',sold:'已售6.5吨',img:'material_01.jpg'}]},
+ {id:'D09',name:'三鼎橡筋',cat:'辅料橡筋',key:'acc',color:'#F59E0B',icon:'fa-link',tel:'0575-8774 5527',rating:4.6,years:6,sku:45,orders:'4,800',dist:1.6,loc:'D区09号',banner:'scene_08.jpg',
+  main:'袜口橡筋 · 缝纫线 · 洗标唛头',
+  desc:'辅料一站式配齐，橡筋宽度 2mm-20mm 全规格，支持定制织字袜口与彩色缝纫线，1 卷起发。',
+  notice:'织字袜口 7 天交货，支持小批量 50kg 起订，颜色与字体可按需定制，老客户免打样费。',
+  tags:['1卷起发','织字定制','当日发'],
+  scope:['袜口橡筋','松紧带','缝纫线','洗水唛','织唛','刺绣标'],
+  certs:['营业执照','质检报告'],
+  contact:'林经理 134 5754 5527',
+  addr:'浙江省诸暨市大唐街道袜业路 · 原料交易区 D区09号',
+  clients:['本地袜厂 150+'],
+  goods:[{n:'袜口橡筋 8mm 定制织字',p:'18',u:'/千克',moq:'起批50kg',sold:'已售9吨',img:'material_04.jpg'},
+         {n:'涤纶缝纫线 40S/2',p:'15',u:'/卷',moq:'起批20卷',sold:'已售4200卷',img:'material_03.jpg'},
+         {n:'缎面洗水唛 印刷',p:'0.12',u:'/张',moq:'起批1000张',sold:'已售5万张',img:'material_02.jpg'}]},
+ {id:'D15',name:'中昊包装',cat:'包装物料',key:'pkg',color:'#EC4899',icon:'fa-box',tel:'0575-8773 9910',rating:4.6,years:5,sku:43,orders:'3,900',dist:1.8,loc:'D区15号',banner:'scene_09.jpg',
+  main:'袜卡 · 吊牌 · OPP袋 · 礼盒',
+  desc:'袜业包装专业供应商，支持设计打样，袜卡/吊牌 500 张起订，48 小时出货，可配套彩盒与快递袋。',
+  notice:'新客户首单免费设计，袜卡/吊牌 500 张起订，48 小时出货，量大可享更优价格。',
+  tags:['设计打样','500张起订','48小时出货'],
+  scope:['袜卡','吊牌','OPP袋','彩盒','礼盒','快递袋','不干胶'],
+  certs:['营业执照','印刷许可'],
+  contact:'何设计 133 5753 9910',
+  addr:'浙江省诸暨市大唐街道袜业路 · 原料交易区 D区15号',
+  clients:['浪莎','梦娜','电商袜品牌 200+'],
+  goods:[{n:'袜卡 350g铜版 四色印刷',p:'0.35',u:'/张',moq:'起批500张',sold:'已售12万张',img:'material_04.jpg'},
+         {n:'吊牌 双铜卡 UV工艺',p:'0.28',u:'/张',moq:'起批500张',sold:'已售8万张',img:'material_02.jpg'},
+         {n:'OPP透明自粘袋 12×28cm',p:'0.06',u:'/个',moq:'起批2000个',sold:'已售35万个',img:'material_03.jpg'}]},
+ {id:'E02',name:'锦龙纺配',cat:'纺机配件',key:'parts',color:'#64748B',icon:'fa-gear',tel:'0575-8772 4408',rating:4.5,years:7,sku:38,orders:'2,700',dist:2.0,loc:'E区02号',banner:'scene_10.jpg',
+  main:'袜机织针 · 刀具 · 专用油料',
+  desc:'袜机配件与耗材供应商，适配主流单针筒/双针筒袜机，原厂织针质保 6 个月，提供上门维修与调机服务。',
+  notice:'织针原厂直供质保 6 个月，市场周边 30 分钟响应上门维修，常备易损件当日发出。',
+  tags:['原厂配件','质保6个月','上门维修'],
+  scope:['袜机织针','沉降片','刀具刀片','专用油料','皮带','电磁阀'],
+  certs:['营业执照','品牌代理'],
+  contact:'黄师傅 132 5752 4408',
+  addr:'浙江省诸暨市大唐街道袜业路 · 原料交易区 E区02号',
+  clients:['本地袜厂 300+'],
+  goods:[{n:'袜机织针 单针筒通用',p:'8',u:'/枚',moq:'起批100枚',sold:'已售1.2万枚',img:'material_01.jpg'},
+         {n:'袜机专用润滑油 5L',p:'95',u:'/桶',moq:'起批2桶',sold:'已售860桶',img:'material_03.jpg'},
+         {n:'合金剪刀刀片 耐磨',p:'35',u:'/片',moq:'起批10片',sold:'已售1500片',img:'material_04.jpg'}]}
+];
+
+var promises=[
+ {i:'fa-shield-halved',c:'#059669',t:'品质保障',d:'所有出厂原料均附质检单，指标不达标支持整批退换'},
+ {i:'fa-truck-fast',c:'#3B82F6',t:'快速发货',d:'现货当日下单当日发出，市场周边 2 小时送达'},
+ {i:'fa-flask-vial',c:'#7C3AED',t:'免费打样',d:'支持小批量打样，确认品质后再批量下单'},
+ {i:'fa-handshake',c:'#F59E0B',t:'售后无忧',d:'质量问题 7 天内响应处理，专属客服全程跟进'}
+];
+
+var cur=null, faved=false;
+
+function init(){
+  var m=location.search.match(/id=([^&]*)/);
+  var id=m?decodeURIComponent(m[1]):'A12';
+  cur=null;shops.forEach(function(s){if(s.id===id)cur=s});
+  if(!cur)cur=shops[0];
+
+  document.getElementById('shopBanner').src='images/'+cur.banner;
+  var logo=document.getElementById('shopLogo');
+  logo.style.background='linear-gradient(135deg,'+cur.color+','+cur.color+'CC)';
+  logo.innerHTML='<i class="fas '+cur.icon+' text-lg"></i>';
+  document.getElementById('shopName').textContent=cur.name;
+  document.getElementById('shopSub').textContent=cur.loc+' · '+cur.years+'年店 · 距市场入口 '+cur.dist+'km';
+  document.getElementById('dRating').textContent=cur.rating;
+  document.getElementById('dSku').textContent=cur.sku;
+  document.getElementById('dYears').textContent=cur.years;
+  document.getElementById('dOrders').textContent=cur.orders;
+  document.getElementById('dNotice').textContent=cur.notice;
+  document.getElementById('dMain').textContent=cur.main;
+  document.getElementById('dDesc').textContent=cur.desc;
+  document.getElementById('dAddr').textContent=cur.addr;
+  document.getElementById('dTel').textContent=cur.tel;
+  document.getElementById('dContact').textContent='联系'+cur.contact;
+
+  var th='';
+  cur.tags.forEach(function(t){th+='<span class="text-[9px] px-2 py-1 rounded-lg font-medium" style="background:#ECFDF5;color:#059669">'+t+'</span>'});
+  th+='<span class="text-[9px] px-2 py-1 rounded-lg font-medium" style="background:#F4F6F8;color:#6b7080">'+cur.cat+'</span>';
+  document.getElementById('dTags').innerHTML=th;
+
+  var ch='';
+  cur.certs.forEach(function(c){
+    ch+='<div class="rounded-xl py-2.5 text-center" style="background:#F5F3FF"><i class="fas fa-certificate text-[13px] mb-1" style="color:#7C3AED"></i><p class="text-[9px] text-gray-600">'+c+'</p></div>';
+  });
+  document.getElementById('dCerts').innerHTML=ch;
+
+  /* 门店商品 */
+  document.getElementById('goodsCount').textContent=cur.goods.length;
+  if(cur.goods.length===0){
+    document.getElementById('goodsBlock').style.display='none';
+    document.getElementById('emptyBlock').style.display='';
+  }else{
+    document.getElementById('goodsBlock').style.display='';
+    document.getElementById('emptyBlock').style.display='none';
+    var hh='';
+    cur.goods.slice(0,6).forEach(function(g){
+      hh+='<a href="product-detail.html" class="card w-[110px] bg-white rounded-2xl shadow-soft overflow-hidden">'
+        +'<img src="images/'+g.img+'" class="w-full h-[80px] object-cover">'
+        +'<div class="p-2"><p class="text-[10px] text-gray-800 font-medium line-clamp-2 leading-tight" style="height:26px">'+g.n+'</p>'
+        +'<p class="text-grad font-bold text-[13px] mt-1">¥'+g.p+'<span class="text-[8px] text-gray-400 font-normal">'+g.u+'</span></p>'
+        +'<p class="text-[8px] text-gray-400 mt-0.5">'+g.moq+'</p></div></a>';
+    });
+    document.getElementById('hGoods').innerHTML=hh;
+  }
+
+  /* 同品类商户 */
+  var sim=shops.filter(function(s){return s.id!==cur.id&&s.key===cur.key}).slice(0,3);
+  if(sim.length===0)sim=shops.filter(function(s){return s.id!==cur.id}).slice(0,3);
+  var sh='';
+  sim.forEach(function(s){
+    sh+='<a href="material-shop-detail.html?id='+s.id+'" class="card w-[130px] bg-white rounded-2xl shadow-soft p-2.5">'
+      +'<div class="flex items-center gap-1.5"><div class="w-8 h-8 rounded-lg flex items-center justify-center text-white flex-shrink-0" style="background:linear-gradient(135deg,'+s.color+','+s.color+'CC)"><i class="fas '+s.icon+' text-[10px]"></i></div>'
+      +'<p class="text-[11px] font-bold text-gray-800 truncate">'+s.name+'</p></div>'
+      +'<p class="text-[9px] text-gray-400 mt-1.5">★'+s.rating+' · '+s.sku+'个商品</p>'
+      +'<p class="text-[9px] text-gray-500 mt-0.5 truncate">'+s.main+'</p></a>';
+  });
+  document.getElementById('simShops').innerHTML=sh;
+
+  /* 商户介绍 */
+  document.getElementById('iDesc').textContent=cur.desc;
+  var sc='';
+  cur.scope.forEach(function(s){sc+='<span class="text-[10px] px-2 py-1 rounded-lg" style="background:#ECFDF5;color:#059669">'+s+'</span>'});
+  document.getElementById('iScope').innerHTML=sc;
+  var ph='';
+  promises.forEach(function(p){
+    ph+='<div class="flex gap-2.5"><i class="fas '+p.i+' text-[12px] mt-0.5 flex-shrink-0" style="color:'+p.c+'"></i>'
+      +'<div><p class="text-[11px] font-semibold text-gray-700">'+p.t+'</p><p class="text-[9px] text-gray-400 mt-0.5 leading-relaxed">'+p.d+'</p></div></div>';
+  });
+  document.getElementById('iPromise').innerHTML=ph;
+  document.getElementById('iBiz').innerHTML=
+     '<div class="flex justify-between"><span class="text-gray-400">商户名称</span><span class="text-gray-700">诸暨市'+cur.name+'</span></div>'
+    +'<div class="flex justify-between"><span class="text-gray-400">经营地址</span><span class="text-gray-700 text-right" style="max-width:220px">'+cur.loc+'</span></div>'
+    +'<div class="flex justify-between"><span class="text-gray-400">入驻时间</span><span class="text-gray-700">'+(2025-cur.years)+' 年</span></div>'
+    +'<div class="flex justify-between"><span class="text-gray-400">主营品类</span><span class="text-gray-700">'+cur.cat+'</span></div>'
+    +'<div class="flex justify-between"><span class="text-gray-400">联系电话</span><span class="text-gray-700">'+cur.tel+'</span></div>';
+  var cl='';
+  cur.clients.forEach(function(c){cl+='<span class="text-[10px] px-2 py-1 rounded-lg" style="background:#F4F6F8;color:#6b7080">'+c+'</span>'});
+  document.getElementById('iClients').innerHTML=cl;
+
+  renderGoods();
+}
+
+function renderGoods(){
+  if(!cur)return;
+  var kw=(document.getElementById('gSearch').value||'').trim().toLowerCase();
+  var list=cur.goods.filter(function(g){return !kw||g.n.toLowerCase().indexOf(kw)>-1});
+  var html='';
+  list.forEach(function(g,i){
+    html+='<a href="product-detail.html" class="card bg-white rounded-2xl overflow-hidden shadow-soft fade-up" style="animation-delay:'+(i*.04)+'s">'
+      +'<div class="relative"><img src="images/'+g.img+'" class="w-full h-[130px] object-cover">'
+      +'<span class="absolute top-1.5 left-1.5 text-white text-[8px] font-bold px-1.5 py-0.5 rounded" style="background:linear-gradient(90deg,#059669,#34D399)">'+cur.cat+'</span></div>'
+      +'<div class="p-2">'
+      +'<p class="text-[11px] text-gray-800 font-medium leading-tight line-clamp-2" style="height:30px">'+g.n+'</p>'
+      +'<div class="flex items-baseline gap-1 mt-1"><span class="text-grad font-bold text-[15px]">¥'+g.p+'</span><span class="text-[9px] text-gray-400">'+g.u+'</span></div>'
+      +'<div class="flex items-center justify-between mt-0.5"><span class="text-[9px] text-gray-400">'+g.moq+'</span><span class="text-[9px] text-gray-400">'+g.sold+'</span></div>'
+      +'<div class="flex items-center gap-1 mt-1.5 pt-1.5 border-t border-gray-50"><div class="w-3.5 h-3.5 rounded-full flex items-center justify-center" style="background:linear-gradient(135deg,'+cur.color+','+cur.color+'CC)"><i class="fas '+cur.icon+' text-white text-[6px]"></i></div><span class="text-[9px] text-gray-500">'+cur.name+'</span></div>'
+      +'</div></a>';
+  });
+  if(list.length===0)html='<div class="col-span-2 bg-white rounded-2xl shadow-soft py-10 text-center"><i class="fas fa-magnifying-glass text-gray-300 text-xl mb-2"></i><p class="text-[11px] text-gray-400">本店暂无匹配商品</p></div>';
+  document.getElementById('gGrid').innerHTML=html;
+  document.getElementById('gCount').textContent=list.length;
+}
+
+function switchTab(t){
+  var h=document.getElementById('homeView'),g=document.getElementById('goodsView'),i=document.getElementById('introView');
+  var th=document.getElementById('tabHome'),tg=document.getElementById('tabGoods'),ti=document.getElementById('tabIntro');
+  h.style.display='none';g.style.display='none';i.style.display='none';
+  th.classList.remove('on');tg.classList.remove('on');ti.classList.remove('on');
+  if(t==='home'){h.style.display='';th.classList.add('on')}
+  else if(t==='goods'){g.style.display='';tg.classList.add('on')}
+  else{i.style.display='';ti.classList.add('on')}
+  window.scrollTo(0,0);
+}
+
+function callShop(){if(cur)toast('正在呼叫 '+cur.name+' '+cur.tel)}
+
+function toggleFav(){
+  faved=!faved;
+  document.getElementById('favIcon').className=faved?'fas fa-heart text-sm':'far fa-heart text-sm';
+  document.getElementById('favIcon').style.color=faved?'#FF4D2D':'';
+  document.getElementById('favIcon2').className=faved?'fas fa-heart text-[14px]':'far fa-heart text-[14px]';
+  document.getElementById('favIcon2').style.color=faved?'#FF4D2D':'';
+  document.getElementById('favTxt').textContent=faved?'已收藏':'收藏';
+  toast(faved?'已收藏该商户，可在「我的-收藏」查看':'已取消收藏');
+}
+
+init();
+</script>
+</body>
+</html>

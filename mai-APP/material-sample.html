@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>打样预约 - 袜掌柜买家版</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D','primary-d':'#E63E20','primary-l':'#FF7849'}}}}</script>
+<style>
+:root{--bg:#FFF7F4}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+::-webkit-scrollbar{width:2px}
+::-webkit-scrollbar-thumb{background:#dfdfdf;border-radius:1px}
+.no-bar::-webkit-scrollbar{display:none}
+.card{transition:transform .16s ease}.card:active{transform:scale(.965)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
+.shadow-card{box-shadow:0 8px 24px rgba(255,77,45,.14)}
+.fade-up{animation:fadeUp .4s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:400;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.25);min-width:150px;justify-content:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.tag-opt{font-size:11px;color:#6b7080;background:#fff;border:1.5px solid #eceef0;border-radius:10px;padding:6px 12px;cursor:pointer;transition:.15s;font-weight:500;display:inline-block}
+.tag-opt.on{border-color:#059669;color:#059669;background:#ECFDF5;font-weight:600}
+.tag-multi.on{border-color:#059669;color:#059669;background:#ECFDF5;font-weight:600}
+.field{border:1.5px solid #eceef0;border-radius:12px;transition:.15s;background:#fff}
+.field:focus-within{border-color:#059669}
+.field.err{border-color:#EF4444;background:#FEF2F2}
+.inp{width:100%;border:none;outline:none;background:transparent;font-size:12px;color:#1F2430;padding:10px 12px}
+.inp::placeholder{color:#c3c7cf}
+.vt{flex:1;padding:9px 0;border-radius:22px;font-size:13px;text-align:center;transition:.2s;cursor:pointer}
+.vt.on{color:#fff;font-weight:600;background:linear-gradient(90deg,#34D399,#059669);box-shadow:0 4px 12px rgba(5,150,105,.25)}
+.vt.off{color:#9aa0ac;font-weight:500;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.success-mask{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;display:none}
+.success-mask.on{display:block}
+.success-box{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%) scale(.85);background:#fff;border-radius:20px;padding:26px 22px;text-align:center;z-index:310;width:300px;opacity:0;pointer-events:none;transition:.3s}
+.success-mask.on .success-box{opacity:1;transform:translate(-50%,-50%) scale(1);pointer-events:auto}
+.confirm-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300;display:none;align-items:center;justify-content:center}
+.confirm-mask.on{display:flex}
+.confirm-box{width:280px;background:#fff;border-radius:18px;padding:20px 18px;text-align:center;transform:scale(.9);transition:.22s}
+.confirm-mask.on .confirm-box{transform:scale(1)}
+.step-dot{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;flex-shrink:0}
+</style>
+</head>
+<body>
+
+<!-- ===== 顶部 ===== -->
+<div class="relative px-4 pt-2 pb-16 overflow-hidden" style="background:linear-gradient(135deg,#34D399 0%,#14B8A6 40%,#059669 100%)">
+  <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-50" style="background:#5EEAD4"></div>
+  <div class="absolute -top-6 right-[-30px] w-48 h-48 rounded-full blur-3xl opacity-40" style="background:#2DD4BF"></div>
+  <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+  </div>
+  <div class="relative flex items-center gap-2.5 mt-1">
+    <a href="market-material.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+    <span class="text-white font-extrabold text-[20px]" style="text-shadow:0 2px 10px rgba(0,0,0,.18)">打样预约</span>
+    <button onclick="toast('打样须知：样品仅用于确认品质，不承担批量订单义务')" class="ml-auto w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-circle-question text-[13px]"></i></button>
+  </div>
+  <p class="relative text-white/85 text-[10px] mt-2 leading-relaxed">25kg 起打样 · 3 天出样 · 样品免费寄送<br>先打样后量产，降低试错成本</p>
+</div>
+
+<!-- Tab 切换 -->
+<div class="px-3 -mt-9 relative z-10">
+  <div class="bg-white rounded-2xl shadow-soft flex gap-1 p-1">
+    <div class="vt on" id="vtForm" onclick="switchView('form')">提交打样需求</div>
+    <div class="vt off" id="vtMine" onclick="switchView('mine')">我的预约</div>
+  </div>
+</div>
+
+<!-- ===== 预约表单 ===== -->
+<div id="formView">
+
+  <!-- 服务流程 -->
+  <div class="px-3 mt-3">
+    <div class="bg-white rounded-2xl shadow-soft p-3.5">
+      <p class="text-[12px] font-bold text-gray-800 mb-3"><i class="fas fa-route text-[11px] mr-1" style="color:#059669"></i>服务流程</p>
+      <div class="flex items-start">
+        <div class="flex flex-col items-center mr-2">
+          <div class="step-dot" style="background:linear-gradient(135deg,#34D399,#059669)">1</div>
+          <div class="w-px flex-1 my-1" style="background:#E5E7EB;min-height:18px"></div>
+          <div class="step-dot" style="background:linear-gradient(135deg,#34D399,#059669)">2</div>
+          <div class="w-px flex-1 my-1" style="background:#E5E7EB;min-height:18px"></div>
+          <div class="step-dot" style="background:linear-gradient(135deg,#34D399,#059669)">3</div>
+          <div class="w-px flex-1 my-1" style="background:#E5E7EB;min-height:18px"></div>
+          <div class="step-dot" style="background:linear-gradient(135deg,#34D399,#059669)">4</div>
+        </div>
+        <div class="flex-1 space-y-3">
+          <div><p class="text-[11px] font-semibold text-gray-700">提交打样需求</p><p class="text-[9px] text-gray-400 mt-0.5">填写原料品类、规格与打样要求</p></div>
+          <div><p class="text-[11px] font-semibold text-gray-700">商户接单报价</p><p class="text-[9px] text-gray-400 mt-0.5">2 小时内匹配 3 家源头商户报价</p></div>
+          <div><p class="text-[11px] font-semibold text-gray-700">打样生产</p><p class="text-[9px] text-gray-400 mt-0.5">商户按需求打样，全程进度可查</p></div>
+          <div><p class="text-[11px] font-semibold text-gray-700">寄样验收</p><p class="text-[9px] text-gray-400 mt-0.5">样品顺丰寄出，确认后可转批量订单</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 表单 -->
+  <div class="px-3 mt-3">
+    <div class="bg-white rounded-2xl shadow-soft p-3.5">
+
+      <p class="text-[12px] font-bold text-gray-800 mb-2">样品类型 <span class="text-primary">*</span></p>
+      <div class="flex flex-wrap gap-2 mb-4" id="typeWrap">
+        <span class="tag-opt on" onclick="pickSingle(this)">纱线</span>
+        <span class="tag-opt" onclick="pickSingle(this)">化纤长丝</span>
+        <span class="tag-opt" onclick="pickSingle(this)">染料助剂</span>
+        <span class="tag-opt" onclick="pickSingle(this)">辅料橡筋</span>
+        <span class="tag-opt" onclick="pickSingle(this)">包装物料</span>
+        <span class="tag-opt" onclick="pickSingle(this)">纺机配件</span>
+      </div>
+
+      <p class="text-[12px] font-bold text-gray-800 mb-2">原料名称 / 规格 <span class="text-primary">*</span></p>
+      <div class="field mb-1.5" id="fName"><input id="sName" class="inp" placeholder="如：精梳棉纱 32支 本色 或 涤纶DTY 150D/48F"></div>
+      <p class="text-[9px] text-gray-300 mb-4">填写越详细，商户报价越精准</p>
+
+      <p class="text-[12px] font-bold text-gray-800 mb-2">打样要求（可多选）</p>
+      <div class="flex flex-wrap gap-2 mb-4">
+        <span class="tag-opt tag-multi" onclick="pickMulti(this)">颜色定制</span>
+        <span class="tag-opt tag-multi" onclick="pickMulti(this)">支数/规格定制</span>
+        <span class="tag-opt tag-multi" onclick="pickMulti(this)">成分混纺</span>
+        <span class="tag-opt tag-multi" onclick="pickMulti(this)">功能整理</span>
+        <span class="tag-opt tag-multi" onclick="pickMulti(this)">环保认证</span>
+        <span class="tag-opt tag-multi" onclick="pickMulti(this)">需检测报告</span>
+      </div>
+
+      <div class="flex items-center justify-between mb-2">
+        <p class="text-[12px] font-bold text-gray-800">打样数量</p>
+        <div class="flex items-center gap-2">
+          <button onclick="stepQty(-1)" class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 text-[14px]">-</button>
+          <input type="text" id="sQty" value="25" readonly class="w-12 text-center text-[13px] font-medium outline-none">
+          <button onclick="stepQty(1)" class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 text-[14px]">+</button>
+          <select id="sUnit" class="text-[11px] border border-gray-200 rounded-lg px-2 py-1 outline-none bg-white text-gray-600">
+            <option>千克</option><option>米</option><option>个</option><option>卷</option>
+          </select>
+        </div>
+      </div>
+      <p class="text-[9px] text-gray-300 mb-4">纱线类最低 25 千克起打样</p>
+
+      <p class="text-[12px] font-bold text-gray-800 mb-2">期望交期</p>
+      <div class="flex flex-wrap gap-2 mb-4" id="leadWrap">
+        <span class="tag-opt" onclick="pickSingle(this)">3天</span>
+        <span class="tag-opt on" onclick="pickSingle(this)">5天</span>
+        <span class="tag-opt" onclick="pickSingle(this)">7天</span>
+        <span class="tag-opt" onclick="pickSingle(this)">15天</span>
+        <span class="tag-opt" onclick="pickSingle(this)">可协商</span>
+      </div>
+
+      <p class="text-[12px] font-bold text-gray-800 mb-2">参考图片（选填）</p>
+      <div class="flex gap-2 mb-4" id="imgBox">
+        <div onclick="pickImg()" class="w-[62px] h-[62px] rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-300 cursor-pointer">
+          <i class="fas fa-plus text-sm"></i><span class="text-[8px] mt-0.5">上传</span>
+        </div>
+      </div>
+
+      <p class="text-[12px] font-bold text-gray-800 mb-2">补充说明</p>
+      <div class="field mb-4"><textarea id="sNote" rows="3" class="inp" placeholder="如用途、手感要求、色号、目标单价等，便于商户精准打样" style="resize:none"></textarea></div>
+
+      <p class="text-[12px] font-bold text-gray-800 mb-2">联系人 <span class="text-primary">*</span></p>
+      <div class="field mb-3" id="fContact"><input id="sContact" class="inp" placeholder="请输入联系人姓名" value="王先生"></div>
+
+      <p class="text-[12px] font-bold text-gray-800 mb-2">联系电话 <span class="text-primary">*</span></p>
+      <div class="field mb-3" id="fPhone"><input id="sPhone" class="inp" placeholder="请输入 11 位手机号" value="138****6721"></div>
+
+      <p class="text-[12px] font-bold text-gray-800 mb-2">收货地址</p>
+      <div class="field mb-1.5"><input id="sAddr" class="inp" placeholder="样品寄送地址" value="浙江省诸暨市大唐街道袜业路1号 A区12号"></div>
+      <a href="address.html" class="text-[10px] block text-right mb-4" style="color:#059669">管理收货地址 ›</a>
+
+      <div class="flex items-start gap-2 mb-4">
+        <i class="far fa-square text-[13px] text-gray-300 mt-0.5" id="agreeIcon" onclick="toggleAgree()" style="cursor:pointer"></i>
+        <p class="text-[10px] text-gray-400 leading-relaxed" onclick="toggleAgree()" style="cursor:pointer">我已阅读并同意《打样服务协议》，同意平台将需求推送给匹配商户并接收报价</p>
+      </div>
+
+      <button onclick="submitSample()" class="card w-full py-3 rounded-xl text-[14px] font-bold text-white shadow-card" style="background:linear-gradient(135deg,#34D399,#059669)">提交打样预约</button>
+      <p class="text-[9px] text-gray-300 text-center mt-2">提交后 2 小时内将收到商户报价，可在「我的预约」查看进度</p>
+    </div>
+  </div>
+  <div class="h-10"></div>
+</div>
+
+<!-- ===== 我的预约 ===== -->
+<div id="mineView" style="display:none">
+  <div class="px-3 mt-3">
+    <div class="bg-white rounded-2xl shadow-soft p-3 mb-2.5">
+      <div class="grid grid-cols-3 text-center">
+        <div><p class="text-[16px] font-bold" style="color:#059669">3</p><p class="text-[9px] text-gray-400 mt-0.5">累计预约</p></div>
+        <div><p class="text-[16px] font-bold" style="color:#D97706">1</p><p class="text-[9px] text-gray-400 mt-0.5">进行中</p></div>
+        <div><p class="text-[16px] font-bold text-gray-400">1</p><p class="text-[9px] text-gray-400 mt-0.5">已完成</p></div>
+      </div>
+    </div>
+
+    <!-- 记录1：打样中 -->
+    <div class="bg-white rounded-2xl shadow-soft p-3 mb-2.5 fade-up">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-[10px] px-2 py-0.5 rounded-full font-medium" style="background:#FEF3C7;color:#D97706">打样中</span>
+        <span class="text-[9px] text-gray-400">预约号 DY20250618001</span>
+      </div>
+      <p class="text-[12px] font-bold text-gray-800">精梳棉纱 40支 色纺打样</p>
+      <p class="text-[9px] text-gray-400 mt-1">纱线 · 25千克 · 期望5天 · 承接：华源纱业</p>
+      <div class="mt-2 mb-1.5">
+        <div class="flex items-center justify-between text-[9px] text-gray-400 mb-1"><span>打样进度</span><span style="color:#059669">60%</span></div>
+        <div class="h-1.5 rounded-full overflow-hidden" style="background:#E0F5EE"><div style="width:60%;height:100%;background:linear-gradient(90deg,#2DD4BF,#34D399)"></div></div>
+      </div>
+      <div class="flex items-center gap-2 mt-2.5 pt-2.5 border-t border-gray-50">
+        <button onclick="toast('正在呼叫 华源纱业 0575-8775 2218')" class="card flex-1 py-2 rounded-full text-[11px] font-medium" style="background:#ECFDF5;color:#059669"><i class="fas fa-phone text-[10px] mr-1"></i>联系商户</button>
+        <button onclick="toast('已复制预约单号')" class="card flex-1 py-2 rounded-full text-[11px] font-medium bg-gray-100 text-gray-500">复制单号</button>
+      </div>
+    </div>
+
+    <!-- 记录2：已寄样 -->
+    <div class="bg-white rounded-2xl shadow-soft p-3 mb-2.5 fade-up" style="animation-delay:.05s">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-[10px] px-2 py-0.5 rounded-full font-medium" style="background:#ECFDF5;color:#059669">已寄样</span>
+        <span class="text-[9px] text-gray-400">预约号 DY20250612008</span>
+      </div>
+      <p class="text-[12px] font-bold text-gray-800">氨纶包覆纱 20D 弹力打样</p>
+      <p class="text-[9px] text-gray-400 mt-1">化纤长丝 · 25千克 · 承接：金诚氨纶</p>
+      <p class="text-[9px] mt-1.5" style="color:#059669"><i class="fas fa-truck text-[8px] mr-1"></i>顺丰速运 SF1234567890 已签收</p>
+      <div class="flex items-center gap-2 mt-2.5 pt-2.5 border-t border-gray-50">
+        <button onclick="toast('已为您转批量询价，商家将重新报价')" class="card flex-1 py-2 rounded-full text-[11px] font-medium text-white" style="background:linear-gradient(135deg,#34D399,#059669)">转批量订单</button>
+        <button onclick="toast('查看物流详情')" class="card flex-1 py-2 rounded-full text-[11px] font-medium bg-gray-100 text-gray-500">查看物流</button>
+      </div>
+    </div>
+
+    <!-- 记录3：待接单 -->
+    <div class="bg-white rounded-2xl shadow-soft p-3 mb-2.5 fade-up" style="animation-delay:.1s" id="rec3">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-[10px] px-2 py-0.5 rounded-full font-medium" style="background:#EFF6FF;color:#3B82F6" id="rec3Status">待接单</span>
+        <span class="text-[9px] text-gray-400">预约号 DY20250620003</span>
+      </div>
+      <p class="text-[12px] font-bold text-gray-800">棉用活性染料 藏青色样</p>
+      <p class="text-[9px] text-gray-400 mt-1">染料助剂 · 5千克 · 期望7天 · 已推送 3 家商户</p>
+      <div class="flex items-center gap-2 mt-2.5 pt-2.5 border-t border-gray-50">
+        <button onclick="askCancel()" class="card flex-1 py-2 rounded-full text-[11px] font-medium bg-gray-100 text-gray-500">取消预约</button>
+        <button onclick="toast('已催单，商户将尽快响应')" class="card flex-1 py-2 rounded-full text-[11px] font-medium" style="background:#ECFDF5;color:#059669">催一下</button>
+      </div>
+    </div>
+
+    <div class="text-center py-4"><p class="text-[10px] text-gray-300">没有更多预约记录了</p></div>
+  </div>
+  <div class="h-10"></div>
+</div>
+
+<!-- 底部Tab栏 5Tab -->
+<div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100" style="height:65px;z-index:100;width:393px">
+<div class="flex justify-around items-center h-full" style="padding-bottom:10px">
+<a href="home.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-house text-[18px]"></i><span class="text-[9px]">首页</span></a>
+<a href="video.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-video text-[18px]"></i><span class="text-[9px]">视频看货</span></a>
+<a href="purchase-order.html" class="flex flex-col items-center gap-0.5 text-gray-400 relative"><i class="fas fa-clipboard-list text-[18px]"></i><span class="text-[9px]">进货单</span><span class="absolute top-0 right-1 bg-primary text-white text-[7px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center" style="min-width:14px;height:14px">3</span></a>
+<a href="property.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-building text-[18px]"></i><span class="text-[9px]">物业</span></a>
+<a href="mine.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-user text-[18px]"></i><span class="text-[9px]">我的</span></a>
+</div>
+</div>
+<div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none"><div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:3px"></div></div>
+
+<!-- 提交成功弹窗 -->
+<div class="success-mask" id="successMask">
+  <div class="success-box">
+    <div class="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3" style="background:linear-gradient(135deg,#34D399,#059669)">
+      <i class="fas fa-check text-white text-[24px]"></i>
+    </div>
+    <p class="text-[15px] font-bold text-gray-800 mb-1">预约提交成功!</p>
+    <p class="text-[11px] text-gray-500 leading-relaxed mb-4">需求已推送给 3 家匹配商户<br>预计 2 小时内收到打样报价</p>
+    <div class="bg-gray-50 rounded-xl p-2.5 mb-4 text-[10px] text-gray-500 space-y-1.5">
+      <div class="flex justify-between"><span>预约单号</span><span class="font-medium text-gray-700" id="okNo">DY20250621001</span></div>
+      <div class="flex justify-between"><span>打样内容</span><span class="font-medium text-gray-700" id="okName">—</span></div>
+      <div class="flex justify-between"><span>预计响应</span><span class="font-medium" style="color:#059669">2 小时内</span></div>
+    </div>
+    <button onclick="afterSubmit()" class="card w-full py-2.5 rounded-full text-[13px] font-bold text-white shadow-card" style="background:linear-gradient(135deg,#34D399,#059669)">查看我的预约</button>
+    <button onclick="closeSuccess()" class="w-full py-2 mt-2 text-[12px] text-gray-400">继续提交需求</button>
+  </div>
+</div>
+
+<!-- 取消确认弹窗 -->
+<div class="confirm-mask" id="confirmMask" onclick="closeConfirm()">
+  <div class="confirm-box" onclick="event.stopPropagation()">
+    <p class="text-[14px] font-bold text-gray-800 mb-2">确认取消该打样预约？</p>
+    <p class="text-[10px] text-gray-400 leading-relaxed mb-4">取消后商户将无法继续为您打样<br>如有疑问可先联系商户沟通</p>
+    <div class="flex gap-2">
+      <button onclick="closeConfirm()" class="card flex-1 py-2.5 rounded-full text-[12px] font-medium bg-gray-100 text-gray-500">再想想</button>
+      <button onclick="doCancel()" class="card flex-1 py-2.5 rounded-full text-[12px] font-bold text-white" style="background:#EF4444">确认取消</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><i class="fas fa-circle-check text-[#4ADE80]"></i><span id="toastTxt">操作成功</span></div>
+
+<script>
+var toastTimer;
+function toast(msg){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},1800)}
+
+function switchView(v){
+  var f=document.getElementById('formView'),m=document.getElementById('mineView');
+  var vf=document.getElementById('vtForm'),vm=document.getElementById('vtMine');
+  if(v==='form'){f.style.display='';m.style.display='none';vf.className='vt on';vm.className='vt off'}
+  else{f.style.display='none';m.style.display='';vf.className='vt off';vm.className='vt on'}
+  window.scrollTo(0,0);
+}
+
+function pickSingle(el){
+  el.parentElement.querySelectorAll('.tag-opt').forEach(function(i){i.classList.remove('on')});
+  el.classList.add('on');
+}
+function pickMulti(el){el.classList.toggle('on')}
+
+function stepQty(d){
+  var i=document.getElementById('sQty');
+  var v=parseInt(i.value)||25;
+  v=Math.max(1,v+d*5);
+  i.value=v;
+}
+
+var imgCount=0;
+function pickImg(){
+  if(imgCount>=3){toast('最多上传 3 张参考图');return}
+  imgCount++;
+  var box=document.getElementById('imgBox');
+  var add=box.firstElementChild;
+  var d=document.createElement('div');
+  d.className='relative w-[62px] h-[62px] flex-shrink-0';
+  d.innerHTML='<img src="images/material_0'+(imgCount)+'.jpg" class="w-full h-full object-cover rounded-xl">'
+    +'<button onclick="delImg(this)" class="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-gray-700/80 text-white text-[8px] flex items-center justify-center"><i class="fas fa-xmark"></i></button>';
+  box.insertBefore(d,add);
+  toast('已添加参考图 '+imgCount+'/3');
+}
+function delImg(btn){
+  btn.parentElement.remove();
+  imgCount--;
+}
+
+var agreed=false;
+function toggleAgree(){
+  agreed=!agreed;
+  var icon=document.getElementById('agreeIcon');
+  icon.className=agreed?'fas fa-square-check text-[13px] mt-0.5':'far fa-square text-[13px] text-gray-300 mt-0.5';
+  icon.style.color=agreed?'#059669':'';
+}
+
+function setErr(id,on){
+  var el=document.getElementById(id);
+  if(!el)return;
+  el.classList.toggle('err',on);
+}
+
+function submitSample(){
+  var name=document.getElementById('sName').value.trim();
+  var contact=document.getElementById('sContact').value.trim();
+  var phone=document.getElementById('sPhone').value.trim();
+  var ok=true;
+
+  if(!name){setErr('fName',true);toast('请填写原料名称 / 规格');ok=false}
+  else setErr('fName',false);
+
+  if(!contact){setErr('fContact',true);if(ok)toast('请填写联系人姓名');ok=false}
+  else setErr('fContact',false);
+
+  if(!/^1[3-9]\d{9}$/.test(phone)){
+    setErr('fPhone',true);
+    if(name&&contact)toast('请输入正确的 11 位手机号');
+    ok=false;
+  }else setErr('fPhone',false);
+
+  if(!agreed&&ok){toast('请先阅读并同意《打样服务协议》');ok=false}
+  if(!ok)return;
+
+  var type=document.querySelector('#typeWrap .tag-opt.on').textContent;
+  var qty=document.getElementById('sQty').value;
+  var unit=document.getElementById('sUnit').value;
+  var lead=document.querySelector('#leadWrap .tag-opt.on').textContent;
+  document.getElementById('okName').textContent=type+' · '+qty+unit+' · '+lead;
+  var d=new Date();
+  document.getElementById('okNo').textContent='DY'+String(d.getFullYear())+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'00'+(4+Math.floor(Math.random()*9));
+  document.getElementById('successMask').classList.add('on');
+}
+function closeSuccess(){document.getElementById('successMask').classList.remove('on')}
+function afterSubmit(){
+  closeSuccess();
+  switchView('mine');
+  toast('需求已推送，请留意商户报价');
+}
+
+function askCancel(){document.getElementById('confirmMask').classList.add('on')}
+function closeConfirm(){document.getElementById('confirmMask').classList.remove('on')}
+function doCancel(){
+  closeConfirm();
+  var s=document.getElementById('rec3Status');
+  s.textContent='已取消';
+  s.style.background='#F3F4F6';
+  s.style.color='#9aa0ac';
+  toast('预约已取消');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>原料大宗集采 - 袜掌柜买家版</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>
+tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D','primary-d':'#E63E20','primary-l':'#FF7849'}}}}
+</script>
+<style>
+:root{--p:#FF4D2D;--pl:#FF7849;--bg:#FFF7F4}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+::-webkit-scrollbar{width:2px;height:2px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#dfdfdf;border-radius:1px}
+.no-bar::-webkit-scrollbar{display:none}
+.grad-h{background:linear-gradient(135deg,#FF6B35 0%,#FF4D2D 45%,#FF2D78 100%)}
+.shadow-card{box-shadow:0 8px 24px rgba(255,77,45,.14)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
+.card{transition:transform .16s ease, box-shadow .16s ease}
+.card:active{transform:scale(.965)}
+.fade-up{animation:fadeUp .4s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.progress-bar{background:#E0F5EE;border-radius:99px;overflow:hidden;height:7px}
+.progress-fill{height:100%;background:linear-gradient(90deg,#2DD4BF,#34D399);border-radius:99px;transition:width .6s}
+.gb-tab{position:relative;padding:4px 0;font-size:13px;color:#9aa0ac;cursor:pointer;transition:.18s}
+.gb-tab.on{color:#1F2430;font-weight:800}
+.gb-tab.on::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:20px;height:3px;border-radius:2px;background:linear-gradient(90deg,#34D399,#059669)}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:400;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.25);min-width:140px;justify-content:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.rule-mask{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;display:none;align-items:center;justify-content:center}
+.rule-mask.on{display:flex}
+.rule-box{width:320px;background:#fff;border-radius:20px;padding:22px 20px;transform:scale(.88);transition:.25s}
+.rule-mask.on .rule-box{transform:scale(1)}
+</style>
+</head>
+<body>
+
+<!-- ===== 顶部 ===== -->
+<div class="relative px-4 pt-2 pb-7 overflow-hidden" style="background:linear-gradient(135deg,#34D399 0%,#10B981 40%,#059669 100%)">
+  <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-50" style="background:#34D399"></div>
+  <div class="absolute -top-6 right-[-30px] w-48 h-48 rounded-full blur-3xl opacity-40" style="background:#2DD4BF"></div>
+  <div class="absolute -bottom-10 left-12 w-44 h-44 rounded-full blur-3xl opacity-35" style="background:#059669"></div>
+
+  <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5">
+      <i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i>
+    </div>
+  </div>
+
+  <div class="relative flex items-center gap-2.5 mt-1">
+    <a href="market-material.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+    <span class="text-white font-extrabold text-[20px]" style="text-shadow:0 2px 10px rgba(0,0,0,.18)">原料大宗集采</span>
+    <button onclick="openRule()" class="ml-auto flex items-center gap-1 text-white/90 text-[11px] bg-white/20 backdrop-blur rounded-full px-2.5 py-1.5"><i class="fas fa-circle-info text-[10px]"></i>规则</button>
+  </div>
+
+  <!-- 集采价值说明 -->
+  <div class="relative mt-3.5 rounded-2xl p-3 flex items-center gap-3" style="background:rgba(255,255,255,.16);backdrop-filter:blur(6px)">
+    <div class="w-10 h-10 rounded-xl bg-white/25 flex items-center justify-center flex-shrink-0"><i class="fas fa-layer-group text-white text-base"></i></div>
+    <div class="flex-1">
+      <p class="text-white text-[12px] font-bold">拼量越多 · 单价越低</p>
+      <p class="text-white/80 text-[9px] mt-0.5">按整批吨位自动匹配阶梯价，成团后统一结算发货</p>
+    </div>
+    <a href="material-group-buy-create.html" class="text-[11px] font-bold px-3 py-1.5 rounded-full bg-white flex-shrink-0" style="color:#059669">我要发起</a>
+  </div>
+</div>
+
+<!-- Tab切换 -->
+<div class="bg-white/90 backdrop-blur-xl px-4 py-2.5 flex items-center gap-5 border-b border-gray-50 sticky top-0 z-20">
+  <span class="gb-tab on" onclick="switchTab('ing',this)">进行中</span>
+  <span class="gb-tab" onclick="switchTab('soon',this)">即将开始</span>
+  <span class="gb-tab" onclick="switchTab('end',this)">已结束</span>
+  <span class="gb-tab" onclick="switchTab('mine',this)"><i class="fas fa-list text-[10px] mr-0.5"></i>我的集采</span>
+</div>
+
+<!-- 阶梯价参考 -->
+<div class="px-3 mt-3">
+  <div class="bg-white rounded-2xl shadow-soft p-3">
+    <div class="flex items-center justify-between mb-2">
+      <p class="text-[12px] font-bold text-gray-800"><i class="fas fa-chart-simple text-[11px] mr-1" style="color:#059669"></i>阶梯价参考（棉纱32支）</p>
+      <span class="text-[9px] text-gray-400">单位：元/千克</span>
+    </div>
+    <div class="grid grid-cols-4 gap-1.5 text-center">
+      <div class="rounded-xl py-2" style="background:#F4FBF8"><p class="text-[13px] font-bold text-gray-700">28.0</p><p class="text-[8px] text-gray-400 mt-0.5">1吨以下</p></div>
+      <div class="rounded-xl py-2" style="background:#E6F7F0"><p class="text-[13px] font-bold" style="color:#059669">27.2</p><p class="text-[8px] text-gray-400 mt-0.5">1-5吨</p></div>
+      <div class="rounded-xl py-2" style="background:#D1F2E6"><p class="text-[13px] font-bold" style="color:#059669">26.5</p><p class="text-[8px] text-gray-400 mt-0.5">5-20吨</p></div>
+      <div class="rounded-xl py-2" style="background:#BBEBDA"><p class="text-[13px] font-bold" style="color:#047857">25.6</p><p class="text-[8px] text-gray-400 mt-0.5">20吨以上</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- 集采列表 -->
+<div class="px-3 py-3 space-y-3" id="gbList" style="padding-bottom:110px"></div>
+
+<!-- 底部操作 -->
+<div class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-gray-100 px-3 flex items-center gap-2" style="height:60px;z-index:100;width:393px">
+  <button onclick="toast('已加入集采提醒，开团前 30 分钟短信通知')" class="card flex flex-col items-center justify-center px-3 py-1.5 rounded-xl text-gray-500" style="border:1px solid #eceef0">
+    <i class="fas fa-bell text-[14px]"></i><span class="text-[8px] mt-0.5">开团提醒</span>
+  </button>
+  <a href="material-group-buy-create.html" class="card flex-1 text-center py-2.5 rounded-full text-[13px] font-bold text-white shadow-card" style="background:linear-gradient(135deg,#34D399,#059669)">
+    <i class="fas fa-plus text-[11px] mr-1"></i>发起大宗集采
+  </a>
+</div>
+<div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none"><div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:2px"></div></div>
+
+<!-- 集采规则弹窗 -->
+<div class="rule-mask" id="ruleMask" onclick="closeRule()">
+  <div class="rule-box" onclick="event.stopPropagation()">
+    <div class="flex items-center justify-between mb-3">
+      <p class="text-[15px] font-bold text-gray-800">原料大宗集采规则</p>
+      <button onclick="closeRule()" class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-400"><i class="fas fa-xmark text-xs"></i></button>
+    </div>
+    <div class="space-y-2 text-[10px] text-gray-500 leading-relaxed">
+      <p><span class="font-bold" style="color:#059669">1. 发起集采：</span>采购商发布原料品类、规格与目标吨位，平台匹配同品类需求合并成团，也支持多家工厂联合拼单。</p>
+      <p><span class="font-bold" style="color:#059669">2. 阶梯计价：</span>按最终成团总吨位自动匹配阶梯价，成团吨位越高单价越低，系统按最终档位统一结算，多退少不补。</p>
+      <p><span class="font-bold" style="color:#059669">3. 成团条件：</span>在集采截止时间前累计吨位达到目标吨位即成团；未达目标则集采失败，已付定金全额原路退回，一般 1-3 个工作日到账。</p>
+      <p><span class="font-bold" style="color:#059669">4. 交付方式：</span>成团后 3 个工作日内供应商统一发货，支持市场自提或物流配送，运费按吨位与距离另行结算。</p>
+      <p><span class="font-bold" style="color:#059669">5. 质量保障：</span>集采原料均提供质检单，可申请第三方复检；如指标不达标，支持整批退换并由责任方承担运费。</p>
+    </div>
+    <button onclick="closeRule()" class="card w-full py-2.5 rounded-full text-[13px] font-bold text-white mt-4" style="background:linear-gradient(135deg,#34D399,#059669)">我知道了</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"><i class="fas fa-circle-check text-[#4ADE80]"></i><span id="toastTxt">操作成功</span></div>
+
+<script>
+var toastTimer;
+function toast(msg){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},1600)}
+
+function openRule(){document.getElementById('ruleMask').classList.add('on')}
+function closeRule(){document.getElementById('ruleMask').classList.remove('on')}
+
+/* 集采数据 */
+var gbData={
+  ing:[
+    {img:'material_02.jpg',title:'精梳棉纱32支 原棉纺纱 整吨集采',org:'华源纱业',price:'26.5',old:'28.0',off:'5%',unit:'/千克',done:45,target:100,unit2:'吨',hours:'01:48:52',people:23},
+    {img:'material_03.jpg',title:'氨纶包覆纱 20D 高弹集采',org:'金诚氨纶',price:'52.0',old:'58.0',off:'10%',unit:'/千克',done:18,target:50,unit2:'吨',hours:'08:32:11',people:15},
+    {img:'material_01.jpg',title:'涤纶低弹丝 DTY 150D 集采',org:'恒力化纤',price:'11.2',old:'12.0',off:'7%',unit:'/千克',done:120,target:200,unit2:'吨',hours:'23:45:09',people:31},
+    {img:'material_04.jpg',title:'棉用活性染料 彩色系列 集采',org:'闰土染化',price:'41.0',old:'45.0',off:'9%',unit:'/千克',done:3.8,target:10,unit2:'吨',hours:'12:06:40',people:9}
+  ],
+  soon:[
+    {img:'material_02.jpg',title:'竹纤维纱 40支 环保系列 集采',org:'华源纱业',price:'38.0',old:'42.0',off:'10%',unit:'/千克',done:0,target:30,unit2:'吨',start:'明日 10:00 开团',people:12},
+    {img:'material_01.jpg',title:'锦纶高弹丝 70D/24F 集采',org:'恒力化纤',price:'32.0',old:'35.0',off:'9%',unit:'/千克',done:0,target:20,unit2:'吨',start:'后天 10:00 开团',people:8}
+  ],
+  end:[
+    {img:'material_02.jpg',title:'涤棉混纺纱 45支 集采',org:'新昌棉纺',price:'24.8',old:'27.5',off:'10%',unit:'/千克',done:68,target:60,unit2:'吨',result:'已成功成团',people:42},
+    {img:'material_04.jpg',title:'袜口橡筋 高回弹 集采',org:'三鼎橡筋',price:'18.0',old:'20.0',off:'10%',unit:'/千克',done:5,target:5,unit2:'吨',result:'已成功成团',people:16}
+  ],
+  mine:[
+    {img:'material_02.jpg',title:'精梳棉纱32支 原棉纺纱 整吨集采',org:'华源纱业',price:'25.6',old:'28.0',off:'9%',unit:'/千克',done:45,target:100,unit2:'吨',hours:'01:48:52',people:23,role:'我发起',status:'ing'},
+    {img:'material_01.jpg',title:'涤纶低弹丝 DTY 150D 集采',org:'恒力化纤',price:'11.2',old:'12.0',off:'7%',unit:'/千克',done:120,target:200,unit2:'吨',hours:'23:45:09',people:31,role:'我参与',status:'ing'},
+    {img:'material_02.jpg',title:'涤棉混纺纱 45支 集采',org:'新昌棉纺',price:'24.8',old:'27.5',off:'10%',unit:'/千克',done:68,target:60,unit2:'吨',result:'已成功成团',people:42,role:'我参与',status:'end'}
+  ]
+};
+var curTab='ing';
+
+function switchTab(tab,el){
+  curTab=tab;
+  document.querySelectorAll('.gb-tab').forEach(function(t){t.classList.remove('on')});
+  el.classList.add('on');
+  renderGB();
+  window.scrollTo(0,0);
+}
+
+function renderGB(){
+  var list=gbData[curTab];
+  var html='';
+  list.forEach(function(d,i){
+    var pct=Math.min(100,Math.round(d.done/d.target*100));
+    var footer='';
+    if(curTab==='ing'||(curTab==='mine'&&d.status==='ing')){
+      footer='<div class="flex items-center justify-between mt-2">'
+        +'<div class="flex items-center gap-2">'
+        +'<span class="flex items-center gap-0.5 text-[10px] text-gray-500"><i class="fas fa-clock text-[9px]" style="color:#14B8A6"></i> 剩余 <span class="font-semibold" style="color:#059669" id="cd'+i+'">'+d.hours+'</span></span>'
+        +'<span class="flex items-center gap-0.5 text-[10px] text-gray-500"><i class="fas fa-users text-[9px] text-gray-400"></i> '+d.people+'人参与</span>'
+        +'</div>'
+        +'<a href="material-group-buy-join.html" class="text-white text-[11px] font-semibold px-4 py-1.5 rounded-full shadow-soft" style="background:linear-gradient(135deg,#2DD4BF,#059669)">去集采</a>'
+        +'</div>';
+    }else if(curTab==='soon'){
+      footer='<div class="flex items-center justify-between mt-2">'
+        +'<div class="flex items-center gap-2">'
+        +'<span class="flex items-center gap-0.5 text-[10px] font-medium" style="color:#D97706"><i class="fas fa-hourglass-half text-[9px]"></i> '+d.start+'</span>'
+        +'<span class="flex items-center gap-0.5 text-[10px] text-gray-500"><i class="fas fa-bell text-[9px] text-gray-400"></i> '+d.people+'人已预约</span>'
+        +'</div>'
+        +'<button onclick="toast(\'已设置开团提醒，开团前30分钟通知您\')" class="text-[11px] font-semibold px-3 py-1.5 rounded-full" style="background:#FEF3C7;color:#D97706">提醒我</button>'
+        +'</div>';
+    }else{
+      footer='<div class="flex items-center justify-between mt-2">'
+        +'<div class="flex items-center gap-2">'
+        +'<span class="flex items-center gap-0.5 text-[10px] font-medium" style="color:#059669"><i class="fas fa-circle-check text-[9px]"></i> '+d.result+'</span>'
+        +'<span class="flex items-center gap-0.5 text-[10px] text-gray-500"><i class="fas fa-users text-[9px] text-gray-400"></i> '+d.people+'人参与</span>'
+        +'</div>'
+        +'<button onclick="toast(\'再来一单：已带入该原料规格\')" class="text-[11px] font-semibold px-3 py-1.5 rounded-full bg-gray-100 text-gray-500">再来一单</button>'
+        +'</div>';
+    }
+    var prog=(curTab==='end'||(curTab==='mine'&&d.status!=='ing'))
+      ? '<div class="flex items-center justify-between text-[10px] mb-1"><span class="text-gray-500">成交 <span class="font-bold" style="color:#059669">'+d.done+'</span> / 目标 '+d.target+d.unit2+'</span><span class="font-semibold" style="color:#059669">100% 成团</span></div>'
+      : '<div class="flex items-center justify-between text-[10px] mb-1"><span class="text-gray-500">已拼 <span class="font-bold" style="color:#059669">'+d.done+'</span> / '+d.target+d.unit2+'</span><span class="text-gray-400">还差 '+((d.target-d.done).toFixed(1))+d.unit2+'成团</span></div>';
+
+    html+='<div class="card bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft overflow-hidden border border-white fade-up" style="animation-delay:'+(i*.05)+'s">'
+      +'<div class="flex gap-2.5 p-2.5">'
+      +'<img src="images/'+d.img+'" class="w-[80px] h-[80px] rounded-xl object-cover flex-shrink-0">'
+      +'<div class="flex-1 min-w-0">'
+      +'<p class="text-[12px] text-gray-800 font-medium leading-tight line-clamp-2">'+d.title+'</p>'
+      +'<div class="flex items-baseline gap-1.5 mt-1">'
+      +'<span class="font-bold text-[18px]" style="color:#059669">¥'+d.price+'</span>'
+      +'<span class="text-[10px] text-gray-400">'+d.unit+'</span>'
+      +'<span class="text-[10px] text-gray-300 line-through">¥'+d.old+'</span>'
+      +'<span class="text-[9px] text-white px-1 py-0.5 rounded" style="background:linear-gradient(90deg,#2DD4BF,#34D399)">降'+d.off+'</span>'
+      +'</div>'
+      +'<div class="flex items-center gap-1 mt-0.5">'+(curTab==='mine'&&d.role?'<span class="text-[9px] px-1.5 py-0.5 rounded font-semibold" style="background:#ECFDF5;color:#059669">'+d.role+'</span>':'')+'<span class="text-[9px] text-gray-400">起批量 25'+d.unit2+' · '+d.org+'</span></div>'
+      +'</div></div>'
+      +'<div class="px-2.5 pb-2.5">'
+      +prog
+      +'<div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%"></div></div>'
+      +footer
+      +'</div></div>';
+  });
+  document.getElementById('gbList').innerHTML=html;
+}
+/* 支持 ?tab=mine 直达我的集采 */
+(function(){
+  var m=location.search.match(/tab=([^&]*)/);
+  if(m&&gbData[m[1]]){
+    curTab=m[1];
+    var order=['ing','soon','end','mine'];
+    var idx=order.indexOf(curTab);
+    document.querySelectorAll('.gb-tab').forEach(function(t,i){t.classList.toggle('on',i===idx)});
+  }
+  renderGB();
+})();
+
+/* 倒计时 */
+function tick(){
+  var list=(curTab==='ing')?gbData.ing:((curTab==='mine')?gbData.mine:null);
+  if(!list)return;
+  for(var i=0;i<list.length;i++){
+    var el=document.getElementById('cd'+i);if(!el)continue;
+    var p=el.textContent.split(':').map(Number);
+    var t=p[0]*3600+p[1]*60+p[2]-1;if(t<0)t=0;
+    el.textContent=String(Math.floor(t/3600)).padStart(2,'0')+':'+String(Math.floor(t%3600/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0');
+  }
+}
+setInterval(tick,1000);
+</script>
+</body>
+</html>

@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>仓储服务 - 袜掌柜买家版</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D','primary-d':'#E63E20','primary-l':'#FF7849'}}}}</script>
+<style>
+:root{--bg:#FFF7F4}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+::-webkit-scrollbar{width:2px;height:2px}
+::-webkit-scrollbar-thumb{background:#dfdfdf;border-radius:1px}
+.no-bar::-webkit-scrollbar{display:none}
+.card{transition:transform .16s ease}.card:active{transform:scale(.965)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
+.shadow-card{box-shadow:0 8px 24px rgba(255,77,45,.14)}
+.fade-up{animation:fadeUp .4s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:400;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.25);min-width:150px;justify-content:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.tag-opt{font-size:11px;color:#6b7080;background:#fff;border:1.5px solid #eceef0;border-radius:10px;padding:6px 12px;cursor:pointer;transition:.15s;font-weight:500;display:inline-block}
+.tag-opt.on{border-color:#059669;color:#059669;background:#ECFDF5;font-weight:600}
+.vt{flex:1;padding:9px 0;border-radius:22px;font-size:13px;text-align:center;transition:.2s;cursor:pointer}
+.vt.on{color:#fff;font-weight:600;background:linear-gradient(90deg,#34D399,#059669);box-shadow:0 4px 12px rgba(5,150,105,.25)}
+.vt.off{color:#9aa0ac;font-weight:500;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.sheet-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:none}
+.sheet-mask.on{display:block}
+.sheet{position:fixed;left:0;right:0;bottom:0;background:#fff;border-radius:24px 24px 0 0;z-index:210;max-height:84vh;overflow-y:auto;transform:translateY(100%);transition:transform .3s ease;width:393px}
+.sheet.on{transform:translateY(0)}
+.success-mask{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;display:none}
+.success-mask.on{display:block}
+.success-box{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%) scale(.85);background:#fff;border-radius:20px;padding:26px 22px;text-align:center;z-index:310;width:300px;opacity:0;pointer-events:none;transition:.3s}
+.success-mask.on .success-box{opacity:1;transform:translate(-50%,-50%) scale(1);pointer-events:auto}
+.confirm-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300;display:none;align-items:center;justify-content:center}
+.confirm-mask.on{display:flex}
+.confirm-box{width:280px;background:#fff;border-radius:18px;padding:20px 18px;text-align:center;transform:scale(.9);transition:.22s}
+.confirm-mask.on .confirm-box{transform:scale(1)}
+.svc{font-size:11px;color:#6b7080;background:#fff;border:1.5px solid #eceef0;border-radius:10px;padding:7px 12px;cursor:pointer;transition:.15s;font-weight:500;display:block;text-align:center}
+.svc.on{border-color:#059669;color:#059669;background:#ECFDF5;font-weight:600}
+</style>
+</head>
+<body>
+
+<!-- ===== 顶部 ===== -->
+<div class="relative px-4 pt-2 pb-16 overflow-hidden" style="background:linear-gradient(135deg,#4F7DF3 0%,#6366F1 45%,#4338CA 100%)">
+  <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-50" style="background:#818CF8"></div>
+  <div class="absolute -top-6 right-[-30px] w-48 h-48 rounded-full blur-3xl opacity-40" style="background:#6366F1"></div>
+  <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+  </div>
+  <div class="relative flex items-center gap-2.5 mt-1">
+    <a href="market-material.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+    <span class="text-white font-extrabold text-[20px]" style="text-shadow:0 2px 10px rgba(0,0,0,.18)">仓储服务</span>
+    <button onclick="toast('客服热线 0575-8777 0000（08:00-20:00）')" class="ml-auto w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-headset text-[13px]"></i></button>
+  </div>
+  <p class="relative text-white/85 text-[10px] mt-2 leading-relaxed">5 大仓库 · 1.3 万㎡ 可用仓位 · 距市场 3 公里内<br>随存随取 · 24 小时出入库 · 全程监控投保</p>
+</div>
+
+<!-- Tab 切换 -->
+<div class="px-3 -mt-9 relative z-10">
+  <div class="bg-white rounded-2xl shadow-soft flex gap-1 p-1">
+    <div class="vt on" id="vtList" onclick="switchView('list')">仓库列表</div>
+    <div class="vt off" id="vtMine" onclick="switchView('mine')">我的仓位</div>
+  </div>
+</div>
+
+<!-- ===== 仓库列表 ===== -->
+<div id="listView">
+  <!-- 搜索 + 筛选 -->
+  <div class="px-3 mt-3">
+    <div class="bg-white rounded-2xl shadow-soft p-2.5">
+      <div class="flex items-center gap-2 mb-2.5">
+        <i class="fas fa-magnifying-glass text-[11px] text-gray-400"></i>
+        <input type="text" id="whSearch" placeholder="搜索仓库名称或地址..." class="flex-1 text-[11px] outline-none border-none bg-transparent" oninput="renderWH()">
+      </div>
+      <div class="flex gap-1.5 overflow-x-auto no-bar" id="whFilter">
+        <span class="tag-opt on" onclick="filterWH('all',this)">全部</span>
+        <span class="tag-opt" onclick="filterWH('normal',this)">常温仓</span>
+        <span class="tag-opt" onclick="filterWH('temp',this)">恒温仓</span>
+        <span class="tag-opt" onclick="filterWH('chem',this)">危化仓</span>
+        <span class="tag-opt" onclick="filterWH('yard',this)">露天堆场</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="px-3 mt-3" id="whList"></div>
+  <div class="h-10"></div>
+</div>
+
+<!-- ===== 我的仓位 ===== -->
+<div id="mineView" style="display:none">
+  <div class="px-3 mt-3">
+    <div class="bg-white rounded-2xl shadow-soft p-3 mb-2.5">
+      <div class="grid grid-cols-3 text-center">
+        <div><p class="text-[16px] font-bold" style="color:#6366F1">180㎡</p><p class="text-[9px] text-gray-400 mt-0.5">在用面积</p></div>
+        <div><p class="text-[16px] font-bold" style="color:#6366F1">¥3,240</p><p class="text-[9px] text-gray-400 mt-0.5">月仓租</p></div>
+        <div><p class="text-[16px] font-bold text-gray-400">2</p><p class="text-[9px] text-gray-400 mt-0.5">历史仓位</p></div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-soft p-3 mb-2.5 fade-up">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-[10px] px-2 py-0.5 rounded-full font-medium" style="background:#ECFDF5;color:#059669">已入库</span>
+        <span class="text-[9px] text-gray-400">仓位单 CC20250601012</span>
+      </div>
+      <p class="text-[12px] font-bold text-gray-800">大唐原料公共仓 A 区 · A-208</p>
+      <p class="text-[9px] text-gray-400 mt-1">常温仓 · 120㎡ · 纱线类 · 2025-06-01 入库</p>
+      <p class="text-[9px] mt-1" style="color:#6366F1"><i class="fas fa-calendar text-[8px] mr-1"></i>到期 2025-12-01，剩余 163 天</p>
+      <div class="flex items-center gap-2 mt-2.5 pt-2.5 border-t border-gray-50">
+        <button onclick="toast('已提交续租申请，仓库将在 1 个工作日确认')" class="card flex-1 py-2 rounded-full text-[11px] font-medium text-white" style="background:linear-gradient(135deg,#818CF8,#6366F1)">申请续租</button>
+        <button onclick="toast('正在呼叫仓库管理员 0575-8777 1002')" class="card flex-1 py-2 rounded-full text-[11px] font-medium bg-gray-100 text-gray-500">联系仓库</button>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-soft p-3 mb-2.5 fade-up" style="animation-delay:.05s" id="bk2">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-[10px] px-2 py-0.5 rounded-full font-medium" style="background:#EFF6FF;color:#3B82F6" id="bk2Status">待确认</span>
+        <span class="text-[9px] text-gray-400">仓位单 CC20250621003</span>
+      </div>
+      <p class="text-[12px] font-bold text-gray-800">大唐原料恒温仓 · B-015</p>
+      <p class="text-[9px] text-gray-400 mt-1">恒温仓 · 60㎡ · 氨纶类 · 预约 2025-06-23 入库</p>
+      <p class="text-[9px] mt-1" style="color:#D97706"><i class="fas fa-clock text-[8px] mr-1"></i>仓库确认中，预计 2 小时内反馈</p>
+      <div class="flex items-center gap-2 mt-2.5 pt-2.5 border-t border-gray-50">
+        <button onclick="askCancelBk()" class="card flex-1 py-2 rounded-full text-[11px] font-medium bg-gray-100 text-gray-500">取消预约</button>
+        <button onclick="toast('正在呼叫仓库管理员 0575-8777 1005')" class="card flex-1 py-2 rounded-full text-[11px] font-medium" style="background:#EEF2FF;color:#6366F1">催一下</button>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-soft p-3 mb-2.5 fade-up" style="animation-delay:.1s">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-[10px] px-2 py-0.5 rounded-full font-medium bg-gray-100 text-gray-400">已出库</span>
+        <span class="text-[9px] text-gray-400">仓位单 CC20250301009</span>
+      </div>
+      <p class="text-[12px] font-bold text-gray-800">北门露天堆场 · P-032</p>
+      <p class="text-[9px] text-gray-400 mt-1">露天堆场 · 200㎡ · 纱线托盘 · 2025-03-01 ~ 2025-05-31</p>
+      <div class="flex items-center gap-2 mt-2.5 pt-2.5 border-t border-gray-50">
+        <button onclick="toast('结算单已生成，可在「我的-账单」查看')" class="card flex-1 py-2 rounded-full text-[11px] font-medium bg-gray-100 text-gray-500">查看结算单</button>
+        <button onclick="switchView('list')" class="card flex-1 py-2 rounded-full text-[11px] font-medium" style="background:#EEF2FF;color:#6366F1">再次预约</button>
+      </div>
+    </div>
+
+    <div class="text-center py-4"><p class="text-[10px] text-gray-300">没有更多仓位记录了</p></div>
+  </div>
+  <div class="h-10"></div>
+</div>
+
+<!-- 底部Tab栏 5Tab -->
+<div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100" style="height:65px;z-index:100;width:393px">
+<div class="flex justify-around items-center h-full" style="padding-bottom:10px">
+<a href="home.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-house text-[18px]"></i><span class="text-[9px]">首页</span></a>
+<a href="video.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-video text-[18px]"></i><span class="text-[9px]">视频看货</span></a>
+<a href="purchase-order.html" class="flex flex-col items-center gap-0.5 text-gray-400 relative"><i class="fas fa-clipboard-list text-[18px]"></i><span class="text-[9px]">进货单</span><span class="absolute top-0 right-1 bg-primary text-white text-[7px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center" style="min-width:14px;height:14px">3</span></a>
+<a href="property.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-building text-[18px]"></i><span class="text-[9px]">物业</span></a>
+<a href="mine.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-user text-[18px]"></i><span class="text-[9px]">我的</span></a>
+</div>
+</div>
+<div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none"><div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:3px"></div></div>
+
+<!-- 预约面板 -->
+<div class="sheet-mask" id="bkMask" onclick="closeBk()"></div>
+<div class="sheet" id="bkSheet">
+  <div class="flex justify-center pt-2 pb-1 sticky top-0 bg-white"><div class="w-10 h-1 bg-gray-200 rounded-full"></div></div>
+  <div class="flex items-center justify-between px-4 pb-2">
+    <span class="text-[15px] font-bold text-gray-800">预约仓位</span>
+    <button onclick="closeBk()" class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-400"><i class="fas fa-xmark text-xs"></i></button>
+  </div>
+
+  <div class="px-4 pb-6">
+    <div class="rounded-xl p-3 mb-3.5" style="background:#EEF2FF">
+      <p class="text-[12px] font-bold text-gray-800" id="bkWName">仓库名称</p>
+      <p class="text-[10px] text-gray-500 mt-0.5" id="bkWInfo">类型 · 地址 · 单价</p>
+    </div>
+
+    <p class="text-[12px] font-bold text-gray-800 mb-2">存放品类 <span class="text-primary">*</span></p>
+    <div class="flex flex-wrap gap-2 mb-4" id="bkCatWrap">
+      <span class="tag-opt on" onclick="pickSingle(this)">纱线</span>
+      <span class="tag-opt" onclick="pickSingle(this)">化纤长丝</span>
+      <span class="tag-opt" onclick="pickSingle(this)">染料助剂</span>
+      <span class="tag-opt" onclick="pickSingle(this)">辅料橡筋</span>
+      <span class="tag-opt" onclick="pickSingle(this)">包装物料</span>
+      <span class="tag-opt" onclick="pickSingle(this)">其他</span>
+    </div>
+
+    <div class="flex items-center justify-between mb-2">
+      <p class="text-[12px] font-bold text-gray-800">存放面积（㎡）</p>
+      <div class="flex items-center gap-2">
+        <button onclick="stepArea(-1)" class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 text-[14px]">-</button>
+        <input type="text" id="bkArea" value="50" readonly class="w-12 text-center text-[13px] font-medium outline-none">
+        <button onclick="stepArea(1)" class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 text-[14px]">+</button>
+      </div>
+    </div>
+    <p class="text-[9px] text-gray-300 mb-4" id="bkLeftTip">可租用面积充足</p>
+
+    <div class="flex items-center justify-between mb-2">
+      <p class="text-[12px] font-bold text-gray-800">存放时长（月）</p>
+      <div class="flex items-center gap-2">
+        <button onclick="stepMonth(-1)" class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 text-[14px]">-</button>
+        <input type="text" id="bkMonth" value="3" readonly class="w-12 text-center text-[13px] font-medium outline-none">
+        <button onclick="stepMonth(1)" class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 text-[14px]">+</button>
+      </div>
+    </div>
+    <p class="text-[9px] text-gray-300 mb-4">月租起，不足一月按一月计</p>
+
+    <p class="text-[12px] font-bold text-gray-800 mb-2">预计入库时间 <span class="text-primary">*</span></p>
+    <div class="flex flex-wrap gap-2 mb-4" id="bkDateWrap">
+      <span class="tag-opt on" onclick="pickSingle(this)">今天</span>
+      <span class="tag-opt" onclick="pickSingle(this)">3天内</span>
+      <span class="tag-opt" onclick="pickSingle(this)">本周内</span>
+      <span class="tag-opt" onclick="pickSingle(this)">下周</span>
+    </div>
+
+    <p class="text-[12px] font-bold text-gray-800 mb-2">增值服务（可多选）</p>
+    <div class="grid grid-cols-2 gap-2 mb-4" id="bkSvc">
+      <span class="svc" data-fee="2" data-type="once" onclick="pickSvc(this)">装卸搬运<p class="text-[8px] text-gray-400 mt-0.5">¥2/㎡ 一次性</p></span>
+      <span class="svc" data-fee="3" data-type="once" onclick="pickSvc(this)">贴标分拣<p class="text-[8px] text-gray-400 mt-0.5">¥3/㎡ 一次性</p></span>
+      <span class="svc" data-fee="5" data-type="once" onclick="pickSvc(this)">代发配送<p class="text-[8px] text-gray-400 mt-0.5">¥5/㎡ 一次性</p></span>
+      <span class="svc" data-fee="1" data-type="month" onclick="pickSvc(this)">货物保险<p class="text-[8px] text-gray-400 mt-0.5">¥1/㎡/月</p></span>
+      <span class="svc" data-fee="4" data-type="month" onclick="pickSvc(this)">恒温保障<p class="text-[8px] text-gray-400 mt-0.5">¥4/㎡/月</p></span>
+      <span class="svc" data-fee="2" data-type="month" onclick="pickSvc(this)">防潮托盘<p class="text-[8px] text-gray-400 mt-0.5">¥2/㎡/月</p></span>
+    </div>
+
+    <p class="text-[12px] font-bold text-gray-800 mb-2">备注</p>
+    <div class="field mb-4" style="border:1.5px solid #eceef0;border-radius:12px"><textarea id="bkNote" rows="2" placeholder="如：需整托盘存放、忌压、指定库位等" style="resize:none;width:100%;border:none;outline:none;font-size:11px;padding:10px 12px"></textarea></div>
+
+    <div class="rounded-xl p-3 mb-4" style="background:#EEF2FF">
+      <div class="flex items-center justify-between text-[11px] mb-1"><span class="text-gray-500">仓租费</span><span id="feeRent">¥2,700</span></div>
+      <div class="flex items-center justify-between text-[11px] mb-1"><span class="text-gray-500">增值服务费</span><span id="feeSvc">¥0</span></div>
+      <div class="flex items-center justify-between text-[11px] mb-1"><span class="text-gray-500">可退押金</span><span id="feeDep">¥1,000</span></div>
+      <div class="flex items-center justify-between text-[12px] pt-1.5 mt-1" style="border-top:1px solid #DCE4FF">
+        <span class="text-gray-700 font-medium">预估首期费用</span><span class="font-bold text-[15px]" style="color:#6366F1" id="feeTotal">¥3,700</span>
+      </div>
+      <p class="text-[9px] text-gray-400 mt-1.5"><i class="fas fa-circle-info text-[8px] mr-0.5"></i>押金退仓时全额退还，实际费用以仓库确认单为准</p>
+    </div>
+
+    <button onclick="submitBk()" class="card w-full py-3 rounded-xl text-[14px] font-bold text-white shadow-card" style="background:linear-gradient(135deg,#818CF8,#6366F1)">提交仓位预约</button>
+  </div>
+</div>
+
+<!-- 提交成功弹窗 -->
+<div class="success-mask" id="successMask">
+  <div class="success-box">
+    <div class="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3" style="background:linear-gradient(135deg,#818CF8,#6366F1)">
+      <i class="fas fa-check text-white text-[24px]"></i>
+    </div>
+    <p class="text-[15px] font-bold text-gray-800 mb-1">预约提交成功!</p>
+    <p class="text-[11px] text-gray-500 leading-relaxed mb-4">仓库将在 2 小时内确认仓位<br>确认后请按时办理入库</p>
+    <div class="bg-gray-50 rounded-xl p-2.5 mb-4 text-[10px] text-gray-500 space-y-1.5">
+      <div class="flex justify-between"><span>预约单号</span><span class="font-medium text-gray-700" id="okNo">—</span></div>
+      <div class="flex justify-between"><span>仓库仓位</span><span class="font-medium text-gray-700" id="okWh">—</span></div>
+      <div class="flex justify-between"><span>预估费用</span><span class="font-medium" style="color:#6366F1" id="okFee">—</span></div>
+    </div>
+    <button onclick="afterBk()" class="card w-full py-2.5 rounded-full text-[13px] font-bold text-white shadow-card" style="background:linear-gradient(135deg,#818CF8,#6366F1)">查看我的仓位</button>
+    <button onclick="closeSuccess()" class="w-full py-2 mt-2 text-[12px] text-gray-400">继续浏览仓库</button>
+  </div>
+</div>
+
+<!-- 取消确认弹窗 -->
+<div class="confirm-mask" id="confirmMask" onclick="closeConfirm()">
+  <div class="confirm-box" onclick="event.stopPropagation()">
+    <p class="text-[14px] font-bold text-gray-800 mb-2">确认取消该仓位预约？</p>
+    <p class="text-[10px] text-gray-400 leading-relaxed mb-4">取消后该仓位将释放给其他商户<br>如有疑问可先联系仓库沟通</p>
+    <div class="flex gap-2">
+      <button onclick="closeConfirm()" class="card flex-1 py-2.5 rounded-full text-[12px] font-medium bg-gray-100 text-gray-500">再想想</button>
+      <button onclick="doCancelBk()" class="card flex-1 py-2.5 rounded-full text-[12px] font-bold text-white" style="background:#EF4444">确认取消</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><i class="fas fa-circle-check text-[#4ADE80]"></i><span id="toastTxt">操作成功</span></div>
+
+<script>
+var toastTimer;
+function toast(msg){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},1800)}
+
+function switchView(v){
+  var l=document.getElementById('listView'),m=document.getElementById('mineView');
+  var vl=document.getElementById('vtList'),vm=document.getElementById('vtMine');
+  if(v==='list'){l.style.display='';m.style.display='none';vl.className='vt on';vm.className='vt off'}
+  else{l.style.display='none';m.style.display='';vl.className='vt off';vm.className='vt on'}
+  window.scrollTo(0,0);
+}
+
+/* 仓库数据 */
+var whData=[
+ {id:1,name:'大唐原料公共仓 A 区',type:'normal',typeName:'常温仓',addr:'袜业路 88 号',dist:0.8,price:18,left:3200,total:5000,
+  tags:['24h 出入库','丙类消防','全程监控'],desc:'市场官方配套公共仓，紧邻原料交易区，适合纱线、辅料批量存放，叉车与装卸队常驻。'},
+ {id:2,name:'大唐原料恒温仓',type:'temp',typeName:'恒温仓',addr:'袜业路 126 号',dist:1.2,price:32,left:1500,total:2000,
+  tags:['18-25℃ 恒温','湿度控制','氨纶专用'],desc:'恒温恒湿仓，专为氨纶、锦纶等对温湿度敏感的原料设计，避免弹力衰减与受潮。'},
+ {id:3,name:'危化品专用仓',type:'chem',typeName:'危化仓',addr:'大唐工业区 5 号',dist:3.5,price:45,left:600,total:1200,
+  tags:['甲级资质','独立通风','专人值守'],desc:'具备危化品存储资质，专用于染料、助剂等化学品存放，符合消防与环保要求。'},
+ {id:4,name:'北门露天堆场',type:'yard',typeName:'露天堆场',addr:'市场北门外 300m',dist:0.3,price:8,left:5000,total:8000,
+  tags:['托盘整存','价格最低','货车直达'],desc:'露天硬化堆场，适合大宗纱线托盘存放，价格最低，货车可直接进出装卸。'},
+ {id:5,name:'袜业城智能仓',type:'normal',typeName:'常温仓',addr:'袜业路 66 号',dist:1.0,price:22,left:2800,total:4000,
+  tags:['立体货架','WMS 系统','库存可视化'],desc:'立体货架与 WMS 系统，库存数据实时同步，支持线上查看与一键出库，适合多品类小批量。'}
+];
+var curFilter='all',curWh=null;
+
+function renderWH(){
+  var kw=(document.getElementById('whSearch').value||'').trim().toLowerCase();
+  var list=whData.filter(function(w){
+    var okT=(curFilter==='all'||w.type===curFilter);
+    var okK=(!kw||w.name.toLowerCase().indexOf(kw)>-1||w.addr.toLowerCase().indexOf(kw)>-1);
+    return okT&&okK;
+  });
+  var box=document.getElementById('whList');
+  if(list.length===0){
+    box.innerHTML='<div class="bg-white rounded-2xl shadow-soft py-10 text-center"><i class="fas fa-warehouse text-gray-300 text-2xl mb-2"></i><p class="text-[11px] text-gray-400">没有找到匹配的仓库</p><p class="text-[10px] text-gray-300 mt-1">试试更换类型或清空搜索词</p></div>';
+    return;
+  }
+  var html='';
+  list.forEach(function(w,i){
+    var pct=Math.round(w.left/w.total*100);
+    var th='';
+    w.tags.forEach(function(t){th+='<span class="text-[9px] px-1.5 py-0.5 rounded" style="background:#EEF2FF;color:#6366F1">'+t+'</span>'});
+    html+='<div class="card bg-white rounded-2xl shadow-soft p-3 mb-2.5 fade-up" style="animation-delay:'+(i*.05)+'s">'
+      +'<div class="flex items-start gap-2.5">'
+      +'<div class="w-11 h-11 rounded-xl flex items-center justify-center text-white flex-shrink-0" style="background:linear-gradient(135deg,#818CF8,#6366F1)"><i class="fas fa-warehouse text-sm"></i></div>'
+      +'<div class="flex-1 min-w-0">'
+      +'<div class="flex items-center gap-1.5"><p class="text-[12px] font-bold text-gray-800 truncate">'+w.name+'</p><span class="text-[8px] px-1.5 py-0.5 rounded flex-shrink-0" style="background:#EEF2FF;color:#6366F1">'+w.typeName+'</span></div>'
+      +'<p class="text-[9px] text-gray-400 mt-1"><i class="fas fa-location-dot mr-0.5"></i>'+w.addr+' · 距市场 '+w.dist+'km</p>'
+      +'</div>'
+      +'<div class="text-right flex-shrink-0"><p class="text-[15px] font-bold" style="color:#6366F1">¥'+w.price+'</p><p class="text-[8px] text-gray-400">/㎡/月</p></div>'
+      +'</div>'
+      +'<div class="flex flex-wrap gap-1.5 mt-2">'+th+'</div>'
+      +'<p class="text-[10px] text-gray-500 mt-2 leading-relaxed">'+w.desc+'</p>'
+      +'<div class="mt-2 mb-2.5">'
+      +'<div class="flex items-center justify-between text-[9px] text-gray-400 mb-1"><span>剩余可用 <span class="font-bold" style="color:#6366F1">'+w.left.toLocaleString()+'</span> / '+w.total.toLocaleString()+' ㎡</span><span>已租 '+(100-pct)+'%</span></div>'
+      +'<div class="h-1.5 rounded-full overflow-hidden" style="background:#EEF2FF"><div style="width:'+pct+'%;height:100%;background:linear-gradient(90deg,#818CF8,#6366F1)"></div></div>'
+      +'</div>'
+      +'<div class="flex items-center gap-2 pt-2.5 border-t border-gray-50">'
+      +'<button onclick="toast(\'正在导航至 '+w.addr+'\')" class="card flex-1 py-2 rounded-full text-[11px] font-medium bg-gray-100 text-gray-500"><i class="fas fa-route text-[10px] mr-1"></i>导航</button>'
+      +'<button onclick="openBk('+w.id+')" class="card flex-1 py-2 rounded-full text-[11px] font-bold text-white" style="background:linear-gradient(135deg,#818CF8,#6366F1)">预约仓位</button>'
+      +'</div></div>';
+  });
+  box.innerHTML=html;
+}
+renderWH();
+
+function filterWH(t,el){
+  curFilter=t;
+  document.querySelectorAll('#whFilter .tag-opt').forEach(function(i){i.classList.remove('on')});
+  el.classList.add('on');
+  renderWH();
+}
+
+function pickSingle(el){
+  el.parentElement.querySelectorAll('.tag-opt').forEach(function(i){i.classList.remove('on')});
+  el.classList.add('on');
+}
+function pickSvc(el){el.classList.toggle('on');calcFee()}
+
+function stepArea(d){
+  var i=document.getElementById('bkArea');
+  var v=parseInt(i.value)||10;
+  v=Math.max(10,Math.min(curWh?curWh.left:9999,v+d*10));
+  i.value=v;
+  calcFee();
+}
+function stepMonth(d){
+  var i=document.getElementById('bkMonth');
+  var v=parseInt(i.value)||1;
+  v=Math.max(1,Math.min(36,v+d));
+  i.value=v;
+  calcFee();
+}
+
+function openBk(id){
+  curWh=null;whData.forEach(function(w){if(w.id===id)curWh=w});
+  if(!curWh)return;
+  document.getElementById('bkWName').textContent=curWh.name;
+  document.getElementById('bkWInfo').textContent=curWh.typeName+' · '+curWh.addr+' · ¥'+curWh.price+'/㎡/月 · 剩余 '+curWh.left.toLocaleString()+'㎡';
+  document.getElementById('bkLeftTip').textContent='剩余可用 '+curWh.left.toLocaleString()+' ㎡，最小起租 10 ㎡，单次最多可预约 '+Math.min(1000,curWh.left)+' ㎡';
+  calcFee();
+  document.getElementById('bkMask').classList.add('on');
+  var s=document.getElementById('bkSheet');
+  s.style.display='block';
+  setTimeout(function(){s.classList.add('on')},10);
+}
+function closeBk(){
+  document.getElementById('bkSheet').classList.remove('on');
+  setTimeout(function(){document.getElementById('bkMask').classList.remove('on');document.getElementById('bkSheet').style.display='none'},250);
+}
+
+function calcFee(){
+  if(!curWh)return;
+  var area=parseInt(document.getElementById('bkArea').value)||10;
+  var month=parseInt(document.getElementById('bkMonth').value)||1;
+  var rent=area*curWh.price*month;
+  var svc=0;
+  document.querySelectorAll('#bkSvc .svc.on').forEach(function(s){
+    var fee=parseFloat(s.getAttribute('data-fee'));
+    svc += (s.getAttribute('data-type')==='month') ? fee*area*month : fee*area;
+  });
+  var dep=1000;
+  document.getElementById('feeRent').textContent='¥'+rent.toLocaleString()+'（'+area+'㎡ × ¥'+curWh.price+' × '+month+'月）';
+  document.getElementById('feeSvc').textContent='¥'+svc.toLocaleString();
+  document.getElementById('feeDep').textContent='¥'+dep.toLocaleString();
+  document.getElementById('feeTotal').textContent='¥'+(rent+svc+dep).toLocaleString();
+}
+
+function submitBk(){
+  if(!curWh)return;
+  var cat=document.querySelector('#bkCatWrap .tag-opt.on');
+  var date=document.querySelector('#bkDateWrap .tag-opt.on');
+  if(!cat){toast('请选择存放品类');return}
+  if(!date){toast('请选择预计入库时间');return}
+  var area=document.getElementById('bkArea').value;
+  var month=document.getElementById('bkMonth').value;
+  var d=new Date();
+  document.getElementById('okNo').textContent='CC'+String(d.getFullYear())+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'00'+(3+Math.floor(Math.random()*9));
+  document.getElementById('okWh').textContent=curWh.name+' · '+area+'㎡ · '+month+'个月';
+  document.getElementById('okFee').textContent=document.getElementById('feeTotal').textContent;
+  closeBk();
+  setTimeout(function(){document.getElementById('successMask').classList.add('on')},320);
+}
+function closeSuccess(){document.getElementById('successMask').classList.remove('on')}
+function afterBk(){closeSuccess();switchView('mine');toast('仓库确认后将短信通知您')}
+
+function askCancelBk(){document.getElementById('confirmMask').classList.add('on')}
+function closeConfirm(){document.getElementById('confirmMask').classList.remove('on')}
+function doCancelBk(){
+  closeConfirm();
+  var s=document.getElementById('bk2Status');
+  s.textContent='已取消';
+  s.style.background='#F3F4F6';
+  s.style.color='#9aa0ac';
+  toast('仓位预约已取消');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>筛选结果 - 袜掌柜买家版</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>
+tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D','primary-d':'#E63E20','primary-l':'#FF7849'}}}}
+</script>
+<style>
+:root{--bg:#FFF7F4}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+::-webkit-scrollbar{width:2px;height:2px}
+::-webkit-scrollbar-thumb{background:#dfdfdf;border-radius:1px}
+.no-bar::-webkit-scrollbar{display:none}
+.card{transition:transform .16s ease}
+.card:active{transform:scale(.965)}
+.shadow-card{box-shadow:0 8px 24px rgba(255,77,45,.14)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
+.text-grad{background:linear-gradient(90deg,#FF4D2D,#FF2D78);-webkit-background-clip:text;background-clip:text;color:transparent}
+.fade-up{animation:fadeUp .4s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:400;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.25);min-width:150px;justify-content:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.sort-item{padding:8px 14px;font-size:12px;color:#6b7080;cursor:pointer;transition:.15s;white-space:nowrap}
+.sort-item.on{color:#059669;font-weight:700;position:relative}
+.sort-item.on::after{content:'';position:absolute;bottom:0;left:14px;right:14px;height:2px;background:#059669;border-radius:1px}
+.chip{font-size:10px;color:#059669;background:#ECFDF5;padding:4px 9px;border-radius:99px;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+</style>
+</head>
+<body>
+
+<!-- 顶部渐变 -->
+<div class="relative px-4 pt-2 pb-3 overflow-hidden" style="background:linear-gradient(135deg,#34D399 0%,#10B981 50%,#059669 100%)">
+  <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-50" style="background:#5EEAD4"></div>
+  <div class="absolute -top-6 right-[-30px] w-48 h-48 rounded-full blur-3xl opacity-40" style="background:#2DD4BF"></div>
+
+  <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+  </div>
+
+  <div class="relative flex items-center gap-3">
+    <a href="market-material.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+    <span class="text-white font-extrabold text-[20px] tracking-wide" style="text-shadow:0 2px 10px rgba(0,0,0,.18)">筛选结果</span>
+    <span class="ml-1 px-2 py-0.5 rounded-full bg-white/20 text-white text-[10px]" id="countBadge">12件</span>
+  </div>
+</div>
+
+<!-- 已选条件 -->
+<div class="px-3 pt-3">
+  <div class="bg-white rounded-2xl shadow-soft p-3">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-[11px] text-gray-500">已选条件</span>
+      <button onclick="clearAll()" class="text-[10px]" style="color:#059669">清空全部</button>
+    </div>
+    <div class="flex flex-wrap gap-1.5" id="chipBox"></div>
+  </div>
+</div>
+
+<!-- 排序 -->
+<div class="px-3 pt-2.5">
+  <div class="bg-white rounded-2xl shadow-soft overflow-hidden">
+    <div class="flex overflow-x-auto no-bar border-b border-gray-50" id="sortBar">
+      <span class="sort-item on" onclick="sortBy('default',this)">综合推荐</span>
+      <span class="sort-item" onclick="sortBy('sales',this)">销量优先</span>
+      <span class="sort-item" onclick="sortBy('price_asc',this)">价格从低到高</span>
+      <span class="sort-item" onclick="sortBy('price_desc',this)">价格从高到低</span>
+      <span class="sort-item" onclick="sortBy('rating',this)">好评优先</span>
+    </div>
+  </div>
+</div>
+
+<!-- 商品列表 -->
+<div class="px-3 mt-3 pb-24" id="list"></div>
+
+<!-- 底部操作 -->
+<div class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-gray-100 px-3 flex items-center" style="height:60px;z-index:100;width:393px">
+  <a href="market-material.html" class="card flex-1 mr-2 py-2.5 rounded-full text-center text-[13px] font-medium text-gray-500 bg-gray-100 border border-gray-200">返回市场</a>
+  <a href="market-material.html" class="card flex-1 py-2.5 rounded-full text-center text-[13px] font-bold text-white shadow-card" style="background:linear-gradient(135deg,#34D399,#059669)">重新筛选</a>
+</div>
+
+<div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none"><div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:2px"></div></div>
+
+<div class="toast" id="toast"><i class="fas fa-circle-check text-[#4ADE80]"></i><span id="toastTxt">操作成功</span></div>
+
+<script>
+var toastTimer;
+function toast(msg){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},1600)}
+
+var catName={yarn:'纱线',fiber:'化纤长丝',dye:'染料助剂',acc:'辅料橡筋',pkg:'包装物料',parts:'纺机配件'};
+
+var goods=[
+ {n:'精梳棉纱32支 原棉纺纱',p:28,u:'/千克',moq:'起批500kg',sold:'已售85吨',sales:85,shop:'华源纱业',key:'yarn',mat:'精梳棉纱',rating:4.9,img:'material_02.jpg',tags:['热销','现货']},
+ {n:'涤棉混纺纱 45支 T65/C35',p:24,u:'/千克',moq:'起批1吨',sold:'已售130吨',sales:130,shop:'新昌棉纺',key:'yarn',mat:'涤棉混纺',rating:4.7,img:'material_04.jpg',tags:['厂家直营']},
+ {n:'竹纤维纱 32支 抗菌环保',p:42,u:'/千克',moq:'起批25kg',sold:'已售18吨',sales:18,shop:'华源纱业',key:'yarn',mat:'竹纤维',rating:4.9,img:'material_02.jpg',tags:['新品','环保']},
+ {n:'涤纶低弹丝 DTY 150D/48F',p:12,u:'/千克',moq:'起批1吨',sold:'已售120吨',sales:120,shop:'恒力化纤',key:'fiber',mat:'涤纶DTY',rating:4.8,img:'material_01.jpg',tags:['热销','整吨价']},
+ {n:'锦纶高弹丝 70D/24F',p:35,u:'/千克',moq:'起批300kg',sold:'已售62吨',sales:62,shop:'恒力化纤',key:'fiber',mat:'锦纶',rating:4.8,img:'material_03.jpg',tags:['现货']},
+ {n:'氨纶包覆纱 2070 双包',p:52,u:'/千克',moq:'起批300kg',sold:'已售26吨',sales:26,shop:'金诚氨纶',key:'fiber',mat:'氨纶包覆纱',rating:4.8,img:'material_01.jpg',tags:['日产12吨']},
+ {n:'氨纶 20D 高弹丝',p:45,u:'/千克',moq:'起批200kg',sold:'已售38吨',sales:38,shop:'金诚氨纶',key:'fiber',mat:'氨纶',rating:4.8,img:'material_03.jpg',tags:['弹性稳定']},
+ {n:'棉用活性染料 藏青 BFN',p:45,u:'/千克',moq:'起批25kg',sold:'已售3.8吨',sales:3.8,shop:'闰土染化',key:'dye',mat:'活性染料',rating:4.7,img:'material_03.jpg',tags:['环保认证','配色']},
+ {n:'无醛环保固色剂',p:28,u:'/千克',moq:'起批50kg',sold:'已售6.5吨',sales:6.5,shop:'闰土染化',key:'dye',mat:'助剂',rating:4.7,img:'material_01.jpg',tags:['OEKO-TEX']},
+ {n:'袜口橡筋 8mm 定制织字',p:18,u:'/千克',moq:'起批50kg',sold:'已售9吨',sales:9,shop:'三鼎橡筋',key:'acc',mat:'橡筋',rating:4.6,img:'material_04.jpg',tags:['定制']},
+ {n:'涤纶缝纫线 40S/2 彩色',p:15,u:'/卷',moq:'起批20卷',sold:'已售4200卷',sales:4.2,shop:'三鼎橡筋',key:'acc',mat:'缝纫线',rating:4.6,img:'material_03.jpg',tags:['1卷起发']},
+ {n:'袜卡 350g铜版 四色印刷',p:0.35,u:'/张',moq:'起批500张',sold:'已售12万张',sales:12,shop:'中昊包装',key:'pkg',mat:'袜卡',rating:4.6,img:'material_04.jpg',tags:['设计打样']}
+];
+
+var chips=[], curSort='default';
+
+(function init(){
+  var m=location.search.match(/cat=([^&]*)/);
+  if(m&&catName[m[1]])chips=[{k:'cat',v:m[1],t:catName[m[1]]}];
+  else chips=[{k:'cat',v:'all',t:'全部品类'},{k:'moq',v:'any',t:'起批量不限'}];
+  render();
+})();
+
+function matched(){
+  return goods.filter(function(g){
+    var ok=true;
+    chips.forEach(function(c){
+      if(c.k==='cat'&&c.v!=='all'&&g.key!==c.v)ok=false;
+    });
+    return ok;
+  });
+}
+
+function render(){
+  var list=matched();
+  if(curSort==='sales')list.sort(function(a,b){return b.sales-a.sales});
+  else if(curSort==='price_asc')list.sort(function(a,b){return a.p-b.p});
+  else if(curSort==='price_desc')list.sort(function(a,b){return b.p-a.p});
+  else if(curSort==='rating')list.sort(function(a,b){return b.rating-a.rating});
+
+  var ch='';
+  chips.forEach(function(c,i){
+    ch+='<span class="chip" onclick="removeChip('+i+')">'+c.t+' <i class="fas fa-xmark" style="font-size:8px"></i></span>';
+  });
+  document.getElementById('chipBox').innerHTML=ch||'<span class="text-[10px] text-gray-300">未选择筛选条件，展示全部原料</span>';
+
+  var html='';
+  if(list.length===0){
+    html='<div class="bg-white rounded-2xl shadow-soft py-14 text-center"><i class="fas fa-filter-circle-xmark text-gray-300 text-2xl mb-3"></i>'
+      +'<p class="text-[12px] text-gray-500 font-medium">没有符合条件的原料</p>'
+      +'<p class="text-[10px] text-gray-300 mt-1">试试放宽筛选条件，或直接发布采购需求</p>'
+      +'<a href="material-group-buy-create.html" class="inline-block mt-4 px-5 py-2 rounded-full text-[11px] font-semibold" style="background:#ECFDF5;color:#059669">发起大宗集采</a></div>';
+  }else{
+    list.forEach(function(g,i){
+      var th='';
+      g.tags.forEach(function(t){
+        th+='<span class="text-[9px] text-white px-1.5 py-0.5 rounded" style="background:linear-gradient(90deg,#34D399,#059669)">'+t+'</span>';
+      });
+      th+='<span class="text-[9px] px-1.5 py-0.5 rounded" style="background:#ECFDF5;color:#059669">'+g.mat+'</span>';
+      html+='<a href="product-detail.html" class="card bg-white rounded-2xl shadow-soft flex gap-3 p-3 mb-2.5 fade-up" style="animation-delay:'+(i*.04)+'s">'
+        +'<img src="images/'+g.img+'" class="w-[100px] h-[100px] rounded-xl object-cover flex-shrink-0">'
+        +'<div class="flex-1 min-w-0">'
+        +'<p class="text-[12px] font-medium text-gray-800 leading-tight line-clamp-2">'+g.n+'</p>'
+        +'<div class="flex items-center gap-1 mt-1 flex-wrap">'+th+'</div>'
+        +'<div class="flex items-center gap-1 mt-1.5">'
+        +'<span class="text-grad font-bold text-[15px]">¥'+g.p+'<span class="text-[9px] text-gray-400 font-normal">'+g.u+'</span></span>'
+        +'<span class="text-[9px] text-gray-400 ml-2">'+g.moq+'</span>'
+        +'</div>'
+        +'<div class="flex items-center justify-between mt-1">'
+        +'<div class="flex items-center gap-1"><i class="fas fa-star text-[8px] text-amber-400"></i><span class="text-[10px] text-gray-500">'+g.rating+'分</span><span class="text-[9px] text-gray-400">'+g.sold+'</span></div>'
+        +'<span class="text-[9px] text-gray-400">'+g.shop+'</span>'
+        +'</div></div></a>';
+    });
+  }
+  document.getElementById('list').innerHTML=html;
+  document.getElementById('countBadge').textContent=list.length+'件';
+}
+
+function removeChip(i){
+  var c=chips[i];
+  chips.splice(i,1);
+  render();
+  toast('已移除条件：'+c.t);
+}
+function clearAll(){
+  chips=[];
+  render();
+  toast('筛选条件已清空');
+}
+function sortBy(k,el){
+  curSort=k;
+  document.querySelectorAll('#sortBar .sort-item').forEach(function(i){i.classList.remove('on')});
+  el.classList.add('on');
+  render();
+}
+</script>
+
+</body>
+</html>

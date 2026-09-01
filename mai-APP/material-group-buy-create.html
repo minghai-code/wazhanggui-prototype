@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>发起大宗集采 - 袜掌柜买家版</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D','primary-d':'#E63E20','primary-l':'#FF7849'}}}}</script>
+<style>
+:root{--bg:#FFF7F4}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+::-webkit-scrollbar{width:2px;height:2px}
+::-webkit-scrollbar-thumb{background:#dfdfdf;border-radius:1px}
+.no-bar::-webkit-scrollbar{display:none}
+.card{transition:transform .16s ease}.card:active{transform:scale(.965)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
+.shadow-card{box-shadow:0 8px 24px rgba(255,77,45,.14)}
+.fade-up{animation:fadeUp .4s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:400;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.25);min-width:150px;justify-content:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.tag-opt{font-size:11px;color:#6b7080;background:#fff;border:1.5px solid #eceef0;border-radius:10px;padding:6px 12px;cursor:pointer;transition:.15s;font-weight:500;display:inline-block}
+.tag-opt.on{border-color:#059669;color:#059669;background:#ECFDF5;font-weight:600}
+.field{border:1.5px solid #eceef0;border-radius:12px;transition:.15s;background:#fff}
+.field:focus-within{border-color:#059669}
+.field.err{border-color:#EF4444;background:#FEF2F2}
+.inp{width:100%;border:none;outline:none;background:transparent;font-size:12px;color:#1F2430;padding:10px 12px}
+.inp::placeholder{color:#c3c7cf}
+.step-dot{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;flex-shrink:0}
+.tier-row{display:flex;align-items:center;padding:7px 9px;border-radius:8px;font-size:10px;color:#6b7080;transition:.15s}
+.tier-row.on{background:#ECFDF5;color:#059669;font-weight:700}
+.success-mask{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;display:none}
+.success-mask.on{display:block}
+.success-box{position:fixed;left:50%;top:36%;transform:translate(-50%,-50%) scale(.85);background:#fff;border-radius:20px;padding:24px 20px;text-align:center;z-index:310;width:300px;opacity:0;pointer-events:none;transition:.3s}
+.success-mask.on .success-box{opacity:1;transform:translate(-50%,-50%) scale(1);pointer-events:auto}
+</style>
+</head>
+<body>
+
+<!-- ===== 顶部 ===== -->
+<div class="relative px-4 pt-2 pb-4 overflow-hidden" style="background:linear-gradient(135deg,#34D399 0%,#14B8A6 40%,#059669 100%)">
+  <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-50" style="background:#5EEAD4"></div>
+  <div class="absolute -top-6 right-[-30px] w-48 h-48 rounded-full blur-3xl opacity-40" style="background:#2DD4BF"></div>
+  <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+  </div>
+  <div class="relative flex items-center gap-2.5 mt-1">
+    <a href="material-group-buy.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+    <span class="text-white font-extrabold text-[20px]" style="text-shadow:0 2px 10px rgba(0,0,0,.18)">发起大宗集采</span>
+    <button onclick="toast('集采发起须知：目标吨位需 ≥5 吨，审核通过后自动发布')" class="ml-auto w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-circle-question text-[13px]"></i></button>
+  </div>
+  <p class="relative text-white/85 text-[10px] mt-2 leading-relaxed">发布集采需求 → 平台审核匹配供应商 → 上线拼单 → 达量自动成团</p>
+</div>
+
+<!-- 流程步骤 -->
+<div class="px-3 mt-3">
+  <div class="bg-white rounded-2xl shadow-soft p-3.5">
+    <p class="text-[12px] font-bold text-gray-800 mb-3"><i class="fas fa-route text-[11px] mr-1" style="color:#059669"></i>发起流程</p>
+    <div class="flex items-start">
+      <div class="flex flex-col items-center mr-2">
+        <div class="step-dot" style="background:linear-gradient(135deg,#34D399,#059669)">1</div>
+        <div class="w-px flex-1 my-1" style="background:#E5E7EB;min-height:20px"></div>
+        <div class="step-dot" style="background:linear-gradient(135deg,#34D399,#059669)">2</div>
+        <div class="w-px flex-1 my-1" style="background:#E5E7EB;min-height:20px"></div>
+        <div class="step-dot" style="background:linear-gradient(135deg,#34D399,#059669)">3</div>
+        <div class="w-px flex-1 my-1" style="background:#E5E7EB;min-height:20px"></div>
+        <div class="step-dot" style="background:linear-gradient(135deg,#34D399,#059669)">4</div>
+      </div>
+      <div class="flex-1 space-y-3">
+        <div><p class="text-[11px] font-semibold text-gray-700">填写集采需求</p><p class="text-[9px] text-gray-400 mt-0.5">填写原料规格、目标吨位与期望价格</p></div>
+        <div><p class="text-[11px] font-semibold text-gray-700">平台审核匹配</p><p class="text-[9px] text-gray-400 mt-0.5">2 小时内完成审核并匹配源头供应商</p></div>
+        <div><p class="text-[11px] font-semibold text-gray-700">上线公开拼单</p><p class="text-[9px] text-gray-400 mt-0.5">发布至大宗集采列表，其他采购商可参拼</p></div>
+        <div><p class="text-[11px] font-semibold text-gray-700">达量成团发货</p><p class="text-[9px] text-gray-400 mt-0.5">达目标吨位自动成团，按阶梯价统一结算</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 表单 -->
+<div class="px-3 mt-3">
+  <div class="bg-white rounded-2xl shadow-soft p-3.5">
+
+    <p class="text-[12px] font-bold text-gray-800 mb-2">原料品类 <span class="text-primary">*</span></p>
+    <div class="flex flex-wrap gap-2 mb-4" id="catWrap">
+      <span class="tag-opt on" data-base="28" onclick="pickCat(this)">纱线</span>
+      <span class="tag-opt" data-base="12" onclick="pickCat(this)">化纤长丝</span>
+      <span class="tag-opt" data-base="45" onclick="pickCat(this)">染料助剂</span>
+      <span class="tag-opt" data-base="18" onclick="pickCat(this)">辅料橡筋</span>
+      <span class="tag-opt" data-base="20" onclick="pickCat(this)">包装物料</span>
+      <span class="tag-opt" data-base="35" onclick="pickCat(this)">纺机配件</span>
+    </div>
+
+    <p class="text-[12px] font-bold text-gray-800 mb-2">原料名称 / 规格 <span class="text-primary">*</span></p>
+    <div class="field mb-1.5" id="fName"><input id="cName" class="inp" placeholder="如：精梳棉纱 32支 本色 或 涤纶DTY 150D/48F"></div>
+    <p class="text-[9px] text-gray-300 mb-4">填写越详细，匹配的供应商越精准</p>
+
+    <div class="flex items-center justify-between mb-2">
+      <p class="text-[12px] font-bold text-gray-800">目标吨位（吨） <span class="text-primary">*</span></p>
+      <div class="flex items-center gap-2">
+        <button onclick="stepTon(-1)" class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 text-[14px]">-</button>
+        <input type="text" id="cTon" value="20" readonly class="w-14 text-center text-[13px] font-medium outline-none">
+        <button onclick="stepTon(1)" class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 text-[14px]">+</button>
+      </div>
+    </div>
+    <p class="text-[9px] text-gray-300 mb-4">最低 5 吨起发起，每次递增 5 吨，单次上限 500 吨</p>
+
+    <!-- 阶梯价预览 -->
+    <p class="text-[12px] font-bold text-gray-800 mb-2">阶梯价预览</p>
+    <div class="rounded-xl p-2.5 mb-3" style="background:#ECFDF5" id="tierBox"></div>
+    <p class="text-[9px] text-gray-400 mb-4" id="tierTip">—</p>
+
+    <div class="grid grid-cols-2 gap-2 mb-2.5">
+      <div>
+        <p class="text-[12px] font-bold text-gray-800 mb-2">期望单价（元/千克）</p>
+        <div class="field"><input id="cPrice" class="inp" placeholder="选填，如 25.6"></div>
+      </div>
+      <div>
+        <p class="text-[12px] font-bold text-gray-800 mb-2">集采截止 <span class="text-primary">*</span></p>
+        <div class="field">
+          <select id="cDeadline" class="inp" style="appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%2210%22 viewBox=%220 0 10 10%22%3E%3Cpath fill=%22%23999%22 d=%22M2 4l3 3 3-3z%22/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 10px center;padding-right:26px">
+            <option>3天</option><option selected>7天</option><option>15天</option><option>30天</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <p class="text-[12px] font-bold text-gray-800 mb-2">交货方式 <span class="text-primary">*</span></p>
+    <div class="flex flex-wrap gap-2 mb-4" id="shipWrap">
+      <span class="tag-opt on" onclick="pickSingle(this)">市场自提</span>
+      <span class="tag-opt" onclick="pickSingle(this)">物流配送</span>
+      <span class="tag-opt" onclick="pickSingle(this)">送货上门</span>
+    </div>
+
+    <p class="text-[12px] font-bold text-gray-800 mb-2">收货地区</p>
+    <div class="field mb-4"><input id="cArea" class="inp" value="浙江省诸暨市大唐街道"></div>
+
+    <p class="text-[12px] font-bold text-gray-800 mb-2">补充说明</p>
+    <div class="field mb-4"><textarea id="cNote" rows="3" class="inp" placeholder="如品质要求、检测标准、包装方式、账期需求等" style="resize:none"></textarea></div>
+
+    <p class="text-[12px] font-bold text-gray-800 mb-2">联系人 <span class="text-primary">*</span></p>
+    <div class="field mb-3" id="fContact"><input id="cContact" class="inp" placeholder="请输入联系人姓名" value="王先生"></div>
+
+    <p class="text-[12px] font-bold text-gray-800 mb-2">联系电话 <span class="text-primary">*</span></p>
+    <div class="field mb-3" id="fPhone"><input id="cPhone" class="inp" placeholder="请输入 11 位手机号" value="138****6721"></div>
+
+    <div class="flex items-start gap-2 mb-4">
+      <i class="far fa-square text-[13px] text-gray-300 mt-0.5" id="agreeIcon" onclick="toggleAgree()" style="cursor:pointer"></i>
+      <p class="text-[10px] text-gray-400 leading-relaxed" onclick="toggleAgree()" style="cursor:pointer">我已阅读并同意《大宗集采服务协议》，承诺集采需求真实有效，成团后按约定完成采购</p>
+    </div>
+
+    <button onclick="submitCreate()" class="card w-full py-3 rounded-xl text-[14px] font-bold text-white shadow-card" style="background:linear-gradient(135deg,#34D399,#059669)">提交集采申请</button>
+    <p class="text-[9px] text-gray-300 text-center mt-2">提交后 2 小时内完成审核，审核通过自动上线拼单</p>
+  </div>
+</div>
+<div class="h-10"></div>
+
+<!-- 成功弹窗 -->
+<div class="success-mask" id="successMask">
+  <div class="success-box">
+    <div class="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3" style="background:linear-gradient(135deg,#34D399,#059669)">
+      <i class="fas fa-check text-white text-[24px]"></i>
+    </div>
+    <p class="text-[15px] font-bold text-gray-800 mb-1">集采申请已提交!</p>
+    <p class="text-[11px] text-gray-500 leading-relaxed mb-4">平台正在审核并匹配源头供应商<br>预计 2 小时内上线大宗集采列表</p>
+    <div class="bg-gray-50 rounded-xl p-2.5 mb-4 text-[10px] text-gray-500 space-y-1.5">
+      <div class="flex justify-between"><span>集采单号</span><span class="font-medium text-gray-700" id="okNo">—</span></div>
+      <div class="flex justify-between"><span>集采原料</span><span class="font-medium text-gray-700" id="okName">—</span></div>
+      <div class="flex justify-between"><span>目标吨位</span><span class="font-medium" style="color:#059669" id="okTon">—</span></div>
+      <div class="flex justify-between"><span>达量档位价</span><span class="font-medium" style="color:#059669" id="okPrice">—</span></div>
+    </div>
+    <button onclick="gotoMine()" class="card w-full py-2.5 rounded-full text-[13px] font-bold text-white shadow-card" style="background:linear-gradient(135deg,#34D399,#059669)">查看我的集采</button>
+    <button onclick="closeSuccess()" class="w-full py-2 mt-2 text-[12px] text-gray-400">继续发起</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"><i class="fas fa-circle-check text-[#4ADE80]"></i><span id="toastTxt">操作成功</span></div>
+
+<script>
+var toastTimer;
+function toast(msg){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},1800)}
+
+var basePrice=28;
+var tiers=[{min:0,max:1,d:1.00,label:'1吨以下档'},{min:1,max:5,d:0.97,label:'1-5吨档'},{min:5,max:20,d:0.95,label:'5-20吨档'},{min:20,max:99999,d:0.92,label:'20吨以上档'}];
+
+function pickSingle(el){
+  el.parentElement.querySelectorAll('.tag-opt').forEach(function(i){i.classList.remove('on')});
+  el.classList.add('on');
+}
+function pickCat(el){
+  pickSingle(el);
+  basePrice=parseFloat(el.getAttribute('data-base'));
+  renderTier();
+}
+function stepTon(d){
+  var i=document.getElementById('cTon');
+  var v=parseInt(i.value)||5;
+  v=Math.max(5,Math.min(500,v+d*5));
+  i.value=v;
+  renderTier();
+}
+function tierOf(t){
+  for(var i=tiers.length-1;i>=0;i--){if(t>=tiers[i].min)return tiers[i]}
+  return tiers[0];
+}
+function renderTier(){
+  var ton=parseInt(document.getElementById('cTon').value)||5;
+  var cur=tierOf(ton);
+  var html='';
+  tiers.forEach(function(t){
+    var on=(t.label===cur.label);
+    var range=t.max>=99999?('≥'+t.min+'吨'):(t.min+'~'+t.max+'吨');
+    var p=(basePrice*t.d).toFixed(1);
+    html+='<div class="tier-row'+(on?' on':'')+'"><span style="flex:1">'+range+'</span><span>¥'+p+'/kg</span>'+(on?'<i class="fas fa-check ml-2"></i>':'')+'</div>';
+  });
+  document.getElementById('tierBox').innerHTML=html;
+  var curP=(basePrice*cur.d).toFixed(1);
+  var save=((basePrice-curP)*ton*1000).toLocaleString('zh-CN',{maximumFractionDigits:0});
+  document.getElementById('tierTip').textContent='目标 '+ton+' 吨对应「'+cur.label+'」，达量后单价 ¥'+curP+'/kg，较零散采购整批可省约 ¥'+save;
+  return {price:curP,label:cur.label};
+}
+
+var agreed=false;
+function toggleAgree(){
+  agreed=!agreed;
+  var icon=document.getElementById('agreeIcon');
+  icon.className=agreed?'fas fa-square-check text-[13px] mt-0.5':'far fa-square text-[13px] text-gray-300 mt-0.5';
+  icon.style.color=agreed?'#059669':'';
+}
+function setErr(id,on){
+  var el=document.getElementById(id);
+  if(el)el.classList.toggle('err',on);
+}
+
+function submitCreate(){
+  var name=document.getElementById('cName').value.trim();
+  var ton=parseInt(document.getElementById('cTon').value)||5;
+  var contact=document.getElementById('cContact').value.trim();
+  var phone=document.getElementById('cPhone').value.trim();
+  var ok=true;
+
+  if(!name){setErr('fName',true);toast('请填写原料名称 / 规格');ok=false}else setErr('fName',false);
+  if(ton<5){toast('目标吨位不得低于 5 吨');ok=false}
+  if(!contact){setErr('fContact',true);if(ok)toast('请填写联系人姓名');ok=false}else setErr('fContact',false);
+  if(!/^1[3-9]\d{9}$/.test(phone)){
+    setErr('fPhone',true);
+    if(name&&contact&&ton>=5)toast('请输入正确的 11 位手机号');
+    ok=false;
+  }else setErr('fPhone',false);
+  if(!agreed&&ok){toast('请先阅读并同意《大宗集采服务协议》');ok=false}
+  if(!ok)return;
+
+  var t=renderTier();
+  var cat=document.querySelector('#catWrap .tag-opt.on').textContent;
+  var d=new Date();
+  document.getElementById('okNo').textContent='JC'+String(d.getFullYear())+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'00'+(1+Math.floor(Math.random()*9));
+  document.getElementById('okName').textContent=cat+' · '+name;
+  document.getElementById('okTon').textContent=ton+' 吨 · '+document.getElementById('cDeadline').value+'内截止';
+  document.getElementById('okPrice').textContent='¥'+t.price+'/kg（'+t.label+'）';
+  document.getElementById('successMask').classList.add('on');
+}
+function closeSuccess(){document.getElementById('successMask').classList.remove('on')}
+function gotoMine(){window.location.href='material-group-buy.html?tab=mine'}
+
+renderTier();
+</script>
+</body>
+</html>
