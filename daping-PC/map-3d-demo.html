@@ -1,0 +1,41 @@
+<!DOCTYPE html><html lang="zh-CN"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>园区 3D 地图 · 备用方案演示</title>
+<link rel="stylesheet" href="theme.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head><body>
+<div class="bg-mesh"></div><div class="bg-dots"></div>
+<div class="dash">
+  <div class="cockpit-head"></div>
+  <div class="card park3d" id="park3d" style="flex:1">
+    <h3 class="p3d-h"><i class="fa-solid fa-cubes"></i> 园区 3D 地图（备用方案 · 点击建筑/点位查看）</h3>
+    <div class="p3d-stage" id="stage"></div>
+    <div class="p3d-back" id="back"><i class="fa-solid fa-arrow-left"></i> 返回全景</div>
+    <div class="p3d-pop" id="pop"></div>
+  </div>
+</div>
+<script src="cockpit.js"></script>
+<script src="map-3d.js"></script>
+<script>
+Cockpit.renderHead('园区 3D 地图 · 备用方案演示','fa-cubes','首屏当前使用 2D 地图，本页保留 3D 方案');
+var root=document.getElementById('park3d');
+var pop=document.getElementById('pop'),timer=null;
+var park=Cockpit3D.buildPark3D(document.getElementById('stage'),{
+  onBuilding:function(id,floor){
+    park.focus(id);
+    if(floor!=null)park.setFloor(+floor);
+    var d=Cockpit3D.POINTS3D; /* 面板逻辑与 overview 相同，可在此扩展 */
+  },
+  onPoint:function(key,d){
+    if(!d)return;
+    pop.innerHTML='<div class="pp-t"><i class="fa-solid '+d.icon+'"></i>'+d.name+'</div>'+
+      d.rows.map(function(r){return '<div class="pp-r"><span>'+r[0]+'</span><b>'+r[1]+'</b></div>';}).join('');
+    pop.style.left='min(calc('+Math.round(d.ax*100)+'% + 14px), calc(100% - 216px))';
+    pop.style.top=Math.round(d.ay*100)+'%';
+    pop.classList.add('show');
+    clearTimeout(timer);timer=setTimeout(function(){pop.classList.remove('show');},6000);
+  }
+});
+document.getElementById('back').onclick=function(){park.reset();};
+</script>
+</body></html>
