@@ -6,6 +6,7 @@
 <title>展会日程 - 袜掌柜买家版</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="backend-config.js"></script>
 <style>
 :root{--p:#FF4D2D;--pl:#FF7849;--bg:#FFF7F4}
 *{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
@@ -60,6 +61,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <div class="day-tab flex-1 text-center py-2.5 rounded-xl text-[12px] font-bold" onclick="switchDay(3,this)">
 <div>Day 3</div><div class="text-[9px] mt-0.5 opacity-80">10.20 公众日</div>
 </div>
+<div class="day-tab flex-1 text-center py-2.5 rounded-xl text-[12px] font-bold" onclick="switchMine(this)">
+<div>我的日程</div><div class="text-[9px] mt-0.5 opacity-80" id="mineCount">0 场</div>
+</div>
 </div>
 </div>
 
@@ -75,8 +79,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </div>
 <div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none"><div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:2px"></div></div>
 
+<div class="toast" id="toast"><i class="fas fa-circle-check" style="color:#4ADE80"></i><span id="toastTxt">操作成功</span></div>
+
 <script>
-var schedules={
+function toast(msg){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;t.classList.add('on');setTimeout(function(){t.classList.remove('on')},2000)}
+
+/* ===== 我的日程：localStorage 持久化（后台日程发布/变更通知的用户侧记录） ===== */
+var MY_SCHEDULE_KEY='expoMySchedule';
+var curView='day',curDay=1;
+function getMySchedule(){try{return JSON.parse(localStorage.getItem(MY_SCHEDULE_KEY)||'[]')}catch(e){return []}}
+function saveMySchedule(a){try{localStorage.setItem(MY_SCHEDULE_KEY,JSON.stringify(a))}catch(e){}}
+function inMySchedule(id){return getMySchedule().indexOf(id)>-1}
+function toggleMySchedule(id){
+ var a=getMySchedule();
+ var i=a.indexOf(id);
+ if(i>-1){a.splice(i,1);toast('已取消：'+(EXPO_SESSIONS[id]?EXPO_SESSIONS[id].title:id))}
+ else{a.push(id);toast('已加入我的日程')}
+ saveMySchedule(a);
+ refreshMineCount();
+ if(curView==='mine')renderMine();else renderSchedule(curDay);
+}
+
+/* 以下旧数据已废弃，议程统一读取 backend-config.js 的 EXPO_SESSIONS（全局唯一 ID） */
+var schedules__DEPRECATED__use_EXPO_SESSIONS={
  1:[
   {time:'08:30-09:00',title:'嘉宾签到入场',loc:'主会场·签到处',type:'签到',typeBg:'#D1FAE5',typeColor:'#059669',speaker:''},
   {time:'09:00-09:30',title:'开幕仪式',loc:'主会场·A馆舞台',type:'仪式',typeBg:'#FCE7F3',typeColor:'#EC4899',speaker:'诸暨市领导/行业协会代表'},
@@ -109,28 +134,75 @@ var schedules={
 function switchDay(day,el){
  document.querySelectorAll('.day-tab').forEach(function(t){t.classList.remove('on')});
  el.classList.add('on');
+ curView='day';curDay=day;
  renderSchedule(day);
 }
 
+function switchMine(el){
+ document.querySelectorAll('.day-tab').forEach(function(t){t.classList.remove('on')});
+ el.classList.add('on');
+ curView='mine';
+ renderMine();
+}
+
 function renderSchedule(day){
- var list=schedules[day]||schedules[1];
+ var list=expoSessionsByDay(day);
  var html='';
- list.forEach(function(s){
+ list.forEach(function(it){
+  var s=it.s,id=it.id;
+  var mine=inMySchedule(id);
   html+='<div class="session-card fade-up">';
-  html+='<div class="session-dot" style="border-color:'+s.typeBg.replace('D1','A1').replace('FCE7','FBCF').replace('DBE','BF0').replace('FEF','FE9').replace('EDE','DDD').replace('E5E','D1')+'"></div>';
+  html+='<div class="session-dot" style="border-color:'+s.typeColor+'"></div>';
   html+='<div class="flex items-center gap-1.5 mb-1">';
   html+='<span class="text-[11px] font-bold text-gray-800">'+s.time+'</span>';
   html+='<span class="type-tag" style="background:'+s.typeBg+';color:'+s.typeColor+'">'+s.type+'</span>';
   html+='</div>';
+  html+='<a href="expo-session-detail.html?id='+id+'" class="block">';
   html+='<p class="text-[12px] font-bold text-gray-800">'+s.title+'</p>';
   html+='<p class="text-[10px] text-gray-400 mt-0.5"><i class="fas fa-location-dot mr-0.5"></i>'+s.loc+'</p>';
   if(s.speaker)html+='<p class="text-[10px] text-gray-500 mt-0.5"><i class="fas fa-microphone mr-0.5"></i>'+s.speaker+'</p>';
+  html+='<p class="text-[8px] text-gray-300 mt-1 font-mono">议程ID '+id+'</p>';
+  html+='</a>';
+  html+='<div class="flex items-center gap-2 mt-2">';
+  html+='<a href="expo-session-detail.html?id='+id+'" class="text-[10px] text-gray-500 px-2.5 py-1 rounded-full bg-gray-100 font-bold">查看详情</a>';
+  html+='<button onclick="toggleMySchedule(\''+id+'\')" class="text-[10px] font-bold px-2.5 py-1 rounded-full" style="'+(mine?'background:#FCE7F3;color:#EC4899':'background:#F0FDF4;color:#059669')+'"><i class="fas '+(mine?'fa-bookmark-slash':'fa-bookmark')+' mr-0.5"></i>'+(mine?'已加入':'加入日程')+'</button>';
+  html+='</div>';
   html+='</div>';
  });
+ if(!list.length)html='<p class="text-[11px] text-gray-400 text-center py-6">当日暂无议程</p>';
  document.getElementById('scheduleArea').innerHTML=html;
 }
 
+function renderMine(){
+ var ids=getMySchedule();
+ var html='';
+ if(!ids.length){
+  html='<div class="text-center py-10"><div class="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-2"><i class="fas fa-calendar-plus text-gray-300 text-xl"></i></div><p class="text-[11px] text-gray-400">还没有加入任何议程</p><p class="text-[9px] text-gray-300 mt-1">在日程列表或议程详情点击「加入日程」</p></div>';
+ }else{
+  var dayName={1:'Day1 · 10.18',2:'Day2 · 10.19',3:'Day3 · 10.20'};
+  ids.forEach(function(id){
+   var s=EXPO_SESSIONS[id];
+   if(!s)return;
+   html+='<div class="bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-3 border border-white mb-2.5 fade-up">';
+   html+='<div class="flex items-start gap-2.5">';
+   html+='<span class="text-[8px] font-bold text-white px-1.5 py-0.5 rounded flex-shrink-0 mt-0.5" style="background:'+s.typeColor+'">'+s.type+'</span>';
+   html+='<a href="expo-session-detail.html?id='+id+'" class="flex-1 min-w-0"><p class="text-[12px] font-bold text-gray-800">'+s.title+'</p>';
+   html+='<p class="text-[9px] text-gray-400 mt-0.5">'+dayName[s.day]+' · '+s.time+' · '+s.loc+'</p>';
+   html+='<p class="text-[8px] text-gray-300 mt-0.5 font-mono">'+id+'</p></a>';
+   html+='<button onclick="toggleMySchedule(\''+id+'\')" class="text-[9px] text-gray-400 px-2 py-1 rounded-full bg-gray-100 flex-shrink-0">取消</button>';
+   html+='</div></div>';
+  });
+ }
+ document.getElementById('scheduleArea').innerHTML=html;
+}
+
+function refreshMineCount(){
+ var el=document.getElementById('mineCount');
+ if(el)el.textContent=getMySchedule().length+' 场';
+}
+
 renderSchedule(1);
+refreshMineCount();
 </script>
 </body>
 </html>

@@ -45,6 +45,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </div>
 </div>
 
+<!-- 解锁状态提示 -->
+<div class="px-3 mt-3" id="lockBanner"></div>
+
 <!-- 资料列表 -->
 <div class="px-3 mt-3" id="materialsList"></div>
 
@@ -69,33 +72,104 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <script>
 function toast(msg){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;t.classList.add('on');setTimeout(function(){t.classList.remove('on')},2000)}
 
+/* 访问策略（后台「资料管理」配置）
+   public     公开：无需登记即可下载
+   registered 需登记解锁：参观登记审核通过后解锁
+   checkedin  需现场核销解锁：到场扫码核销后解锁 */
 var materials=[
- {name:'展商名录（完整版）',desc:'800+展商信息·展位号·主营产品·联系方式',size:'5.2MB',type:'PDF',icon:'fas fa-book',color:'#FB7185',colorBg:'#FCE7F3',locked:false},
- {name:'展位平面图（高清版）',desc:'A/B/C/D全馆展位分布·含展商名称',size:'3.8MB',type:'PDF',icon:'fas fa-map',color:'#7C3AED',colorBg:'#EDE9FE',locked:false},
- {name:'展会日程手册',desc:'3天完整日程·论坛议程·活动详情',size:'2.1MB',type:'PDF',icon:'fas fa-calendar-days',color:'#34D399',colorBg:'#D1FAE5',locked:false},
- {name:'参观指南',desc:'交通指南·入场流程·展馆服务·注意事项',size:'1.5MB',type:'PDF',icon:'fas fa-compass',color:'#38BDF8',colorBg:'#DBEAFE',locked:false},
- {name:'媒体素材包',desc:'展会Logo·海报·现场图片·新闻通稿',size:'28.6MB',type:'ZIP',icon:'fas fa-images',color:'#FBBF24',colorBg:'#FEF3C7',locked:false},
- {name:'2026袜业白皮书',desc:'行业数据·趋势分析·市场报告',size:'8.4MB',type:'PDF',icon:'fas fa-file-lines',color:'#EC4899',colorBg:'#FCE7F3',locked:true},
- {name:'参展商合同模板',desc:'标准展位合同·含条款及附件',size:'0.8MB',type:'DOC',icon:'fas fa-file-signature',color:'#6366F1',colorBg:'#E0E7FF',locked:false},
- {name:'品牌新品目录',desc:'30+品牌秋冬新品·含产品参数图',size:'4.6MB',type:'PDF',icon:'fas fa-socks',color:'#10B981',colorBg:'#D1FAE5',locked:true}
+ {name:'展商名录（完整版）',desc:'800+展商信息·展位号·主营产品·联系方式',size:'5.2MB',type:'PDF',icon:'fas fa-book',color:'#FB7185',colorBg:'#FCE7F3',policy:'registered'},
+ {name:'展位平面图（高清版）',desc:'A/B/C/D全馆展位分布·含展商名称',size:'3.8MB',type:'PDF',icon:'fas fa-map',color:'#7C3AED',colorBg:'#EDE9FE',policy:'public'},
+ {name:'展会日程手册',desc:'3天完整日程·论坛议程·活动详情',size:'2.1MB',type:'PDF',icon:'fas fa-calendar-days',color:'#34D399',colorBg:'#D1FAE5',policy:'public'},
+ {name:'参观指南',desc:'交通指南·入场流程·展馆服务·注意事项',size:'1.5MB',type:'PDF',icon:'fas fa-compass',color:'#38BDF8',colorBg:'#DBEAFE',policy:'public'},
+ {name:'媒体素材包',desc:'展会Logo·海报·现场图片·新闻通稿',size:'28.6MB',type:'ZIP',icon:'fas fa-images',color:'#FBBF24',colorBg:'#FEF3C7',policy:'registered'},
+ {name:'2026袜业白皮书',desc:'行业数据·趋势分析·市场报告',size:'8.4MB',type:'PDF',icon:'fas fa-file-lines',color:'#EC4899',colorBg:'#FCE7F3',policy:'checkedin'},
+ {name:'参展商合同模板',desc:'标准展位合同·含条款及附件',size:'0.8MB',type:'DOC',icon:'fas fa-file-signature',color:'#6366F1',colorBg:'#E0E7FF',policy:'public'},
+ {name:'品牌新品目录',desc:'30+品牌秋冬新品·含产品参数图',size:'4.6MB',type:'PDF',icon:'fas fa-socks',color:'#10B981',colorBg:'#D1FAE5',policy:'checkedin'}
 ];
+var POLICY_TEXT={public:'公开资料',registered:'需参观登记通过后解锁',checkedin:'需现场核销后解锁'};
+
+/* 当前观众的登记 / 核销状态 */
+function getReg(){try{return JSON.parse(localStorage.getItem('expoVisitorReg')||'null')}catch(e){return null}}
+function isApproved(){var r=getReg();return !!r&&r.status==='approved'}
+function isCheckedIn(){try{return localStorage.getItem('expoCheckin')==='1'}catch(e){return false}}
+
+/* 返回锁定原因，未锁定返回 null */
+function lockReason(m){
+  if(m.policy==='public')return null;
+  if(m.policy==='registered'){
+    var r=getReg();
+    if(!r)return '需先完成参观登记并通过审核';
+    if(r.status==='pending')return '参观登记审核中（1 个工作日内），通过后解锁';
+    if(r.status!=='approved')return '参观登记未通过审核，请核对信息后重新提交';
+    return null;
+  }
+  if(m.policy==='checkedin'){
+    if(!isApproved())return '需先完成参观登记并通过审核';
+    if(!isCheckedIn())return '需到场扫码核销后解锁（展会期间现场核销）';
+    return null;
+  }
+  return null;
+}
+
+function renderLockBanner(){
+  var box=document.getElementById('lockBanner');
+  if(!box)return;
+  var reg=getReg(),ci=isCheckedIn();
+  var h;
+  if(!reg){
+    h='<div class="bg-amber-50 rounded-2xl p-3 border border-amber-200 flex items-start gap-2.5">'
+      +'<div class="w-9 h-9 rounded-full flex items-center justify-center text-white flex-shrink-0" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)"><i class="fas fa-lock text-[12px]"></i></div>'
+      +'<div class="flex-1"><p class="text-[11px] font-bold text-amber-800">部分资料为锁定态</p>'
+      +'<p class="text-[9px] text-amber-700 mt-0.5 leading-relaxed">未完成参观登记，需登记/核销解锁的资料暂不可下载。</p></div>'
+      +'<a href="expo-visitor-apply.html" class="text-[10px] text-white font-bold px-3 py-1.5 rounded-full flex-shrink-0" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)">去登记</a></div>';
+  }else if(reg.status!=='approved'){
+    if(reg.status==='rejected'){
+      h='<div class="bg-red-50 rounded-2xl p-3 border border-red-200 flex items-start gap-2.5">'
+        +'<div class="w-9 h-9 rounded-full flex items-center justify-center text-white flex-shrink-0" style="background:linear-gradient(135deg,#F87171,#EF4444)"><i class="fas fa-circle-xmark text-[12px]"></i></div>'
+        +'<div class="flex-1"><p class="text-[11px] font-bold" style="color:#DC2626">参观登记未通过审核</p>'
+        +'<p class="text-[9px] mt-0.5 leading-relaxed" style="color:#B91C1C">请核对信息后重新提交登记，通过后方可解锁资料。</p></div>'
+        +'<a href="expo-visitor-apply.html" class="text-[10px] text-white font-bold px-3 py-1.5 rounded-full flex-shrink-0" style="background:linear-gradient(135deg,#F87171,#EF4444)">重新登记</a></div>';
+    }else{
+      h='<div class="bg-amber-50 rounded-2xl p-3 border border-amber-200 flex items-start gap-2.5">'
+        +'<div class="w-9 h-9 rounded-full flex items-center justify-center text-white flex-shrink-0" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)"><i class="fas fa-hourglass-half text-[12px]"></i></div>'
+        +'<div class="flex-1"><p class="text-[11px] font-bold text-amber-800">参观登记审核中</p>'
+        +'<p class="text-[9px] text-amber-700 mt-0.5 leading-relaxed">审核通过后「需登记解锁」的资料将自动解锁；「需现场核销」的资料需到场扫码后解锁。</p></div></div>';
+    }
+  }else if(!ci){
+    h='<div class="bg-blue-50 rounded-2xl p-3 border border-blue-200 flex items-start gap-2.5">'
+      +'<div class="w-9 h-9 rounded-full flex items-center justify-center text-white flex-shrink-0" style="background:linear-gradient(135deg,#38BDF8,#3B82F6)"><i class="fas fa-qrcode text-[12px]"></i></div>'
+      +'<div class="flex-1"><p class="text-[11px] font-bold" style="color:#2563EB">登记已通过，待现场核销</p>'
+      +'<p class="text-[9px] mt-0.5 leading-relaxed" style="color:#1D4ED8">入场编号 '+(reg.no||'-')+' · 到场扫码核销后，全部资料解锁。</p></div>'
+      +'<a href="expo.html" class="text-[10px] text-white font-bold px-3 py-1.5 rounded-full flex-shrink-0" style="background:linear-gradient(135deg,#38BDF8,#3B82F6)">去核销</a></div>';
+  }else{
+    h='<div class="bg-emerald-50 rounded-2xl p-3 border border-emerald-200 flex items-start gap-2.5">'
+      +'<div class="w-9 h-9 rounded-full flex items-center justify-center text-white flex-shrink-0" style="background:linear-gradient(135deg,#34D399,#059669)"><i class="fas fa-lock-open text-[12px]"></i></div>'
+      +'<div class="flex-1"><p class="text-[11px] font-bold" style="color:#059669">已完成核销，资料全部解锁</p>'
+      +'<p class="text-[9px] mt-0.5 leading-relaxed" style="color:#047857">入场编号 '+(reg.no||'-')+' · 欢迎下载展会资料。</p></div></div>';
+  }
+  box.innerHTML=h;
+}
 
 function renderMaterials(){
  var html='';
  materials.forEach(function(m,i){
-  html+='<div class="bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-3 border border-white mb-2.5 fade-up" style="animation-delay:'+(i*0.05)+'s">';
+  var reason=lockReason(m);
+  var locked=!!reason;
+  html+='<div class="bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-3 border '+(locked?'border-gray-200':'border-white')+' mb-2.5 fade-up" style="animation-delay:'+(i*0.05)+'s">';
   html+='<div class="flex items-center gap-3">';
-  html+='<div class="w-11 h-11 rounded-xl flex items-center justify-center text-white flex-shrink-0" style="background:linear-gradient(135deg,'+m.color+','+m.color+'99)"><i class="'+m.icon+' text-base"></i></div>';
+  html+='<div class="w-11 h-11 rounded-xl flex items-center justify-center text-white flex-shrink-0" style="background:linear-gradient(135deg,'+m.color+','+m.color+'99);opacity:'+(locked?'.5':'1')+'"><i class="'+m.icon+' text-base"></i></div>';
   html+='<div class="flex-1 min-w-0">';
   html+='<div class="flex items-center gap-1.5">';
-  html+='<p class="text-[12px] font-bold text-gray-800 truncate">'+m.name+'</p>';
-  if(m.locked)html+='<i class="fas fa-lock text-[9px] text-gray-400"></i>';
+  html+='<p class="text-[12px] font-bold '+(locked?'text-gray-500':'text-gray-800')+' truncate">'+m.name+'</p>';
+  if(locked)html+='<i class="fas fa-lock text-[9px] text-gray-400"></i>';
   html+='</div>';
   html+='<p class="text-[9px] text-gray-400 mt-0.5 leading-relaxed">'+m.desc+'</p>';
-  html+='<div class="flex items-center gap-2 mt-1"><span class="text-[8px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">'+m.type+'</span><span class="text-[8px] text-gray-400">'+m.size+'</span></div>';
+  html+='<div class="flex items-center gap-2 mt-1"><span class="text-[8px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">'+m.type+'</span><span class="text-[8px] text-gray-400">'+m.size+'</span>'
+    +'<span class="text-[8px] px-1.5 py-0.5 rounded" style="background:'+(locked?'#F3F4F6':'#ECFDF5')+';color:'+(locked?'#9CA3AF':'#059669')+'">'+POLICY_TEXT[m.policy]+'</span></div>';
+  if(locked)html+='<p class="text-[8px] text-amber-600 mt-1"><i class="fas fa-circle-info mr-0.5"></i>'+reason+'</p>';
   html+='</div>';
-  if(m.locked){
-   html+='<button onclick="goRegister()" class="dl-btn text-[10px] text-white px-3 py-2 rounded-full font-bold flex-shrink-0" style="background:linear-gradient(135deg,#FB7185,#EC4899)">登记解锁</button>';
+  if(locked){
+   html+='<button onclick="goRegister(\''+m.policy+'\')" class="dl-btn text-[10px] text-white px-3 py-2 rounded-full font-bold flex-shrink-0" style="background:linear-gradient(135deg,#FB7185,#EC4899)">'+(m.policy==='checkedin'?'核销解锁':'登记解锁')+'</button>';
   }else{
    html+='<button onclick="downloadFile('+i+')" class="dl-btn text-[10px] text-white px-3 py-2 rounded-full font-bold flex-shrink-0" id="dlBtn'+i+'" style="background:linear-gradient(135deg,#34D399,#10B981)"><i class="fas fa-download text-[9px] mr-0.5"></i>下载</button>';
   }
@@ -129,11 +203,27 @@ function downloadFile(idx){
  },200);
 }
 
-function goRegister(){
- toast('请先完成参观登记');
- setTimeout(function(){window.location.href='expo-visitor-apply.html'},1500);
+function goRegister(policy){
+ var reg=getReg();
+ if(!reg){
+  toast('请先完成参观登记');
+  setTimeout(function(){window.location.href='expo-visitor-apply.html'},1200);
+  return;
+ }
+ if(reg.status!=='approved'){
+  toast('参观登记审核中，通过后自动解锁');
+  return;
+ }
+ if(policy==='checkedin'&&!isCheckedIn()){
+  toast('请到展会现场扫码核销后解锁');
+  setTimeout(function(){window.location.href='expo.html'},1200);
+  return;
+ }
+ toast('资料已解锁');
+ renderMaterials();
 }
 
+renderLockBanner();
 renderMaterials();
 </script>
 </body>

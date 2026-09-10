@@ -6,6 +6,7 @@
 <title>个人研学报名 - 袜掌柜买家版</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="backend-config.js"></script>
 <style>
 :root{--p:#FF4D2D;--pl:#FF7849;--bg:#FFF7F4}
 *{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
@@ -35,6 +36,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 .step-dot:not(.on):not(.done){background:#E5E7EB;color:#9CA3AF}
 .step-bar{flex:1;height:2px;margin:0 4px;background:#E5E7EB;transition:.2s}
 .step-bar.done{background:#10B981}
+.timeline{position:relative;padding-left:20px}
+.timeline::before{content:'';position:absolute;left:5px;top:6px;bottom:6px;width:2px;background:#D1FAE5}
+.tl-item{position:relative;margin-bottom:14px}
+.tl-item:last-child{margin-bottom:0}
+.tl-dot{position:absolute;left:-20px;top:2px;width:12px;height:12px;border-radius:50%;background:#fff;border:3px solid #D1D5DB}
+.tl-dot.done{border-color:#10B981;background:#10B981}
+.tl-dot.cur{border-color:#F59E0B;background:#fff}
 </style>
 </head>
 <body>
@@ -69,6 +77,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </div>
 </div>
 </div>
+</div>
+
+<!-- 选择研学场次（后台场次管理下发） -->
+<div class="px-3 mt-3">
+<div class="flex items-center gap-1.5 mb-2.5">
+<div class="w-6 h-6 rounded-lg flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#2DD4BF,#14B8A6)"><i class="fas fa-calendar-check text-[10px]"></i></div>
+<span class="sec-title">选择研学场次</span>
+</div>
+<div id="sessionBox"></div>
 </div>
 
 <!-- 步骤进度 -->
@@ -172,7 +189,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <div class="w-6 h-6 rounded-lg flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#F59E0B,#D97706)"><i class="fas fa-file-shield text-[10px]"></i></div>
 <span class="sec-title">研学安全责任书（家长签署）</span>
 </div>
-<div class="bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-3.5 border border-amber-100">
+<div class="bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-3.5 border border-amber-100" id="clauseBox">
 <p class="text-[11px] text-gray-600 leading-relaxed">甲方（研学主办方）：大唐袜业城<br>乙方（学生家长）：_______________</p>
 <p class="text-[11px] text-gray-600 leading-relaxed mt-2">为保障研学活动安全顺利开展，乙方作为学生家长/监护人，同意并承诺如下：<br><br>1. 乙方确认学生身体健康，无不适合参加研学活动的疾病。<br>2. 乙方负责学生往返途中的安全护送，按时到达集合地点。<br>3. 研学期间，乙方授权甲方及带队老师在紧急情况下代为处置。<br>4. 乙方须为学生购买意外保险，并提供保险信息。<br>5. 学生在研学期间须遵守纪律，听从指挥，不得擅自离队。<br>6. 如因乙方或学生自身原因造成安全事故，甲方不承担责任。<br>7. 本责任书自家长签字之日起生效，至研学活动结束止。</p>
 <div class="bg-amber-50 rounded-lg p-2.5 mt-2.5 border border-amber-100">
@@ -217,7 +234,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 
 <div class="px-3 mt-3">
 <div class="bg-emerald-50 rounded-xl p-3 border border-emerald-100">
-<p class="text-[10px] text-emerald-700 leading-relaxed"><i class="fas fa-circle-info mr-1"></i>提交后将进入审核流程（1-3个工作日），审核结果将短信通知家长。审核通过后请在研学当日按时到达集合地点。</p>
+<p class="text-[10px] text-emerald-700 leading-relaxed"><i class="fas fa-circle-info mr-1"></i>提交后状态为 <b>审核中</b>（1 个工作日内完成），审核结果将短信通知家长。<br><b>审核通过后</b>需在「我的报名」中在线签署安全责任书，签署完成报名才正式生效；出行前 24 小时可自助取消。</p>
 </div>
 </div>
 
@@ -227,6 +244,30 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <i class="fas fa-paper-plane text-[12px] mr-1"></i>确认提交报名
 </button>
 </div>
+</div>
+
+<!-- Step 4: 提交成功（审核中） -->
+<div class="form-section" id="step4">
+<div class="px-3 mt-4">
+<div class="bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-4 border border-white text-center fade-up">
+<div class="w-16 h-16 rounded-full flex items-center justify-center text-white mx-auto mb-2" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)"><i class="fas fa-hourglass-half text-2xl"></i></div>
+<p class="text-[15px] font-bold text-gray-800 mb-1">报名提交成功，审核中</p>
+<p class="text-[10px] text-gray-400 leading-relaxed mb-3">申请编号 <b style="color:#059669" id="okNo">-</b><br>我们将在 <b>1 个工作日内</b> 完成审核，结果短信通知家长。</p>
+<div class="bg-amber-50 rounded-xl p-3 border border-amber-100 text-left mb-3">
+<p class="text-[10px] font-bold text-amber-800 mb-1.5"><i class="fas fa-pen-to-square mr-1"></i>审核通过后还需完成</p>
+<p class="text-[10px] text-amber-700 leading-relaxed">1. 在「我的报名」中在线签署《研学安全责任书》（家长手写签名）<br>2. 签署完成后生成签到码，出行当日凭码现场签到<br>3. 出行前 24 小时可自助取消</p>
+</div>
+<div class="timeline text-left mb-3 pl-1">
+<div class="tl-item"><div class="tl-dot done"></div><p class="text-[11px] font-bold text-gray-800">提交报名</p><p class="text-[9px] text-gray-400 mt-0.5">已完成</p></div>
+<div class="tl-item"><div class="tl-dot cur"></div><p class="text-[11px] font-bold text-gray-800">平台审核</p><p class="text-[9px] text-gray-400 mt-0.5">进行中 · 1 个工作日内，短信通知结果</p></div>
+<div class="tl-item"><div class="tl-dot"></div><p class="text-[11px] font-bold text-gray-800">签署安全责任书</p><p class="text-[9px] text-gray-400 mt-0.5">待办 · 审核通过后在我的报名中签署</p></div>
+<div class="tl-item"><div class="tl-dot"></div><p class="text-[11px] font-bold text-gray-800">线下研学 · 现场签到</p><p class="text-[9px] text-gray-400 mt-0.5">待办 · 凭签到码到场</p></div>
+</div>
+<a href="study-my.html?id=1" class="inline-block text-[12px] text-white px-5 py-2.5 rounded-full font-bold mr-2" style="background:linear-gradient(135deg,#34D399,#059669)">查看我的报名</a>
+<a href="study-tour.html" class="inline-block text-[12px] text-gray-500 px-5 py-2.5 rounded-full font-bold bg-gray-100">返回研学</a>
+</div>
+</div>
+<div class="h-16"></div>
 </div>
 
 <div class="h-20"></div>
@@ -253,9 +294,86 @@ var routes={
   3:{name:'织袜工艺体验营',img:'images/scene_09.jpg',dates:['2026年9月16日（周日）· 1天','2026年9月23日（周日）· 1天','2026年10月14日（周二）· 1天','2026年10月21日（周二）· 1天']}
 };
 var r=routes[rid]||routes[1];
-document.getElementById('routeName').textContent=r.name;
-document.getElementById('routeDate').textContent=r.dates[dateIdx]||r.dates[0];
 document.getElementById('routeImg').src=r.img;
+
+/* ===== 研学场次：读取后台「场次管理」下发的可用场次 ===== */
+var SEAT_STYLE={'可报名':{bg:'#D1FAE5',color:'#059669'},'仅剩少量':{bg:'#FEF3C7',color:'#D97706'},'已满':{bg:'#F3F4F6',color:'#9CA3AF'}};
+var sess=(STUDY_CFG.sessions&&STUDY_CFG.sessions[rid])||[];
+var curSession=parseInt(dateIdx,10)||0;
+
+function curDateText(){
+  if(sess.length&&sess[curSession]){
+    return sess[curSession].date+'（'+sess[curSession].day+'）· '+r.dates[curSession].split('·')[1].trim();
+  }
+  return r.dates[curSession]||r.dates[0];
+}
+function renderSessions(){
+  document.getElementById('routeDate').textContent=curDateText();
+  var box=document.getElementById('sessionBox');
+  if(!box)return;
+  if(!sess.length){box.innerHTML='<p class="text-[10px] text-gray-400">该路线暂无可报名场次</p>';return}
+  var h='';
+  sess.forEach(function(s,i){
+    var st=SEAT_STYLE[s.status]||SEAT_STYLE['可报名'];
+    var on=i===curSession;
+    h+='<div onclick="pickSession('+i+')" class="card bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-3 border-2 mb-2" style="'+(on?'border-color:#10B981;background:#F0FDF4':'border-color:#fff')+'">';
+    h+='<div class="flex items-center justify-between"><div>';
+    h+='<div class="flex items-center gap-2 mb-0.5"><span class="text-[12px] font-bold text-gray-800">'+s.date+'</span><span class="text-[9px] text-gray-400">'+s.day+'</span></div>';
+    h+='<div class="flex items-center gap-2"><span class="text-[9px] px-2 py-0.5 rounded-full font-bold" style="background:'+st.bg+';color:'+st.color+'">'+s.status+'</span>';
+    h+='<span class="text-[9px] text-gray-400"><i class="fas fa-users mr-0.5"></i>'+(s.left>0?('余'+s.left+'席'):'候补中')+'</span></div></div>';
+    h+= on?'<i class="fas fa-circle-check text-[16px]" style="color:#10B981"></i>':'<i class="far fa-circle text-[16px] text-gray-300"></i>';
+    h+='</div></div>';
+  });
+  box.innerHTML=h;
+}
+function pickSession(i){
+  if(sess[i]&&sess[i].left<=0){toast('该场次名额已满，请改选其他场次');return}
+  curSession=i;
+  renderSessions();
+}
+renderSessions();
+
+/* ===== 安全责任书：读取后台「责任书模板管理」（个人版 7 条），条款可勾选 ===== */
+var clauses=STUDY_CFG.liability.personal;
+var clauseChecked=[];
+function renderClauses(){
+  var box=document.getElementById('clauseBox');
+  if(!box)return;
+  var h='<p class="text-[11px] text-gray-600 leading-relaxed">甲方（研学主办方）：大唐袜业城<br>乙方（学生家长）：_______________</p>';
+  h+='<p class="text-[11px] text-gray-600 leading-relaxed mt-2">为保障研学活动安全顺利开展，乙方作为学生家长/监护人，同意并承诺如下：</p>';
+  h+='<div class="mt-2 space-y-2">';
+  clauses.forEach(function(t,i){
+    h+='<div class="flex items-start gap-2 cursor-pointer" onclick="toggleClause('+i+')">';
+    h+='<i class="fas fa-square text-[13px] mt-0.5" id="clauseIcon'+i+'" style="color:#D1D5DB"></i>';
+    h+='<span class="text-[11px] text-gray-600 leading-relaxed flex-1">'+(i+1)+'. '+t+'</span></div>';
+  });
+  h+='</div>';
+  h+='<div class="flex items-center justify-between mt-2.5 pt-2.5 border-t border-gray-100">';
+  h+='<button type="button" onclick="checkAll(true)" class="text-[10px] text-emerald-700 px-2.5 py-1 rounded-full bg-emerald-50 font-bold">全选</button>';
+  h+='<span class="text-[9px] text-gray-400" id="clauseTip">已阅读 0 / '+clauses.length+' 条</span>';
+  h+='<button type="button" onclick="checkAll(false)" class="text-[10px] text-gray-500 px-2.5 py-1 rounded-full bg-gray-100 font-bold">清空</button></div>';
+  h+='<div class="bg-amber-50 rounded-lg p-2.5 mt-2.5 border border-amber-100"><p class="text-[10px] text-amber-700 leading-relaxed"><i class="fas fa-triangle-exclamation mr-1"></i>请家长逐条阅读并勾选确认，全部勾选后方可手写签名。签署后责任书即生效，不可撤销。</p></div>';
+  box.innerHTML=h;
+  updateClauseUI();
+}
+function toggleClause(i){clauseChecked[i]=!clauseChecked[i];updateClauseUI()}
+function checkAll(v){for(var i=0;i<clauses.length;i++)clauseChecked[i]=v;updateClauseUI()}
+function clausesDone(){
+  for(var i=0;i<clauses.length;i++){if(!clauseChecked[i])return false}
+  return true;
+}
+function updateClauseUI(){
+  var n=0;
+  for(var i=0;i<clauses.length;i++){
+    var on=!!clauseChecked[i];
+    if(on)n++;
+    var ic=document.getElementById('clauseIcon'+i);
+    if(ic){ic.className=on?'fas fa-square-check text-[13px] mt-0.5':'fas fa-square text-[13px] mt-0.5';ic.style.color=on?'#10B981':'#D1D5DB'}
+  }
+  var tip=document.getElementById('clauseTip');
+  if(tip)tip.textContent='已阅读 '+n+' / '+clauses.length+' 条';
+}
+renderClauses();
 
 /* 步骤切换 */
 function updateDots(step){
@@ -286,6 +404,7 @@ function goStep2(){
 
 function backToStep1(){updateDots(1);window.scrollTo(0,0)}
 function goStep3(){
+  if(!clausesDone()){toast('请先逐条阅读并勾选责任书条款');return}
   if(!hasDrawn){toast('请家长先手写签名');return}
   renderConfirm();
   updateDots(3);
@@ -296,7 +415,7 @@ function backToStep2(){updateDots(2);window.scrollTo(0,0);initCanvas()}
 function renderConfirm(){
   var html='';
   html+='<div class="flex justify-between py-1.5 border-b border-gray-100"><span class="text-[11px] text-gray-400">研学路线</span><span class="text-[11px] font-semibold text-gray-800">'+r.name+'</span></div>';
-  html+='<div class="flex justify-between py-1.5 border-b border-gray-100"><span class="text-[11px] text-gray-400">研学日期</span><span class="text-[11px] font-semibold text-gray-800">'+(r.dates[dateIdx]||r.dates[0])+'</span></div>';
+  html+='<div class="flex justify-between py-1.5 border-b border-gray-100"><span class="text-[11px] text-gray-400">研学日期</span><span class="text-[11px] font-semibold text-gray-800">'+curDateText()+'</span></div>';
   html+='<div class="flex justify-between py-1.5 border-b border-gray-100"><span class="text-[11px] text-gray-400">学生姓名</span><span class="text-[11px] font-semibold text-gray-800">'+document.getElementById('stuName').value+'</span></div>';
   html+='<div class="flex justify-between py-1.5 border-b border-gray-100"><span class="text-[11px] text-gray-400">年龄/性别</span><span class="text-[11px] font-semibold text-gray-800">'+document.getElementById('stuAge').value+'岁 · '+document.getElementById('stuGender').value+'</span></div>';
   html+='<div class="flex justify-between py-1.5 border-b border-gray-100"><span class="text-[11px] text-gray-400">学校年级</span><span class="text-[11px] font-semibold text-gray-800">'+document.getElementById('stuSchool').value+' · '+document.getElementById('stuGrade').value+'</span></div>';
@@ -306,8 +425,17 @@ function renderConfirm(){
 }
 
 function submitAll(){
-  toast('报名提交成功，请等待审核');
-  setTimeout(function(){window.location.href='study-tour.html'},2000);
+  var d=new Date();
+  function p(x){return x<10?'0'+x:''+x}
+  var no='YX'+d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'007';
+  var el=document.getElementById('okNo');
+  if(el)el.textContent=no;
+  document.querySelectorAll('.form-section').forEach(function(s){s.classList.remove('active')});
+  for(var i=1;i<=3;i++){var dot=document.getElementById('dot'+i);if(dot){dot.classList.remove('on');dot.classList.add('done')}}
+  for(var j=1;j<=2;j++){document.getElementById('bar'+j).classList.add('done')}
+  document.getElementById('step4').classList.add('active');
+  window.scrollTo(0,0);
+  toast('报名提交成功，审核中');
 }
 
 /* 签名画布 */

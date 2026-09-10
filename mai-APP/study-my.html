@@ -30,6 +30,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 .info-row:last-child{border-bottom:none}
 .info-label{font-size:11px;color:#9CA3AF}
 .info-value{font-size:12px;font-weight:600;color:#1F2430}
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.94);width:300px;background:#fff;border-radius:18px;z-index:400;padding:18px;opacity:0;pointer-events:none;transition:.2s;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.modal.on{opacity:1;transform:translate(-50%,-50%) scale(1);pointer-events:auto}
+.modal-title{font-size:14px;font-weight:800;color:#1F2430;text-align:center}
+.modal-body{font-size:11px;color:#6B7280;line-height:1.7;margin-top:8px;text-align:center}
+.modal-btns{display:flex;gap:10px;margin-top:16px}
+.modal-btns button{flex:1;padding:10px 0;border-radius:999px;font-size:12px;font-weight:700}
+.star{font-size:28px;color:#D1D5DB;cursor:pointer;transition:.15s;padding:0 3px}
+.star.on{color:#FBBF24}
+.review-input{width:100%;border:1.5px solid #E5E7EB;border-radius:12px;padding:10px 12px;font-size:12px;color:#1F2430;outline:none;resize:none}
+.review-input:focus{border-color:#34D399}
+.act-link{display:block;width:100%;text-align:center;font-size:11px;color:#9CA3AF;padding:10px 0}
+.demo-link{font-size:9px;color:#C0C6CF;text-decoration:underline}
 </style>
 </head>
 <body>
@@ -49,6 +61,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <p class="text-white/70 text-[10px] mt-0.5" id="subTitle">查看报名信息 · 签署责任书</p>
 </div>
 </div>
+</div>
+
+<!-- 我的报名 快捷列表 -->
+<div class="px-3 -mt-2 relative z-10">
+  <div class="bg-white/90 backdrop-blur-xl rounded-2xl shadow-soft p-3 border border-white fade-up">
+    <div class="flex items-center gap-1.5 mb-2">
+      <div class="w-6 h-6 rounded-lg flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#F59E0B,#D97706)"><i class="fas fa-list-check text-[10px]"></i></div>
+      <span class="sec-title">我的报名</span>
+    </div>
+    <div class="space-y-2" id="myRegList"></div>
+  </div>
 </div>
 
 <!-- 报名信息卡片 -->
@@ -110,6 +133,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 
 <div class="toast" id="toast"><i class="fas fa-circle-check" style="color:#4ADE80"></i><span id="toastTxt">操作成功</span></div>
 <div class="overlay" id="overlay"></div>
+<div class="modal" id="modal"></div>
 
 <script>
 function toast(msg){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;t.classList.add('on');setTimeout(function(){t.classList.remove('on')},2000)}
@@ -119,10 +143,25 @@ var id=parseInt(urlParams.get('id'))||1;
 var signed=id===1;
 
 var data={
-  1:{type:'personal',title:'智能制造工厂参观',date:'2026年9月15日（周六）· 半天',school:'大唐镇中心小学',people:'1人',contact:'王小明',phone:'138****6688',no:'YX20260915001',stuName:'王小明',stuAge:'10岁',stuGrade:'小学4年级',parentName:'王先生',parentRel:'父亲'},
-  2:{type:'group',title:'袜业博物馆文化游',date:'2026年10月12日（周六）· 2小时',school:'诸暨海亮小学',people:'48人',contact:'赵老师',phone:'139****2266',no:'YX20261012002',leader:'赵老师',leaderRole:'带队负责人'}
+  1:{type:'personal',title:'智能制造工厂参观',date:'2026年9月15日（周六）· 半天',school:'大唐镇中心小学',people:'1人',contact:'王小明',phone:'138****6688',no:'YX20260915001',stuName:'王小明',stuAge:'10岁',stuGrade:'小学4年级',parentName:'王先生',parentRel:'父亲',startAt:'2026-09-15T09:00:00',endAt:'2026-09-15T12:00:00'},
+  2:{type:'group',title:'袜业博物馆文化游',date:'2026年10月12日（周六）· 2小时',school:'诸暨海亮小学',people:'48人',contact:'赵老师',phone:'139****2266',no:'YX20261012002',leader:'赵老师',leaderRole:'带队负责人',startAt:'2026-10-12T09:00:00',endAt:'2026-10-12T11:00:00'}
 };
 var d=data[id]||data[1];
+
+/* ===== 报名单状态（对应后台状态机 14a-5.1） =====
+   unsigned  已通过（待签署）
+   signed    已签署（待出行）
+   checkedin 已签到
+   completed 已完成（已评价）
+   cancelled 已取消
+*/
+var state={status:signed?'signed':'unsigned',checkedInAt:'',over:false,review:null};
+var STORE_KEY='studyRegState_'+id;
+try{
+  var raw=localStorage.getItem(STORE_KEY);
+  if(raw){var sv=JSON.parse(raw);if(sv&&sv.status)state=sv;}
+}catch(e){}
+function saveState(){try{localStorage.setItem(STORE_KEY,JSON.stringify(state))}catch(e){}}
 
 /* 渲染报名信息 */
 document.getElementById('regTitle').textContent=d.title;
@@ -139,45 +178,263 @@ if(d.type==='personal'){
   infoHtml+=infoRow('家长',d.parentName+' ('+d.parentRel+')');
   infoHtml+=infoRow('联系电话',d.phone);
   infoHtml+=infoRow('申请编号',d.no);
-  infoHtml+=infoRow('审核状态','<span style="color:#059669">审核通过</span>');
+  infoHtml+=infoRow('审核状态','<span id="auditStatusRow"><span style="color:#059669">审核通过</span></span>');
 }else{
   infoHtml+=infoRow('学校',d.school);
   infoHtml+=infoRow('人数',d.people);
   infoHtml+=infoRow('负责人',d.contact);
   infoHtml+=infoRow('联系电话',d.phone);
   infoHtml+=infoRow('申请编号',d.no);
-  infoHtml+=infoRow('审核状态','<span style="color:#059669">审核通过</span>');
+  infoHtml+=infoRow('审核状态','<span id="auditStatusRow"><span style="color:#059669">审核通过</span></span>');
 }
 document.getElementById('regInfo').innerHTML=infoHtml;
 
-if(signed){
-  /* 已签署 */
-  document.getElementById('statusBadge').innerHTML='<span class="text-[9px] px-2 py-0.5 rounded-full font-bold" style="background:#D1FAE5;color:#059669">已签署</span>';
-  document.getElementById('topBg').style.background='linear-gradient(135deg,#34D399 0%,#10B981 40%,#059669 100%)';
-  document.getElementById('subTitle').textContent='责任书已签署 · 等待出行';
-  document.getElementById('progress2').style.background='#10B981';
-  document.getElementById('progress3').style.background='#10B981';
-  document.getElementById('progress3Bg').style.background='#10B981';
-  document.getElementById('progress3Icon').className='fas fa-check text-sm';
-  document.getElementById('progress3Text').className='text-[9px] mt-1.5 step-done font-semibold';
-  document.getElementById('progress3Text').textContent='已签署';
-  document.getElementById('progress4Bg').style.background='#FEF3C7';
-  document.getElementById('progress4Icon').className='fas fa-person-walking text-sm';
-  document.getElementById('progress4Icon').style.color='#D97706';
-  document.getElementById('progress4Text').className='text-[9px] mt-1.5 step-current font-semibold';
-  document.getElementById('progress4Text').textContent='待出行';
-  renderSigned();
-}else{
-  /* 未签署 */
-  document.getElementById('statusBadge').innerHTML='<span class="text-[9px] px-2 py-0.5 rounded-full font-bold" style="background:#FEF3C7;color:#D97706">未签署</span>';
-  document.getElementById('topBg').style.background='linear-gradient(135deg,#FBBF24 0%,#F59E0B 40%,#D97706 100%)';
-  document.getElementById('subTitle').textContent='请尽快签署安全责任书';
-  document.getElementById('progress2').style.background='#FDE68A';
-  document.getElementById('progress3Bg').style.background='#F59E0B';
-  document.getElementById('progress3Text').className='text-[9px] mt-1.5 step-current font-semibold';
-  document.getElementById('bottomTip').innerHTML='<i class="fas fa-pen-to-square mr-1" style="color:#F59E0B"></i>请签署责任书后完成报名';
-  renderUnsigned();
+/* ===== 状态驱动渲染 ===== */
+function renderPage(){
+  var st=state.status;
+
+  /* 顶部主色与副标题 */
+  var themes={
+    unsigned:{bg:'linear-gradient(135deg,#FBBF24 0%,#F59E0B 40%,#D97706 100%)',sub:'审核已通过 · 请签署安全责任书',tip:'<i class="fas fa-pen-to-square mr-1" style="color:#F59E0B"></i>请签署责任书后完成报名'},
+    signed:{bg:'linear-gradient(135deg,#34D399 0%,#10B981 40%,#059669 100%)',sub:'责任书已签署 · 等待出行',tip:'<i class="fas fa-headset mr-1" style="color:#10B981"></i>咨询热线 0575-8742xxxx'},
+    checkedin:{bg:'linear-gradient(135deg,#38BDF8 0%,#3B82F6 40%,#2563EB 100%)',sub:'已签到 · 研学中',tip:'<i class="fas fa-headset mr-1" style="color:#3B82F6"></i>咨询热线 0575-8742xxxx'},
+    completed:{bg:'linear-gradient(135deg,#A78BFA 0%,#8B5CF6 40%,#7C3AED 100%)',sub:'研学已完成 · 感谢参与',tip:'<i class="fas fa-headset mr-1" style="color:#8B5CF6"></i>咨询热线 0575-8742xxxx'},
+    cancelled:{bg:'linear-gradient(135deg,#9CA3AF 0%,#6B7280 40%,#4B5563 100%)',sub:'报名已取消 · 名额已释放',tip:'<i class="fas fa-headset mr-1" style="color:#6B7280"></i>如需重新报名请咨询 0575-8742xxxx'}
+  };
+  var th=themes[st]||themes.unsigned;
+  document.getElementById('topBg').style.background=th.bg;
+  document.getElementById('subTitle').textContent=th.sub;
+  document.getElementById('bottomTip').innerHTML=th.tip;
+
+  /* 状态徽标 */
+  var badges={
+    unsigned:'<span class="text-[9px] px-2 py-0.5 rounded-full font-bold" style="background:#FEF3C7;color:#D97706">待签署</span>',
+    signed:'<span class="text-[9px] px-2 py-0.5 rounded-full font-bold" style="background:#D1FAE5;color:#059669">已签署</span>',
+    checkedin:'<span class="text-[9px] px-2 py-0.5 rounded-full font-bold" style="background:#DBEAFE;color:#2563EB">已签到</span>',
+    completed:'<span class="text-[9px] px-2 py-0.5 rounded-full font-bold" style="background:#EDE9FE;color:#7C3AED">已完成</span>',
+    cancelled:'<span class="text-[9px] px-2 py-0.5 rounded-full font-bold" style="background:#F3F4F6;color:#6B7280">已取消</span>'
+  };
+  document.getElementById('statusBadge').innerHTML=badges[st]||badges.unsigned;
+
+  /* 审核状态行 */
+  var auditEl=document.getElementById('auditStatusRow');
+  if(auditEl){
+    var audit=st==='cancelled'?'<span style="color:#6B7280">已取消</span>':'<span style="color:#059669">审核通过</span>';
+    auditEl.innerHTML='<span class="info-value">'+audit+'</span>';
+  }
+
+  /* 进度条第 3 段（签署） */
+  var step3Done=(st==='signed'||st==='checkedin'||st==='completed');
+  document.getElementById('progress2').style.background=step3Done?'#10B981':'#FDE68A';
+  document.getElementById('progress3Bg').style.background=step3Done?'#10B981':'#F59E0B';
+  document.getElementById('progress3Icon').className=step3Done?'fas fa-check text-sm':'fas fa-pen-nib text-sm';
+  document.getElementById('progress3Text').className='text-[9px] mt-1.5 font-semibold '+(step3Done?'step-done':'step-current');
+  document.getElementById('progress3Text').textContent=step3Done?'已签署':'签署责任书';
+
+  /* 进度条第 4 节点（线下研学 / 已签到 / 已完成） */
+  var p4={
+    unsigned:{bg:'#E5E7EB',icon:'fas fa-person-walking text-sm',color:'#9CA3AF',cls:'step-pending',text:'线下研学'},
+    signed:{bg:'#FEF3C7',icon:'fas fa-person-walking text-sm',color:'#D97706',cls:'step-current',text:'待出行'},
+    checkedin:{bg:'#3B82F6',icon:'fas fa-check text-sm',color:'#fff',cls:'step-done',text:'已签到'},
+    completed:{bg:'#8B5CF6',icon:'fas fa-check text-sm',color:'#fff',cls:'step-done',text:'已完成'},
+    cancelled:{bg:'#E5E7EB',icon:'fas fa-ban text-sm',color:'#9CA3AF',cls:'step-pending',text:'已取消'}
+  }[st]||{};
+  document.getElementById('progress4Bg').style.background=p4.bg;
+  document.getElementById('progress4Icon').className=p4.icon;
+  document.getElementById('progress4Icon').style.color=p4.color;
+  document.getElementById('progress4Text').className='text-[9px] mt-1.5 font-semibold '+p4.cls;
+  document.getElementById('progress4Text').textContent=p4.text;
+  document.getElementById('progress3').style.background=(st==='checkedin'||st==='completed')?'#10B981':(step3Done?'#E5E7EB':'#E5E7EB');
+
+  /* 内容区 */
+  if(st==='unsigned')renderUnsigned();
+  else if(st==='cancelled')renderCancelled();
+  else renderSigned();
 }
+
+/* 距离出发还有多少小时 */
+function hoursToStart(){
+  var t=new Date(d.startAt).getTime();
+  return (t-Date.now())/3600000;
+}
+/* 是否已过活动结束时间（或演示中手动标记结束） */
+function isOver(){
+  if(state.over)return true;
+  return Date.now()>new Date(d.endAt).getTime();
+}
+/* 是否允许自助取消（出行前 24 小时） */
+function canCancel(){
+  return (state.status==='unsigned'||state.status==='signed') && hoursToStart()>24;
+}
+
+/* ===== 取消报名 ===== */
+function askCancel(){
+  if(!canCancel()){
+    showModal({
+      title:'暂不支持自助取消',
+      body:'出行前 24 小时内不可自助取消，如需取消请联系研学顾问 0575-8742xxxx。',
+      okText:'我知道了',
+      hideCancel:true
+    });
+    return;
+  }
+  showModal({
+    title:'确认取消报名？',
+    body:'取消后名额将立即释放，不可恢复。<br>取消规则：出行前 24 小时可自助取消。',
+    okText:'确认取消',
+    danger:true,
+    onOk:function(){
+      state.status='cancelled';
+      saveState();
+      renderPage();
+      toast('报名已取消，名额已释放');
+    }
+  });
+}
+
+function renderCancelled(){
+  var again=d.type==='personal'?'study-personal.html':'study-apply.html';
+  var html='<div class="px-3 mt-3">';
+  html+='<div class="bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-5 border border-white text-center">';
+  html+='<div class="w-16 h-16 rounded-full flex items-center justify-center text-white mx-auto mb-2" style="background:#9CA3AF"><i class="fas fa-ban text-2xl"></i></div>';
+  html+='<p class="text-[14px] font-bold text-gray-800 mb-1">该报名已取消</p>';
+  html+='<p class="text-[10px] text-gray-400 leading-relaxed mb-3">申请编号 '+d.no+' 的名额已释放。<br>如仍需参加研学，可重新提交报名。</p>';
+  html+='<a href="'+again+'" class="inline-block text-[12px] text-white px-5 py-2.5 rounded-full font-bold" style="background:linear-gradient(135deg,#34D399,#059669)">重新报名</a> ';
+  html+='<a href="study-tour.html" class="inline-block text-[12px] text-gray-500 px-5 py-2.5 rounded-full font-bold bg-gray-100">返回研学</a>';
+  html+='</div></div>';
+  document.getElementById('contentArea').innerHTML=html;
+}
+
+/* ===== 现场扫码签到（模拟） ===== */
+function doCheckin(){
+  showModal({
+    title:'扫码签到',
+    body:'请在集合地点扫描现场签到二维码。<br>（演示）点击下方按钮模拟签到成功。',
+    okText:'模拟签到成功',
+    onOk:function(){
+      state.status='checkedin';
+      state.checkedInAt=fmtNow();
+      saveState();
+      renderPage();
+      toast('签到成功');
+    }
+  });
+}
+
+/* ===== 评价 ===== */
+function markOver(){
+  state.over=true;
+  saveState();
+  renderPage();
+  toast('研学已结束，可提交评价');
+}
+
+function openReview(){
+  var html='<div class="text-center"><p class="text-[12px] font-bold text-gray-800">本次研学体验如何？</p>';
+  html+='<div class="flex justify-center gap-1 mt-3" id="starBox">';
+  for(var i=1;i<=5;i++)html+='<i class="far fa-star star" data-v="'+i+'" onclick="setStar('+i+')"></i>';
+  html+='</div>';
+  html+='<p class="text-[10px] text-gray-400 mt-2" id="starLabel">请选择星级</p>';
+  html+='<textarea class="review-input mt-3" rows="4" id="reviewText" placeholder="说说本次研学的收获与建议（选填）"></textarea>';
+  html+='<p class="text-[9px] text-gray-400 mt-2 text-left">评价提交后需平台审核，精选后将展示在路线页「精选留言」。</p></div>';
+  showModal({
+    title:'研学评价',
+    body:html,
+    okText:'提交评价',
+    onOk:function(){
+      if(!curStar){toast('请先选择星级');return false}
+      var txt=(document.getElementById('reviewText')||{}).value||'';
+      state.review={star:curStar,text:txt.trim(),time:fmtNow()};
+      state.status='completed';
+      saveState();
+      renderPage();
+      toast('评价提交成功，待审核');
+      return true;
+    }
+  });
+}
+
+var curStar=0;
+function setStar(v){
+  curStar=v;
+  var stars=document.querySelectorAll('#starBox .star');
+  for(var i=0;i<stars.length;i++){
+    var sv=parseInt(stars[i].dataset.v,10);
+    if(sv<=v){stars[i].className='fas fa-star star on'}else{stars[i].className='far fa-star star'}
+  }
+  var labels=['','很不满意','不太满意','一般','满意','非常满意'];
+  var lb=document.getElementById('starLabel');
+  if(lb)lb.textContent=v+' 星 · '+labels[v];
+}
+
+function fmtNow(){
+  var n=new Date();
+  function p(x){return x<10?'0'+x:''+x}
+  return n.getFullYear()+'-'+p(n.getMonth()+1)+'-'+p(n.getDate())+' '+p(n.getHours())+':'+p(n.getMinutes());
+}
+
+/* ===== 通用确认弹窗 ===== */
+function showModal(opt){
+  var m=document.getElementById('modal');
+  var ov=document.getElementById('overlay');
+  var btns='';
+  if(!opt.hideCancel)btns+='<button onclick="closeModal()" style="background:#F3F4F6;color:#6B7280">取消</button>';
+  btns+='<button id="modalOk" style="background:'+(opt.danger?'linear-gradient(135deg,#F87171,#EF4444)':'linear-gradient(135deg,#34D399,#059669)')+';color:#fff">'+(opt.okText||'确定')+'</button>';
+  m.innerHTML='<p class="modal-title">'+(opt.title||'')+'</p><div class="modal-body">'+(opt.body||'')+'</div><div class="modal-btns">'+btns+'</div>';
+  m.classList.add('on');ov.classList.add('on');
+  document.getElementById('modalOk').onclick=function(){
+    if(opt.onOk&&opt.onOk()===false)return;
+    closeModal();
+  };
+}
+function closeModal(){
+  document.getElementById('modal').classList.remove('on');
+  document.getElementById('overlay').classList.remove('on');
+}
+document.getElementById('overlay').onclick=function(){closeModal()};
+
+/* 跳转到签名区 */
+function scrollToSign(){
+  var el=document.getElementById('signArea');
+  if(!el)return;
+  el.scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+renderPage();
+
+/* ===== 我的报名 快捷列表（顶部概览；待签署项提供“去签署”入口，复用责任书 7 条个人版） ===== */
+var MY_REG=[
+  {id:1,type:'个人',title:'智能制造工厂参观',date:'2026年9月15日 · 半天',sub:'王小明 · 大唐镇中心小学'},
+  {id:2,type:'团体',title:'袜业博物馆文化游',date:'2026年10月12日 · 2小时',sub:'48人 · 诸暨海亮小学'}
+];
+var REG_BADGE={
+  signed:{t:'已签署',bg:'#D1FAE5',c:'#059669'},
+  unsigned:{t:'待签署',bg:'#FEF3C7',c:'#D97706'},
+  checkedin:{t:'已签到',bg:'#DBEAFE',c:'#2563EB'},
+  completed:{t:'已完成',bg:'#EDE9FE',c:'#7C3AED'},
+  cancelled:{t:'已取消',bg:'#F3F4F6',c:'#6B7280'}
+};
+function renderMyRegList(){
+  var box=document.getElementById('myRegList');if(!box)return;var h='';
+  MY_REG.forEach(function(m){
+    var st='signed';
+    try{var raw=localStorage.getItem('studyRegState_'+m.id);if(raw){var sv=JSON.parse(raw);if(sv&&sv.status)st=sv.status;}}catch(e){}
+    var s=REG_BADGE[st]||REG_BADGE.signed;
+    var typeBg=m.type==='个人'?'background:#DBEAFE;color:#2563EB':'background:#EDE9FE;color:#7C3AED';
+    h+='<div class="flex items-center gap-2.5 p-2 rounded-xl" style="background:#F8FAFC">';
+    h+='<div class="flex-1 min-w-0"><div class="flex items-center gap-1.5"><p class="text-[12px] font-bold text-gray-800 truncate">'+m.title+'</p>';
+    h+='<span class="text-[8px] px-1.5 py-0.5 rounded font-bold" style="'+typeBg+'">'+m.type+'</span></div>';
+    h+='<p class="text-[9px] text-gray-400 mt-0.5">'+m.date+' · '+m.sub+'</p></div>';
+    if(st==='unsigned'){
+      h+='<a href="study-my.html?id='+m.id+'" class="text-[10px] text-white px-3 py-1.5 rounded-full font-bold flex-shrink-0" style="background:linear-gradient(135deg,#F59E0B,#D97706)">去签署</a>';
+    }else{
+      h+='<span class="text-[9px] px-2 py-0.5 rounded-full font-bold flex-shrink-0" style="background:'+s.bg+';color:'+s.c+'">'+s.t+'</span>';
+    }
+    h+='</div>';
+  });
+  box.innerHTML=h;
+}
+renderMyRegList();
 
 function renderSigned(){
   var isPersonal=d.type==='personal';
@@ -214,11 +471,51 @@ function renderSigned(){
   html+='<div class="bg-gradient-to-br from-emerald-50 to-white rounded-2xl shadow-soft p-4 border border-emerald-100 text-center">';
   html+='<div class="w-32 h-32 mx-auto mb-2 rounded-xl flex items-center justify-center" style="background:#fff;box-shadow:0 4px 12px rgba(5,150,105,.1)"><div class="grid grid-cols-6 gap-0.5 p-1.5" id="qrGrid"></div></div>';
   html+='<p class="text-[11px] font-bold text-gray-800 mb-0.5">研学签到码</p>';
-  html+='<p class="text-[9px] text-gray-400">到场后出示此二维码完成签到</p>';
+  html+='<p class="text-[9px] text-gray-400">到场后出示此二维码完成扫码签到</p>';
+  if(state.status==='signed'){
+    html+='<button onclick="doCheckin()" class="w-full mt-3 py-2.5 rounded-full text-white font-bold text-[12px]" style="background:linear-gradient(135deg,#38BDF8,#2563EB)"><i class="fas fa-qrcode text-[11px] mr-1"></i>（演示）模拟扫码签到</button>';
+  }
   html+='</div></div>';
+
+  /* 已签到 / 已完成状态卡 */
+  if(state.status==='checkedin'||state.status==='completed'){
+    html+=renderStudyEndCard();
+  }
+
+  /* 取消报名 */
+  if(canCancel()){
+    html+='<div class="px-3"><button class="act-link" onclick="askCancel()"><i class="fas fa-times-circle mr-1"></i>取消报名</button>';
+    html+='<p class="text-[9px] text-gray-300 text-center pb-2">出行前 24 小时可自助取消，逾期请联系研学顾问</p></div>';
+  }
 
   document.getElementById('contentArea').innerHTML=html;
   renderQR();
+}
+
+/* 已签到 / 已完成状态卡（含评价入口） */
+function renderStudyEndCard(){
+  var h='<div class="px-3 mb-2"><div class="bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-4 border border-white">';
+  if(state.status==='checkedin'){
+    h+='<div class="flex items-center gap-2.5 mb-2"><div class="w-10 h-10 rounded-full flex items-center justify-center text-white" style="background:linear-gradient(135deg,#38BDF8,#2563EB)"><i class="fas fa-circle-check"></i></div><div><p class="text-[13px] font-bold text-gray-800">已签到</p><p class="text-[9px] text-gray-400">签到时间：'+state.checkedInAt+'</p></div></div>';
+    if(isOver()){
+      h+='<p class="text-[11px] text-gray-600 mb-2.5">研学已完成，欢迎为本次研学留下评价（1-5 星 + 文字）。</p>';
+      h+='<button onclick="openReview()" class="w-full py-2.5 rounded-full text-white font-bold text-[13px]" style="background:linear-gradient(135deg,#A78BFA,#7C3AED)"><i class="fas fa-star text-[11px] mr-1"></i>去评价</button>';
+    }else{
+      h+='<p class="text-[11px] text-gray-600 mb-1">研学进行中，活动结束后即可提交评价。</p>';
+      h+='<button class="demo-link" onclick="markOver()">（演示）标记活动结束</button>';
+    }
+  }else{
+    var rv=state.review||{star:5,text:'',time:''};
+    var stars='';
+    for(var i=1;i<=5;i++)stars+='<i class="'+(i<=rv.star?'fas':'far')+' fa-star text-[12px]" style="color:#FBBF24"></i>';
+    h+='<div class="flex items-center gap-2.5 mb-2"><div class="w-10 h-10 rounded-full flex items-center justify-center text-white" style="background:linear-gradient(135deg,#A78BFA,#7C3AED)"><i class="fas fa-flag-checkered"></i></div><div><p class="text-[13px] font-bold text-gray-800">研学已完成</p><p class="text-[9px] text-gray-400">签到时间：'+state.checkedInAt+'</p></div></div>';
+    h+='<div class="bg-gray-50 rounded-xl p-3">';
+    h+='<div class="flex items-center gap-1">'+stars+'<span class="text-[9px] text-gray-400 ml-1.5">'+rv.star+'.0</span></div>';
+    if(rv.text)h+='<p class="text-[11px] text-gray-600 mt-2 leading-relaxed">'+rv.text+'</p>';
+    h+='<p class="text-[9px] text-gray-400 mt-2">提交时间：'+rv.time+' · <span style="color:#D97706">待平台审核</span></p>';
+    h+='</div>';
+  }
+  return h+'</div></div>';
 }
 
 function renderQR(){
@@ -244,7 +541,15 @@ function renderUnsigned(){
     ?'<i class="fas fa-triangle-exclamation mr-1"></i>请家长仔细阅读以上条款，确认无误后在下方手写签名。签署后责任书即生效，不可撤销。'
     :'<i class="fas fa-triangle-exclamation mr-1"></i>请负责人仔细阅读以上条款，确认无误后在下方手写签名。签署后责任书即生效。';
 
-  var html='<div class="px-3 mt-3">';
+  var html='';
+  /* 签署引导入口 */
+  html+='<div class="px-3 mt-3"><div class="bg-amber-50 rounded-2xl p-3 border border-amber-200 flex items-center gap-2.5">';
+  html+='<div class="w-9 h-9 rounded-full flex items-center justify-center text-white flex-shrink-0" style="background:linear-gradient(135deg,#FBBF24,#D97706)"><i class="fas fa-pen-to-square text-[12px]"></i></div>';
+  html+='<div class="flex-1"><p class="text-[11px] font-bold text-amber-800">审核已通过，还需签署安全责任书</p><p class="text-[9px] text-amber-700 mt-0.5">签署后报名才生效，出行前 3 天 / 1 天会有短信提醒</p></div>';
+  html+='<button onclick="scrollToSign()" class="text-[11px] text-white font-bold px-3 py-1.5 rounded-full flex-shrink-0" style="background:linear-gradient(135deg,#F59E0B,#D97706)">立即签署</button>';
+  html+='</div></div>';
+
+  html+='<div class="px-3 mt-3">';
   html+='<div class="flex items-center gap-1.5 mb-2.5"><div class="w-6 h-6 rounded-lg flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#F59E0B,#D97706)"><i class="fas fa-file-signature text-[10px]"></i></div><span class="sec-title">安全责任书</span><span class="text-[9px] px-2 py-0.5 rounded-full font-bold ml-1" style="background:#FEF3C7;color:#D97706">待签署</span></div>';
   html+='<div class="bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-3.5 border border-amber-100">';
   html+='<p class="text-[11px] text-gray-600 leading-relaxed">甲方（研学主办方）：大唐袜业城<br>'+partyB+'</p>';
@@ -253,7 +558,7 @@ function renderUnsigned(){
   html+='</div></div>';
 
   /* 签名区 */
-  html+='<div class="px-3 mt-3">';
+  html+='<div class="px-3 mt-3" id="signArea">';
   html+='<div class="flex items-center gap-1.5 mb-2.5"><div class="w-6 h-6 rounded-lg flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#F59E0B,#D97706)"><i class="fas fa-signature text-[10px]"></i></div><span class="sec-title">'+signerTitle+'</span></div>';
   html+='<div class="bg-white/90 backdrop-blur-xl rounded-2xl shadow-soft p-3 border-2 border-dashed border-amber-300">';
   html+='<div class="text-center mb-2"><p class="text-[10px] text-gray-400">'+signerHint+'</p></div>';
@@ -265,6 +570,12 @@ function renderUnsigned(){
   html+='</div>';
   html+='<button onclick="submitSign()" class="w-full mt-3 py-3 rounded-full text-white font-bold text-[14px] shadow-card" style="background:linear-gradient(135deg,#34D399,#059669)"><i class="fas fa-check-circle text-[12px] mr-1"></i>确认签署并提交</button>';
   html+='</div>';
+
+  /* 取消报名 */
+  if(canCancel()){
+    html+='<div class="px-3 mt-1"><button class="act-link" onclick="askCancel()"><i class="fas fa-times-circle mr-1"></i>取消报名</button>';
+    html+='<p class="text-[9px] text-gray-300 text-center pb-2">出行前 24 小时可自助取消，逾期请联系研学顾问</p></div>';
+  }
 
   document.getElementById('contentArea').innerHTML=html;
   initCanvas();
@@ -345,21 +656,9 @@ function submitSign(){
   setTimeout(function(){
     overlay.classList.remove('on');
     signed=true;
-    document.getElementById('statusBadge').innerHTML='<span class="text-[9px] px-2 py-0.5 rounded-full font-bold" style="background:#D1FAE5;color:#059669">已签署</span>';
-    document.getElementById('topBg').style.background='linear-gradient(135deg,#34D399 0%,#10B981 40%,#059669 100%)';
-    document.getElementById('subTitle').textContent='责任书已签署 · 等待出行';
-    document.getElementById('progress2').style.background='#10B981';
-    document.getElementById('progress3').style.background='#10B981';
-    document.getElementById('progress3Bg').style.background='#10B981';
-    document.getElementById('progress3Icon').className='fas fa-check text-sm';
-    document.getElementById('progress3Text').className='text-[9px] mt-1.5 step-done font-semibold';
-    document.getElementById('progress3Text').textContent='已签署';
-    document.getElementById('progress4Bg').style.background='#FEF3C7';
-    document.getElementById('progress4Icon').style.color='#D97706';
-    document.getElementById('progress4Text').className='text-[9px] mt-1.5 step-current font-semibold';
-    document.getElementById('progress4Text').textContent='待出行';
-    document.getElementById('bottomTip').innerHTML='<i class="fas fa-headset mr-1" style="color:#10B981"></i>咨询热线 0575-8742xxxx';
-    renderSigned();
+    state.status='signed';
+    saveState();
+    renderPage();
   },1500);
 }
 </script>

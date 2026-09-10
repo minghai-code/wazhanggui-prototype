@@ -6,6 +6,7 @@
 <title>研学申请 - 袜掌柜买家版</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="backend-config.js"></script>
 <script>
 tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D','primary-d':'#E63E20','primary-l':'#FF7849'}}}}
 </script>
@@ -71,6 +72,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </div>
 </div>
 
+<!-- 站内消息（后台改期/审核结果通知） -->
+<div class="px-3 mt-3" id="noticeBar"></div>
+
 <!-- 我的研学 -->
 <div class="px-3 mt-4">
 <div class="flex items-center justify-between mb-2.5">
@@ -80,7 +84,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </div>
 <span class="sec-more">全部 <i class="fas fa-chevron-right text-[9px]"></i></span>
 </div>
-<div class="space-y-2.5">
+<div class="space-y-2.5" id="myStudyList">
 <a href="study-my.html?id=1" class="card block bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-3 border border-white fade-up">
 <div class="flex items-start justify-between mb-2">
 <div class="flex-1">
@@ -127,7 +131,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </div>
 <span class="sec-more">更多 <i class="fas fa-chevron-right text-[9px]"></i></span>
 </div>
-<div class="h-scroll px-3 pb-1">
+<div class="h-scroll px-3 pb-1" id="routeList">
 <a href="study-route.html?id=1" class="card w-[230px] bg-white/85 backdrop-blur-xl rounded-2xl overflow-hidden shadow-soft border border-white fade-up block">
 <img src="images/machine_03.jpg" class="w-full h-[110px] object-cover">
 <div class="p-2.5">
@@ -173,7 +177,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#10B981,#34D399)"><i class="fas fa-building text-xs"></i></div>
 <span class="sec-title">研学基地</span>
 </div>
-<div class="space-y-2.5">
+<div class="space-y-2.5" id="baseList">
 <div class="card bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-2.5 flex gap-2.5 border border-white">
 <img src="images/scene_10.jpg" class="w-[72px] h-[72px] rounded-xl object-cover">
 <div class="flex-1 min-w-0">
@@ -259,5 +263,121 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </div>
 <div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none"><div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:3px"></div></div>
 
+<script>
+/* ===== 后台配置消费：改期通知 / 我的研学 / 精选路线（含上下架·名额状态） / 研学基地（含启停用） ===== */
+var ROUTE_BASE={
+  1:{title:'智能制造工厂参观',img:'images/machine_03.jpg',tag:'工艺体验',tagBg:'linear-gradient(90deg,#34D399,#059669)',duration:'半天',group:'20-50人',desc:'全自动化生产线参观·织袜工艺体验'},
+  2:{title:'袜业博物馆文化游',img:'images/scene_14.jpg',tag:'文化课堂',tagBg:'linear-gradient(90deg,#FF8A4C,#FF4D2D)',duration:'2小时',group:'30-80人',desc:'袜业发展史·文化科普·互动体验'},
+  3:{title:'织袜工艺体验营',img:'images/scene_09.jpg',tag:'工厂参观',tagBg:'linear-gradient(90deg,#38BDF8,#3B82F6)',duration:'1天',group:'15-40人',desc:'亲手织袜·设计专属袜品·带走纪念'}
+};
+var MY_STUDY={
+  1:{id:1,type:'个人',title:'智能制造工厂参观',dateText:'2026年9月15日 · 半天',people:'王小明',school:'大唐镇中心小学'},
+  2:{id:2,type:'团体',title:'袜业博物馆文化游',dateText:'2026年10月12日 · 2小时',people:'48人',school:'诸暨海亮小学'}
+};
+var SEAT_STYLE={'可报名':{bg:'#D1FAE5',color:'#059669'},'仅剩少量':{bg:'#FEF3C7',color:'#D97706'},'已满':{bg:'#F3F4F6',color:'#9CA3AF'}};
+var STATUS_STYLE={
+  unsigned:{text:'待签署',bg:'#FEF3C7',color:'#D97706',tip:'待负责人签署'},
+  signed:{text:'已签署',bg:'#D1FAE5',color:'#059669',tip:'待出行'},
+  checkedin:{text:'已签到',bg:'#DBEAFE',color:'#2563EB',tip:'研学中'},
+  completed:{text:'已完成',bg:'#EDE9FE',color:'#7C3AED',tip:'已评价'},
+  cancelled:{text:'已取消',bg:'#F3F4F6',color:'#6B7280',tip:'名额已释放'}
+};
+
+/* --- 站内消息：后台改期通知 --- */
+function renderNotice(){
+  var box=document.getElementById('noticeBar');
+  if(!box)return;
+  var rc=STUDY_CFG.reschedule;
+  if(!rc||!rc.on)return;
+  var read=false;
+  try{read=localStorage.getItem('studyNoticeRead')===rc.id}catch(e){}
+  if(read)return;
+  box.innerHTML='<div class="bg-amber-50 rounded-2xl p-3 border border-amber-200 flex items-start gap-2.5 fade-up">'
+    +'<div class="w-8 h-8 rounded-full flex items-center justify-center text-white flex-shrink-0" style="background:linear-gradient(135deg,#FBBF24,#D97706)"><i class="fas fa-calendar-rotate text-[11px]"></i></div>'
+    +'<div class="flex-1"><div class="flex items-center gap-1.5"><p class="text-[11px] font-bold text-amber-800">'+rc.title+'</p><span class="text-[8px] px-1.5 py-0.5 rounded-full font-bold" style="background:#FDE68A;color:#B45309">新</span></div>'
+    +'<p class="text-[9px] text-amber-700 mt-1 leading-relaxed">'+rc.content+'</p>'
+    +'<p class="text-[8px] text-amber-600/70 mt-1">'+rc.time+'</p></div>'
+    +'<button onclick="dismissNotice()" class="text-[9px] text-amber-700 px-2 py-1 rounded-full bg-amber-100 flex-shrink-0">知道了</button></div>';
+}
+function dismissNotice(){
+  try{localStorage.setItem('studyNoticeRead',STUDY_CFG.reschedule.id)}catch(e){}
+  var box=document.getElementById('noticeBar');
+  if(box)box.innerHTML='';
+}
+
+/* --- 我的研学：状态读本地报名单状态 --- */
+function renderMyStudy(){
+  var box=document.getElementById('myStudyList');
+  if(!box)return;
+  var html='';
+  [1,2].forEach(function(i){
+    var m=MY_STUDY[i],st='signed';
+    try{
+      var raw=localStorage.getItem('studyRegState_'+i);
+      if(raw){var sv=JSON.parse(raw);if(sv&&sv.status)st=sv.status;}
+    }catch(e){}
+    var s=STATUS_STYLE[st]||STATUS_STYLE.signed;
+    var typeBg=m.type==='个人'?'background:#DBEAFE;color:#2563EB':'background:#EDE9FE;color:#7C3AED';
+    html+='<a href="study-my.html?id='+m.id+'" class="card block bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-3 border border-white fade-up">';
+    html+='<div class="flex items-start justify-between mb-2"><div class="flex-1"><div class="flex items-center gap-1.5">';
+    html+='<p class="text-[13px] font-bold text-gray-800">'+m.title+'</p><span class="text-[8px] px-1.5 py-0.5 rounded font-bold" style="'+typeBg+'">'+m.type+'</span></div>';
+    html+='<p class="text-[10px] text-gray-400 mt-0.5">研学日期：'+m.dateText+'</p></div>';
+    html+='<span class="text-[9px] px-2 py-0.5 rounded-full font-bold" style="background:'+s.bg+';color:'+s.color+'">'+s.text+'</span></div>';
+    html+='<div class="flex items-center gap-2 text-[9px]"><span class="text-gray-400"><i class="fas fa-user mr-0.5"></i>'+m.people+'</span>';
+    html+='<span class="text-gray-400"><i class="fas fa-school mr-0.5"></i>'+m.school+'</span>';
+    html+='<span style="color:'+s.color+'"><i class="fas fa-circle-info mr-0.5"></i>'+s.tip+'</span></div></a>';
+  });
+  box.innerHTML=html;
+}
+
+/* --- 精选研学路线：只展示在售路线，并展示名额状态 --- */
+function renderRoutes(){
+  var box=document.getElementById('routeList');
+  if(!box)return;
+  var html='';
+  var delay=0;
+  for(var i=1;i<=3;i++){
+    var cfg=STUDY_CFG.routes[i];
+    if(!cfg||cfg.sale!=='在售')continue;   /* 下架路线不展示 */
+    var b=ROUTE_BASE[i];
+    var st=SEAT_STYLE[cfg.seatStatus]||SEAT_STYLE['可报名'];
+    html+='<a href="study-route.html?id='+i+'" class="card w-[230px] bg-white/85 backdrop-blur-xl rounded-2xl overflow-hidden shadow-soft border border-white fade-up block" style="animation-delay:'+(delay*0.05)+'s">';
+    html+='<img src="'+b.img+'" class="w-full h-[110px] object-cover">';
+    html+='<div class="p-2.5">';
+    html+='<div class="flex items-center gap-1"><span class="text-white text-[8px] px-1 py-0.5 rounded font-medium" style="background:'+b.tagBg+'">'+b.tag+'</span>';
+    html+='<span class="text-[8px] px-1.5 py-0.5 rounded font-bold" style="background:'+st.bg+';color:'+st.color+'">'+cfg.seatStatus+' · 余'+cfg.left+'席</span></div>';
+    html+='<p class="text-[13px] font-bold text-gray-800 mt-1">'+b.title+'</p>';
+    html+='<div class="flex items-center gap-2 mt-1.5"><span class="text-[9px] text-gray-400"><i class="fas fa-clock mr-0.5"></i>'+b.duration+'</span>';
+    html+='<span class="text-[9px] text-gray-400"><i class="fas fa-users mr-0.5"></i>'+b.group+'</span></div>';
+    html+='<p class="text-[10px] text-gray-500 mt-1.5 leading-relaxed">'+b.desc+'</p>';
+    html+='</div></a>';
+    delay++;
+  }
+  box.innerHTML=html;
+}
+
+/* --- 研学基地：只展示启用基地 --- */
+function renderBases(){
+  var box=document.getElementById('baseList');
+  if(!box)return;
+  var html='';
+  STUDY_CFG.bases.forEach(function(b){
+    if(b.status!=='启用')return;   /* 停用基地不展示 */
+    html+='<div class="card bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-2.5 flex gap-2.5 border border-white">';
+    html+='<img src="'+b.img+'" class="w-[72px] h-[72px] rounded-xl object-cover">';
+    html+='<div class="flex-1 min-w-0"><p class="text-[13px] font-bold text-gray-800">'+b.name+'</p>';
+    html+='<p class="text-[10px] text-gray-500 mt-1 leading-relaxed">'+b.desc+'</p>';
+    html+='<div class="flex items-center gap-2 mt-1.5"><span class="text-[9px] text-gray-400"><i class="fas fa-location-dot mr-0.5"></i>'+b.loc+'</span>';
+    html+='<span class="text-[9px] text-gray-400"><i class="fas fa-star text-yellow-400 mr-0.5"></i>'+b.rating+'</span>';
+    html+='<span class="text-[9px] text-gray-400"><i class="fas fa-route mr-0.5"></i>'+b.routes+'条路线</span></div></div></div>';
+  });
+  box.innerHTML=html;
+}
+
+renderNotice();
+renderMyStudy();
+renderRoutes();
+renderBases();
+</script>
 </body>
 </html>

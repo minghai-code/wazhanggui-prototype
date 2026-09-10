@@ -24,10 +24,13 @@
       var s=document.createElement('span');s.className='corner '+c;document.body.appendChild(s);
     });
   }
-  /* ---------- 标题栏：名称居中、时间最右 ---------- */
-  function renderHead(title,icon,sub){
+  /* ---------- 标题栏：左上返回总门户 / 名称居中 / 时间最右 ---------- */
+  function renderHead(title,icon,sub,home){
     var h=document.querySelector('.cockpit-head');if(!h)return;
-    h.innerHTML='<div class="ck-left"></div>'+
+    if(home===undefined)home='../index.html';
+    var left=home?'<a class="ck-home" href="'+home+'" target="_top" title="返回总门户">'+
+      '<i class="fa-solid fa-arrow-left"></i>&nbsp;返回总门户</a>':'';
+    h.innerHTML='<div class="ck-left">'+left+'</div>'+
       '<div class="ck-center"><div class="ck-title"><i class="fa-solid '+icon+'"></i>'+title+'</div></div>'+
       '<div class="ck-meta"><span class="ck-date"></span><span class="ck-time"></span></div>';
   }

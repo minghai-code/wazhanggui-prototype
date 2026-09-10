@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文商旅管理 - 研学基地管理</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>
+tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D','primary-d':'#E63E20','primary-l':'#FF7849'}}}}
+</script>
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+:-webkit-scrollbar{width:6px;height:6px}
+:-webkit-scrollbar-track{background:transparent}
+:-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.stat-card{transition:box-shadow .2s ease,transform .2s ease}
+.stat-card:hover{box-shadow:0 4px 20px rgba(0,0,0,.08);transform:translateY(-1px)}
+.section-label{font-size:16px;font-weight:700;color:#1F2430;display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.section-label::before{content:'';width:3px;height:16px;border-radius:2px;background:#FF4D2D}
+.tb th{font-size:12px;font-weight:600;color:#64748B;background:#F8FAFC;padding:10px 12px;text-align:left;white-space:nowrap}
+.tb td{font-size:13px;color:#1F2430;padding:11px 12px;border-bottom:1px solid #F1F5F9;white-space:nowrap}
+.tb tbody tr:hover{background:#FFF7F5}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}
+.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}
+.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.btn-danger{background:#fff;color:#DC2626;border:1px solid #FECACA}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}
+.lk:hover{text-decoration:underline}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:40}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:600px;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:50;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.ftitle{font-size:12px;font-weight:700;color:#1F2430;margin:16px 0 8px;display:flex;align-items:center;gap:6px}
+.ftitle::before{content:'';width:3px;height:12px;border-radius:2px;background:#FF4D2D}
+.fl{display:block;font-size:12px;color:#64748B;margin-bottom:5px}
+.fl i{color:#FF4D2D;font-style:normal;margin-right:2px}
+.fi{width:100%;padding:8px 11px;font-size:13px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;outline:none;transition:.15s}
+.fi:focus{border-color:#FF4D2D;background:#fff}
+.switch{width:40px;height:22px;border-radius:11px;background:#CBD5E1;position:relative;cursor:pointer;transition:.2s}
+.switch.on{background:#FF4D2D}
+.switch::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s}
+.switch.on::after{left:20px}
+</style>
+</head>
+<body>
+<div class="p-6">
+
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <h1 class="text-[20px] font-bold text-[#1F2430]">研学基地管理</h1>
+      <p class="text-[12px] text-[#94A3B8] mt-1">文商旅管理 / 研学管理 / 研学基地管理　·　维护研学基地主数据，供研学路线关联与买家端基地板块展示</p>
+    </div>
+    <button class="btn btn-primary" onclick="openD('new')"><i class="fas fa-plus mr-1"></i>新建基地</button>
+  </div>
+
+  <!-- 统计卡 -->
+  <div class="grid grid-cols-4 gap-4 mb-5">
+    <div class="stat-card bg-white rounded-xl border border-gray-100 p-4">
+      <div class="flex items-center justify-between"><span class="text-[12px] text-[#64748B]">基地总数</span><i class="fas fa-building-columns text-[13px]" style="color:#FF4D2D"></i></div>
+      <p class="text-2xl font-bold text-[#1F2430] mt-2">6</p>
+      <p class="text-[11px] text-[#94A3B8] mt-1">启用 5 · 停用 1</p>
+    </div>
+    <div class="stat-card bg-white rounded-xl border border-gray-100 p-4">
+      <div class="flex items-center justify-between"><span class="text-[12px] text-[#64748B]">已关联路线</span><i class="fas fa-route text-[13px]" style="color:#2563EB"></i></div>
+      <p class="text-2xl font-bold text-[#1F2430] mt-2">8</p>
+      <p class="text-[11px] text-[#94A3B8] mt-1">平均评分 4.8</p>
+    </div>
+    <div class="stat-card bg-white rounded-xl border border-gray-100 p-4">
+      <div class="flex items-center justify-between"><span class="text-[12px] text-[#64748B]">本月接待批次</span><i class="fas fa-calendar-check text-[13px]" style="color:#22C55E"></i></div>
+      <p class="text-2xl font-bold text-[#1F2430] mt-2">23</p>
+      <p class="text-[11px] text-[#94A3B8] mt-1">覆盖 5 个基地</p>
+    </div>
+    <div class="stat-card bg-white rounded-xl border border-gray-100 p-4">
+      <div class="flex items-center justify-between"><span class="text-[12px] text-[#64748B]">待完善资料</span><i class="fas fa-triangle-exclamation text-[13px]" style="color:#F97316"></i></div>
+      <p class="text-2xl font-bold text-[#1F2430] mt-2">1</p>
+      <p class="text-[11px] text-[#94A3B8] mt-1">缺经纬度打点</p>
+    </div>
+  </div>
+
+  <!-- 筛选 -->
+  <div class="bg-white rounded-xl border border-gray-100 mb-4 px-5 py-4 flex items-center gap-3 flex-wrap">
+    <input type="text" placeholder="基地名称 / 位置" class="px-3 py-1.5 text-[13px] bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-primary w-56">
+    <select class="px-3 py-1.5 text-[13px] bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-primary">
+      <option>基地分类：全部</option><option>博物馆</option><option>智能工厂</option><option>检测中心</option><option>文创空间</option>
+    </select>
+    <select class="px-3 py-1.5 text-[13px] bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-primary">
+      <option>状态：全部</option><option>启用</option><option>停用</option>
+    </select>
+    <button class="btn btn-ghost" onclick="toast('查询')"><i class="fas fa-search mr-1"></i>查询</button>
+    <button class="btn btn-ghost" onclick="toast('重置')"><i class="fas fa-rotate-left mr-1"></i>重置</button>
+  </div>
+
+  <!-- 列表 -->
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center gap-2 flex-wrap">
+      <input class="fi" value="29.7516" placeholder="纬度"><input class="fi" value="120.1520" placeholder="经度">
+      <button class="btn btn-ghost" style="flex-shrink:0" onclick="toast('打开地图打点')"><i class="fas fa-map-pin mr-1"></i>打点</button>
+    </div>
+    <div class="px-5 py-3 border-b border-gray-100"><div class="section-label mb-0">基地列表（6）</div></div>
+    <table class="w-full tb">
+      <thead><tr>
+        <th>基地名称</th><th>分类</th><th>所在位置</th><th>评分</th><th>关联路线</th><th>状态</th><th>更新时间</th><th>操作</th>
+      </tr></thead>
+      <tbody>
+        <tr>
+          <td>
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,#FFE4DC,#FFD0C2)"><i class="fas fa-landmark text-[13px]" style="color:#FF4D2D"></i></div>
+              <span class="font-medium">大唐袜业博物馆</span>
+            </div>
+          </td>
+          <td><span class="tag" style="background:#EDE9FE;color:#7C3AED">博物馆</span></td>
+          <td>大唐镇中心</td>
+          <td><span style="color:#F59E0B"><i class="fas fa-star text-[11px]"></i> 4.9</span></td>
+          <td>3 条</td>
+          <td><span class="tag" style="background:#DCFCE7;color:#059669">启用</span></td>
+          <td>2026-09-01 10:22</td>
+          <td><span class="lk" onclick="openD('detail')">详情</span> · <span class="lk" onclick="openD('edit')">编辑</span> · <span class="lk" onclick="toast('该基地已关联 3 条路线，请先解绑后再删除')">删除</span></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,#DBEAFE,#BFDBFE)"><i class="fas fa-industry text-[13px]" style="color:#2563EB"></i></div>
+              <span class="font-medium">智能制造工厂</span>
+            </div>
+          </td>
+          <td><span class="tag" style="background:#DBEAFE;color:#2563EB">智能工厂</span></td>
+          <td>大唐工业园</td>
+          <td><span style="color:#F59E0B"><i class="fas fa-star text-[11px]"></i> 4.8</span></td>
+          <td>3 条</td>
+          <td><span class="tag" style="background:#DCFCE7;color:#059669">启用</span></td>
+          <td>2026-08-28 16:40</td>
+          <td><span class="lk" onclick="openD('detail')">详情</span> · <span class="lk" onclick="openD('edit')">编辑</span> · <span class="lk" onclick="toast('该基地已关联 3 条路线，请先解绑后再删除')">删除</span></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,#DCFCE7,#BBF7D0)"><i class="fas fa-flask text-[13px]" style="color:#059669"></i></div>
+              <span class="font-medium">原料检测中心</span>
+            </div>
+          </td>
+          <td><span class="tag" style="background:#DCFCE7;color:#059669">检测中心</span></td>
+          <td>大唐科技园</td>
+          <td><span style="color:#F59E0B"><i class="fas fa-star text-[11px]"></i> 4.7</span></td>
+          <td>2 条</td>
+          <td><span class="tag" style="background:#DCFCE7;color:#059669">启用</span></td>
+          <td>2026-08-20 09:15</td>
+          <td><span class="lk" onclick="openD('detail')">详情</span> · <span class="lk" onclick="openD('edit')">编辑</span> · <span class="lk" onclick="toast('该基地已关联 2 条路线，请先解绑后再删除')">删除</span></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,#FEF3C7,#FDE68A)"><i class="fas fa-palette text-[13px]" style="color:#D97706"></i></div>
+              <span class="font-medium">大唐文创设计中心</span>
+            </div>
+          </td>
+          <td><span class="tag" style="background:#FEF3C7;color:#D97706">文创空间</span></td>
+          <td>袜业城 3F</td>
+          <td><span style="color:#F59E0B"><i class="fas fa-star text-[11px]"></i> 4.6</span></td>
+          <td>0 条</td>
+          <td><span class="tag" style="background:#DCFCE7;color:#059669">启用</span></td>
+          <td>2026-08-15 14:08</td>
+          <td><span class="lk" onclick="openD('detail')">详情</span> · <span class="lk" onclick="openD('edit')">编辑</span> · <span class="lk" onclick="toast('基地已删除')">删除</span></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,#F1F5F9,#E2E8F0)"><i class="fas fa-book text-[13px]" style="color:#94A3B8"></i></div>
+              <span class="font-medium">华夏金石学馆</span>
+            </div>
+          </td>
+          <td><span class="tag" style="background:#F1F5F9;color:#64748B">文化体验</span></td>
+          <td>大唐镇文化路 12 号</td>
+          <td><span style="color:#F59E0B"><i class="fas fa-star text-[11px]"></i> 4.5</span></td>
+          <td>0 条</td>
+          <td><span class="tag" style="background:#F1F5F9;color:#94A3B8">停用</span></td>
+          <td>2026-07-30 11:52</td>
+          <td><span class="lk" onclick="openD('detail')">详情</span> · <span class="lk" onclick="openD('edit')">编辑</span> · <span class="lk" onclick="toast('基地已删除')">删除</span></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,#FFE4DC,#FFD0C2)"><i class="fas fa-socks text-[13px]" style="color:#FF4D2D"></i></div>
+              <span class="font-medium">大唐袜业城展馆</span>
+              <span class="tag" style="background:#FEF3C7;color:#D97706">资料待完善</span>
+            </div>
+          </td>
+          <td><span class="tag" style="background:#EDE9FE;color:#7C3AED">博物馆</span></td>
+          <td>袜业城 2F</td>
+          <td><span class="text-[#94A3B8]">—</span></td>
+          <td>0 条</td>
+          <td><span class="tag" style="background:#DCFCE7;color:#059669">启用</span></td>
+          <td>2026-09-05 08:30</td>
+          <td><span class="lk" onclick="openD('detail')">详情</span> · <span class="lk" onclick="openD('edit')">编辑</span> · <span class="lk" onclick="toast('基地已删除')">删除</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="flex items-center justify-between mt-4 text-[12px] text-[#64748B]">
+    <span>共 6 条</span>
+    <div class="flex gap-1">
+      <button class="px-3 py-1.5 bg-white border border-gray-200 rounded-lg" onclick="toast('上一页')">上一页</button>
+      <button class="px-3 py-1.5 bg-primary text-white rounded-lg" onclick="toast('1')">1</button>
+      <button class="px-3 py-1.5 bg-white border border-gray-200 rounded-lg" onclick="toast('下一页')">下一页</button>
+    </div>
+  </div>
+</div>
+
+<div class="mask" id="mask" onclick="closeD()"></div>
+<div class="drawer" id="drawer">
+  <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+    <div>
+      <h3 class="text-[15px] font-bold text-[#1F2430]" id="d-title">新建基地</h3>
+      <p class="text-[11px] text-[#94A3B8] mt-0.5" id="d-sub">维护研学基地主数据</p>
+    </div>
+    <button onclick="closeD()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-xmark text-lg"></i></button>
+  </div>
+  <div class="flex-1 overflow-y-auto px-6 py-5" id="d-body"></div>
+  <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3" id="d-foot"></div>
+</div>
+
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[60]"></div>
+
+<script>
+var FORM=`
+  <div class="ftitle">基础信息</div>
+  <div class="grid grid-cols-2 gap-3">
+    <div><label class="fl"><i>*</i>基地名称</label><input class="fi" value="大唐袜业博物馆" placeholder="≤30 字"></div>
+    <div><label class="fl"><i>*</i>基地分类</label>
+      <select class="fi"><option>博物馆</option><option>智能工厂</option><option>检测中心</option><option>文创空间</option><option>文化体验</option></select></div>
+    <div><label class="fl"><i>*</i>所在位置</label><input class="fi" value="大唐镇中心" placeholder="≤50 字"></div>
+    <div><label class="fl">评分</label><input class="fi" type="number" step="0.1" min="0" max="5" value="4.9"></div>
+  </div>
+  <div><label class="fl">经纬度（地图打点）</label>
+
+  </div>
+  <div><label class="fl"><i>*</i>基地简介</label><textarea class="fi" rows="3" placeholder="≤200 字">袜业历史、工艺演变与机械展陈，了解袜业发展全貌。</textarea></div>
+
+  <div class="ftitle">图片</div>
+  <div class="flex gap-3">
+    <div class="w-24 h-24 rounded-lg border-2 border-dashed border-gray-200 flex flex-col items-center justify-center cursor-pointer hover:border-primary" onclick="toast('打开图片选择')">
+      <i class="fas fa-plus text-gray-300"></i><span class="text-[11px] text-[#94A3B8] mt-1">主图</span>
+    </div>
+    <div class="w-24 h-24 rounded-lg bg-gray-100 flex items-center justify-center"><i class="fas fa-image text-gray-300 text-xl"></i></div>
+    <div class="w-24 h-24 rounded-lg bg-gray-100 flex items-center justify-center"><i class="fas fa-image text-gray-300 text-xl"></i></div>
+  </div>
+  <p class="text-[11px] text-[#94A3B8] mt-2">最多 5 张，单张 ≤2MB，首图为主图</p>
+
+  <div class="ftitle">状态</div>
+  <div class="flex items-center gap-3">
+    <div class="switch on" onclick="this.classList.toggle('on')"></div>
+    <span class="text-[13px] text-[#1F2430]">启用（停用后买家端不再展示）</span>
+  </div>`;
+
+var DETAIL=`
+  <div class="ftitle">基地信息</div>
+  <div class="bg-gray-50 rounded-xl px-4 py-2 text-[13px]">
+    <div class="flex justify-between py-2 border-b border-dashed border-gray-200"><span class="text-[#94A3B8]">基地名称</span><span class="font-medium">大唐袜业博物馆</span></div>
+    <div class="flex justify-between py-2 border-b border-dashed border-gray-200"><span class="text-[#94A3B8]">分类</span><span>博物馆</span></div>
+    <div class="flex justify-between py-2 border-b border-dashed border-gray-200"><span class="text-[#94A3B8]">所在位置</span><span>大唐镇中心</span></div>
+    <div class="flex justify-between py-2 border-b border-dashed border-gray-200"><span class="text-[#94A3B8]">经纬度</span><span>29.7516, 120.1520</span></div>
+    <div class="flex justify-between py-2 border-b border-dashed border-gray-200"><span class="text-[#94A3B8]">评分</span><span style="color:#F59E0B">4.9</span></div>
+    <div class="flex justify-between py-2 border-b border-dashed border-gray-200"><span class="text-[#94A3B8]">关联路线</span><span>3 条</span></div>
+    <div class="flex justify-between py-2"><span class="text-[#94A3B8]">状态</span><span class="tag" style="background:#DCFCE7;color:#059669">启用</span></div>
+  </div>
+  <div class="ftitle">基地简介</div>
+  <p class="text-[13px] text-[#64748B] leading-relaxed">袜业历史、工艺演变与机械展陈，了解袜业发展全貌。馆藏 500+ 实物展品，含清代手摇织袜机，配备 VR 织袜体验与互动答题区。</p>
+  <div class="ftitle">关联研学路线</div>
+  <div class="space-y-2">
+    <div class="flex items-center justify-between px-3 py-2 border border-gray-100 rounded-lg text-[13px]"><span>袜业博物馆文化游</span><span class="tag" style="background:#DCFCE7;color:#059669">在售</span></div>
+    <div class="flex items-center justify-between px-3 py-2 border border-gray-100 rounded-lg text-[13px]"><span>织袜工艺体验营</span><span class="tag" style="background:#DCFCE7;color:#059669">在售</span></div>
+    <div class="flex items-center justify-between px-3 py-2 border border-gray-100 rounded-lg text-[13px]"><span>袜业文化深度游</span><span class="tag" style="background:#F1F5F9;color:#94A3B8">下架</span></div>
+  </div>`;
+
+function openD(mode){
+  if(mode==='detail'){
+    document.getElementById('d-title').textContent='基地详情';
+    document.getElementById('d-body').innerHTML=DETAIL;
+    document.getElementById('d-foot').innerHTML='<button class="btn btn-ghost py-2.5" onclick="closeD()">关闭</button><button class="btn btn-primary py-2.5 px-6" onclick="toast(\'切换到编辑模式\')">编辑</button>';
+  }else{
+    document.getElementById('d-title').textContent= mode==='new' ? '新建基地' : '编辑基地';
+    document.getElementById('d-body').innerHTML=FORM;
+    document.getElementById('d-foot').innerHTML='<button class="btn btn-ghost py-2.5" onclick="closeD()">取消</button><button class="btn btn-primary py-2.5 px-6" onclick="closeD();toast(\'基地已保存并同步至买家端\')">保存并同步</button>';
+  }
+  document.getElementById('mask').classList.add('on');
+  document.getElementById('drawer').classList.add('on');
+}
+function closeD(){
+  document.getElementById('mask').classList.remove('on');
+  document.getElementById('drawer').classList.remove('on');
+}
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},2200);}
+</script>
+</body>
+</html>

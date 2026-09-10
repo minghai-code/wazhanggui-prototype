@@ -150,11 +150,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </form>
 </div>
 
+<!-- 展位申请状态回显区 -->
+<div class="px-3 mt-3" id="boothStatus"></div>
+
 <!-- 申请流程说明 -->
 <div class="px-3 mt-3 mb-6">
 <div class="bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-3 border border-white">
 <p class="text-[10px] text-gray-400 mb-2 font-semibold">申请流程</p>
-<div class="flex items-center justify-between">
+<div class="flex items-center justify-between" id="boothFlow">
 <div class="text-center"><div class="w-8 h-8 rounded-full flex items-center justify-center text-white mx-auto mb-1" style="background:#EC4899"><i class="fas fa-file-pen text-[10px]"></i></div><span class="text-[8px] text-gray-500">提交申请</span></div>
 <div class="flex-1 h-1 mx-1 rounded" style="background:#F3E8F0"></div>
 <div class="text-center"><div class="w-8 h-8 rounded-full flex items-center justify-center text-white mx-auto mb-1" style="background:#A78BFA"><i class="fas fa-circle-check text-[10px]"></i></div><span class="text-[8px] text-gray-500">审核确认</span></div>
@@ -179,19 +182,141 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 
 <script>
 function toast(msg){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;t.classList.add('on');setTimeout(function(){t.classList.remove('on')},2000)}
+var curType='standard';
+var BOOTH_INFO={
+  standard:{name:'标准展位',price:8800,unit:'/个'},
+  luxury:{name:'豪华展位',price:12800,unit:'/个'},
+  island:{name:'光地展位',price:800,unit:'/㎡'}
+};
 function selectBooth(el,type){
+  curType=type;
   document.querySelectorAll('.booth-type').forEach(function(b){b.classList.remove('selected')});
   el.classList.add('selected');
   var areaInput=document.getElementById('areaInput');
   areaInput.parentElement.style.display=type==='island'?'':'none';
 }
 document.querySelector('.booth-type').classList.add('selected');
+
+/* ===== 展位申请状态（后台审核 → 分配展位 → 财务手工确认收款） ===== */
+var BOOTH_KEY='expoBoothApply';
+var apply=null;
+try{apply=JSON.parse(localStorage.getItem(BOOTH_KEY)||'null')}catch(e){apply=null}
+
+var FLOW=[
+ {t:'提交申请',icon:'fas fa-file-pen',c:'#EC4899'},
+ {t:'审核确认',icon:'fas fa-circle-check',c:'#A78BFA'},
+ {t:'缴纳费用',icon:'fas fa-money-bill-wave',c:'#38BDF8'},
+ {t:'确认展位',icon:'fas fa-warehouse',c:'#34D399'}
+];
+function renderFlow(stage){
+  var box=document.getElementById('boothFlow');
+  if(!box)return;
+  var h='';
+  FLOW.forEach(function(f,i){
+    var done=i<stage,cur=i===stage;
+    var bg=done?f.c:(cur?f.c:'#E5E7EB');
+    var op=(done||cur)?'1':'.45';
+    h+='<div class="text-center" style="opacity:'+op+'"><div class="w-8 h-8 rounded-full flex items-center justify-center text-white mx-auto mb-1" style="background:'+bg+'"><i class="'+f.icon+' text-[10px]"></i></div><span class="text-[8px] text-gray-500">'+f.t+'</span></div>';
+    if(i<3)h+='<div class="flex-1 h-1 mx-1 rounded" style="background:'+(i<stage-1?f.c:'#F3E8F0')+'"></div>';
+  });
+  box.innerHTML=h;
+}
+function calcAmount(){
+  var info=BOOTH_INFO[curType]||BOOTH_INFO.standard;
+  var num=parseInt(document.getElementById('boothNum').value,10)||1;
+  if(curType==='island'){
+    var area=parseInt(document.getElementById('areaInput').value,10)||36;
+    return {amount:info.price*area,text:info.name+' · '+area+'㎡ × ¥'+info.price+info.unit};
+  }
+  return {amount:info.price*num,text:info.name+' · '+num+'个 × ¥'+info.price+info.unit};
+}
+function saveApply(){try{localStorage.setItem(BOOTH_KEY,JSON.stringify(apply))}catch(e){}}
+
+function renderBoothStatus(){
+  var box=document.getElementById('boothStatus');
+  if(!box)return;
+  if(!apply){box.innerHTML='';renderFlow(0);return}
+  var h='';
+  if(apply.status==='pending'){
+    renderFlow(1);
+    h='<div class="bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-4 border border-white text-center">'
+      +'<div class="w-16 h-16 rounded-full flex items-center justify-center text-white mx-auto mb-2" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)"><i class="fas fa-hourglass-half text-2xl"></i></div>'
+      +'<p class="text-[15px] font-bold text-gray-800 mb-1">展位申请已提交，待审核</p>'
+      +'<p class="text-[10px] text-gray-400 leading-relaxed mb-3">申请编号 <b style="color:#EC4899">'+apply.no+'</b><br>专员初核 + 主管终审并分配展位号，预计 1-3 个工作日，结果短信通知。</p>'
+      +'<div class="bg-gray-50 rounded-xl p-3 text-left mb-3"><p class="text-[10px] text-gray-600 leading-relaxed">'+apply.detail+'</p>'
+      +'<p class="text-[10px] font-bold mt-1.5" style="color:#EC4899">申请金额 ¥'+apply.amount.toLocaleString()+'</p></div>'
+      +'<button onclick="approveBooth()" class="w-full py-2.5 rounded-full text-white font-bold text-[12px] mb-2" style="background:linear-gradient(135deg,#34D399,#059669)">（演示）模拟审核通过并分配展位</button>'
+      +'<button onclick="rejectBooth()" class="w-full py-2.5 rounded-full text-gray-500 font-bold text-[12px] bg-gray-100">（演示）模拟驳回</button></div>';
+  }else if(apply.status==='rejected'){
+    renderFlow(0);
+    h='<div class="bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-4 border border-white">'
+      +'<div class="flex items-center gap-2.5 mb-2"><div class="w-12 h-12 rounded-full flex items-center justify-center text-white flex-shrink-0" style="background:#EF4444"><i class="fas fa-xmark text-xl"></i></div>'
+      +'<div><p class="text-[14px] font-bold text-gray-800">申请已驳回</p><p class="text-[9px] text-gray-400">编号 '+apply.no+'</p></div></div>'
+      +'<div class="bg-red-50 rounded-xl p-3 border border-red-100 mb-3"><p class="text-[10px] text-red-700 leading-relaxed"><i class="fas fa-circle-exclamation mr-1"></i><b>驳回原因：</b>'+apply.reason+'</p></div>'
+      +'<p class="text-[10px] text-gray-500 mb-3">可修改信息后重新提交申请，或联系展位咨询 0575-8742xxxx。</p>'
+      +'<button onclick="resetApply()" class="w-full py-2.5 rounded-full text-white font-bold text-[12px]" style="background:linear-gradient(135deg,#FB7185,#EC4899)">重新提交申请</button></div>';
+  }else if(apply.status==='approved'){
+    renderFlow(2);
+    h='<div class="bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-4 border border-white">'
+      +'<div class="flex items-center gap-2.5 mb-2"><div class="w-12 h-12 rounded-full flex items-center justify-center text-white flex-shrink-0" style="background:linear-gradient(135deg,#38BDF8,#3B82F6)"><i class="fas fa-money-bill-wave text-xl"></i></div>'
+      +'<div><p class="text-[14px] font-bold text-gray-800">审核通过，待缴费</p><p class="text-[9px] text-gray-400">编号 '+apply.no+'</p></div>'
+      +'<span class="ml-auto text-[9px] px-2 py-0.5 rounded-full font-bold" style="background:#DBEAFE;color:#2563EB">待缴费</span></div>'
+      +'<div class="bg-blue-50 rounded-xl p-3 border border-blue-100 mb-3">'
+      +'<div class="flex justify-between text-[10px] mb-1"><span class="text-gray-500">已分配展位号</span><span class="font-bold" style="color:#2563EB">'+apply.boothNo+'</span></div>'
+      +'<div class="flex justify-between text-[10px] mb-1"><span class="text-gray-500">展位需求</span><span class="font-semibold text-gray-800">'+apply.detail+'</span></div>'
+      +'<div class="flex justify-between text-[10px]"><span class="text-gray-500">应付金额</span><span class="font-bold" style="color:#EC4899">¥'+apply.amount.toLocaleString()+'</span></div></div>'
+      +'<div class="bg-amber-50 rounded-xl p-3 border border-amber-100 mb-3"><p class="text-[10px] text-amber-700 leading-relaxed"><i class="fas fa-circle-info mr-1"></i><b>缴费方式：</b>本期为<b>线下对公转账 + 财务手工确认收款</b>（暂未开通线上支付）。请在审核通过后 <b>7 个自然日内</b> 完成转账，逾期系统将自动取消并释放展位。</p></div>'
+      +'<button onclick="confirmPay()" class="w-full py-2.5 rounded-full text-white font-bold text-[12px]" style="background:linear-gradient(135deg,#34D399,#059669)">（演示）模拟财务确认收款</button></div>';
+  }else{
+    renderFlow(3);
+    h='<div class="bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-4 border border-white">'
+      +'<div class="flex items-center gap-2.5 mb-2"><div class="w-12 h-12 rounded-full flex items-center justify-center text-white flex-shrink-0" style="background:linear-gradient(135deg,#34D399,#059669)"><i class="fas fa-warehouse text-xl"></i></div>'
+      +'<div><p class="text-[14px] font-bold text-gray-800">展位已确认</p><p class="text-[9px] text-gray-400">编号 '+apply.no+' · 展位号 '+apply.boothNo+'</p></div>'
+      +'<span class="ml-auto text-[9px] px-2 py-0.5 rounded-full font-bold" style="background:#D1FAE5;color:#059669">已确认</span></div>'
+      +'<div class="bg-emerald-50 rounded-xl p-3 border border-emerald-100 mb-3"><p class="text-[10px] text-emerald-700 leading-relaxed"><i class="fas fa-circle-check mr-1"></i>财务已确认收款，展位最终锁定。参展须知与布展时间已推送，请在「资料下载」查看并按时上传企业资料（厂家介绍 / 商品名录），审核通过后进入展商名录。</p></div>'
+      +'<a href="expo-materials.html" class="block text-center py-2.5 rounded-full text-white font-bold text-[12px] mb-2" style="background:linear-gradient(135deg,#8B5CF6,#6366F1)">去上传/查看资料</a>'
+      +'<button onclick="resetApply()" class="w-full py-2.5 rounded-full text-gray-500 font-bold text-[12px] bg-gray-100">重新提交一份申请</button></div>';
+  }
+  box.innerHTML=h;
+}
+
 function submitForm(e){
   e.preventDefault();
+  var c=calcAmount();
+  apply={status:'pending',no:'B2026'+'1800'+'21',detail:c.text,amount:c.amount,boothNo:'',reason:''};
+  saveApply();
+  renderBoothStatus();
+  document.getElementById('boothStatus').scrollIntoView({behavior:'smooth',block:'center'});
   toast('展位申请已提交，请等待审核');
-  setTimeout(function(){window.location.href='expo.html'},2000);
   return false;
 }
+function approveBooth(){
+  apply.status='approved';
+  apply.boothNo='A05';
+  saveApply();
+  renderBoothStatus();
+  toast('审核通过，已分配展位号 A05');
+}
+function rejectBooth(){
+  apply.status='rejected';
+  apply.reason='提交的营业执照经营范围与申请展位品类不符，请补充与袜品/袜机相关的经营证明材料后重新提交。';
+  saveApply();
+  renderBoothStatus();
+  toast('申请已驳回');
+}
+function confirmPay(){
+  apply.status='confirmed';
+  saveApply();
+  renderBoothStatus();
+  toast('财务已确认收款，展位锁定');
+}
+function resetApply(){
+  apply=null;
+  try{localStorage.removeItem(BOOTH_KEY)}catch(e){}
+  renderBoothStatus();
+  window.scrollTo(0,0);
+}
+renderBoothStatus();
 </script>
 </body>
 </html>

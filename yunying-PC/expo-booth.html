@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文商旅管理 - 展位申请管理</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>
+tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D','primary-d':'#E63E20','primary-l':'#FF7849'}}}}
+</script>
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+:-webkit-scrollbar{width:6px;height:6px}
+:-webkit-scrollbar-track{background:transparent}
+:-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.stat-card{transition:box-shadow .2s ease,transform .2s ease}
+.stat-card:hover{box-shadow:0 4px 20px rgba(0,0,0,.08);transform:translateY(-1px)}
+.section-label{font-size:16px;font-weight:700;color:#1F2430;display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.section-label::before{content:'';width:3px;height:16px;border-radius:2px;background:#FF4D2D}
+.tab{padding:7px 18px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;color:#64748B;transition:.15s}
+.tab:hover{background:#fff;color:#1F2430}
+.tab.on{background:#fff;color:#FF4D2D;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.tb th{font-size:12px;font-weight:600;color:#64748B;background:#F8FAFC;padding:10px 12px;text-align:left;white-space:nowrap}
+.tb td{font-size:13px;color:#1F2430;padding:11px 12px;border-bottom:1px solid #F1F5F9;white-space:nowrap}
+.tb tbody tr:hover{background:#FFF7F5}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}
+.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}
+.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}
+.lk:hover{text-decoration:underline}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:40}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:720px;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:50;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.ir{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed #F1F5F9;font-size:13px}
+.ir:last-child{border-bottom:none}
+.ir span:first-child{color:#94A3B8;flex-shrink:0}
+.ir span:last-child{color:#1F2430;font-weight:500;text-align:right}
+.ftitle{font-size:12px;font-weight:700;color:#1F2430;margin:16px 0:8px;display:flex;align-items:center;gap:6px}
+.ftitle::before{content:'';width:3px;height:12px;border-radius:2px;background:#FF4D2D}
+.cell{height:44px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;cursor:pointer;transition:.15s}
+.cell:hover{transform:scale(1.04)}
+.step{display:flex;align-items:center;gap:6px;font-size:12px;color:#64748B}
+.step i{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff}
+</style>
+</head>
+<body>
+<div class="p-6">
+
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">展位申请管理</h1>
+        <span class="tag" style="background:#FFF1ED;color:#FF4D2D">第 18 届</span>
+      </div>
+      <p class="text-[12px] text-[#94A3B8] mt-1">文商旅管理 / 袜博会 / 展位申请管理　·　申请审核、展位可视化分配与缴费跟踪</p>
+    </div>
+
+  </div>
+
+  <!-- 统计卡 -->
+  <div class="grid grid-cols-4 gap-4 mb-5">
+    <div class="stat-card bg-white rounded-xl border border-gray-100 p-4">
+      <div class="flex items-center justify-between"><span class="text-[12px] text-[#64748B]">待审核</span><i class="fas fa-hourglass-half text-[13px]" style="color:#F97316"></i></div>
+      <p class="text-2xl font-bold text-[#1F2430] mt-2">36</p>
+      <p class="text-[11px] text-[#94A3B8] mt-1">其中 4 条待终审</p>
+    </div>
+    <div class="stat-card bg-white rounded-xl border border-gray-100 p-4">
+      <div class="flex items-center justify-between"><span class="text-[12px] text-[#64748B]">待缴费</span><i class="fas fa-money-bill-wave text-[13px]" style="color:#EAB308"></i></div>
+      <p class="text-2xl font-bold text-[#1F2430] mt-2">28</p>
+      <p class="text-[11px] text-[#94A3B8] mt-1">逾期 7 天自动取消</p>
+    </div>
+    <div class="stat-card bg-white rounded-xl border border-gray-100 p-4">
+      <div class="flex items-center justify-between"><span class="text-[12px] text-[#64748B]">已确认展位</span><i class="fas fa-circle-check text-[13px]" style="color:#22C55E"></i></div>
+      <p class="text-2xl font-bold text-[#1F2430] mt-2">1,560</p>
+      <p class="text-[11px] text-[#94A3B8] mt-1">占总量 78%</p>
+    </div>
+    <div class="stat-card bg-white rounded-xl border border-gray-100 p-4">
+      <div class="flex items-center justify-between"><span class="text-[12px] text-[#64748B]">展位销售率</span><i class="fas fa-chart-simple text-[13px]" style="color:#FF4D2D"></i></div>
+      <p class="text-2xl font-bold text-[#1F2430] mt-2">78%</p>
+      <div class="mt-2" style="height:6px;border-radius:3px;background:#F1F5F9"><i style="display:block;width:78%;height:100%;border-radius:3px;background:linear-gradient(90deg,#FF7849,#FF4D2D)"></i></div>
+    </div>
+  </div>
+
+  <!-- Tab + 筛选 -->
+  <div class="bg-white rounded-xl border border-gray-100 mb-4">
+    <div class="px-5 pt-4 pb-3 flex items-center gap-2">
+      <div class="tab on">待审批 <span class="tag ml-1" style="background:#FEF3C7;color:#D97706">36</span></div>
+      <div class="tab">已通过 <span class="tag ml-1" style="background:#DCFCE7;color:#059669">1,560</span></div>
+      <div class="tab">已驳回 <span class="tag ml-1" style="background:#FEE2E2;color:#DC2626">42</span></div>
+    </div>
+    <div class="px-5 pb-4 flex items-center gap-3 flex-wrap border-t border-gray-50 pt-3">
+      <select class="px-3 py-1.5 text-[13px] bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-primary">
+        <option>展位类型：全部</option><option>标准展位</option><option>豪华展位</option><option>光地展位</option>
+      </select>
+      <select class="px-3 py-1.5 text-[13px] bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-primary">
+        <option>主营品类：全部</option><option>棉袜</option><option>丝袜/打底裤</option><option>运动袜</option><option>袜机设备</option><option>原料纱线</option>
+      </select>
+      <input type="text" placeholder="企业名称 / 申请编号" class="px-3 py-1.5 text-[13px] bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-primary w-56">
+      <button class="btn btn-ghost" onclick="toast('查询')"><i class="fas fa-search mr-1"></i>查询</button>
+    </div>
+  </div>
+
+  <!-- 列表 -->
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center gap-2 flex-wrap">
+      <button class="btn btn-ghost" onclick="toast('导出')"><i class="fas fa-download mr-1"></i>导出</button>
+      <button class="btn btn-primary" onclick="toast('已批量通过 3 条展位申请')"><i class="fas fa-check-double mr-1"></i>批量通过</button>
+    </div>
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+      <div class="section-label mb-0">待审批申请（36）</div>
+      <div class="text-[12px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>光地展位 ≥36㎡ 起订，终审需主管操作</div>
+    </div>
+    <table class="w-full tb">
+      <thead><tr>
+        <th><input type="checkbox" class="accent-[#FF4D2D]"></th>
+        <th>申请编号</th><th>企业名称</th><th>联系人</th><th>联系电话</th><th>展位类型</th>
+        <th>数量 / 面积</th><th>主营产品</th><th>申请金额</th><th>状态</th><th>提交时间</th><th>操作</th>
+      </tr></thead>
+      <tbody>
+        <tr>
+          <td><input type="checkbox" class="accent-[#FF4D2D]"></td>
+          <td class="font-medium">BA20260001</td><td>浙江丹吉娅袜业有限公司</td><td>陈经理</td><td>138****2233</td>
+          <td><span class="tag" style="background:#DBEAFE;color:#2563EB">标准展位</span></td><td>2 个</td><td>棉袜</td>
+          <td class="font-semibold">¥17,600</td>
+          <td><span class="tag" style="background:#FEF3C7;color:#D97706">待审核</span></td><td>2026-09-08 10:12</td>
+          <td><span class="lk" onclick="openD('audit')">审核</span> · <span class="lk" onclick="openD('map')">分配展位</span></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" class="accent-[#FF4D2D]"></td>
+          <td class="font-medium">BA20260002</td><td>诸暨步人堂袜机科技有限公司</td><td>王总</td><td>139****8899</td>
+          <td><span class="tag" style="background:#EDE9FE;color:#7C3AED">光地展位</span></td><td>48 ㎡</td><td>袜机设备</td>
+          <td class="font-semibold">¥38,400</td>
+          <td><span class="tag" style="background:#FEF3C7;color:#D97706">待终审</span></td><td>2026-09-07 16:40</td>
+          <td><span class="lk" onclick="openD('audit')">审核</span> · <span class="lk" onclick="openD('map')">分配展位</span></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" class="accent-[#FF4D2D]"></td>
+          <td class="font-medium">BA20260003</td><td>浙江宝娜斯袜业股份有限公司</td><td>李经理</td><td>137****5566</td>
+          <td><span class="tag" style="background:#DCFCE7;color:#059669">豪华展位</span></td><td>2 个</td><td>丝袜/打底裤</td>
+          <td class="font-semibold">¥25,600</td>
+          <td><span class="tag" style="background:#FEF3C7;color:#D97706">待审核</span></td><td>2026-09-07 09:25</td>
+          <td><span class="lk" onclick="openD('audit')">审核</span> · <span class="lk" onclick="openD('map')">分配展位</span></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" class="accent-[#FF4D2D]"></td>
+          <td class="font-medium">BA20260004</td><td>义乌情怡袜业有限公司</td><td>周经理</td><td>135****7788</td>
+          <td><span class="tag" style="background:#DBEAFE;color:#2563EB">标准展位</span></td><td>1 个</td><td>运动袜</td>
+          <td class="font-semibold">¥8,800</td>
+          <td><span class="tag" style="background:#FEF3C7;color:#D97706">待审核</span></td><td>2026-09-06 14:50</td>
+          <td><span class="lk" onclick="openD('audit')">审核</span> · <span class="lk" onclick="openD('map')">分配展位</span></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" class="accent-[#FF4D2D]"></td>
+          <td class="font-medium">BA20260005</td><td>绍兴华欣纱线有限公司</td><td>吴经理</td><td>186****3344</td>
+          <td><span class="tag" style="background:#EDE9FE;color:#7C3AED">光地展位</span></td><td>36 ㎡</td><td>原料纱线</td>
+          <td class="font-semibold">¥28,800</td>
+          <td><span class="tag" style="background:#F1F5F9;color:#64748B">候补</span></td><td>2026-09-05 11:08</td>
+          <td><span class="lk" onclick="openD('audit')">审核</span> · <span class="lk" onclick="openD('map')">分配展位</span></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" class="accent-[#FF4D2D]"></td>
+          <td class="font-medium">BA20260006</td><td>杭州锦程包装设计有限公司</td><td>郑经理</td><td>186****9900</td>
+          <td><span class="tag" style="background:#DBEAFE;color:#2563EB">标准展位</span></td><td>1 个</td><td>设计包装</td>
+          <td class="font-semibold">¥8,800</td>
+          <td><span class="tag" style="background:#DBEAFE;color:#0284C7">已通过 · 待缴费</span></td><td>2026-09-04 15:32</td>
+          <td><span class="lk" onclick="openD('audit')">详情</span> · <span class="lk" onclick="toast('已确认收款，展位锁定')">确认收款</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="flex items-center justify-between mt-4 text-[12px] text-[#64748B]">
+    <span>共 36 条，每页 20 条</span>
+    <div class="flex gap-1">
+      <button class="px-3 py-1.5 bg-white border border-gray-200 rounded-lg" onclick="toast('上一页')">上一页</button>
+      <button class="px-3 py-1.5 bg-primary text-white rounded-lg" onclick="toast('1')">1</button>
+      <button class="px-3 py-1.5 bg-white border border-gray-200 rounded-lg" onclick="toast('2')">2</button>
+      <button class="px-3 py-1.5 bg-white border border-gray-200 rounded-lg" onclick="toast('下一页')">下一页</button>
+    </div>
+  </div>
+</div>
+
+<div class="mask" id="mask" onclick="closeD()"></div>
+<div class="drawer" id="drawer">
+  <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+    <div>
+      <h3 class="text-[15px] font-bold text-[#1F2430]" id="d-title">展位申请审核</h3>
+      <p class="text-[11px] text-[#94A3B8] mt-0.5" id="d-sub">BA20260001 · 浙江丹吉娅袜业有限公司</p>
+    </div>
+    <button onclick="closeD()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-xmark text-lg"></i></button>
+  </div>
+  <div class="flex-1 overflow-y-auto px-6 py-5" id="d-body"></div>
+  <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3" id="d-foot"></div>
+</div>
+
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[60]"></div>
+
+<script>
+var AUDIT=`
+  <div class="ftitle">企业信息</div>
+  <div class="bg-gray-50 rounded-xl px-4 py-2">
+    <div class="ir"><span>企业名称</span><span>浙江丹吉娅袜业有限公司</span></div>
+    <div class="ir"><span>联系人 / 电话</span><span>陈经理 / 138****2233</span></div>
+    <div class="ir"><span>主营产品</span><span>棉袜</span></div>
+    <div class="ir"><span>展位需求备注</span><span>希望靠近主通道</span></div>
+    <div class="ir"><span>协议</span><span>已同意《展位申请须知》</span></div>
+  </div>
+  <div class="ftitle">展位需求</div>
+  <div class="bg-gray-50 rounded-xl px-4 py-2">
+    <div class="ir"><span>展位类型</span><span>标准展位（3m×3m / 9㎡ · 含基本搭建）</span></div>
+    <div class="ir"><span>数量</span><span>2 个</span></div>
+    <div class="ir"><span>单价</span><span>¥8,800 / 个</span></div>
+    <div class="ir"><span>申请金额</span><span style="color:#FF4D2D;font-weight:700">¥17,600</span></div>
+  </div>
+  <div class="ftitle">审批流程</div>
+  <div class="bg-gray-50 rounded-xl px-4 py-3 space-y-2">
+    <div class="step"><i style="background:#22C55E">✓</i><span class="text-[#1F2430]">提交申请</span><span class="text-[#94A3B8]">陈经理 · 2026-09-08 10:12</span></div>
+    <div class="step"><i style="background:#F97316">2</i><span class="text-[#1F2430]">专员初核</span><span class="text-[#94A3B8]">待处理</span></div>
+    <div class="step"><i style="background:#CBD5E1">3</i><span class="text-[#94A3B8]">主管终审 + 分配展位</span><span class="text-[#94A3B8]">待处理</span></div>
+    <div class="step"><i style="background:#CBD5E1">4</i><span class="text-[#94A3B8]">缴纳费用 / 确认展位</span><span class="text-[#94A3B8]">待处理</span></div>
+  </div>
+  <div class="ftitle">审核意见</div>
+  <textarea class="w-full px-3 py-2 text-[13px] bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-primary" rows="3" placeholder="通过可不填；驳回必填原因"></textarea>
+  <div class="mt-3 flex items-start gap-2 px-3 py-2 rounded-lg bg-orange-50 border border-orange-100">
+    <i class="fas fa-circle-info text-[12px] mt-0.5" style="color:#F97316"></i>
+    <p class="text-[11px] text-[#64748B]">通过后进入「分配展位」，分配展位号并通知缴费；审核通过后 7 个自然日内未缴费将自动取消并释放展位。</p>
+  </div>`;
+
+var MAP=`
+  <div class="ftitle">展位可视化分配 · A 馆 袜品区</div>
+  <p class="text-[11px] text-[#94A3B8] mb-3">点选「可选」格子分配给本申请（需分配 2 个），占位互斥</p>
+  <div class="p-4 bg-gray-50 rounded-xl">
+    <div class="grid grid-cols-6 gap-2">
+      <div class="cell" style="background:#FFF1ED;color:#FF4D2D;border:1px solid #FFD0C2">A01</div>
+      <div class="cell" style="background:#FEE2E2;color:#DC2626;border:1px solid #FECACA">A02</div>
+      <div class="cell" style="background:#FEE2E2;color:#DC2626;border:1px solid #FECACA">A03</div>
+      <div class="cell" style="background:#FEF3C7;color:#D97706;border:1px solid #FDE68A">A04</div>
+      <div class="cell" style="background:#FFF1ED;color:#FF4D2D;border:1px solid #FFD0C2">A05</div>
+      <div class="cell" style="background:#F1F5F9;color:#94A3B8;border:1px solid #E2E8F0">A06</div>
+      <div class="col-span-6 h-6 rounded flex items-center justify-center text-[11px]" style="background:repeating-linear-gradient(45deg,#F1F5F9,#F1F5F9 6px,#E2E8F0 6px,#E2E8F0 12px);color:#94A3B8">— 主 通 道 —</div>
+      <div class="cell" style="background:#DBEAFE;color:#2563EB;border:1px solid #BFDBFE">入口</div>
+      <div class="cell" style="background:#FFF1ED;color:#FF4D2D;border:1px solid #FFD0C2">B01</div>
+      <div class="cell" style="background:#FEE2E2;color:#DC2626;border:1px solid #FECACA">B02</div>
+      <div class="cell" style="background:#FFF1ED;color:#FF4D2D;border:1px solid #FFD0C2">B03</div>
+      <div class="cell" style="background:#FEF3C7;color:#D97706;border:1px solid #FDE68A">B04</div>
+      <div class="cell" style="background:#F1F5F9;color:#94A3B8;border:1px solid #E2E8F0">B05</div>
+    </div>
+    <div class="flex items-center gap-4 mt-4 text-[11px] text-[#64748B]">
+      <span class="flex items-center gap-1"><i style="width:10px;height:10px;border-radius:2px;background:#FFD0C2;display:inline-block"></i>可选</span>
+      <span class="flex items-center gap-1"><i style="width:10px;height:10px;border-radius:2px;background:#FECACA;display:inline-block"></i>已售出</span>
+      <span class="flex items-center gap-1"><i style="width:10px;height:10px;border-radius:2px;background:#FDE68A;display:inline-block"></i>已预订</span>
+      <span class="flex items-center gap-1"><i style="width:10px;height:10px;border-radius:2px;background:#E2E8F0;display:inline-block"></i>已锁定</span>
+    </div>
+  </div>
+  <div class="ftitle">已选展位</div>
+  <div class="flex items-center gap-2">
+    <span class="tag" style="background:#FFF1ED;color:#FF4D2D;padding:6px 12px">A01 <i class="fas fa-xmark ml-1 cursor-pointer"></i></span>
+    <span class="tag" style="background:#F1F5F9;color:#94A3B8;padding:6px 12px">待选择第 2 个</span>
+  </div>
+  <div class="mt-4 flex items-start gap-2 px-3 py-2 rounded-lg bg-orange-50 border border-orange-100">
+    <i class="fas fa-triangle-exclamation text-[12px] mt-0.5" style="color:#F97316"></i>
+    <p class="text-[11px] text-[#64748B]">分配结果在线反馈展商，并作为线下展位布置依据。后续调整展位号会留痕并通知展商。</p>
+  </div>`;
+
+function openD(k){
+  if(k==='audit'){
+    document.getElementById('d-title').textContent='展位申请审核';
+    document.getElementById('d-body').innerHTML=AUDIT;
+    document.getElementById('d-foot').innerHTML='<button class="btn btn-ghost py-2.5" onclick="toast(\'已转候补\')">转候补</button><button class="btn btn-danger py-2.5" style="background:#fff;color:#DC2626;border:1px solid #FECACA" onclick="toast(\'已驳回，原因已通知展商\')">驳回</button><button class="btn btn-primary py-2.5 px-6" onclick="closeD();toast(\'审核通过，请继续分配展位\')">通过并分配展位</button>';
+  }else{
+    document.getElementById('d-title').textContent='展位分配';
+    document.getElementById('d-body').innerHTML=MAP;
+    document.getElementById('d-foot').innerHTML='<button class="btn btn-ghost py-2.5" onclick="closeD()">取消</button><button class="btn btn-primary py-2.5 px-6" onclick="closeD();toast(\'已分配 A01，短信通知展商缴费\')">确认分配并通知</button>';
+  }
+  document.getElementById('mask').classList.add('on');
+  document.getElementById('drawer').classList.add('on');
+}
+function closeD(){
+  document.getElementById('mask').classList.remove('on');
+  document.getElementById('drawer').classList.remove('on');
+}
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},2200);}
+</script>
+</body>
+</html>

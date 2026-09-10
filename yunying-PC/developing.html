@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>功能开发中 - 袜掌柜运营管理端</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>
+tailwind.config={theme:{extend:{colors:{
+  primary:'#FF4D2D','primary-d':'#E63E20','primary-l':'#FF7849'
+}}}}
+</script>
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+:-webkit-scrollbar{width:6px;height:6px}
+:-webkit-scrollbar-track{background:transparent}
+:-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.card-in{opacity:0;transform:translateY(12px);animation:rise .45s cubic-bezier(.22,1,.36,1) forwards}
+@keyframes rise{to{opacity:1;transform:translateY(0)}}
+.halo{position:absolute;inset:-40% -10% auto -10%;height:200px;background:radial-gradient(60% 100% at 50% 0%,rgba(255,120,73,.18),transparent 70%);pointer-events:none}
+.point{position:relative;padding-left:18px}
+.point::before{content:'';position:absolute;left:0;top:8px;width:6px;height:6px;border-radius:50%;background:linear-gradient(135deg,#FF7849,#FF4D2D)}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.floaty{animation:float 3.2s ease-in-out infinite}
+</style>
+</head>
+<body>
+
+<div class="p-6">
+  <div class="max-w-3xl mx-auto pt-6">
+
+    <!-- 主卡片 -->
+    <div class="card-in relative bg-white rounded-2xl border border-gray-100 overflow-hidden" style="box-shadow:0 8px 40px rgba(15,23,42,.06)">
+      <div class="halo"></div>
+
+      <div class="relative px-8 pt-9 pb-8">
+
+        <!-- 图标 + 标题 -->
+        <div class="flex items-start gap-4">
+          <div class="floaty flex-shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center" style="background:linear-gradient(135deg,#FF7849,#FF4D2D);box-shadow:0 8px 22px rgba(255,77,45,.28)">
+            <i class="fas fa-person-digging text-white text-xl"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2.5 flex-wrap">
+              <h1 class="text-[22px] font-bold text-[#1F2430] leading-tight" id="m-name">功能开发中</h1>
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold text-white" style="background:linear-gradient(135deg,#FF7849,#FF4D2D)">
+                <i class="fas fa-spinner text-[9px]"></i>开发中
+              </span>
+            </div>
+            <p class="mt-2 text-[12px] text-[#94A3B8] flex items-center gap-1.5 flex-wrap" id="m-path">
+              <span>运营管理端</span>
+            </p>
+          </div>
+        </div>
+
+        <!-- 规划要点 -->
+        <div class="mt-7" id="points-wrap">
+          <div class="text-[13px] font-semibold text-[#1F2430] mb-3 flex items-center gap-2">
+            <i class="fas fa-list-check text-[12px]" style="color:#FF4D2D"></i>规划功能要点
+          </div>
+          <div class="bg-[#F8FAFC] border border-gray-100 rounded-xl px-5 py-4 space-y-2.5" id="m-points"></div>
+        </div>
+
+        <!-- 提示条 -->
+        <div class="mt-6 flex items-start gap-3 px-4 py-3 rounded-xl bg-orange-50/70 border border-orange-100">
+          <i class="fas fa-circle-info text-[13px] mt-0.5" style="color:#F97316"></i>
+          <div class="text-[12px] text-[#64748B] leading-relaxed">
+            本模块 PRD 待补充，原型页面尚未开发。
+            开发依据以 <span class="font-medium text-[#1F2430]">开发PRD/运营管理端PRD.md</span> 为准，
+            菜单定义见 <span class="font-medium text-[#1F2430]">menu-data.js</span>。
+          </div>
+        </div>
+
+        <!-- 底部操作 -->
+        <div class="mt-6 flex items-center gap-3">
+          <a href="#" onclick="backHome();return false;"
+             class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-medium text-white transition hover:brightness-105 active:scale-[.98]"
+             style="background:linear-gradient(135deg,#FF7849,#FF4D2D);box-shadow:0 4px 14px rgba(255,77,45,.25)">
+            <i class="fas fa-gauge-high text-[11px]"></i>返回运营总览
+          </a>
+          <span class="text-[11px] text-[#CBD5E1]">菜单版本 <span class="font-medium text-[#94A3B8]" id="m-ver">-</span></span>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function param(k){
+  var m = new RegExp('[?&]' + k + '=([^&]*)').exec(location.search);
+  return m ? decodeURIComponent(m[1].replace(/\+/g, ' ')) : '';
+}
+
+var name = param('m') || '功能开发中';
+var path = param('p') || '';
+var ver  = param('v') || '';
+var pts  = param('d') ? param('d').split('|').filter(function(s){ return s.trim(); }) : [];
+
+document.title = name + ' - 开发中';
+document.getElementById('m-name').textContent = name;
+document.getElementById('m-ver').textContent = ver || '未标注';
+
+// 层级面包屑
+var segs = ['运营管理端'].concat(path ? path.split('/').map(function(s){return s.trim();}).filter(Boolean) : []);
+document.getElementById('m-path').innerHTML = segs.map(function(s, i){
+  var last = (i === segs.length - 1);
+  return (i ? '<i class="fas fa-chevron-right text-[8px] text-[#CBD5E1] mx-0.5"></i>' : '') +
+         '<span class="' + (last ? 'text-[#64748B] font-medium' : 'text-[#94A3B8]') + '">' + s + '</span>';
+}).join('');
+
+// 规划要点
+var wrap = document.getElementById('points-wrap');
+var box  = document.getElementById('m-points');
+if (pts.length) {
+  box.innerHTML = pts.map(function(p){
+    return '<div class="point text-[13px] text-[#1F2430] leading-relaxed">' + p + '</div>';
+  }).join('');
+} else {
+  box.innerHTML = '<div class="text-[13px] text-[#94A3B8]">功能规划中，敬请期待</div>';
+}
+
+function backHome(){
+  if (window.parent && window.parent !== window) {
+    window.parent.postMessage({ type: 'wzg-goto', page: 'dashboard.html' }, '*');
+  } else {
+    location.href = 'dashboard.html';
+  }
+}
+</script>
+</body>
+</html>

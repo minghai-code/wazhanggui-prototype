@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文商旅管理 - 研学线路活动管理</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>
+tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D','primary-d':'#E63E20','primary-l':'#FF7849'}}}}
+</script>
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+:-webkit-scrollbar{width:6px;height:6px}
+:-webkit-scrollbar-track{background:transparent}
+:-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.stat-card{transition:box-shadow .2s ease,transform .2s ease}
+.stat-card:hover{box-shadow:0 4px 20px rgba(0,0,0,.08);transform:translateY(-1px)}
+.section-label{font-size:16px;font-weight:700;color:#1F2430;display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.section-label::before{content:'';width:3px;height:16px;border-radius:2px;background:#FF4D2D}
+.tab{padding:7px 18px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;color:#64748B;transition:.15s}
+.tab:hover{background:#fff;color:#1F2430}
+.tab.on{background:#fff;color:#FF4D2D;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.subtab{padding:5px 14px;border-radius:6px;font-size:12px;cursor:pointer;color:#64748B;transition:.15s}
+.subtab.on{background:#FFF1ED;color:#FF4D2D;font-weight:600}
+.tb th{font-size:12px;font-weight:600;color:#64748B;background:#F8FAFC;padding:10px 12px;text-align:left;white-space:nowrap}
+.tb td{font-size:13px;color:#1F2430;padding:11px 12px;border-bottom:1px solid #F1F5F9;white-space:nowrap}
+.tb tbody tr:hover{background:#FFF7F5}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}
+.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}
+.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}
+.lk:hover{text-decoration:underline}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:40}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:640px;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:50;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.ftitle{font-size:12px;font-weight:700;color:#1F2430;margin:16px 0:8px;display:flex;align-items:center;gap:6px}
+.ftitle::before{content:'';width:3px;height:12px;border-radius:2px;background:#FF4D2D}
+.fl{display:block;font-size:12px;color:#64748B;margin-bottom:5px}
+.fl i{color:#FF4D2D;font-style:normal;margin-right:2px}
+.fi{width:100%;padding:8px 11px;font-size:13px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;outline:none;transition:.15s}
+.fi:focus{border-color:#FF4D2D;background:#fff}
+.mini{font-size:12px;color:#64748B;padding:7px 10px;border-bottom:1px solid #F1F5F9;display:flex;justify-content:space-between}
+.tline{display:flex;gap-3;align-items:flex-start;padding:8px 0;border-bottom:1px dashed #F1F5F9}
+.tline:last-child{border-bottom:none}
+</style>
+</head>
+<body>
+<div class="p-6">
+
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">研学线路活动管理</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">研学产品目录</span>
+      </div>
+      <p class="text-[12px] text-[#94A3B8] mt-1">文商旅管理 / 研学管理 / 研学线路活动管理　·　维护路线库与场次日历，承接报名、签到与评价</p>
+    </div>
+
+  </div>
+
+  <!-- 统计卡 -->
+  <div class="grid grid-cols-4 gap-4 mb-5">
+    <div class="stat-card bg-white rounded-xl border border-gray-100 p-4">
+      <div class="flex items-center justify-between"><span class="text-[12px] text-[#64748B]">在售路线</span><i class="fas fa-route text-[13px]" style="color:#FF4D2D"></i></div>
+      <p class="text-2xl font-bold text-[#1F2430] mt-2">5</p>
+      <p class="text-[11px] text-[#94A3B8] mt-1">下架 1 · 草稿 1</p>
+    </div>
+    <div class="stat-card bg-white rounded-xl border border-gray-100 p-4">
+      <div class="flex items-center justify-between"><span class="text-[12px] text-[#64748B]">本月场次</span><i class="fas fa-calendar-day text-[13px]" style="color:#2563EB"></i></div>
+      <p class="text-2xl font-bold text-[#1F2430] mt-2">16</p>
+      <p class="text-[11px] text-[#94A3B8] mt-1">已满 4 · 可报名 9</p>
+    </div>
+    <div class="stat-card bg-white rounded-xl border border-gray-100 p-4">
+      <div class="flex items-center justify-between"><span class="text-[12px] text-[#64748B]">本月报名人次</span><i class="fas fa-user-plus text-[13px]" style="color:#22C55E"></i></div>
+      <p class="text-2xl font-bold text-[#1F2430] mt-2">320</p>
+      <p class="text-[11px] text-green-500 mt-1">环比 +21%</p>
+    </div>
+    <div class="stat-card bg-white rounded-xl border border-gray-100 p-4">
+      <div class="flex items-center justify-between"><span class="text-[12px] text-[#64748B]">平均评分</span><i class="fas fa-star text-[13px]" style="color:#F59E0B"></i></div>
+      <p class="text-2xl font-bold text-[#1F2430] mt-2">4.8</p>
+      <p class="text-[11px] text-[#94A3B8] mt-1">累计评价 214 条</p>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden mb-4">
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center gap-2 flex-wrap">
+      <button class="btn btn-ghost" onclick="openD('route')"><i class="fas fa-plus mr-1"></i>新建路线</button>
+      <button class="btn btn-primary" onclick="openD('session')"><i class="fas fa-calendar-plus mr-1"></i>新建场次</button>
+    </div>
+  </div>
+
+  <!-- Tab -->
+  <div class="bg-white rounded-xl border border-gray-100 mb-4">
+    <div class="px-5 pt-4 pb-3 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="tab on" data-t1="r">路线库</div>
+        <div class="tab" data-t1="s">活动场次</div>
+      </div>
+      <div class="flex items-center gap-2" id="subtabs" style="display:none">
+        <span class="subtab on" onclick="this.parentNode.querySelectorAll('.subtab').forEach(function(e){e.classList.remove('on')});this.classList.add('on')">未开始</span><span class="subtab" onclick="this.parentNode.querySelectorAll('.subtab').forEach(function(e){e.classList.remove('on')});this.classList.add('on')">进行中</span><span class="subtab" onclick="this.parentNode.querySelectorAll('.subtab').forEach(function(e){e.classList.remove('on')});this.classList.add('on')">已结束</span>
+      </div>
+    </div>
+    <div class="px-5 pb-4 flex items-center gap-3 flex-wrap border-t border-gray-50 pt-3">
+      <input type="text" placeholder="路线名称 / 场次编号" class="px-3 py-1.5 text-[13px] bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-primary w-56">
+      <select class="px-3 py-1.5 text-[13px] bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-primary">
+        <option>分类标签：全部</option><option>工艺体验</option><option>文化课堂</option><option>工厂参观</option>
+      </select>
+      <select class="px-3 py-1.5 text-[13px] bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-primary">
+        <option>状态：全部</option><option>在售</option><option>下架</option>
+      </select>
+      <button class="btn btn-ghost" onclick="toast('查询')"><i class="fas fa-search mr-1"></i>查询</button>
+    </div>
+  </div>
+
+  <!-- 路线库 -->
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden" id="pane-r">
+    <div class="px-5 py-3 border-b border-gray-100"><div class="section-label mb-0">路线库（5）</div></div>
+    <table class="w-full tb">
+      <thead><tr>
+        <th>路线名称</th><th>分类标签</th><th>时长</th><th>人数区间</th><th>关联基地</th>
+        <th>评分</th><th>已开展场次</th><th>累计参与</th><th>状态</th><th>操作</th>
+      </tr></thead>
+      <tbody>
+        <tr>
+          <td>
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,#DBEAFE,#BFDBFE)"><i class="fas fa-industry text-[13px]" style="color:#2563EB"></i></div>
+              <span class="font-medium">智能制造工厂参观</span>
+            </div>
+          </td>
+          <td><span class="tag" style="background:#DBEAFE;color:#2563EB">工艺体验</span></td>
+          <td>半天</td><td>20-50 人</td><td>智能制造工厂</td>
+          <td><span style="color:#F59E0B"><i class="fas fa-star text-[11px]"></i> 4.9</span></td>
+          <td>32</td><td>1,286</td>
+          <td><span class="tag" style="background:#DCFCE7;color:#059669">在售</span></td>
+          <td><span class="lk" onclick="openD('route')">编辑</span> · <span class="lk" onclick="toast('切换到场次管理')">场次</span> · <span class="lk" onclick="openD('signup')">报名名单</span> · <span class="lk" onclick="toast('路线已下架，买家端同步隐藏')">下架</span></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,#EDE9FE,#DDD6FE)"><i class="fas fa-landmark text-[13px]" style="color:#7C3AED"></i></div>
+              <span class="font-medium">袜业博物馆文化游</span>
+            </div>
+          </td>
+          <td><span class="tag" style="background:#EDE9FE;color:#7C3AED">文化课堂</span></td>
+          <td>2 小时</td><td>30-80 人</td><td>大唐袜业博物馆</td>
+          <td><span style="color:#F59E0B"><i class="fas fa-star text-[11px]"></i> 4.8</span></td>
+          <td>28</td><td>1,540</td>
+          <td><span class="tag" style="background:#DCFCE7;color:#059669">在售</span></td>
+          <td><span class="lk" onclick="openD('route')">编辑</span> · <span class="lk" onclick="toast('切换到场次管理')">场次</span> · <span class="lk" onclick="openD('signup')">报名名单</span> · <span class="lk" onclick="toast('路线已下架，买家端同步隐藏')">下架</span></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,#DCFCE7,#BBF7D0)"><i class="fas fa-hands-holding-circle text-[13px]" style="color:#059669"></i></div>
+              <span class="font-medium">织袜工艺体验营</span>
+            </div>
+          </td>
+          <td><span class="tag" style="background:#DCFCE7;color:#059669">工厂参观</span></td>
+          <td>1 天</td><td>15-40 人</td><td>智能制造工厂 · 原料检测中心</td>
+          <td><span style="color:#F59E0B"><i class="fas fa-star text-[11px]"></i> 4.7</span></td>
+          <td>19</td><td>620</td>
+          <td><span class="tag" style="background:#DCFCE7;color:#059669">在售</span></td>
+          <td><span class="lk" onclick="openD('route')">编辑</span> · <span class="lk" onclick="toast('切换到场次管理')">场次</span> · <span class="lk" onclick="openD('signup')">报名名单</span> · <span class="lk" onclick="toast('路线已下架，买家端同步隐藏')">下架</span></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,#FEF3C7,#FDE68A)"><i class="fas fa-palette text-[13px]" style="color:#D97706"></i></div>
+              <span class="font-medium">袜业文创设计课</span>
+            </div>
+          </td>
+          <td><span class="tag" style="background:#FEF3C7;color:#D97706">工艺体验</span></td>
+          <td>半天</td><td>20-40 人</td><td>大唐文创设计中心</td>
+          <td><span style="color:#F59E0B"><i class="fas fa-star text-[11px]"></i> 4.6</span></td>
+          <td>6</td><td>180</td>
+          <td><span class="tag" style="background:#F1F5F9;color:#94A3B8">下架</span></td>
+          <td><span class="lk" onclick="openD('route')">编辑</span> · <span class="lk" onclick="toast('切换到场次管理')">场次</span> · <span class="lk" onclick="openD('signup')">报名名单</span> · <span class="lk" onclick="toast('路线已上架，买家端同步展示')">上架</span></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,#F1F5F9,#E2E8F0)"><i class="fas fa-seedling text-[13px]" style="color:#94A3B8"></i></div>
+              <span class="font-medium">纱线原料探秘</span>
+              <span class="tag" style="background:#F1F5F9;color:#64748B">草稿</span>
+            </div>
+          </td>
+          <td><span class="tag" style="background:#DCFCE7;color:#059669">工厂参观</span></td>
+          <td>2 小时</td><td>15-30 人</td><td>原料检测中心</td>
+          <td><span class="text-[#94A3B8]">—</span></td>
+          <td>0</td><td>0</td>
+          <td><span class="tag" style="background:#F1F5F9;color:#94A3B8">未上架</span></td>
+          <td><span class="lk" onclick="openD('route')">编辑</span> · <span class="lk" onclick="toast('切换到场次管理')">场次</span> · <span class="lk" onclick="openD('signup')">报名名单</span> · <span class="lk" onclick="toast('路线已上架，买家端同步展示')">上架</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 活动场次 -->
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden hidden" id="pane-s">
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+      <div class="section-label mb-0">活动场次 · 未开始（9）</div>
+      <div class="text-[12px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>余席实时扣减，满员自动置为「已满」</div>
+    </div>
+    <table class="w-full tb">
+      <thead><tr>
+        <th>场次编号</th><th>所属路线</th><th>日期</th><th>星期</th><th>名额上限</th><th>已报名</th><th>余席</th><th>状态</th><th>候补</th><th>操作</th>
+      </tr></thead>
+      <tbody>
+        <tr>
+          <td class="font-medium">SC2026091501</td><td>智能制造工厂参观</td><td>2026-09-15</td><td>周六</td><td>50</td><td>32</td><td class="text-green-600 font-semibold">18</td>
+          <td><span class="tag" style="background:#DCFCE7;color:#059669">可报名</span></td><td>0</td>
+          <td><span class="lk" onclick="openD('signup')">报名名单</span> · <span class="lk" onclick="openD('checkin')">签到</span> · <span class="lk" onclick="openD('review')">评价</span> · <span class="lk" onclick="openD('session')">编辑</span></td>
+        </tr>
+        <tr>
+          <td class="font-medium">SC2026091601</td><td>织袜工艺体验营</td><td>2026-09-16</td><td>周日</td><td>40</td><td>34</td><td class="font-semibold" style="color:#F97316">6</td>
+          <td><span class="tag" style="background:#FEF3C7;color:#D97706">仅剩少量</span></td><td>3</td>
+          <td><span class="lk" onclick="openD('signup')">报名名单</span> · <span class="lk" onclick="openD('checkin')">签到</span> · <span class="lk" onclick="openD('review')">评价</span> · <span class="lk" onclick="openD('session')">编辑</span></td>
+        </tr>
+        <tr>
+          <td class="font-medium">SC2026091701</td><td>袜业博物馆文化游</td><td>2026-09-17</td><td>周一</td><td>80</td><td>80</td><td class="text-[#94A3B8]">0</td>
+          <td><span class="tag" style="background:#F1F5F9;color:#64748B">已满</span></td><td>8</td>
+          <td><span class="lk" onclick="openD('signup')">报名名单</span> · <span class="lk" onclick="openD('checkin')">签到</span> · <span class="lk" onclick="openD('review')">评价</span> · <span class="lk" onclick="openD('session')">编辑</span></td>
+        </tr>
+        <tr>
+          <td class="font-medium">SC2026092201</td><td>智能制造工厂参观</td><td>2026-09-22</td><td>周六</td><td>50</td><td>28</td><td class="text-green-600 font-semibold">22</td>
+          <td><span class="tag" style="background:#DCFCE7;color:#059669">可报名</span></td><td>0</td>
+          <td><span class="lk" onclick="openD('signup')">报名名单</span> · <span class="lk" onclick="openD('checkin')">签到</span> · <span class="lk" onclick="openD('review')">评价</span> · <span class="lk" onclick="openD('session')">编辑</span></td>
+        </tr>
+        <tr>
+          <td class="font-medium">SC2026092301</td><td>织袜工艺体验营</td><td>2026-09-23</td><td>周日</td><td>40</td><td>12</td><td class="text-green-600 font-semibold">28</td>
+          <td><span class="tag" style="background:#DCFCE7;color:#059669">可报名</span></td><td>0</td>
+          <td><span class="lk" onclick="openD('signup')">报名名单</span> · <span class="lk" onclick="openD('checkin')">签到</span> · <span class="lk" onclick="openD('review')">评价</span> · <span class="lk" onclick="openD('session')">编辑</span></td>
+        </tr>
+        <tr>
+          <td class="font-medium">SC2026101201</td><td>袜业博物馆文化游</td><td>2026-10-12</td><td>周六</td><td>80</td><td>32</td><td class="text-green-600 font-semibold">48</td>
+          <td><span class="tag" style="background:#DCFCE7;color:#059669">可报名</span></td><td>0</td>
+          <td><span class="lk" onclick="openD('signup')">报名名单</span> · <span class="lk" onclick="openD('checkin')">签到</span> · <span class="lk" onclick="openD('review')">评价</span> · <span class="lk" onclick="openD('session')">编辑</span></td>
+        </tr>
+        <tr>
+          <td class="font-medium">SC2026101301</td><td>智能制造工厂参观</td><td>2026-10-13</td><td>周日</td><td>50</td><td>5</td><td class="text-green-600 font-semibold">45</td>
+          <td><span class="tag" style="background:#DCFCE7;color:#059669">可报名</span></td><td>0</td>
+          <td><span class="lk" onclick="openD('signup')">报名名单</span> · <span class="lk" onclick="openD('checkin')">签到</span> · <span class="lk" onclick="openD('review')">评价</span> · <span class="lk" onclick="openD('session')">编辑</span></td>
+        </tr>
+        <tr>
+          <td class="font-medium">SC2026101401</td><td>织袜工艺体验营</td><td>2026-10-14</td><td>周一</td><td>40</td><td>40</td><td class="text-[#94A3B8]">0</td>
+          <td><span class="tag" style="background:#F1F5F9;color:#64748B">已满</span></td><td>5</td>
+          <td><span class="lk" onclick="openD('signup')">报名名单</span> · <span class="lk" onclick="openD('checkin')">签到</span> · <span class="lk" onclick="openD('review')">评价</span> · <span class="lk" onclick="openD('session')">编辑</span></td>
+        </tr>
+        <tr>
+          <td class="font-medium">SC2026101501</td><td>智能制造工厂参观</td><td>2026-10-15</td><td>周二</td><td>80</td><td>48</td><td class="text-green-600 font-semibold">32</td>
+          <td><span class="tag" style="background:#DCFCE7;color:#059669">可报名</span></td><td>0</td>
+          <td><span class="lk" onclick="openD('signup')">报名名单</span> · <span class="lk" onclick="openD('checkin')">签到</span> · <span class="lk" onclick="openD('review')">评价</span> · <span class="lk" onclick="openD('session')">编辑</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="flex items-center justify-between mt-4 text-[12px] text-[#64748B]">
+    <span>共 9 条</span>
+    <div class="flex gap-1">
+      <button class="px-3 py-1.5 bg-white border border-gray-200 rounded-lg" onclick="toast('上一页')">上一页</button>
+      <button class="px-3 py-1.5 bg-primary text-white rounded-lg" onclick="toast('1')">1</button>
+      <button class="px-3 py-1.5 bg-white border border-gray-200 rounded-lg" onclick="toast('下一页')">下一页</button>
+    </div>
+  </div>
+</div>
+
+<div class="mask" id="mask" onclick="closeD()"></div>
+<div class="drawer" id="drawer">
+  <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+    <div>
+      <h3 class="text-[15px] font-bold text-[#1F2430]" id="d-title">详情</h3>
+      <p class="text-[11px] text-[#94A3B8] mt-0.5" id="d-sub">研学线路活动管理</p>
+    </div>
+    <button onclick="closeD()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-xmark text-lg"></i></button>
+  </div>
+  <div class="flex-1 overflow-y-auto px-6 py-5" id="d-body"></div>
+  <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3" id="d-foot"></div>
+</div>
+
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[60]"></div>
+
+<script>
+document.querySelectorAll('.tab[data-t1]').forEach(function(t){
+  t.addEventListener('click',function(){
+    document.querySelectorAll('.tab[data-t1]').forEach(function(x){x.classList.remove('on')});
+    t.classList.add('on');
+    var k=t.getAttribute('data-t1');
+    document.getElementById('pane-r').classList.toggle('hidden',k!=='r');
+    document.getElementById('pane-s').classList.toggle('hidden',k!=='s');
+    document.getElementById('subtabs').style.display = k==='s' ? 'flex' : 'none';
+  });
+});
+document.querySelectorAll('.subtab').forEach(function(t){
+  t.addEventListener('click',function(){
+    document.querySelectorAll('.subtab').forEach(function(x){x.classList.remove('on')});
+    t.classList.add('on');
+  });
+});
+
+var D={
+  route:{t:'编辑研学路线',f:'<button class="btn btn-ghost py-2.5" onclick="closeD()">取消</button><button class="btn btn-primary py-2.5 px-6" onclick="closeD();toast(\'路线已保存并同步至买家端\')">保存并同步</button>',b:`
+    <div class="ftitle">基础信息</div>
+    <div class="grid grid-cols-2 gap-3">
+      <div><label class="fl"><i>*</i>路线名称</label><input class="fi" value="智能制造工厂参观"></div>
+      <div><label class="fl"><i>*</i>分类标签</label><select class="fi"><option>工艺体验</option><option>文化课堂</option><option>工厂参观</option></select></div>
+      <div><label class="fl"><i>*</i>时长</label><select class="fi"><option>2 小时</option><option selected>半天</option><option>1 天</option></select></div>
+      <div><label class="fl"><i>*</i>人数区间</label><div class="flex gap-2"><input class="fi" value="20"><span class="self-center text-[#94A3B8]">—</span><input class="fi" value="50"></div></div>
+      <div class="col-span-2"><label class="fl"><i>*</i>关联基地</label><select class="fi" multiple style="height:66px"><option selected>智能制造工厂</option><option>大唐袜业博物馆</option><option>原料检测中心</option><option>大唐文创设计中心</option></select></div>
+    </div>
+    <div><label class="fl"><i>*</i>路线简介</label><textarea class="fi" rows="2">全自动化生产线参观、织袜工艺体验，了解一双袜子的诞生过程。</textarea></div>
+
+    <div class="ftitle">研学亮点（最多 8 条）</div>
+    <div class="space-y-2">
+      <div class="flex gap-2"><input class="fi" value="全自动化生产线参观"><button class="btn btn-ghost" style="flex-shrink:0" onclick="toast('操作')"><i class="fas fa-trash"></i></button></div>
+      <div class="flex gap-2"><input class="fi" value="智能袜机操作演示"><button class="btn btn-ghost" style="flex-shrink:0" onclick="toast('操作')"><i class="fas fa-trash"></i></button></div>
+      <div class="flex gap-2"><input class="fi" value="纱线原料认知"><button class="btn btn-ghost" style="flex-shrink:0" onclick="toast('操作')"><i class="fas fa-trash"></i></button></div>
+      <div class="flex gap-2"><input class="fi" value="品质检测体验"><button class="btn btn-ghost" style="flex-shrink:0" onclick="toast('操作')"><i class="fas fa-trash"></i></button></div>
+      <button class="btn btn-ghost w-full" onclick="toast('添加亮点')"><i class="fas fa-plus mr-1"></i>添加亮点</button>
+    </div>
+
+    <div class="ftitle">行程安排</div>
+    <div class="border border-gray-100 rounded-xl px-4 py-2">
+      <div class="tline"><span class="text-[13px] font-medium w-14" style="color:#FF4D2D">09:00</span><div class="flex-1"><p class="text-[13px]">集合签到</p><p class="text-[11px] text-[#94A3B8]">游客服务中心一楼大厅</p></div></div>
+      <div class="tline"><span class="text-[13px] font-medium w-14" style="color:#FF4D2D">09:30</span><div class="flex-1"><p class="text-[13px]">工厂参观</p><p class="text-[11px] text-[#94A3B8]">全自动化生产线全流程讲解</p></div></div>
+      <div class="tline"><span class="text-[13px] font-medium w-14" style="color:#FF4D2D">10:30</span><div class="flex-1"><p class="text-[13px]">织袜工艺体验</p><p class="text-[11px] text-[#94A3B8]">亲手操作织袜机</p></div></div>
+      <div class="tline"><span class="text-[13px] font-medium w-14" style="color:#FF4D2D">11:30</span><div class="flex-1"><p class="text-[13px]">总结问答</p><p class="text-[11px] text-[#94A3B8]">互动问答与合影</p></div></div>
+    </div>
+    <button class="btn btn-ghost w-full mt-2" onclick="toast('添加环节')"><i class="fas fa-plus mr-1"></i>添加环节</button>
+
+    <div class="ftitle">宣传素材</div>
+    <div class="flex gap-3">
+      <div class="w-24 h-24 rounded-lg border-2 border-dashed border-gray-200 flex flex-col items-center justify-center cursor-pointer hover:border-primary"><i class="fas fa-plus text-gray-300"></i><span class="text-[11px] text-[#94A3B8] mt-1">封面图</span></div>
+      <div class="w-24 h-24 rounded-lg bg-gray-100 flex items-center justify-center"><i class="fas fa-image text-gray-300 text-xl"></i></div>
+      <div class="w-24 h-24 rounded-lg border-2 border-dashed border-gray-200 flex flex-col items-center justify-center cursor-pointer hover:border-primary"><i class="fas fa-video text-gray-300"></i><span class="text-[11px] text-[#94A3B8] mt-1">宣传视频</span></div>
+    </div>`},
+  session:{t:'新建研学场次',f:'<button class="btn btn-ghost py-2.5" onclick="closeD()">取消</button><button class="btn btn-primary py-2.5 px-6" onclick="closeD();toast(\'场次已创建，买家端活动日历同步更新\')">保存</button>',b:`
+    <div class="ftitle">场次信息</div>
+    <div class="grid grid-cols-2 gap-3">
+      <div class="col-span-2"><label class="fl"><i>*</i>所属路线</label><select class="fi"><option>智能制造工厂参观</option><option>袜业博物馆文化游</option><option>织袜工艺体验营</option></select></div>
+      <div><label class="fl"><i>*</i>研学日期</label><input class="fi" type="date" value="2026-10-18"></div>
+      <div><label class="fl"><i>*</i>名额上限</label><input class="fi" type="number" min="1" value="50"></div>
+    </div>
+    <div class="flex items-center gap-3 mt-3">
+      <div class="switch on" onclick="this.classList.toggle('on')"></div>
+      <span class="text-[13px] text-[#1F2430]">开启候补（满员后用户可登记候补）</span>
+    </div>
+    <div><label class="fl">场次备注</label><textarea class="fi" rows="2" placeholder="如：需提前 10 分钟到场、含午餐"></textarea></div>
+    <div class="mt-3 flex items-start gap-2 px-3 py-2 rounded-lg bg-orange-50 border border-orange-100">
+      <i class="fas fa-circle-info text-[12px] mt-0.5" style="color:#F97316"></i>
+      <p class="text-[11px] text-[#64748B]">日期不可早于今天；名额上限需落在该路线的人数区间内（20-50 人）。创建后买家端「活动日历」与「个人报名」日期选择同步更新。</p>
+    </div>`},
+  signup:{t:'报名名单',f:'<button class="btn btn-ghost py-2.5" onclick="toast(\'已导出报名名单 Excel\')"><i class="fas fa-download mr-1"></i>导出</button>',b:`
+    <div class="grid grid-cols-3 gap-3">
+      <div class="bg-gray-50 rounded-xl p-3 text-center"><p class="text-[11px] text-[#94A3B8]">已报名</p><p class="text-lg font-bold text-[#1F2430]">32</p></div>
+      <div class="bg-gray-50 rounded-xl p-3 text-center"><p class="text-[11px] text-[#94A3B8]">个人 / 团体</p><p class="text-lg font-bold text-[#1F2430]">15 / 17</p></div>
+      <div class="bg-gray-50 rounded-xl p-3 text-center"><p class="text-[11px] text-[#94A3B8]">待审核</p><p class="text-lg font-bold" style="color:#F97316">4</p></div>
+    </div>
+    <div class="ftitle">名单明细</div>
+    <div class="border border-gray-100 rounded-xl overflow-hidden">
+      <div class="mini"><span>王小明 · 大唐镇中心小学</span><span class="text-green-600">已通过</span></div>
+      <div class="mini"><span>李思颖 · 诸暨海亮小学</span><span class="text-green-600">已通过</span></div>
+      <div class="mini"><span>诸暨海亮小学（团体 48 人）</span><span class="text-green-600">已通过</span></div>
+      <div class="mini"><span>张子轩 · 大唐镇第二小学</span><span style="color:#F97316">待审核</span></div>
+      <div class="mini"><span>浙江大学附属小学（团体 80 人）</span><span style="color:#F97316">待终审</span></div>
+      <div class="mini"><span>陈雨桐 · 大唐初级中学</span><span style="color:#0284C7">待补充</span></div>
+    </div>
+    <div class="mt-3 flex items-start gap-2 px-3 py-2 rounded-lg bg-orange-50 border border-orange-100">
+      <i class="fas fa-circle-info text-[12px] mt-0.5" style="color:#F97316"></i>
+      <p class="text-[11px] text-[#64748B]">导出字段：申请编号、类型、姓名/学校、联系方式、人数、路线、场次、状态、签署状态、提交时间。</p>
+    </div>`},
+  checkin:{t:'签到记录',f:'<button class="btn btn-ghost py-2.5" onclick="toast(\'打开手工补签\')"><i class="fas fa-pen mr-1"></i>手工补签</button><button class="btn btn-ghost py-2.5" onclick="toast(\'已导出签到表\')"><i class="fas fa-download mr-1"></i>导出</button>',b:`
+    <div class="grid grid-cols-4 gap-3">
+      <div class="bg-gray-50 rounded-xl p-3 text-center"><p class="text-[11px] text-[#94A3B8]">应到</p><p class="text-lg font-bold">32</p></div>
+      <div class="bg-gray-50 rounded-xl p-3 text-center"><p class="text-[11px] text-[#94A3B8]">实到</p><p class="text-lg font-bold text-green-600">30</p></div>
+      <div class="bg-gray-50 rounded-xl p-3 text-center"><p class="text-[11px] text-[#94A3B8]">未到</p><p class="text-lg font-bold text-[#94A3B8]">2</p></div>
+      <div class="bg-gray-50 rounded-xl p-3 text-center"><p class="text-[11px] text-[#94A3B8]">到场率</p><p class="text-lg font-bold" style="color:#FF4D2D">94%</p></div>
+    </div>
+    <div class="ftitle">签到明细</div>
+    <div class="border border-gray-100 rounded-xl overflow-hidden">
+      <div class="mini"><span>王小明</span><span class="text-green-600">09:02 扫码</span></div>
+      <div class="mini"><span>李思颖</span><span class="text-green-600">09:05 扫码</span></div>
+      <div class="mini"><span>陈雨桐</span><span class="text-[#94A3B8]">09:20 手工补签</span></div>
+      <div class="mini"><span>刘一诺</span><span style="color:#DC2626">未到场</span></div>
+    </div>`},
+  review:{t:'评价管理',f:'<button class="btn btn-primary py-2.5 px-6" onclick="closeD();toast(\'评价审核结果已保存，精选同步至买家端\')">保存审核结果</button>',b:`
+    <div class="ftitle">星级分布</div>
+    <div class="bg-gray-50 rounded-xl p-4 space-y-2">
+      <div class="flex items-center gap-3 text-[12px]"><span class="w-10 text-[#64748B]">5 星</span><div style="flex:1;height:6px;border-radius:3px;background:#F1F5F9"><i style="display:block;width:72%;height:100%;border-radius:3px;background:linear-gradient(90deg,#FF7849,#FF4D2D)"></i></div><span class="text-[#64748B]">23</span></div>
+      <div class="flex items-center gap-3 text-[12px]"><span class="w-10 text-[#64748B]">4 星</span><div style="flex:1;height:6px;border-radius:3px;background:#F1F5F9"><i style="display:block;width:19%;height:100%;border-radius:3px;background:linear-gradient(90deg,#FF7849,#FF4D2D)"></i></div><span class="text-[#64748B]">6</span></div>
+      <div class="flex items-center gap-3 text-[12px]"><span class="w-10 text-[#64748B]">3 星</span><div style="flex:1;height:6px;border-radius:3px;background:#F1F5F9"><i style="display:block;width:6%;height:100%;border-radius:3px;background:linear-gradient(90deg,#FF7849,#FF4D2D)"></i></div><span class="text-[#64748B]">2</span></div>
+    </div>
+    <div class="ftitle">评价列表</div>
+    <div class="space-y-3">
+      <div class="border border-gray-100 rounded-xl p-3">
+        <div class="flex items-center justify-between"><div class="flex items-center gap-2"><span class="text-[13px] font-medium">王先生</span><span class="text-[11px] text-[#94A3B8]">大唐镇中心小学</span></div><div class="text-[12px]" style="color:#F59E0B">★★★★★</div></div>
+        <p class="text-[12px] text-[#64748B] mt-2">全自动生产线很震撼，讲解员专业，孩子收获很大。</p>
+        <div class="mt-2 flex gap-2"><button class="btn btn-ghost" style="padding:3px 10px" onclick="toast('精选')">精选</button><button class="btn btn-ghost" style="padding:3px 10px" onclick="toast('隐藏')">隐藏</button></div>
+      </div>
+      <div class="border border-gray-100 rounded-xl p-3" style="background:#FFF7F5">
+        <div class="flex items-center justify-between"><div class="flex items-center gap-2"><span class="text-[13px] font-medium">匿名家长</span><span class="tag" style="background:#FEE2E2;color:#DC2626">待审核</span></div><div class="text-[12px]" style="color:#F59E0B">★★★☆☆</div></div>
+        <p class="text-[12px] text-[#64748B] mt-2">内容不错，但希望增加互动环节。</p>
+        <div class="mt-2 flex gap-2"><button class="btn btn-ghost" style="padding:3px 10px" onclick="toast('精选')">精选</button><button class="btn btn-ghost" style="padding:3px 10px" onclick="toast('隐藏')">隐藏</button></div>
+      </div>
+    </div>`}
+};
+
+function openD(k){
+  var d=D[k];
+  document.getElementById('d-title').textContent=d.t;
+  document.getElementById('d-body').innerHTML=d.b;
+  document.getElementById('d-foot').innerHTML=d.f;
+  document.getElementById('mask').classList.add('on');
+  document.getElementById('drawer').classList.add('on');
+}
+function closeD(){
+  document.getElementById('mask').classList.remove('on');
+  document.getElementById('drawer').classList.remove('on');
+}
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},2200);}
+</script>
+</body>
+</html>

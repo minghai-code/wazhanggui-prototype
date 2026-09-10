@@ -6,6 +6,7 @@
 <title>袜博展会 - 袜掌柜买家版</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="backend-config.js"></script>
 <script>tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D','primary-d':'#E63E20','primary-l':'#FF7849'}}}}</script>
 <style>
 :root{--p:#FF4D2D;--pl:#FF7849;--bg:#FFF7F4}
@@ -62,6 +63,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 .h-scroll>*{scroll-snap-align:start;flex:0 0 auto}
 .shadow-card{box-shadow:0 8px 24px rgba(236,72,153,.1)}
 .shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
+
+/* 弹层 / 大图预览 / Toast */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;opacity:0;pointer-events:none;transition:.2s}
+.overlay.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;background:#fff;border-radius:22px 22px 0 0;z-index:210;transform:translateY(100%);transition:.25s;max-height:78%;overflow-y:auto;padding:16px 14px 26px;width:393px;margin:0 auto}
+.sheet.on{transform:translateY(0)}
+.viewer{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:220;display:none;align-items:center;justify-content:center;flex-direction:column;width:393px}
+.viewer.on{display:flex}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:300;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.25);min-width:120px;justify-content:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.scan-frame{position:relative;width:190px;height:190px;margin:0 auto;border-radius:16px;overflow:hidden;background:#111}
+.scan-frame::before{content:'';position:absolute;left:12px;top:12px;width:34px;height:34px;border-left:3px solid #FBBF24;border-top:3px solid #FBBF24;border-radius:6px 0 0 0}
+.scan-frame::after{content:'';position:absolute;right:12px;bottom:12px;width:34px;height:34px;border-right:3px solid #FBBF24;border-bottom:3px solid #FBBF24;border-radius:0 0 6px 0}
+.scan-line{position:absolute;left:12px;right:12px;height:2px;background:linear-gradient(90deg,transparent,#FBBF24,transparent);animation:scanMove 2s linear infinite}
+@keyframes scanMove{0%{top:14px}50%{top:174px}100%{top:14px}}
 </style>
 </head>
 <body>
@@ -120,32 +136,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 
 <!-- ===== 规模数据 ===== -->
 <div class="px-3 mt-3">
-  <div class="grid grid-cols-4 gap-2 fade-up" style="animation-delay:.05s">
-    <div class="text-center"><p class="text-[20px] font-black text-grad-expo">5万</p><p class="text-[8px] text-gray-400 mt-0.5">㎡展览面积</p></div>
-    <div class="text-center"><p class="text-[20px] font-black text-grad-expo">800+</p><p class="text-[8px] text-gray-400 mt-0.5">家展商</p></div>
-    <div class="text-center"><p class="text-[20px] font-black text-grad-expo">5万+</p><p class="text-[8px] text-gray-400 mt-0.5">名观众</p></div>
-    <div class="text-center"><p class="text-[20px] font-black text-grad-expo">2000+</p><p class="text-[8px] text-gray-400 mt-0.5">个展位</p></div>
-  </div>
+  <div class="grid grid-cols-4 gap-2 fade-up" id="scaleRow" style="animation-delay:.05s"></div>
 </div>
 
-<!-- ===== 我的展会 ===== -->
-<div class="px-3 mt-3">
-  <a href="expo-visitor-apply.html" class="card block bg-white rounded-2xl p-3 shadow-soft border border-white fade-up" style="animation-delay:.1s">
-    <div class="flex items-center gap-3">
-      <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background:#F0FDF4">
-        <i class="fas fa-id-card text-[16px]" style="color:#10B981"></i>
-      </div>
-      <div class="flex-1">
-        <div class="flex items-center gap-1.5">
-          <p class="text-[13px] font-bold text-gray-800">已登记参观</p>
-          <span class="text-[8px] px-1.5 py-0.5 rounded-full font-bold" style="background:#D1FAE5;color:#059669">已确认</span>
-        </div>
-        <p class="text-[9px] text-gray-400 mt-0.5">入场编号 V2026180001 · 凭码入场</p>
-      </div>
-      <i class="fas fa-chevron-right text-gray-300 text-sm"></i>
-    </div>
-  </a>
-</div>
+<!-- ===== 我的展会（登记/审核/核销状态读本地登记单） ===== -->
+<div class="px-3 mt-3" id="myRegCard"></div>
 
 <!-- ===== 功能入口 ===== -->
 <div class="px-3 mt-4">
@@ -166,7 +161,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
       <div class="w-11 h-11 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#8B5CF6,#6366F1)"><i class="fas fa-calendar-check text-base"></i></div>
       <span class="text-[11px] font-medium text-gray-700">日程安排</span>
     </a>
-    <a href="#" onclick="alert('请到展会现场扫码签到');return false" class="card flex flex-col items-center gap-1.5 py-3 fade-up bg-white rounded-2xl shadow-soft border border-gray-50" style="animation-delay:.3s">
+    <a href="#" onclick="openScan();return false" class="card flex flex-col items-center gap-1.5 py-3 fade-up bg-white rounded-2xl shadow-soft border border-gray-50" style="animation-delay:.3s">
       <div class="w-11 h-11 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)"><i class="fas fa-qrcode text-base"></i></div>
       <span class="text-[11px] font-medium text-gray-700">扫码签到</span>
     </a>
@@ -200,9 +195,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
           <span class="text-[9px] font-medium" style="color:#EC4899"><i class="fas fa-fire mr-0.5"></i>重磅</span>
         </div>
         <div class="space-y-2">
-          <a href="expo-session-detail.html?day=1&session=1" class="card flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-pink-50"><span class="text-[9px] text-gray-400 font-mono">09:00</span><span class="w-1 h-1 rounded-full bg-pink-400 flex-shrink-0"></span><span class="text-[10px] text-gray-600 flex-1">开幕仪式 · 展馆开放</span><i class="fas fa-chevron-right text-gray-300 text-[7px]"></i></a>
-          <a href="expo-session-detail.html?day=1&session=3" class="card flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-pink-50"><span class="text-[9px] text-gray-400 font-mono">10:00</span><span class="w-1 h-1 rounded-full bg-violet-400 flex-shrink-0"></span><span class="text-[10px] text-gray-600 flex-1">袜业高质量发展论坛</span><i class="fas fa-chevron-right text-gray-300 text-[7px]"></i></a>
-          <a href="expo-session-detail.html?day=1&session=6" class="card flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-pink-50"><span class="text-[9px] text-gray-400 font-mono">15:00</span><span class="w-1 h-1 rounded-full bg-pink-400 flex-shrink-0"></span><span class="text-[10px] text-gray-600 flex-1">品牌展商新品路演</span><i class="fas fa-chevron-right text-gray-300 text-[7px]"></i></a>
+          <a href="expo-session-detail.html?id=S2026-1-002" class="card flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-pink-50"><span class="text-[9px] text-gray-400 font-mono">09:00</span><span class="w-1 h-1 rounded-full bg-pink-400 flex-shrink-0"></span><span class="text-[10px] text-gray-600 flex-1">开幕仪式 · 展馆开放</span><i class="fas fa-chevron-right text-gray-300 text-[7px]"></i></a>
+          <a href="expo-session-detail.html?id=S2026-1-004" class="card flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-pink-50"><span class="text-[9px] text-gray-400 font-mono">10:00</span><span class="w-1 h-1 rounded-full bg-violet-400 flex-shrink-0"></span><span class="text-[10px] text-gray-600 flex-1">袜业高质量发展论坛</span><i class="fas fa-chevron-right text-gray-300 text-[7px]"></i></a>
+          <a href="expo-session-detail.html?id=S2026-1-007" class="card flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-pink-50"><span class="text-[9px] text-gray-400 font-mono">15:00</span><span class="w-1 h-1 rounded-full bg-pink-400 flex-shrink-0"></span><span class="text-[10px] text-gray-600 flex-1">品牌展商新品路演</span><i class="fas fa-chevron-right text-gray-300 text-[7px]"></i></a>
         </div>
       </div>
     </div>
@@ -221,9 +216,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
           <span class="text-[9px] font-medium" style="color:#2563EB"><i class="fas fa-handshake mr-0.5"></i>对接</span>
         </div>
         <div class="space-y-2">
-          <a href="expo-session-detail.html?day=2&session=0" class="card flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-blue-50"><span class="text-[9px] text-gray-400 font-mono">09:00</span><span class="w-1 h-1 rounded-full bg-blue-400 flex-shrink-0"></span><span class="text-[10px] text-gray-600 flex-1">供需精准对接会</span><i class="fas fa-chevron-right text-gray-300 text-[7px]"></i></a>
-          <a href="expo-session-detail.html?day=2&session=2" class="card flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-blue-50"><span class="text-[9px] text-gray-400 font-mono">10:30</span><span class="w-1 h-1 rounded-full bg-violet-400 flex-shrink-0"></span><span class="text-[10px] text-gray-600 flex-1">新材料·新工艺发布会</span><i class="fas fa-chevron-right text-gray-300 text-[7px]"></i></a>
-          <a href="expo-session-detail.html?day=2&session=5" class="card flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-blue-50"><span class="text-[9px] text-gray-400 font-mono">16:00</span><span class="w-1 h-1 rounded-full bg-pink-400 flex-shrink-0"></span><span class="text-[10px] text-gray-600 flex-1">袜业设计大赛决赛</span><i class="fas fa-chevron-right text-gray-300 text-[7px]"></i></a>
+          <a href="expo-session-detail.html?id=S2026-2-001" class="card flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-blue-50"><span class="text-[9px] text-gray-400 font-mono">09:00</span><span class="w-1 h-1 rounded-full bg-blue-400 flex-shrink-0"></span><span class="text-[10px] text-gray-600 flex-1">供需精准对接会</span><i class="fas fa-chevron-right text-gray-300 text-[7px]"></i></a>
+          <a href="expo-session-detail.html?id=S2026-2-003" class="card flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-blue-50"><span class="text-[9px] text-gray-400 font-mono">10:30</span><span class="w-1 h-1 rounded-full bg-violet-400 flex-shrink-0"></span><span class="text-[10px] text-gray-600 flex-1">新材料·新工艺发布会</span><i class="fas fa-chevron-right text-gray-300 text-[7px]"></i></a>
+          <a href="expo-session-detail.html?id=S2026-2-006" class="card flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-blue-50"><span class="text-[9px] text-gray-400 font-mono">16:00</span><span class="w-1 h-1 rounded-full bg-pink-400 flex-shrink-0"></span><span class="text-[10px] text-gray-600 flex-1">袜业设计大赛决赛</span><i class="fas fa-chevron-right text-gray-300 text-[7px]"></i></a>
         </div>
       </div>
     </div>
@@ -242,8 +237,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
           <span class="text-[9px] font-medium" style="color:#059669"><i class="fas fa-users mr-0.5"></i>公众</span>
         </div>
         <div class="space-y-2">
-          <a href="expo-session-detail.html?day=3&session=1" class="card flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-green-50"><span class="text-[9px] text-gray-400 font-mono">09:30</span><span class="w-1 h-1 rounded-full bg-green-400 flex-shrink-0"></span><span class="text-[10px] text-gray-600 flex-1">网红达人探馆直播</span><i class="fas fa-chevron-right text-gray-300 text-[7px]"></i></a>
-          <a href="expo-session-detail.html?day=3&session=3" class="card flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-green-50"><span class="text-[9px] text-gray-400 font-mono">14:00</span><span class="w-1 h-1 rounded-full bg-pink-400 flex-shrink-0"></span><span class="text-[10px] text-gray-600 flex-1">颁奖典礼 · 闭幕仪式</span><i class="fas fa-chevron-right text-gray-300 text-[7px]"></i></a>
+          <a href="expo-session-detail.html?id=S2026-3-002" class="card flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-green-50"><span class="text-[9px] text-gray-400 font-mono">09:30</span><span class="w-1 h-1 rounded-full bg-green-400 flex-shrink-0"></span><span class="text-[10px] text-gray-600 flex-1">网红达人探馆直播</span><i class="fas fa-chevron-right text-gray-300 text-[7px]"></i></a>
+          <a href="expo-session-detail.html?id=S2026-3-004" class="card flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-green-50"><span class="text-[9px] text-gray-400 font-mono">14:00</span><span class="w-1 h-1 rounded-full bg-pink-400 flex-shrink-0"></span><span class="text-[10px] text-gray-600 flex-1">颁奖典礼 · 闭幕仪式</span><i class="fas fa-chevron-right text-gray-300 text-[7px]"></i></a>
         </div>
       </div>
     </div>
@@ -261,7 +256,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
   </div>
   <div class="bg-white rounded-2xl p-3 shadow-soft border border-gray-100 fade-up" style="animation-delay:.1s">
     <div class="text-center text-[9px] text-gray-400 mb-2 font-medium">A馆 · 袜品区</div>
-    <div class="grid grid-cols-6 gap-1" style="grid-template-rows:repeat(3,28px)">
+    <div class="grid grid-cols-6 gap-1" id="boothGrid" style="grid-template-rows:repeat(3,28px)">
       <div class="booth-cell flex items-center justify-center text-[8px] font-bold text-white rounded" style="background:linear-gradient(135deg,#FB7185,#EC4899)">A01</div>
       <div class="booth-cell flex items-center justify-center text-[8px] font-bold text-white rounded" style="background:linear-gradient(135deg,#FB7185,#EC4899)">A02</div>
       <div class="booth-cell flex items-center justify-center text-[8px] font-bold text-white rounded" style="background:linear-gradient(135deg,#FB7185,#EC4899)">A03</div>
@@ -276,7 +271,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
       <div class="booth-cell flex items-center justify-center text-[8px] font-bold text-white rounded" style="background:linear-gradient(135deg,#FB7185,#EC4899)">B04</div>
       <div class="booth-cell flex items-center justify-center text-[8px] font-bold text-white rounded" style="background:linear-gradient(135deg,#FB7185,#EC4899)">B05</div>
     </div>
-    <div class="flex items-center gap-3 mt-2.5">
+    <div class="flex items-center gap-3 mt-2.5" id="boothLegend">
       <span class="flex items-center gap-1 text-[9px] text-gray-400"><span class="w-2.5 h-2.5 rounded" style="background:#EC4899"></span>展位</span>
       <span class="flex items-center gap-1 text-[9px] text-gray-400"><span class="w-2.5 h-2.5 rounded" style="background:#3B82F6"></span>入口</span>
     </div>
@@ -291,9 +286,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
       <div class="w-1 h-5 rounded-full" style="background:linear-gradient(180deg,#38BDF8,#3B82F6)"></div>
       <span class="font-bold text-[15px] text-gray-800">精选展商</span>
     </div>
-    <span class="text-[10px] text-gray-400">800+家 <i class="fas fa-chevron-right text-[9px]"></i></span>
+    <a href="#" onclick="openExhibitorList();return false" class="text-[10px] text-gray-400">800+家 · 查看展商名录 <i class="fas fa-chevron-right text-[9px]"></i></a>
   </div>
-  <div class="h-scroll pb-1">
+  <div class="h-scroll pb-1" id="exhibitorRow">
     <div class="card w-[155px] rounded-2xl overflow-hidden shadow-soft fade-up bg-white border border-gray-100" style="animation-delay:.05s">
       <div class="relative h-[85px] overflow-hidden">
         <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=%E5%B1%95%E4%BC%9A%E5%93%81%E7%89%8C%E5%B1%95%E4%BD%8D%E5%8D%8E%E4%B8%BD%E7%81%AF%E5%85%89%E4%B8%8B%E7%B2%BE%E7%BE%8E%E8%A2%9C%E5%93%81%E5%B1%95%E7%A4%BA%E6%9F%9C%E5%8F%B0%E7%8E%B0%E4%BB%A3%E7%AE%80%E6%B4%81&image_size=square" class="w-full h-full object-cover">
@@ -349,7 +344,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
       <span class="font-bold text-[15px] text-gray-800">往届回顾</span>
     </div>
   </div>
-  <div class="grid grid-cols-3 gap-2">
+  <div class="grid grid-cols-3 gap-2" id="archiveRow">
     <div class="card relative rounded-xl overflow-hidden shadow-soft fade-up" style="height:100px">
       <img src="images/scene_09.jpg" class="w-full h-full object-cover">
       <div class="absolute inset-0" style="background:linear-gradient(180deg,transparent 50%,rgba(0,0,0,.6) 100%)"></div>
@@ -396,12 +391,241 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </div>
 <div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none"><div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:3px"></div></div>
 
+<div class="toast" id="toast"><i class="fas fa-circle-check" style="color:#4ADE80"></i><span id="toastTxt">操作成功</span></div>
+<div class="overlay" id="overlay"></div>
+<div class="sheet" id="sheet"></div>
+<div class="viewer" id="viewer" onclick="closeViewer()">
+  <img id="viewerImg" src="" alt="" style="max-width:88%;max-height:60%;border-radius:12px">
+  <p class="text-white text-[14px] font-bold mt-3" id="viewerTitle"></p>
+  <p class="text-white/60 text-[10px] mt-1.5 text-center leading-relaxed" style="max-width:300px" id="viewerDesc"></p>
+  <button onclick="closeViewer()" class="mt-4 text-[12px] text-white px-6 py-2 rounded-full font-bold" style="background:rgba(255,255,255,.2)">关闭</button>
+</div>
+
 <script>
-function initDrag(){document.querySelectorAll('.h-scroll').forEach(function(c){var d=false,sx,sl,m=false;c.addEventListener('mousedown',function(e){d=true;m=false;sx=e.pageX-c.offsetLeft;sl=c.scrollLeft});c.addEventListener('mouseleave',function(){d=false});c.addEventListener('mouseup',function(){d=false});c.addEventListener('mousemove',function(e){if(!d)return;e.preventDefault();var w=(e.pageX-c.offsetLeft-sx)*1.5;if(Math.abs(w)>3){m=true}c.scrollLeft=sl-w});c.querySelectorAll('a').forEach(function(l){l.addEventListener('click',function(e){if(m)e.preventDefault()})})})}
+function toast(msg){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;t.classList.add('on');setTimeout(function(){t.classList.remove('on')},2000)}
+
+/* ===== 展会配置消费：规模数据 / 倒计时 / 平面图 / 精选展商 / 往届回顾 ===== */
+function renderScale(){
+  var box=document.getElementById('scaleRow');
+  if(!box)return;
+  var h='';
+  EXPO_CFG.scale.forEach(function(s){
+    h+='<div class="text-center"><p class="text-[20px] font-black text-grad-expo">'+s.value+'</p><p class="text-[8px] text-gray-400 mt-0.5">'+s.label+'</p></div>';
+  });
+  box.innerHTML=h;
+}
+
+/* 我的展会：登记 / 审核 / 核销 状态 */
+var CHECKIN_KEY='expoCheckin';
+function getReg(){try{return JSON.parse(localStorage.getItem('expoVisitorReg')||'null')}catch(e){return null}}
+function isCheckedIn(){try{return localStorage.getItem(CHECKIN_KEY)==='1'}catch(e){return false}}
+function renderMyReg(){
+  var box=document.getElementById('myRegCard');
+  if(!box)return;
+  var reg=getReg();
+  var ci=isCheckedIn();
+  var badge,desc,icon='fas fa-id-card',bg='#F0FDF4',color='#10B981',href='expo-visitor-apply.html',title='参观登记';
+  if(!reg){
+    title='尚未登记参观';badge='<span class="text-[8px] px-1.5 py-0.5 rounded-full font-bold" style="background:#F3F4F6;color:#9CA3AF">未登记</span>';
+    desc='登记后 1 个工作日内审核，通过后发送电子入场证';
+  }else if(reg.status==='pending'){
+    title='已登记参观';badge='<span class="text-[8px] px-1.5 py-0.5 rounded-full font-bold" style="background:#FEF3C7;color:#D97706">待审核</span>';
+    desc='编号 '+(reg.no||'-')+' · 审核通过后短信发送入场证';
+  }else if(reg.status==='rejected'){
+    title='登记未通过';badge='<span class="text-[8px] px-1.5 py-0.5 rounded-full font-bold" style="background:#FEE2E2;color:#DC2626">已驳回</span>';
+    desc='编号 '+(reg.no||'-')+' · 请核对信息后重新提交登记';
+    icon='fas fa-circle-xmark';bg='#FEF2F2';color='#DC2626';
+  }else if(!ci){
+    title='已登记参观';badge='<span class="text-[8px] px-1.5 py-0.5 rounded-full font-bold" style="background:#D1FAE5;color:#059669">审核通过</span>';
+    desc='编号 '+(reg.no||'-')+' · 到场扫码核销后解锁资料下载';
+  }else{
+    title='已入场核销';badge='<span class="text-[8px] px-1.5 py-0.5 rounded-full font-bold" style="background:#DBEAFE;color:#2563EB">已核销</span>';
+    desc='编号 '+(reg.no||'-')+' · 资料下载权限已解锁';icon='fas fa-circle-check';bg='#EFF6FF';color='#2563EB';
+  }
+  box.innerHTML='<a href="'+href+'" class="card block bg-white rounded-2xl p-3 shadow-soft border border-white fade-up" style="animation-delay:.1s">'
+    +'<div class="flex items-center gap-3"><div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background:'+bg+'">'
+    +'<i class="'+icon+' text-[16px]" style="color:'+color+'"></i></div>'
+    +'<div class="flex-1"><div class="flex items-center gap-1.5"><p class="text-[13px] font-bold text-gray-800">'+title+'</p>'+badge+'</div>'
+    +'<p class="text-[9px] text-gray-400 mt-0.5">'+desc+'</p></div>'
+    +'<i class="fas fa-chevron-right text-gray-300 text-sm"></i></div></a>';
+}
+
+/* 展位平面图：格子状态随后台排布变化 */
+var BOOTH_STYLE={
+  free:{bg:'#fff',color:'#9CA3AF',border:'1px solid #E5E7EB',label:'可选'},
+  booked:{bg:'linear-gradient(135deg,#FCD34D,#F59E0B)',color:'#fff',border:'none',label:'已预订'},
+  sold:{bg:'linear-gradient(135deg,#FB7185,#EC4899)',color:'#fff',border:'none',label:'已售出'},
+  locked:{bg:'#9CA3AF',color:'#fff',border:'none',label:'已锁定'},
+  entry:{bg:'linear-gradient(135deg,#60A5FA,#3B82F6)',color:'#fff',border:'none',label:'入口'}
+};
+function renderBooths(){
+  var grid=document.getElementById('boothGrid');
+  if(!grid)return;
+  var h='';
+  EXPO_CFG.boothRows.forEach(function(row){
+    if(row==='aisle'){
+      h+='<div class="col-span-6 flex items-center justify-center text-[7px] text-gray-300 rounded" style="background:rgba(0,0,0,.03);height:14px">— 主 通 道 —</div>';
+      return;
+    }
+    row.forEach(function(c){
+      var st=BOOTH_STYLE[c.type]||BOOTH_STYLE.free;
+      h+='<div class="booth-cell flex items-center justify-center text-[8px] font-bold rounded" title="'+c.id+'（'+st.label+'）" onclick="tapBooth(\''+c.id+'\',\''+st.label+'\')" style="background:'+st.bg+';color:'+st.color+';border:'+st.border+'">'
+        +(c.type==='entry'?'<i class="fas fa-door-open text-[8px]"></i>':c.id)+'</div>';
+    });
+  });
+  grid.innerHTML=h;
+  var lg=document.getElementById('boothLegend');
+  if(lg){
+    var colors={free:'#fff|#E5E7EB',booked:'#F59E0B',sold:'#EC4899',locked:'#9CA3AF',entry:'#3B82F6'};
+    var h2='';
+    ['free','booked','sold','locked','entry'].forEach(function(k){
+      var bg=k==='free'?'#fff':colors[k];
+      h2+='<span class="flex items-center gap-1 text-[9px] text-gray-400"><span class="w-2.5 h-2.5 rounded" style="background:'+bg+';'+(k==='free'?'border:1px solid #E5E7EB':'')+'"></span>'+BOOTH_STYLE[k].label+'</span>';
+    });
+    lg.innerHTML=h2;
+  }
+}
+function tapBooth(id,label){
+  var reg=getReg();
+  var msg=id+'（'+label+'）';
+  if(label==='可选'){
+    msg+='\n该展位尚未分配，可提交展位申请。';
+    showSheet('<p class="text-[14px] font-bold text-gray-800 mb-1">展位 '+id+'</p>'
+      +'<p class="text-[11px] text-gray-500 leading-relaxed">状态：可选（未分配）\n展位状态与平面图由后台「展位平面图配置」实时下发。</p>'
+      +'<a href="expo-booth-apply.html" class="block text-center text-[12px] text-white py-2.5 rounded-full font-bold mt-3" style="background:linear-gradient(135deg,#FB7185,#EC4899)">申请该展位</a>'
+      +'<button onclick="closeSheet()" class="block w-full text-center text-[12px] text-gray-500 py-2.5 rounded-full font-bold bg-gray-100 mt-2">关闭</button>');
+    return;
+  }
+  toast(msg);
+}
+
+/* 精选展商：可点击查看详情 */
+function renderExhibitors(){
+  var box=document.getElementById('exhibitorRow');
+  if(!box)return;
+  var h='';
+  EXPO_CFG.exhibitors.forEach(function(e,i){
+    h+='<div class="card w-[155px] rounded-2xl overflow-hidden shadow-soft fade-up bg-white border border-gray-100 cursor-pointer" style="animation-delay:'+(i*0.05)+'s" onclick="openExhibitor('+e.id+')">';
+    h+='<div class="relative h-[85px] overflow-hidden"><img src="'+e.img+'" class="w-full h-full object-cover">';
+    h+='<div class="absolute inset-0" style="background:linear-gradient(180deg,transparent 40%,rgba(255,255,255,.9) 100%)"></div>';
+    h+='<span class="absolute top-2 left-2 text-[7px] text-white font-bold px-1.5 py-0.5 rounded" style="background:'+e.tagBg+'">'+e.tag+'</span></div>';
+    h+='<div class="p-2.5"><p class="text-[12px] font-bold text-gray-800">'+e.name+'</p><p class="text-[9px] text-gray-400 mt-0.5">'+e.booth+' · '+e.cat+'</p></div></div>';
+  });
+  box.innerHTML=h;
+}
+function openExhibitor(id){
+  var e=null;
+  EXPO_CFG.exhibitors.forEach(function(x){if(x.id===id)e=x});
+  if(!e)return;
+  showSheet('<div class="flex items-start gap-3 mb-3"><img src="'+e.img+'" class="w-16 h-16 rounded-xl object-cover flex-shrink-0">'
+    +'<div class="flex-1"><p class="text-[15px] font-bold text-gray-800">'+e.name+'</p>'
+    +'<span class="inline-block text-[8px] text-white font-bold px-1.5 py-0.5 rounded mt-1" style="background:'+e.tagBg+'">'+e.tag+'</span>'
+    +'<p class="text-[10px] text-gray-400 mt-1"><i class="fas fa-map-pin mr-0.5"></i>展位号 '+e.booth+' · '+e.cat+'</p></div></div>'
+    +'<div class="bg-gray-50 rounded-xl p-3 mb-3"><p class="text-[11px] text-gray-600 leading-relaxed">'+e.desc+'</p></div>'
+    +'<p class="text-[9px] text-gray-400 mb-3"><i class="fas fa-circle-info mr-1"></i>展商资料由展商上传、后台审核通过后展示（审核中/已驳回的资料对观众不可见）。</p>'
+    +'<a href="expo-materials.html" class="block text-center text-[12px] text-white py-2.5 rounded-full font-bold" style="background:linear-gradient(135deg,#FB7185,#EC4899)">查看展商资料</a>'
+    +'<button onclick="closeSheet()" class="block w-full text-center text-[12px] text-gray-500 py-2.5 rounded-full font-bold bg-gray-100 mt-2">关闭</button>');
+}
+function openExhibitorList(){
+  var h='<p class="text-[14px] font-bold text-gray-800 mb-3">展商名录</p>';
+  EXPO_CFG.exhibitors.forEach(function(e){
+    h+='<div class="flex items-center gap-2.5 p-2.5 bg-gray-50 rounded-xl mb-2 cursor-pointer" onclick="openExhibitor('+e.id+')">'
+      +'<img src="'+e.img+'" class="w-11 h-11 rounded-lg object-cover flex-shrink-0">'
+      +'<div class="flex-1 min-w-0"><p class="text-[12px] font-bold text-gray-800">'+e.name+'</p>'
+      +'<p class="text-[9px] text-gray-400">'+e.booth+' · '+e.cat+'</p></div>'
+      +'<i class="fas fa-chevron-right text-gray-300 text-[10px]"></i></div>';
+  });
+  h+='<p class="text-[9px] text-gray-400 mt-1">仅展示后台「参展商管理」中设为精选的展商，完整名录请在资料下载页获取。</p>';
+  h+='<button onclick="closeSheet()" class="block w-full text-center text-[12px] text-gray-500 py-2.5 rounded-full font-bold bg-gray-100 mt-3">关闭</button>';
+  showSheet(h);
+}
+
+/* 往届回顾：可点击查看大图 */
+function renderArchives(){
+  var box=document.getElementById('archiveRow');
+  if(!box)return;
+  var h='';
+  EXPO_CFG.archives.forEach(function(a,i){
+    h+='<div class="card relative rounded-xl overflow-hidden shadow-soft fade-up cursor-pointer" style="height:100px;animation-delay:'+(i*0.05)+'s" onclick="openArchive('+i+')">';
+    h+='<img src="'+a.img+'" class="w-full h-full object-cover">';
+    h+='<div class="absolute inset-0" style="background:linear-gradient(180deg,transparent 50%,rgba(0,0,0,.6) 100%)"></div>';
+    h+='<p class="absolute bottom-1.5 left-2 text-white text-[8px] font-medium">'+a.title+'</p>';
+    h+='<div class="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-black/40 flex items-center justify-center"><i class="fas fa-expand text-[7px] text-white"></i></div>';
+    h+='</div>';
+  });
+  box.innerHTML=h;
+}
+function openArchive(i){
+  var a=EXPO_CFG.archives[i];
+  if(!a)return;
+  document.getElementById('viewerImg').src=a.img;
+  document.getElementById('viewerTitle').textContent=a.title;
+  document.getElementById('viewerDesc').textContent=a.desc;
+  document.getElementById('viewer').classList.add('on');
+}
+function closeViewer(){document.getElementById('viewer').classList.remove('on')}
+
+/* 扫码签到：唤起扫码（模拟），核销后解锁资料下载 */
+function openScan(){
+  var reg=getReg();
+  if(!reg){
+    showSheet('<p class="text-[14px] font-bold text-gray-800 mb-2">请先完成参观登记</p>'
+      +'<p class="text-[11px] text-gray-500 leading-relaxed">到场核销需先完成参观登记并通过审核，生成个人参展码后方可扫码入场。</p>'
+      +'<a href="expo-visitor-apply.html" class="block text-center text-[12px] text-white py-2.5 rounded-full font-bold mt-3" style="background:linear-gradient(135deg,#34D399,#059669)">去登记</a>'
+      +'<button onclick="closeSheet()" class="block w-full text-center text-[12px] text-gray-500 py-2.5 rounded-full font-bold bg-gray-100 mt-2">关闭</button>');
+    return;
+  }
+  if(reg.status!=='approved'){
+    showSheet('<p class="text-[14px] font-bold text-gray-800 mb-2">登记审核中</p>'
+      +'<p class="text-[11px] text-gray-500 leading-relaxed">您的参观登记还在审核中（1 个工作日内完成），审核通过后才能生成参展码入场。</p>'
+      +'<button onclick="closeSheet()" class="block w-full text-center text-[12px] text-gray-500 py-2.5 rounded-full font-bold bg-gray-100 mt-3">我知道了</button>');
+    return;
+  }
+  if(isCheckedIn()){
+    showSheet('<div class="text-center"><div class="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-2"><i class="fas fa-circle-check text-2xl" style="color:#2563EB"></i></div>'
+      +'<p class="text-[14px] font-bold text-gray-800">您已完成入场核销</p>'
+      +'<p class="text-[10px] text-gray-400 mt-1">资料下载权限已解锁</p>'
+      +'<a href="expo-materials.html" class="block text-center text-[12px] text-white py-2.5 rounded-full font-bold mt-3" style="background:linear-gradient(135deg,#8B5CF6,#6366F1)">去下载资料</a>'
+      +'<button onclick="closeSheet()" class="block w-full text-center text-[12px] text-gray-500 py-2.5 rounded-full font-bold bg-gray-100 mt-2">关闭</button></div>');
+    return;
+  }
+  showSheet('<p class="text-[14px] font-bold text-gray-800 mb-1 text-center">扫码入场核销</p>'
+    +'<p class="text-[10px] text-gray-400 text-center mb-3">请将参展码对准现场核销设备的扫码窗口</p>'
+    +'<div class="scan-frame"><div class="scan-line"></div></div>'
+    +'<p class="text-[9px] text-gray-400 text-center mt-3">入场编号 '+(reg.no||'-')+' · 核销由现场核销人员扫码完成，重复扫码不会重复记录</p>'
+    +'<button onclick="doCheckin()" class="block w-full text-center text-[12px] text-white py-2.5 rounded-full font-bold mt-3" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)">（演示）模拟核销成功</button>'
+    +'<button onclick="closeSheet()" class="block w-full text-center text-[12px] text-gray-500 py-2.5 rounded-full font-bold bg-gray-100 mt-2">取消</button>');
+}
+function doCheckin(){
+  try{localStorage.setItem(CHECKIN_KEY,'1')}catch(e){}
+  closeSheet();
+  renderMyReg();
+  toast('核销成功，资料下载已解锁');
+}
+
+/* 通用底部弹层 */
+function showSheet(html){
+  document.getElementById('sheet').innerHTML=html;
+  document.getElementById('sheet').classList.add('on');
+  document.getElementById('overlay').classList.add('on');
+}
+function closeSheet(){
+  document.getElementById('sheet').classList.remove('on');
+  document.getElementById('overlay').classList.remove('on');
+}
+document.getElementById('overlay').onclick=function(){closeSheet()};
+
+renderScale();
+renderMyReg();
+renderBooths();
+renderExhibitors();
+renderArchives();
+
+function initDrag(){document.querySelectorAll('.h-scroll').forEach(function(c){var d=false,sx,sl,m=false;c.addEventListener('mousedown',function(e){d=true;m=false;sx=e.pageX-c.offsetLeft;sl=c.scrollLeft});c.addEventListener('mouseleave',function(){d=false});c.addEventListener('mouseup',function(){d=false});c.addEventListener('mousemove',function(e){if(!d)return;e.preventDefault();var w=(e.pageX-c.offsetLeft-sx)*1.5;if(Math.abs(w)>3){m=true}c.scrollLeft=sl-w});c.querySelectorAll('a,[onclick]').forEach(function(l){l.addEventListener('click',function(e){if(m){e.preventDefault();e.stopPropagation()}},true)})})}
 initDrag();
 
 function updateCountdown(){
-  var target=new Date('2026-10-18T09:00:00').getTime();
+  var target=new Date(EXPO_CFG.edition.openAt).getTime();
   var now=new Date().getTime();
   var diff=Math.max(0,target-now);
   var days=Math.floor(diff/86400000);

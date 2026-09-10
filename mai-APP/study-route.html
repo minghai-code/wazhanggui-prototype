@@ -6,6 +6,7 @@
 <title>研学路线详情 - 袜掌柜买家版</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="backend-config.js"></script>
 <style>
 :root{--p:#FF4D2D;--pl:#FF7849;--bg:#FFF7F4}
 *{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
@@ -195,6 +196,27 @@ document.getElementById('routeGroup').textContent=r.group;
 document.getElementById('routeRating').textContent=r.rating;
 document.getElementById('routeTags').innerHTML='<span class="text-white text-[9px] px-2 py-0.5 rounded font-medium" style="background:'+r.tagBg+'">'+r.tag+'</span><span class="text-white text-[9px] px-2 py-0.5 rounded font-medium bg-black/30">研学基地</span>';
 
+/* 场次读取后台配置：余席/候补人数随后台名额配置变化 */
+var SEAT_STYLE={'可报名':{bg:'#D1FAE5',color:'#059669'},'仅剩少量':{bg:'#FEF3C7',color:'#D97706'},'已满':{bg:'#F3F4F6',color:'#9CA3AF'}};
+function getSessions(){
+  var cfg=STUDY_CFG.sessions[rid];
+  if(cfg&&cfg.length){
+    return cfg.map(function(c){
+      var st=SEAT_STYLE[c.status]||SEAT_STYLE['可报名'];
+      return {
+        date:c.date,day:c.day,status:c.status,bg:st.bg,color:st.color,
+        spots:c.left>0?('余'+c.left+'席 / 上限'+c.total):'候补中',
+        left:c.left,waitOn:c.waitOn,waitNum:c.waitNum
+      };
+    });
+  }
+  return r.calendar;
+}
+function joinWaitlist(i){
+  var s=getSessions()[i];
+  toast('已加入候补队列，当前第 '+((s.waitNum||0)+1)+' 位');
+}
+
 /* Tab切换 */
 function switchTab(tab,el){
   document.querySelectorAll('.sub-tab').forEach(function(t){t.classList.remove('on')});
@@ -226,18 +248,22 @@ function renderContent(tab){
     /* 活动日历 */
     html+='<div class="fade-up">';
     html+='<div class="flex items-center gap-1.5 mb-2"><div class="w-6 h-6 rounded-lg flex items-center justify-center text-white" style="background:linear-gradient(135deg,#34D399,#059669)"><i class="fas fa-calendar-days text-[10px]"></i></div><span class="sec-title">活动日历及报名</span></div>';
-    r.calendar.forEach(function(c,i){
+    html+='<div class="bg-emerald-50 rounded-xl p-2.5 border border-emerald-100 mb-2.5"><p class="text-[9px] text-emerald-700 leading-relaxed"><i class="fas fa-cloud-arrow-down mr-1"></i>场次与余席同步自后台「场次管理」，名额调整后本页实时变化。</p></div>';
+    getSessions().forEach(function(c,i){
       var disabled=c.status==='已满';
       html+='<div class="bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-3 border border-white mb-2.5 flex items-center justify-between'+(disabled?' opacity-60':'')+'">';
       html+='<div><div class="flex items-center gap-2 mb-1"><p class="text-[13px] font-bold text-gray-800">'+c.date+'</p><span class="text-[10px] text-gray-400">'+c.day+'</span></div>';
       html+='<div class="flex items-center gap-2"><span class="text-[9px] px-2 py-0.5 rounded-full font-bold" style="background:'+c.bg+';color:'+c.color+'">'+c.status+'</span>';
       html+='<span class="text-[9px] text-gray-400"><i class="fas fa-users mr-0.5"></i>'+c.spots+'</span></div></div>';
       if(disabled){
-        html+='<button class="text-[11px] text-gray-400 px-3 py-1.5 rounded-full bg-gray-100" disabled>已满</button>';
+        html+='<button onclick="joinWaitlist('+i+')" class="text-[11px] text-white px-3 py-1.5 rounded-full font-bold" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)">候补登记</button>';
       }else{
         html+='<button onclick="goApplyDate('+i+')" class="text-[11px] text-white px-3 py-1.5 rounded-full font-bold" style="background:linear-gradient(135deg,#34D399,#059669)">个人报名</button>';
       }
       html+='</div>';
+      if(c.waitOn&&c.waitNum>0){
+        html+='<div class="bg-amber-50 rounded-xl px-2.5 py-1.5 border border-amber-100" style="margin-top:-6px;margin-bottom:10px"><p class="text-[8px] text-amber-700"><i class="fas fa-hourglass-half mr-0.5"></i>已开启候补 · 当前候补 '+c.waitNum+' 人（暂不自动递补，由运营人工通知）</p></div>';
+      }
     });
     html+='<div class="bg-emerald-50 rounded-xl p-3 mt-2 border border-emerald-100"><p class="text-[10px] text-emerald-700 leading-relaxed"><i class="fas fa-circle-info mr-1"></i>个人报名：选择日期点击「个人报名」，家长需在线签署安全责任书。团体研学请使用<a href="study-apply.html" class="font-bold underline">团体研学申请</a>。</p></div>';
     html+='</div>';
@@ -266,14 +292,22 @@ function renderContent(tab){
     /* 精选留言 */
     html+='<div class="fade-up">';
     html+='<div class="flex items-center gap-1.5 mb-2"><div class="w-6 h-6 rounded-lg flex items-center justify-center text-white" style="background:linear-gradient(135deg,#34D399,#059669)"><i class="fas fa-comments text-[10px]"></i></div><span class="sec-title">精选留言</span></div>';
-    var routeComments=comments.filter(function(c){return c.route===rid});
-    routeComments.forEach(function(c){
+    /* 后台精选的评价（评价审核通过后同步）排在前面，其余为普通评价 */
+    var list=[];
+    STUDY_CFG.reviews.forEach(function(c){if(c.route===rid)list.push({c:c,featured:true})});
+    comments.forEach(function(c){
+      if(c.route!==rid)return;
+      var dup=STUDY_CFG.reviews.some(function(f){return f.name===c.name&&f.date===c.date&&f.route===rid});
+      if(!dup)list.push({c:c,featured:false});
+    });
+    list.forEach(function(item){
+      var c=item.c;
       var stars='';
       for(var i=0;i<5;i++){stars+='<i class="fas fa-star text-[8px] '+(i<c.rating?'star-active':'text-gray-300')+'"></i>'}
-      html+='<div class="bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-3 border border-white mb-2.5">';
+      html+='<div class="bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-3 border '+(item.featured?'border-amber-200':'border-white')+' mb-2.5">';
       html+='<div class="flex items-start gap-2.5">';
       html+='<div class="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-[13px] flex-shrink-0" style="background:'+c.avatarBg+'">'+c.avatar+'</div>';
-      html+='<div class="flex-1"><div class="flex items-center justify-between mb-0.5"><p class="text-[12px] font-bold text-gray-800">'+c.name+'</p><div class="flex items-center gap-0.5">'+stars+'</div></div>';
+      html+='<div class="flex-1"><div class="flex items-center justify-between mb-0.5"><div class="flex items-center gap-1.5"><p class="text-[12px] font-bold text-gray-800">'+c.name+'</p>'+(item.featured?'<span class="text-[8px] px-1.5 py-0.5 rounded-full font-bold" style="background:#FEF3C7;color:#D97706"><i class="fas fa-award mr-0.5"></i>精选</span>':'')+'</div><div class="flex items-center gap-0.5">'+stars+'</div></div>';
       html+='<p class="text-[10px] text-gray-400 mb-1.5">'+c.school+' · '+c.date+'</p>';
       html+='<p class="text-[11px] text-gray-600 leading-relaxed">'+c.content+'</p></div></div></div>';
     });

@@ -32,6 +32,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 .interest-tag.selected{background:#10B981!important;color:#fff!important;border-color:#10B981!important}
 .pass-qr{display:grid;grid-template-columns:repeat(13,1fr);gap:1px;padding:8px;background:#fff;border-radius:12px}
 .pass-qr div{width:7px;height:7px}
+/* 审核状态时间轴 */
+.timeline{position:relative;padding-left:20px}
+.timeline::before{content:'';position:absolute;left:5px;top:6px;bottom:6px;width:2px;background:#D1FAE5}
+.tl-item{position:relative;margin-bottom:14px}
+.tl-item:last-child{margin-bottom:0}
+.tl-dot{position:absolute;left:-20px;top:2px;width:12px;height:12px;border-radius:50%;background:#fff;border:3px solid #D1D5DB}
+.tl-dot.done{border-color:#10B981;background:#10B981}
+.tl-dot.cur{border-color:#F59E0B;background:#fff}
+.info-row{display:flex;justify-content:space-between;align-items:flex-start;padding:7px 0;border-bottom:1px solid #F3F4F6}
+.info-row:last-child{border-bottom:none}
+.info-label{font-size:10px;color:#9CA3AF;flex-shrink:0}
+.info-value{font-size:11px;font-weight:600;color:#1F2430;text-align:right;max-width:210px}
 </style>
 </head>
 <body>
@@ -48,7 +60,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <a href="expo.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
 <div>
 <h1 class="text-white font-extrabold text-[18px]" style="text-shadow:0 2px 10px rgba(0,0,0,.18)"><i class="fas fa-user-plus text-[15px] mr-1"></i>参观申请</h1>
-<p class="text-white/70 text-[10px] mt-0.5">免费登记 · 获取电子入场证</p>
+<p class="text-white/70 text-[10px] mt-0.5" id="subTitle">免费登记 · 审核通过后获取电子入场证</p>
 </div>
 </div>
 </div>
@@ -116,7 +128,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <div class="w-6 h-6 rounded-lg flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#34D399,#10B981)"><i class="fas fa-socks text-[10px]"></i></div>
 <span class="sec-title">关注品类（可多选）</span>
 </div>
-<div class="flex flex-wrap gap-2 fade-up">
+<div class="flex flex-wrap gap-2 fade-up" id="interestBox">
 <span class="interest-tag text-[11px] px-3 py-1.5 rounded-full border border-gray-200 bg-white text-gray-600" onclick="toggleInterest(this)">棉袜</span>
 <span class="interest-tag text-[11px] px-3 py-1.5 rounded-full border border-gray-200 bg-white text-gray-600" onclick="toggleInterest(this)">丝袜</span>
 <span class="interest-tag text-[11px] px-3 py-1.5 rounded-full border border-gray-200 bg-white text-gray-600" onclick="toggleInterest(this)">运动袜</span>
@@ -129,19 +141,70 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </div>
 
 <div class="px-3 mt-4">
+<div class="bg-amber-50 rounded-xl p-2.5 border border-amber-100 mb-2.5">
+<p class="text-[9px] text-amber-700 leading-relaxed"><i class="fas fa-clock mr-1"></i>提交后 <b>1 个工作日内</b> 完成审核，审核通过后系统生成您的个人参展码，并通过短信发送电子入场证，请注意查收。</p>
+</div>
 <button onclick="submitVisitor()" class="w-full py-3 rounded-full text-white font-bold text-[14px] shadow-card" style="background:linear-gradient(135deg,#34D399,#059669)">
-<i class="fas fa-qrcode text-[12px] mr-1"></i>提交并获取入场证
+<i class="fas fa-paper-plane text-[12px] mr-1"></i>提交登记申请
 </button>
 </div>
 <div class="h-16"></div>
 </div>
 
-<!-- Step 2: 入场证 -->
+<!-- Step 2: 待审核 -->
 <div class="form-section" id="step2">
+<div class="px-3 mt-4">
+<div class="bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-4 border border-white text-center fade-up">
+<div class="w-16 h-16 rounded-full flex items-center justify-center text-white mx-auto mb-2" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)"><i class="fas fa-hourglass-half text-2xl"></i></div>
+<p class="text-[15px] font-bold text-gray-800 mb-1">登记提交成功，等待审核</p>
+<p class="text-[10px] text-gray-400 leading-relaxed mb-3">我们已收到您的参观登记申请，预计 <b>1 个工作日内</b> 完成审核。<br>审核通过后系统将生成个人参展码，并短信发送电子入场证。</p>
+
+<div class="bg-amber-50 rounded-xl p-2.5 border border-amber-100 text-left mb-3">
+<div class="flex justify-between items-center">
+<span class="text-[10px] text-gray-500">登记编号</span>
+<span class="text-[11px] font-bold" style="color:#059669" id="regNo">V2026180001</span>
+</div>
+<div class="flex justify-between items-center mt-1.5">
+<span class="text-[10px] text-gray-500">当前状态</span>
+<span class="text-[9px] px-2 py-0.5 rounded-full font-bold" style="background:#FEF3C7;color:#D97706">待审核</span>
+</div>
+</div>
+
+<!-- 状态时间轴 -->
+<div class="timeline text-left mb-3 pl-1">
+<div class="tl-item"><div class="tl-dot done"></div><p class="text-[11px] font-bold text-gray-800">提交登记申请</p><p class="text-[9px] text-gray-400 mt-0.5">已完成 · 信息已进入审核队列</p></div>
+<div class="tl-item"><div class="tl-dot cur"></div><p class="text-[11px] font-bold text-gray-800">平台审核</p><p class="text-[9px] text-gray-400 mt-0.5">进行中 · 1 个工作日内完成，结果短信通知</p></div>
+<div class="tl-item"><div class="tl-dot"></div><p class="text-[11px] font-bold text-gray-800">审核通过 · 生成参展码</p><p class="text-[9px] text-gray-400 mt-0.5">待完成 · 系统生成入场证并短信发送</p></div>
+</div>
+
+<!-- 登记信息回显 -->
+<div class="bg-gray-50 rounded-xl p-3 text-left mb-3">
+<p class="text-[10px] font-bold text-gray-500 mb-1">登记信息</p>
+<div class="info-row"><span class="info-label">姓名</span><span class="info-value" id="rvName">-</span></div>
+<div class="info-row"><span class="info-label">企业</span><span class="info-value" id="rvCompany">-</span></div>
+<div class="info-row"><span class="info-label">身份</span><span class="info-value" id="rvType">-</span></div>
+<div class="info-row"><span class="info-label">参观日期</span><span class="info-value" id="rvDate">-</span></div>
+<div class="info-row"><span class="info-label">关注品类</span><span class="info-value" id="rvInterest">-</span></div>
+</div>
+
+<button onclick="approveVisitor()" class="w-full py-2.5 rounded-full text-white font-bold text-[13px] shadow-card" style="background:linear-gradient(135deg,#34D399,#059669)">
+<i class="fas fa-circle-check text-[11px] mr-1"></i>（演示）模拟审核通过
+</button>
+<button onclick="rejectVisitor()" class="w-full py-2.5 rounded-full text-gray-500 font-bold text-[13px] bg-gray-100 mt-2">
+<i class="fas fa-circle-xmark text-[11px] mr-1"></i>（演示）模拟审核驳回
+</button>
+<a href="expo.html" class="block text-center text-[11px] text-gray-500 mt-2.5 py-1">返回展会主页</a>
+</div>
+</div>
+<div class="h-16"></div>
+</div>
+
+<!-- Step 3: 入场证 -->
+<div class="form-section" id="step3">
 <div class="px-3 mt-4">
 <div class="bg-gradient-to-br from-emerald-50 to-white rounded-3xl shadow-soft p-5 border border-emerald-100 text-center fade-up">
 <div class="w-16 h-16 rounded-full flex items-center justify-center text-white mx-auto mb-2" style="background:linear-gradient(135deg,#34D399,#059669)"><i class="fas fa-circle-check text-2xl"></i></div>
-<p class="text-[14px] font-bold text-gray-800 mb-1">参观登记成功！</p>
+<p class="text-[14px] font-bold text-gray-800 mb-1">审核通过 · 电子入场证已生成</p>
 <p class="text-[10px] text-gray-400 mb-3">请保存以下电子入场证，到场扫码入场</p>
 <div class="bg-white rounded-2xl p-4 shadow-soft border border-emerald-100" style="margin-bottom:12px">
 <p class="text-[11px] font-bold text-gray-800 mb-0.5">中国国际袜业博览会</p>
@@ -152,11 +215,34 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <div class="flex justify-between text-[10px] mb-1"><span class="text-gray-400">企业</span><span class="font-semibold text-gray-800" id="qrCompany">-</span></div>
 <div class="flex justify-between text-[10px] mb-1"><span class="text-gray-400">身份</span><span class="font-semibold text-gray-800" id="qrType">-</span></div>
 <div class="flex justify-between text-[10px] mb-1"><span class="text-gray-400">参观日期</span><span class="font-semibold text-gray-800" id="qrDate">-</span></div>
+<div class="flex justify-between text-[10px] mb-1"><span class="text-gray-400">关注品类</span><span class="font-semibold text-gray-800" id="qrInterest">-</span></div>
 <div class="flex justify-between text-[10px]"><span class="text-gray-400">入场编号</span><span class="font-semibold text-gray-800" style="color:#059669">V2026180001</span></div>
 </div>
 </div>
 <div class="flex items-center justify-center gap-2 text-[10px] text-gray-400 mb-3"><i class="fas fa-circle-info" style="color:#10B981"></i>入场证已发送至您的手机短信</div>
-<a href="expo.html" class="inline-block text-[12px] text-white px-5 py-2.5 rounded-full font-bold" style="background:linear-gradient(135deg,#34D399,#059669)">返回展会主页</a>
+<a href="expo-materials.html" class="inline-block text-[12px] text-white px-5 py-2.5 rounded-full font-bold mr-2" style="background:linear-gradient(135deg,#34D399,#059669)">去下载资料</a>
+<a href="expo.html" class="inline-block text-[12px] text-gray-500 px-5 py-2.5 rounded-full font-bold bg-gray-100">返回展会主页</a>
+</div>
+</div>
+<div class="h-16"></div>
+</div>
+
+<!-- Step 4: 审核驳回 -->
+<div class="form-section" id="step4">
+<div class="px-3 mt-4">
+<div class="bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-4 border border-white fade-up">
+<div class="flex items-center gap-2.5 mb-3">
+<div class="w-12 h-12 rounded-full flex items-center justify-center text-white flex-shrink-0" style="background:linear-gradient(135deg,#F87171,#EF4444)"><i class="fas fa-circle-xmark text-xl"></i></div>
+<div><p class="text-[15px] font-bold text-gray-800">登记未通过审核</p><p class="text-[10px] text-gray-400 mt-0.5">编号 <span id="rjNo">V2026180001</span></p></div>
+</div>
+<div class="bg-red-50 rounded-xl p-3 border border-red-100 mb-3">
+<p class="text-[10px] text-red-700 leading-relaxed"><i class="fas fa-circle-exclamation mr-1"></i><b>驳回原因：</b><span id="rjReason"></span></p>
+</div>
+<p class="text-[10px] text-gray-500 leading-relaxed mb-3">请根据上述原因核对信息后重新提交登记申请；如有疑问可联系组委会 0575-8742xxxx。</p>
+<button onclick="restartApply()" class="w-full py-2.5 rounded-full text-white font-bold text-[13px]" style="background:linear-gradient(135deg,#34D399,#059669)">
+<i class="fas fa-rotate-right text-[11px] mr-1"></i>修改并重新提交
+</button>
+<a href="expo.html" class="block text-center text-[11px] text-gray-500 mt-2.5 py-1">返回展会主页</a>
 </div>
 </div>
 <div class="h-16"></div>
@@ -174,6 +260,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <script>
 function toast(msg){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;t.classList.add('on');setTimeout(function(){t.classList.remove('on')},2000)}
 var selectedDates=[];
+var PASS_NO='V2026180001';
+var STORE_KEY='expoVisitorReg';
 
 function selectDate(el){
   el.classList.toggle('selected');
@@ -187,6 +275,33 @@ function selectDate(el){
 
 function toggleInterest(el){el.classList.toggle('selected')}
 
+function getInterests(){
+  var arr=[];
+  var tags=document.querySelectorAll('#interestBox .interest-tag.selected');
+  for(var i=0;i<tags.length;i++)arr.push(tags[i].textContent);
+  return arr;
+}
+
+function dateText(){
+  var dayMap={'1':'10.18 开幕日','2':'10.19 专业日','3':'10.20 公众日'};
+  var sorted=selectedDates.slice().sort();
+  return sorted.map(function(d){return dayMap[d]}).join(' / ');
+}
+
+function interestText(){
+  var arr=getInterests();
+  return arr.length?arr.join('、'):'未选择';
+}
+
+function showStep(n){
+  for(var i=1;i<=4;i++){
+    var el=document.getElementById('step'+i);
+    if(el)el.classList.toggle('active',i===n);
+  }
+  window.scrollTo(0,0);
+}
+var REJECT_REASON='您填写的身份类型与企业名称信息不一致（企业经营范围与袜业产业链无关联），请核对后重新提交；如为企业团体参观，请使用企业邮箱后缀的联系方式。';
+
 function submitVisitor(){
   var name=document.getElementById('vName').value.trim();
   var phone=document.getElementById('vPhone').value.trim();
@@ -197,21 +312,115 @@ function submitVisitor(){
   if(!company){toast('请输入企业名称');return}
   if(!type){toast('请选择身份类型');return}
   if(selectedDates.length===0){toast('请选择参观日期');return}
-  
-  var dayMap={'1':'10.18 开幕日','2':'10.19 专业日','3':'10.20 公众日'};
-  var dateStr=selectedDates.map(function(d){return dayMap[d]}).join(' / ');
-  document.getElementById('qrName').textContent=name;
-  document.getElementById('qrCompany').textContent=company;
-  document.getElementById('qrType').textContent=type;
-  document.getElementById('qrDate').textContent=dateStr;
-  
-  renderQR();
-  
-  document.getElementById('step1').classList.remove('active');
-  document.getElementById('step2').classList.add('active');
-  window.scrollTo(0,0);
+
+  document.getElementById('rvName').textContent=name;
+  document.getElementById('rvCompany').textContent=company;
+  document.getElementById('rvType').textContent=type;
+  document.getElementById('rvDate').textContent=dateText();
+  document.getElementById('rvInterest').textContent=interestText();
+  document.getElementById('regNo').textContent=PASS_NO;
+
+  saveReg('pending');
+  showStep(2);
+  toast('登记提交成功，等待审核');
 }
 
+function approveVisitor(){
+  document.getElementById('qrName').textContent=document.getElementById('vName').value.trim();
+  document.getElementById('qrCompany').textContent=document.getElementById('vCompany').value.trim();
+  document.getElementById('qrType').textContent=document.getElementById('vType').value;
+  document.getElementById('qrDate').textContent=dateText();
+  document.getElementById('qrInterest').textContent=interestText();
+  saveReg('approved');
+  renderQR();
+  showStep(3);
+  toast('审核通过，入场证已生成');
+}
+
+function rejectVisitor(){
+  document.getElementById('rjNo').textContent=PASS_NO;
+  document.getElementById('rjReason').textContent=REJECT_REASON;
+  saveReg('rejected');
+  showStep(4);
+  toast('登记未通过审核');
+}
+
+function restartApply(){
+  try{localStorage.removeItem(STORE_KEY)}catch(e){}
+  selectedDates=[];
+  document.querySelectorAll('.date-card').forEach(function(c){
+    c.classList.remove('selected');
+    var ck=c.querySelector('.fa-circle-check');
+    if(ck)ck.style.display='none';
+  });
+  document.querySelectorAll('#interestBox .interest-tag').forEach(function(t){t.classList.remove('selected')});
+  showStep(1);
+}
+
+function saveReg(status){
+  try{
+    localStorage.setItem(STORE_KEY,JSON.stringify({
+      no:PASS_NO,
+      status:status,
+      reason:status==='rejected'?REJECT_REASON:'',
+      name:document.getElementById('vName').value.trim(),
+      company:document.getElementById('vCompany').value.trim(),
+      type:document.getElementById('vType').value,
+      dates:dateText(),
+      interests:interestText()
+    }));
+  }catch(e){}
+}
+
+/* 入场证二维码（13x13 模拟码，含三个定位角） */
 function renderQR(){
-  var container=document.getElementById('qrCode');
-  var pattern='101010101010101010101010101010101010101001010101011010101010101010010101101010101010101010100101011010101010101010101010010101101010101010101010100101011010101010101010101010010101101010101010101010100101011010101010101010101010010101101010101010101010100101011010101010101010101010010101101010101010101010100101011010101010101010101010010101101010101010101010100101011010101010101010101010010101101010101010101010100101011010101010101010101010010101101010101010101010100101011010101010101010101010010101101010101010101010100101011010101010101010101010010101101010101010101010100101011010101010101010101010010101101010101010101010100101011010101010101010101010010101101010101010101010100101011010101010101010101010010101101010101010101010100101011010101010101010101010010101101010101010101010100101011010101010101010101010010101101010101010101010100101011010101010101010101010010101101010101010101010100101011010101010101010101010010101101010101010101010100101011010101010101010101010010101101010101010101010100101011010101010101010101010010101101010101010101010100101011010101010101010101010010101101010101010101010100101011010101010101010101010010101101010101010101010100101011010101010101010101010010101101010101010101010100101011010101010101010101010010101101010101010101010100101011010101010101010101010010101101010101010101010100101011010101010101010101010010101101010101010101010100101011010101010101010101010010101101010101010101010100101011010101010101010101010010101101010101010101010100101011010101010101
+  var el=document.getElementById('qrCode');
+  if(!el)return;
+  var n=13,seed=2026180001;
+  function rnd(){seed=(seed*9301+49297)%233280;return seed/233280}
+  function finder(r,c){return (r<3&&c<3)||(r<3&&c>9)||(r>9&&c<3)}
+  var html='<div class="pass-qr">';
+  for(var r=0;r<n;r++){
+    for(var c=0;c<n;c++){
+      var on=finder(r,c)?true:(rnd()>0.45);
+      html+='<div style="background:'+(on?'#1F2430':'transparent')+'"></div>';
+    }
+  }
+  html+='</div>';
+  el.innerHTML=html;
+}
+
+/* 恢复上次登记状态（模拟后端读取） */
+(function restore(){
+  try{
+    var raw=localStorage.getItem(STORE_KEY);
+    if(!raw)return;
+    var reg=JSON.parse(raw);
+    if(reg.status==='approved'){
+      document.getElementById('vName').value=reg.name||'';
+      document.getElementById('vCompany').value=reg.company||'';
+      document.getElementById('vType').value=reg.type||'';
+      document.getElementById('qrName').textContent=reg.name||'-';
+      document.getElementById('qrCompany').textContent=reg.company||'-';
+      document.getElementById('qrType').textContent=reg.type||'-';
+      document.getElementById('qrDate').textContent=reg.dates||'-';
+      document.getElementById('qrInterest').textContent=reg.interests||'-';
+      renderQR();
+      showStep(3);
+    }else if(reg.status==='pending'){
+      document.getElementById('rvName').textContent=reg.name||'-';
+      document.getElementById('rvCompany').textContent=reg.company||'-';
+      document.getElementById('rvType').textContent=reg.type||'-';
+      document.getElementById('rvDate').textContent=reg.dates||'-';
+      document.getElementById('rvInterest').textContent=reg.interests||'-';
+      showStep(2);
+    }else if(reg.status==='rejected'){
+      document.getElementById('rjNo').textContent=reg.no||PASS_NO;
+      document.getElementById('rjReason').textContent=reg.reason||REJECT_REASON;
+      showStep(4);
+    }
+  }catch(e){}
+})();
+</script>
+</body>
+</html>

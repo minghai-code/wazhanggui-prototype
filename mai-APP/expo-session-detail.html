@@ -6,6 +6,7 @@
 <title>日程详情 - 袜掌柜买家版</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="backend-config.js"></script>
 <style>
 :root{--bg:#FFF7F4}
 *{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
@@ -100,7 +101,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 
 <!-- 底部操作栏 -->
 <div class="fixed bottom-0 left-0 right-0 border-t border-gray-100 flex items-center gap-2.5 px-4" style="height:60px;z-index:100;width:393px;background:rgba(255,255,255,.95);backdrop-filter:blur(20px);padding-bottom:8px">
-<button onclick="addToCalendar()" class="flex-1 py-2.5 rounded-full text-[13px] font-bold border-2" style="border-color:#EC4899;color:#EC4899"><i class="fas fa-calendar-plus text-[12px] mr-1"></i>加入我的日程</button>
+<button onclick="addToCalendar()" id="addBtn" class="flex-1 py-2.5 rounded-full text-[13px] font-bold border-2" style="border-color:#EC4899;color:#EC4899"><i class="fas fa-calendar-plus text-[12px] mr-1"></i>加入我的日程</button>
 <a href="expo-schedule.html" class="px-4 py-2.5 rounded-full text-[13px] font-bold text-white" style="background:linear-gradient(135deg,#FB7185,#EC4899)">完整日程</a>
 </div>
 <div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none"><div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:2px"></div></div>
@@ -110,7 +111,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <script>
 function toast(msg){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;t.classList.add('on');setTimeout(function(){t.classList.remove('on')},2000)}
 
-var sessions={
+/* 议程统一读取后台下发的唯一 ID（S{年}-{天}-{序号}），本地旧数据仅作兜底展示 */
+var sessions=EXPO_SESSIONS;
+
+var sessions__DEPRECATED_KEYS={
  '1-0':{type:'签到',typeColor:'#059669',title:'嘉宾签到入场',time:'08:30-09:00',loc:'主会场·签到处',day:'Day1 · 10.18',status:'即将开始',desc:'参展商、采购商及嘉宾凭电子入场证或邀请函在签到处完成签到，领取展会资料包和参观证。签到后可进入展馆休息区享用早茶。',highlights:[{t:'快速签到通道',d:'设置6条签到通道，平均等待时间不超过5分钟'},{t:'资料包领取',d:'含展商名录、参观指南、日程手册等纸质资料'},],speakers:[],related:['1-1','1-2','1-3']},
  '1-1':{type:'仪式',typeColor:'#EC4899',title:'开幕仪式',time:'09:00-09:30',loc:'主会场·A馆舞台',day:'Day1 · 10.18',status:'即将开始',desc:'第18届中国国际袜业博览会开幕仪式，由诸暨市领导致开幕词，中国纺织工业联合会代表致辞，随后进行剪彩仪式，宣布展会正式开幕。',highlights:[{t:'市领导开幕致辞',d:'诸暨市委书记致辞，介绍大唐袜业产业发展成果'},{t:'剪彩仪式',d:'行业协会领导与政府代表共同剪彩'},{t:'舞狮表演',d:'传统舞狮开场，烘托盛会气氛'}],speakers:[{name:'诸暨市领导',role:'开幕致辞',org:'诸暨市人民政府'},{name:'行业协会代表',role:'行业致辞',org:'中国纺织工业联合会'}],related:['1-2','1-3','1-4']},
  '1-2':{type:'展览',typeColor:'#2563EB',title:'展馆正式开放',time:'09:30-10:00',loc:'全馆开放',day:'Day1 · 10.18',status:'即将开始',desc:'A/B/C/D四大展馆正式对专业观众开放，800+展商就位，涵盖袜品、袜机设备、原料纱线、设计包装、物流服务、跨境服务等全产业链展品。',highlights:[{t:'800+展商同步开放',d:'4大展馆、2000+展位一站式参观'},{t:'新品首发区',d:'30+品牌在A馆中央首发秋冬新品'},{t:'互动体验区',d:'袜品试穿、3D量脚定制等体验活动'}],speakers:[],related:['1-1','1-3','1-4']},
@@ -125,11 +129,23 @@ var sessions={
  '3-3':{type:'仪式',typeColor:'#EC4899',title:'颁奖典礼暨闭幕仪式',time:'14:00-15:00',loc:'主会场·A馆舞台',day:'Day3 · 10.20',status:'即将开始',desc:'展会最后一天，举行各项评选颁奖典礼，包括最佳展位设计奖、最受欢迎品牌奖、设计大赛获奖作品等，随后组委会致闭幕词，宣布第18届袜博会圆满闭幕。',highlights:[{t:'多项大奖揭晓',d:'最佳展位、最受欢迎品牌、设计大赛等奖项'},{t:'闭幕致辞',d:'组委会总结展会成果，展望下届'},{t:'下届预告',d:'现场预告第19届袜博会时间与主题'}],speakers:[{name:'组委会代表',role:'闭幕致辞',org:'袜博会组委会'}],related:['3-0','3-1','3-2']}
 };
 
+/* ===== 我的日程：localStorage 持久化，与日程列表页共用同一份数据 ===== */
+var MY_SCHEDULE_KEY='expoMySchedule';
+function getMySchedule(){try{return JSON.parse(localStorage.getItem(MY_SCHEDULE_KEY)||'[]')}catch(e){return []}}
+function saveMySchedule(a){try{localStorage.setItem(MY_SCHEDULE_KEY,JSON.stringify(a))}catch(e){}}
+function inMySchedule(id){return getMySchedule().indexOf(id)>-1}
+
+/* 议程定位：优先使用全局唯一 ID（?id=S2026-3-004），
+   兼容旧链接 ?day=3&session=3（旧下标从 0 开始，唯一 ID 序号从 1 开始） */
 var urlParams=new URLSearchParams(window.location.search);
-var key=urlParams.get('day')||1;
-var idx=urlParams.get('session')||0;
-var sessionId=key+'-'+idx;
-var s=sessions[sessionId]||sessions['1-3'];
+var sessionId=urlParams.get('id');
+if(!sessionId||!sessions[sessionId]){
+  var legacyDay=parseInt(urlParams.get('day'),10)||1;
+  var legacyIdx=parseInt(urlParams.get('session'),10)||0;
+  sessionId='S2026-'+legacyDay+'-'+('00'+(legacyIdx+1)).slice(-3);
+  if(!sessions[sessionId])sessionId='S2026-1-004';
+}
+var s=sessions[sessionId];
 
 document.getElementById('sessionType').textContent=s.type;
 document.getElementById('sessionType').style.background=s.typeColor+'20';
@@ -165,20 +181,50 @@ if(s.speakers&&s.speakers.length>0){
   document.getElementById('speakerSection').style.display='none';
 }
 
-var relHtml='';
-if(s.related){
-  s.related.forEach(function(rid,i){
-    var rs=sessions[rid];
-    if(!rs)return;
-    relHtml+='<a href="expo-session-detail.html?day='+rid.split('-')[0]+'&session='+rid.split('-')[1]+'" class="card block bg-white rounded-xl shadow-soft p-3 border border-gray-50 flex items-center gap-2.5 fade-up" style="animation-delay:'+(i*0.05)+'s">';
-    relHtml+='<span class="text-[8px] font-bold text-white px-1.5 py-0.5 rounded flex-shrink-0" style="background:'+rs.typeColor+'">'+rs.type+'</span>';
-    relHtml+='<div class="flex-1 min-w-0"><p class="text-[11px] font-semibold text-gray-800 truncate">'+rs.title+'</p><p class="text-[9px] text-gray-400">'+rs.time+' · '+rs.loc+'</p></div>';
-    relHtml+='<i class="fas fa-chevron-right text-gray-300 text-[10px]"></i></a>';
-  });
+/* 同日其他活动：先取后台配置的关联活动，不足时自动用同日议程补齐（避免引用不存在的 key 导致显示不全） */
+var relIds=[];
+if(s.related&&s.related.length){
+  s.related.forEach(function(rid){if(sessions[rid]&&relIds.indexOf(rid)<0&&rid!==sessionId)relIds.push(rid)});
 }
+expoSessionsByDay(s.day).forEach(function(it){
+  if(it.id!==sessionId&&relIds.indexOf(it.id)<0&&relIds.length<4)relIds.push(it.id);
+});
+var relHtml='';
+relIds.forEach(function(rid,i){
+  var rs=sessions[rid];
+  if(!rs)return;
+  relHtml+='<a href="expo-session-detail.html?id='+rid+'" class="card block bg-white rounded-xl shadow-soft p-3 border border-gray-50 flex items-center gap-2.5 fade-up" style="animation-delay:'+(i*0.05)+'s">';
+  relHtml+='<span class="text-[8px] font-bold text-white px-1.5 py-0.5 rounded flex-shrink-0" style="background:'+rs.typeColor+'">'+rs.type+'</span>';
+  relHtml+='<div class="flex-1 min-w-0"><p class="text-[11px] font-semibold text-gray-800 truncate">'+rs.title+'</p><p class="text-[9px] text-gray-400">'+rs.time+' · '+rs.loc+'</p></div>';
+  relHtml+='<i class="fas fa-chevron-right text-gray-300 text-[10px]"></i></a>';
+});
 document.getElementById('relatedArea').innerHTML=relHtml||'<p class="text-[10px] text-gray-400 text-center py-2">暂无其他活动</p>';
 
-function addToCalendar(){toast('已加入我的日程')}
+/* 议程 ID 展示，便于与后台日程管理对齐 */
+(function(){
+  var dayEl=document.getElementById('sessionDay');
+  if(dayEl)dayEl.setAttribute('data-session-id',sessionId);
+  var stEl=document.getElementById('sessionStatus');
+  if(stEl)stEl.innerHTML='<span class="text-[8px] text-gray-300 font-mono">'+sessionId+'</span>';
+})();
+
+/* ===== 加入我的日程（持久化，可再次点击取消） ===== */
+function renderAddBtn(){
+  var btn=document.getElementById('addBtn');
+  if(!btn)return;
+  var on=inMySchedule(sessionId);
+  btn.innerHTML='<i class="fas '+(on?'fa-bookmark-slash':'fa-calendar-plus')+' text-[12px] mr-1"></i>'+(on?'已加入日程':'加入我的日程');
+  btn.style.borderColor=on?'#10B981':'#EC4899';
+  btn.style.color=on?'#10B981':'#EC4899';
+}
+function addToCalendar(){
+  var a=getMySchedule();
+  var i=a.indexOf(sessionId);
+  if(i>-1){a.splice(i,1);saveMySchedule(a);toast('已取消加入我的日程')}
+  else{a.push(sessionId);saveMySchedule(a);toast('已加入我的日程，可在日程页「我的日程」查看')}
+  renderAddBtn();
+}
+renderAddBtn();
 </script>
 </body>
 </html>

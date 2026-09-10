@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文商旅管理 - 日程安排管理</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>
+tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D','primary-d':'#E63E20','primary-l':'#FF7849'}}}}
+</script>
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+:-webkit-scrollbar{width:6px;height:6px}
+:-webkit-scrollbar-track{background:transparent}
+:-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.section-label{font-size:16px;font-weight:700;color:#1F2430;display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.section-label::before{content:'';width:3px;height:16px;border-radius:2px;background:#FF4D2D}
+.daytab{padding:10px 20px;border-radius:10px;cursor:pointer;transition:.15s;border:1px solid #E2E8F0;background:#fff}
+.daytab:hover{border-color:#CBD5E1}
+.daytab.on{border-color:#FF4D2D;background:#FFF7F5;box-shadow:0 2px 8px rgba(255,77,45,.12)}
+.tb th{font-size:12px;font-weight:600;color:#64748B;background:#F8FAFC;padding:10px 12px;text-align:left;white-space:nowrap}
+.tb td{font-size:13px;color:#1F2430;padding:11px 12px;border-bottom:1px solid #F1F5F9}
+.tb tbody tr:hover{background:#FFF7F5}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}
+.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}
+.lk:hover{text-decoration:underline}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:40}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:640px;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:50;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.fl{display:block;font-size:12px;color:#64748B;margin-bottom:5px}
+.fl i{color:#FF4D2D;font-style:normal;margin-right:2px}
+.fi{width:100%;padding:8px 11px;font-size:13px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;outline:none;transition:.15s}
+.fi:focus{border-color:#FF4D2D;background:#fff}
+.ftitle{font-size:12px;font-weight:700;color:#1F2430;margin:16px 0:8px;display:flex;align-items:center;gap:6px}
+.ftitle::before{content:'';width:3px;height:12px;border-radius:2px;background:#FF4D2D}
+</style>
+</head>
+<body>
+<div class="p-6">
+
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">日程安排管理</h1>
+        <span class="tag" style="background:#FFF1ED;color:#FF4D2D">第 18 届</span>
+        <span class="tag" style="background:#DCFCE7;color:#059669">已发布</span>
+      </div>
+      <p class="text-[12px] text-[#94A3B8] mt-1">文商旅管理 / 袜博会 / 日程安排管理　·　按天配置议程，发布后同步买家端；变更通知已加入日程的用户</p>
+    </div>
+
+  </div>
+
+  <!-- Day Tab -->
+  <div class="grid grid-cols-3 gap-4 mb-5">
+    <div class="daytab on">
+      <div class="flex items-center justify-between">
+        <span class="text-[14px] font-bold text-[#1F2430]">Day 1</span>
+        <span class="tag" style="background:#FFF1ED;color:#FF4D2D">8 场</span>
+      </div>
+      <p class="text-[12px] text-[#64748B] mt-1">10.18 开幕日</p>
+    </div>
+    <div class="daytab">
+      <div class="flex items-center justify-between">
+        <span class="text-[14px] font-bold text-[#1F2430]">Day 2</span>
+        <span class="tag" style="background:#F1F5F9;color:#64748B">7 场</span>
+      </div>
+      <p class="text-[12px] text-[#64748B] mt-1">10.19 专业日</p>
+    </div>
+    <div class="daytab">
+      <div class="flex items-center justify-between">
+        <span class="text-[14px] font-bold text-[#1F2430]">Day 3</span>
+        <span class="tag" style="background:#F1F5F9;color:#64748B">6 场</span>
+      </div>
+      <p class="text-[12px] text-[#64748B] mt-1">10.20 公众日</p>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center gap-2 flex-wrap">
+      <button class="btn btn-ghost" onclick="toast('已向 1,286 位用户发送日程变更通知')"><i class="fas fa-bell mr-1"></i>通知变更</button>
+      <button class="btn btn-primary" onclick="toast('日程已发布，买家端即时更新')"><i class="fas fa-upload mr-1"></i>发布同步</button>
+    </div>
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+      <div class="section-label mb-0">Day 1 · 10.18 开幕日（8 场）</div>
+      <div class="flex items-center gap-2">
+        <span class="text-[12px] text-[#94A3B8]">时间均为北京时间</span>
+        <button class="btn btn-primary" onclick="openD()"><i class="fas fa-plus mr-1"></i>新建议程</button>
+      </div>
+    </div>
+    <table class="w-full tb">
+      <thead><tr>
+        <th style="width:36px">排序</th><th>时间</th><th>议程标题</th><th>地点</th><th>类型</th>
+        <th>嘉宾 / 说明</th><th>状态</th><th>操作</th>
+      </tr></thead>
+      <tbody>
+        <tr>
+          <td class="text-[#94A3B8]">1</td><td class="font-medium">08:30-09:00</td><td>嘉宾签到入场</td><td>主会场 · 签到处</td>
+          <td><span class="tag" style="background:#D1FAE5;color:#059669">签到</span></td><td>—</td>
+          <td><span class="tag" style="background:#F1F5F9;color:#94A3B8">未开始</span></td>
+          <td><span class="lk" onclick="openD()">编辑</span> · <span class="lk" onclick="toast('议程已删除')">删除</span></td>
+        </tr>
+        <tr>
+          <td class="text-[#94A3B8]">2</td><td class="font-medium">09:00-09:30</td><td>开幕仪式</td><td>主会场 · A馆舞台</td>
+          <td><span class="tag" style="background:#FCE7F3;color:#EC4899">仪式</span></td><td>诸暨市领导 / 行业协会代表</td>
+          <td><span class="tag" style="background:#F1F5F9;color:#94A3B8">未开始</span></td>
+          <td><span class="lk" onclick="openD()">编辑</span> · <span class="lk" onclick="toast('议程已删除')">删除</span></td>
+        </tr>
+        <tr>
+          <td class="text-[#94A3B8]">3</td><td class="font-medium">09:30-10:00</td><td>展馆正式开放</td><td>全馆开放</td>
+          <td><span class="tag" style="background:#DBEAFE;color:#2563EB">展览</span></td><td>—</td>
+          <td><span class="tag" style="background:#F1F5F9;color:#94A3B8">未开始</span></td>
+          <td><span class="lk" onclick="openD()">编辑</span> · <span class="lk" onclick="toast('议程已删除')">删除</span></td>
+        </tr>
+        <tr>
+          <td class="text-[#94A3B8]">4</td><td class="font-medium">10:00-11:30</td><td>袜业高质量发展论坛</td><td>论坛区 · 会议厅 A</td>
+          <td><span class="tag" style="background:#FEF3C7;color:#D97706">论坛</span></td><td>中国纺织工业联合会领导 / 行业专家</td>
+          <td><span class="tag" style="background:#F1F5F9;color:#94A3B8">未开始</span></td>
+          <td><span class="lk" onclick="openD()">编辑</span> · <span class="lk" onclick="toast('议程已删除')">删除</span></td>
+        </tr>
+        <tr>
+          <td class="text-[#94A3B8]">5</td><td class="font-medium">11:30-12:00</td><td>2026 中国袜业白皮书发布</td><td>论坛区 · 会议厅 A</td>
+          <td><span class="tag" style="background:#EDE9FE;color:#7C3AED">发布</span></td><td>中国针织工业协会秘书长</td>
+          <td><span class="tag" style="background:#F1F5F9;color:#94A3B8">未开始</span></td>
+          <td><span class="lk" onclick="openD()">编辑</span> · <span class="lk" onclick="toast('议程已删除')">删除</span></td>
+        </tr>
+        <tr>
+          <td class="text-[#94A3B8]">6</td><td class="font-medium">13:30-15:00</td><td>智能袜机技术交流会</td><td>技术区 · 会议厅 B</td>
+          <td><span class="tag" style="background:#DBEAFE;color:#2563EB">交流</span></td><td>意大利罗纳地 / 日本岛精代表</td>
+          <td><span class="tag" style="background:#F1F5F9;color:#94A3B8">未开始</span></td>
+          <td><span class="lk" onclick="openD()">编辑</span> · <span class="lk" onclick="toast('议程已删除')">删除</span></td>
+        </tr>
+        <tr>
+          <td class="text-[#94A3B8]">7</td><td class="font-medium">15:00-17:00</td><td>品牌展商新品路演</td><td>路演区 · 中央舞台</td>
+          <td><span class="tag" style="background:#FCE7F3;color:#EC4899">路演</span></td><td>8 家头部品牌依次路演</td>
+          <td><span class="tag" style="background:#F1F5F9;color:#94A3B8">未开始</span></td>
+          <td><span class="lk" onclick="openD()">编辑</span> · <span class="lk" onclick="toast('议程已删除')">删除</span></td>
+        </tr>
+        <tr>
+          <td class="text-[#94A3B8]">8</td><td class="font-medium">17:30-19:00</td><td>欢迎晚宴（凭邀请函）</td><td>大唐 · 袜业宴会厅</td>
+          <td><span class="tag" style="background:#D1FAE5;color:#059669">社交</span></td><td>—</td>
+          <td><span class="tag" style="background:#F1F5F9;color:#94A3B8">未开始</span></td>
+          <td><span class="lk" onclick="openD()">编辑</span> · <span class="lk" onclick="toast('议程已删除')">删除</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 类型字典 -->
+  <div class="bg-white rounded-xl border border-gray-100 p-5 mt-5">
+    <div class="section-label">活动类型字典（12 种，统一配色）</div>
+    <div class="flex flex-wrap gap-2">
+      <span class="tag" style="background:#D1FAE5;color:#059669">签到</span>
+      <span class="tag" style="background:#FCE7F3;color:#EC4899">仪式</span>
+      <span class="tag" style="background:#DBEAFE;color:#2563EB">展览</span>
+      <span class="tag" style="background:#FEF3C7;color:#D97706">论坛</span>
+      <span class="tag" style="background:#EDE9FE;color:#7C3AED">发布</span>
+      <span class="tag" style="background:#DBEAFE;color:#2563EB">交流</span>
+      <span class="tag" style="background:#FCE7F3;color:#EC4899">路演</span>
+      <span class="tag" style="background:#D1FAE5;color:#059669">社交</span>
+      <span class="tag" style="background:#FEF3C7;color:#D97706">对接</span>
+      <span class="tag" style="background:#FCE7F3;color:#EC4899">赛事</span>
+      <span class="tag" style="background:#FCE7F3;color:#EC4899">直播</span>
+      <span class="tag" style="background:#FEF3C7;color:#D97706">活动</span>
+    </div>
+    <div class="mt-4 flex items-start gap-2 px-3 py-2 rounded-lg bg-orange-50 border border-orange-100">
+      <i class="fas fa-triangle-exclamation text-[12px] mt-0.5" style="color:#F97316"></i>
+      <p class="text-[11px] text-[#64748B]">
+        <b>口径修正</b>：买家端当前用「天 + 数组下标」定位议程（如 <code>3-3</code>），导致日程页与详情页的 <code>3-3</code> 含义不一致。
+        后台为每条议程分配<b>全局唯一 ID</b>（如 <code>S2026-1-004</code>），前端需改用 ID 定位。
+      </p>
+    </div>
+  </div>
+</div>
+
+<div class="mask" id="mask" onclick="closeD()"></div>
+<div class="drawer" id="drawer">
+  <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+    <div>
+      <h3 class="text-[15px] font-bold text-[#1F2430]">编辑议程</h3>
+      <p class="text-[11px] text-[#94A3B8] mt-0.5">S2026-1-004 · Day 1 · 10.18 开幕日</p>
+    </div>
+    <button onclick="closeD()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-xmark text-lg"></i></button>
+  </div>
+  <div class="flex-1 overflow-y-auto px-6 py-5">
+    <div class="ftitle" style="margin-top:0">基本信息</div>
+    <div class="grid grid-cols-2 gap-3">
+      <div><label class="fl"><i>*</i>议程标题</label><input class="fi" value="袜业高质量发展论坛"></div>
+      <div><label class="fl"><i>*</i>活动类型</label><select class="fi"><option>签到</option><option>仪式</option><option>展览</option><option selected>论坛</option><option>发布</option><option>交流</option><option>路演</option><option>社交</option><option>对接</option><option>赛事</option><option>直播</option><option>活动</option></select></div>
+      <div><label class="fl"><i>*</i>开始时间</label><input class="fi" type="time" value="10:00"></div>
+      <div><label class="fl"><i>*</i>结束时间</label><input class="fi" type="time" value="11:30"></div>
+      <div class="col-span-2"><label class="fl"><i>*</i>地点</label><input class="fi" value="论坛区 · 会议厅 A"></div>
+      <div class="col-span-2"><label class="fl">嘉宾 / 说明</label><input class="fi" value="中国纺织工业联合会领导 / 行业专家"></div>
+      <div><label class="fl">排序</label><input class="fi" type="number" value="4"></div>
+      <div><label class="fl">状态</label><select class="fi"><option selected>未开始</option><option>进行中</option><option>已结束</option><option>已取消</option></select></div>
+    </div>
+
+    <div class="ftitle">议程详情（买家端场次详情页）</div>
+    <div><label class="fl">活动介绍</label><textarea class="fi" rows="3">围绕袜业高质量发展路径，邀请行业协会领导与头部企业代表，探讨智能制造、品牌出海与可持续发展。</textarea></div>
+
+    <div class="ftitle">活动亮点</div>
+    <div class="space-y-2">
+      <div class="flex gap-2"><input class="fi" value="权威行业趋势解读"><button class="btn btn-ghost" style="flex-shrink:0" onclick="toast('操作')"><i class="fas fa-trash"></i></button></div>
+      <div class="flex gap-2"><input class="fi" value="头部企业实战分享"><button class="btn btn-ghost" style="flex-shrink:0" onclick="toast('操作')"><i class="fas fa-trash"></i></button></div>
+      <button class="btn btn-ghost w-full" onclick="toast('添加亮点')"><i class="fas fa-plus mr-1"></i>添加亮点</button>
+    </div>
+
+    <div class="ftitle">演讲嘉宾</div>
+    <div class="space-y-2">
+      <div class="flex gap-2"><input class="fi w-28" value="张明华"><input class="fi" value="副会长 · 中国纺织工业联合会"></div>
+      <div class="flex gap-2"><input class="fi w-28" value="李国强"><input class="fi" value="会长 · 浙江省袜业协会"></div>
+      <button class="btn btn-ghost w-full" onclick="toast('添加嘉宾')"><i class="fas fa-plus mr-1"></i>添加嘉宾</button>
+    </div>
+  </div>
+  <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
+    <button class="btn btn-ghost py-2.5" onclick="closeD()">取消</button>
+    <button class="btn btn-primary py-2.5 px-6" onclick="closeD();toast('议程已保存，发布后同步买家端')">保存</button>
+  </div>
+</div>
+
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[60]"></div>
+<script>
+document.querySelectorAll('.daytab').forEach(function(t){
+  t.addEventListener('click',function(){
+    document.querySelectorAll('.daytab').forEach(function(x){x.classList.remove('on')});
+    t.classList.add('on');
+  });
+});
+function openD(){document.getElementById('mask').classList.add('on');document.getElementById('drawer').classList.add('on');}
+function closeD(){document.getElementById('mask').classList.remove('on');document.getElementById('drawer').classList.remove('on');}
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},2200);}
+</script>
+</body>
+</html>

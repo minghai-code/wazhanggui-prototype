@@ -6,6 +6,7 @@
 <title>团体研学申请 - 袜掌柜买家版</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="backend-config.js"></script>
 <style>
 :root{--p:#FF4D2D;--pl:#FF7849;--bg:#FFF7F4}
 *{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
@@ -62,7 +63,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <p class="text-[12px] font-bold text-gray-800">Step 1 · 在线申请</p>
 <p class="text-[10px] text-gray-400 mt-0.5">填写团体研学申请表单，提交基本信息</p>
 </div>
-<span class="text-[9px] px-2 py-0.5 rounded-full font-bold" style="background:#D1FAE5;color:#059669">进行中</span>
+<span class="text-[9px] px-2 py-0.5 rounded-full font-bold" id="stepBadge1" style="background:#D1FAE5;color:#059669">进行中</span>
 </div>
 <div class="flex gap-3 mb-4 relative">
 <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft flex-shrink-0" style="background:linear-gradient(135deg,#2DD4BF,#14B8A6);z-index:1"><i class="fas fa-circle-check text-base"></i></div>
@@ -70,6 +71,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <p class="text-[12px] font-bold text-gray-800">Step 2 · 审核确认</p>
 <p class="text-[10px] text-gray-400 mt-0.5">1-3个工作日内审核，短信通知结果</p>
 </div>
+<span class="text-[9px] px-2 py-0.5 rounded-full font-bold" id="stepBadge2" style="background:#F3F4F6;color:#9CA3AF">待开始</span>
 </div>
 <div class="flex gap-3 mb-4 relative">
 <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft flex-shrink-0" style="background:linear-gradient(135deg,#38BDF8,#3B82F6);z-index:1"><i class="fas fa-person-walking text-base"></i></div>
@@ -77,6 +79,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <p class="text-[12px] font-bold text-gray-800">Step 3 · 负责人签署责任书</p>
 <p class="text-[10px] text-gray-400 mt-0.5">团体负责人在线签署安全责任书</p>
 </div>
+<span class="text-[9px] px-2 py-0.5 rounded-full font-bold" id="stepBadge3" style="background:#F3F4F6;color:#9CA3AF">待开始</span>
 </div>
 <div class="flex gap-3 relative">
 <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft flex-shrink-0" style="background:linear-gradient(135deg,#A78BFA,#7C3AED);z-index:1"><i class="fas fa-book-open text-base"></i></div>
@@ -84,6 +87,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <p class="text-[12px] font-bold text-gray-800">Step 4 · 线下研学</p>
 <p class="text-[10px] text-gray-400 mt-0.5">按预约日期到访，完成研学之旅</p>
 </div>
+<span class="text-[9px] px-2 py-0.5 rounded-full font-bold" id="stepBadge4" style="background:#F3F4F6;color:#9CA3AF">待开始</span>
 </div>
 </div>
 </div>
@@ -115,18 +119,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </div>
 <div>
 <label class="field-label"><i class="fas fa-users text-[10px] text-gray-400"></i>参加人数 <span style="color:#EF4444">*</span></label>
-<input type="number" class="field-input" placeholder="人数" min="10" required>
+<input type="number" class="field-input" placeholder="人数" min="10" id="applyPeople" oninput="checkWaitlist()" required>
 </div>
 </div>
 <div>
 <label class="field-label"><i class="fas fa-map-location-dot text-[10px] text-gray-400"></i>研学路线 <span style="color:#EF4444">*</span></label>
-<select class="field-input field-select" required>
+<select class="field-input field-select" id="applyRoute" onchange="checkWaitlist()" required>
 <option value="">请选择研学路线</option>
-<option value="1">智能制造工厂参观（半天·20-50人）</option>
-<option value="2">袜业博物馆文化游（2小时·30-80人）</option>
-<option value="3">织袜工艺体验营（1天·15-40人）</option>
 </select>
 </div>
+<div id="waitTip"></div>
 <div>
 <label class="field-label"><i class="fas fa-comment text-[10px] text-gray-400"></i>备注说明</label>
 <textarea class="field-input" rows="3" placeholder="如有特殊需求请在此说明" style="resize:none"></textarea>
@@ -141,6 +143,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </form>
 </div>
 
+<!-- 申请状态回显区（提交后展示） -->
+<div class="px-3 mt-4" id="applyStatus" style="display:none"></div>
+
 <div class="h-20"></div>
 
 <!-- 底部 -->
@@ -154,10 +159,83 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 
 <script>
 function toast(msg){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;t.classList.add('on');setTimeout(function(){t.classList.remove('on')},2000)}
+
+/* 路线下拉：只展示后台在售路线，并带入人数区间与余席 */
+var ROUTE_META={
+  1:{name:'智能制造工厂参观',spec:'半天·20-50人'},
+  2:{name:'袜业博物馆文化游',spec:'2小时·30-80人'},
+  3:{name:'织袜工艺体验营',spec:'1天·15-40人'}
+};
+(function initRoutes(){
+  var sel=document.getElementById('applyRoute');
+  if(!sel)return;
+  var html='<option value="">请选择研学路线</option>';
+  for(var i=1;i<=3;i++){
+    var cfg=STUDY_CFG.routes[i];
+    if(!cfg||cfg.sale!=='在售')continue;   /* 下架路线不出现在下拉中 */
+    var m=ROUTE_META[i];
+    html+='<option value="'+i+'">'+m.name+'（'+m.spec+'·余'+cfg.left+'席）</option>';
+  }
+  sel.innerHTML=html;
+})();
+
+/* 人数 vs 余席：给出候补提示（本期候补只做提示与人数统计，不做自动递补） */
+function checkWaitlist(){
+  var tip=document.getElementById('waitTip');
+  if(!tip)return;
+  var rid=document.getElementById('applyRoute').value;
+  var num=parseInt(document.getElementById('applyPeople').value,10)||0;
+  if(!rid||!num){tip.innerHTML='';return}
+  var cfg=STUDY_CFG.routes[rid];
+  if(!cfg){tip.innerHTML='';return}
+  if(num<=cfg.left){
+    tip.innerHTML='<div class="bg-emerald-50 rounded-xl p-2.5 border border-emerald-100 mt-1"><p class="text-[9px] text-emerald-700 leading-relaxed"><i class="fas fa-circle-check mr-1"></i>该路线当前余席 <b>'+cfg.left+'</b> 席，可满足 '+num+' 人参加，提交后进入审核。</p></div>';
+  }else{
+    var open=cfg.seatStatus!=='已满';
+    tip.innerHTML='<div class="bg-amber-50 rounded-xl p-2.5 border border-amber-100 mt-1"><p class="text-[9px] text-amber-700 leading-relaxed"><i class="fas fa-triangle-exclamation mr-1"></i>该路线当前仅余 <b>'+cfg.left+'</b> 席，不足 '+num+' 人。'
+      +(open?'提交后将进入<b>候补队列</b>（候补人数计入统计，暂不自动递补），运营专员会与您电话确认档期。':'该场次名额已满，建议改选其他日期或路线后再提交。')
+      +'</p></div>';
+  }
+}
+
+/* 4 步流程推进 */
+function setStepBadge(n,text,bg,color){
+  var el=document.getElementById('stepBadge'+n);
+  if(!el)return;
+  el.textContent=text;
+  el.style.background=bg;
+  el.style.color=color;
+}
+function markSubmitted(){
+  setStepBadge(1,'已完成','#D1FAE5','#059669');
+  setStepBadge(2,'审核中','#FEF3C7','#D97706');
+  setStepBadge(3,'待签署','#F3F4F6','#9CA3AF');
+  setStepBadge(4,'待出行','#F3F4F6','#9CA3AF');
+}
+
 function submitForm(e){
   e.preventDefault();
+  var rid=document.getElementById('applyRoute').value;
+  var num=parseInt(document.getElementById('applyPeople').value,10)||0;
+  var cfg=STUDY_CFG.routes[rid]||{left:0,seatStatus:'可报名'};
+  var waitlist=num>cfg.left;
+  var no='YX'+'20260910'+'003';
+  markSubmitted();
+  var box=document.getElementById('applyStatus');
+  box.style.display='';
+  box.innerHTML='<div class="bg-white/85 backdrop-blur-xl rounded-3xl shadow-soft p-4 border border-white text-center fade-up">'
+    +'<div class="w-16 h-16 rounded-full flex items-center justify-center text-white mx-auto mb-2" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)"><i class="fas fa-hourglass-half text-2xl"></i></div>'
+    +'<p class="text-[15px] font-bold text-gray-800 mb-1">申请已提交，等待审核</p>'
+    +'<p class="text-[10px] text-gray-400 leading-relaxed mb-3">申请编号 <b style="color:#059669">'+no+'</b><br>'
+    +(waitlist?'当前名额不足，已进入<b style="color:#D97706">候补队列</b>（候补人数计入统计，暂不自动递补）。<br>':'')
+    +'预计 1-3 个工作日完成审核，结果将短信通知联系人。</p>'
+    +'<div class="bg-gray-50 rounded-xl p-3 text-left mb-3">'
+    +'<p class="text-[10px] text-gray-500 mb-1.5">后续步骤</p>'
+    +'<p class="text-[10px] text-gray-600 leading-relaxed">1. 运营专员审核（≥50 人需主管终审）<br>2. 审核通过后，负责人需在「我的报名」在线签署安全责任书<br>3. 出行前 24 小时可自助取消，出行当日凭签到码现场签到</p></div>'
+    +'<a href="study-my.html?id=2" class="inline-block text-[12px] text-white px-5 py-2.5 rounded-full font-bold mr-2" style="background:linear-gradient(135deg,#34D399,#059669)">查看我的报名</a>'
+    +'<a href="study-tour.html" class="inline-block text-[12px] text-gray-500 px-5 py-2.5 rounded-full font-bold bg-gray-100">返回研学</a></div>';
+  box.scrollIntoView({behavior:'smooth',block:'center'});
   toast('申请已提交，请等待审核');
-  setTimeout(function(){window.location.href='study-tour.html'},2000);
   return false;
 }
 </script>
