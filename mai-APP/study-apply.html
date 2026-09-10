@@ -6,7 +6,92 @@
 <title>团体研学申请 - 袜掌柜买家版</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<script src="backend-config.js"></script>
+<script>
+/* 内联配置（原 backend-config.js，纯清理：避免前端读共享后台配置） */
+var STUDY_CFG = {
+
+  /* 研学基地（后台「研学基地管理」维护，status: 启用 / 停用） */
+  bases: [
+    {id:1,name:'大唐袜业博物馆',img:'images/scene_10.jpg',desc:'展示大唐袜业40年发展历程，馆藏珍贵文物300余件，含VR全景体验区',loc:'大唐镇中心',rating:'4.9',routes:2,status:'启用'},
+    {id:2,name:'智能制造工厂',img:'images/machine_01.jpg',desc:'全自动化织袜生产线，1500台智能袜机，日均产能超百万双',loc:'大唐工业园',rating:'4.8',routes:2,status:'启用'},
+    {id:3,name:'原料检测中心',img:'images/material_02.jpg',desc:'国家级纺织品检测实验室，了解纱线品质检测全流程',loc:'大唐科技园',rating:'4.7',routes:1,status:'停用'}
+  ],
+
+  /* 研学路线在售状态与名额状态（后台「研学线路活动管理」维护） sale: 在售/下架 seatStatus: 可报名/仅剩少量/已满 */
+  routes: {
+    1:{sale:'在售',left:18,seatStatus:'可报名'},
+    2:{sale:'在售',left:8,seatStatus:'仅剩少量'},
+    3:{sale:'下架',left:0,seatStatus:'已满'}
+  },
+
+  /* 研学场次（后台「场次管理」维护） */
+  sessions: {
+    1:[
+      {date:'2026年9月15日',day:'周六',status:'可报名',left:18,total:50,waitOn:false,waitNum:0},
+      {date:'2026年9月22日',day:'周六',status:'可报名',left:32,total:50,waitOn:false,waitNum:0},
+      {date:'2026年10月13日',day:'周一',status:'仅剩少量',left:6,total:50,waitOn:true,waitNum:3},
+      {date:'2026年10月20日',day:'周一',status:'已满',left:0,total:50,waitOn:true,waitNum:8}
+    ],
+    2:[
+      {date:'2026年9月12日',day:'周四',status:'可报名',left:45,total:80,waitOn:false,waitNum:0},
+      {date:'2026年9月19日',day:'周四',status:'可报名',left:60,total:80,waitOn:false,waitNum:0},
+      {date:'2026年10月12日',day:'周六',status:'仅剩少量',left:8,total:80,waitOn:true,waitNum:5},
+      {date:'2026年10月19日',day:'周六',status:'可报名',left:50,total:80,waitOn:true,waitNum:0}
+    ],
+    3:[
+      {date:'2026年9月16日',day:'周日',status:'可报名',left:12,total:40,waitOn:false,waitNum:0},
+      {date:'2026年9月23日',day:'周日',status:'仅剩少量',left:5,total:40,waitOn:true,waitNum:2},
+      {date:'2026年10月14日',day:'周二',status:'可报名',left:20,total:40,waitOn:false,waitNum:0},
+      {date:'2026年10月21日',day:'周二',status:'已满',left:0,total:40,waitOn:true,waitNum:6}
+    ]
+  },
+
+  /* 安全责任书模板（后台「责任书模板管理」维护） */
+  liability: {
+    personal:[
+      '乙方确认学生身体健康，无不适合参加研学活动的疾病。',
+      '乙方负责学生往返途中的安全护送，按时到达集合地点。',
+      '研学期间，乙方授权甲方及带队老师在紧急情况下代为处置。',
+      '乙方须为学生购买意外保险，并提供保险信息。',
+      '学生在研学期间须遵守纪律，听从指挥，不得擅自离队。',
+      '如因乙方或学生自身原因造成安全事故，甲方不承担责任。',
+      '本责任书自家长签字之日起生效，至研学活动结束止。'
+    ],
+    group:[
+      '甲方负责提供安全的研学场地和专业讲解服务。',
+      '乙方负责学生安全管理和纪律维护，配备足够带队老师。',
+      '乙方须为学生购买意外保险，并提交保险信息。',
+      '研学过程中如发生意外，双方按照相关法规协商处理。',
+      '乙方负责人签署后本责任书即生效，至研学活动结束止。'
+    ]
+  },
+
+  /* 后台精选的评价（评价审核通过后同步至买家端） */
+  reviews: [
+    {name:'王老师',school:'浙江大学',avatar:'W',avatarBg:'#3B82F6',rating:5,date:'2026-06-20',route:1,content:'研学内容丰富，讲解专业，学生们对智能制造有了直观认识。特别是互动体验环节，每个学生都能近距离观察袜机运作，收获很大。'},
+    {name:'李老师',school:'杭州学军中学',avatar:'L',avatarBg:'#7C3AED',rating:5,date:'2026-06-15',route:2,content:'博物馆的文化底蕴很深厚，VR体验区是最大亮点，研学任务卡设计得很好，寓教于乐。'},
+    {name:'张老师',school:'杭州二中',avatar:'Z',avatarBg:'#059669',rating:5,date:'2026-06-10',route:3,content:'体验营一日行程安排合理，技师耐心指导，每个学生都带走了自己织的袜子，动手实践模式非常值得推广。'}
+  ],
+
+  /* 出行须知（系统管理员维护） */
+  notices: [
+    '集合时间：出行当日上午 9:00，请提前 10 分钟到达',
+    '集合地点：大唐袜业城游客服务中心一楼大厅',
+    '请穿着舒适服装和运动鞋，勿穿高跟鞋或凉鞋',
+    '工厂区域内请勿触碰设备，听从讲解员指挥',
+    '携带物品：学生证/身份证、笔记本、水杯'
+  ],
+
+  /* 改期通知（后台改期后下发，买家端站内消息示意） */
+  reschedule: {
+    on:true,
+    id:'RC20260910001',
+    title:'场次改期通知',
+    content:'您报名的「智能制造工厂参观」原定 2026年9月12日场次已改期至 2026年9月15日（周六），如无法参加可在出行前 24 小时自助取消。',
+    time:'2026-09-10 09:30'
+  }
+};
+</script>
 <style>
 :root{--p:#FF4D2D;--pl:#FF7849;--bg:#FFF7F4}
 *{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
