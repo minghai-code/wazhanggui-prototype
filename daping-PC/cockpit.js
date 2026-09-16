@@ -41,16 +41,16 @@
      返回 { focus(id), reset(), setFloor() }
      ============================================================ */
   var POINTS={
-    gateE:{ax:.672,ay:.552,icon:'fa-ticket-simple',name:'东门道闸',rows:[['今日进出车辆','3,412 辆'],['当前通行','12 辆/分'],['设备状态','在线']]},
-    gateS:{ax:.502,ay:.762,icon:'fa-ticket-simple',name:'南门道闸',rows:[['今日进出车辆','2,208 辆'],['当前通行','8 辆/分'],['设备状态','在线']]},
-    gateW:{ax:.328,ay:.552,icon:'fa-ticket-simple',name:'西门道闸',rows:[['今日进出车辆','1,760 辆'],['当前通行','5 辆/分'],['设备状态','离线维修']]},
-    camA:{ax:.455,ay:.418,icon:'fa-video',name:'高清监控 A-07',rows:[['在线状态','在线'],['今日告警','0 起'],['点位','袜业城 1F 主通道']]},
-    camB:{ax:.602,ay:.498,icon:'fa-video',name:'高清监控 B-12',rows:[['在线状态','在线'],['今日告警','1 起'],['点位','市场东广场']]},
-    smokeA:{ax:.415,ay:.612,icon:'fa-fire-extinguisher',name:'烟感探测 S-21',rows:[['状态','正常'],['最近报警','07-21 14:22']]},
-    smokeB:{ax:.557,ay:.70,icon:'fa-fire-extinguisher',name:'温感探测 W-08',rows:[['状态','正常'],['最近报警','—']]},
-    expo:{ax:.382,ay:.485,icon:'fa-flag',name:'袜博会展馆',rows:[['本届参展商','486 家'],['参观登记','3.2 万人'],['签单金额','4.6 亿元']]},
-    ware:{ax:.722,ay:.695,icon:'fa-warehouse',name:'云仓 / 共享仓',rows:[['仓储面积','18.6 万㎡'],['库容利用率','82.4%'],['今日出入库','9,680 单']]},
-    live:{ax:.587,ay:.568,icon:'fa-tower-broadcast',name:'直播基地',rows:[['今日直播','86 场'],['在线观看','5.2 万人'],['带货成交','¥ 236 万']]}
+    gateE:{ax:.662,ay:.455,icon:'fa-ticket-simple',name:'东门道闸',rows:[['今日进出车辆','3,412 辆'],['当前通行','12 辆/分'],['设备状态','在线']]},
+    gateS:{ax:.525,ay:.721,icon:'fa-ticket-simple',name:'南门道闸',rows:[['今日进出车辆','2,208 辆'],['当前通行','8 辆/分'],['设备状态','在线']]},
+    gateW:{ax:.35,ay:.455,icon:'fa-ticket-simple',name:'西门道闸',rows:[['今日进出车辆','1,760 辆'],['当前通行','5 辆/分'],['设备状态','离线维修']]},
+    camA:{ax:.45,ay:.36,icon:'fa-video',name:'高清监控 A-07',rows:[['在线状态','在线'],['今日告警','0 起'],['点位','袜业城 1F 主通道']]},
+    camB:{ax:.612,ay:.5,icon:'fa-video',name:'高清监控 B-12',rows:[['在线状态','在线'],['今日告警','1 起'],['点位','市场东广场']]},
+    smokeA:{ax:.425,ay:.548,icon:'fa-fire-extinguisher',name:'烟感探测 S-21',rows:[['状态','正常'],['最近报警','07-21 14:22']]},
+    smokeB:{ax:.588,ay:.67,icon:'fa-fire-extinguisher',name:'温感探测 W-08',rows:[['状态','正常'],['最近报警','—']]},
+    expo:{ax:.372,ay:.364,icon:'fa-flag',name:'袜博会展馆',rows:[['本届参展商','486 家'],['参观登记','3.2 万人'],['签单金额','4.6 亿元']]},
+    ware:{ax:.72,ay:.75,icon:'fa-warehouse',name:'云仓 / 共享仓',rows:[['仓储面积','18.6 万㎡'],['库容利用率','82.4%'],['今日出入库','9,680 单']]},
+    live:{ax:.6,ay:.629,icon:'fa-tower-broadcast',name:'直播基地',rows:[['今日直播','86 场'],['在线观看','5.2 万人'],['带货成交','¥ 236 万']]}
   };
 
   function buildPark2D(el,cb){
@@ -59,61 +59,79 @@
       return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="6" fill="rgba(148,163,184,.055)" stroke="rgba(148,163,184,.13)"/>'+
         '<text x="'+(x+w/2)+'" y="'+(y+h/2+4)+'" fill="#5b6c8c" font-size="11.5" text-anchor="middle">'+name+'</text>';
     }
-    function road(x,y,w,h){return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="#1b2941"/>';}
+    function road(x,y,w,h){return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="#1e3663"/>';}
     function dot(cx,cy,color,key,ring){
       var s='';
-      if(ring)s+='<circle class="pp-ring" cx="'+cx+'" cy="'+cy+'" r="7" fill="none" stroke="'+color+'"/>';
-      s+='<circle class="p3d-hit" data-point="'+key+'" cx="'+cx+'" cy="'+cy+'" r="4.5" fill="'+color+'" stroke="#0b1526" stroke-width="1.5"/>';
+      if(ring)s+='<circle class="pp-ring" data-point="'+key+'" cx="'+cx+'" cy="'+cy+'" r="7" fill="none" stroke="'+color+'"/>';
+      s+='<circle class="p3d-hit" data-point="'+key+'" cx="'+cx+'" cy="'+cy+'" r="4.5" fill="'+color+'" stroke="#0a1a3a" stroke-width="1.5"/>';
       return s;
     }
-    var s='<rect width="1000" height="620" fill="#0b1526"/>';
-    /* 道路网 */
-    s+=road(0,196,1000,14)+road(0,470,1000,14)+road(0,540,1000,10);
-    s+=road(312,0,14,620)+road(674,0,14,620)+road(770,0,10,620);
-    s+='<text x="880" y="534" fill="#51617f" font-size="13" font-style="italic">开 明 路</text>';
-    s+='<text x="20" y="190" fill="#51617f" font-size="12" font-style="italic">市场大道</text>';
-    /* 周边弱化建筑（参照大唐袜业城实景） */
-    s+=blk(40,40,200,120,'弘隆针织')+blk(260,30,120,130,'袜都店')+blk(395,30,170,110,'国际袜都财富中心');
-    s+=blk(600,40,150,110,'大唐金座')+blk(790,40,170,110,'锦织商场');
-    s+=blk(40,240,220,110,'农口超市 / 天天顺')+blk(40,380,230,80,'车海洋 24h 自助洗车');
-    s+=blk(740,240,240,110,'长安包装材料');
-    s+=blk(790,490,180,42,'新丝维染色')+blk(790,556,180,52,'交通银行');
-    s+=blk(240,558,220,50,'浙江大唐袜业城有限公司')+blk(470,558,200,50,'袜业城行政服务中心');
-    s+=blk(690,558,80,50,'市场百货')+blk(120,558,100,50,'19 幢');
-    /* 园区主体：大唐袜业市场 */
-    s+='<rect class="p3d-hit" data-building="woolcity" x="345" y="225" width="310" height="235" rx="16" fill="rgba(34,211,238,.06)" stroke="rgba(34,211,238,.55)" stroke-width="1.6"/>';
-    s+='<rect x="420" y="242" width="120" height="40" rx="6" fill="rgba(34,211,238,.13)"/>';
-    s+='<text x="480" y="266" fill="#bfe9f5" font-size="12" text-anchor="middle">袜 都 店</text>';
-    s+='<text x="545" y="286" fill="#8fb8cc" font-size="11" text-anchor="middle">大唐袜优品专卖</text>';
-    s+='<rect x="395" y="325" width="215" height="95" rx="8" fill="rgba(34,211,238,.10)" stroke="rgba(34,211,238,.25)"/>';
-    s+='<text x="502" y="368" fill="#bfe9f5" font-size="13" font-weight="700" text-anchor="middle">大唐袜都电商园</text>';
-    s+='<text x="428" y="448" fill="#6f86a6" font-size="11">百织袜业</text>';
-    s+='<text x="586" y="440" fill="#6f86a6" font-size="11">国家电网充电站</text>';
-    /* 中心地标 */
-    s+='<text x="500" y="292" fill="#e6eef9" font-size="11.5" font-weight="700" text-anchor="middle">大唐袜业市场</text>';
-    s+='<circle cx="500" cy="308" r="10" fill="rgba(248,113,113,.25)"/><circle cx="500" cy="308" r="4.5" fill="#f87171"/>';
-    /* 原料市场 */
-    s+='<rect class="p3d-hit" data-building="yuanliao" x="800" y="365" width="150" height="80" rx="10" fill="rgba(167,139,250,.09)" stroke="rgba(167,139,250,.55)" stroke-width="1.4"/>';
-    s+='<text x="875" y="400" fill="#cdbcfa" font-size="12.5" font-weight="700" text-anchor="middle">原 料 市 场</text>';
-    s+='<text x="875" y="418" fill="#7d6fae" font-size="10" text-anchor="middle">棉纱 · 化纤 · 辅料</text>';
+    var s='<rect width="1000" height="660" fill="#0a1a3a"/>';
+    /* 道路网（参照大唐袜业实景：西三环路纵贯，网格街区） */
+    s+=road(332,0,16,660);
+    s+=road(0,170,1000,13);
+    s+=road(0,470,1000,13);
+    s+=road(0,540,1000,11);
+    s+=road(650,183,11,477);
+    s+=road(790,183,10,477);
+    s+='<text x="324" y="140" fill="#51617f" font-size="13" font-style="italic" text-anchor="middle" transform="rotate(-90 324 140)">西  三  环  路</text>';
+    /* 西三路以西 */
+    s+=blk(50,40,250,95,'诸暨市快递拨发中心');
+    s+=blk(50,205,240,85,'车海洋 24h 自助洗车');
+    s+=blk(50,315,240,90,'诸暨市行政服务中心');
+    s+=blk(50,420,240,90,'亿力商务');
+    s+=blk(50,565,240,70,'方田新村');
+    /* 北侧街区 */
+    s+=blk(360,40,140,85,'国际袜都财富中心');
+    s+=blk(520,40,120,85,'大唐金座');
+    s+=blk(665,40,110,85,'锦绣商城');
+    s+=blk(800,40,150,85,'兴盛精品公寓');
+    /* 园区主体：大唐袜业市场（点击看数据） */
+    s+='<rect class="p3d-hit" data-building="woolcity" x="395" y="212" width="245" height="175" rx="14" fill="rgba(34,211,238,.06)" stroke="rgba(34,211,238,.55)" stroke-width="1.6"/>';
+    s+='<text x="517" y="250" fill="#e6eef9" font-size="13" font-weight="700" text-anchor="middle">大唐袜业市场</text>';
+    s+='<text x="517" y="266" fill="#8fb8cc" font-size="10" text-anchor="middle">港阳大厦 · 袜业市场</text>';
+    s+='<circle cx="517" cy="286" r="10" fill="rgba(248,113,113,.25)"/><circle cx="517" cy="286" r="4.5" fill="#f87171"/>';
+    s+='<text x="428" y="330" fill="#6f86a6" font-size="10">袜都店</text>';
+    s+='<text x="560" y="330" fill="#6f86a6" font-size="10">大唐袜优品专卖</text>';
+    s+='<text x="517" y="206" fill="#9fb0c8" font-size="10.5" text-anchor="middle">北门 · 入口</text>';
+    /* 电商园 */
+    s+='<rect x="400" y="400" width="235" height="66" rx="10" fill="rgba(34,211,238,.10)" stroke="rgba(34,211,238,.3)"/>';
+    s+='<text x="517" y="428" fill="#bfe9f5" font-size="12.5" font-weight="700" text-anchor="middle">大唐袜业电商园</text>';
+    s+='<text x="517" y="446" fill="#6f86a6" font-size="9.5" text-anchor="middle">直播基地 · 优品专卖</text>';
+    /* 法院 */
+    s+=blk(400,484,235,46,'诸暨市人民法院 · 共富服务站');
+    /* 市场东侧街区 */
+    s+=blk(663,212,124,70,'包江印刷');
+    s+=blk(663,300,124,70,'泡泡公寓');
+    s+=blk(663,388,124,70,'交通银行');
+    s+=blk(800,212,150,70,'车吧 24h 洗车');
+    s+=blk(800,300,150,70,'华莱士 · 汉堡');
+    s+=blk(800,388,150,70,'金莱怡针织制线');
+    s+=blk(800,476,150,54,'上港口新村');
+    /* 原料市场（浙江大唐轻纺袜业城 A/B 区，点击看数据） */
+    s+='<rect class="p3d-hit" data-building="yuanliao" x="430" y="563" width="230" height="72" rx="10" fill="rgba(167,139,250,.09)" stroke="rgba(167,139,250,.55)" stroke-width="1.4"/>';
+    s+='<text x="545" y="592" fill="#cdbcfa" font-size="12" font-weight="700" text-anchor="middle">浙江大唐轻纺袜业城 A / B 区</text>';
+    s+='<text x="545" y="611" fill="#7d6fae" font-size="9.5" text-anchor="middle">原料市场 · 棉纱 / 化纤 / 辅料</text>';
+    s+=blk(160,565,120,68,'横店电影城');
+    s+=blk(300,565,110,68,'永茂广场');
+    s+=blk(680,565,120,68,'中国工商银行');
+    s+=blk(820,565,120,68,'中国银行');
     /* 门 */
-    s+='<text x="500" y="216" fill="#9fb0c8" font-size="11" text-anchor="middle">北门 · 入口</text>';
-    s+='<text x="352" y="345" fill="#9fb0c8" font-size="11">西门</text>';
-    s+='<text x="628" y="345" fill="#9fb0c8" font-size="11">东门</text>';
-    s+='<text x="490" y="462" fill="#9fb0c8" font-size="11">南门</text>';
+    s+='<text x="350" y="284" fill="#9fb0c8" font-size="10" text-anchor="middle">西门</text>';
+    s+='<text x="662" y="284" fill="#9fb0c8" font-size="10" text-anchor="middle">东门</text>';
+    s+='<text x="556" y="480" fill="#9fb0c8" font-size="10">南门</text>';
     /* 点位：道闸 */
-    s+=dot(672,340,'#f87171','gateE',true)+dot(500,468,'#f87171','gateS',true)+dot(328,340,'#f87171','gateW',true);
+    s+=dot(350,300,'#f87171','gateW',true)+dot(662,300,'#f87171','gateE',true)+dot(525,476,'#f87171','gateS',true);
     /* 监控 / 烟感 */
-    s+=dot(455,260,'#22d3ee','camA',true)+dot(602,308,'#22d3ee','camB',true);
-    s+=dot(415,380,'#fbbf24','smokeA',true)+dot(557,436,'#fbbf24','smokeB',true);
+    s+=dot(450,238,'#22d3ee','camA',true)+dot(612,330,'#22d3ee','camB',true);
+    s+=dot(425,362,'#fbbf24','smokeA',true)+dot(588,442,'#fbbf24','smokeB',true);
     /* 展馆 / 云仓 / 直播 */
-    s+=dot(382,302,'#fbbf24','expo',true);
-    s+='<text x="382" y="322" fill="#e8cf90" font-size="10" text-anchor="middle">袜博会展馆</text>';
-    s+=dot(722,428,'#34d399','ware',true);
-    s+='<text x="722" y="448" fill="#9fe0c6" font-size="10" text-anchor="middle">云仓/共享仓</text>';
-    s+=dot(587,352,'#60a5fa','live',true);
-    s+='<text x="587" y="372" fill="#a9c6ef" font-size="10" text-anchor="middle">直播基地</text>';
-    el.innerHTML='<svg viewBox="0 0 1000 620" preserveAspectRatio="xMidYMid meet">'+s+'</svg>';
+    s+=dot(372,240,'#fbbf24','expo',true);
+    s+='<text x="372" y="260" fill="#e8cf90" font-size="10" text-anchor="middle">袜博会展馆</text>';
+    s+=dot(720,495,'#34d399','ware',true);
+    s+='<text x="720" y="515" fill="#9fe0c6" font-size="10" text-anchor="middle">云仓/共享仓</text>';
+    s+=dot(600,415,'#60a5fa','live',true);
+    el.innerHTML='<svg viewBox="0 0 1000 660" preserveAspectRatio="xMidYMid slice">'+s+'</svg>';
 
     el.querySelectorAll('[data-building]').forEach(function(n){
       n.addEventListener('click',function(e){
