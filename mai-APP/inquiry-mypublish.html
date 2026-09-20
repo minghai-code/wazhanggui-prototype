@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -10,7 +10,7 @@
 tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D','primary-d':'#E63E20','primary-l':'#FF7849'}}}}
 </script>
 <style>
-:root{--p:#FF4D2D;--pl:#FF7849;--bg:#FFF7F4;--v1:#7C3AED;--v2:#FF2D78}
+:root{--p:#FF4D2D;--pl:#FF7849;--bg:#FFF7F4}
 *{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
 ::-webkit-scrollbar{width:2px;height:2px}
@@ -22,6 +22,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 .fade-up{animation:fadeUp .4s ease both}
 @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .info-lbl{font-size:11px;color:#6b7080;background:rgba(248,249,250,.9);border-radius:8px;padding:5px 9px;white-space:nowrap}
+.mini-lbl{display:inline-flex;align-items:center;gap:3px;font-size:9px;color:#6b7080;background:#F3F4F6;border-radius:7px;padding:3px 7px;white-space:nowrap}
+.mini-lbl.b{color:#2563EB;background:#EFF6FF}
 .badge-rank{font-size:9px;font-weight:700;color:#fff;padding:2px 6px;border-radius:8px}
 .toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:200;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.25);min-width:140px;justify-content:center}
 .toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
@@ -29,7 +31,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </head>
 <body>
 
-<!-- ===== 顶部：渐变 ===== -->
+<!-- ===== 顶部 ===== -->
 <div class="relative px-4 pt-2 pb-6 overflow-hidden" style="background:linear-gradient(135deg,#FF8A4C 0%,#FF4D2D 40%,#E63E20 100%)">
   <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-50" style="background:#FF8A4C"></div>
   <div class="absolute -top-6 right-[-30px] w-48 h-48 rounded-full blur-3xl opacity-40" style="background:#FF2D78"></div>
@@ -62,7 +64,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <p class="text-[11px] text-gray-500 mt-2 leading-relaxed" id="dDesc">常备两色，罗口适中，交期7天内，支持打样含运费。</p>
 </div>
 
-<!-- 报价统计条 -->
+<!-- 报价统计条（仅需求方本人可见） -->
 <div class="mt-3 rounded-3xl p-3 flex items-center justify-between fade-up" style="background:linear-gradient(135deg,#FF6B35,#FF2D78);box-shadow:0 8px 20px rgba(255,45,120,.25)">
 <div class="text-white text-center flex-1"><p class="text-[20px] font-extrabold" id="statCount">8</p><p class="text-[9px] text-white/85 mt-0.5">商家报价</p></div>
 <div class="w-px h-8 bg-white/30"></div>
@@ -71,16 +73,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <div class="text-white text-center flex-1"><p class="text-[20px] font-extrabold" id="statAvg">¥3.4</p><p class="text-[9px] text-white/85 mt-0.5">平均报价</p></div>
 </div>
 
+<!-- 样品定制需求（发布时勾选，成交后卖家默认寄样） -->
+<div id="sampleNeedBox" class="mt-3 rounded-2xl p-3 fade-up" style="display:none"></div>
+
 <!-- 报价列表标题 -->
 <div class="mt-4 flex items-center justify-between mb-2.5">
-<div class="flex items-center gap-1.5"><div class="w-1.5 h-3.5 rounded-full" style="background:#FF4D2D"></div><span class="sec-title" style="font-size:15px">全部商家报价</span></div>
+<div class="flex items-center gap-1.5"><div class="w-1.5 h-3.5 rounded-full" style="background:#FF4D2D"></div><span class="sec-title" style="font-size:15px;font-weight:800;color:#1F2430">全部商家报价</span></div>
 <div class="flex items-center gap-1.5">
 <button class="px-2.5 py-1 rounded-lg text-[10px] font-semibold" style="background:#FF4D2D;color:#fff" onclick="toast('已按价格从低到高排序')">价格最低</button>
 <button class="px-2.5 py-1 rounded-lg text-[10px] bg-white shadow-soft text-gray-500" onclick="toast('已按综合评分排序')">综合最优</button>
 </div>
 </div>
 
-<!-- 报价卡片列表，由JS渲染 -->
+<!-- 报价卡片列表 -->
 <div id="quoteList" class="space-y-2"></div>
 
 <div class="mt-4 rounded-2xl p-3 text-center text-[10px] text-gray-400" style="background:#fff;box-shadow:0 1px 6px rgba(20,20,40,.04)">
@@ -96,14 +101,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <a href="home.html" class="flex flex-col items-center gap-0.5" style="color:#FF4D2D"><i class="fas fa-house text-[18px]"></i><span class="text-[9px] font-semibold">首页</span></a>
 <a href="video.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-video text-[18px]"></i><span class="text-[9px]">视频看货</span></a>
 <a href="purchase-order.html" class="flex flex-col items-center gap-0.5 text-gray-400 relative"><i class="fas fa-clipboard-list text-[18px]"></i><span class="text-[9px]">进货单</span><span class="absolute top-0 right-1 bg-primary text-white text-[7px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center" style="min-width:14px;height:14px">3</span></a>
-<a href="property.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-building text-[18px]"></i><span class="text-[9px]">物业</span></a>
 <a href="mine.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-user text-[18px]"></i><span class="text-[9px]">我的</span></a>
 </div>
 </div>
-<!-- Home Indicator -->
 <div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:151;width:393px;pointer-events:none"><div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:3px"></div></div>
 
-<!-- 消息提示 -->
 <div class="toast" id="toast"><i class="fas fa-circle-check text-[#4ADE80]"></i><span id="toastTxt">操作成功</span></div>
 
 <!-- 选标确认弹层 -->
@@ -113,16 +115,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <div class="w-10 h-1 rounded-full bg-gray-200 mx-auto"></div>
 <div class="w-14 h-14 mx-auto mt-4 rounded-full flex items-center justify-center text-white shadow-card" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)"><i class="fas fa-gavel text-xl"></i></div>
 <p class="text-[16px] font-bold text-gray-900 text-center mt-3">确认与该商家成交？</p>
-<p class="text-[11px] text-gray-500 text-center mt-1.5">选定后你将与该商家达成交易，其他报价方将收到结果通知</p>
+<p class="text-[11px] text-gray-500 text-center mt-1.5">选定后你将与该商家达成交易并生成订单，通知对方</p>
 <div class="mt-3 rounded-2xl p-3" style="background:#FFF7F4;border:1px solid #ffede5">
 <div class="flex items-center gap-2">
 <div class="w-9 h-9 rounded-full flex items-center justify-center text-white text-[13px] font-bold" id="dealAvatar" style="background:linear-gradient(135deg,#FF8A4C,#FF4D2D)">丰</div>
-<div class="flex-1"><p class="text-[12px] font-bold text-gray-800" id="dealName">丰棉织造</p><p class="text-[9px] text-gray-400 mt-0.5">源头工厂 · 3年店</p></div>
+<div class="flex-1"><p class="text-[12px] font-bold text-gray-800" id="dealName">丰棉织造</p><p class="text-[9px] text-gray-400 mt-0.5" id="dealMeta">源头工厂 · 3年店</p></div>
 </div>
 <div class="flex items-end justify-between mt-2.5">
-<span class="text-[11px] text-gray-500">成交单价 <span class="text-grad font-bold text-[20px]" id="dealPrice">¥3.10</span><span class="text-[9px] text-gray-400">/双</span></span>
+<span class="text-[11px] text-gray-500">成交单价 <span class="text-grad font-bold text-[20px]" id="dealPrice" style="color:#FF4D2D">¥3.10</span><span class="text-[9px] text-gray-400">/双</span></span>
 <span class="text-[11px] text-gray-500" id="dealQty">数量 1000双</span>
 </div>
+<div id="dealSample" class="mt-2 text-[10px]" style="color:#10B981;display:none"><i class="fas fa-gift text-[9px]"></i> 本需求需定制样品，成交后由卖家默认寄送</div>
 </div>
 <div class="flex gap-2 mt-4">
 <button class="flex-1 py-3 rounded-2xl text-[13px] font-medium text-gray-500" style="background:#F3F4F6" onclick="closeDeal()">再考虑</button>
@@ -131,46 +134,91 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </div>
 </div>
 
+<!-- 商家介绍弹层 -->
+<div class="absolute inset-0" id="supMask" style="display:none;background:rgba(0,0,0,.4);z-index:130" onclick="closeSupplier()"></div>
+<div class="fixed bottom-0 left-0 right-0 rounded-t-3xl bg-white" id="supSheet" style="display:none;z-index:140;width:393px;padding-bottom:32px;max-height:82vh;overflow-y:auto">
+<div class="px-4 pt-3 pb-4">
+<div class="w-10 h-1 rounded-full bg-gray-200 mx-auto"></div>
+<div id="supHead" class="flex items-center gap-3 mt-3"></div>
+<p class="text-[11px] font-bold text-gray-700 mt-3">商家介绍</p>
+<p class="text-[11px] text-gray-500 leading-relaxed mt-1" id="supIntro"></p>
+<div class="grid grid-cols-3 gap-2 mt-3 text-center" id="supMeta"></div>
+<p class="text-[11px] font-bold text-gray-700 mt-4">买家评价 <span id="supRevN" class="text-gray-400 font-normal"></span></p>
+<div id="supReviews" class="space-y-2 mt-2"></div>
+</div>
+</div>
+
 <script>
 var P={
- 7:{title:'男士精梳棉商务袜 透气防臭',cat:'男袜',qty:'1000双',price:'期望 ¥3.5/双',desc:'常备两色，罗口适中，交期7天内，支持打样含运费。',time:'2小时前发布',pill:'<i class="fas fa-clock"></i> 报价中',pillbg:'#FFF0E8',pillc:'#FF6B35',count:8,
+ 7:{title:'男士精梳棉商务袜 透气防臭',cat:'男袜',qty:'1000双',price:'最高 ¥3.5/双',desc:'常备两色，罗口适中，交期7天内，支持打样含运费。',time:'2小时前发布',pill:'<i class="fas fa-clock"></i> 报价中',pillbg:'#FFF0E8',pillc:'#FF6B35',count:8,done:false,order:'',needSample:true,
   quotes:[
-   {rank:1,supplier:'丰棉织造',tag:'源头工厂',score:'4.9分',initial:'丰',c:'linear-gradient(135deg,#FF8A4C,#FF4D2D)',price:'3.10',qty:'1000双',delivery:'3天内',sample:'支持打样',note:'源头直供，精梳棉现货，含运费可开票。',time:'10分钟前'},
-   {rank:2,supplier:'大唐自有品牌旗舰店',tag:'实力商家',score:'4.9分',initial:'唐',c:'linear-gradient(135deg,#3B82F6,#6366F1)',price:'3.20',qty:'1000双',delivery:'7天内',sample:'支持打样',note:'成熟机台产能充足，附检测报告。',time:'25分钟前'},
-   {rank:3,supplier:'大唐百人袜业',tag:'企业认证',score:'4.7分',initial:'百',c:'linear-gradient(135deg,#10B981,#059669)',price:'3.30',qty:'1000双',delivery:'7天内',sample:'付费打样',note:'常规款可快速配送。',time:'40分钟前'},
-   {rank:4,supplier:'恒力针纺',tag:'企业认证',score:'4.6分',initial:'恒',c:'linear-gradient(135deg,#F59E0B,#D97706)',price:'3.45',qty:'800双',delivery:'10天内',sample:'支持打样',note:'产能可调动，分批交付。',time:'1小时前'},
-   {rank:5,supplier:'一枝春袜业',tag:'新晋商家',score:'4.5分',initial:'一',c:'linear-gradient(135deg,#EC4899,#F43F5E)',price:'3.60',qty:'1000双',delivery:'15天内',sample:'支持打样',note:'新店冲量，价格可谈。',time:'1小时前'}
+   {rank:1,supplier:'丰棉织造',tag:'源头工厂',score:'4.9',initial:'丰',c:'linear-gradient(135deg,#FF8A4C,#FF4D2D)',price:'3.10',qty:'1000双',delivery:'3天内',ship:'含运费',sampleFee:'免费寄样',support:'支持打样',ladder:'2000双起 ¥3.0/双',note:'源头直供，精梳棉现货，含运费可开票。',time:'10分钟前'},
+   {rank:2,supplier:'大唐自有品牌旗舰店',tag:'实力商家',score:'4.9',initial:'唐',c:'linear-gradient(135deg,#3B82F6,#6366F1)',price:'3.20',qty:'1000双',delivery:'7天内',ship:'含运费',sampleFee:'收样品费¥50(可抵货款)',support:'支持打样',ladder:'3000双起 ¥3.1/双',note:'成熟机台产能充足，附检测报告。',time:'25分钟前'},
+   {rank:3,supplier:'大唐百人袜业',tag:'企业认证',score:'4.7',initial:'百',c:'linear-gradient(135deg,#10B981,#059669)',price:'3.30',qty:'1000双',delivery:'7天内',ship:'不含运费',sampleFee:'免费寄样',support:'支持打样',note:'常规款可快速配送。',time:'40分钟前'},
+   {rank:4,supplier:'恒力针纺',tag:'企业认证',score:'4.6',initial:'恒',c:'linear-gradient(135deg,#F59E0B,#D97706)',price:'3.45',qty:'800双',delivery:'10天内',ship:'含运费',sampleFee:'免费寄样',support:'支持打样',note:'产能可调动，分批交付。',time:'1小时前'},
+   {rank:5,supplier:'一枝春袜业',tag:'新晋商家',score:'4.5',initial:'一',c:'linear-gradient(135deg,#EC4899,#F43F5E)',price:'3.60',qty:'1000双',delivery:'15天内',ship:'不含运费',sampleFee:'收样品费¥30(可抵货款)',support:'支持打样',note:'新店冲量，价格可谈。',time:'1小时前'}
   ]},
- 8:{title:'男士刺绣薄袜 莱卡棉',cat:'男袜',qty:'200双',price:'期望 ¥3.0/双',desc:'莱卡棉薄款，Logo刺绣，整盒包装。',time:'1天前发布',pill:'<i class="fas fa-clock"></i> 报价中',pillbg:'#FFF0E8',pillc:'#FF6B35',count:3,
+ 8:{title:'男士刺绣薄袜 莱卡棉',cat:'男袜',qty:'200双',price:'最高 ¥3.0/双',desc:'莱卡棉薄款，Logo刺绣，整盒包装。',time:'1天前发布',pill:'<i class="fas fa-circle-check"></i> 已成交',pillbg:'#E8F8EF',pillc:'#10B981',count:3,done:true,order:'QJ20260920-007',needSample:true,
   quotes:[
-   {rank:1,supplier:'大唐自有品牌旗舰店',tag:'实力商家',score:'4.9分',initial:'唐',c:'linear-gradient(135deg,#3B82F6,#6366F1)',price:'2.85',qty:'200双',delivery:'5天内',sample:'支持打样',note:'刺绣工艺成熟，含设计费。',time:'3小时前'},
-   {rank:2,supplier:'织梦工艺坊',tag:'企业认证',score:'4.4分',initial:'织',c:'linear-gradient(135deg,#8B5CF6,#7C3AED)',price:'2.95',qty:'200双',delivery:'10天内',sample:'付费打样',note:'需确认刺绣图案。',time:'5小时前'},
-   {rank:3,supplier:'恒力针纺',tag:'企业认证',score:'4.6分',initial:'恒',c:'linear-gradient(135deg,#F59E0B,#D97706)',price:'3.10',qty:'200双',delivery:'7天内',sample:'支持打样',note:'常规款，起订量低至100双。',time:'8小时前'}
+   {rank:1,supplier:'大唐自有品牌旗舰店',tag:'实力商家',score:'4.9',initial:'唐',c:'linear-gradient(135deg,#3B82F6,#6366F1)',price:'2.85',qty:'200双',delivery:'5天内',ship:'含运费',sampleFee:'收样品费¥50(可抵货款)',support:'支持打样',ladder:'300双起 ¥2.8/双',note:'刺绣工艺成熟，含设计费。',time:'3小时前',selected:true},
+   {rank:2,supplier:'织梦工艺坊',tag:'企业认证',score:'4.4',initial:'织',c:'linear-gradient(135deg,#8B5CF6,#7C3AED)',price:'2.95',qty:'200双',delivery:'10天内',ship:'含运费',sampleFee:'免费寄样',support:'支持打样',note:'需确认刺绣图案。',time:'5小时前'},
+   {rank:3,supplier:'恒力针纺',tag:'企业认证',score:'4.6',initial:'恒',c:'linear-gradient(135deg,#F59E0B,#D97706)',price:'3.10',qty:'200双',delivery:'7天内',ship:'含运费',sampleFee:'免费寄样',support:'支持打样',note:'常规款，起订量低至100双。',time:'8小时前'}
   ]}
 };
-var currentDeal=null,toastTimer;
+var SUP={
+ '丰棉织造':{initial:'丰',c:'linear-gradient(135deg,#FF8A4C,#FF4D2D)',years:'3年',loc:'浙江·诸暨大唐',main:'商务袜/运动袜',cap:'月产50万双',score:'4.9',intro:'源头工厂，自有织机120台，专注商务袜与运动袜代工，支持LOGO定制与打样，长期服务电商与批发客户。',reviews:[{u:'杭州·电商卖家',r:5,t:'样品质量好，交期准，已长期合作。',time:'2周前'},{u:'义乌·批发商',r:4,t:'价格实在，大货与样衣一致。',time:'1个月前'}]},
+ '大唐自有品牌旗舰店':{initial:'唐',c:'linear-gradient(135deg,#3B82F6,#6366F1)',years:'5年',loc:'浙江·诸暨',main:'商务袜/品牌袜',cap:'月产80万双',score:'4.9',intro:'自有品牌+代工一体，机台成熟产能充足，附第三方检测报告，擅长中高档商务袜。',reviews:[{u:'上海·品牌方',r:5,t:'检测报告齐全，品控稳定。',time:'3周前'},{u:'广州·电商',r:4,t:'发货快，沟通专业。',time:'1个月前'}]},
+ '大唐百人袜业':{initial:'百',c:'linear-gradient(135deg,#10B981,#059669)',years:'8年',loc:'浙江·诸暨大唐',main:'常规袜/基础款',cap:'月产120万双',score:'4.7',intro:'老牌代工厂，常规款产能强、交付快，适合大批量基础款采购。',reviews:[{u:'绍兴·批发',r:5,t:'量大价优，交付准时。',time:'3周前'},{u:'宁波·采购',r:4,t:'常规款质量稳。',time:'2个月前'}]},
+ '恒力针纺':{initial:'恒',c:'linear-gradient(135deg,#F59E0B,#D97706)',years:'6年',loc:'浙江·诸暨',main:'功能袜/运动袜',cap:'月产60万双',score:'4.6',intro:'专注功能袜与运动袜，产能可调动，支持分批交付。',reviews:[{u:'杭州·运动品牌',r:4,t:'功能袜工艺不错。',time:'1个月前'},{u:'温州·电商',r:4,t:'响应及时。',time:'2个月前'}]},
+ '一枝春袜业':{initial:'一',c:'linear-gradient(135deg,#EC4899,#F43F5E)',years:'1年',loc:'浙江·诸暨',main:'新锐/冲量款',cap:'月产20万双',score:'4.5',intro:'新晋商家，冲量价格优惠，适合试单与小批量。',reviews:[{u:'金华·微店',r:5,t:'新店服务好，价格香。',time:'1周前'}]},
+ '织梦工艺坊':{initial:'织',c:'linear-gradient(135deg,#8B5CF6,#7C3AED)',years:'4年',loc:'浙江·诸暨',main:'刺绣/定制袜',cap:'月产15万双',score:'4.4',intro:'擅长刺绣与图案定制，适合Logo刺绣类小批量定制。',reviews:[{u:'杭州·定制店',r:4,t:'刺绣工艺细致。',time:'2周前'}]}
+};
+var curId='7',currentDeal=null,toastTimer;
 function toast(msg){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},1600)}
 function get(id){return P[id]||P[7];}
 function quoteCard(q,idx){
-  var r=q.rank;var rankColor=r===1?'linear-gradient(135deg,#F59E0B,#FBBF24)':r===2?'linear-gradient(135deg,#9CA3AF,#D1D5DB)':r===3?'linear-gradient(135deg,#D97706,#B45309)':'linear-gradient(135deg,#E5E7EB,#E5E7EB)';
-  var badge=r<=3?'<span class="badge-rank" style="background:'+rankColor+'">'+r+'</span>':'';
-  return '<div class="bg-white rounded-2xl shadow-soft p-3 fade-up" >'
+  var d=P[curId];var r=q.rank;
+  var rankColor=r===1?'linear-gradient(135deg,#F59E0B,#FBBF24)':r===2?'linear-gradient(135deg,#9CA3AF,#D1D5DB)':r===3?'linear-gradient(135deg,#D97706,#B45309)':'linear-gradient(135deg,#E5E7EB,#E5E7EB)';
+  var selectedTag=q.selected?'<span class="pill" style="background:#E8F8EF;color:#10B981;font-size:9px;font-weight:600;padding:2px 7px;border-radius:8px"><i class="fas fa-circle-check"></i> 已中选</span>':'';
+  var shipTag='<span class="mini-lbl"><i class="fas fa-truck-fast text-[8px]"></i> '+q.ship+'</span>';
+  var feeTag='<span class="mini-lbl"><i class="fas fa-gift text-[8px]"></i> '+q.sampleFee+'</span>';
+  var ladderTag=q.ladder?'<span class="mini-lbl b"><i class="fas fa-layer-group text-[8px]"></i> 阶梯价</span>':'';
+  var supTag='<span class="mini-lbl"><i class="fas fa-thumbs-up text-[8px]"></i> '+q.support+'</span>';
+  var ladderLine=q.ladder?'<p class="text-[9px] text-gray-400 mt-0.5"><i class="fas fa-layer-group text-[8px]" style="color:#2563EB"></i> 阶梯价：'+q.ladder+'</p>':'';
+  var sampleNote=(d.needSample&&q.selected)?'<p class="text-[10px] mt-1.5" style="color:#10B981"><i class="fas fa-circle-check text-[9px]"></i> 已默认寄送定制样品</p>':'';
+  var btns=q.selected
+    ? '<a href="order-detail-inquiry.html?status=pay" class="card flex-1 py-2.5 rounded-xl text-[12px] font-bold text-white" style="background:linear-gradient(135deg,#10B981,#059669)" onclick="event.stopPropagation()"><i class="fas fa-file-invoice mr-1 text-xs"></i>查看订单</a>'
+    : (d.done?'<button class="card flex-1 py-2.5 rounded-xl text-[12px] font-semibold text-gray-400" style="background:#F3F4F6" disabled>未中选</button>'
+      : '<button class="card flex-1 py-2.5 rounded-xl text-[12px] font-semibold text-gray-500" style="background:#F5F6F8" onclick="toast(\'已打开与该商家的会话\')"><i class="fas fa-comment-dots mr-1 text-xs"></i>洽谈</button><button class="card flex-1 py-2.5 rounded-xl text-[12px] font-bold text-white" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D);box-shadow:0 4px 10px rgba(255,77,45,.25)" onclick="openDeal('+idx+')"><i class="fas fa-gavel mr-1 text-xs"></i>选标成交</button>');
+  return '<div class="bg-white rounded-2xl shadow-soft p-3 fade-up">'
    +'<div class="flex items-center justify-between">'
    +'<div class="flex items-center gap-2"><span class="w-5 h-5 rounded flex items-center justify-center text-[9px] font-bold text-white" style="background:'+rankColor+'">'+r+'</span><span class="text-[10px] text-gray-400">'+q.time+'</span></div>'
-   +'<button class="text-[11px] font-semibold px-2 py-0.5 rounded-full" style="background:#F5F6F8;color:#6b7080" onclick="toast(\'已收藏该商家\')"><i class="fas fa-star mr-0.5 text-[9px]" style="color:#F59E0B"></i>关注</button></div>'
-   +'<div class="flex items-center gap-2.5 mt-2.5">'
+   +selectedTag+'</div>'
+   +'<div class="flex items-center gap-2.5 mt-2.5" onclick="openSupplier(\''+q.supplier+'\')">'
    +'<div class="w-11 h-11 rounded-xl flex items-center justify-center text-white text-[15px] font-bold" style="background:'+q.c+'">'+q.initial+'</div>'
    +'<div class="flex-1 min-w-0"><div class="flex items-center gap-1.5"><p class="text-[13px] font-bold text-gray-800 truncate">'+q.supplier+'</p><span class="text-[8px] px-1.5 py-0.5 rounded" style="background:#FFF0E8;color:#FF6B35">'+q.tag+'</span></div>'
-   +'<div class="flex items-center gap-2 mt-1"><span class="text-[10px] text-gray-400"><i class="fas fa-star text-[9px]" style="color:#F59E0B"></i> '+q.score+'</span><span class="text-[10px] text-gray-300">·</span><span class="text-[10px] text-gray-400"><i class="fas fa-truck-fast text-[9px]"></i> 交期'+q.delivery+'</span></div></div></div>'
+   +'<div class="flex items-center gap-2 mt-1"><span class="text-[10px] text-gray-400"><i class="fas fa-star text-[9px]" style="color:#F59E0B"></i> '+q.score+'</span><span class="text-[10px] text-gray-300">·</span><span class="text-[10px] text-gray-400"><i class="fas fa-truck-fast text-[9px]"></i> 交期'+q.delivery+'</span></div></div>'
+   +'<i class="fas fa-chevron-right text-gray-300 text-[12px]"></i></div>'
    +'<div class="mt-2.5 rounded-xl p-2.5" style="background:#FFF7F4;border:1px solid #ffede5">'
-   +'<div class="flex items-end justify-between"><span class="text-[11px] text-gray-500">报价 <span class="text-grad font-bold text-[19px]">¥'+q.price+'</span><span class="text-[9px] text-gray-400">/双</span></span><span class="text-[11px] text-gray-500">数量 '+q.qty+'</span></div>'
+   +'<div class="flex items-end justify-between"><span class="text-[11px] text-gray-500">报价 <span class="text-grad font-bold text-[19px]" style="color:#FF4D2D">¥'+q.price+'</span><span class="text-[9px] text-gray-400">/双</span></span><span class="text-[11px] text-gray-500">供货 '+q.qty+'</span></div>'
+   +ladderLine
+   +'<div class="flex flex-wrap gap-1.5 mt-2">'+shipTag+feeTag+ladderTag+supTag+'</div>'
    +'<p class="text-[10px] text-gray-500 leading-relaxed mt-1.5">'+q.note+'</p></div>'
-   +'<div class="flex gap-2 mt-2.5">'
-   +'<button class="card flex-1 py-2.5 rounded-xl text-[12px] font-semibold text-gray-500" style="background:#F5F6F8" onclick="toast(\'已打开与该商家的会话\')"><i class="fas fa-comment-dots mr-1 text-xs"></i>洽谈</button>'
-   +'<button class="card flex-1 py-2.5 rounded-xl text-[12px] font-bold text-white" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D);box-shadow:0 4px 10px rgba(255,77,45,.25)" onclick="openDeal('+idx+')"><i class="fas fa-gavel mr-1 text-xs"></i>选标成交</button></div></div>';
+   +sampleNote
+   +'<div class="flex gap-2 mt-2.5">'+btns+'</div></div>';
 }
+function openSupplier(name){
+  var s=SUP[name];if(!s)return;
+  document.getElementById('supHead').innerHTML='<div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white text-[18px] font-bold" style="background:'+s.c+'">'+s.initial+'</div><div class="flex-1"><p class="text-[15px] font-bold text-gray-900">'+name+'</p><p class="text-[10px] text-gray-400 mt-0.5">'+s.years+' · '+s.loc+'</p></div><span class="pill" style="background:#FFF0E8;color:#FF6B35;font-size:10px">'+s.main.split(' / ')[0]+'</span>';
+  document.getElementById('supIntro').textContent=s.intro;
+  document.getElementById('supMeta').innerHTML=['<div><p class="text-[14px] font-extrabold text-gray-800">'+s.years+'</p><p class="text-[9px] text-gray-400">经营时长</p></div>','<div><p class="text-[14px] font-extrabold text-gray-800">'+s.cap.replace('月产','')+'</p><p class="text-[9px] text-gray-400">产能</p></div>','<div><p class="text-[14px] font-extrabold text-gray-800">'+s.score+'</p><p class="text-[9px] text-gray-400">综合评分</p></div>'].join('');
+  document.getElementById('supRevN').textContent='('+s.reviews.length+')';
+  document.getElementById('supReviews').innerHTML=s.reviews.map(function(r){return '<div class="rounded-xl p-2.5" style="background:#F8FAFF;border:1px solid #EEF2F6"><div class="flex items-center justify-between"><p class="text-[11px] font-medium text-gray-700">'+r.u+'</p><span class="text-[10px]">'+'<span style="color:#F59E0B">'+'★'.repeat(r.r)+'</span>'+'<span style="color:#d1d5db">'+'★'.repeat(5-r)+'</span>'+'</span></div><p class="text-[10px] text-gray-500 mt-1 leading-relaxed">'+r.t+'</p><p class="text-[9px] text-gray-300 mt-1">'+r.time+'</p></div>'}).join('');
+  document.getElementById('supMask').style.display='block';document.getElementById('supSheet').style.display='block';
+}
+function closeSupplier(){document.getElementById('supMask').style.display='none';document.getElementById('supSheet').style.display='none'}
 function init(){
-  var id=new URLSearchParams(location.search).get('id')||'7';var d=get(id);
+  curId=new URLSearchParams(location.search).get('id')||'7';var d=get(curId);
   document.getElementById('pubTime').textContent=d.time;
   var pill=document.getElementById('statusPill');pill.innerHTML=d.pill;pill.style.background=d.pillbg;pill.style.color=d.pillc;
   document.getElementById('dTitle').textContent=d.title;
@@ -180,24 +228,32 @@ function init(){
   document.getElementById('statLow').textContent='¥'+d.quotes[0].price;
   var sum=d.quotes.reduce(function(a,b){return a+parseFloat(b.price)},0);
   document.getElementById('statAvg').textContent='¥'+(sum/d.quotes.length).toFixed(2);
+  var sb=document.getElementById('sampleNeedBox');
+  if(d.needSample){sb.style.display='';sb.style.background='linear-gradient(135deg,#EEF2FF,#E0E7FF)';sb.style.border='1px solid #c7d2fe';sb.innerHTML='<div class="flex items-center gap-2"><i class="fas fa-gift text-[#4338CA]"></i><p class="text-[12px] font-bold text-[#4338CA]">本需求需定制样品</p></div><p class="text-[10px] text-gray-500 mt-1 leading-relaxed">发布时已勾选「需定制样品」：选标成交后，由<b>中选卖家默认寄送定制样品</b>供您确认品质，无需逐个申请寄样。</p>';}
+  else{sb.style.display='';sb.style.background='#fff';sb.style.border='1px solid #f0f0f0';sb.innerHTML='<div class="flex items-center gap-2"><i class="fas fa-gift text-gray-400"></i><p class="text-[12px] font-bold text-gray-700">本需求无需样品</p></div><p class="text-[10px] text-gray-400 mt-1">按报价直接成交，不要求寄送样品。</p>';}
   document.getElementById('quoteList').innerHTML=d.quotes.map(function(q,i){return quoteCard(q,i)}).join('');
 }
 function openDeal(idx){
-  var d=get(new URLSearchParams(location.search).get('id')||'7');
-  currentDeal=d.quotes[idx];
+  var d=get(curId);currentDeal=d.quotes[idx];
   document.getElementById('dealAvatar').style.background=currentDeal.c;
   document.getElementById('dealAvatar').textContent=currentDeal.initial;
   document.getElementById('dealName').textContent=currentDeal.supplier;
+  document.getElementById('dealMeta').textContent=currentDeal.tag+' · '+currentDeal.score+'分';
   document.getElementById('dealPrice').textContent='¥'+currentDeal.price;
   document.getElementById('dealQty').textContent='数量 '+currentDeal.qty;
+  document.getElementById('dealSample').style.display=d.needSample?'block':'none';
   document.getElementById('bgMask').style.display='block';document.getElementById('dealSheet').style.display='block';
 }
 function closeDeal(){document.getElementById('bgMask').style.display='none';document.getElementById('dealSheet').style.display='none'}
 function confirmDeal(){
   closeDeal();
-  document.getElementById('toast').querySelector('i').className='fas fa-gavel';
-  toast('已与「'+currentDeal.supplier+'」成交！');
-  setTimeout(function(){location.href='inquiry.html'},1400);
+  var d=get(curId);
+  d.quotes.forEach(function(q){q.selected=false});
+  currentDeal.selected=true;d.done=true;
+  d.pill='<i class="fas fa-circle-check"></i> 已成交';d.pillbg='#E8F8EF';d.pillc='#10B981';
+  document.getElementById('statusPill').innerHTML=d.pill;document.getElementById('statusPill').style.background=d.pillbg;document.getElementById('statusPill').style.color=d.pillc;
+  document.getElementById('quoteList').innerHTML=d.quotes.map(function(q,i){return quoteCard(q,i)}).join('');
+  toast('已与「'+currentDeal.supplier+'」选标成交，可在「已中选」卡片查看订单');
 }
 init();
 </script>

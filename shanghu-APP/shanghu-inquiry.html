@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>采购询价需求池 - 袜掌柜商户版</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>
+tailwind.config={theme:{extend:{colors:{primary:'#2563EB','primary-d':'#1D4ED8','primary-l':'#3B82F6'}}}}
+</script>
+<style>
+:root{--p:#2563EB;--bg:#F0F6FF}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+::-webkit-scrollbar{width:2px;height:2px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#cfe0f8;border-radius:1px}
+.grad-h{background:linear-gradient(135deg,#3B82F6 0%,#2563EB 50%,#1D4ED8 100%)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,40,80,.06)}
+.card{transition:transform .16s ease}
+.card:active{transform:scale(.985)}
+.num{font-variant-numeric:tabular-nums}
+.fade-up{animation:fadeUp .4s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.demand-row:active{background:#F5F8FF}
+.mtab{cursor:pointer}
+.chip{cursor:pointer;padding:5px 12px;border-radius:999px;font-size:11px;background:#fff;color:#6b7280;border:1px solid #E5E7EB;white-space:nowrap}
+.chip.on{background:#2563EB;color:#fff;font-weight:700;border-color:#2563EB}
+</style>
+</head>
+<body>
+
+<!-- iOS状态栏 -->
+<div class="flex justify-between items-center px-6 text-white text-sm font-semibold grad-h" style="height:44px;padding-top:8px">
+<span>9:41</span>
+<div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+</div>
+
+<!-- 页面头部 -->
+<div class="grad-h px-3.5 pb-6">
+<div class="flex items-center justify-between mb-1">
+<a href="home.html" class="w-8 h-8 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+<span class="text-white font-bold text-[17px]">采购询价</span>
+<span class="w-8"></span>
+</div>
+<p class="relative text-white/80 text-[11px]"><i class="fas fa-file-signature"></i> 需求单来自买家发布 · 指定我的已置顶</p>
+</div>
+
+<!-- 一级Tab：需求池 / 我的报价 -->
+<div class="px-3 -mt-3 relative z-10">
+  <div class="bg-white/80 backdrop-blur-xl rounded-2xl shadow-soft px-4 py-2.5 flex items-center gap-6 border border-white" id="mainTabs">
+    <a onclick="switchMain('pool',this)" id="tab-pool" class="mtab text-[13px] font-bold text-gray-800 relative pb-1">需求池<span class="text-[10px] text-gray-400 ml-0.5">12</span><span class="absolute bottom-0 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full" style="background:linear-gradient(90deg,#2563EB,#06B6D4)"></span></a>
+    <a onclick="switchMain('mine',this)" id="tab-mine" class="mtab text-[13px] text-gray-400 pb-1">我的报价<span class="text-[10px] ml-0.5">4</span></a>
+  </div>
+</div>
+
+<!-- ================= 需求池 Tab ================= -->
+<div id="list-pool" class="px-3 mt-3 space-y-2.5 pb-8">
+
+  <!-- 企业资质认证闸门（招标#10：未认证拦截查看详情/去报价） -->
+  <div id="verifyGate" class="rounded-2xl px-3.5 py-3 flex items-center gap-2.5 shadow-soft fade-up" onclick="location.href='shanghu-verify.html'" style="background:#FFF7ED;border:1px solid #FED7AA;display:none">
+    <i class="fas fa-triangle-exclamation text-orange-500"></i>
+    <div class="flex-1">
+      <p class="text-[12px] font-bold text-orange-700">未完成企业资质认证</p>
+      <p class="text-[10px] text-orange-600 mt-0.5" style="opacity:.85">认证通过后方可查看供需详情、参与询价（招标验收必查）</p>
+    </div>
+    <span class="text-[11px] font-bold text-white px-3 py-1.5 rounded-lg flex-shrink-0" style="background:linear-gradient(135deg,#F59E0B,#D97706)">去认证</span>
+  </div>
+  <div id="verifyOk" class="rounded-2xl px-3.5 py-2.5 flex items-center gap-2 shadow-soft" style="background:#F0FDF4;border:1px solid #BBF7D0;display:none">
+    <i class="fas fa-shield-halved text-green-600 text-sm"></i>
+    <p class="text-[11px] text-green-700 flex-1">企业资质已认证 · 商户类型：<b>实力商家</b></p>
+    <a href="shanghu-verify.html" class="text-[10px] text-green-600 font-bold">查看</a>
+  </div>
+
+  <a href="shanghu-inquiry-detail.html" class="card block bg-white rounded-2xl shadow-soft p-3.5 fade-up border-l-4" style="border-left-color:#F59E0B;background:#FFFBEB">
+    <div class="flex items-center gap-1.5 mb-1"><span class="bg-amber-400 text-white text-[8px] font-bold px-1 py-0.5 rounded">置顶·指定我</span><p class="text-[13px] font-bold text-gray-800 flex-1 line-clamp-1">秋季男士商务袜（指定大唐袜业旗舰报价）</p></div>
+    <div class="flex items-center gap-2 text-[10px] text-gray-500"><span class="num text-gray-300">XQ20260718-03</span><span>·</span><span>张**</span><span>·</span><span>男袜</span><span>·</span><span>5000双</span></div>
+    <div class="flex items-center justify-between mt-2">
+      <div class="flex items-center gap-3 text-[10px] text-gray-400"><span>最高可接受 <b class="num text-[13px]" style="color:#F5222D">¥3.5</b>/双</span><span>已报 <b class="num text-gray-700">2</b> 家</span></div>
+      <div class="flex items-center gap-2"><span class="text-[9px] text-red-500 font-bold">剩 5 小时</span><span class="text-[10px] font-bold text-white px-2.5 py-1.5 rounded-lg" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)">去报价</span></div>
+    </div>
+  </a>
+
+  <a href="shanghu-inquiry-detail.html" class="card block bg-white rounded-2xl shadow-soft p-3.5 fade-up" style="animation-delay:.04s">
+    <div class="flex items-center gap-1.5 mb-1"><p class="text-[13px] font-bold text-gray-800 flex-1 line-clamp-1">儿童卡通棉袜 纯棉A类 6色混装</p></div>
+    <div class="flex items-center gap-2 text-[10px] text-gray-500"><span class="num text-gray-300">XQ20260719-01</span><span>·</span><span>王**</span><span>·</span><span>童袜</span><span>·</span><span>8000双</span></div>
+    <div class="flex items-center justify-between mt-2">
+      <div class="flex items-center gap-3 text-[10px] text-gray-400"><span>最高可接受 <b class="num text-[13px]" style="color:#F5222D">¥2.2</b>/双</span><span>已报 <b class="num text-gray-700">2</b> 家</span></div>
+      <div class="flex items-center gap-2"><span class="text-[9px] text-gray-400">剩 2 天</span><span class="text-[10px] font-bold text-white px-2.5 py-1.5 rounded-lg" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)">去报价</span></div>
+    </div>
+  </a>
+
+  <a href="shanghu-inquiry-detail.html" class="card block bg-white rounded-2xl shadow-soft p-3.5 fade-up" style="animation-delay:.08s">
+    <div class="flex items-center gap-1.5 mb-1"><p class="text-[13px] font-bold text-gray-800 flex-1 line-clamp-1">运动压缩跑步袜 减震款</p></div>
+    <div class="flex items-center gap-2 text-[10px] text-gray-500"><span class="num text-gray-300">XQ20260718-09</span><span>·</span><span>陈**</span><span>·</span><span>运动袜</span><span>·</span><span>3000双</span></div>
+    <div class="flex items-center justify-between mt-2">
+      <div class="flex items-center gap-3 text-[10px] text-gray-400"><span>最高可接受 <b class="num text-[13px]" style="color:#F5222D">¥4.8</b>/双</span><span>已报 <b class="num text-gray-700">5</b> 家</span></div>
+      <div class="flex items-center gap-2"><span class="text-[9px] text-red-500 font-bold">剩 1 天</span><span class="text-[10px] font-bold text-white px-2.5 py-1.5 rounded-lg" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)">去报价</span></div>
+    </div>
+  </a>
+
+  <a href="shanghu-inquiry-detail.html" class="card block bg-white rounded-2xl shadow-soft p-3.5 fade-up" style="animation-delay:.12s">
+    <div class="flex items-center gap-1.5 mb-1"><p class="text-[13px] font-bold text-gray-800 flex-1 line-clamp-1">竹纤维女式船袜 隐形款</p></div>
+    <div class="flex items-center gap-2 text-[10px] text-gray-500"><span class="num text-gray-300">XQ20260717-12</span><span>·</span><span>刘**</span><span>·</span><span>船袜</span><span>·</span><span>10000双</span></div>
+    <div class="flex items-center justify-between mt-2">
+      <div class="flex items-center gap-3 text-[10px] text-gray-400"><span>最高可接受 <b class="num text-[13px]" style="color:#F5222D">¥1.9</b>/双</span><span>已报 <b class="num text-gray-700">1</b> 家</span></div>
+      <div class="flex items-center gap-2"><span class="text-[9px] text-gray-400">剩 3 天</span><span class="text-[10px] font-bold text-white px-2.5 py-1.5 rounded-lg" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)">去报价</span></div>
+    </div>
+  </a>
+
+  <a href="shanghu-inquiry-detail.html" class="card block bg-white rounded-2xl shadow-soft p-3.5 fade-up" style="animation-delay:.16s">
+    <div class="flex items-center gap-1.5 mb-1"><p class="text-[13px] font-bold text-gray-800 flex-1 line-clamp-1">羊毛保暖袜 加厚圣诞款</p></div>
+    <div class="flex items-center gap-2 text-[10px] text-gray-500"><span class="num text-gray-300">XQ20260716-05</span><span>·</span><span>赵**</span><span>·</span><span>保暖袜</span><span>·</span><span>2000双</span></div>
+    <div class="flex items-center justify-between mt-2">
+      <div class="flex items-center gap-3 text-[10px] text-gray-400"><span>最高可接受 <b class="num text-[13px]" style="color:#F5222D">¥6.5</b>/双</span><span>已报 <b class="num text-gray-700">4</b> 家</span></div>
+      <div class="flex items-center gap-2"><span class="text-[9px] text-gray-400">剩 12 小时</span><span class="text-[10px] font-bold text-white px-2.5 py-1.5 rounded-lg" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)">去报价</span></div>
+    </div>
+  </a>
+
+  <a href="shanghu-inquiry-detail.html" class="card block bg-white rounded-2xl shadow-soft p-3.5 fade-up" style="animation-delay:.2s">
+    <div class="flex items-center gap-1.5 mb-1"><p class="text-[13px] font-bold text-gray-800 flex-1 line-clamp-1">商务隐形丝袜 男士防勾丝</p></div>
+    <div class="flex items-center gap-2 text-[10px] text-gray-500"><span class="num text-gray-300">XQ20260715-02</span><span>·</span><span>孙**</span><span>·</span><span>丝袜</span><span>·</span><span>15000双</span></div>
+    <div class="flex items-center justify-between mt-2">
+      <div class="flex items-center gap-3 text-[10px] text-gray-400"><span>最高可接受 <b class="num text-[13px]" style="color:#F5222D">¥1.5</b>/双</span><span>已报 <b class="num text-gray-700">0</b> 家</span></div>
+      <div class="flex items-center gap-2"><span class="text-[9px] text-gray-400">剩 5 天</span><span class="text-[10px] font-bold text-white px-2.5 py-1.5 rounded-lg" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)">去报价</span></div>
+    </div>
+  </a>
+
+  <a href="shanghu-inquiry-detail.html" class="card block bg-white rounded-2xl shadow-soft p-3.5 fade-up" style="animation-delay:.24s">
+    <div class="flex items-center gap-1.5 mb-1"><p class="text-[13px] font-bold text-gray-800 flex-1 line-clamp-1">婴童地板袜 防滑胶点</p></div>
+    <div class="flex items-center gap-2 text-[10px] text-gray-500"><span class="num text-gray-300">XQ20260714-08</span><span>·</span><span>钱**</span><span>·</span><span>婴童袜</span><span>·</span><span>5000双</span></div>
+    <div class="flex items-center justify-between mt-2">
+      <div class="flex items-center gap-3 text-[10px] text-gray-400"><span>最高可接受 <b class="num text-[13px]" style="color:#F5222D">¥3.0</b>/双</span><span>已报 <b class="num text-gray-700">3</b> 家</span></div>
+      <div class="flex items-center gap-2"><span class="text-[9px] text-gray-400">剩 2 天</span><span class="text-[10px] font-bold text-white px-2.5 py-1.5 rounded-lg" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)">去报价</span></div>
+    </div>
+  </a>
+
+  <p class="text-center text-[10px] text-gray-300 mt-3"><i class="fas fa-circle-info"></i> 定向需求仅被指定卖家可见 · 列表框架随 S01 分册迭代</p>
+</div>
+
+<!-- ================= 我的报价 Tab ================= -->
+<div id="list-mine" style="display:none" class="px-3 mt-3 pb-8">
+  <!-- 状态筛选 -->
+  <div class="flex gap-2 overflow-x-auto no-bar pb-1">
+    <a class="chip on">全部 <span class="num">4</span></a>
+    <a class="chip">待买家确认 <span class="num">1</span></a>
+    <a class="chip">竞价成功 <span class="num">1</span></a>
+    <a class="chip">未竞价成功 <span class="num">1</span></a>
+    <a class="chip">已撤回 <span class="num">1</span></a>
+  </div>
+
+  <div class="space-y-2.5 mt-3">
+    <!-- 待买家确认 -->
+    <a href="shanghu-inquiry-detail.html" class="card block bg-white rounded-2xl shadow-soft p-3.5 fade-up">
+      <div class="flex items-center justify-between mb-1">
+        <p class="text-[13px] font-bold text-gray-800 flex-1 line-clamp-1">秋季男士商务袜 5000双</p>
+        <span id="myTypeBadge" class="bg-green-50 text-green-600 text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0" style="display:none">实力商家</span>
+        <span class="bg-amber-50 text-amber-600 text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0">待买家确认</span>
+      </div>
+      <div class="flex items-center gap-2 text-[10px] text-gray-400"><span class="num">XQ20260718-03</span><span>·</span><span>07-18 16:40 提交</span><span>·</span><span class="text-primary font-bold">已改价 1/2</span></div>
+      <div class="flex items-center justify-between mt-2">
+        <div class="text-[11px] text-gray-500">我的报价 <b class="num text-[13px] text-primary">¥3.4 起</b>（阶梯 2 档）× 5000双 <span class="text-gray-300">|</span> 交期 25 天</div>
+      </div>
+    </a>
+
+    <!-- 竞价成功 -->
+    <a class="card block bg-white rounded-2xl shadow-soft p-3.5 fade-up" style="animation-delay:.05s" onclick="toast('订单详情见「订单-询价」类型页（演示）')">
+      <div class="flex items-center justify-between mb-1">
+        <p class="text-[13px] font-bold text-gray-800 flex-1 line-clamp-1">运动压缩跑步袜 减震款 3000双</p>
+        <span class="bg-green-50 text-green-600 text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0">竞价成功</span>
+      </div>
+      <div class="flex items-center gap-2 text-[10px] text-gray-400"><span class="num">XQ20260718-09</span><span>·</span><span>成交价 ¥4.5/双 × 3000双</span></div>
+      <div class="flex items-center justify-between mt-2 pt-2 border-t border-gray-50">
+        <div class="flex items-center gap-1.5 text-[10px]"><i class="fas fa-file-lines text-gray-300"></i><span class="text-gray-500">关联订单</span><span class="num text-gray-700 font-bold">QJ20260719-008</span><span class="bg-blue-50 text-primary text-[9px] font-bold px-1 py-0.5 rounded">待发货</span></div>
+        <span class="text-[10px] font-bold text-white px-2.5 py-1.5 rounded-lg" style="background:linear-gradient(135deg,#3B82F6,#2563EB)">去订单</span>
+      </div>
+    </a>
+
+    <!-- 未竞价成功 -->
+    <a class="card block bg-white rounded-2xl shadow-soft p-3.5 fade-up opacity-75" style="animation-delay:.1s" onclick="toast('买家已选中其他卖家报价（不透出他人报价）')">
+      <div class="flex items-center justify-between mb-1">
+        <p class="text-[13px] font-medium text-gray-600 flex-1 line-clamp-1">儿童卡通棉袜 纯棉A类 8000双</p>
+        <span class="bg-gray-100 text-gray-500 text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0">未竞价成功</span>
+      </div>
+      <div class="flex items-center gap-2 text-[10px] text-gray-400"><span class="num">XQ20260719-01</span><span>·</span><span>我的报价 ¥2.1/双 × 8000双</span><span>·</span><span>07-19 截止</span></div>
+    </a>
+
+    <!-- 已撤回 -->
+    <a href="shanghu-inquiry-detail.html" class="card block bg-white rounded-2xl shadow-soft p-3.5 fade-up opacity-75" style="animation-delay:.15s">
+      <div class="flex items-center justify-between mb-1">
+        <p class="text-[13px] font-medium text-gray-600 flex-1 line-clamp-1">羊毛保暖袜 加厚圣诞款 2000双</p>
+        <span class="bg-gray-100 text-gray-500 text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0">已撤回</span>
+      </div>
+      <div class="flex items-center gap-2 text-[10px] text-gray-400"><span class="num">XQ20260716-05</span><span>·</span><span>剩 12 小时</span></div>
+      <div class="mt-2 pt-2 border-t border-gray-50 flex items-center justify-between">
+        <p class="text-[10px] text-gray-400">重新报价将占用 1 次变更机会（剩 2/2）</p>
+        <span class="text-[10px] font-bold text-primary">重新报价</span>
+      </div>
+    </a>
+  </div>
+
+  <p class="text-center text-[10px] text-gray-300 mt-4"><i class="fas fa-circle-info"></i> 竞价成功后系统自动生成订单，履约状态见「订单-询价」</p>
+</div>
+
+<script>
+function switchMain(t,el){
+  document.querySelectorAll('#mainTabs .mtab').forEach(function(a){a.style.color='#6b7280';a.style.fontWeight='400';a.style.borderBottom='2px solid transparent';var u=a.querySelector('span.absolute');if(u)u.remove();});
+  el.style.color='#1F2430';el.style.fontWeight='700';
+  el.insertAdjacentHTML('beforeend','<span class="absolute bottom-0 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full" style="background:linear-gradient(90deg,#2563EB,#06B6D4)"></span>');
+  document.getElementById('list-pool').style.display=(t==='pool')?'block':'none';
+  document.getElementById('list-mine').style.display=(t==='mine')?'block':'none';
+}
+document.querySelectorAll('.chip').forEach(function(c){c.addEventListener('click',function(){document.querySelectorAll('.chip').forEach(function(x){x.classList.remove('on')});c.classList.add('on');});});
+// 企业资质认证闸门（招标#10）：未认证拦截"查看需求详情/去报价"
+var vPass=(localStorage.getItem('sh_verify')||'none')==='pass';
+document.getElementById('verifyGate').style.display=vPass?'none':'flex';
+document.getElementById('verifyOk').style.display=vPass?'flex':'none';
+if(!vPass){
+  document.querySelectorAll('#list-pool a[href="shanghu-inquiry-detail.html"]').forEach(function(a){
+    a.addEventListener('click',function(e){e.preventDefault();toast('请先完成企业资质认证（招标 #10）');setTimeout(function(){location.href='shanghu-verify.html'},700);});
+  });
+}else{
+  var b=document.getElementById('myTypeBadge');if(b)b.style.display='inline-block';
+}
+function toast(msg){var d=document.createElement('div');d.style.cssText='position:fixed;left:50%;bottom:110px;transform:translateX(-50%);background:rgba(20,20,40,.85);color:#fff;font-size:12px;padding:8px 16px;border-radius:20px;z-index:999;white-space:nowrap';d.textContent=msg;document.body.appendChild(d);setTimeout(function(){d.remove()},1800);}
+</script>
+</body>
+</html>

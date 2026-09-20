@@ -3,154 +3,131 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<title>商品管理 - 袜掌柜商户版</title>
+<title>商品 - 袜掌柜商户版</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script>
-tailwind.config={theme:{extend:{colors:{primary:'#EC4899','primary-d':'#DB2777','primary-l':'#F472B6'}}}}
+tailwind.config={theme:{extend:{colors:{primary:'#2563EB','primary-d':'#1D4ED8','primary-l':'#3B82F6'}}}}
 </script>
 <style>
-:root{--p:#EC4899;--bg:#FDF2F8}
+:root{--p:#2563EB;--bg:#F0F6FF}
 *{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:#F7F8FA;width:393px;overflow-x:hidden}
+::-webkit-scrollbar{width:2px;height:2px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#dfdfdf;border-radius:1px}
 .shadow-soft{box-shadow:0 2px 12px rgba(20,40,80,.06)}
-.grad-h{background:linear-gradient(135deg,#3B82F6 0%,#2563EB 50%,#1D4ED8 100%)}
 .num{font-variant-numeric:tabular-nums}
 .card{transition:transform .16s ease}
-.card:active{transform:scale(.98)}
+.card:active{transform:scale(.985)}
 .fade-up{animation:fadeUp .4s ease both}
 @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.ttab{cursor:pointer}
 </style>
 </head>
 <body>
 
-<!-- 顶部 -->
-<div class="relative px-4 pt-2 pb-5 overflow-hidden" style="background:linear-gradient(135deg,#EC4899 0%,#DB2777 50%,#BE185D 100%)">
-  <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-50" style="background:#F9A8D4"></div>
-  <div class="absolute -top-6 right-[-30px] w-48 h-48 rounded-full blur-3xl opacity-40" style="background:#F472B6"></div>
-  <div class="absolute -bottom-10 left-12 w-44 h-44 rounded-full blur-3xl opacity-35" style="background:#EC4899"></div>
-  <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+<!-- ===== 顶部（外采商品页复刻） ===== -->
+<div style="background:#fff">
+  <!-- iOS状态栏 -->
+  <div class="flex justify-between items-center px-5 text-gray-700 text-sm font-semibold" style="height:36px;padding-top:8px">
     <span>9:41</span>
     <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
   </div>
-  <div class="relative flex items-center justify-between mt-1">
-    <a href="mine.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
-    <h1 class="text-white font-extrabold text-[20px]" style="text-shadow:0 2px 10px rgba(0,0,0,.18)">商品管理</h1>
-    <a href="#" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-magnifying-glass text-sm"></i></a>
+
+  <!-- 标题 + 搜索/返回 -->
+  <div class="flex items-center justify-between px-4 mt-1">
+    <a href="workbench.html" class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500"><i class="fas fa-chevron-left text-sm"></i></a>
+    <span class="text-[16px] font-extrabold text-gray-900">商品</span>
+    <a href="#" class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500"><i class="fas fa-magnifying-glass text-sm"></i></a>
   </div>
-  <p class="relative text-white/80 text-[11px] mt-2"><i class="fas fa-box-open"></i> 商品管理 · 快速上下架</p>
-  <!-- 状态Tab -->
-  <div class="relative flex gap-5 mt-3 text-[13px]">
-    <a class="text-white font-bold border-b-2 border-white pb-1.5">全部 <span class="num">128</span></a>
-    <a class="text-white/70 pb-1.5">在售 <span class="num">115</span></a>
-    <a class="text-white/70 pb-1.5">下架</a>
-    <a class="text-white/70 pb-1.5">审核中 <span class="num">3</span></a>
+
+  <!-- 状态Tab：出售中/已下架/待审核/回收站（外采原样） -->
+  <div class="flex items-center gap-6 px-4 mt-3 text-[14px] border-b border-gray-100" id="statusTabs">
+    <a class="ttab font-bold relative pb-2" style="color:#2563EB;border-bottom:2px solid #2563EB">出售中</a>
+    <a onclick="switchTab(this,'已下架')" class="ttab text-gray-500 pb-2">已下架</a>
+    <a onclick="switchTab(this,'待审核')" class="ttab text-gray-500 pb-2">待审核(0)</a>
+    <a onclick="switchTab(this,'回收站')" class="ttab text-gray-500 pb-2">回收站</a>
+  </div>
+
+  <!-- 筛选行（外采原样：商品类型 | 筛选 批量） -->
+  <div class="flex items-center justify-between px-4 py-2.5 text-[12px] text-gray-600 border-b border-gray-100">
+    <a class="flex items-center gap-1">商品类型 <i class="fas fa-chevron-down text-[9px] text-gray-400"></i></a>
+    <div class="flex items-center gap-4">
+      <a class="flex items-center gap-1">筛选 <i class="fas fa-arrow-down-wide-short text-[10px]"></i></a>
+      <a class="flex items-center gap-1">批量 <i class="fas fa-list-check text-[10px]"></i></a>
+    </div>
   </div>
 </div>
 
-<!-- 发品入口 -->
-<div class="px-3 mt-2">
-  <a href="product-publish.html" class="flex items-center gap-3 rounded-2xl p-3.5 shadow-soft relative overflow-hidden" style="background:linear-gradient(135deg,#831843,#EC4899)">
-    <div class="w-11 h-11 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center text-white flex-shrink-0"><i class="fas fa-camera text-lg"></i></div>
-    <div class="flex-1 text-white"><p class="text-[13px] font-bold">拍照发商品</p><p class="text-[10px] text-white/80 mt-0.5">AI识别+生成主图文案，一键上架</p></div>
-    <i class="fas fa-chevron-right text-white/70 text-sm"></i>
-  </a>
-</div>
+<!-- ===== 商品列表 ===== -->
+<div class="px-3 py-3 space-y-2.5" style="padding-bottom:96px">
 
-<!-- 商品列表 -->
-<div class="px-3 mt-2.5 space-y-2.5 mb-28">
-
-  <!-- 商品1：在售 -->
-  <div class="card bg-white rounded-2xl shadow-soft overflow-hidden">
-    <div class="flex gap-2.5 p-3">
-      <div class="w-20 h-20 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0"><i class="fas fa-socks text-primary text-2xl"></i></div>
+  <!-- 商品1：出售中 -->
+  <div class="card bg-white rounded-xl shadow-soft overflow-hidden fade-up">
+    <div class="flex gap-3 p-3">
+      <img src="../mai-APP/images/sock_03.jpg" class="w-[76px] h-[76px] rounded-lg object-cover flex-shrink-0">
       <div class="flex-1 min-w-0">
-        <div class="flex items-center gap-1.5"><span class="bg-emerald-100 text-emerald-600 text-[8px] font-bold px-1 py-0.5 rounded">在售</span><p class="text-[13px] font-medium text-gray-800 line-clamp-1 flex-1">精梳棉商务男袜 透气防臭</p></div>
-        <p class="text-[10px] text-gray-400 mt-1">黑色/白色/灰色 · 39-42码</p>
-        <div class="flex items-center justify-between mt-1.5">
-          <div class="flex items-baseline gap-1"><span class="text-[14px] font-bold text-primary num">¥3.5</span><span class="text-[9px] text-gray-400">/双</span></div>
-          <span class="text-[10px] text-gray-400">库存 <span class="num text-gray-700 font-semibold">1,200</span></span>
-        </div>
+        <p class="text-[13px] font-medium text-gray-800 line-clamp-1">精梳棉商务男袜 透气防臭 10双装</p>
+        <p class="text-[10px] text-gray-400 mt-1">库存：1200 &nbsp; 排序：100</p>
+        <p class="text-[15px] font-bold mt-1.5 num" style="color:#F5222D">¥10.00</p>
       </div>
     </div>
-    <div class="flex border-t border-gray-50">
-      <a href="product-publish.html" class="flex-1 py-2 text-[11px] text-gray-600 text-center border-r border-gray-50"><i class="fas fa-pen text-[9px]"></i> 编辑</a>
-      <a href="#" class="flex-1 py-2 text-[11px] text-gray-600 text-center border-r border-gray-50"><i class="fas fa-boxes-stacked text-[9px]"></i> 改库存</a>
-      <a href="#" class="flex-1 py-2 text-[11px] text-gray-600 text-center border-r border-gray-50"><i class="fas fa-tag text-[9px]"></i> 改价格</a>
-      <a href="#" class="flex-1 py-2 text-[11px] text-orange-500 text-center"><i class="fas fa-arrow-down text-[9px]"></i> 下架</a>
+    <div class="flex items-center justify-end gap-2 px-3 pb-3">
+      <a onclick="toast('更多操作')" class="px-4 py-1.5 rounded-full border border-gray-200 text-[11px] text-gray-600">更多</a>
+      <a onclick="toast('已提交下架申请（演示）')" class="px-4 py-1.5 rounded-full border border-gray-200 text-[11px] text-gray-600">下架</a>
+      <a href="product-publish.html" class="px-5 py-1.5 rounded-full text-[11px] font-bold text-white" style="background:linear-gradient(135deg,#4F6BFF,#3B5BFF)">编辑</a>
     </div>
   </div>
 
-  <!-- 商品2：在售 + 低库存预警 -->
-  <div class="card bg-white rounded-2xl shadow-soft overflow-hidden">
-    <div class="flex gap-2.5 p-3">
-      <div class="w-20 h-20 rounded-lg bg-emerald-50 flex items-center justify-center flex-shrink-0"><i class="fas fa-socks text-emerald-500 text-2xl"></i></div>
+  <!-- 商品2：出售中 -->
+  <div class="card bg-white rounded-xl shadow-soft overflow-hidden fade-up" style="animation-delay:.05s">
+    <div class="flex gap-3 p-3">
+      <img src="../mai-APP/images/sock_05.jpg" class="w-[76px] h-[76px] rounded-lg object-cover flex-shrink-0">
       <div class="flex-1 min-w-0">
-        <div class="flex items-center gap-1.5"><span class="bg-emerald-100 text-emerald-600 text-[8px] font-bold px-1 py-0.5 rounded">在售</span><span class="bg-red-100 text-red-500 text-[8px] font-bold px-1 py-0.5 rounded">低库存</span><p class="text-[13px] font-medium text-gray-800 line-clamp-1 flex-1">运动压缩跑步袜</p></div>
-        <p class="text-[10px] text-gray-400 mt-1">黑/白 · 均码</p>
-        <div class="flex items-center justify-between mt-1.5">
-          <div class="flex items-baseline gap-1"><span class="text-[14px] font-bold text-primary num">¥5.8</span><span class="text-[9px] text-gray-400">/双</span></div>
-          <span class="text-[10px] text-red-500 font-bold">库存 <span class="num">80</span> ⚠</span>
-        </div>
+        <p class="text-[13px] font-medium text-gray-800 line-clamp-1">女士碎花短袜 纯棉透气 5双装</p>
+        <p class="text-[10px] text-gray-400 mt-1">库存：800 &nbsp; 排序：90</p>
+        <p class="text-[15px] font-bold mt-1.5 num" style="color:#F5222D">¥8.80</p>
       </div>
     </div>
-    <div class="flex border-t border-gray-50">
-      <a href="product-publish.html" class="flex-1 py-2 text-[11px] text-gray-600 text-center border-r border-gray-50">编辑</a>
-      <a href="#" class="flex-1 py-2 text-[11px] text-primary text-center border-r border-gray-50 font-medium">补货</a>
-      <a href="#" class="flex-1 py-2 text-[11px] text-gray-600 text-center border-r border-gray-50">改价格</a>
-      <a href="#" class="flex-1 py-2 text-[11px] text-orange-500 text-center">下架</a>
+    <div class="flex items-center justify-end gap-2 px-3 pb-3">
+      <a onclick="toast('更多操作')" class="px-4 py-1.5 rounded-full border border-gray-200 text-[11px] text-gray-600">更多</a>
+      <a onclick="toast('已提交下架申请（演示）')" class="px-4 py-1.5 rounded-full border border-gray-200 text-[11px] text-gray-600">下架</a>
+      <a href="product-publish.html" class="px-5 py-1.5 rounded-full text-[11px] font-bold text-white" style="background:linear-gradient(135deg,#4F6BFF,#3B5BFF)">编辑</a>
     </div>
   </div>
 
-  <!-- 商品3：审核中 -->
-  <div class="card bg-white rounded-2xl shadow-soft overflow-hidden">
-    <div class="flex gap-2.5 p-3">
-      <div class="w-20 h-20 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0"><i class="fas fa-socks text-amber-500 text-2xl"></i></div>
+  <!-- 商品3：出售中 -->
+  <div class="card bg-white rounded-xl shadow-soft overflow-hidden fade-up" style="animation-delay:.1s">
+    <div class="flex gap-3 p-3">
+      <img src="../mai-APP/images/sock_02.jpg" class="w-[76px] h-[76px] rounded-lg object-cover flex-shrink-0">
       <div class="flex-1 min-w-0">
-        <div class="flex items-center gap-1.5"><span class="bg-amber-100 text-amber-600 text-[8px] font-bold px-1 py-0.5 rounded">审核中</span><p class="text-[13px] font-medium text-gray-800 line-clamp-1 flex-1">石墨烯抗菌袜 新款</p></div>
-        <p class="text-[10px] text-gray-400 mt-1">黑色 · 39-44码</p>
-        <div class="flex items-center justify-between mt-1.5">
-          <div class="flex items-baseline gap-1"><span class="text-[14px] font-bold text-gray-400 num">¥9.9</span><span class="text-[9px] text-gray-400">/双</span></div>
-          <span class="text-[10px] text-amber-500">预计24h内完成</span>
-        </div>
+        <p class="text-[13px] font-medium text-gray-800 line-clamp-1">运动压缩跑步袜 减震防滑</p>
+        <p class="text-[10px] text-gray-400 mt-1">库存：300 &nbsp; 排序：80</p>
+        <p class="text-[15px] font-bold mt-1.5 num" style="color:#F5222D">¥12.50</p>
       </div>
     </div>
-  </div>
-
-  <!-- 商品4：已下架 -->
-  <div class="card bg-white rounded-2xl shadow-soft overflow-hidden opacity-75">
-    <div class="flex gap-2.5 p-3">
-      <div class="w-20 h-20 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0"><i class="fas fa-socks text-gray-400 text-2xl"></i></div>
-      <div class="flex-1 min-w-0">
-        <div class="flex items-center gap-1.5"><span class="bg-gray-100 text-gray-500 text-[8px] font-bold px-1 py-0.5 rounded">已下架</span><p class="text-[13px] font-medium text-gray-600 line-clamp-1 flex-1">夏季冰丝隐形船袜</p></div>
-        <p class="text-[10px] text-gray-400 mt-1">肤色 · 均码</p>
-        <div class="flex items-center justify-between mt-1.5">
-          <div class="flex items-baseline gap-1"><span class="text-[14px] font-bold text-gray-400 num">¥1.8</span><span class="text-[9px] text-gray-400">/双</span></div>
-          <span class="text-[10px] text-gray-400">库存 <span class="num">3,500</span></span>
-        </div>
-      </div>
-    </div>
-    <div class="flex border-t border-gray-50">
-      <a href="product-publish.html" class="flex-1 py-2 text-[11px] text-gray-600 text-center border-r border-gray-50">编辑</a>
-      <a href="#" class="flex-1 py-2 text-[11px] text-primary text-center font-medium"><i class="fas fa-arrow-up text-[9px]"></i> 重新上架</a>
-      <a href="#" class="flex-1 py-2 text-[11px] text-red-500 text-center border-l border-gray-50">删除</a>
+    <div class="flex items-center justify-end gap-2 px-3 pb-3">
+      <a onclick="toast('更多操作')" class="px-4 py-1.5 rounded-full border border-gray-200 text-[11px] text-gray-600">更多</a>
+      <a onclick="toast('已提交下架申请（演示）')" class="px-4 py-1.5 rounded-full border border-gray-200 text-[11px] text-gray-600">下架</a>
+      <a href="product-publish.html" class="px-5 py-1.5 rounded-full text-[11px] font-bold text-white" style="background:linear-gradient(135deg,#4F6BFF,#3B5BFF)">编辑</a>
     </div>
   </div>
 
 </div>
 
-<!-- 底部Tab栏 -->
-<div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100" style="height:65px;z-index:100;width:393px">
-  <div class="flex justify-around items-center h-full" style="padding-bottom:10px">
-    <a href="home.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-gauge-high text-[18px]"></i><span class="text-[9px]">工作台</span></a>
-    <a href="orders.html" class="flex flex-col items-center gap-0.5 text-gray-400 relative"><i class="fas fa-clipboard-list text-[18px]"></i><span class="text-[9px]">订单</span><span class="absolute top-0 right-2 bg-primary text-white text-[7px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center" style="min-width:14px;height:14px">12</span></a>
-    <a href="messages.html" class="flex flex-col items-center gap-0.5 text-gray-400 relative"><i class="fas fa-comment-dots text-[18px]"></i><span class="text-[9px]">消息</span><span class="absolute top-0 right-2 bg-red-500 text-white text-[7px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center" style="min-width:14px;height:14px">5</span></a>
-    <a href="mine.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-user text-[18px]"></i><span class="text-[9px]">我的</span></a>
-  </div>
-</div>
-<div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none">
-  <div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:3px"></div>
+<!-- 底部固定：添加商品（外采原样） -->
+<div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-3 py-2.5" style="z-index:100;width:393px;padding-bottom:18px">
+  <a href="product-publish.html" class="block w-full py-3 rounded-full text-white text-[14px] font-bold text-center" style="background:linear-gradient(135deg,#4F6BFF,#3B5BFF)">添加商品</a>
 </div>
 
+<script>
+function switchTab(el,name){
+  document.querySelectorAll('#statusTabs .ttab').forEach(function(a){a.style.color='#6b7280';a.style.fontWeight='400';a.style.borderBottom='2px solid transparent';});
+  el.style.color='#2563EB';el.style.fontWeight='700';el.style.borderBottom='2px solid #2563EB';
+  if(name&&name!=='出售中'){toast(name+' Tab · 外采页签（演示切换）');}
+}
+function toast(msg){var d=document.createElement('div');d.style.cssText='position:fixed;left:50%;bottom:120px;transform:translateX(-50%);background:rgba(20,20,40,.85);color:#fff;font-size:12px;padding:8px 16px;border-radius:20px;z-index:999;white-space:nowrap';d.textContent=msg;document.body.appendChild(d);setTimeout(function(){d.remove()},1500);}
+</script>
 </body>
 </html>

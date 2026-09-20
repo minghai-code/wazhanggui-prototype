@@ -81,8 +81,8 @@ foreach ($line in ($content -split "`r?`n")) {
 
     if ([string]::IsNullOrWhiteSpace($page)) {
         $devTotal++
-        if ($status -ne 'dev') {
-            [void]$errors.Add("[状态错配] '$name' page 为 null，status 却是 '$status'（应为 dev）")
+        if ($status -ne 'dev' -and $status -ne 'ext') {
+            [void]$errors.Add("[状态错配] '$name' page 为 null，status 却是 '$status'（应为 dev 或 ext）")
         }
     } else {
         if ($status -ne 'done') {

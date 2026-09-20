@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>询价订单详情 - 袜掌柜买家版</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D','primary-d':'#E63E20','primary-l':'#FF7849'}}}}</script>
+<style>
+:root{--p:#FF4D2D;--pl:#FF7849;--bg:#FFF7F4}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+.card{transition:transform .16s ease}.card:active{transform:scale(.965)}
+.grad-h{background:linear-gradient(135deg,#FF6B35 0%,#FF4D2D 50%,#FF2D78 100%)}
+.shadow-card{box-shadow:0 8px 24px rgba(255,77,45,.14)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
+.text-grad{background:linear-gradient(90deg,#FF4D2D,#FF2D78);-webkit-background-clip:text;background-clip:text;color:transparent}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:300;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.25);min-width:140px;justify-content:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.sheet-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:none}
+.sheet-mask.on{display:block}
+.sheet{position:fixed;left:0;right:0;bottom:0;background:#fff;border-radius:24px 24px 0 0;z-index:210;max-height:90vh;overflow-y:auto;transform:translateY(100%);transition:transform .3s ease;width:393px}
+.sheet.on{transform:translateY(0)}
+.star{font-size:28px;cursor:pointer;transition:.15s}
+.star.on{color:#FFB400}.star.off{color:#ddd}
+.upload-box{width:64px;height:64px;border:1.5px dashed #ddd;border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+/* 状态步骤 */
+.step{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;position:relative}
+.step .dot{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;z-index:1}
+.step .lbl{font-size:9px}
+.step-done .dot{background:linear-gradient(135deg,#FF8A4C,#FF4D2D);color:#fff}
+.step-cur .dot{background:linear-gradient(135deg,#FF6B35,#FF4D2D);color:#fff;box-shadow:0 0 0 3px rgba(255,77,45,.18)}
+.step-fut .dot{background:#E5E7EB;color:#9ca3af}
+.step-done .lbl,.step-cur .lbl{color:#FF4D2D;font-weight:600}
+.step-fut .lbl{color:#9ca3af}
+.step:not(:last-child)::after{content:'';position:absolute;top:11px;left:55%;width:90%;height:2px;background:#E5E7EB;z-index:0}
+.step-done:not(:last-child)::after{background:linear-gradient(90deg,#FF8A4C,#FF4D2D)}
+</style>
+</head>
+<body>
+
+<!-- 顶部渐变 -->
+<div class="relative px-4 pt-2 pb-3 overflow-hidden" style="background:linear-gradient(135deg,#FF6B35 0%,#FF4D2D 50%,#FF2D78 100%)">
+  <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-50" style="background:#FF8A4C"></div>
+  <div class="absolute -top-6 right-[-30px] w-48 h-48 rounded-full blur-3xl opacity-40" style="background:#FF2D78"></div>
+  <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+  </div>
+  <div class="relative flex items-center gap-3">
+    <a href="orders.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+    <span class="text-white font-extrabold text-[20px] tracking-wide" style="text-shadow:0 2px 10px rgba(0,0,0,.18)">询价订单详情</span>
+    <span class="ml-auto text-[9px] font-bold px-2 py-0.5 rounded-full text-white" style="background:rgba(124,58,237,.85)"><i class="fas fa-file-invoice mr-0.5"></i>询价订单</span>
+  </div>
+</div>
+
+<!-- 订单状态 banner -->
+<div class="px-3 pt-3">
+  <div class="rounded-2xl p-4 text-white shadow-card grad-h">
+    <div class="flex items-center gap-2 mb-1"><i class="fas fa-circle-check text-[16px]" id="stIcon"></i><span class="text-[14px] font-bold" id="stTitle">等待买家付款</span></div>
+    <p class="text-[11px] text-white/80" id="stSub">请在 24 小时内完成付款，逾期订单将自动取消</p>
+  </div>
+</div>
+
+<!-- 状态步骤条 -->
+<div class="px-3 mt-3">
+  <div class="bg-white rounded-2xl shadow-soft px-2 py-3">
+    <div class="flex" id="stepBar">
+      <div class="step"><div class="dot">1</div><div class="lbl">待付款</div></div>
+      <div class="step"><div class="dot">2</div><div class="lbl">待发货</div></div>
+      <div class="step"><div class="dot">3</div><div class="lbl">待收货</div></div>
+      <div class="step"><div class="dot">4</div><div class="lbl">已完成</div></div>
+      <div class="step"><div class="dot">5</div><div class="lbl">售后</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 需求溯源（原始需求 → 成交报价快照） -->
+<div class="px-3 mt-3">
+  <div class="bg-white rounded-2xl shadow-soft p-3.5">
+    <div class="flex items-center gap-1.5 mb-2.5"><i class="fas fa-project-diagram text-[#7C3AED] text-[11px]"></i><span class="text-[12px] font-bold text-gray-800">需求溯源</span><span class="text-[9px] text-gray-400">原始需求 → 成交报价</span></div>
+    <!-- 原始需求 -->
+    <div class="rounded-xl p-2.5 mb-2" style="background:#F5F3FF">
+      <p class="text-[9px] font-bold text-[#7C3AED] mb-1.5">原始需求</p>
+      <div class="space-y-1 text-[10px]">
+        <div class="flex justify-between"><span class="text-gray-400">需求单号</span><a href="inquiry-mypublish.html" class="text-primary font-medium" onclick="event.stopPropagation()">XQ20260920-008</a></div>
+        <div class="flex justify-between"><span class="text-gray-400">需求标题</span><span class="text-gray-700">男士刺绣薄袜 莱卡棉</span></div>
+        <div class="flex justify-between"><span class="text-gray-400">品类 / 数量</span><span class="text-gray-700">男袜 · 200双</span></div>
+        <div class="flex justify-between"><span class="text-gray-400">最高单价(参考)</span><span class="text-gray-700">¥3.0/双</span></div>
+      </div>
+    </div>
+    <!-- 成交报价快照 -->
+    <div class="rounded-xl p-2.5" style="background:#FFF7F4">
+      <p class="text-[9px] font-bold text-primary mb-1.5">成交报价快照</p>
+      <div class="flex items-center gap-2 mb-1.5">
+        <div class="w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold" style="background:linear-gradient(135deg,#3B82F6,#6366F1)">唐</div>
+        <div class="flex-1 min-w-0"><p class="text-[11px] font-bold text-gray-800 truncate">大唐自有品牌旗舰店</p><span class="text-[8px] px-1.5 py-0.5 rounded" style="background:#FFF0E8;color:#FF6B35">实力商家</span></div>
+        <span class="text-[12px] font-bold text-primary">¥2.85<span class="text-[8px] text-gray-400 font-normal">/双</span></span>
+      </div>
+      <div class="grid grid-cols-2 gap-x-3 gap-y-1 text-[10px]">
+        <div class="flex justify-between"><span class="text-gray-400">供货数量</span><span class="text-gray-700">200双</span></div>
+        <div class="flex justify-between"><span class="text-gray-400">交期承诺</span><span class="text-gray-700">5天内</span></div>
+        <div class="flex justify-between"><span class="text-gray-400">是否含运费</span><span class="text-gray-700">含运费</span></div>
+        <div class="flex justify-between"><span class="text-gray-400">样品支持</span><span class="text-gray-700">收¥50(可抵)</span></div>
+      </div>
+      <p class="text-[10px] mt-1.5" style="color:#10B981"><i class="fas fa-gift text-[9px]"></i> 本需求需定制样品，成交后由卖家默认寄送（已在途）</p>
+    </div>
+  </div>
+</div>
+
+<!-- 商品/成交概要 -->
+<div class="px-3 mt-3">
+  <div class="bg-white rounded-2xl shadow-soft p-3.5">
+    <div class="flex items-center gap-2 mb-2.5"><i class="fas fa-shop text-gray-300 text-[10px]"></i><span class="text-[12px] font-semibold text-gray-800">大唐自有品牌旗舰店</span></div>
+    <div class="flex gap-2.5">
+      <div class="w-[68px] h-[68px] rounded-xl flex items-center justify-center text-white text-[20px]" style="background:linear-gradient(135deg,#3B82F6,#6366F1)"><i class="fas fa-socks"></i></div>
+      <div class="flex-1 min-w-0">
+        <p class="text-[12px] text-gray-800 font-medium leading-tight line-clamp-2">男士刺绣薄袜 莱卡棉（询价成交）</p>
+        <p class="text-[9px] text-gray-400 mt-0.5">询价订单 · 含运费 · 已寄定制样</p>
+        <div class="flex items-center justify-between mt-1"><span class="text-primary font-bold text-[13px]">¥2.85<span class="text-[9px] text-gray-400 font-normal">/双</span></span><span class="text-[10px] text-gray-400">× 200双</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 订单信息 -->
+<div class="px-3 mt-3">
+  <div class="bg-white rounded-2xl shadow-soft p-3.5 text-[11px] space-y-2">
+    <div class="flex justify-between"><span class="text-gray-400">询价订单号</span><span class="text-gray-700">QJ20260920-007</span></div>
+    <div class="flex justify-between"><span class="text-gray-400">关联需求单</span><a href="inquiry-mypublish.html" class="text-primary font-medium" onclick="event.stopPropagation()">XQ20260920-008</a></div>
+    <div class="flex justify-between"><span class="text-gray-400">下单时间</span><span class="text-gray-700">2026-09-20 11:20</span></div>
+    <div class="flex justify-between"><span class="text-gray-400">付款时间</span><span class="text-gray-700" id="payTime">—</span></div>
+    <div class="flex justify-between"><span class="text-gray-400">发货时间</span><span class="text-gray-700" id="shipTime">—</span></div>
+    <div class="flex justify-between"><span class="text-gray-400">物流方式</span><span class="text-gray-700">平台物流（含运费）</span></div>
+    <div class="flex justify-between"><span class="text-gray-400">收货信息</span><span class="text-gray-700 text-right max-w-[200px]">张建国 138****5678 浙江绍兴诸暨大唐袜业城A区3楼128号</span></div>
+    <div class="h-px bg-gray-100 my-1"></div>
+    <div class="flex justify-between"><span class="text-gray-400">商品总额</span><span class="text-gray-700">¥570.00</span></div>
+    <div class="flex justify-between"><span class="text-gray-400">运费</span><span class="text-gray-700">¥0.00（含运费）</span></div>
+    <div class="flex justify-between"><span class="text-gray-400">样品费</span><span class="text-gray-700">¥50.00（可抵货款）</span></div>
+    <div class="flex justify-between pt-1"><span class="text-gray-600 font-medium">实付款</span><span class="text-grad font-bold text-[16px]">¥570.00</span></div>
+  </div>
+</div>
+
+<!-- 评价区域（已完成/待评价 状态显示） -->
+<div class="px-3 mt-3 mb-6" id="reviewBlock" style="display:none">
+  <div class="bg-white rounded-2xl shadow-soft p-3.5">
+    <div class="flex items-center gap-1.5 mb-3"><i class="fas fa-star text-amber-400 text-[12px]"></i><span class="text-[12px] font-bold text-gray-800">商品评价</span><span class="text-[9px] text-amber-500 ml-1">待评价</span></div>
+    <p class="text-[11px] text-gray-400 leading-relaxed mb-3">本次询价采购已完成收货，请对卖家与商品发表评价，帮助其他采购商参考。</p>
+    <button onclick="openReviewSheet()" class="card w-full py-2.5 rounded-xl text-[12px] font-bold text-white grad-h shadow-card"><i class="fas fa-pen mr-1 text-[11px]"></i>发表评价</button>
+  </div>
+</div>
+
+<div class="h-20"></div>
+
+<!-- 底部操作 -->
+<div class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-gray-100 px-3 flex items-center gap-2" style="height:60px;z-index:100;width:393px">
+  <button id="ghostBtn" class="card flex-1 text-center py-2.5 rounded-full text-[13px] font-medium text-gray-500 bg-gray-100">取消订单</button>
+  <button id="priBtn" class="card flex-1 text-center py-2.5 rounded-full text-[13px] font-bold text-white shadow-card grad-h">去付款</button>
+</div>
+<div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none"><div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:2px"></div></div>
+
+<!-- 支付弹窗 -->
+<div class="fixed inset-0 flex items-center justify-center" id="payMask" style="display:none;background:rgba(0,0,0,.5);z-index:300">
+  <div class="bg-white rounded-3xl mx-6 p-5 text-center shadow-card" style="max-width:300px;animation:fadeUp .35s ease both">
+    <div class="w-14 h-14 mx-auto rounded-full flex items-center justify-center mb-3" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D);box-shadow:0 8px 24px rgba(255,77,45,.3)"><i class="fas fa-file-invoice text-white text-xl"></i></div>
+    <p class="text-[16px] font-bold text-gray-800">询价订单待支付</p>
+    <p class="text-[11px] text-gray-500 mt-1">订单号：QJ20260920-007</p>
+    <div class="bg-gray-50 rounded-xl p-3 mt-3 text-left space-y-1">
+      <div class="flex justify-between text-[11px]"><span class="text-gray-500">应付金额</span><span class="text-primary font-bold">¥570.00</span></div>
+      <div class="flex justify-between text-[11px]"><span class="text-gray-500">支付方式</span><span class="text-gray-700">微信支付</span></div>
+    </div>
+    <div class="flex gap-2 mt-4">
+      <button class="card flex-1 py-2 rounded-xl text-[12px] font-medium text-gray-500 bg-gray-100" onclick="closePay()">稍后支付</button>
+      <button class="card flex-1 py-2 rounded-xl text-[12px] font-medium text-white grad-h" onclick="doPay()">立即支付</button>
+    </div>
+  </div>
+</div>
+
+<!-- 评价发布面板 -->
+<div class="sheet-mask" id="reviewMask" onclick="closeReview()"></div>
+<div class="sheet" id="reviewSheet">
+  <div class="flex justify-center pt-2 pb-1 sticky top-0 bg-white"><div class="w-10 h-1 bg-gray-200 rounded-full"></div></div>
+  <div class="flex items-center justify-between px-4 pb-2">
+    <span class="text-[15px] font-bold text-gray-800">发表评价</span>
+    <button onclick="closeReview()" class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-400"><i class="fas fa-xmark text-xs"></i></button>
+  </div>
+  <div class="px-4 pb-6">
+    <div class="flex gap-2.5 pb-3 border-b border-gray-50 mb-3">
+      <div class="w-16 h-16 rounded-xl flex items-center justify-center text-white" style="background:linear-gradient(135deg,#3B82F6,#6366F1)"><i class="fas fa-socks"></i></div>
+      <div class="flex-1">
+        <p class="text-[12px] text-gray-800 font-medium">男士刺绣薄袜 莱卡棉</p>
+        <p class="text-[10px] text-gray-400 mt-0.5">询价订单 QJ20260920-007</p>
+      </div>
+    </div>
+    <p class="text-[12px] font-bold text-gray-800 mb-2">整体评分</p>
+    <div class="flex items-center gap-2 mb-4">
+      <div class="flex gap-1" id="starGroup">
+        <i class="fas fa-star star on" onclick="rateStar(1)"></i><i class="fas fa-star star off" onclick="rateStar(2)"></i><i class="fas fa-star star off" onclick="rateStar(3)"></i><i class="fas fa-star star off" onclick="rateStar(4)"></i><i class="fas fa-star star off" onclick="rateStar(5)"></i>
+      </div>
+      <span class="text-[11px] text-gray-400 ml-1" id="ratingTxt">满意</span>
+    </div>
+    <p class="text-[12px] font-bold text-gray-800 mb-2">评价内容</p>
+    <textarea id="reviewText" class="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2.5 text-[11px] outline-none resize-none" rows="4" placeholder="请描述商品质量、做工、发货速度、服务态度等..."></textarea>
+    <p class="text-[9px] text-gray-400 mt-1 text-right"><span id="textCount">0</span>/500</p>
+    <p class="text-[12px] font-bold text-gray-800 mb-2 mt-3">上传图片 <span class="text-[10px] text-gray-400 font-normal">(最多6张)</span></p>
+    <div class="flex flex-wrap gap-2">
+      <div class="upload-box" onclick="toast('选择图片上传')"><i class="fas fa-camera text-gray-300 text-[16px]"></i></div>
+      <div class="upload-box" onclick="toast('选择图片上传')"><i class="fas fa-image text-gray-300 text-[16px]"></i></div>
+    </div>
+    <button onclick="submitReview()" class="card w-full py-3 rounded-xl text-[14px] font-bold text-white shadow-card grad-h mt-4">提交评价</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"><i class="fas fa-circle-check text-[#4ADE80]"></i><span id="toastTxt">操作成功</span></div>
+
+<script>
+var toastTimer;
+function toast(msg){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},1600)}
+
+/* ===== 状态驱动 ===== */
+var params=new URLSearchParams(location.search);
+var st=params.get('status')||'pay';
+var STATUS={
+  pay:{icon:'fa-clock',t:'等待买家付款',sub:'请在 24 小时内完成付款，逾期订单将自动取消'},
+  ship:{icon:'fa-box-open',t:'卖家已接单，备货中',sub:'卖家正按成交报价备货，预计 5 天内发货'},
+  receipt:{icon:'fa-truck-fast',t:'卖家已发货',sub:'物流运输中，预计 2-3 天送达'},
+  review:{icon:'fa-circle-check',t:'交易完成',sub:'订单已于 2026-09-18 确认收货，请对本次采购评价'},
+  after:{icon:'fa-headset',t:'售后处理中',sub:'售后申请已提交，平台正在核实处理'}
+};
+var STEPS=['pay','ship','receipt','review','after'];
+var ACT={
+  pay:{pri:'去付款',priFn:openPay,ghost:'取消订单',ghostFn:function(){toast('订单已取消')}},
+  ship:{pri:'催发货',priFn:function(){toast('已提醒卖家尽快发货')},ghost:'联系卖家',ghostFn:function(){toast('打开与卖家的会话')}},
+  receipt:{pri:'确认收货',priFn:function(){toast('已确认收货')},ghost:'查看物流',ghostFn:function(){toast('查看物流（演示）')}},
+  review:{pri:'去评价',priFn:openReviewSheet,ghost:'再次购买',ghostFn:function(){toast('已加入进货单（演示）')}},
+  after:{pri:'查看进度',priFn:function(){toast('查看售后进度（演示）')},ghost:'',ghostFn:null}
+};
+function applyStatus(){
+  var cfg=STATUS[st];
+  document.getElementById('stIcon').className='fas '+cfg.icon+' text-[16px]';
+  document.getElementById('stTitle').textContent=cfg.t;
+  document.getElementById('stSub').textContent=cfg.s;
+  // 步骤条
+  var idx=STEPS.indexOf(st);
+  var steps=document.querySelectorAll('#stepBar .step');
+  steps.forEach(function(el,i){
+    el.className='step '+(i<idx?'step-done':(i===idx?'step-cur':'step-fut'));
+  });
+  // 时间填充
+  document.getElementById('payTime').textContent=(st==='pay')?'—':(st==='ship'?'2026-09-20 11:35':(st==='receipt'?'2026-09-20 11:35':'2026-09-20 11:35'));
+  document.getElementById('shipTime').textContent=(st==='pay'||st==='ship')?'—':'2026-09-21 09:30';
+  // 评价区
+  document.getElementById('reviewBlock').style.display=(st==='review')?'block':'none';
+  // 底部按钮
+  var a=ACT[st],pri=document.getElementById('priBtn'),ghost=document.getElementById('ghostBtn');
+  pri.textContent=a.pri;
+  pri.onclick=a.priFn;
+  if(a.ghost){
+    ghost.style.display='block';ghost.textContent=a.ghost;ghost.onclick=a.ghostFn;
+  }else{ghost.style.display='none';}
+}
+applyStatus();
+
+/* ===== 支付 ===== */
+function openPay(){document.getElementById('payMask').style.display='flex'}
+function closePay(){document.getElementById('payMask').style.display='none'}
+function doPay(){closePay();setTimeout(function(){toast('支付成功，等待卖家发货')},200)}
+
+/* ===== 评价 ===== */
+var curRating=1;
+var ratingLabels=['','很不满意','不满意','一般','满意','非常满意'];
+function rateStar(n){
+  curRating=n;
+  var stars=document.getElementById('starGroup').querySelectorAll('.star');
+  stars.forEach(function(s,i){s.classList.toggle('on',i<n);s.classList.toggle('off',i>=n)});
+  document.getElementById('ratingTxt').textContent=ratingLabels[n];
+}
+document.getElementById('reviewText').addEventListener('input',function(){
+  var c=this.value.length;if(c>500){this.value=this.value.substring(0,500);c=500;}
+  document.getElementById('textCount').textContent=c;
+});
+function openReviewSheet(){
+  document.getElementById('reviewMask').classList.add('on');
+  var s=document.getElementById('reviewSheet');s.style.display='block';
+  setTimeout(function(){s.classList.add('on')},10);
+}
+function closeReview(){
+  document.getElementById('reviewMask').classList.remove('on');
+  var s=document.getElementById('reviewSheet');s.classList.remove('on');
+  setTimeout(function(){s.style.display='none'},250);
+}
+function submitReview(){
+  var txt=document.getElementById('reviewText').value.trim();
+  if(!txt){toast('请填写评价内容');return;}
+  closeReview();setTimeout(function(){toast('评价提交成功，感谢您的反馈')},300);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>商城运营 - 采购询价需求管理</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>
+tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D','primary-d':'#E63E20','primary-l':'#FF7849'}}}}
+</script>
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.tab-active{color:#FF4D2D;border-bottom:2px solid #FF4D2D;font-weight:600}
+.status-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}
+.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}
+.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}
+.lk:hover{text-decoration:underline}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:40}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:680px;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:50;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.ftitle{font-size:13px;font-weight:700;color:#1F2430;margin:18px 0 10px;display:flex;align-items:center;gap:6px}
+.ftitle::before{content:'';width:3px;height:13px;border-radius:2px;background:#FF4D2D}
+.qtab{font-size:12px;padding:7px 14px;border-radius:8px 8px 0 0;cursor:pointer;color:#64748B;background:#F1F5F9;border:1px solid #E2E8F0;border-bottom:none}
+.qtab.on{color:#FF4D2D;background:#fff;font-weight:600;border-color:#E2E8F0}
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.5);opacity:0;pointer-events:none;transition:.2s;z-index:60;display:flex;align-items:center;justify-content:center}
+.modal.on{opacity:1;pointer-events:auto}
+</style>
+</head>
+<body>
+<div class="p-6">
+
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">采购询价需求管理</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">10 商城运营</span>
+      </div>
+      <p class="text-[12px] text-[#94A3B8] mt-1">商城运营 / 采购询价需求管理　·　监管全平台询价需求池、竞价详情与成交溯源（先发后审；选标后买家24h未付直接作废）</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="text-[11px] text-[#94A3B8] bg-white border border-gray-100 rounded-lg px-3 py-1.5"><i class="fas fa-user-shield mr-1" style="color:#FF4D2D"></i>当前角色：运营专员</span>
+    </div>
+  </div>
+
+  <!-- 状态 Tab -->
+  <div class="flex items-center gap-5 mb-4 border-b border-gray-200" id="statusTabs">
+    <span class="tab-active py-2.5 text-[13px] cursor-pointer" data-s="all">全部</span>
+    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600" data-s="报价中">报价中</span>
+    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600" data-s="已成交">已成交</span>
+    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600" data-s="已关闭">已关闭</span>
+  </div>
+
+  <!-- 统计卡片 -->
+  <div class="grid grid-cols-6 gap-3 mb-5">
+    <div class="bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">今日新增需求</p><p class="text-xl font-bold text-primary mt-1">12</p></div>
+    <div class="bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">报价中</p><p class="text-xl font-bold text-amber-500 mt-1">86</p></div>
+    <div class="bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">已成交</p><p class="text-xl font-bold text-green-500 mt-1">34</p></div>
+    <div class="bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">需求成交转化率</p><p class="text-xl font-bold text-[#1F2430] mt-1">28%</p></div>
+    <div class="bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">平均报价家数</p><p class="text-xl font-bold text-[#1F2430] mt-1">6.2</p></div>
+    <div class="bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">24h报价响应率</p><p class="text-xl font-bold text-[#1F2430] mt-1">82%</p></div>
+  </div>
+
+  <!-- 筛选栏 -->
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+    <div class="flex items-center gap-3 flex-wrap">
+      <div class="relative">
+        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+        <input id="kw" type="text" placeholder="需求编号 / 标题 / 发布人" class="w-56 pl-8 pr-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary focus:bg-white transition">
+      </div>
+      <select id="fCat" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部品类</option><option>男袜</option><option>女袜</option><option>童袜</option><option>运动袜</option><option>功能袜</option>
+      </select>
+      <select id="fType" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">发布方式</option><option>公开广场</option><option>定向邀请</option>
+      </select>
+      <input type="date" id="fStart" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+      <span class="text-gray-300 text-xs">至</span>
+      <input type="date" id="fEnd" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+      <button class="px-4 py-1.5 text-[13px] text-white rounded-lg" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)" onclick="render()"><i class="fas fa-filter mr-1"></i>查询</button>
+      <button class="px-4 py-1.5 text-[13px] text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition" onclick="resetF()">重置</button>
+    </div>
+  </div>
+
+  <!-- 表格 -->
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center gap-2 flex-wrap">
+      <button class="px-3 py-1.5 text-[12px] text-white rounded-lg transition" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)" onclick="toast('已导出当前筛选结果（运营主管权限）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+      <span class="ml-auto text-[11px] text-[#94A3B8]">先发后审：需求默认上架，运营可违规下架；报价截止前卖家可改价（最多 2 次）</span>
+    </div>
+    <table class="w-full text-[13px]">
+      <thead>
+        <tr class="bg-gray-50 text-gray-500 text-[12px]">
+          <th class="px-3 py-3 text-left font-medium">需求编号</th>
+          <th class="px-3 py-3 text-left font-medium">需求标题</th>
+          <th class="px-3 py-3 text-left font-medium">发布人</th>
+          <th class="px-3 py-3 text-left font-medium">品类/数量</th>
+          <th class="px-3 py-3 text-left font-medium">可接受最高单价</th>
+          <th class="px-3 py-3 text-left font-medium">方式</th>
+          <th class="px-3 py-3 text-left font-medium">报价/最低</th>
+          <th class="px-3 py-3 text-left font-medium">截止时间</th>
+          <th class="px-3 py-3 text-left font-medium">状态</th>
+          <th class="px-3 py-3 text-center font-medium">操作</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-50" id="tbody"></tbody>
+    </table>
+    <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+      <span class="text-[12px] text-gray-400" id="recInfo">共 9 条记录</span>
+      <div class="flex items-center gap-1">
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100" onclick="toast('演示数据仅 1 页')"><i class="fas fa-chevron-left text-[10px]"></i></button>
+        <button class="w-7 h-7 flex items-center justify-center text-white text-[12px] rounded" style="background:#FF4D2D">1</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-600 text-[12px] rounded hover:bg-gray-100" onclick="toast('演示数据仅 1 页')">2</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100" onclick="toast('演示数据仅 1 页')"><i class="fas fa-chevron-right text-[10px]"></i></button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="mask" id="mask" onclick="closeD()"></div>
+<div class="drawer" id="drawer">
+  <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+    <div>
+      <h3 class="text-[15px] font-bold text-[#1F2430]" id="d-title">需求详情</h3>
+      <p class="text-[11px] text-[#94A3B8] mt-0.5" id="d-sub"></p>
+    </div>
+    <button onclick="closeD()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-xmark text-lg"></i></button>
+  </div>
+  <div class="px-6 pt-3 border-b border-gray-100 flex items-center gap-1" id="qTabs">
+    <span class="qtab on" data-q="info" onclick="switchQ('info')">需求信息</span>
+    <span class="qtab" data-q="quotes" onclick="switchQ('quotes')">竞价列表</span>
+    <span class="qtab" data-q="deal" onclick="switchQ('deal')">成交溯源</span>
+  </div>
+  <div class="flex-1 overflow-y-auto px-6 py-5" id="d-body"></div>
+  <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3" id="d-foot"></div>
+</div>
+
+<!-- 违规下架确认弹层 -->
+<div class="modal" id="closeModal">
+  <div class="bg-white rounded-xl w-[440px] p-5 shadow-xl">
+    <h4 class="text-[15px] font-bold text-[#1F2430] mb-1"><i class="fas fa-triangle-exclamation text-amber-500 mr-1"></i>违规下架需求</h4>
+    <p class="text-[12px] text-[#64748B] mb-3">下架后该需求对卖家不可见，并通知发布买家。请填写违规原因。</p>
+    <textarea id="closeReason" rows="3" class="w-full text-[13px] bg-gray-50 rounded-lg border border-gray-200 p-3 outline-none focus:border-primary resize-none" placeholder="如：含站外导流信息 / 违反平台交易规则…"></textarea>
+    <div class="flex justify-end gap-2 mt-4">
+      <button class="btn btn-ghost" onclick="closeCloseModal()">取消</button>
+      <button class="btn btn-primary" onclick="confirmClose()">确认下架</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[70]"></div>
+
+<script>
+/* ============ 模拟数据（覆盖 报价中 / 已成交 / 已关闭：违规 / 超时 / 撤销） ============ */
+function q(supplier,initial,color,price,qty,delivery,sample,note,st,mod){
+  return {supplier:supplier,initial:initial,color:color,price:price,qty:qty,delivery:delivery,sample:sample,note:note,st:st,mod:mod||0};
+}
+var DEMANDS=[
+ {
+  code:'XQ20260917001',title:'精梳棉商务男袜 透气防臭',cat:'男袜',qty:'1000双',expect:'¥3.5/双',type:'公开广场',offerer:'杭州酷袜商贸',auth:'企业认证',shop:'杭州酷袜旗舰店',quoteCount:8,low:'¥3.10',status:'报价中',deadline:'2026-09-20 23:59',publish:'2026-09-17 09:12',
+  desc:'需16针200针精梳棉，罗口适中，常备两色，交期7天内；量大优先源头工厂。',tags:['现货采购','源头工厂','支持打样'],images:['参考图1','参考图2'],note:'优先考虑源头工厂直供，需支持样品打样，报价请包含运费。',views:328,
+  quotes:[q('丰棉织造','丰','linear-gradient(135deg,#FF8A4C,#FF4D2D)','3.10','1000双','3天内','支持打样','源头直供，精梳棉现货，含运费可开票。','待确认'),
+          q('大唐自有品牌旗舰店','唐','linear-gradient(135deg,#3B82F6,#6366F1)','3.20','1000双','7天内','支持打样','成熟机台产能充足，附检测报告。','待确认'),
+          q('大唐百人袜业','百','linear-gradient(135deg,#10B981,#059669)','3.30','800双','7天内','付费打样','常规款可快速配送。','待确认'),
+          q('恒力针纺','恒','linear-gradient(135deg,#F59E0B,#D97706)','3.45','800双','10天内','支持打样','产能可调动，分批交付。','已撤回'),
+          q('一枝春袜业','一','linear-gradient(135deg,#EC4899,#F43F5E)','3.60','1000双','15天内','支持打样','新店冲量，价格可谈。','待确认')]
+ },
+ {
+  code:'XQ20260916008',title:'竹纤维隐形船袜 防滑不掉跟',cat:'女袜',qty:'500双',expect:'¥1.8/双',type:'公开广场',offerer:'上海织语电商',auth:'企业认证',shop:'织语电商官方店',quoteCount:12,low:'¥1.62',status:'报价中',deadline:'2026-09-19 23:59',publish:'2026-09-16 14:40',
+  desc:'竹纤维材质，女士款，浅口隐形，跟部加硅胶防滑；常规花色即可。',tags:['现货采购','可开发票'],images:['参考图'],note:'需提供色卡确认，可分批交付。',views:201,
+  quotes:[q('丰棉织造','丰','linear-gradient(135deg,#FF8A4C,#FF4D2D)','1.62','500双','5天内','支持打样','竹纤维现货充足。','待确认'),
+          q('甜美袜坊','甜','linear-gradient(135deg,#F472B6,#EC4899)','1.70','500双','7天内','支持打样','浅口工艺成熟。','待确认'),
+          q('义乌百汇','义','linear-gradient(135deg,#FBBF24,#F59E0B)','1.78','500双','10天内','不支持','价格最优。','待确认')]
+ },
+ {
+  code:'XQ20260915012',title:'运动压缩跑步袜 减震防滑',cat:'运动袜',qty:'300双',expect:'¥5.8/双',type:'定向邀请',offerer:'广东劲步体育',auth:'企业认证',shop:'劲步体育专营',quoteCount:4,low:'¥5.50',status:'已成交',deadline:'2026-09-18 23:59',publish:'2026-09-15 10:05',
+  desc:'中帮压缩，足底加厚减震，透气网孔，男女通用；优先压缩工艺成熟工厂。',tags:['源头工厂','支持打样'],images:['样品图','检测报告'],note:'需附检测报告。',views:96,
+  deal:{supplier:'大唐自有品牌旗舰店',price:'5.50',qty:'300双',order:'XJ20260916007',amount:'¥1,650'},
+  quotes:[q('大唐自有品牌旗舰店','唐','linear-gradient(135deg,#3B82F6,#6366F1)','5.50','300双','7天内','支持打样','压缩工艺成熟，附检测报告。','已选中'),
+          q('丰棉织造','丰','linear-gradient(135deg,#FF8A4C,#FF4D2D)','5.62','300双','7天内','支持打样','可承接。','未选中'),
+          q('恒力针纺','恒','linear-gradient(135deg,#F59E0B,#D97706)','5.80','300双','10天内','付费打样','常规报价。','未选中'),
+          q('劲步代工','劲','linear-gradient(135deg,#34D399,#10B981)','5.95','300双','15天内','支持打样','小批量可谈。','未选中')]
+ },
+ {
+  code:'XQ20260910021',title:'女士碎花短袜 纯棉透气',cat:'女袜',qty:'2000双',expect:'¥2.8/双',type:'公开广场',offerer:'义乌服饰采购',auth:'个人认证',shop:'义乌服饰采购',quoteCount:2,low:'¥2.65',status:'已成交',deadline:'2026-09-13 23:59',publish:'2026-09-10 08:30',
+  desc:'纯棉材质，碎花图案，春夏款，可分码分色；量大可接受分批与定金。',tags:['现货采购','可分批'],images:['碎花样图'],note:'量大，需分两个码。',views:512,
+  deal:{supplier:'丰棉织造',price:'2.70',qty:'2000双',order:'XJ20260911002',amount:'¥5,400'},
+  quotes:[q('丰棉织造','丰','linear-gradient(135deg,#FF8A4C,#FF4D2D)','2.70','2000双','7天内','支持打样','分码分色可承接，含运费。','已选中'),
+          q('大唐百人袜业','百','linear-gradient(135deg,#10B981,#059669)','2.65','2000双','10天内','付费打样','价格略优，交期稍长。','未选中')]
+ },
+ {
+  code:'XQ20260908015',title:'棉氨毛巾袜 加厚磨毛',cat:'功能袜',qty:'800双',expect:'¥6.0/双',type:'公开广场',offerer:'青岛暖意家纺',auth:'企业认证',shop:'暖意家纺',quoteCount:6,low:'¥5.80',status:'已关闭',closeReason:'违规下架：需求描述含站外联系方式导流',deadline:'2026-09-11 23:59',publish:'2026-09-08 16:20',
+  desc:'秋冬保暖，加厚毛巾圈，磨毛处理，居家袜；深浅两色各半。',tags:['源头工厂'],images:[],note:'需耐磨不起球。',views:140,
+  quotes:[q('暖意自营','暖','linear-gradient(135deg,#8B5CF6,#7C3AED)','5.80','800双','7天内','支持打样','自家产能。','未选中')]
+ },
+ {
+  code:'XQ20260905009',title:'精梳棉童袜 中筒',cat:'童袜',qty:'1500双',expect:'¥2.2/双',type:'公开广场',offerer:'宁波童趣',auth:'个人认证',shop:'童趣母婴',quoteCount:0,low:'—',status:'已关闭',closeReason:'超时关闭：报价截止未选标',deadline:'2026-09-08 23:59',publish:'2026-09-05 11:00',
+  desc:'A类精梳棉，中筒，卡通印花，分码。',tags:['现货采购'],images:[],note:'开学季急用。',views:60,quotes:[]
+ },
+ {
+  code:'XQ20260903003',title:'提花运动袜 定制Logo',cat:'运动袜',qty:'600双',expect:'¥4.5/双',type:'定向邀请',offerer:'深圳动感',auth:'企业认证',shop:'动感运动',quoteCount:3,low:'¥4.20',status:'已关闭',closeReason:'买家撤销：计划变更',deadline:'2026-09-06 23:59',publish:'2026-09-03 09:40',
+  desc:'中帮提花，刺绣Logo，整盒包装。',tags:['定制Logo','支持打样'],images:['logo样稿'],note:'需确认刺绣图案。',views:48,
+  quotes:[q('织梦工艺坊','织','linear-gradient(135deg,#8B5CF6,#7C3AED)','4.20','600双','10天内','付费打样','刺绣工艺成熟。','未选中')]
+ },
+ {
+  code:'XQ20260916020',title:'定制Logo刺绣袜 商务款',cat:'男袜',qty:'500双',expect:'¥3.2/双',type:'公开广场',offerer:'宁波定制商贸',auth:'企业认证',shop:'宁波定制商贸',quoteCount:9,low:'¥3.05',status:'已成交',deadline:'2026-09-19 23:59',publish:'2026-09-16 13:25',
+  desc:'莱卡棉薄款，Logo刺绣，整盒包装。',tags:['定制Logo','源头工厂'],images:['刺绣样图'],note:'含设计费。',views:178,
+  deal:{supplier:'丰棉织造',price:'3.05',qty:'500双',order:'XJ20260917010',amount:'¥1,525'},
+  quotes:[q('丰棉织造','丰','linear-gradient(135deg,#FF8A4C,#FF4D2D)','3.05','500双','5天内','支持打样','刺绣成熟，含设计。','已选中'),
+          q('织梦工艺坊','织','linear-gradient(135deg,#8B5CF6,#7C3AED)','3.15','500双','10天内','付费打样','需确认图案。','未选中'),
+          q('大唐自有品牌旗舰店','唐','linear-gradient(135deg,#3B82F6,#6366F1)','3.20','500双','7天内','支持打样','常规报价。','未选中')]
+ },
+ {
+  code:'XQ20260916025',title:'精梳棉中筒袜 基础款',cat:'男袜',qty:'1000双',expect:'¥3.0/双',type:'公开广场',offerer:'广州批发李总',auth:'个人认证',shop:'广州批发',quoteCount:5,low:'¥2.95',status:'已关闭',closeReason:'选标超时未支付：订单自动作废（需求关闭，不回滚）',deadline:'2026-09-17 23:59',publish:'2026-09-16 20:10',
+  desc:'基础款中筒，可分包。',tags:['现货采购'],images:[],note:'急单。',views:88,
+  deal:{supplier:'丰棉织造',price:'2.95',qty:'1000双',order:'XJ20260917005',amount:'¥2,950'},
+  quotes:[q('丰棉织造','丰','linear-gradient(135deg,#FF8A4C,#FF4D2D)','2.95','1000双','7天内','支持打样','现货可发。','已选中'),
+          q('大唐百人袜业','百','linear-gradient(135deg,#10B981,#059669)','3.05','1000双','7天内','付费打样','常规。','未选中')]
+ }
+];
+
+var curStatus='all', curD=null, qPanel='info', closeTarget=null;
+
+function stBadge(s){
+  if(s==='报价中') return '<span class="status-badge bg-amber-50 text-amber-600"><i class="fas fa-clock"></i> 报价中</span>';
+  if(s==='已成交') return '<span class="status-badge bg-green-50 text-green-600"><i class="fas fa-handshake"></i> 已成交</span>';
+  return '<span class="status-badge bg-gray-100 text-gray-500"><i class="fas fa-ban"></i> 已关闭</span>';
+}
+function authTag(a){return a==='企业认证'?'<span class="tag" style="background:#DBEAFE;color:#2563EB"><i class="fas fa-building"></i>企业</span>':'<span class="tag" style="background:#F1F5F9;color:#94A3B8">个人</span>';}
+
+function render(){
+  var kw=(document.getElementById('kw').value||'').trim().toLowerCase();
+  var cat=document.getElementById('fCat').value, type=document.getElementById('fType').value;
+  var list=DEMANDS.filter(function(d){
+    if(curStatus!=='all'&&d.status!==curStatus) return false;
+    if(cat&&d.cat!==cat) return false;
+    if(type&&d.type!==type) return false;
+    if(kw&&(d.code+d.title+d.offerer).toLowerCase().indexOf(kw)<0) return false;
+    return true;
+  });
+  var tb=document.getElementById('tbody');
+  document.getElementById('recInfo').textContent='共 '+list.length+' 条记录';
+  if(list.length===0){tb.innerHTML='<tr><td colspan="10" class="px-4 py-10 text-center text-gray-400 text-[13px]">暂无符合条件的需求</td></tr>';return;}
+  tb.innerHTML=list.map(function(d){
+    var ops = d.status==='报价中'
+      ? '<button class="lk mr-2" onclick="openD(\''+d.code+'\')">详情</button><button class="text-gray-400 text-[12px] hover:text-red-500" onclick="openClose(\''+d.code+'\')">违规下架</button>'
+      : '<button class="lk" onclick="openD(\''+d.code+'\')">详情</button>';
+    return '<tr class="hover:bg-gray-50 transition">'+
+      '<td class="px-3 py-3 text-gray-600">'+d.code+'</td>'+
+      '<td class="px-3 py-3"><p class="font-medium text-gray-800">'+d.title+'</p></td>'+
+      '<td class="px-3 py-3"><div class="flex items-center gap-1.5"><span class="text-gray-700">'+d.offerer+'</span>'+authTag(d.auth)+'</div><p class="text-[11px] text-gray-400 mt-0.5">'+d.shop+'</p></td>'+
+      '<td class="px-3 py-3 text-gray-600">'+d.cat+'<span class="text-gray-400"> / '+d.qty+'</span></td>'+
+      '<td class="px-3 py-3 text-gray-600">'+d.expect+'</td>'+
+      '<td class="px-3 py-3"><span class="tag '+(d.type==='定向邀请'?'" style="background:#FEF3C7;color:#D97706">定向':'" style="background:#EFF6FF;color:#2563EB">公开')+'</span></td>'+
+      '<td class="px-3 py-3 text-gray-600">'+d.quoteCount+'家 <span class="text-gray-400">/ 低 '+d.low+'</span></td>'+
+      '<td class="px-3 py-3 text-gray-400">'+d.deadline+'</td>'+
+      '<td class="px-3 py-3">'+stBadge(d.status)+'</td>'+
+      '<td class="px-3 py-3 text-center">'+ops+'</td>'+
+    '</tr>';
+  }).join('');
+}
+
+/* 状态 Tab */
+document.getElementById('statusTabs').addEventListener('click',function(e){
+  var t=e.target.closest('[data-s]');if(!t)return;
+  this.querySelectorAll('[data-s]').forEach(function(x){x.classList.remove('tab-active');x.classList.add('text-gray-400');});
+  t.classList.add('tab-active');t.classList.remove('text-gray-400');
+  curStatus=t.getAttribute('data-s');render();
+});
+function resetF(){document.getElementById('kw').value='';document.getElementById('fCat').value='';document.getElementById('fType').value='';document.getElementById('fStart').value='';document.getElementById('fEnd').value='';render();}
+
+/* ============ 详情抽屉 ============ */
+function openD(code){
+  curD=null;DEMANDS.forEach(function(d){if(d.code===code)curD=d;});
+  if(!curD)return;
+  qPanel='info';
+  document.getElementById('d-title').textContent=curD.title;
+  document.getElementById('d-sub').innerHTML=curD.code+' · '+curD.cat+' · '+curD.qty+' · '+stBadge(curD.status);
+  switchQ('info');
+  // tab 可见性：未成交隐藏「成交溯源」
+  document.querySelectorAll('#qTabs .qtab').forEach(function(x){
+    x.style.display = (x.getAttribute('data-q')==='deal' && curD.status!=='已成交') ? 'none':'inline-block';
+  });
+  document.getElementById('mask').classList.add('on');
+  document.getElementById('drawer').classList.add('on');
+  refreshFoot();
+}
+function switchQ(p){
+  qPanel=p;
+  document.querySelectorAll('#qTabs .qtab').forEach(function(x){x.classList.toggle('on',x.getAttribute('data-q')===p);});
+  var b=document.getElementById('d-body');
+  if(p==='info') b.innerHTML=panelInfo();
+  else if(p==='quotes') b.innerHTML=panelQuotes();
+  else b.innerHTML=panelDeal();
+}
+function panelInfo(){
+  var d=curD;
+  var imgs=d.images.length?d.images.map(function(i){return '<div class="w-20 h-20 rounded-lg bg-gray-100 flex flex-col items-center justify-center"><i class="fas fa-image text-gray-300"></i><span class="text-[10px] text-gray-400 mt-1">'+i+'</span></div>';}).join(''):'<span class="text-[12px] text-gray-400">无</span>';
+  var tags=d.tags.map(function(t){return '<span class="tag" style="background:#FFF0E8;color:#FF6B35">'+t+'</span>';}).join(' ');
+  return '<div class="ftitle" style="margin-top:0">需求信息</div>'+
+    '<div class="grid grid-cols-2 gap-3 text-[13px]">'+
+      row('发布人',d.offerer+' '+authTag(d.auth))+row('发布店铺',d.shop)+
+      row('品类 / 数量',d.cat+' / '+d.qty)+row('可接受最高单价',d.expect)+
+      row('发布方式',d.type)+row('报价截止',d.deadline)+
+      row('发布时间',d.publish)+row('浏览数',d.views+' 次')+
+    '</div>'+
+    '<div class="ftitle">需求描述</div><p class="text-[13px] text-[#334155] leading-relaxed">'+d.desc+'</p>'+
+    '<div class="ftitle">需求标签</div><div class="flex flex-wrap gap-2">'+tags+'</div>'+
+    '<div class="ftitle">参考图片</div><div class="flex gap-2">'+imgs+'</div>'+
+    '<div class="ftitle">采购方备注</div><div class="rounded-lg p-3 bg-[#FFF7F4] border border-[#ffede5] text-[12px] text-[#64748B] leading-relaxed">'+d.note+'</div>'+
+    (d.status==='已关闭'?'<div class="ftitle">关闭原因</div><div class="rounded-lg p-3 bg-red-50 border border-red-100 text-[12px] text-red-600">'+d.closeReason+'</div>':'');
+}
+function row(k,v){return '<div><p class="text-[11px] text-gray-400 mb-1">'+k+'</p><p class="text-gray-700">'+v+'</p></div>';}
+function panelQuotes(){
+  var d=curD;
+  if(!d.quotes.length) return '<p class="text-[13px] text-gray-400 text-center py-8">该需求暂未收到报价</p>';
+  var sorted=d.quotes.slice().sort(function(a,b){return parseFloat(a.price)-parseFloat(b.price);});
+  var cards=sorted.map(function(x){
+    var stStyle = x.st==='已选中'?'background:#DCFCE7;color:#059669':x.st==='未选中'?'background:#F1F5F9;color:#94A3B8':x.st==='已撤回'?'background:#FEE2E2;color:#DC2626':'background:#FFF7ED;color:#EA580C';
+    var mod = x.mod>0 ? '<span class="text-[10px] text-amber-500 ml-1">已改价 '+x.mod+'/2</span>':'';
+    return '<div class="border border-gray-100 rounded-xl p-3.5 flex gap-3">'+
+      '<div class="w-10 h-10 rounded-full flex items-center justify-center text-white text-[13px] font-bold flex-shrink-0" style="background:'+x.color+'">'+x.initial+'</div>'+
+      '<div class="flex-1 min-w-0">'+
+        '<div class="flex items-center justify-between"><p class="text-[13px] font-semibold text-gray-800">'+x.supplier+mod+'</p><span class="status-badge" style="'+stStyle+'">'+x.st+'</span></div>'+
+        '<div class="flex items-center gap-3 mt-1.5 text-[11px] text-gray-500"><span><i class="fas fa-tag text-gray-300"></i> 报价 <b class="text-primary">¥'+x.price+'</b>/双</span><span>供货 '+x.qty+'</span><span><i class="fas fa-truck text-gray-300"></i> '+x.delivery+'</span><span>'+x.sample+'</span></div>'+
+        '<p class="text-[12px] text-gray-500 mt-1.5">'+x.note+'</p>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+  return '<div class="flex items-center justify-between mb-2"><div class="ftitle" style="margin:0">竞价列表（'+d.quotes.length+' 家 · 按报价从低到高）</div></div>'+cards;
+}
+function panelDeal(){
+  var d=curD, dl=d.deal;
+  return '<div class="ftitle" style="margin-top:0">成交溯源</div>'+
+    '<div class="rounded-xl p-4 mb-3" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D);color:#fff">'+
+      '<p class="text-[11px] opacity-80">中标卖家 · 成交单价 × 数量</p>'+
+      '<div class="flex items-end justify-between mt-1"><div><p class="text-[16px] font-bold">'+dl.supplier+'</p><p class="text-[11px] opacity-80 mt-0.5">成交金额 '+dl.amount+'</p></div><p class="text-[22px] font-extrabold">¥'+dl.price+'<span class="text-[12px] font-normal"> /双 × '+dl.qty+'</span></p></div>'+
+    '</div>'+
+    '<div class="ftitle">关联询价订单</div>'+
+    '<div class="flex items-center justify-between rounded-lg border border-gray-100 p-3">'+
+      '<div><p class="text-[13px] font-semibold text-gray-800">'+dl.order+'</p><p class="text-[11px] text-gray-400 mt-0.5">由选标事件自动生成（外采订单库）</p></div>'+
+      '<button class="btn btn-primary" onclick="jumpOrder(\''+dl.order+'\')"><i class="fas fa-arrow-right mr-1"></i>查看订单</button>'+
+    '</div>'+
+    '<div class="ftitle">原始需求</div>'+
+    '<div class="text-[12px] text-gray-600">'+d.title+' · '+d.cat+' · '+d.qty+' · 可接受最高单价 '+d.expect+'</div>';
+}
+function jumpOrder(orderNo){location.href='mall-order-inquiry.html?id='+orderNo;}
+
+/* 抽屉底部操作 */
+function refreshFoot(){
+  var f=document.getElementById('d-foot');
+  if(curD&&curD.status==='报价中'){
+    f.innerHTML='<button class="btn btn-ghost py-2.5" onclick="closeD()">关闭</button><button class="btn btn-primary py-2.5 px-6" onclick="openClose(\''+curD.code+'\')"><i class="fas fa-ban mr-1"></i>违规下架</button>';
+  } else {
+    f.innerHTML='<button class="btn btn-ghost py-2.5" onclick="closeD()">关闭</button>';
+  }
+}
+function closeD(){document.getElementById('mask').classList.remove('on');document.getElementById('drawer').classList.remove('on');}
+
+/* ============ 违规下架弹层 ============ */
+function openClose(code){closeTarget=code;document.getElementById('closeReason').value='';document.getElementById('closeModal').classList.add('on');}
+function closeCloseModal(){document.getElementById('closeModal').classList.remove('on');}
+function confirmClose(){
+  if(!closeTarget) return;
+  var r=document.getElementById('closeReason').value.trim();
+  if(!r){toast('请填写违规原因');return;}
+  DEMANDS.forEach(function(d){if(d.code===closeTarget){d.status='已关闭';d.closeReason='违规下架：'+r;}});
+  closeCloseModal();closeD();render();
+  toast('已违规下架并通知发布买家：'+closeTarget);
+}
+
+/* 按参数自动打开（跨页互跳） */
+(function(){
+  var id=new URLSearchParams(location.search).get('id');
+  if(id){setTimeout(function(){openD(id);},120);}
+})();
+
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},2200);}
+
+/* 覆盖 openD 以刷新底部 */
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},2200);}
+
+render();
+</script>
+</body>
+</html>

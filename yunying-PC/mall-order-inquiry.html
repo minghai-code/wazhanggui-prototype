@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>商城运营 - 采购询价订单</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>
+tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D','primary-d':'#E63E20','primary-l':'#FF7849'}}}}
+</script>
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.tab-active{color:#FF4D2D;border-bottom:2px solid #FF4D2D;font-weight:600}
+.status-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}
+.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}
+.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}
+.lk:hover{text-decoration:underline}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:40}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:700px;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:50;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.ftitle{font-size:13px;font-weight:700;color:#1F2430;margin:18px 0 10px;display:flex;align-items:center;gap:6px}
+.ftitle::before{content:'';width:3px;height:13px;border-radius:2px;background:#FF4D2D}
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.5);opacity:0;pointer-events:none;transition:.2s;z-index:60;display:flex;align-items:center;justify-content:center}
+.modal.on{opacity:1;pointer-events:auto}
+</style>
+</head>
+<body>
+<div class="p-6">
+
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">采购询价订单</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">10 商城运营</span>
+        <span class="tag" style="background:#FFF0E8;color:#FF6B35">订单类型：inquiry</span>
+      </div>
+      <p class="text-[12px] text-[#94A3B8] mt-1">商城运营 / 订单管理 · 采购询价订单　·　独立于外采订单页；字段对齐普通订单 + 需求溯源；支付/物流/售后复用外采系统</p>
+    </div>
+    <span class="text-[11px] text-[#94A3B8] bg-white border border-gray-100 rounded-lg px-3 py-1.5"><i class="fas fa-user-shield mr-1" style="color:#FF4D2D"></i>当前角色：运营专员</span>
+  </div>
+
+  <!-- 状态 Tab（对齐外采口径：待支付/待发货/已发货/已完成/已取消） -->
+  <div class="flex items-center gap-5 mb-4 border-b border-gray-200" id="statusTabs">
+    <span class="tab-active py-2.5 text-[13px] cursor-pointer" data-s="all">全部</span>
+    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600" data-s="待付款">待付款</span>
+    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600" data-s="待发货">待发货</span>
+    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600" data-s="已发货">已发货</span>
+    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600" data-s="已完成">已完成</span>
+    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600" data-s="已取消">已取消</span>
+  </div>
+
+  <!-- 统计卡片 -->
+  <div class="grid grid-cols-6 gap-3 mb-5">
+    <div class="bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">订单总数</p><p class="text-xl font-bold text-primary mt-1">56</p></div>
+    <div class="bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">待付款</p><p class="text-xl font-bold text-amber-500 mt-1">12</p></div>
+    <div class="bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">待发货</p><p class="text-xl font-bold text-blue-500 mt-1">8</p></div>
+    <div class="bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">已完成</p><p class="text-xl font-bold text-green-500 mt-1">30</p></div>
+    <div class="bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">近30日成交金额</p><p class="text-xl font-bold text-[#1F2430] mt-1">¥18.6万</p></div>
+    <div class="bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">选标→支付转化</p><p class="text-xl font-bold text-[#1F2430] mt-1">91%</p></div>
+  </div>
+
+  <!-- 筛选栏 -->
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+    <div class="flex items-center gap-3 flex-wrap">
+      <div class="relative">
+        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+        <input id="kw" type="text" placeholder="订单号 / 交易单号 / 关联需求单号" class="w-64 pl-8 pr-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary focus:bg-white transition">
+      </div>
+      <input id="fBuyer" type="text" placeholder="买家会员" class="w-36 px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary">
+      <input id="fShop" type="text" placeholder="卖家店铺" class="w-36 px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary">
+      <select id="fPay" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600"><option value="">支付状态</option><option>已支付</option><option>未支付</option></select>
+      <select id="fShip" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600"><option value="">发货状态</option><option>待发货</option><option>已发货</option><option>已收货</option></select>
+      <button class="px-4 py-1.5 text-[13px] text-white rounded-lg" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)" onclick="render()"><i class="fas fa-filter mr-1"></i>查询</button>
+      <button class="px-4 py-1.5 text-[13px] text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition" onclick="resetF()">重置</button>
+    </div>
+  </div>
+
+  <!-- 表格 -->
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center gap-2 flex-wrap">
+      <button class="px-3 py-1.5 text-[12px] text-white rounded-lg transition" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)" onclick="toast('已导出当前筛选结果（运营主管权限）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+      <span class="ml-auto text-[11px] text-[#94A3B8]">该类型订单不进入外采「全部订单」列表；支付/物流/售后走外采能力（见详情）</span>
+    </div>
+    <table class="w-full text-[13px]">
+      <thead>
+        <tr class="bg-gray-50 text-gray-500 text-[12px]">
+          <th class="px-3 py-3 text-left font-medium">订单号</th>
+          <th class="px-3 py-3 text-left font-medium">关联需求</th>
+          <th class="px-3 py-3 text-left font-medium">需求标题</th>
+          <th class="px-3 py-3 text-left font-medium">买家会员</th>
+          <th class="px-3 py-3 text-left font-medium">卖家店铺</th>
+          <th class="px-3 py-3 text-left font-medium">数量/单价</th>
+          <th class="px-3 py-3 text-left font-medium">订单金额</th>
+          <th class="px-3 py-3 text-left font-medium">支付/发货</th>
+          <th class="px-3 py-3 text-left font-medium">订单状态</th>
+          <th class="px-3 py-3 text-center font-medium">操作</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-50" id="tbody"></tbody>
+    </table>
+    <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+      <span class="text-[12px] text-gray-400" id="recInfo">共 6 条记录</span>
+      <div class="flex items-center gap-1">
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100" onclick="toast('演示数据仅 1 页')"><i class="fas fa-chevron-left text-[10px]"></i></button>
+        <button class="w-7 h-7 flex items-center justify-center text-white text-[12px] rounded" style="background:#FF4D2D">1</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-600 text-[12px] rounded hover:bg-gray-100" onclick="toast('演示数据仅 1 页')">2</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100" onclick="toast('演示数据仅 1 页')"><i class="fas fa-chevron-right text-[10px]"></i></button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="mask" id="mask" onclick="closeD()"></div>
+<div class="drawer" id="drawer">
+  <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+    <div>
+      <h3 class="text-[15px] font-bold text-[#1F2430]" id="d-title">订单详情</h3>
+      <p class="text-[11px] text-[#94A3B8] mt-0.5" id="d-sub"></p>
+    </div>
+    <button onclick="closeD()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-xmark text-lg"></i></button>
+  </div>
+  <div class="flex-1 overflow-y-auto px-6 py-5" id="d-body"></div>
+  <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3" id="d-foot"></div>
+</div>
+
+<!-- 取消订单确认 -->
+<div class="modal" id="cancelModal">
+  <div class="bg-white rounded-xl w-[420px] p-5 shadow-xl">
+    <h4 class="text-[15px] font-bold text-[#1F2430] mb-1"><i class="fas fa-circle-xmark text-red-500 mr-1"></i>取消询价订单</h4>
+    <p class="text-[12px] text-[#64748B] mb-4">仅「待付款」可取消。取消后该订单作废，关联需求按规则处理（选标超时则需求关闭，不回滚）。</p>
+    <div class="flex justify-end gap-2">
+      <button class="btn btn-ghost" onclick="closeCancel()">取消</button>
+      <button class="btn btn-primary" onclick="confirmCancel()">确认取消</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[70]"></div>
+
+<script>
+/* ============ 模拟数据（覆盖 待付款 / 待发货 / 已发货 / 已完成 / 已取消） ============ */
+var ORDERS=[
+ {
+  order:'XJ20260911002',trade:'2026091100029981',demand:'XQ20260910021',title:'女士碎花短袜 纯棉透气',buyer:'义乌服饰采购',buyerAuth:'个人',shop:'丰棉织造',qty:'2000双',price:'2.70',amount:'¥5,400',pay:'已支付',ship:'待发货',status:'待发货',
+  payType:'微信支付',payTime:'2026-09-11 10:20',contact:'王女士',phone:'138****2046',addr:'浙江义乌 国际商贸城三区 2楼 H12',orderTime:'2026-09-11 10:05',
+  deal:{supplier:'丰棉织造',price:'2.70',qty:'2000双',delivery:'7天内',sample:'支持打样',freight:'含运费',amount:'¥5,400'},
+  versions:[{t:'2026-09-10 09:30 报价 ¥2.65（未选中）'},{t:'2026-09-10 14:12 改价 ¥2.70（已选中）'}],
+  log:[{t:'2026-09-11 10:05 选标成交生成订单'},{t:'2026-09-11 10:20 买家支付 ¥5,400'}]
+ },
+ {
+  order:'XJ20260916007',trade:'2026091600076612',demand:'XQ20260915012',title:'运动压缩跑步袜 减震防滑',buyer:'广东劲步体育',buyerAuth:'企业',shop:'大唐自有品牌旗舰店',qty:'300双',price:'5.50',amount:'¥1,650',pay:'已支付',ship:'已发货',status:'已发货',
+  payType:'企业网银',payTime:'2026-09-16 14:45',contact:'陈经理',phone:'139****8821',addr:'广东广州 番禺区 劲步体育仓',orderTime:'2026-09-16 14:30',logi:'顺丰速运 SF1234567890',
+  deal:{supplier:'大唐自有品牌旗舰店',price:'5.50',qty:'300双',delivery:'7天内',sample:'支持打样',freight:'含运费',amount:'¥1,650'},
+  versions:[{t:'2026-09-15 11:00 报价 ¥5.50（已选中）'}],
+  log:[{t:'2026-09-16 14:30 选标成交生成订单'},{t:'2026-09-16 14:45 买家支付'},{t:'2026-09-17 09:30 卖家发货 SF1234567890'}]
+ },
+ {
+  order:'XJ20260917010',trade:'2026091700105523',demand:'XQ20260916020',title:'定制Logo刺绣袜 商务款',buyer:'宁波定制商贸',buyerAuth:'企业',shop:'丰棉织造',qty:'500双',price:'3.05',amount:'¥1,525',pay:'未支付',ship:'—',status:'待付款',
+  payType:'—',payTime:'—',contact:'李总',phone:'137****5566',addr:'浙江宁波 鄞州区 定制商贸',orderTime:'2026-09-17 09:20',
+  deal:{supplier:'丰棉织造',price:'3.05',qty:'500双',delivery:'5天内',sample:'支持打样',freight:'含运费',amount:'¥1,525'},
+  versions:[{t:'2026-09-16 14:00 报价 ¥3.05（已选中）'}],
+  log:[{t:'2026-09-17 09:20 选标成交生成订单（待支付）'}],
+  note:'选标后 24h 内未支付将自动作废（订单取消 + 需求关闭）'
+ },
+ {
+  order:'XJ20260912018',trade:'2026091200187741',demand:'XQ20260911030',title:'精梳棉中筒袜 基础款',buyer:'杭州酷袜商贸',buyerAuth:'企业',shop:'大唐百人袜业',qty:'800双',price:'3.30',amount:'¥2,640',pay:'已支付',ship:'已收货',status:'已完成',
+  payType:'微信支付',payTime:'2026-09-12 11:20',contact:'赵先生',phone:'135****3390',addr:'浙江杭州 上城区 酷袜仓库',orderTime:'2026-09-12 11:00',logi:'中通快递 7530099123456',
+  deal:{supplier:'大唐百人袜业',price:'3.30',qty:'800双',delivery:'7天内',sample:'付费打样',freight:'含运费',amount:'¥2,640'},
+  versions:[{t:'2026-09-11 16:00 报价 ¥3.30（已选中）'}],
+  log:[{t:'2026-09-12 11:00 选标成交'},{t:'2026-09-12 11:20 支付'},{t:'2026-09-13 10:00 发货'},{t:'2026-09-15 14:30 买家确认收货 · 订单完成'}]
+ },
+ {
+  order:'XJ20260909022',trade:'2026090900221188',demand:'XQ20260908040',title:'提花运动袜 男女通用',buyer:'深圳动感',buyerAuth:'企业',shop:'恒力针纺',qty:'600双',price:'4.20',amount:'¥2,520',pay:'已支付',ship:'已收货',status:'已完成',
+  payType:'企业网银',payTime:'2026-09-09 17:00',contact:'周店长',phone:'186****2210',addr:'广东深圳 宝安区 动感门店',orderTime:'2026-09-09 16:40',logi:'圆通速递 YT8899001122',
+  deal:{supplier:'恒力针纺',price:'4.20',qty:'600双',delivery:'10天内',sample:'付费打样',freight:'不含运费',amount:'¥2,520'},
+  versions:[{t:'2026-09-08 15:00 报价 ¥4.20（已选中）'}],
+  log:[{t:'2026-09-09 16:40 选标成交'},{t:'2026-09-09 17:00 支付'},{t:'2026-09-10 09:20 发货'},{t:'2026-09-12 11:00 订单完成'}]
+ },
+ {
+  order:'XJ20260917005',trade:'2026091700053347',demand:'XQ20260916025',title:'精梳棉中筒袜 基础款',buyer:'广州批发李总',buyerAuth:'个人',shop:'丰棉织造',qty:'1000双',price:'2.95',amount:'¥2,950',pay:'未支付',ship:'—',status:'已取消',
+  payType:'—',payTime:'—',contact:'李总',phone:'188****7700',addr:'广东广州 白云区 批发市场',orderTime:'2026-09-16 20:10',
+  deal:{supplier:'丰棉织造',price:'2.95',qty:'1000双',delivery:'7天内',sample:'支持打样',freight:'含运费',amount:'¥2,950'},
+  versions:[{t:'2026-09-16 21:00 报价 ¥2.95（已选中）'}],
+  log:[{t:'2026-09-16 20:10 选标成交生成订单'},{t:'2026-09-17 20:10 选标后24h未支付，订单自动取消；需求 XQ20260916025 关闭（不回滚）'}]
+ }
+];
+
+var curStatus='all', curO=null, cancelTarget=null;
+
+function stBadge(s){
+  var m={'待付款':['bg-amber-50','text-amber-600','fa-clock'],'待发货':['bg-blue-50','text-blue-500','fa-box'],'已发货':['bg-indigo-50','text-indigo-500','fa-truck'],'已完成':['bg-green-50','text-green-600','fa-circle-check'],'已取消':['bg-gray-100','text-gray-500','fa-ban']};
+  var x=m[s]||['bg-gray-100','text-gray-500','fa-circle'];
+  return '<span class="status-badge '+x[0]+' '+x[1]+'"><i class="fas '+x[2]+'"></i> '+s+'</span>';
+}
+function payBadge(p){return p==='已支付'?'<span class="status-badge bg-green-50 text-green-600">已支付</span>':'<span class="status-badge bg-amber-50 text-amber-600">未支付</span>';}
+function shipBadge(s){var c=s==='已收货'?'bg-green-50 text-green-600':s==='已发货'?'bg-indigo-50 text-indigo-500':'bg-gray-100 text-gray-500';return '<span class="status-badge '+c+'">'+s+'</span>';}
+
+function render(){
+  var kw=(document.getElementById('kw').value||'').trim().toLowerCase();
+  var buyer=document.getElementById('fBuyer').value.trim(), shop=document.getElementById('fShop').value.trim();
+  var pay=document.getElementById('fPay').value, ship=document.getElementById('fShip').value;
+  var list=ORDERS.filter(function(o){
+    if(curStatus!=='all'&&o.status!==curStatus) return false;
+    if(kw&&(o.order+o.trade+o.demand).toLowerCase().indexOf(kw)<0) return false;
+    if(buyer&&o.buyer.indexOf(buyer)<0) return false;
+    if(shop&&o.shop.indexOf(shop)<0) return false;
+    if(pay&&o.pay!==pay) return false;
+    if(ship&&o.ship!==ship) return false;
+    return true;
+  });
+  var tb=document.getElementById('tbody');
+  document.getElementById('recInfo').textContent='共 '+list.length+' 条记录';
+  if(!list.length){tb.innerHTML='<tr><td colspan="10" class="px-4 py-10 text-center text-gray-400 text-[13px]">暂无符合条件的订单</td></tr>';return;}
+  tb.innerHTML=list.map(function(o){
+    var cancel = o.status==='待付款' ? '<button class="text-red-500 text-[12px] hover:underline ml-2" onclick="openCancel(\''+o.order+'\')">取消</button>' : '';
+    return '<tr class="hover:bg-gray-50 transition">'+
+      '<td class="px-3 py-3"><p class="text-gray-700 font-medium">'+o.order+'</p><p class="text-[10px] text-gray-400 mt-0.5">'+o.trade+'</p></td>'+
+      '<td class="px-3 py-3"><button class="lk" onclick="jumpDemand(\''+o.demand+'\')">'+o.demand+'</button></td>'+
+      '<td class="px-3 py-3"><p class="font-medium text-gray-800">'+o.title+'</p><span class="tag mt-0.5" style="background:#FFF0E8;color:#FF6B35">询价</span></td>'+
+      '<td class="px-3 py-3 text-gray-700">'+o.buyer+'</td>'+
+      '<td class="px-3 py-3 text-gray-600">'+o.shop+'</td>'+
+      '<td class="px-3 py-3 text-gray-600">'+o.qty+'<span class="text-gray-400"> / ¥'+o.price+'</span></td>'+
+      '<td class="px-3 py-3 font-semibold text-gray-800">'+o.amount+'</td>'+
+      '<td class="px-3 py-3">'+payBadge(o.pay)+'<div class="mt-1">'+shipBadge(o.ship)+'</div></td>'+
+      '<td class="px-3 py-3">'+stBadge(o.status)+'</td>'+
+      '<td class="px-3 py-3 text-center"><button class="lk" onclick="openD(\''+o.order+'\')">详情</button>'+cancel+'</td>'+
+    '</tr>';
+  }).join('');
+}
+document.getElementById('statusTabs').addEventListener('click',function(e){
+  var t=e.target.closest('[data-s]');if(!t)return;
+  this.querySelectorAll('[data-s]').forEach(function(x){x.classList.remove('tab-active');x.classList.add('text-gray-400');});
+  t.classList.add('tab-active');t.classList.remove('text-gray-400');
+  curStatus=t.getAttribute('data-s');render();
+});
+function resetF(){document.getElementById('kw').value='';document.getElementById('fBuyer').value='';document.getElementById('fShop').value='';document.getElementById('fPay').value='';document.getElementById('fShip').value='';render();}
+
+function openD(order){
+  curO=null;ORDERS.forEach(function(o){if(o.order===order)curO=o;});
+  if(!curO)return;
+  document.getElementById('d-title').textContent=curO.order;
+  document.getElementById('d-sub').innerHTML='询价订单 · '+curO.title+' · '+stBadge(curO.status);
+  document.getElementById('d-body').innerHTML=panelDetail();
+  refreshFoot();
+  document.getElementById('mask').classList.add('on');
+  document.getElementById('drawer').classList.add('on');
+}
+function row(k,v){return '<div><p class="text-[11px] text-gray-400 mb-1">'+k+'</p><p class="text-gray-700">'+v+'</p></div>';}
+function panelDetail(){
+  var o=curO;
+  return '<div class="ftitle" style="margin-top:0">基础信息（对齐普通订单字段）</div>'+
+    '<div class="grid grid-cols-2 gap-3 text-[13px]">'+
+      row('订单号',o.order)+row('交易单号',o.trade)+
+      row('下单时间',o.orderTime)+row('订单类型','采购询价（inquiry）')+
+      row('买家会员',o.buyer+' '+(o.buyerAuth==='企业'?'<span class="tag" style="background:#DBEAFE;color:#2563EB">企业</span>':'<span class="tag" style="background:#F1F5F9;color:#94A3B8">个人</span>'))+row('支付方式',o.payType)+
+      row('支付状态',o.pay)+row('订单金额',o.amount)+
+      row('联系人',o.contact+' '+o.phone)+row('收货地址',o.addr)+
+    '</div>'+
+    '<div class="ftitle">需求溯源（询价订单个性化字段）</div>'+
+    '<div class="rounded-xl p-4 mb-3" style="background:#FFF7F4;border:1px solid #ffede5">'+
+      '<div class="flex items-center justify-between"><p class="text-[13px] font-semibold text-gray-800">'+o.title+'</p><span class="tag" style="background:#FFF0E8;color:#FF6B35">询价</span></div>'+
+      '<div class="flex items-center justify-between mt-2"><button class="lk" onclick="jumpDemand(\''+o.demand+'\')"><i class="fas fa-link mr-1"></i>'+o.demand+'（原始需求）</button><span class="text-[11px] text-gray-400">关联需求单</span></div>'+
+      '<div class="grid grid-cols-3 gap-2 mt-3 text-center">'+
+        '<div class="rounded-lg py-2" style="background:#fff"><p class="text-[12px] font-bold text-primary">¥'+o.deal.price+'</p><p class="text-[10px] text-gray-400 mt-0.5">成交单价</p></div>'+
+        '<div class="rounded-lg py-2" style="background:#fff"><p class="text-[12px] font-bold text-gray-800">'+o.deal.qty+'</p><p class="text-[10px] text-gray-400 mt-0.5">成交数量</p></div>'+
+        '<div class="rounded-lg py-2" style="background:#fff"><p class="text-[12px] font-bold text-gray-800">'+o.deal.delivery+'</p><p class="text-[10px] text-gray-400 mt-0.5">交期承诺</p></div>'+
+      '</div>'+
+      '<div class="flex items-center gap-3 mt-2 text-[11px] text-gray-500"><span>中标：'+o.deal.supplier+'</span><span>· 样品：'+o.deal.sample+'</span><span>· '+o.deal.freight+'</span></div>'+
+    '</div>'+
+    '<div class="ftitle">报价版本记录</div>'+
+    '<div class="space-y-1.5">'+o.versions.map(function(v){return '<p class="text-[12px] text-gray-500 flex items-center gap-2"><i class="fas fa-clock text-gray-300 text-[10px]"></i>'+v.t+'</p>';}).join('')+'</div>'+
+    '<div class="ftitle">履约信息（复用外采系统）</div>'+
+    '<div class="rounded-lg p-3 bg-gray-50 text-[12px] text-gray-600">'+
+      (o.logi?'<p><i class="fas fa-truck text-gray-400 mr-1"></i>物流：'+o.logi+'</p>':'<p><i class="fas fa-box text-gray-400 mr-1"></i>发货状态：'+o.ship+'（待卖家在外采系统发货）</p>')+
+      '<p class="mt-1"><i class="fas fa-rotate-left text-gray-400 mr-1"></i>售后 / 退款：复用外采售后流程</p>'+
+    '</div>'+
+    '<div class="ftitle">操作日志</div>'+
+    '<div class="border-l-2 border-gray-100 pl-3 space-y-1.5">'+o.log.map(function(l){return '<p class="text-[12px] text-gray-500">'+l.t+'</p>';}).join('')+'</div>'+
+    (o.note?'<div class="mt-3 rounded-lg p-3 bg-amber-50 border border-amber-100 text-[12px] text-amber-700"><i class="fas fa-triangle-exclamation mr-1"></i>'+o.note+'</div>':'');
+}
+function jumpDemand(demandNo){location.href='mall-inquiry.html?id='+demandNo;}
+
+function refreshFoot(){
+  var f=document.getElementById('d-foot');
+  var base='<button class="btn btn-ghost py-2.5" onclick="toast(\'已添加运营备注\')"><i class="fas fa-note-sticky mr-1"></i>备注</button><button class="btn btn-ghost py-2.5" onclick="closeD()">关闭</button>';
+  if(curO&&curO.status==='待付款'){
+    f.innerHTML=base+'<button class="btn btn-primary py-2.5 px-6" onclick="openCancel(\''+curO.order+'\')">取消订单</button>';
+  } else {
+    f.innerHTML=base;
+  }
+}
+function closeD(){document.getElementById('mask').classList.remove('on');document.getElementById('drawer').classList.remove('on');}
+
+/* 取消订单 */
+function openCancel(order){cancelTarget=order;document.getElementById('cancelModal').classList.add('on');}
+function closeCancel(){document.getElementById('cancelModal').classList.remove('on');}
+function confirmCancel(){
+  if(!cancelTarget)return;
+  ORDERS.forEach(function(o){if(o.order===cancelTarget){o.status='已取消';o.pay='未支付';o.ship='—';o.log.push({t:new Date().toLocaleString('zh-CN')+' 运营手动取消订单'});}});
+  closeCancel();closeD();render();toast('已取消订单：'+cancelTarget);
+}
+
+(function(){var id=new URLSearchParams(location.search).get('id');if(id){setTimeout(function(){openD(id);},120);}})();
+
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},2200);}
+
+render();
+</script>
+</body>
+</html>

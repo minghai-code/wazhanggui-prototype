@@ -12,13 +12,14 @@
  *   - 每个菜单项必须写在同一行内（包含 name / page / status / points）
  *   - page 为已有原型文件名；page 为 null 表示「开发中」，渲染时自动指向 developing.html
  *   - status: 'done' = 已有原型（page 必须有值）；'dev' = 开发中（page 必须为 null）
+ *   - status: 'ext' = 外采原样（由外采系统承载，无原型页，page 必须为 null，check-menu 放行）
  *   - points: 规划要点数组，取自《功能架构（完整版）》三级功能点，用于占位页展示
  *
  * 【顺序】数组顺序 = 侧边栏展示顺序，调整顺序即移动数组元素，勿复制粘贴
  * ========================================================================== */
 
-window.MENU_VERSION = '2026.09.09-03';
-window.MENU_UPDATED = '2026-09-09';
+window.MENU_VERSION = '2026.09.17-01';
+window.MENU_UPDATED = '2026-09-17';
 
 window.MENU_DATA = [
 
@@ -127,7 +128,15 @@ window.MENU_DATA = [
     { type: 'item', name: '店铺管理', page: 'mall-shop.html', status: 'done', points: ['普通店铺', '品牌店铺（品牌馆展示）', '开通入驻商户身份'] },
     { type: 'item', name: '商品管理', page: 'mall-ops.html', status: 'done', points: ['袜品', 'AI自动审核', '上下架管控'] },
     { type: 'item', name: '视频管理', page: null, status: 'dev', points: ['商家视频上传', '下架'] },
-    { type: 'item', name: '订单管理', page: null, status: 'dev', points: ['普通订单', '拼单集采', '定制订单（个性小批量/企业大批量）', '询价订单（采购需求清单）'] },
+    { type: 'item', name: '采购询价需求管理', page: 'mall-inquiry.html', status: 'done', points: ['需求列表（发布人/需求详情/竞价人/竞价详情）', '成交人及关联订单', '违规下架/关闭'] },
+    { type: 'item', name: '个性定制需求管理', page: null, status: 'dev', points: ['需求列表（三种类型：仅打样/直接大货/先打样后大货）', '竞价详情', '关联定制订单'] },
+    { type: 'group', name: '订单管理', items: [
+      { type: 'item', name: '普通订单', page: null, status: 'ext', points: ['外采 igshop 系统承载，无需改造，开发直接看外采系统'] },
+      { type: 'item', name: '采购询价订单', page: 'mall-order-inquiry.html', status: 'done', points: ['可关联原始需求单', '字段对齐普通订单 + 询价个性化（需求溯源/成交报价/交期承诺）'] },
+      { type: 'item', name: '拼单集采订单', page: null, status: 'dev', points: ['拼单发起人', '拼单参与人'] },
+      { type: 'item', name: '样品打样订单', page: null, status: 'dev', points: ['可关联原始需求单', '可关联定制主订单（先打样后大货）'] },
+      { type: 'item', name: '定制订单', page: null, status: 'dev', points: ['个性小批量（可关联需求单）', '企业大批量（可关联需求单和打样单）'] }
+    ]},
     { type: 'item', name: '营销运营', page: null, status: 'dev', points: ['团购活动', '秒杀活动', '新品发售', '尾货专区', '细分主题'] },
     { type: 'item', name: '热搜词管理', page: 'trend-data.html', status: 'done', points: ['关键词热度列表', '置顶', '隐藏'] },
     { type: 'item', name: '推荐位管理', page: null, status: 'dev', points: ['线下商场商铺推荐位'] },
