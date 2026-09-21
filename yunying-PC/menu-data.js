@@ -217,7 +217,7 @@ window.MENU_DATA = [
     ]},
     { type: 'group', name: '袜博会', items: [
       { type: 'item', name: '袜博会列表', page: 'expo-list.html', status: 'done', points: ['创建（基本信息/展会介绍）', '每届信息（编辑删除、关联信息）', '栏目化配置一键同步'] },
-      { type: 'item', name: '展位申请管理', page: 'expo-booth.html', status: 'done', points: ['待审批', '已通过', '已驳回', '展位可视化分配', '缴费状态'] },
+      { type: 'item', name: '展位申请管理', page: 'expo-booth.html', status: 'done', points: ['待审批', '已通过', '已驳回', '展位由展商在买家端自选', '缴费状态'] },
       { type: 'item', name: '参观申请管理', page: 'expo-visitor.html', status: 'done', points: ['待审批', '已通过', '已驳回', '名单导出', '观众画像统计'] },
       { type: 'item', name: '参展商管理', page: 'expo-exhibitor.html', status: 'done', points: ['展商列表', '详情', '展位信息', '企业资料状态'] },
       { type: 'item', name: '日程安排管理', page: 'expo-schedule-manage.html', status: 'done', points: ['新建日程', '日程列表', '议程详情与嘉宾', '发布与变更通知'] },
