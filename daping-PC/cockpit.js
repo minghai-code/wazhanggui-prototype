@@ -170,11 +170,23 @@
     var mask=document.createElement('div');mask.className='topic-mask show';
     mask.innerHTML='<div class="topic-modal" style="--tmc:'+(opt.color||'#22d3ee')+'">'+
       '<div class="tm-head"><div class="tm-title"><i class="fa-solid '+(opt.icon||'fa-chart-line')+'"></i>'+opt.title+'</div>'+
-      '<div class="tm-sub">'+(opt.sub||'')+'</div><div class="tm-pills"></div>'+
+      '<div class="tm-sub">'+(opt.sub||'')+'</div>'+
+      (opt.tabs&&opt.tabs.length?'<div class="tm-tabs"></div>':'')+
+      '<div class="tm-pills"></div>'+
       '<button class="tm-close" title="关闭"><i class="fa-solid fa-xmark"></i></button></div>'+
       '<div class="tm-body"></div></div>';
     document.body.appendChild(mask);
-    var body=mask.querySelector('.tm-body'),pills=mask.querySelector('.tm-pills');
+    var body=mask.querySelector('.tm-body'),pills=mask.querySelector('.tm-pills'),tabsBar=mask.querySelector('.tm-tabs');
+    if(tabsBar){(opt.tabs||[]).forEach(function(t){
+      var s=document.createElement('span');
+      s.className='tm-tab'+(((opt.activeTab||opt.tabs[0][0])===t[0])?' on':'');s.textContent=t[1];
+      s.onclick=function(){
+        tabsBar.querySelectorAll('.tm-tab').forEach(function(x){x.classList.remove('on');});
+        s.classList.add('on');
+        if(opt.onTab)opt.onTab(t[0]);
+      };
+      tabsBar.appendChild(s);
+    });}
     (opt.ranges||['今日','近7天','近30天','本年']).forEach(function(r){
       var p=document.createElement('span');
       p.className='pill'+((opt.range||'近7天')===r?' on':'');p.textContent=r;
