@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>商城运营 - 商户列表</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>
+tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D','primary-d':'#E63E20','primary-l':'#FF7849'}}}}
+</script>
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}
+.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}
+.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}
+.lk:hover{text-decoration:underline}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}
+.lk-gray:hover{color:#1F2430;text-decoration:underline}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:40}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:520px;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:50;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.fl{display:block;font-size:11px;color:#94A3B8;margin-bottom:4px}
+.fl i{color:#FF4D2D;font-style:normal;margin-right:2px}
+.fi{width:100%;padding:7px 10px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none;background:#fff}
+.fi:focus{border-color:#FF4D2D}
+.status-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500}
+.type-radio{display:flex;align-items:center;gap:8px;border:1px solid #E2E8F0;border-radius:10px;padding:10px 12px;cursor:pointer;transition:.15s}
+.type-radio:hover{border-color:#FDB4A3}
+.type-radio.on{border-color:#FF4D2D;background:#FFF6F3}
+</style>
+</head>
+<body>
+<div class="p-6">
+
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">商户列表</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">10 商城运营 · 商户管理</span>
+      </div>
+      <p class="text-[12px] text-gray-400 mt-1">入驻商城的商户档案管理；商户可绑定店铺、认证信息维护</p>
+    </div>
+    <button class="btn btn-primary" onclick="openEdit('new')"><i class="fas fa-plus mr-1"></i>添加商户</button>
+  </div>
+
+  <!-- 筛选 -->
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+    <div class="flex items-center gap-3 flex-wrap">
+      <input id="f-name" type="text" placeholder="输入商户名称" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary w-56">
+      <select id="f-type" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部商户类型</option><option>企业认证</option><option>个人认证</option>
+      </select>
+      <select id="f-cert" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部认证状态</option><option>正常</option><option>已过期</option>
+      </select>
+      <button class="btn btn-primary" onclick="doSearch()">搜索</button>
+      <button class="btn btn-ghost" onclick="resetSearch()">重置</button>
+    </div>
+  </div>
+
+  <!-- 表格 -->
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <table class="w-full text-[13px]">
+      <thead>
+        <tr class="bg-gray-50 text-gray-500 text-[12px]">
+          <th class="px-4 py-3 text-left font-medium">商户所属单位</th>
+          <th class="px-4 py-3 text-left font-medium">商户所属会员(ID)</th>
+          <th class="px-4 py-3 text-left font-medium">商户类型</th>
+          <th class="px-4 py-3 text-left font-medium">管理员</th>
+          <th class="px-4 py-3 text-left font-medium">已绑定店铺</th>
+          <th class="px-4 py-3 text-left font-medium">认证状态</th>
+          <th class="px-4 py-3 text-left font-medium">认证日期</th>
+          <th class="px-4 py-3 text-center font-medium">操作</th>
+        </tr>
+      </thead>
+      <tbody id="tb" class="divide-y divide-gray-50"></tbody>
+    </table>
+    <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+      <span class="text-[12px] text-gray-400" id="page-info">共 6 条记录，第 1-6 条</span>
+      <div class="flex items-center gap-1">
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100"><i class="fas fa-chevron-left text-[10px]"></i></button>
+        <button class="w-7 h-7 flex items-center justify-center text-white text-[12px] rounded" style="background:#FF4D2D">1</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100"><i class="fas fa-chevron-right text-[10px]"></i></button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- 遮罩 -->
+<div id="mask" class="mask" onclick="closeAll()"></div>
+
+<!-- 添加/编辑商户 抽屉 -->
+<div id="drawer" class="drawer">
+  <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+    <h3 class="text-[15px] font-bold text-[#1F2430]" id="drawer-title">添加商户</h3>
+    <button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button>
+  </div>
+  <div class="flex-1 overflow-y-auto px-5 py-4">
+    <div class="mb-4">
+      <label class="fl"><i>*</i>商户所属单位</label>
+      <input id="e-org" class="fi" placeholder="请输入商户所属单位名称">
+    </div>
+    <div class="mb-4">
+      <label class="fl"><i>*</i>商户所属会员(ID)</label>
+      <input id="e-member" class="fi" placeholder="如 dz_10101">
+    </div>
+    <div class="mb-4">
+      <label class="fl"><i>*</i>商户类型</label>
+      <div class="grid grid-cols-2 gap-2" id="type-box">
+        <div class="type-radio on" data-t="企业认证" onclick="pickType(this)">
+          <i class="fas fa-building text-[13px] text-blue-500"></i>
+          <div><p class="text-[12px] font-semibold text-[#1F2430]">企业认证</p><p class="text-[10px] text-gray-400">营业执照认证</p></div>
+        </div>
+        <div class="type-radio" data-t="个人认证" onclick="pickType(this)">
+          <i class="fas fa-user text-[13px] text-gray-500"></i>
+          <div><p class="text-[12px] font-semibold text-[#1F2430]">个人认证</p><p class="text-[10px] text-gray-400">身份证实名认证</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="mb-4">
+      <label class="fl"><i>*</i>管理员</label>
+      <input id="e-admin" class="fi" placeholder="管理员账号名">
+    </div>
+    <div class="mb-4">
+      <label class="fl">认证资料</label>
+      <label class="flex items-center gap-3 cursor-pointer">
+        <span class="w-16 h-16 rounded-lg border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-300 hover:border-primary hover:text-primary transition" id="cert-preview">
+          <i class="fas fa-image text-lg"></i><span class="text-[10px] mt-0.5">添加图片</span>
+        </span>
+        <input type="file" accept="image/*" class="hidden" onchange="pickCert(this)">
+      </label>
+      <p class="text-[11px] text-gray-400 mt-1.5">营业执照 / 身份证等认证材料</p>
+    </div>
+  </div>
+  <div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">
+    <button class="btn btn-ghost" onclick="closeAll()">取消</button>
+    <button class="btn btn-primary" onclick="save()">确认</button>
+  </div>
+</div>
+
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[70]"></div>
+
+<script>
+var merchants=[
+  {id:1,org:'大唐袜业集团',ent:true,member:'datang',type:'企业认证',admin:'datang',shops:1,cert:'正常',date:'2026-09-16 15:00'},
+  {id:2,org:'丹吉娅袜业',ent:true,member:'danjya',type:'企业认证',admin:'danjya01',shops:1,cert:'正常',date:'2026-09-15 11:20'},
+  {id:3,org:'步人堂针织',ent:true,member:'burentang',type:'企业认证',admin:'burentang',shops:1,cert:'正常',date:'2026-09-12 09:47'},
+  {id:4,org:'花间舞袜业',ent:true,member:'huajianwu',type:'企业认证',admin:'huajianwu',shops:1,cert:'正常',date:'2026-09-10 14:33'},
+  {id:5,org:'宝娜斯袜业',ent:true,member:'baonasi',type:'企业认证',admin:'baonasi',shops:1,cert:'已过期',date:'2025-09-10 10:15'},
+  {id:6,org:'个体-张伟',ent:false,member:'dz_10110',type:'个人认证',admin:'zhangwei',shops:0,cert:'正常',date:'2026-09-08 17:02'}
+];
+var editId=null;
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},2200);}
+
+function certBadge(s){return s==='正常'?'<span class="status-badge bg-green-50 text-green-600"><i class="fas fa-circle text-[5px]"></i>正常</span>':'<span class="status-badge bg-red-50 text-red-500">已过期</span>';}
+function render(list){
+  var rows=list||merchants,h='';
+  rows.forEach(function(m){
+    h+='<tr class="hover:bg-gray-50 transition">'
+      +'<td class="px-4 py-3"><div class="flex items-center gap-1.5">'+(m.ent?'<span class="tag" style="background:#ECFDF5;color:#059669"><i class="fas fa-building text-[9px]"></i>企业</span>':'<span class="tag bg-gray-100 text-gray-500"><i class="fas fa-user text-[9px]"></i>个人</span>')+'<span class="font-medium text-gray-800">'+m.org+'</span></div></td>'
+      +'<td class="px-4 py-3 text-gray-600">'+m.member+'</td>'
+      +'<td class="px-4 py-3 text-gray-600">'+m.type+'</td>'
+      +'<td class="px-4 py-3 text-gray-600">'+m.admin+'</td>'
+      +'<td class="px-4 py-3 text-gray-600">'+m.shops+'</td>'
+      +'<td class="px-4 py-3">'+certBadge(m.cert)+'</td>'
+      +'<td class="px-4 py-3 text-gray-400">'+m.date+'</td>'
+      +'<td class="px-4 py-3 text-center whitespace-nowrap"><span class="lk" onclick="detail('+m.id+')">详情</span> · <span class="lk" onclick="openEdit('+m.id+')">编辑</span> · <span class="lk-gray" onclick="del('+m.id+')">删除</span></td>'
+      +'</tr>';
+  });
+  if(!rows.length){h='<tr><td colspan="8" class="px-4 py-16 text-center text-gray-300"><i class="fas fa-inbox text-3xl block mb-2"></i><span class="text-[12px]">暂无数据</span></td></tr>';}
+  document.getElementById('tb').innerHTML=h;
+  document.getElementById('page-info').textContent='共 '+rows.length+' 条记录';
+}
+function doSearch(){
+  var n=document.getElementById('f-name').value.trim(),t=document.getElementById('f-type').value,c=document.getElementById('f-cert').value;
+  render(merchants.filter(function(m){return (!n||m.org.indexOf(n)>-1)&&(!t||m.type===t)&&(!c||m.cert===c);}));
+}
+function resetSearch(){document.getElementById('f-name').value='';document.getElementById('f-type').value='';document.getElementById('f-cert').value='';render();}
+
+function openEdit(id){
+  editId=id;
+  document.getElementById('drawer-title').textContent=id==='new'?'添加商户':'编辑商户';
+  var m=id==='new'?{org:'',member:'',type:'企业认证',admin:''}:merchants.find(function(x){return x.id===id;});
+  document.getElementById('e-org').value=m.org;
+  document.getElementById('e-member').value=m.member;
+  document.getElementById('e-admin').value=m.admin;
+  document.querySelectorAll('#type-box .type-radio').forEach(function(r){r.classList.toggle('on',r.getAttribute('data-t')===m.type);});
+  document.getElementById('mask').classList.add('on');
+  document.getElementById('drawer').classList.add('on');
+}
+function pickType(el){
+  document.querySelectorAll('#type-box .type-radio').forEach(function(r){r.classList.remove('on')});
+  el.classList.add('on');
+}
+function pickCert(input){
+  if(input.files[0]){document.getElementById('cert-preview').innerHTML='<i class="fas fa-check text-green-500 text-lg"></i><span class="text-[10px] mt-0.5 text-green-500" style="max-width:56px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+input.files[0].name+'</span>';toast('认证资料已选择：'+input.files[0].name);}
+}
+function save(){
+  var org=document.getElementById('e-org').value.trim(),member=document.getElementById('e-member').value.trim(),admin=document.getElementById('e-admin').value.trim();
+  var type=document.querySelector('#type-box .type-radio.on').getAttribute('data-t');
+  if(!org){toast('请输入商户所属单位');return;}
+  if(!member){toast('请输入商户所属会员(ID)');return;}
+  if(!admin){toast('请输入管理员账号');return;}
+  if(editId==='new'){merchants.unshift({id:Date.now(),org:org,ent:type==='企业认证',member:member,type:type,admin:admin,shops:0,cert:'正常',date:'2026-09-23 10:30'});toast('商户「'+org+'」已添加');}
+  else{var m=merchants.find(function(x){return x.id===editId;});if(m){m.org=org;m.ent=type==='企业认证';m.member=member;m.type=type;m.admin=admin;toast('已保存修改');}}
+  closeAll();render();
+}
+function detail(id){var m=merchants.find(function(x){return x.id===id;});toast('商户详情：'+m.org+' · '+m.type+' · 绑定店铺 '+m.shops+' 家');}
+function del(id){
+  var m=merchants.find(function(x){return x.id===id;});
+  if(m.shops>0){toast('该商户已绑定 '+m.shops+' 家店铺，不可删除');return;}
+  merchants=merchants.filter(function(x){return x.id!==id;});toast('商户「'+m.org+'」已删除');render();
+}
+function closeAll(){document.getElementById('mask').classList.remove('on');document.getElementById('drawer').classList.remove('on');}
+render();
+</script>
+<!-- ===== 修改说明（商城运营 · 右下角） ===== -->
+<style>
+.mn-fab{position:fixed;right:22px;bottom:22px;z-index:30;display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:999px;border:1px solid #FDB4A3;background:#fff;color:#E63E20;font-size:12px;font-weight:600;cursor:pointer;box-shadow:0 8px 22px rgba(255,77,45,.20);font-family:inherit}
+.mn-fab:hover{background:#FFF6F3}
+.mn-mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:80}
+.mn-mask.on{opacity:1;pointer-events:auto}
+.mn-modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);width:580px;max-width:92vw;max-height:82vh;overflow-y:auto;background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(15,23,42,.28);opacity:0;pointer-events:none;transition:.22s;z-index:90}
+.mn-modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+.mn-li{display:flex;gap:8px;font-size:12.5px;color:#334155;line-height:1.75}
+.mn-li i{margin-top:5px;font-size:8px;flex-shrink:0}
+</style>
+<button class="mn-fab" onclick="openNote()"><i class="fas fa-circle-info"></i><span>修改说明</span></button>
+<div id="mn-mask" class="mn-mask" onclick="closeNote()"></div>
+<div id="mn-modal" class="mn-modal"></div>
+<script>
+/* 开发修改说明　ext：请以外采系统为准　mod：请以本次修改内容为准 */
+var NOTE_TITLE='商户列表';
+var NOTE_PENDING=false;
+var NOTE_EXT=[
+  '本页全部内容以外采 igshop 系统为准：商户列表、商户档案（企业认证 / 个人认证）、已绑定店铺数与认证状态、添加 / 编辑 / 删除，以及页内所有按钮及其二级页面。',
+  '原型页面仅作占位示意，开发请直接对照外采系统实现。'
+];
+var NOTE_MOD=[];
+function noteItems(arr,color,empty){
+  if(!arr||!arr.length){return '<div class="mn-li" style="color:#94A3B8">'+empty+'</div>';}
+  return arr.map(function(t){return '<div class="mn-li"><i class="fas fa-circle" style="color:'+color+'"></i><span>'+t+'</span></div>';}).join('');
+}
+function openNote(){
+  var h='<div class="flex items-start justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">开发修改说明</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+NOTE_TITLE+'　·　商城运营（外采 igshop 系统）'+(NOTE_PENDING?'　·　<span style="color:#E63E20">待补充</span>':'')+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeNote()"><i class="fas fa-xmark"></i></button></div>'
+    +'<div class="px-5 py-4" style="display:flex;flex-direction:column;gap:14px">'
+    +'<div class="rounded-xl border p-4" style="border-color:#FDE68A;background:#FFFBEB">'
+    +'<div class="text-[12.5px] font-bold mb-2" style="color:#B45309"><i class="fas fa-triangle-exclamation mr-1"></i>请以外采系统为准</div>'
+    +noteItems(NOTE_EXT,'#F59E0B','无')+'</div>'
+    +'<div class="rounded-xl border p-4" style="border-color:#FDB4A3;background:#FFF6F3">'
+    +'<div class="text-[12.5px] font-bold mb-2" style="color:#E63E20"><i class="fas fa-pen-to-square mr-1"></i>请以本次修改内容为准</div>'
+    +noteItems(NOTE_MOD,'#FF4D2D','本页无本次修改内容，全部以外采系统为准')+'</div></div>'
+    +'<div class="px-5 py-3.5 border-t border-gray-100 flex justify-end">'
+    +'<button class="px-4 py-2 rounded-lg text-[12px] font-semibold text-white" style="background:#FF4D2D" onclick="closeNote()">知道了</button></div>';
+  var m=document.getElementById('mn-modal');
+  m.innerHTML=h;
+  document.getElementById('mn-mask').classList.add('on');
+  m.classList.add('on');
+}
+function closeNote(){
+  document.getElementById('mn-mask').classList.remove('on');
+  document.getElementById('mn-modal').classList.remove('on');
+}
+</script>
+</body>
+</html>

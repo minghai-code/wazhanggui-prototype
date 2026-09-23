@@ -18,8 +18,8 @@
  * 【顺序】数组顺序 = 侧边栏展示顺序，调整顺序即移动数组元素，勿复制粘贴
  * ========================================================================== */
 
-window.MENU_VERSION = '2026.09.17-01';
-window.MENU_UPDATED = '2026-09-17';
+window.MENU_VERSION = '2026.09.23-01';
+window.MENU_UPDATED = '2026-09-23';
 
 window.MENU_DATA = [
 
@@ -125,7 +125,16 @@ window.MENU_DATA = [
 {
   id: '10-mall', name: '商城运营', icon: 'fa-shop', open: false,
   children: [
-    { type: 'item', name: '店铺管理', page: 'mall-shop.html', status: 'done', points: ['普通店铺', '品牌店铺（品牌馆展示）', '开通入驻商户身份'] },
+    { type: 'group', name: '店铺管理', items: [
+      { type: 'item', name: '店铺列表', page: 'mall-shop-list.html', status: 'done', points: ['对齐外采 igshop', '新增/编辑店铺（名称/LOGO/所属商户）', '店铺类型：普通店铺/品牌店铺（品牌馆展示）/自营店铺'] },
+      { type: 'item', name: '店铺设置', page: 'mall-shop-setting.html', status: 'done', points: ['对齐外采 igshop', '商品审核开关（商品默认审核通过）', '推荐商品数量/最大管理员数', '自营店铺展示名称'] }
+    ]},
+    { type: 'group', name: '商户管理', items: [
+      { type: 'item', name: '入驻申请', page: 'mall-merchant-apply.html', status: 'done', points: ['对齐外采 igshop', '状态筛选：全部/待审核/审核通过/审核未通过', '审核通过/驳回（通知申请人）'] },
+      { type: 'item', name: '商户列表', page: 'mall-merchant-list.html', status: 'done', points: ['对齐外采 igshop', '商户档案（企业认证/个人认证）', '已绑定店铺数/认证状态', '添加/编辑/删除'] },
+      { type: 'item', name: '商户设置', page: 'mall-merchant-setting.html', status: 'done', points: ['对齐外采 igshop', '允许个人入驻/入驻需审核', '单商户最大店铺数量', '入驻协议内容（富文本）'] },
+      { type: 'item', name: '招商内容', page: 'mall-merchant-recruit.html', status: 'done', points: ['对齐外采 igshop', '招商Banner/合作模式/流程图', '招商计划/招商标准/入驻流程', '同步买家端招商页'] }
+    ]},
     { type: 'item', name: '商品管理', page: 'mall-ops.html', status: 'done', points: ['袜品', 'AI自动审核', '上下架管控'] },
     { type: 'item', name: '视频管理', page: null, status: 'dev', points: ['商家视频上传', '下架'] },
     { type: 'item', name: '采购询价需求管理', page: 'mall-inquiry.html', status: 'done', points: ['需求列表（发布人/需求详情/竞价人/竞价详情）', '成交人及关联订单', '违规下架/关闭'] },

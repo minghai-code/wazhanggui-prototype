@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>商城运营 - 新增商品</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>
+tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D','primary-d':'#E63E20','primary-l':'#FF7849'}}}}
+</script>
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#f1f5f9}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.fi{width:100%;padding:6px 10px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none;background:#fff}
+.fi:focus{border-color:#FF4D2D}
+.fl{display:block;font-size:11px;color:#94A3B8;margin-bottom:4px}
+.fl i{color:#FF4D2D;font-style:normal;margin-right:2px}
+.newbox{border:1px solid #FDB4A3;background:#FFF6F3;border-radius:12px;padding:14px 16px}
+.newtag{background:#FF4D2D;color:#fff;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700;margin-left:6px;vertical-align:1px}
+.opt{display:inline-flex;align-items:center;gap:6px;border:1px solid #E2E8F0;border-radius:8px;padding:6px 12px;font-size:12px;color:#334155;cursor:pointer;background:#fff;transition:.15s}
+.opt:hover{border-color:#FDB4A3}
+.opt.on{border-color:#FF4D2D;background:#FFF6F3;color:#E63E20;font-weight:600}
+.ti{width:100%;padding:5px 8px;border:1px solid #E2E8F0;border-radius:6px;font-size:12px;outline:none}
+.ti:focus{border-color:#FF4D2D}
+.tier-btn{font-size:11px;padding:3px 9px;border-radius:6px;border:1px solid #FDB4A3;background:#FFF6F3;color:#E63E20;cursor:pointer;font-weight:600}
+.tier-btn:hover{background:#FFEDE7}
+.tier-btn.warn{border-color:#FDE68A;background:#FFFBEB;color:#B45309}
+.del{color:#94A3B8;font-size:11px;cursor:pointer}
+.del:hover{color:#EF4444}
+.tabbtn{padding:12px 16px;font-size:13px;color:#64748B;cursor:pointer;border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none}
+.tabbtn.on{color:#FF4D2D;border-bottom-color:#FF4D2D;font-weight:700}
+.mn-fab{position:fixed;right:22px;bottom:22px;z-index:30;display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:999px;border:1px solid #FDB4A3;background:#fff;color:#E63E20;font-size:12px;font-weight:600;cursor:pointer;box-shadow:0 8px 22px rgba(255,77,45,.20);font-family:inherit}
+.mn-fab:hover{background:#FFF6F3}
+.mn-mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:80}
+.mn-mask.on{opacity:1;pointer-events:auto}
+.mn-modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);width:580px;max-width:92vw;max-height:82vh;overflow-y:auto;background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(15,23,42,.28);opacity:0;pointer-events:none;transition:.22s;z-index:90}
+.mn-modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+.mn-li{display:flex;gap:8px;font-size:12.5px;color:#334155;line-height:1.75}
+.mn-li i{margin-top:5px;font-size:8px;flex-shrink:0}
+.tm-mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:60}
+.tm-mask.on{opacity:1;pointer-events:auto}
+.tm-modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);width:640px;max-width:94vw;max-height:84vh;overflow-y:auto;background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(15,23,42,.28);opacity:0;pointer-events:none;transition:.22s;z-index:70}
+.tm-modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+</style>
+</head>
+<body>
+
+<div class="p-6">
+
+  <!-- 页面标题 -->
+  <div class="flex items-start justify-between mb-4">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">新增商品</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">10 商城运营 · 商品管理</span>
+        <span class="tag" style="background:#FFEDE7;color:#E63E20">本次修改点</span>
+      </div>
+      <p class="text-[12px] text-gray-400 mt-1">页面结构、Tab 与字段一律以外采 igshop「添加商品」为准；本原型只还原「销售信息」中<b style="color:#E63E20">本次新增</b>的两处改造点</p>
+    </div>
+    <a href="mall-ops.html" class="px-3 py-1.5 rounded-lg text-[12px] text-[#64748B] border border-gray-200 bg-white hover:border-[#CBD5E1]"><i class="fas fa-arrow-left text-[10px] mr-1"></i>返回商品管理</a>
+  </div>
+
+  <!-- 表单主体 -->
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden mb-4">
+
+    <!-- Tab -->
+    <div class="flex items-center px-2 border-b border-gray-100" id="tabBar"></div>
+
+    <!-- 基本信息（外采为准） -->
+    <div class="p-5" id="tab-base" style="display:none">
+      <div class="rounded-xl border p-4" style="border-color:#FDE68A;background:#FFFBEB">
+        <div class="text-[12.5px] font-bold mb-1" style="color:#B45309"><i class="fas fa-triangle-exclamation mr-1"></i>本 Tab 以外采系统为准</div>
+        <p class="text-[12px] text-[#64748B] leading-6">外采「添加商品 - 基本信息」字段较多（商品名称、商品分类、商品品牌、所属店铺、商品单位、商品图片 / 视频、商品卖点、上架时间等），本原型不做还原，开发请直接对照外采系统实现。</p>
+      </div>
+    </div>
+
+    <!-- 销售信息 -->
+    <div class="p-5" id="tab-sale">
+
+      <!-- 商品属性（照搬外采） -->
+      <div class="mb-5">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-[12.5px] font-bold text-[#1F2430]">商品属性 <span class="text-[10px] font-normal text-[#94A3B8]">（照搬外采）</span></span>
+          <button class="text-[12px] text-[#FF4D2D] hover:underline" onclick="addAttr()"><i class="fas fa-plus text-[10px] mr-1"></i>添加商品属性</button>
+        </div>
+        <div class="space-y-2" id="attrList"></div>
+      </div>
+
+      <!-- ===== 本次新增 ① 是否支持拼单 ===== -->
+      <div class="newbox mb-5">
+        <div class="flex items-center mb-3">
+          <span class="text-[12.5px] font-bold" style="color:#E63E20"><i class="fas fa-pen-to-square mr-1"></i>是否支持拼单</span>
+          <span class="newtag">本次新增</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="opt on" id="grp-y" onclick="pickGroup(1)"><i class="far fa-circle-check"></i>支持拼单</span>
+          <span class="opt" id="grp-n" onclick="pickGroup(0)"><i class="far fa-circle"></i>不支持拼单</span>
+        </div>
+        <p class="text-[11px] text-[#64748B] mt-2 leading-5">
+          选择「支持拼单」后，买家端 <b>商品详情页</b> 除「立即下单」外，额外出现「发起拼单」按钮（可与他人拼同一商品、按阶梯价成交）；选择「不支持拼单」时买家端只保留「立即下单」。
+        </p>
+      </div>
+
+      <!-- 销售规格（照搬外采） -->
+      <div class="mb-4">
+        <div class="flex items-center gap-3">
+          <span class="text-[12.5px] font-bold text-[#1F2430]">销售规格 <span class="text-[10px] font-normal text-[#94A3B8]">（照搬外采）</span></span>
+          <span class="opt on" id="mode-single" onclick="pickMode('single')"><i class="far fa-circle-check"></i>统一规格</span>
+          <span class="opt" id="mode-multi" onclick="pickMode('multi')"><i class="far fa-circle"></i>多规格</span>
+        </div>
+      </div>
+
+      <!-- 统一规格 -->
+      <div class="mb-5" id="box-single" style="display:none">
+        <div class="grid grid-cols-3 gap-3 mb-3">
+          <div><label class="fl"><i>*</i>一口价（元）</label><input class="fi" value="3.50"></div>
+          <div><label class="fl"><i>*</i>库存（双）</label><input class="fi" value="1200"></div>
+          <div><label class="fl">市场价（元）</label><input class="fi" value="5.00"></div>
+          <div><label class="fl">成本价（元）</label><input class="fi" value="2.60"></div>
+          <div><label class="fl">规格编码</label><input class="fi" value="DT-CM-QC-JM"></div>
+          <div class="flex items-end"><span class="text-[11px] text-[#94A3B8]">外采统一规格仅支持一口价</span></div>
+        </div>
+
+        <!-- 本次新增 ② 阶梯价（统一规格） -->
+        <div class="newbox">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[12.5px] font-bold" style="color:#E63E20"><i class="fas fa-layer-group mr-1"></i>阶梯价设置（统一规格）</span>
+            <span class="newtag">本次新增</span>
+          </div>
+          <div class="rounded-lg border border-gray-100 overflow-hidden bg-white">
+            <table class="w-full text-[12px]">
+              <thead>
+                <tr class="bg-gray-50 text-gray-500 text-[11px]">
+                  <th class="px-3 py-2 text-left font-medium">起始数量（双）</th>
+                  <th class="px-3 py-2 text-left font-medium">结束数量（双）</th>
+                  <th class="px-3 py-2 text-left font-medium">阶梯单价（元 / 双）</th>
+                  <th class="px-3 py-2 text-center font-medium">操作</th>
+                </tr>
+              </thead>
+              <tbody id="singleTierBody"></tbody>
+            </table>
+          </div>
+          <div class="flex items-center justify-between mt-2">
+            <button class="text-[12px] text-[#FF4D2D] hover:underline" onclick="addTier('single')"><i class="fas fa-plus text-[10px] mr-1"></i>添加档位</button>
+            <span class="text-[11px] text-[#94A3B8]">结束数量留空表示「以上」；买家端按实际下单数量落档计价</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 多规格 -->
+      <div class="mb-5" id="box-multi">
+        <div class="newbox mb-4">
+          <div class="text-[12.5px] font-bold mb-3" style="color:#E63E20"><i class="fas fa-list mr-1"></i>商品规格</div>
+          <div class="space-y-4" id="dimList"></div>
+          <button class="text-[12px] text-[#FF4D2D] hover:underline mt-3" onclick="addDim()"><i class="fas fa-plus text-[10px] mr-1"></i>添加商品规格</button>
+        </div>
+
+        <div class="newbox">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[12.5px] font-bold" style="color:#E63E20"><i class="fas fa-layer-group mr-1"></i>规格明细 · 每个规格均可独立设置阶梯价</span>
+            <span class="newtag">本次新增</span>
+          </div>
+          <div class="rounded-lg border border-gray-100 overflow-hidden bg-white overflow-x-auto">
+            <table class="w-full text-[12px]" style="min-width:900px">
+              <thead>
+                <tr class="bg-gray-50 text-gray-500 text-[11px]">
+                  <th class="px-3 py-2 text-left font-medium">规格组合</th>
+                  <th class="px-3 py-2 text-left font-medium">一口价（元）</th>
+                  <th class="px-3 py-2 text-left font-medium">库存</th>
+                  <th class="px-3 py-2 text-left font-medium">市场价</th>
+                  <th class="px-3 py-2 text-left font-medium">成本价</th>
+                  <th class="px-3 py-2 text-left font-medium">规格编码</th>
+                  <th class="px-3 py-2 text-left font-medium" style="color:#E63E20">阶梯价</th>
+                  <th class="px-3 py-2 text-center font-medium">操作</th>
+                </tr>
+              </thead>
+              <tbody id="specBody"></tbody>
+            </table>
+          </div>
+          <p class="text-[11px] text-[#94A3B8] mt-2">原型仅展示 4 个规格组合示例；外采的批量操作 / 已启用 / 启用禁用 / 规格条码等一律照搬。</p>
+        </div>
+      </div>
+
+      <!-- 附加服务（照搬外采） -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-[12.5px] font-bold text-[#1F2430]">附加服务 <span class="text-[10px] font-normal text-[#94A3B8]">（照搬外采）</span></span>
+          <button class="text-[12px] text-[#FF4D2D] hover:underline" onclick="addSvc()"><i class="fas fa-plus text-[10px] mr-1"></i>添加商品附加服务</button>
+        </div>
+        <div class="space-y-2" id="svcList"></div>
+      </div>
+
+    </div>
+
+    <!-- 其余 Tab（外采为准） -->
+    <div class="p-5" id="tab-logi" style="display:none">
+      <div class="rounded-xl border p-4" style="border-color:#FDE68A;background:#FFFBEB">
+        <div class="text-[12.5px] font-bold mb-1" style="color:#B45309"><i class="fas fa-triangle-exclamation mr-1"></i>本 Tab 以外采系统为准</div>
+        <p class="text-[12px] text-[#64748B] leading-6">物流及配送：重量 / 体积、运费模板、发货地、物流方式、包邮设置等，一律照搬外采系统。</p>
+      </div>
+    </div>
+    <div class="p-5" id="tab-detail" style="display:none">
+      <div class="rounded-xl border p-4" style="border-color:#FDE68A;background:#FFFBEB">
+        <div class="text-[12.5px] font-bold mb-1" style="color:#B45309"><i class="fas fa-triangle-exclamation mr-1"></i>本 Tab 以外采系统为准</div>
+        <p class="text-[12px] text-[#64748B] leading-6">商品详情：详情图 / 详情描述 / 图文编辑器等，一律照搬外采系统。</p>
+      </div>
+    </div>
+    <div class="p-5" id="tab-adv" style="display:none">
+      <div class="rounded-xl border p-4" style="border-color:#FDE68A;background:#FFFBEB">
+        <div class="text-[12.5px] font-bold mb-1" style="color:#B45309"><i class="fas fa-triangle-exclamation mr-1"></i>本 Tab 以外采系统为准</div>
+        <p class="text-[12px] text-[#64748B] leading-6">高级信息：规格条码、销售模式、限购、会员价、积分、SEO 等，一律照搬外采系统。</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 底部操作 -->
+  <div class="bg-white rounded-xl border border-gray-100 px-5 py-3.5 flex items-center justify-between">
+    <span class="text-[11px] text-[#94A3B8]">确认后：支持拼单开关与各规格阶梯价将同步到买家端商品详情页</span>
+    <div class="flex items-center gap-2">
+      <button class="px-4 py-2 rounded-lg text-[12px] text-[#64748B] border border-gray-200 bg-white hover:border-[#CBD5E1]" onclick="toast('已取消（原型）')">取消</button>
+      <button class="px-4 py-2 rounded-lg text-[12px] font-semibold text-white" style="background:linear-gradient(135deg,#FF7849,#FF4D2D)" onclick="submitProduct()">确认</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- 阶梯价编辑弹层（多规格用） -->
+<div id="tm-mask" class="tm-mask" onclick="closeTier()"></div>
+<div id="tm-modal" class="tm-modal"></div>
+
+<!-- toast -->
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[95]"></div>
+
+<!-- ===== 修改说明（商城运营 · 右下角） ===== -->
+<button class="mn-fab" onclick="openNote()"><i class="fas fa-circle-info"></i><span>修改说明</span></button>
+<div id="mn-mask" class="mn-mask" onclick="closeNote()"></div>
+<div id="mn-modal" class="mn-modal"></div>
+
+<script>
+/* ================= 数据（原型态 mock） ================= */
+var TABS=[['base','基本信息'],['sale','销售信息'],['logi','物流及配送'],['detail','商品详情'],['adv','高级信息']];
+var curTab='sale';
+var SPEC_MODE='multi';      /* single 统一规格 / multi 多规格 */
+var GROUP_OK=true;          /* 是否支持拼单（本次新增） */
+var ATTRS=[{n:'品牌',v:'大唐袜业'},{n:'面料成分',v:'精梳棉80% / 氨纶20%'}];
+var DIMS=[
+  {name:'颜色',values:['藏青','黑色','深灰','卡其']},
+  {name:'尺码',values:['均码','S(35-38)','M(39-42)','L(43-46)']}
+];
+var SPECS=[
+  {id:'s1',name:'藏青 / 均码',price:'3.50',stock:'1200',market:'5.00',cost:'2.60',code:'DT-CM-QC-JM'},
+  {id:'s2',name:'藏青 / L(43-46)',price:'3.70',stock:'800',market:'5.20',cost:'2.75',code:'DT-CM-QC-L'},
+  {id:'s3',name:'黑色 / 均码',price:'3.50',stock:'960',market:'5.00',cost:'2.60',code:'DT-CM-BK-JM'},
+  {id:'s4',name:'卡其 / M(39-42)',price:'3.60',stock:'0',market:'5.10',cost:'2.68',code:'DT-CM-KQ-M'}
+];
+var TIERS={
+  single:[{min:'1',max:'99',price:'4.50'},{min:'100',max:'499',price:'3.90'},{min:'500',max:'',price:'3.50'}],
+  s1:[{min:'1',max:'99',price:'3.50'},{min:'100',max:'',price:'3.20'}],
+  s2:[{min:'1',max:'499',price:'3.70'}],
+  s3:[],
+  s4:[{min:'1',max:'',price:'3.60'}]
+};
+var SVC=[{n:'加急发货',v:'¥8.00 / 单'}];
+var tierKey=null;
+
+/* ================= 工具 ================= */
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},2400);}
+
+/* ================= Tab ================= */
+function renderTabs(){
+  document.getElementById('tabBar').innerHTML=TABS.map(function(t){
+    return '<button class="tabbtn'+(curTab===t[0]?' on':'')+'" onclick="tabGo(\''+t[0]+'\')">'+t[1]+'</button>';
+  }).join('');
+}
+function tabGo(k){
+  curTab=k;
+  renderTabs();
+  TABS.forEach(function(t){document.getElementById('tab-'+t[0]).style.display=(t[0]===k)?'block':'none';});
+}
+
+/* ================= 是否支持拼单（本次新增） ================= */
+function pickGroup(v){
+  GROUP_OK=!!v;
+  var y=document.getElementById('grp-y'),n=document.getElementById('grp-n');
+  y.className='opt'+(GROUP_OK?' on':'');
+  n.className='opt'+(!GROUP_OK?' on':'');
+  y.innerHTML=(GROUP_OK?'<i class="far fa-circle-check"></i>':'<i class="far fa-circle"></i>')+'支持拼单';
+  n.innerHTML=(!GROUP_OK?'<i class="far fa-circle-check"></i>':'<i class="far fa-circle"></i>')+'不支持拼单';
+  toast(GROUP_OK?'该商品支持拼单，买家端将出现「发起拼单」':'该商品不支持拼单，买家端仅保留「立即下单」');
+}
+
+/* ================= 销售规格 ================= */
+function pickMode(m){
+  SPEC_MODE=m;
+  document.getElementById('mode-single').className='opt'+(m==='single'?' on':'');
+  document.getElementById('mode-multi').className='opt'+(m==='multi'?' on':'');
+  document.getElementById('mode-single').innerHTML=(m==='single'?'<i class="far fa-circle-check"></i>':'<i class="far fa-circle"></i>')+'统一规格';
+  document.getElementById('mode-multi').innerHTML=(m==='multi'?'<i class="far fa-circle-check"></i>':'<i class="far fa-circle"></i>')+'多规格';
+  document.getElementById('box-single').style.display=(m==='single')?'block':'none';
+  document.getElementById('box-multi').style.display=(m==='multi')?'block':'none';
+}
+
+/* ================= 商品属性 ================= */
+function renderAttrs(){
+  document.getElementById('attrList').innerHTML=ATTRS.map(function(a,i){
+    return '<div class="flex items-center gap-2">'
+      +'<input class="fi" style="width:200px" value="'+a.n+'" oninput="setAttr('+i+',\'n\',this.value)" placeholder="属性名">'
+      +'<input class="fi" value="'+a.v+'" oninput="setAttr('+i+',\'v\',this.value)" placeholder="属性值">'
+      +'<span class="del" onclick="delAttr('+i+')"><i class="fas fa-trash"></i></span></div>';
+  }).join('')||'<p class="text-[11px] text-[#94A3B8]">暂无商品属性</p>';
+}
+function setAttr(i,f,v){ATTRS[i][f]=v;}
+function addAttr(){ATTRS.push({n:'',v:''});renderAttrs();}
+function delAttr(i){ATTRS.splice(i,1);renderAttrs();toast('已删除该属性');}
+
+/* ================= 多规格：规格维度 ================= */
+function renderDims(){
+  document.getElementById('dimList').innerHTML=DIMS.map(function(d,di){
+    var vals=d.values.map(function(v,vi){
+      return '<span class="inline-flex items-center gap-1 px-2 py-1 rounded-lg" style="background:#FFF6F3;border:1px solid #FDB4A3">'
+        +'<input style="width:74px;border:none;background:transparent;font-size:12px;outline:none;color:#334155" value="'+v+'" oninput="setDimVal('+di+','+vi+',this.value)">'
+        +'<i class="fas fa-xmark text-[10px] del" onclick="delDimVal('+di+','+vi+')"></i></span>';
+    }).join('');
+    return '<div class="flex items-start gap-2">'
+      +'<div style="width:210px"><label class="fl"><i>*</i>规格名</label>'
+      +'<input class="fi" value="'+d.name+'" placeholder="如：颜色、尺码、大小" oninput="setDimName('+di+',this.value)"></div>'
+      +'<div class="flex-1"><label class="fl">规格值</label><div class="flex flex-wrap items-center gap-2">'+vals
+      +'<button class="text-[12px] text-[#FF4D2D] hover:underline" onclick="addDimVal('+di+')"><i class="fas fa-plus text-[10px] mr-1"></i>添加规格值</button>'
+      +'</div></div>'
+      +'<span class="del mt-5" onclick="delDim('+di+')"><i class="fas fa-trash"></i></span>'
+      +'</div>';
+  }).join('');
+}
+function setDimName(i,v){DIMS[i].name=v;}
+function setDimVal(di,vi,v){DIMS[di].values[vi]=v;}
+function addDimVal(di){DIMS[di].values.push('新规格值');renderDims();}
+function delDimVal(di,vi){DIMS[di].values.splice(vi,1);renderDims();}
+function addDim(){DIMS.push({name:'',values:['']});renderDims();toast('已添加规格维度，请维护规格值后在规格明细中设置阶梯价');}
+function delDim(di){DIMS.splice(di,1);renderDims();toast('已删除该规格维度');}
+
+/* ================= 多规格：规格明细 + 阶梯价入口 ================= */
+function tierBadge(id){
+  var n=(TIERS[id]||[]).length;
+  return n? '<button class="tier-btn" onclick="openTier(\''+id+'\')">'+n+' 档 · 设置</button>'
+          : '<button class="tier-btn warn" onclick="openTier(\''+id+'\')">未设置</button>';
+}
+function renderSpecs(){
+  document.getElementById('specBody').innerHTML=SPECS.map(function(s){
+    return '<tr class="border-t border-gray-50 hover:bg-gray-50">'
+      +'<td class="px-3 py-2 text-[#1F2430] font-medium">'+s.name+'</td>'
+      +'<td class="px-3 py-2"><input class="ti" style="width:80px" value="'+s.price+'" oninput="setSpec(\''+s.id+'\',\'price\',this.value)"></td>'
+      +'<td class="px-3 py-2"><input class="ti" style="width:80px" value="'+s.stock+'" oninput="setSpec(\''+s.id+'\',\'stock\',this.value)"></td>'
+      +'<td class="px-3 py-2"><input class="ti" style="width:80px" value="'+s.market+'" oninput="setSpec(\''+s.id+'\',\'market\',this.value)"></td>'
+      +'<td class="px-3 py-2"><input class="ti" style="width:80px" value="'+s.cost+'" oninput="setSpec(\''+s.id+'\',\'cost\',this.value)"></td>'
+      +'<td class="px-3 py-2"><input class="ti" style="width:130px" value="'+s.code+'" oninput="setSpec(\''+s.id+'\',\'code\',this.value)"></td>'
+      +'<td class="px-3 py-2">'+tierBadge(s.id)+'</td>'
+      +'<td class="px-3 py-2 text-center"><span class="del" onclick="disableSpec(\''+s.id+'\')">禁用</span></td>'
+      +'</tr>';
+  }).join('');
+}
+function setSpec(id,f,v){var s=SPECS.filter(function(x){return x.id===id;})[0];if(s){s[f]=v;}}
+function disableSpec(id){var s=SPECS.filter(function(x){return x.id===id;})[0];toast('已禁用规格「'+(s?s.name:id)+'」（原型）');}
+
+/* ================= 阶梯价：通用表格 ================= */
+function tierRows(key){
+  var arr=TIERS[key]||[];
+  if(!arr.length){return '<tr><td colspan="4" class="px-3 py-6 text-center text-[12px] text-[#94A3B8]">暂未设置阶梯价，点击「添加档位」新增</td></tr>';}
+  return arr.map(function(t,i){
+    return '<tr class="border-t border-gray-50">'
+      +'<td class="px-3 py-2"><input class="ti" data-tk="'+key+'" data-ti="'+i+'" data-tf="min" value="'+t.min+'" oninput="tierSet(this)"></td>'
+      +'<td class="px-3 py-2"><input class="ti" data-tk="'+key+'" data-ti="'+i+'" data-tf="max" value="'+t.max+'" placeholder="以上" oninput="tierSet(this)"></td>'
+      +'<td class="px-3 py-2"><input class="ti" data-tk="'+key+'" data-ti="'+i+'" data-tf="price" value="'+t.price+'" oninput="tierSet(this)"></td>'
+      +'<td class="px-3 py-2 text-center"><span class="del" onclick="delTier(\''+key+'\','+i+')"><i class="fas fa-trash"></i></span></td>'
+      +'</tr>';
+  }).join('');
+}
+function tierSet(el){
+  var k=el.getAttribute('data-tk'),i=parseInt(el.getAttribute('data-ti'),10),f=el.getAttribute('data-tf');
+  if(TIERS[k]&&TIERS[k][i]){TIERS[k][i][f]=el.value;}
+}
+function addTier(key){
+  if(!TIERS[key]){TIERS[key]=[];}
+  var last=TIERS[key][TIERS[key].length-1];
+  var min=last?(parseInt(last.max||'0',10)||0)+1:1;
+  TIERS[key].push({min:String(min),max:'',price:last?last.price:''});
+  refreshTierView(key);
+  toast('已添加一档阶梯价');
+}
+function delTier(key,i){TIERS[key].splice(i,1);refreshTierView(key);toast('已删除该档位');}
+function refreshTierView(key){
+  if(key==='single'){renderSingleTiers();}
+  else{renderSpecs();if(tierKey===key){renderTierModal();}}
+}
+function renderSingleTiers(){document.getElementById('singleTierBody').innerHTML=tierRows('single');}
+
+/* ================= 阶梯价：多规格弹层 ================= */
+function openTier(id){
+  tierKey=id;
+  renderTierModal();
+  document.getElementById('tm-mask').classList.add('on');
+  document.getElementById('tm-modal').classList.add('on');
+}
+function closeTier(){
+  tierKey=null;
+  document.getElementById('tm-mask').classList.remove('on');
+  document.getElementById('tm-modal').classList.remove('on');
+}
+function renderTierModal(){
+  var s=SPECS.filter(function(x){return x.id===tierKey;})[0];
+  var h='<div class="flex items-start justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">阶梯价设置 · '+(s?s.name:'')+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">该规格的阶梯价将同步到买家端商品详情页，按实际下单数量落档计价</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeTier()"><i class="fas fa-xmark"></i></button></div>'
+    +'<div class="px-5 py-4">'
+    +'<div class="rounded-lg border border-gray-100 overflow-hidden">'
+    +'<table class="w-full text-[12px]"><thead><tr class="bg-gray-50 text-gray-500 text-[11px]">'
+    +'<th class="px-3 py-2 text-left font-medium">起始数量（双）</th>'
+    +'<th class="px-3 py-2 text-left font-medium">结束数量（双）</th>'
+    +'<th class="px-3 py-2 text-left font-medium">阶梯单价（元 / 双）</th>'
+    +'<th class="px-3 py-2 text-center font-medium">操作</th></tr></thead>'
+    +'<tbody>'+tierRows(tierKey)+'</tbody></table></div>'
+    +'<div class="flex items-center justify-between mt-2">'
+    +'<button class="text-[12px] text-[#FF4D2D] hover:underline" onclick="addTier(\''+tierKey+'\')"><i class="fas fa-plus text-[10px] mr-1"></i>添加档位</button>'
+    +'<span class="text-[11px] text-[#94A3B8]">结束数量留空表示「以上」</span></div>'
+    +'</div>'
+    +'<div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="px-4 py-2 rounded-lg text-[12px] text-[#64748B] border border-gray-200 bg-white" onclick="closeTier()">取消</button>'
+    +'<button class="px-4 py-2 rounded-lg text-[12px] font-semibold text-white" style="background:#FF4D2D" onclick="saveTier()">保存</button></div>';
+  document.getElementById('tm-modal').innerHTML=h;
+}
+function saveTier(){var n=(TIERS[tierKey]||[]).length;toast('已保存 '+n+' 档阶梯价');closeTier();}
+
+/* ================= 附加服务 ================= */
+function renderSvc(){
+  document.getElementById('svcList').innerHTML=SVC.map(function(s,i){
+    return '<div class="flex items-center gap-2">'
+      +'<input class="fi" style="width:200px" value="'+s.n+'" oninput="setSvc('+i+',\'n\',this.value)" placeholder="服务名称">'
+      +'<input class="fi" value="'+s.v+'" oninput="setSvc('+i+',\'v\',this.value)" placeholder="服务价格">'
+      +'<span class="del" onclick="delSvc('+i+')"><i class="fas fa-trash"></i></span></div>';
+  }).join('')||'<p class="text-[11px] text-[#94A3B8]">暂无附加服务</p>';
+}
+function setSvc(i,f,v){SVC[i][f]=v;}
+function addSvc(){SVC.push({n:'',v:''});renderSvc();}
+function delSvc(i){SVC.splice(i,1);renderSvc();toast('已删除该附加服务');}
+
+/* ================= 提交 ================= */
+function submitProduct(){
+  if(SPEC_MODE==='single'){
+    if(!(TIERS.single||[]).length){toast('统一规格未设置阶梯价，请至少添加一档');return;}
+    toast('已提交：'+(GROUP_OK?'支持拼单':'不支持拼单')+' · 阶梯价 '+TIERS.single.length+' 档（已同步买家端）');
+  }else{
+    var unset=SPECS.filter(function(s){return !(TIERS[s.id]||[]).length;});
+    if(unset.length){toast('还有 '+unset.length+' 个规格未设置阶梯价，请补全');return;}
+    toast('已提交：'+(GROUP_OK?'支持拼单':'不支持拼单')+' · '+SPECS.length+' 个规格阶梯价均已设置（已同步买家端）');
+  }
+}
+
+/* ================= 修改说明 ================= */
+var NOTE_TITLE='商品管理 · 新增商品';
+var NOTE_PENDING=false;
+var NOTE_EXT=[
+  '本页 Tab（基本信息 / 销售信息 / 物流及配送 / 商品详情 / 高级信息）、各 Tab 内字段与校验、业务流程，一律以外采 igshop 系统「添加商品」页为准；原型只还原「销售信息」中与本次修改相关的部分。',
+  '外采商品管理的其他菜单与功能模块同样以外采为准：商品列表、商品分类、商品品牌、商品分组、商品评价、属性模板、商品服务、商品售后服务、批量操作、库存管理、商品询价等。'
+];
+var NOTE_MOD=[
+  '【本次新增】销售信息增加「是否支持拼单」：支持时，买家端商品详情页除「立即下单」外增加「发起拼单」入口（不支持则只保留「立即下单」）。',
+  '【本次新增】阶梯价设置：无论统一规格还是多规格，每个规格都可设置阶梯价（起始数量 / 结束数量 / 单价，可增删档位），供买家端展示并按下单数量落档计价。',
+  '【实现参考】外采系统「批发管理」中也有批发商品的批发价设置，技术实现可以参考该模块的方式。'
+];
+function noteItems(arr,color,empty){
+  if(!arr||!arr.length){return '<div class="mn-li" style="color:#94A3B8">'+empty+'</div>';}
+  return arr.map(function(t){return '<div class="mn-li"><i class="fas fa-circle" style="color:'+color+'"></i><span>'+t+'</span></div>';}).join('');
+}
+function openNote(){
+  var h='<div class="flex items-start justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">开发修改说明</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+NOTE_TITLE+'　·　商城运营（外采 igshop 系统）'+(NOTE_PENDING?'　·　<span style="color:#E63E20">待补充</span>':'')+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeNote()"><i class="fas fa-xmark"></i></button></div>'
+    +'<div class="px-5 py-4" style="display:flex;flex-direction:column;gap:14px">'
+    +'<div class="rounded-xl border p-4" style="border-color:#FDE68A;background:#FFFBEB">'
+    +'<div class="text-[12.5px] font-bold mb-2" style="color:#B45309"><i class="fas fa-triangle-exclamation mr-1"></i>请以外采系统为准</div>'
+    +noteItems(NOTE_EXT,'#F59E0B','无')+'</div>'
+    +'<div class="rounded-xl border p-4" style="border-color:#FDB4A3;background:#FFF6F3">'
+    +'<div class="text-[12.5px] font-bold mb-2" style="color:#E63E20"><i class="fas fa-pen-to-square mr-1"></i>请以本次修改内容为准</div>'
+    +noteItems(NOTE_MOD,'#FF4D2D','本页无本次修改内容，全部以外采系统为准')+'</div></div>'
+    +'<div class="px-5 py-3.5 border-t border-gray-100 flex justify-end">'
+    +'<button class="px-4 py-2 rounded-lg text-[12px] font-semibold text-white" style="background:#FF4D2D" onclick="closeNote()">知道了</button></div>';
+  var m=document.getElementById('mn-modal');
+  m.innerHTML=h;
+  document.getElementById('mn-mask').classList.add('on');
+  m.classList.add('on');
+}
+function closeNote(){
+  document.getElementById('mn-mask').classList.remove('on');
+  document.getElementById('mn-modal').classList.remove('on');
+}
+
+/* ================= 初始化 ================= */
+renderTabs();
+renderAttrs();
+renderDims();
+renderSpecs();
+renderSingleTiers();
+renderSvc();
+pickMode('multi');
+tabGo('sale');
+</script>
+</body>
+</html>

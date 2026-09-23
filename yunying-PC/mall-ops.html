@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>商城运营 - 商品审核</title>
+<title>商城运营 - 商品管理</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script>
@@ -15,8 +15,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
 .tab-active{color:#FF4D2D;border-bottom:2px solid #FF4D2D;font-weight:600}
 .status-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500}
+button{cursor:pointer;font-family:inherit}
+.mn-fab{position:fixed;right:22px;bottom:22px;z-index:30;display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:999px;border:1px solid #FDB4A3;background:#fff;color:#E63E20;font-size:12px;font-weight:600;cursor:pointer;box-shadow:0 8px 22px rgba(255,77,45,.20);font-family:inherit}
+.mn-fab:hover{background:#FFF6F3}
+.mn-mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:80}
+.mn-mask.on{opacity:1;pointer-events:auto}
+.mn-modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);width:580px;max-width:92vw;max-height:82vh;overflow-y:auto;background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(15,23,42,.28);opacity:0;pointer-events:none;transition:.22s;z-index:90}
+.mn-modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+.mn-li{display:flex;gap:8px;font-size:12.5px;color:#334155;line-height:1.75}
+.mn-li i{margin-top:5px;font-size:8px;flex-shrink:0}
 </style>
 </head>
 <body>
@@ -24,21 +34,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 <div class="p-6">
 
   <!-- 页面标题 -->
-  <div class="flex items-center justify-between mb-5">
+  <div class="flex items-start justify-between mb-5">
     <div>
-      <h1 class="text-[18px] font-bold text-gray-800">商城运营</h1>
-      <p class="text-[12px] text-gray-400 mt-0.5">B2B商城治理 · 商品审核 · 店铺审核 · 交易监控 · 纠纷仲裁 · 信用管理</p>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[18px] font-bold text-gray-800">商品管理</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">10 商城运营 · 商品管理</span>
+      </div>
+      <p class="text-[12px] text-gray-400 mt-0.5">外采商品管理菜单（商品列表 / 分类 / 品牌 / 商品分组 / 评价 / 服务 / 批量操作 / 库存管理 / 商品询价…）均以外采为准；本次仅改造「新增商品」</p>
     </div>
-
-  </div>
-
-  <!-- Tab 导航 -->
-  <div class="flex items-center gap-6 mb-4 border-b border-gray-200">
-    <span class="tab-active py-2.5 text-[13px] cursor-pointer">商品审核</span>
-    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">店铺审核</span>
-    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">交易监控</span>
-    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">纠纷仲裁</span>
-    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">信用管理</span>
+    <a href="mall-product-add.html" class="px-4 py-2 rounded-lg text-[12px] font-semibold text-white" style="background:linear-gradient(135deg,#FF7849,#FF4D2D)"><i class="fas fa-plus mr-1"></i>新增商品（本次修改点）</a>
   </div>
 
   <!-- 统计卡片 -->
@@ -66,9 +70,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
     <div class="flex items-center gap-3 flex-wrap">
       <div class="relative">
         <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
-        <input type="text" placeholder="商品编号 / 商品名称 / 商户" class="w-56 pl-8 pr-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary focus:bg-white transition">
+        <input id="kw" type="text" placeholder="商品编号 / 商品名称 / 商户" class="w-56 pl-8 pr-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary focus:bg-white transition">
       </div>
-      <select class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+      <select id="cat" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
         <option value="">全部品类</option>
         <option>男袜</option>
         <option>女袜</option>
@@ -77,7 +81,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
         <option>原料</option>
         <option>袜机</option>
       </select>
-      <select class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+      <select id="st" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
         <option value="">全部状态</option>
         <option>待审核</option>
         <option>已通过</option>
@@ -87,16 +91,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
       <input type="date" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
       <span class="text-gray-300 text-xs">至</span>
       <input type="date" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
-      <button class="px-4 py-1.5 text-[13px] text-white rounded-lg" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)">查询</button>
-      <button class="px-4 py-1.5 text-[13px] text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition">重置</button>
+      <button class="px-4 py-1.5 text-[13px] text-white rounded-lg" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)" onclick="doSearch()">查询</button>
+      <button class="px-4 py-1.5 text-[13px] text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition" onclick="resetSearch()">重置</button>
     </div>
   </div>
 
   <!-- 表格 -->
   <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
     <div class="px-5 py-3 border-b border-gray-100 flex items-center gap-2 flex-wrap">
-      <button class="px-3 py-1.5 text-[12px] text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
-      <button class="px-3 py-1.5 text-[12px] text-white rounded-lg transition" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)"><i class="fas fa-shield-halved text-[10px] mr-1"></i>审核规则</button>
+      <button class="px-3 py-1.5 text-[12px] text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition" onclick="toast('已导出当前列表（原型）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+      <button class="px-3 py-1.5 text-[12px] text-white rounded-lg transition" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)" onclick="toast('打开 AI 审核规则配置（原型）')"><i class="fas fa-shield-halved text-[10px] mr-1"></i>审核规则</button>
     </div>
     <table class="w-full text-[13px]">
       <thead>
@@ -110,155 +114,129 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
           <th class="px-4 py-3 text-center font-medium">操作</th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-gray-50">
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 text-gray-600">SP20260712001</td>
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)"><i class="fas fa-snowflake"></i></div>
-              <span class="font-medium text-gray-800">暖足坊保暖羊毛袜</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-gray-600">暖足坊袜业有限公司</td>
-          <td class="px-4 py-3 text-gray-600">保暖袜</td>
-          <td class="px-4 py-3 text-gray-400">2026-07-12 09:15</td>
-          <td class="px-4 py-3"><span class="status-badge bg-amber-50 text-amber-600">待审核</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-primary text-[12px] hover:underline mr-2">审核</button>
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 text-gray-600">SP20260712002</td>
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#FB7185,#EC4899)"><i class="fas fa-socks"></i></div>
-              <span class="font-medium text-gray-800">花间舞隐形船袜</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-gray-600">花间舞袜业</td>
-          <td class="px-4 py-3 text-gray-600">女袜</td>
-          <td class="px-4 py-3 text-gray-400">2026-07-12 10:32</td>
-          <td class="px-4 py-3"><span class="status-badge bg-amber-50 text-amber-600">待审核</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-primary text-[12px] hover:underline mr-2">审核</button>
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 text-gray-600">SP20260711003</td>
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#38BDF8,#3B82F6)"><i class="fas fa-bolt"></i></div>
-              <span class="font-medium text-gray-800">极速运动压缩袜</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-gray-600">极速运动袜业</td>
-          <td class="px-4 py-3 text-gray-600">运动袜</td>
-          <td class="px-4 py-3 text-gray-400">2026-07-11 14:20</td>
-          <td class="px-4 py-3"><span class="status-badge bg-blue-50 text-blue-500">需修改</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-primary text-[12px] hover:underline mr-2">查看</button>
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 text-gray-600">SP20260710004</td>
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#FF8A4C,#FF4D2D)"><i class="fas fa-crown"></i></div>
-              <span class="font-medium text-gray-800">大唐旗舰精梳棉男袜</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-gray-600">大唐袜业旗舰</td>
-          <td class="px-4 py-3 text-gray-600">男袜</td>
-          <td class="px-4 py-3 text-gray-400">2026-07-10 11:08</td>
-          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">已通过</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 text-gray-600">SP20260710005</td>
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#2DD4BF,#14B8A6)"><i class="fas fa-leaf"></i></div>
-              <span class="font-medium text-gray-800">绿源竹纤维抗菌童袜</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-gray-600">绿源纤维科技有限公司</td>
-          <td class="px-4 py-3 text-gray-600">童袜</td>
-          <td class="px-4 py-3 text-gray-400">2026-07-10 15:45</td>
-          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">已通过</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 text-gray-600">SP20260709006</td>
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#9CA3AF,#6B7280)"><i class="fas fa-box"></i></div>
-              <span class="font-medium text-gray-800">某低价混纺袜（无资质）</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-gray-600">某商贸有限公司</td>
-          <td class="px-4 py-3 text-gray-600">男袜</td>
-          <td class="px-4 py-3 text-gray-400">2026-07-09 09:50</td>
-          <td class="px-4 py-3"><span class="status-badge bg-red-50 text-red-500">已驳回</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 text-gray-600">SP20260709007</td>
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#A78BFA,#7C3AED)"><i class="fas fa-gears"></i></div>
-              <span class="font-medium text-gray-800">智造全自动袜机配件包</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-gray-600">智造袜机设备有限公司</td>
-          <td class="px-4 py-3 text-gray-600">袜机</td>
-          <td class="px-4 py-3 text-gray-400">2026-07-09 13:22</td>
-          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">已通过</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 text-gray-600">SP20260708008</td>
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#34D399,#10B981)"><i class="fas fa-seedling"></i></div>
-              <span class="font-medium text-gray-800">棉田精梳棉纱（21支）</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-gray-600">棉田纱线厂</td>
-          <td class="px-4 py-3 text-gray-600">原料</td>
-          <td class="px-4 py-3 text-gray-400">2026-07-08 16:30</td>
-          <td class="px-4 py-3"><span class="status-badge bg-amber-50 text-amber-600">待审核</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-primary text-[12px] hover:underline mr-2">审核</button>
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
-          </td>
-        </tr>
-      </tbody>
+      <tbody id="tb" class="divide-y divide-gray-50"></tbody>
     </table>
     <!-- 分页 -->
     <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
-      <span class="text-[12px] text-gray-400">共 86 条记录，第 1-8 条</span>
+      <span class="text-[12px] text-gray-400" id="pageInfo">共 86 条记录，第 1-8 条</span>
       <div class="flex items-center gap-1">
-        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100"><i class="fas fa-chevron-left text-[10px]"></i></button>
-        <button class="w-7 h-7 flex items-center justify-center text-white text-[12px] rounded" style="background:#FF4D2D">1</button>
-        <button class="w-7 h-7 flex items-center justify-center text-gray-600 text-[12px] rounded hover:bg-gray-100">2</button>
-        <button class="w-7 h-7 flex items-center justify-center text-gray-600 text-[12px] rounded hover:bg-gray-100">3</button>
-        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100"><i class="fas fa-chevron-right text-[10px]"></i></button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100" onclick="toast('已是第一页')"><i class="fas fa-chevron-left text-[10px]"></i></button>
+        <button class="w-7 h-7 flex items-center justify-center text-white text-[12px] rounded" style="background:#FF4D2D" onclick="pageGo(1)">1</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-600 text-[12px] rounded hover:bg-gray-100" onclick="pageGo(2)">2</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-600 text-[12px] rounded hover:bg-gray-100" onclick="pageGo(3)">3</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100" onclick="pageGo(2)"><i class="fas fa-chevron-right text-[10px]"></i></button>
       </div>
     </div>
   </div>
 
 </div>
 
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[70]"></div>
+
+<!-- ===== 修改说明（商城运营 · 右下角） ===== -->
+<button class="mn-fab" onclick="openNote()"><i class="fas fa-circle-info"></i><span>修改说明</span></button>
+<div id="mn-mask" class="mn-mask" onclick="closeNote()"></div>
+<div id="mn-modal" class="mn-modal"></div>
+
+<script>
+/* ================= 列表数据（原型态 mock） ================= */
+var ROWS=[
+  {id:'SP20260712001',name:'暖足坊保暖羊毛袜',shop:'暖足坊袜业有限公司',cat:'保暖袜',time:'2026-07-12 09:15',state:'待审核',cls:'bg-amber-50 text-amber-600'},
+  {id:'SP20260712002',name:'花间舞隐形船袜',shop:'花间舞袜业',cat:'女袜',time:'2026-07-12 10:32',state:'待审核',cls:'bg-amber-50 text-amber-600'},
+  {id:'SP20260711003',name:'极速运动压缩袜',shop:'极速运动袜业',cat:'运动袜',time:'2026-07-11 14:20',state:'需修改',cls:'bg-blue-50 text-blue-500'},
+  {id:'SP20260710004',name:'大唐旗舰精梳棉男袜',shop:'大唐袜业旗舰',cat:'男袜',time:'2026-07-10 11:08',state:'已通过',cls:'bg-green-50 text-green-600'},
+  {id:'SP20260710005',name:'绿源竹纤维抗菌童袜',shop:'绿源纤维科技有限公司',cat:'童袜',time:'2026-07-10 15:45',state:'已通过',cls:'bg-green-50 text-green-600'},
+  {id:'SP20260709006',name:'某低价混纺袜（无资质）',shop:'某商贸有限公司',cat:'男袜',time:'2026-07-09 09:50',state:'已驳回',cls:'bg-red-50 text-red-500'},
+  {id:'SP20260709007',name:'智造全自动袜机配件包',shop:'智造袜机设备有限公司',cat:'袜机',time:'2026-07-09 13:22',state:'已通过',cls:'bg-green-50 text-green-600'},
+  {id:'SP20260708008',name:'棉田精梳棉纱（21支）',shop:'棉田纱线厂',cat:'原料',time:'2026-07-08 16:30',state:'待审核',cls:'bg-amber-50 text-amber-600'}
+];
+var ICONS=[
+  {bg:'linear-gradient(135deg,#FBBF24,#F59E0B)',ic:'fa-snowflake'},
+  {bg:'linear-gradient(135deg,#FB7185,#EC4899)',ic:'fa-socks'},
+  {bg:'linear-gradient(135deg,#38BDF8,#3B82F6)',ic:'fa-bolt'},
+  {bg:'linear-gradient(135deg,#FF8A4C,#FF4D2D)',ic:'fa-crown'},
+  {bg:'linear-gradient(135deg,#2DD4BF,#14B8A6)',ic:'fa-leaf'},
+  {bg:'linear-gradient(135deg,#9CA3AF,#6B7280)',ic:'fa-box'},
+  {bg:'linear-gradient(135deg,#A78BFA,#7C3AED)',ic:'fa-gears'},
+  {bg:'linear-gradient(135deg,#34D399,#10B981)',ic:'fa-seedling'}
+];
+var curRows=ROWS.slice();
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},2200);}
+
+function render(){
+  document.getElementById('tb').innerHTML=curRows.map(function(r,i){
+    var ic=ICONS[ROWS.indexOf(r)]||ICONS[0];
+    var ops='<button class="text-gray-400 text-[12px] hover:text-gray-600" onclick="toast(\'商品详情：'+r.name+'\')">详情</button>';
+    if(r.state==='待审核'){ops='<button class="text-primary text-[12px] hover:underline mr-2" onclick="toast(\'进入审核：'+r.id+'\')">审核</button>'+ops;}
+    else if(r.state==='需修改'){ops='<button class="text-primary text-[12px] hover:underline mr-2" onclick="toast(\'查看驳回原因：'+r.id+'\')">查看</button>'+ops;}
+    return '<tr class="hover:bg-gray-50 transition">'
+      +'<td class="px-4 py-3 text-gray-600">'+r.id+'</td>'
+      +'<td class="px-4 py-3"><div class="flex items-center gap-2">'
+      +'<div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:'+ic.bg+'"><i class="fas '+ic.ic+'"></i></div>'
+      +'<span class="font-medium text-gray-800">'+r.name+'</span></div></td>'
+      +'<td class="px-4 py-3 text-gray-600">'+r.shop+'</td>'
+      +'<td class="px-4 py-3 text-gray-600">'+r.cat+'</td>'
+      +'<td class="px-4 py-3 text-gray-400">'+r.time+'</td>'
+      +'<td class="px-4 py-3"><span class="status-badge '+r.cls+'">'+r.state+'</span></td>'
+      +'<td class="px-4 py-3 text-center whitespace-nowrap">'+ops+'</td></tr>';
+  }).join('')||'<tr><td colspan="7" class="px-4 py-14 text-center text-gray-300 text-[12px]">暂无数据</td></tr>';
+  document.getElementById('pageInfo').textContent='共 '+curRows.length+' 条记录，第 1-'+curRows.length+' 条';
+}
+function doSearch(){
+  var kw=document.getElementById('kw').value.trim(),cat=document.getElementById('cat').value,st=document.getElementById('st').value;
+  curRows=ROWS.filter(function(r){
+    return (!kw||r.name.indexOf(kw)>-1||r.id.indexOf(kw)>-1||r.shop.indexOf(kw)>-1)&&(!cat||r.cat===cat)&&(!st||r.state===st);
+  });
+  render();toast('已按条件查询，共 '+curRows.length+' 条');
+}
+function resetSearch(){
+  document.getElementById('kw').value='';document.getElementById('cat').value='';document.getElementById('st').value='';
+  curRows=ROWS.slice();render();toast('已重置筛选条件');
+}
+function pageGo(n){toast(n===1?'当前第 1 页（原型）':'已切换到第 '+n+' 页（原型）');}
+
+render();
+
+/* ================= 修改说明 ================= */
+var NOTE_TITLE='商品管理';
+var NOTE_PENDING=false;
+var NOTE_EXT=[
+  '外采 igshop 商品管理的其他菜单与功能模块一律以外采为准：商品列表、商品分类、商品品牌、商品分组、商品评价、属性模板、商品服务、商品售后服务、批量操作（批量导出 / 批量上传 / 批量修改）、库存管理（库存日志 / 库存查询 / 商品入库 / 商品出库 / 库存调拨）、商品询价等。',
+  '本页列表内容仅为占位示意，开发请直接打开外采系统对照实现。'
+];
+var NOTE_MOD=[
+  '【本次修改】商品「新增 / 编辑」页增加两项：①「是否支持拼单」；② 阶梯价设置（统一规格与多规格的每个规格都支持）。',
+  '【实现参考】阶梯价的实现方式可以参考外采系统「批发管理」中批发商品的批发价设置。',
+  '原型入口：本页右上角「新增商品（本次修改点）」按钮 → mall-product-add.html（也可直接打开该文件查看）。'
+];
+function noteItems(arr,color,empty){
+  if(!arr||!arr.length){return '<div class="mn-li" style="color:#94A3B8">'+empty+'</div>';}
+  return arr.map(function(t){return '<div class="mn-li"><i class="fas fa-circle" style="color:'+color+'"></i><span>'+t+'</span></div>';}).join('');
+}
+function openNote(){
+  var h='<div class="flex items-start justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">开发修改说明</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+NOTE_TITLE+'　·　商城运营（外采 igshop 系统）'+(NOTE_PENDING?'　·　<span style="color:#E63E20">待补充</span>':'')+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeNote()"><i class="fas fa-xmark"></i></button></div>'
+    +'<div class="px-5 py-4" style="display:flex;flex-direction:column;gap:14px">'
+    +'<div class="rounded-xl border p-4" style="border-color:#FDE68A;background:#FFFBEB">'
+    +'<div class="text-[12.5px] font-bold mb-2" style="color:#B45309"><i class="fas fa-triangle-exclamation mr-1"></i>请以外采系统为准</div>'
+    +noteItems(NOTE_EXT,'#F59E0B','无')+'</div>'
+    +'<div class="rounded-xl border p-4" style="border-color:#FDB4A3;background:#FFF6F3">'
+    +'<div class="text-[12.5px] font-bold mb-2" style="color:#E63E20"><i class="fas fa-pen-to-square mr-1"></i>请以本次修改内容为准</div>'
+    +noteItems(NOTE_MOD,'#FF4D2D','本页无本次修改内容，全部以外采系统为准')+'</div></div>'
+    +'<div class="px-5 py-3.5 border-t border-gray-100 flex justify-end">'
+    +'<button class="px-4 py-2 rounded-lg text-[12px] font-semibold text-white" style="background:#FF4D2D" onclick="closeNote()">知道了</button></div>';
+  var m=document.getElementById('mn-modal');
+  m.innerHTML=h;
+  document.getElementById('mn-mask').classList.add('on');
+  m.classList.add('on');
+}
+function closeNote(){
+  document.getElementById('mn-mask').classList.remove('on');
+  document.getElementById('mn-modal').classList.remove('on');
+}
+</script>
 </body>
 </html>
