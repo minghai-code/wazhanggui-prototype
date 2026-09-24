@@ -18,8 +18,8 @@
  * 【顺序】数组顺序 = 侧边栏展示顺序，调整顺序即移动数组元素，勿复制粘贴
  * ========================================================================== */
 
-window.MENU_VERSION = '2026.09.23-01';
-window.MENU_UPDATED = '2026-09-23';
+window.MENU_VERSION = '2026.09.24-01';
+window.MENU_UPDATED = '2026-09-24';
 
 window.MENU_DATA = [
 
@@ -38,10 +38,10 @@ window.MENU_DATA = [
 {
   id: '02-resource', name: '市场资源管理', icon: 'fa-building', open: false,
   children: [
-    { type: 'item', name: '楼栋楼层管理', page: null, status: 'dev', points: ['楼栋列表', '楼层列表', '新增编辑'] },
-    { type: 'item', name: '摊位商铺管理', page: null, status: 'dev', points: ['摊位列表', '商铺列表', '状态变更'] },
-    { type: 'item', name: '平面图维护', page: null, status: 'dev', points: ['楼层平面图上传', '点位标注'] },
-    { type: 'item', name: '资源状态看板', page: null, status: 'dev', points: ['出租率', '空置数', '状态分布'] }
+    { type: 'item', name: '楼栋楼层管理', page: 'resource-building.html', status: 'done' },
+    { type: 'item', name: '摊位商铺管理', page: 'resource-unit.html', status: 'done' },
+    { type: 'item', name: '平面图维护', page: 'resource-floorplan.html', status: 'done' },
+    { type: 'item', name: '资源状态看板', page: 'resource-dashboard.html', status: 'done' }
   ]
 },
 
@@ -135,7 +135,10 @@ window.MENU_DATA = [
       { type: 'item', name: '商户设置', page: 'mall-merchant-setting.html', status: 'done', points: ['对齐外采 igshop', '允许个人入驻/入驻需审核', '单商户最大店铺数量', '入驻协议内容（富文本）'] },
       { type: 'item', name: '招商内容', page: 'mall-merchant-recruit.html', status: 'done', points: ['对齐外采 igshop', '招商Banner/合作模式/流程图', '招商计划/招商标准/入驻流程', '同步买家端招商页'] }
     ]},
-    { type: 'item', name: '商品管理', page: 'mall-ops.html', status: 'done', points: ['袜品', 'AI自动审核', '上下架管控'] },
+    { type: 'group', name: '商品管理', items: [
+      { type: 'item', name: '商品列表', page: 'mall-ops.html', status: 'done', points: ['袜品', 'AI自动审核', '上下架管控'] },
+      { type: 'item', name: '新增商品', page: 'mall-product-add.html', status: 'done', points: ['对齐外采 igshop', '商品字段/规格/SKU', '提交后进入审核'] }
+    ]},
     { type: 'item', name: '视频管理', page: null, status: 'dev', points: ['商家视频上传', '下架'] },
     { type: 'item', name: '采购询价需求管理', page: 'mall-inquiry.html', status: 'done', points: ['需求列表（发布人/需求详情/竞价人/竞价详情）', '成交人及关联订单', '违规下架/关闭'] },
     { type: 'item', name: '个性定制需求管理', page: null, status: 'dev', points: ['需求列表（三种类型：仅打样/直接大货/先打样后大货）', '竞价详情', '关联定制订单'] },

@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>市场资源管理 - 摊位商铺管理</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>
+tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D','primary-d':'#E63E20','primary-l':'#FF7849'}}}}
+</script>
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.stat-card{transition:box-shadow .2s ease,transform .2s ease}
+.stat-card:hover{box-shadow:0 4px 20px rgba(0,0,0,.08);transform:translateY(-1px)}
+.section-label{font-size:16px;font-weight:700;color:#1F2430;display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.section-label::before{content:'';width:3px;height:16px;border-radius:2px;background:#FF4D2D}
+.tb th{font-size:12px;font-weight:600;color:#64748B;background:#F8FAFC;padding:10px 12px;text-align:left;white-space:nowrap}
+.tb td{font-size:13px;color:#1F2430;padding:11px 12px;border-bottom:1px solid #F1F5F9;white-space:nowrap}
+.tb tbody tr:hover{background:#FFF7F5}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}
+.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}
+.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}
+.lk:hover{text-decoration:underline}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:40}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:760px;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:50;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.fl{display:block;font-size:12px;color:#64748B;margin-bottom:5px}
+.fl i{color:#FF4D2D;font-style:normal;margin-right:2px}
+.fi{width:100%;padding:8px 11px;font-size:13px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;outline:none;transition:.15s}
+.fi:focus{border-color:#FF4D2D;background:#fff}
+.tabbar{display:flex;gap:4px}
+.tab{padding:9px 16px;font-size:13px;color:#64748B;cursor:pointer;border-bottom:2px solid transparent;transition:.15s}
+.tab:hover{color:#1F2430}
+.tab.on{color:#FF4D2D;font-weight:600;border-bottom-color:#FF4D2D}
+.kv{display:flex;font-size:13px;padding:8px 0;border-bottom:1px dashed #F1F5F9}
+.kv .k{width:110px;color:#94A3B8;flex-shrink:0}
+.kv .v{color:#1F2430;flex:1}
+.blk{border:1px solid #F1F5F9;border-radius:12px;padding:14px 16px}
+.blk-t{font-size:13px;font-weight:700;color:#1F2430;display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.blk-t::before{content:'';width:3px;height:12px;border-radius:2px;background:#FF4D2D}
+</style>
+</head>
+<body>
+<div class="p-6">
+
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">摊位商铺管理</h1>
+        <span class="tag" style="background:#FFF1ED;color:#FF4D2D">档口编号权威源</span>
+      </div>
+      <p class="text-[12px] text-[#94A3B8] mt-1">市场资源管理 / 摊位商铺管理　·　全市场档口唯一台账；每日经接口同步合同数据并按档口编号匹配，产出"当前租户 / 关联合同 / 历届租户"</p>
+    </div>
+    <div class="flex gap-2">
+      <button class="btn btn-ghost" onclick="toast('已下载档口导入模板（Excel）')"><i class="fas fa-file-arrow-down mr-1"></i>导入模板</button>
+      <button class="btn btn-ghost" onclick="toast('打开批量导入：选择 Excel → 校验编号唯一性 → 失败行回报')"><i class="fas fa-upload mr-1"></i>批量导入</button>
+      <button class="btn btn-primary" onclick="openUnit('new')"><i class="fas fa-plus mr-1"></i>新增档口</button>
+    </div>
+  </div>
+
+  <!-- 统计卡 -->
+  <div class="grid grid-cols-7 gap-3 mb-5">
+    <div class="stat-card bg-white rounded-xl border border-gray-100 p-4">
+      <div class="flex items-center justify-between"><span class="text-[12px] text-[#64748B]">档口总数</span><i class="fas fa-store text-[13px]" style="color:#FF4D2D"></i></div>
+      <p class="text-2xl font-bold text-[#1F2430] mt-2" id="c-all">0</p>
+      <p class="text-[11px] text-[#94A3B8] mt-1">不含公共设施</p>
+    </div>
+    <div class="stat-card bg-white rounded-xl border border-gray-100 p-4">
+      <div class="flex items-center justify-between"><span class="text-[12px] text-[#64748B]">空闲</span><i class="fas fa-door-open text-[13px]" style="color:#94A3B8"></i></div>
+      <p class="text-2xl font-bold text-[#1F2430] mt-2" id="c-free">0</p>
+      <p class="text-[11px] text-[#94A3B8] mt-1">无生效合同</p>
+    </div>
+    <div class="stat-card bg-white rounded-xl border border-gray-100 p-4">
+      <div class="flex items-center justify-between"><span class="text-[12px] text-[#64748B]">在租</span><i class="fas fa-file-signature text-[13px]" style="color:#22C55E"></i></div>
+      <p class="text-2xl font-bold text-[#1F2430] mt-2" id="c-rent">0</p>
+      <p class="text-[11px] text-[#94A3B8] mt-1">合同匹配成功</p>
+    </div>
+    <div class="stat-card bg-white rounded-xl border border-gray-100 p-4">
+      <div class="flex items-center justify-between"><span class="text-[12px] text-[#64748B]">装修中</span><i class="fas fa-screwdriver-wrench text-[13px]" style="color:#D97706"></i></div>
+      <p class="text-2xl font-bold text-[#1F2430] mt-2" id="c-fit">0</p>
+      <p class="text-[11px] text-[#94A3B8] mt-1">物业标记</p>
+    </div>
+    <div class="stat-card bg-white rounded-xl border border-gray-100 p-4">
+      <div class="flex items-center justify-between"><span class="text-[12px] text-[#64748B]">停用</span><i class="fas fa-ban text-[13px]" style="color:#DC2626"></i></div>
+      <p class="text-2xl font-bold text-[#1F2430] mt-2" id="c-off">0</p>
+      <p class="text-[11px] text-[#94A3B8] mt-1">不计出租率</p>
+    </div>
+    <div class="stat-card bg-white rounded-xl border border-gray-100 p-4">
+      <div class="flex items-center justify-between"><span class="text-[12px] text-[#64748B]">出租率</span><i class="fas fa-chart-pie text-[13px]" style="color:#2563EB"></i></div>
+      <p class="text-2xl font-bold text-[#1F2430] mt-2" id="c-rate">0%</p>
+      <p class="text-[11px] text-[#94A3B8] mt-1">在租 / 可租</p>
+    </div>
+    <div class="stat-card bg-white rounded-xl border border-gray-100 p-4" style="border-color:#FECACA;background:#FFF7F5">
+      <div class="flex items-center justify-between"><span class="text-[12px] text-[#B91C1C]">匹配异常</span><i class="fas fa-triangle-exclamation text-[13px]" style="color:#DC2626"></i></div>
+      <p class="text-2xl font-bold text-[#B91C1C] mt-2" id="c-err">0</p>
+      <p class="text-[11px] text-[#B91C1C] mt-1">待人工处理</p>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <div class="px-5 border-b border-gray-100 flex items-center justify-between">
+      <div class="tabbar">
+        <div class="tab on" id="tab-u" onclick="switchTab('u')">档口台账</div>
+        <div class="tab" id="tab-e" onclick="switchTab('e')">合同匹配异常 <span class="tag" style="background:#FEE2E2;color:#B91C1C" id="errBadge">0</span></div>
+      </div>
+      <div class="flex items-center gap-3 text-[11px] text-[#94A3B8]">
+        <span><i class="fas fa-clock mr-1"></i>最近同步 <span id="syncTime">2026-09-24 02:00</span>　拉取 <b id="syncAll">12</b> · 成功 <b style="color:#059669" id="syncOk">9</b> · 异常 <b style="color:#DC2626" id="syncErr">3</b>　耗时 4.2s</span>
+        <button class="btn btn-ghost py-1.5" onclick="syncNow()"><i class="fas fa-rotate mr-1"></i>立即同步</button>
+      </div>
+    </div>
+
+    <!-- 档口台账 -->
+    <div id="pane-u">
+      <div class="px-5 py-3 border-b border-gray-100 flex items-center gap-2 flex-wrap bg-gray-50">
+        <input class="fi w-56" id="q" placeholder="档口编号 / 租客姓名 / 合同号" oninput="renderUnits()">
+        <select class="fi w-24" id="fb" onchange="renderUnits()"><option value="">全部楼栋</option><option>A</option><option>B</option><option>C</option></select>
+        <select class="fi w-24" id="ff" onchange="renderUnits()"><option value="">全部楼层</option><option>B1</option><option>1F</option><option>2F</option><option>3F</option></select>
+        <select class="fi w-28" id="ft" onchange="renderUnits()"><option value="">全部类型</option><option>档口</option><option>商铺</option><option>公共设施</option></select>
+        <select class="fi w-28" id="fs" onchange="renderUnits()"><option value="">全部状态</option><option>空闲</option><option>在租</option><option>装修中</option><option>停用</option></select>
+        <select class="fi w-32" id="fh" onchange="renderUnits()"><option value="">是否有当前租户</option><option value="1">有（在租）</option><option value="0">无</option></select>
+        <button class="btn btn-ghost" onclick="resetFilter()"><i class="fas fa-eraser mr-1"></i>重置</button>
+        <span class="text-[12px] text-[#94A3B8] ml-auto" id="uCount"></span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full tb">
+          <thead><tr>
+            <th>档口编号</th><th>楼栋/楼层</th><th>类型</th><th>面积(㎡)</th><th>状态</th>
+            <th>当前租户</th><th>租期起止</th><th>平面图</th><th>操作</th>
+          </tr></thead>
+          <tbody id="unitBody"></tbody>
+        </table>
+      </div>
+      <div class="px-5 py-3 border-t border-gray-100 text-[11px] text-[#94A3B8]">
+        <i class="fas fa-circle-info mr-1"></i>「当前租户」由合同匹配结果写入（每日定时同步）；「在租 / 空闲」由合同数据判定，不支持手工修改；物业仅可标记「装修中 / 停用」
+      </div>
+    </div>
+
+    <!-- 合同匹配异常 -->
+    <div id="pane-e" class="hidden">
+      <div class="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+        <div class="text-[12px] text-[#64748B]"><i class="fas fa-triangle-exclamation mr-1" style="color:#DC2626"></i>编号未匹配 / 重复生效合同 / 停用档口命中 —— 需人工核实后「重新匹配」，<b>不静默丢弃</b></div>
+        <span class="text-[11px] text-[#94A3B8]">超 7 天未处理将升级提醒运营主管</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full tb">
+          <thead><tr>
+            <th>异常类型</th><th>合同号</th><th>合同中的档口编号</th><th>租客</th><th>租期</th><th>产生时间</th><th>处理状态</th><th>操作</th>
+          </tr></thead>
+          <tbody id="errBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 详情抽屉 -->
+<div class="mask" id="mask" onclick="closeD()"></div>
+<div class="drawer" id="drawer">
+  <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+    <div>
+      <h3 class="text-[15px] font-bold text-[#1F2430]" id="d-title">档口详情</h3>
+      <p class="text-[11px] text-[#94A3B8] mt-0.5" id="d-sub"></p>
+    </div>
+    <button onclick="closeD()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-xmark text-lg"></i></button>
+  </div>
+  <div class="flex-1 overflow-y-auto px-6 py-5" id="d-body"></div>
+  <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3" id="d-foot"></div>
+</div>
+
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[60]"></div>
+
+<script>
+/* ===== 数据（原型态静态模拟数据） ===== */
+var units=[
+  {no:'1F-A01',b:'A',floor:'1F',type:'档口',area:36,status:'在租',plan:true,
+   tenant:{name:'大唐袜业批发',idno:'330681********1234',phone:'138****6621',start:'2023-03-01',end:'2026-02-28',contract:'HT-2023-0312',biz:'男袜'},
+   hist:[{name:'诸暨市袜源商贸',start:'2020-01-01',end:'2023-02-28',contract:'HT-2020-0117',reason:'换租'}]},
+  {no:'1F-A02',b:'A',floor:'1F',type:'档口',area:36,status:'在租',plan:true,
+   tenant:{name:'梦娜针织',idno:'330681********7788',phone:'139****3382',start:'2025-09-01',end:'2028-08-31',contract:'HT-2025-0877',biz:'女袜'},
+   hist:[{name:'诸暨市袜源商贸',start:'2020-01-01',end:'2023-02-28',contract:'HT-2020-0117',reason:'换租'}]},
+  {no:'1F-A03',b:'A',floor:'1F',type:'档口',area:36,status:'空闲',plan:true,tenant:null,hist:[{name:'袜都商贸',start:'2019-05-01',end:'2026-03-31',contract:'HT-2019-0402',reason:'到期'}]},
+  {no:'1F-A05',b:'A',floor:'1F',type:'档口',area:42,status:'在租',plan:true,
+   tenant:{name:'浪莎袜业',idno:'330681********2210',phone:'137****9911',start:'2024-06-01',end:'2027-05-31',contract:'HT-2024-0518',biz:'袜子全品类'},hist:[]},
+  {no:'1F-A06',b:'A',floor:'1F',type:'档口',area:36,status:'装修中',plan:true,
+   tenant:{name:'耐尔袜业（装修中）',idno:'330681********5566',phone:'136****4402',start:'2026-08-01',end:'2029-07-31',contract:'HT-2026-0801',biz:'运动袜'},
+   hist:[{name:'耐尔袜业',start:'2021-01-01',end:'2026-07-31',contract:'HT-2021-0063',reason:'续租'}]},
+  {no:'1F-A08',b:'A',floor:'1F',type:'档口',area:50,status:'在租',plan:true,
+   tenant:{name:'耐尔袜业',idno:'330681********5566',phone:'136****4402',start:'2023-03-01',end:'2026-02-28',contract:'HT-2023-0330',biz:'男袜'},
+   hist:[{name:'诸暨市利群针纺',start:'2019-01-01',end:'2023-02-28',contract:'HT-2019-0021',reason:'到期'}]},
+  {no:'1F-A09',b:'A',floor:'1F',type:'档口',area:36,status:'空闲',plan:false,tenant:null,hist:[]},
+  {no:'1F-A12',b:'A',floor:'1F',type:'档口',area:40,status:'在租',plan:true,
+   tenant:{name:'情怡袜业',idno:'330681********9090',phone:'135****7788',start:'2022-07-01',end:'2025-06-30',contract:'HT-2022-0701',biz:'运动袜'},
+   hist:[{name:'情怡袜业',start:'2019-07-01',end:'2022-06-30',contract:'HT-2019-0630',reason:'续租'}]},
+  {no:'1F-B03',b:'A',floor:'1F',type:'档口',area:44,status:'在租',plan:true,
+   tenant:{name:'宝娜斯',idno:'330681********3311',phone:'138****2200',start:'2025-01-01',end:'2027-12-31',contract:'HT-2025-0101',biz:'丝袜'},hist:[]},
+  {no:'1F-B08',b:'A',floor:'1F',type:'档口',area:36,status:'空闲',plan:true,tenant:null,
+   hist:[{name:'袜都商贸',start:'2020-01-01',end:'2025-12-31',contract:'HT-2020-0201',reason:'退租'}]},
+  {no:'1F-C02',b:'A',floor:'1F',type:'档口',area:30,status:'停用',plan:true,tenant:null,hist:[]},
+  {no:'2F-A05',b:'A',floor:'2F',type:'商铺',area:68,status:'在租',plan:true,
+   tenant:{name:'丹吉娅',idno:'330681********4400',phone:'139****1122',start:'2024-01-01',end:'2026-12-31',contract:'HT-2024-0101',biz:'品牌袜品'},hist:[]},
+  {no:'2F-B01',b:'A',floor:'2F',type:'商铺',area:72,status:'在租',plan:true,
+   tenant:{name:'步人袜业',idno:'330681********6677',phone:'137****5566',start:'2023-05-01',end:'2026-04-30',contract:'HT-2023-0501',biz:'智能袜机'},hist:[]},
+  {no:'3F-C02',b:'A',floor:'3F',type:'商铺',area:120,status:'在租',plan:false,
+   tenant:{name:'袜业商会服务点',idno:'330681********0000',phone:'0575-****1234',start:'2022-01-01',end:'2026-12-31',contract:'HT-2022-0001',biz:'行业服务'},hist:[]},
+  {no:'1F-Y01',b:'B',floor:'1F',type:'档口',area:48,status:'在租',plan:true,
+   tenant:{name:'锦纶原料行',idno:'330681********1357',phone:'136****8080',start:'2024-03-01',end:'2027-02-28',contract:'HT-2024-0301',biz:'锦纶/氨纶'},hist:[]},
+  {no:'1F-Y02',b:'B',floor:'1F',type:'档口',area:48,status:'空闲',plan:true,tenant:null,hist:[]},
+  {no:'1F-E01',b:'A',floor:'1F',type:'公共设施',area:26,status:'停用',plan:true,tenant:null,hist:[]}
+];
+var errors=[
+  {type:'编号未匹配',contract:'HT-2026-0918',code:'1F-A33',tenant:'陈某',period:'2026-10-01 ~ 2029-09-30',time:'2026-09-24 02:00',status:'待处理'},
+  {type:'停用档口命中',contract:'HT-2026-0902',code:'1F-C02',tenant:'王某',period:'2026-09-01 ~ 2029-08-31',time:'2026-09-24 02:00',status:'待处理'},
+  {type:'重复生效合同',contract:'HT-2026-0877',code:'1F-A02',tenant:'梦娜针织',period:'2025-09-01 ~ 2028-08-31',time:'2026-09-23 02:00',status:'待处理'}
+];
+var curTab='u', curUnit=null;
+
+/* ===== 渲染 ===== */
+function stTag(s){
+  if(s==='在租')   return '<span class="tag" style="background:#DCFCE7;color:#059669">在租</span>';
+  if(s==='空闲')   return '<span class="tag" style="background:#F1F5F9;color:#64748B">空闲</span>';
+  if(s==='装修中') return '<span class="tag" style="background:#FEF3C7;color:#D97706">装修中</span>';
+  return '<span class="tag" style="background:#FEE2E2;color:#B91C1C">停用</span>';
+}
+function stat(){
+  var all=units.filter(function(u){return u.type!=='公共设施';});
+  var free=all.filter(function(u){return u.status==='空闲';}).length;
+  var rent=all.filter(function(u){return u.status==='在租';}).length;
+  var fit =all.filter(function(u){return u.status==='装修中';}).length;
+  var off =all.filter(function(u){return u.status==='停用';}).length;
+  var can =all.length-off;
+  document.getElementById('c-all').textContent=all.length;
+  document.getElementById('c-free').textContent=free;
+  document.getElementById('c-rent').textContent=rent;
+  document.getElementById('c-fit').textContent=fit;
+  document.getElementById('c-off').textContent=off;
+  document.getElementById('c-rate').textContent=(can?Math.round(rent/can*1000)/10:0)+'%';
+  var pend=errors.filter(function(e){return e.status==='待处理';}).length;
+  document.getElementById('c-err').textContent=pend;
+  document.getElementById('errBadge').textContent=pend;
+}
+function renderUnits(){
+  var q=val('q').toLowerCase(),fb=val('fb'),ff=val('ff'),ft=val('ft'),fs=val('fs'),fh=val('fh');
+  var list=units.filter(function(u){
+    if(q){ var hay=(u.no+' '+(u.tenant?u.tenant.name+' '+u.tenant.contract:'')).toLowerCase(); if(hay.indexOf(q)<0) return false; }
+    if(fb && u.b!==fb) return false;
+    if(ff && u.floor!==ff) return false;
+    if(ft && u.type!==ft) return false;
+    if(fs && u.status!==fs) return false;
+    if(fh==='1' && !u.tenant) return false;
+    if(fh==='0' && u.tenant) return false;
+    return true;
+  });
+  document.getElementById('uCount').textContent='共 '+list.length+' 条';
+  var h='';
+  if(!list.length){ h='<tr><td colspan="9" class="text-center text-[#94A3B8] py-10">无匹配档口，请调整筛选条件</td></tr>'; }
+  list.forEach(function(u){
+    var t=u.tenant;
+    h+='<tr>'
+     +'<td><span class="tag" style="background:#FFF1ED;color:#FF4D2D">'+esc(u.no)+'</span></td>'
+     +'<td>'+esc(u.b)+' 栋 · '+esc(u.floor)+'</td>'
+     +'<td>'+esc(u.type)+'</td>'
+     +'<td>'+u.area+'</td>'
+     +'<td>'+stTag(u.status)+'</td>'
+     +'<td>'+(t?'<span class="font-medium">'+esc(t.name)+'</span>':'<span class="text-[#94A3B8]">—</span>')+'</td>'
+     +'<td class="text-[12px] text-[#64748B]">'+(t?esc(t.start)+' ~ '+esc(t.end):'—')+'</td>'
+     +'<td>'+(u.plan?'<span class="tag" style="background:#DBEAFE;color:#2563EB">已标注</span>':'<span class="tag" style="background:#F1F5F9;color:#94A3B8">未标注</span>')+'</td>'
+     +'<td><span class="lk" onclick="openUnit(\''+u.no+'\')">详情</span>'
+       +' · <span class="lk" onclick="markUnit(\''+u.no+'\')">'+(u.status==='停用'?'恢复':'装修/停用')+'</span>'
+       +' · <span class="lk" onclick="toast(\'跳转 05 合同管理：\'+(\''+(t?t.contract:'')+'\'))">关联合同</span></td>'
+     +'</tr>';
+  });
+  document.getElementById('unitBody').innerHTML=h;
+}
+function renderErrors(){
+  var h='';
+  if(!errors.length){ h='<tr><td colspan="8" class="text-center text-[#94A3B8] py-10">暂无匹配异常</td></tr>'; }
+  errors.forEach(function(e,i){
+    var c=e.type==='重复生效合同'?'background:#FEF3C7;color:#D97706':(e.type==='停用档口命中'?'background:#FEE2E2;color:#B91C1C':'background:#FEE2E2;color:#B91C1C');
+    h+='<tr>'
+     +'<td><span class="tag" style="'+c+'">'+esc(e.type)+'</span></td>'
+     +'<td>'+esc(e.contract)+'</td>'
+     +'<td><span class="font-medium" style="color:#B91C1C">'+esc(e.code)+'</span></td>'
+     +'<td>'+esc(e.tenant)+'</td>'
+     +'<td class="text-[12px] text-[#64748B]">'+esc(e.period)+'</td>'
+     +'<td class="text-[12px] text-[#64748B]">'+esc(e.time)+'</td>'
+     +'<td><span class="tag" style="background:#FEF3C7;color:#D97706">'+esc(e.status)+'</span></td>'
+     +'<td><span class="lk" onclick="handleErr('+i+')">处理</span> · <span class="lk" onclick="rerun('+i+')">重新匹配</span></td>'
+     +'</tr>';
+  });
+  document.getElementById('errBody').innerHTML=h;
+}
+function switchTab(t){
+  curTab=t;
+  document.getElementById('tab-u').classList.toggle('on',t==='u');
+  document.getElementById('tab-e').classList.toggle('on',t==='e');
+  document.getElementById('pane-u').classList.toggle('hidden',t!=='u');
+  document.getElementById('pane-e').classList.toggle('hidden',t!=='e');
+}
+function resetFilter(){ ['q','fb','ff','ft','fs','fh'].forEach(function(id){document.getElementById(id).value='';}); renderUnits(); }
+function markUnit(no){
+  var u=units.filter(function(x){return x.no===no;})[0];
+  if(u.status==='在租'){ toast('「在租」由合同数据判定，不可手工修改；如需标记装修/停用，请先终止或暂停合同'); return; }
+  u.status=(u.status==='停用')?'空闲':'停用';
+  toast(u.status==='停用'?'已标记「停用」（不计入出租率）':'已恢复为「空闲」');
+  stat(); renderUnits();
+}
+function handleErr(i){
+  var e=errors[i];
+  e.status='已处理';
+  toast('已标记「'+e.type+'」处理完成：'+e.code+'（'+e.contract+'）');
+  stat(); renderErrors();
+}
+function rerun(i){
+  var e=errors[i];
+  if(e.type==='编号未匹配'){ toast('重新匹配失败：档口编号 '+e.code+' 在本模块不存在，请先补录档口或在合同侧修正编号'); return; }
+  if(e.type==='停用档口命中'){ toast('重新匹配告警：'+e.code+' 为「停用」档口，请核实是停用标记错误还是合同错误'); return; }
+  toast('重新匹配完成：'+e.code+' 以生效日期最新的一条合同作为当前租户');
+  e.status='已处理'; stat(); renderErrors();
+}
+function syncNow(){
+  document.getElementById('syncTime').textContent='2026-09-24 '+nowHM();
+  document.getElementById('syncAll').textContent='5';
+  document.getElementById('syncOk').textContent='4';
+  document.getElementById('syncErr').textContent='1';
+  toast('已触发立即同步：本次拉取 5 条合同，成功匹配 4 条，异常 1 条（已进入异常清单）');
+  stat();
+}
+function nowHM(){ var d=new Date(); return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2); }
+
+/* ===== 详情抽屉 ===== */
+function openUnit(no){
+  if(no==='new'){ openNew(); return; }
+  var u=units.filter(function(x){return x.no===no;})[0]; if(!u) return;
+  curUnit=u;
+  document.getElementById('d-title').textContent='档口详情 · '+u.no;
+  document.getElementById('d-sub').textContent=u.b+' 栋 · '+u.floor+' · '+u.type+' · '+u.area+'㎡　·　档口编号为全端唯一标识，一经使用不可修改';
+  var t=u.tenant, h='';
+
+  /* 1 基础属性 */
+  h+='<div class="blk mb-4"><div class="blk-t">基础属性</div>'
+   +'<div class="grid grid-cols-3 gap-x-4">'
+   +'<div class="kv"><span class="k">档口编号</span><span class="v font-semibold">'+esc(u.no)+'</span></div>'
+   +'<div class="kv"><span class="k">楼栋/楼层</span><span class="v">'+esc(u.b)+' 栋 · '+esc(u.floor)+'</span></div>'
+   +'<div class="kv"><span class="k">类型</span><span class="v">'+esc(u.type)+'</span></div>'
+   +'<div class="kv"><span class="k">面积</span><span class="v">'+u.area+' ㎡</span></div>'
+   +'<div class="kv"><span class="k">状态</span><span class="v">'+stTag(u.status)+'</span></div>'
+   +'<div class="kv"><span class="k">平面图</span><span class="v">'+(u.plan?'已标注':'未标注')+'</span></div>'
+   +'</div></div>';
+
+  /* 2 当前租户 */
+  if(t){
+    h+='<div class="blk mb-4" style="border-color:#BBF7D0;background:#F6FEF9"><div class="blk-t">当前租户（来自合同匹配）</div>'
+     +'<div class="grid grid-cols-2 gap-x-4">'
+     +'<div class="kv"><span class="k">租客姓名</span><span class="v font-semibold">'+esc(t.name)+'</span></div>'
+     +'<div class="kv"><span class="k">身份证号</span><span class="v">'+esc(t.idno)+' <i class="fas fa-lock text-[10px] text-[#94A3B8]" title="仅物业人员可见完整值"></i></span></div>'
+     +'<div class="kv"><span class="k">联系电话</span><span class="v">'+esc(t.phone)+'</span></div>'
+     +'<div class="kv"><span class="k">经营业态</span><span class="v">'+esc(t.biz)+'</span></div>'
+     +'<div class="kv"><span class="k">租期</span><span class="v">'+esc(t.start)+' ~ '+esc(t.end)+'</span></div>'
+     +'<div class="kv"><span class="k">关联合同</span><span class="v"><span class="lk" onclick="toast(\'跳转 05 合同管理 · 合同 \'+(\''+esc(t.contract)+'\'))">'+esc(t.contract)+'</span></span></div>'
+     +'</div>'
+     +'<div class="mt-2 text-[11px] text-[#64748B]"><i class="fas fa-circle-info mr-1 text-[#059669]"></i>数据来源：合同管理每日经接口同步后按档口编号匹配写入，本模块不可手工编辑</div></div>';
+  } else {
+    h+='<div class="blk mb-4"><div class="blk-t">当前租户（来自合同匹配）</div>'
+     +'<div class="text-[13px] text-[#94A3B8] py-2">空闲（无生效合同）</div></div>';
+  }
+
+  /* 3 历届租户 */
+  h+='<div class="blk mb-4"><div class="blk-t">历届租户（租赁历史）</div>';
+  if(u.hist && u.hist.length){
+    h+='<div class="overflow-x-auto"><table class="w-full tb"><thead><tr><th>租客姓名</th><th>租期起止</th><th>合同号</th><th>结束原因</th></tr></thead><tbody>';
+    u.hist.forEach(function(x){ h+='<tr><td>'+esc(x.name)+'</td><td class="text-[12px] text-[#64748B]">'+esc(x.start)+' ~ '+esc(x.end)+'</td><td>'+esc(x.contract)+'</td><td><span class="tag" style="background:#F1F5F9;color:#64748B">'+esc(x.reason)+'</span></td></tr>'; });
+    h+='</tbody></table></div>';
+  } else { h+='<div class="text-[13px] text-[#94A3B8] py-2">暂无历史租户记录</div>'; }
+  h+='</div>';
+
+  /* 4 平面图位置 */
+  h+='<div class="blk mb-4"><div class="blk-t">平面图位置</div>'
+   +'<div class="flex items-center gap-4">'
+   +'<div class="w-40 h-28 rounded-lg flex items-center justify-center text-[11px]" style="background:repeating-linear-gradient(45deg,#F8FAFC,#F8FAFC 8px,#F1F5F9 8px,#F1F5F9 16px);border:1px dashed #CBD5E1">'+esc(u.b)+' 栋 '+esc(u.floor)+' 示意</div>'
+   +'<div class="text-[12px] text-[#64748B]">所在楼层：'+esc(u.b)+' 栋 '+esc(u.floor)+'　·　标注状态：'+(u.plan?'<span style="color:#059669">已标注</span>':'<span style="color:#94A3B8">未标注</span>')
+   +'<div class="mt-2"><button class="btn btn-ghost" onclick="location.href=\'resource-floorplan.html?b='+u.b+'&f='+encodeURIComponent(u.floor)+'\'">前往平面图定位</button></div></div>'
+   +'</div></div>';
+
+  /* 5 变更留痕 */
+  h+='<div class="blk"><div class="blk-t">变更留痕</div>'
+   +'<div class="text-[12px] text-[#64748B] space-y-2">'
+   +'<div><span class="text-[#94A3B8]">2026-09-24 02:00</span>　系统（合同同步）　匹配成功，当前租户写入'+(t?'「'+esc(t.name)+'」':'—')+'</div>'
+   +'<div><span class="text-[#94A3B8]">2026-09-23 15:20</span>　物业（张伟）　更新"平面图位置"标注</div>'
+   +'<div><span class="text-[#94A3B8]">2026-08-01 09:12</span>　物业（张伟）　状态变更为「装修中」，原因：免租装修期</div>'
+   +'</div></div>';
+
+  document.getElementById('d-body').innerHTML=h;
+  document.getElementById('d-foot').innerHTML='<button class="btn btn-ghost py-2.5" onclick="closeD()">关闭</button>'
+    +'<button class="btn btn-ghost py-2.5" onclick="toast(\'「在租/空闲」由合同数据判定，不支持手工修改\')">修改状态</button>'
+    +'<button class="btn btn-primary py-2.5 px-6" onclick="toast(\'已保存档口属性（不影响合同匹配结果）\')">编辑属性</button>';
+  showD();
+}
+function openNew(){
+  document.getElementById('d-title').textContent='新增档口';
+  document.getElementById('d-sub').textContent='档口编号唯一，是合同匹配键，创建后不可修改';
+  document.getElementById('d-body').innerHTML=
+    '<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl"><i>*</i>档口编号</label><input class="fi" id="n_no" placeholder="如 1F-A15"></div>'
+    +'<div><label class="fl"><i>*</i>楼栋 / 楼层</label><div class="flex gap-2"><select class="fi" id="n_b"><option>A</option><option>B</option><option>C</option></select><select class="fi" id="n_f"><option>B1</option><option>1F</option><option>2F</option><option>3F</option></select></div></div>'
+    +'<div><label class="fl"><i>*</i>类型</label><select class="fi" id="n_t"><option>档口</option><option>商铺</option><option>公共设施</option></select></div>'
+    +'<div><label class="fl"><i>*</i>面积(㎡)</label><input class="fi" id="n_a" placeholder="如 36"></div>'
+    +'</div>'
+    +'<div class="mt-4 p-4 bg-gray-50 rounded-xl text-[12px] text-[#64748B]"><i class="fas fa-circle-info mr-1 text-[#FF4D2D]"></i>新建档口状态为「空闲」；被租走后由合同同步匹配自动置为「在租」</div>';
+  document.getElementById('d-foot').innerHTML='<button class="btn btn-ghost py-2.5" onclick="closeD()">取消</button>'
+    +'<button class="btn btn-primary py-2.5 px-6" onclick="saveNew()">保存</button>';
+  showD();
+}
+function saveNew(){
+  var no=val('n_no').toUpperCase(),a=val('n_a');
+  if(!no||!a){ toast('档口编号与面积为必填'); return; }
+  if(units.filter(function(x){return x.no===no;}).length){ toast('档口编号已存在，编号必须唯一'); return; }
+  units.unshift({no:no,b:val('n_b'),floor:val('n_f'),type:val('n_t'),area:parseInt(a,10)||0,status:'空闲',plan:false,tenant:null,hist:[]});
+  closeD(); toast('已新增档口 '+no); stat(); renderUnits();
+}
+function showD(){ document.getElementById('mask').classList.add('on'); document.getElementById('drawer').classList.add('on'); }
+function closeD(){ document.getElementById('mask').classList.remove('on'); document.getElementById('drawer').classList.remove('on'); }
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function val(id){ var e=document.getElementById(id); return e?e.value.trim():''; }
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},2800);}
+
+/* 支持带参跳转：?b=楼栋&f=楼层（下钻）、?q=档口编号/租客、?tab=e（合同匹配异常） */
+(function(){
+  var p=new URLSearchParams(location.search),b=p.get('b'),f=p.get('f'),q=p.get('q'),tb=p.get('tab');
+  if(b) document.getElementById('fb').value=b;
+  if(f) document.getElementById('ff').value=f;
+  if(q) document.getElementById('q').value=q;
+  if(tb==='e') switchTab('e');
+})();
+stat(); renderUnits(); renderErrors();
+</script>
+</body>
+</html>

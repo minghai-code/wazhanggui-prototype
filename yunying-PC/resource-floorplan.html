@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>市场资源管理 - 平面图维护</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>
+tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D','primary-d':'#E63E20','primary-l':'#FF7849'}}}}
+</script>
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.stat-card{transition:box-shadow .2s ease,transform .2s ease}
+.stat-card:hover{box-shadow:0 4px 20px rgba(0,0,0,.08);transform:translateY(-1px)}
+.section-label{font-size:16px;font-weight:700;color:#1F2430;display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.section-label::before{content:'';width:3px;height:16px;border-radius:2px;background:#FF4D2D}
+.tb th{font-size:12px;font-weight:600;color:#64748B;background:#F8FAFC;padding:10px 12px;text-align:left;white-space:nowrap}
+.tb td{font-size:13px;color:#1F2430;padding:11px 12px;border-bottom:1px solid #F1F5F9;white-space:nowrap}
+.tb tbody tr:hover{background:#FFF7F5}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}
+.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}
+.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}
+.lk:hover{text-decoration:underline}
+.tabbar{display:flex;gap:4px}
+.tab{padding:7px 14px;border-radius:8px;font-size:12px;color:#64748B;cursor:pointer;transition:.15s;border:1px solid transparent}
+.tab:hover{background:#F8FAFC;color:#1F2430}
+.tab.on{background:#FFF1ED;color:#FF4D2D;font-weight:600}
+#canvas{position:relative;height:520px;border-radius:12px;overflow:hidden;border:1px solid #E2E8F0;background:#FAFBFC;cursor:default}
+#canvas.mark{cursor:crosshair}
+.pin{position:absolute;transform:translate(-50%,-50%);border-radius:6px;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;border:1px solid;user-select:none;transition:box-shadow .15s}
+.pin:hover{box-shadow:0 2px 10px rgba(0,0,0,.18);z-index:5}
+.pin.sel{outline:2px solid #1F2430;outline-offset:1px;z-index:6}
+.floorline{position:absolute;background:#EEF2F7}
+.fl{display:block;font-size:12px;color:#64748B;margin-bottom:5px}
+.fi{width:100%;padding:8px 11px;font-size:13px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;outline:none;transition:.15s}
+.fi:focus{border-color:#FF4D2D;background:#fff}
+</style>
+</head>
+<body>
+<div class="p-6">
+
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">平面图维护</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">2D 平面图 + 点位标注</span>
+      </div>
+      <p class="text-[12px] text-[#94A3B8] mt-1">市场资源管理 / 平面图维护　·　上传楼层平面图、把档口编号标注到图上、发布后同步买家端「市场导览」</p>
+    </div>
+    <div class="flex gap-2">
+      <label class="btn btn-ghost" style="display:inline-flex;align-items:center;cursor:pointer"><i class="fas fa-image mr-1"></i>上传 / 替换平面图
+        <input type="file" accept="image/*" class="hidden" onchange="onUpload(this)"></label>
+      <button class="btn btn-primary" id="pubBtn" onclick="publish()">发布到买家端</button>
+    </div>
+  </div>
+
+  <!-- 楼层选择 -->
+  <div class="bg-white rounded-xl border border-gray-100 px-4 py-3 mb-4 flex items-center gap-4 flex-wrap">
+    <span class="text-[12px] text-[#64748B]">楼栋</span>
+    <select class="fi w-32" id="bSel" onchange="renderTabs()"><option value="A">A 栋（主市场）</option><option value="B">B 栋（原料馆）</option><option value="C">C 栋（配套楼）</option></select>
+    <div class="tabbar" id="floorTabs"></div>
+    <span class="ml-auto text-[12px] text-[#94A3B8]" id="planState"></span>
+  </div>
+
+  <div class="grid grid-cols-12 gap-5 mb-5">
+
+    <!-- 图区 -->
+    <div class="col-span-9">
+      <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+        <div class="px-5 py-3 border-b border-gray-100 flex items-center gap-2 flex-wrap">
+          <button class="btn btn-ghost" id="markBtn" onclick="toggleMark()"><i class="fas fa-crosshairs mr-1"></i>标注模式</button>
+          <button class="btn btn-ghost" onclick="clearAll()"><i class="fas fa-eraser mr-1"></i>清除本层点位</button>
+          <button class="btn btn-ghost" onclick="undo()"><i class="fas fa-rotate-left mr-1"></i>撤销</button>
+          <span class="text-[12px] text-[#94A3B8] ml-2" id="tipText">查看模式：点击点位可选中，右侧列表可定位</span>
+          <span class="ml-auto text-[11px] text-[#94A3B8]" id="markInfo"></span>
+        </div>
+        <div class="p-4">
+          <div id="canvas" onclick="onCanvasClick(event)">
+            <!-- 示意楼层底图（原型态：静态示意图；实际由上传的平面图替换） -->
+            <div class="floorline" style="left:0;top:44%;width:100%;height:46px"></div>
+            <div class="floorline" style="left:6%;top:0;width:56px;height:100%"></div>
+            <div class="floorline" style="right:6%;top:0;width:56px;height:100%"></div>
+            <div style="position:absolute;left:8px;top:6px;font-size:11px;color:#B6C2D1">平面图示意图（上传后替换）</div>
+            <div id="pins"></div>
+          </div>
+          <div class="flex items-center gap-4 mt-3 text-[11px] text-[#64748B] flex-wrap">
+            <span class="flex items-center gap-1"><i style="width:12px;height:10px;border-radius:2px;background:#F1F5F9;border:1px solid #CBD5E1;display:inline-block"></i>空闲</span>
+            <span class="flex items-center gap-1"><i style="width:12px;height:10px;border-radius:2px;background:#DCFCE7;border:1px solid #86EFAC;display:inline-block"></i>在租</span>
+            <span class="flex items-center gap-1"><i style="width:12px;height:10px;border-radius:2px;background:#FEF3C7;border:1px solid #FCD34D;display:inline-block"></i>装修中</span>
+            <span class="flex items-center gap-1"><i style="width:12px;height:10px;border-radius:2px;background:#FEE2E2;border:1px solid #FCA5A5;display:inline-block"></i>停用</span>
+            <span class="flex items-center gap-1"><i style="width:12px;height:10px;border-radius:2px;background:#E0E7FF;border:1px solid #A5B4FC;display:inline-block"></i>公共设施</span>
+            <span class="ml-auto"><i class="fas fa-circle-info mr-1"></i>坐标以相对百分比存储，不同分辨率不漂移</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 档口点位列表 -->
+    <div class="col-span-3">
+      <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+        <div class="px-4 py-3 border-b border-gray-100">
+          <div class="text-[13px] font-bold text-[#1F2430]">本层档口与点位</div>
+          <div class="text-[11px] text-[#94A3B8] mt-1" id="markStat"></div>
+        </div>
+        <div class="max-h-[520px] overflow-y-auto" id="unitList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 版本管理 -->
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+      <div class="section-label mb-0">版本管理</div>
+      <span class="text-[11px] text-[#94A3B8]">发布后买家端「市场导览 / 楼层导览」立即可见；可回滚历史版本</span>
+    </div>
+    <table class="w-full tb">
+      <thead><tr><th>版本</th><th>楼层</th><th>上传时间</th><th>上传人</th><th>点位</th><th>状态</th><th>操作</th></tr></thead>
+      <tbody id="verBody"></tbody>
+    </table>
+    <div class="px-5 py-3 border-t border-gray-100 text-[11px] text-[#94A3B8]">
+      <i class="fas fa-circle-info mr-1"></i>「草稿」仅后台可见；发布需二次确认；未标注的档口不会出现在买家端导航中
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[60]"></div>
+
+<script>
+/* ===== 数据（原型态静态模拟数据） ===== */
+var FLOORS={'A':['B1','1F','2F','3F'],'B':['1F','2F'],'C':['1F']};
+/* 档口基础信息（编号 → 状态 / 类型），与摊位商铺管理口径一致 */
+var UNIT={
+ '1F-A01':{s:'在租',t:'档口'},'1F-A02':{s:'在租',t:'档口'},'1F-A03':{s:'空闲',t:'档口'},'1F-A05':{s:'在租',t:'档口'},
+ '1F-A06':{s:'装修中',t:'档口'},'1F-A08':{s:'在租',t:'档口'},'1F-A09':{s:'空闲',t:'档口'},'1F-A12':{s:'在租',t:'档口'},
+ '1F-B03':{s:'在租',t:'档口'},'1F-B08':{s:'空闲',t:'档口'},'1F-C02':{s:'停用',t:'档口'},
+ '1F-E01':{s:'停用',t:'公共设施'},'1F-E02':{s:'停用',t:'公共设施'},'1F-E03':{s:'停用',t:'公共设施'},'1F-E04':{s:'停用',t:'公共设施'},
+ '2F-A05':{s:'在租',t:'商铺'},'2F-B01':{s:'在租',t:'商铺'},'2F-A01':{s:'空闲',t:'商铺'},'2F-A02':{s:'空闲',t:'商铺'},
+ '3F-C02':{s:'在租',t:'商铺'},'3F-A01':{s:'空闲',t:'商铺'},
+ '1F-Y01':{s:'在租',t:'档口'},'1F-Y02':{s:'空闲',t:'档口'},'1F-Y03':{s:'空闲',t:'档口'},'2F-Y01':{s:'空闲',t:'档口'}
+};
+/* 已标注点位：x / y 为相对百分比 */
+var POINTS={
+ 'A|1F':[
+  {no:'1F-A01',x:16,y:16},{no:'1F-A02',x:30,y:16},{no:'1F-A03',x:44,y:16},{no:'1F-A05',x:58,y:16},
+  {no:'1F-A06',x:16,y:36},{no:'1F-A08',x:30,y:36},{no:'1F-A09',x:44,y:36},{no:'1F-A12',x:58,y:36},
+  {no:'1F-B03',x:16,y:64},{no:'1F-B08',x:30,y:64},{no:'1F-C02',x:44,y:64},{no:'1F-E01',x:58,y:64},
+  {no:'1F-E02',x:16,y:84},{no:'1F-E03',x:30,y:84},{no:'1F-E04',x:44,y:84}
+ ],
+ 'A|2F':[
+  {no:'2F-A01',x:18,y:20},{no:'2F-A02',x:34,y:20},{no:'2F-A05',x:50,y:20},{no:'2F-B01',x:66,y:20}
+ ],
+ 'A|3F':[
+  {no:'3F-A01',x:20,y:25},{no:'3F-C02',x:40,y:25}
+ ],
+ 'B|1F':[
+  {no:'1F-Y01',x:20,y:22},{no:'1F-Y02',x:38,y:22},{no:'1F-Y03',x:56,y:22}
+ ]
+};
+var META={
+ 'A|1F':{ver:'v3',time:'2026-09-20 10:12',by:'张伟',status:'已发布'},
+ 'A|2F':{ver:'v2',time:'2026-09-18 16:40',by:'张伟',status:'已发布'},
+ 'A|3F':{ver:'v1',time:'2026-09-22 09:05',by:'张伟',status:'草稿'},
+ 'B|1F':{ver:'v1',time:'2026-09-15 11:30',by:'李娜',status:'已发布'},
+ 'A|B1':{ver:'—',time:'—',by:'—',status:'未上传'},
+ 'B|2F':{ver:'—',time:'—',by:'—',status:'未上传'},
+ 'C|1F':{ver:'—',time:'—',by:'—',status:'未上传'}
+};
+var VERLOG=[
+ {ver:'v3',floor:'A 栋 1F',time:'2026-09-20 10:12',by:'张伟',pts:13,status:'已发布'},
+ {ver:'v2',floor:'A 栋 2F',time:'2026-09-18 16:40',by:'张伟',pts:4,status:'已发布'},
+ {ver:'v1',floor:'A 栋 3F',time:'2026-09-22 09:05',by:'张伟',pts:2,status:'草稿'},
+ {ver:'v1',floor:'B 栋 1F',time:'2026-09-15 11:30',by:'李娜',pts:3,status:'已发布'}
+];
+var curB='A',curF='1F',markMode=false,pending=null,selIdx=-1,snapshot=null;
+
+function key(){ return curB+'|'+curF; }
+function pts(){ if(!POINTS[key()]) POINTS[key()]=[]; return POINTS[key()]; }
+function unitsOfFloor(){
+  var p=curB+'|'+curF;
+  return Object.keys(UNIT).filter(function(no){
+    if(curB==='A') return no.indexOf(curF+'-')===0;
+    return no.indexOf(curF+'-Y')===0;
+  });
+}
+function pinStyle(no){
+  var u=UNIT[no]||{s:'空闲',t:'档口'};
+  if(u.t==='公共设施') return 'background:#E0E7FF;border-color:#A5B4FC;color:#3730A3;width:34px;height:26px';
+  if(u.s==='在租')   return 'background:#DCFCE7;border-color:#86EFAC;color:#166534;width:52px;height:30px';
+  if(u.s==='装修中') return 'background:#FEF3C7;border-color:#FCD34D;color:#92400E;width:52px;height:30px';
+  if(u.s==='停用')   return 'background:#FEE2E2;border-color:#FCA5A5;color:#991B1B;width:52px;height:30px';
+  return 'background:#F1F5F9;border-color:#CBD5E1;color:#475569;width:52px;height:30px';
+}
+function renderTabs(){
+  curB=document.getElementById('bSel').value;
+  var fs=FLOORS[curB];
+  if(fs.indexOf(curF)<0) curF=fs[0];
+  document.getElementById('floorTabs').innerHTML=fs.map(function(f){
+    return '<div class="tab '+(f===curF?'on':'')+'" onclick="pickFloor(\''+f+'\')">'+f+'</div>';
+  }).join('');
+  renderAll();
+}
+function pickFloor(f){ curF=f; selIdx=-1; pending=null; document.getElementById('bSel').value=curB; renderTabs(); }
+
+function renderAll(){
+  var m=META[key()]||{status:'未上传',ver:'—',by:'—'};
+  document.getElementById('planState').innerHTML='平面图状态：'+statusTag(m.status)+'　·　版本 '+(m.ver||'—')+'　·　上传人 '+(m.by||'—');
+  document.getElementById('pubBtn').textContent=(m.status==='已发布')?'下线（回到草稿）':'发布到买家端';
+  document.getElementById('pubBtn').className='btn '+((m.status==='已发布')?'btn-ghost':'btn-primary');
+  renderPins(); renderUnitList(); renderVer();
+  document.getElementById('tipText').textContent=markMode?'标注模式：在图上点击放置/移动点位（先在右侧点「标注」选择档口）':'查看模式：点击点位可选中，右侧列表可定位';
+  document.getElementById('markInfo').textContent='本层点位 '+pts().length+' / '+unitsOfFloor().length;
+}
+function statusTag(s){
+  if(s==='已发布') return '<span class="tag" style="background:#DCFCE7;color:#059669">已发布</span>';
+  if(s==='草稿')   return '<span class="tag" style="background:#FEF3C7;color:#D97706">草稿</span>';
+  return '<span class="tag" style="background:#F1F5F9;color:#94A3B8">未上传</span>';
+}
+function renderPins(){
+  var h='';
+  pts().forEach(function(p,i){
+    h+='<div class="pin '+(i===selIdx?'sel':'')+'" style="left:'+p.x+'%;top:'+p.y+'%;'+pinStyle(p.no)+'" '
+      +'onclick="event.stopPropagation();pickPin('+i+')" title="'+esc(p.no)+'">'+esc(p.no.replace('-',''))+'</div>';
+  });
+  document.getElementById('pins').innerHTML=h;
+}
+function renderUnitList(){
+  var list=unitsOfFloor(),h='';
+  var marked=pts().map(function(p){return p.no;});
+  list.forEach(function(no){
+    var u=UNIT[no]||{s:'空闲',t:'档口'};
+    var isM=marked.indexOf(no)>=0;
+    h+='<div class="px-4 py-2.5 border-b border-gray-50 flex items-center gap-2">'
+      +'<span class="text-[12px] font-medium text-[#1F2430] w-20">'+esc(no)+'</span>'
+      +'<span class="tag" style="'+(u.t==='公共设施'?'background:#E0E7FF;color:#3730A3':(u.s==='在租'?'background:#DCFCE7;color:#059669':(u.s==='装修中'?'background:#FEF3C7;color:#D97706':(u.s==='停用'?'background:#FEE2E2;color:#B91C1C':'background:#F1F5F9;color:#64748B'))))+'">'+(u.t==='公共设施'?'公共设施':u.s)+'</span>'
+      +'<span class="ml-auto text-[11px]">'+(isM?'<span style="color:#059669">已标注</span>':'<span style="color:#94A3B8">未标注</span>')+'</span>'
+      +'<span class="lk" onclick="'+(isM?'locate(\''+no+'\')':'startMark(\''+no+'\')')+'">'+(isM?'定位':'标注')+'</span>'
+      +'</div>';
+  });
+  document.getElementById('unitList').innerHTML=h||'<div class="px-4 py-8 text-center text-[#94A3B8] text-[12px]">该楼层暂无档口</div>';
+  var total=list.length, done=marked.filter(function(n){return list.indexOf(n)>=0;}).length;
+  document.getElementById('markStat').textContent='本层 '+total+' 个档口，已标注 '+done+'，剩余 '+(total-done)+' 未标注';
+}
+function renderVer(){
+  document.getElementById('verBody').innerHTML=VERLOG.map(function(v){
+    return '<tr><td><span class="tag" style="background:#FFF1ED;color:#FF4D2D">'+esc(v.ver)+'</span></td>'
+      +'<td>'+esc(v.floor)+'</td><td class="text-[12px] text-[#64748B]">'+esc(v.time)+'</td><td>'+esc(v.by)+'</td>'
+      +'<td>'+v.pts+'</td><td>'+statusTag(v.status)+'</td>'
+      +'<td>'+(v.status==='已发布'
+        ?'<span class="lk" onclick="toast(\'已下线 '+esc(v.floor)+' '+esc(v.ver)+'，买家端恢复上一版本\')">下线</span>'
+        :'<span class="lk" onclick="toast(\'已发布 '+esc(v.floor)+' '+esc(v.ver)+'，买家端导览立即生效\')">发布</span>')
+      +' · <span class="lk" onclick="toast(\'已回滚到 '+esc(v.floor)+' '+esc(v.ver)+'（生成新草稿）\')">回滚</span>'
+      +' · <span class="lk" onclick="toast(\'预览：'+esc(v.floor)+' 平面图\')">预览</span></td></tr>';
+  }).join('');
+}
+function pickPin(i){ selIdx=i; var p=pts()[i]; toast('已选中点位 '+p.no+'（右侧点「标注」可重新放置）'); renderPins(); }
+
+/* ===== 标注交互 ===== */
+function toggleMark(){
+  markMode=!markMode;
+  document.getElementById('canvas').classList.toggle('mark',markMode);
+  document.getElementById('markBtn').className='btn '+(markMode?'btn-primary':'btn-ghost');
+  document.getElementById('markBtn').innerHTML='<i class="fas fa-crosshairs mr-1"></i>'+(markMode?'退出标注':'标注模式');
+  if(markMode && !pending && selIdx<0){ toast('请在右侧档口列表点击「标注」选择要放置的档口编号'); }
+  renderAll();
+}
+function startMark(no){
+  var p=pts();
+  var exist=p.filter(function(x){return x.no===no;})[0];
+  if(exist){ selIdx=p.indexOf(exist); toast('该档口已标注，进入标注模式可移动其位置'); }
+  else { pending=no; selIdx=-1; toast('已选择 '+no+'，请在图上点击放置点位'); }
+  if(!markMode) toggleMark(); else { renderPins(); }
+}
+function locate(no){
+  var p=pts(); var i=-1;
+  p.forEach(function(x,k){ if(x.no===no) i=k; });
+  if(i<0){ toast('该档口尚未标注'); return; }
+  selIdx=i; renderPins(); toast('已定位到 '+no);
+}
+function onCanvasClick(e){
+  if(!markMode) return;
+  var r=document.getElementById('canvas').getBoundingClientRect();
+  var x=Math.round((e.clientX-r.left)/r.width*1000)/10;
+  var y=Math.round((e.clientY-r.top)/r.height*1000)/10;
+  snapshot=JSON.stringify(pts());
+  var p=pts();
+  if(selIdx>=0){ p[selIdx].x=x; p[selIdx].y=y; toast('已移动点位 '+p[selIdx].no+' 到 ('+x+'%, '+y+'%)'); }
+  else if(pending){
+    p.push({no:pending,x:x,y:y});
+    var t=pending; pending=null; selIdx=p.length-1;
+    toast('已标注 '+t+' 到 ('+x+'%, '+y+'%)');
+  } else { toast('请先在右侧列表点击「标注」选择档口编号，再点击图上位置'); return; }
+  renderAll();
+}
+function clearAll(){
+  snapshot=JSON.stringify(pts());
+  POINTS[key()]=[]; selIdx=-1; pending=null;
+  toast('已清除本层全部点位（可撤销）'); renderAll();
+}
+function undo(){
+  if(!snapshot){ toast('没有可撤销的操作'); return; }
+  POINTS[key()]=JSON.parse(snapshot); snapshot=null; selIdx=-1; pending=null;
+  toast('已撤销上一步操作'); renderAll();
+}
+function onUpload(inp){
+  if(!inp.files.length) return;
+  var m=META[key()]||{};
+  m.status='草稿'; m.ver='v'+((parseInt((m.ver||'v0').replace('v',''),10)||0)+1);
+  m.time='2026-09-24 '+nowHM(); m.by='张伟';
+  META[key()]=m;
+  VERLOG.unshift({ver:m.ver,floor:curB+' 栋 '+curF,time:m.time,by:m.by,pts:pts().length,status:'草稿'});
+  toast('已上传平面图「'+inp.files[0].name+'」，生成草稿 '+m.ver+'（点位按档口编号继承）');
+  renderAll();
+}
+function publish(){
+  var m=META[key()]||{status:'未上传'};
+  if(m.status==='未上传'){ toast('请先上传该楼层平面图'); return; }
+  if(m.status==='已发布'){ m.status='草稿';
+    VERLOG.forEach(function(v){ if(v.floor===curB+' 栋 '+curF && v.status==='已发布') v.status='草稿'; });
+    toast('已下线：买家端「市场导览」恢复上一版本'); renderAll(); return;
+  }
+  var list=unitsOfFloor(), done=pts().filter(function(p){return list.indexOf(p.no)>=0;}).length;
+  if(done<list.length && !confirm('本层还有 '+(list.length-done)+' 个档口未标注，未标注档口不会出现在买家端导航中。仍要发布吗？')) return;
+  m.status='已发布';
+  VERLOG.forEach(function(v){ if(v.floor===curB+' 栋 '+curF && v.ver===m.ver){ v.status='已发布'; v.pts=pts().length; } });
+  toast('已发布到买家端：'+curB+' 栋 '+curF+' 楼层导览/店铺导航立即可见'); renderAll();
+}
+function nowHM(){ var d=new Date(); return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2); }
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},2800);}
+
+/* 支持从档口台账带参跳转定位 */
+(function(){
+  var p=new URLSearchParams(location.search),b=p.get('b'),f=p.get('f');
+  if(b && FLOORS[b]){ document.getElementById('bSel').value=b; curB=b; }
+  if(f && FLOORS[curB] && FLOORS[curB].indexOf(f)>=0) curF=f;
+})();
+renderTabs();
+</script>
+</body>
+</html>
