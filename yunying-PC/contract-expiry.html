@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>合同管理 - 到期预警与续约退租</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}.lk:hover{text-decoration:underline}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}.lk-gray:hover{color:#1F2430;text-decoration:underline}
+.st{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500;white-space:nowrap}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:60}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:680px;max-width:96vw;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:70;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);width:760px;max-width:95vw;max-height:86vh;overflow-y:auto;background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(15,23,42,.28);opacity:0;pointer-events:none;transition:.22s;z-index:70}
+.modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+.blk{border:1px solid #E2E8F0;border-radius:12px;padding:14px 16px}
+.blk-t{font-size:12.5px;font-weight:700;color:#1F2430;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.kv{display:flex;gap:8px;font-size:12px;line-height:1.9}
+.kv .k{color:#94A3B8;width:110px;flex-shrink:0}
+.kv .v{color:#1F2430;flex:1;word-break:break-all}
+.fi{width:100%;padding:6px 10px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none;background:#fff}
+.fi:focus{border-color:#FF4D2D}
+.fl{display:block;font-size:11px;color:#94A3B8;margin-bottom:4px}
+.sel{width:100%;padding:6px 8px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none}
+button{cursor:pointer}
+.up{border:2px dashed #E2E8F0;border-radius:12px;padding:18px;text-align:center;color:#94A3B8;cursor:pointer}
+.up:hover{border-color:#FDB4A3;color:#E63E20}
+.ck{display:flex;align-items:flex-start;gap:7px;font-size:12px;color:#334155;line-height:1.7;padding:6px 0}
+.ck input{margin-top:3px}
+</style>
+<!-- Tailwind 静态样式：本地引用（不再依赖 cdn.tailwindcss.com）；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<div class="p-6">
+
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">到期预警与续约退租</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">05 合同管理</span>
+      </div>
+      <p class="text-[12px] text-gray-400 mt-1">预警锚点：合同到期日 = <b>租赁年度末 8 月 31 日</b>，倒排 <b>T-90</b>（约 6 月初）/ <b>T-60</b>（约 7 月初）/ <b>T-30</b>（约 8 月初）完成续约决策；8 月 15 日起进入下一租赁年度年租金催收（由 06 执行）。<b>未在 8.31 前完成续约 → 系统自动置「已到期」，档口回「空闲」</b>（T+30 逾期升级运营主管）</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="toast('已导出到期清单（剩余天数 + 通知记录，身份证已脱敏）')"><i class="fas fa-download text-[10px] mr-1"></i>导出到期清单</button>
+      <button class="btn btn-ghost" onclick="noticeAll()"><i class="fas fa-paper-plane text-[10px] mr-1"></i>批量发送提醒</button>
+      <button class="btn btn-primary" onclick="location.href='contract-list.html'"><i class="fas fa-table-list mr-1"></i>去合同台账</button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-5 gap-3 mb-4" id="stats"></div>
+
+  <!-- 筛选 -->
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+    <div class="flex items-center gap-3 flex-wrap">
+      <input id="f-kw" type="text" placeholder="合同号 / 承租人 / 摊位号" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary w-64">
+      <select id="f-lv" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部预警档位</option>
+        <option value="T-90">T-90（90 天内）</option>
+        <option value="T-60">T-60（60 天内）</option>
+        <option value="T-30">T-30（30 天内）</option>
+        <option value="exp">已到期未处置</option>
+        <option value="over">已逾期（T+30 升级）</option>
+        <option value="far">未到预警期</option>
+      </select>
+      <select id="f-bld" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部楼栋</option><option>A 区</option><option>B 区</option><option>C 区</option>
+      </select>
+      <select id="f-state" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部处置状态</option><option>待处理</option><option>处理中</option><option>已处理</option><option>已忽略</option>
+      </select>
+      <input id="f-d1" type="date" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+      <span class="text-[12px] text-gray-400">至</span>
+      <input id="f-d2" type="date" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+      <button class="btn btn-primary" onclick="doSearch()">查询</button>
+      <button class="btn btn-ghost" onclick="resetSearch()">重置</button>
+      <span class="text-[11px] text-[#94A3B8] ml-auto"><i class="fas fa-circle-info mr-1"></i>预警日期区间按「租期结束日」筛</span>
+    </div>
+  </div>
+
+  <!-- 预警清单 -->
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden mb-4">
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-[13px] font-bold text-[#1F2430]">到期预警清单</span>
+        <span class="text-[12px] text-[#94A3B8]" id="cnt">共 0 条</span>
+      </div>
+      <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-bell mr-1"></i>通知对象：<b>物业 / 商户 / 运营</b>　渠道：站内信 + 短信 + 商户端</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-[13px]" style="min-width:1320px">
+        <thead>
+          <tr class="bg-gray-50 text-gray-500 text-[12px]">
+            <th class="px-4 py-3 text-left font-medium">合同号</th>
+            <th class="px-4 py-3 text-left font-medium">摊位号 → 档口</th>
+            <th class="px-4 py-3 text-left font-medium">承租人</th>
+            <th class="px-4 py-3 text-left font-medium">租期结束日</th>
+            <th class="px-4 py-3 text-left font-medium">剩余天数</th>
+            <th class="px-4 py-3 text-left font-medium">预警 / 已通知</th>
+            <th class="px-4 py-3 text-left font-medium">处置状态</th>
+            <th class="px-4 py-3 text-center font-medium">操作</th>
+          </tr>
+        </thead>
+        <tbody id="tb" class="divide-y divide-gray-50"></tbody>
+      </table>
+    </div>
+    <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+      <span class="text-[12px] text-gray-400" id="pageInfo">共 0 条记录</span>
+      <div class="flex items-center gap-1">
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100" onclick="toast('已是第一页（原型）')"><i class="fas fa-chevron-left text-[10px]"></i></button>
+        <button class="w-7 h-7 flex items-center justify-center text-white text-[12px] rounded" style="background:#FF4D2D" onclick="toast('当前第 1 页（原型）')">1</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100" onclick="toast('已切换到第 2 页（原型）')"><i class="fas fa-chevron-right text-[10px]"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 商户端待办申请 -->
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-[13px] font-bold text-[#1F2430]">商户端待办申请</span>
+        <span class="tag" style="background:#EDE9FE;color:#6D28D9" id="appCnt">0 条待受理</span>
+      </div>
+      <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-mobile-screen mr-1"></i>来源：商户端 App「我的合同 → 续签 / 退租申请」；受理后进入对应办理流程</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-[13px]" style="min-width:1220px">
+        <thead>
+          <tr class="bg-gray-50 text-gray-500 text-[12px]">
+            <th class="px-4 py-3 text-left font-medium">申请单号</th>
+            <th class="px-4 py-3 text-left font-medium">类型</th>
+            <th class="px-4 py-3 text-left font-medium">商户 / 档口</th>
+            <th class="px-4 py-3 text-left font-medium">期望起止</th>
+            <th class="px-4 py-3 text-left font-medium">说明 / 附件</th>
+            <th class="px-4 py-3 text-left font-medium">提交时间</th>
+            <th class="px-4 py-3 text-left font-medium">状态</th>
+            <th class="px-4 py-3 text-center font-medium">操作</th>
+          </tr>
+        </thead>
+        <tbody id="appTb" class="divide-y divide-gray-50"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div id="mask" class="mask" onclick="closeAll()"></div>
+<div id="drawer" class="drawer"></div>
+<div id="modal" class="modal"></div>
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
+
+<script>
+/* ================= 模拟数据（原型态）　基准日 = 2026-09-28 ================= */
+/* 规则：租赁年度 = 当年 9.1 ~ 次年 8.31；到期日锚定 8.31；精品摊 5 年 / 普通摊 3 年；保证金 精品 2 万 / 普通 1 万 */
+var TODAY='2026-09-28';
+var LV={'精品摊':{years:5,bond:20000},'普通摊':{years:3,bond:10000}};
+var EX=[
+  {no:'HT2024-0102',stall:'A9-15',gate:'1F-A15',lv:'普通摊',name:'赵敏',end:'2026.12.20',left:83,rent:60000,notified:['T-90'],state:'待处理',std:0},
+  {no:'HT2025-0231',stall:'B3-10',gate:'3F-B10',lv:'普通摊',name:'郑强',end:'2026.11.15',left:48,rent:38200,notified:['T-90','T-60'],state:'处理中',std:0},
+  {no:'HT2026-0081',stall:'A9-19',gate:'1F-A19',lv:'普通摊',name:'吴晓芳',end:'2026.10.20',left:22,rent:45600,notified:['T-90','T-60','T-30'],state:'待处理',std:0},
+  {no:'HT2023-0088',stall:'B3-08',gate:'3F-B08',lv:'普通摊',name:'陈美玲',end:'2026.08.31',left:-28,rent:38200,notified:['T-90','T-60','T-30','逾期升级'],state:'待处理',std:1},
+  {no:'HT2022-0055',stall:'C1-05',gate:'1F-C05',lv:'普通摊',name:'蒋伟民',end:'2026.07.31',left:-59,rent:31200,notified:['T-90','T-60','T-30','逾期升级'],state:'待处理',std:0},
+  {no:'HT2024-0098',stall:'A9-20',gate:'1F-A20',lv:'精品摊',name:'顾建平',end:'2027.08.31',left:337,rent:63800,notified:[],state:'待处理',std:1}
+];
+var APPS=[
+  {id:'SQ2026-0031',type:'续签申请',mer:'郑强',stall:'B3-10',gate:'3F-B10',no:'HT2025-0231',want:'2026.11.16 ~ 2029.11.15',note:'档口继续经营，申请续签 3 年',file:'续签申请书.pdf',time:'2026-09-26 10:12',state:'待受理'},
+  {id:'SQ2026-0032',type:'退租申请',mer:'吴晓芳',stall:'A9-19',gate:'1F-A19',no:'HT2026-0081',want:'退租日 2026.10.20',note:'经营调整，申请提前退租',file:'退租申请书.pdf',time:'2026-09-27 16:40',state:'待受理'}
+];
+var curRows=EX.slice(),curNo=null,curMode=null,seqNo=84;
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},2800);}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function money(n){return Number(n).toLocaleString('en-US');}
+/* 日期工具（YYYY.MM.DD） */
+function s2d(s){var p=String(s).split('.');return new Date(Date.UTC(parseInt(p[0],10),parseInt(p[1],10)-1,parseInt(p[2],10)));}
+function d2s(d){return d.getUTCFullYear()+'.'+('0'+(d.getUTCMonth()+1)).slice(-2)+'.'+('0'+d.getUTCDate()).slice(-2);}
+function addDay(s,n){var d=s2d(s);d.setUTCDate(d.getUTCDate()+n);return d2s(d);}
+function addYear(s,n){var d=s2d(s);d.setUTCFullYear(d.getUTCFullYear()+n);return d2s(d);}
+function cOf(no){return EX.filter(function(x){return x.no===no;})[0];}
+function bld(s){return s.charAt(0)+' 区';}
+/* 预警档位：锚定 8.31，T-90 / T-60 / T-30；已到期 / 已逾期 */
+function band(c){
+  if(c.left<0){return c.left<=-30?'已逾期':'已到期';}
+  if(c.left<=30){return 'T-30';}
+  if(c.left<=60){return 'T-60';}
+  if(c.left<=90){return 'T-90';}
+  return '未到预警期';
+}
+function bandStyle(b){
+  if(b==='已逾期'){return 'background:#FEE2E2;color:#B91C1C';}
+  if(b==='已到期'){return 'background:#FFEDE7;color:#E63E20';}
+  if(b==='T-30'){return 'background:#FFEDE7;color:#E63E20';}
+  if(b==='T-60'){return 'background:#FEF3C7;color:#B45309';}
+  if(b==='T-90'){return 'background:#DBEAFE;color:#2563EB';}
+  return 'background:#F1F5F9;color:#64748B';
+}
+var STC={'待处理':'background:#FEF3C7;color:#B45309','处理中':'background:#DBEAFE;color:#2563EB',
+  '已处理':'background:#DCFCE7;color:#15803D','已忽略':'background:#F1F5F9;color:#64748B'};
+var APC={'待受理':'background:#EDE9FE;color:#6D28D9','已受理':'background:#DCFCE7;color:#15803D','已退回':'background:#F1F5F9;color:#64748B'};
+function st(s,c){return '<span class="st" style="'+(c||'background:#F1F5F9;color:#64748B')+'">'+esc(s)+'</span>';}
+function leftTxt(d){
+  if(d<0){return '<span class="text-[12px] font-semibold" style="color:#B91C1C">已过 '+Math.abs(d)+' 天</span>';}
+  if(d<=30){return '<span class="text-[12px] font-semibold" style="color:#E63E20">'+d+' 天</span>';}
+  if(d<=60){return '<span class="text-[12px] font-semibold" style="color:#B45309">'+d+' 天</span>';}
+  if(d<=90){return '<span class="text-[12px] font-semibold" style="color:#2563EB">'+d+' 天</span>';}
+  return '<span class="text-[12px] text-[#94A3B8]">'+d+' 天</span>';
+}
+function notifiedTxt(c){
+  if(!c.notified.length){return '<span class="text-[11px] text-[#94A3B8]">未到预警期，未通知</span>';}
+  return c.notified.map(function(x){return '<span class="tag" style="'+(x==='逾期升级'?'background:#FEE2E2;color:#B91C1C':'background:#F1F5F9;color:#475569')+'">'+x+'</span>';}).join(' ');
+}
+
+function renderStats(){
+  var c={d90:0,d60:0,d30:0,exp:0,app:0};
+  EX.forEach(function(x){
+    if(x.left>0&&x.left<=90){c.d90++;}
+    if(x.left>0&&x.left<=60){c.d60++;}
+    if(x.left>0&&x.left<=30){c.d30++;}
+    if(x.left<0&&x.state==='待处理'){c.exp++;}
+  });
+  c.app=APPS.filter(function(a){return a.state==='待受理';}).length;
+  var cards=[['90 天内到期',c.d90,'#2563EB'],['60 天内到期',c.d60,'#B45309'],['30 天内到期',c.d30,'#E63E20'],
+    ['已到期未处置',c.exp,'#B91C1C'],['商户端待办申请',c.app,'#6D28D9']];
+  document.getElementById('stats').innerHTML=cards.map(function(x){
+    return '<div class="bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">'+x[0]+'</p><p class="text-xl font-bold mt-1" style="color:'+x[2]+'">'+x[1]+'</p></div>';
+  }).join('');
+}
+function render(){
+  var h='';
+  curRows.forEach(function(c){
+    var b=band(c);
+    var ops='';
+    if(c.state==='已处理'||c.state==='已忽略'){
+      ops='<span class="lk-gray" onclick="openDetail(\''+c.no+'\')">详情</span>';
+    }else{
+      ops='<span class="lk" onclick="openRenew(\''+c.no+'\')">办理续约</span>'
+        +' · <span class="lk" onclick="openExit(\''+c.no+'\',\'退租\')">办理退租</span>'
+        +' · <span class="lk-gray" onclick="openExit(\''+c.no+'\',\'终止\')">终止</span>'
+        +' · <span class="lk-gray" onclick="openIgnore(\''+c.no+'\')">忽略</span>'
+        +' · <span class="lk-gray" onclick="openDetail(\''+c.no+'\')">详情</span>';
+    }
+    h+='<tr class="hover:bg-gray-50 transition">'
+      +'<td class="px-4 py-3"><div class="font-medium text-[#1F2430]">'+esc(c.no)+'</div>'
+        +'<div class="text-[11px] text-[#94A3B8]">'+(c.std?'标准租期（对齐 8.31）':'非标准租期（历史约定）')+'</div></td>'
+      +'<td class="px-4 py-3 whitespace-nowrap"><span class="text-[#64748B]">'+esc(c.stall)+'</span> <i class="fas fa-arrow-right text-[9px] text-[#94A3B8] mx-1"></i>'
+        +'<span class="tag" style="background:#DCFCE7;color:#15803D">'+esc(c.gate)+'</span>'
+        +'<div class="text-[11px] text-[#94A3B8] mt-1">'+esc(bld(c.stall))+'　'+esc(c.lv)+'</div></td>'
+      +'<td class="px-4 py-3"><span class="font-medium text-[#1F2430]">'+esc(c.name)+'</span></td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(c.end)+'</td>'
+      +'<td class="px-4 py-3">'+leftTxt(c.left)+'</td>'
+      +'<td class="px-4 py-3"><div class="mb-1">'+st(b,bandStyle(b))+'</div><div>'+notifiedTxt(c)+'</div></td>'
+      +'<td class="px-4 py-3">'+st(c.state,STC[c.state])
+        +(c.state==='处理中'?'<div class="text-[11px] text-[#94A3B8] mt-1">已发起续约/退租办理</div>':'')
+        +(c.state==='待处理'&&c.left<0?'<div class="text-[11px]" style="color:#B91C1C">逾期未处置，已升级主管</div>':'')+'</td>'
+      +'<td class="px-4 py-3 text-center whitespace-nowrap">'+ops+'</td></tr>';
+  });
+  if(!curRows.length){h='<tr><td colspan="8" class="px-4 py-16 text-center text-gray-300"><i class="fas fa-inbox text-3xl block mb-2"></i><span class="text-[12px]">暂无匹配的预警记录</span></td></tr>';}
+  document.getElementById('tb').innerHTML=h;
+  document.getElementById('cnt').textContent='共 '+curRows.length+' 条';
+  document.getElementById('pageInfo').textContent='共 '+curRows.length+' 条记录，第 1-'+curRows.length+' 条（基准日 '+TODAY+'）';
+}
+function renderApps(){
+  var h='';
+  APPS.forEach(function(a){
+    var ops=a.state==='待受理'
+      ?'<span class="lk" onclick="accept(\''+a.id+'\')">受理</span> · <span class="lk-gray" onclick="openReject(\''+a.id+'\')">退回</span>'
+      :'<span class="lk-gray" onclick="toast(\'查看申请单详情（原型）：'+a.id+'\')">详情</span>';
+    h+='<tr class="hover:bg-gray-50 transition">'
+      +'<td class="px-4 py-3 font-medium text-[#1F2430]">'+esc(a.id)+'</td>'
+      +'<td class="px-4 py-3"><span class="tag" style="'+(a.type==='续签申请'?'background:#DBEAFE;color:#2563EB':'background:#FFEDE7;color:#E63E20')+'">'+esc(a.type)+'</span></td>'
+      +'<td class="px-4 py-3"><span class="font-medium text-[#1F2430]">'+esc(a.mer)+'</span><div class="text-[11px] text-[#94A3B8]">'+esc(a.stall)+' → '+esc(a.gate)+'　'+esc(a.no)+'</div></td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(a.want)+'</td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(a.note)+'<div class="mt-1"><span class="lk" onclick="toast(\'预览附件：'+esc(a.file)+'\')"><i class="fas fa-paperclip text-[10px] mr-1"></i>'+esc(a.file)+'</span></div></td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(a.time)+'</td>'
+      +'<td class="px-4 py-3">'+st(a.state,APC[a.state])+'</td>'
+      +'<td class="px-4 py-3 text-center whitespace-nowrap">'+ops+'</td></tr>';
+  });
+  if(!APPS.length){h='<tr><td colspan="8" class="px-4 py-12 text-center text-gray-300"><span class="text-[12px]">暂无待办申请</span></td></tr>';}
+  document.getElementById('appTb').innerHTML=h;
+  document.getElementById('appCnt').textContent=APPS.filter(function(a){return a.state==='待受理';}).length+' 条待受理';
+}
+function doSearch(){
+  var kw=document.getElementById('f-kw').value.trim(),b=document.getElementById('f-lv').value,
+      bldSel=document.getElementById('f-bld').value,s=document.getElementById('f-state').value,
+      d1=document.getElementById('f-d1').value,d2=document.getElementById('f-d2').value;
+  curRows=EX.filter(function(c){
+    var band2=band(c);
+    var okKw=!kw||c.no.indexOf(kw)>-1||c.name.indexOf(kw)>-1||c.stall.indexOf(kw)>-1||c.gate.indexOf(kw)>-1;
+    var okB=!b||(b==='exp'?band2==='已到期':(b==='over'?band2==='已逾期':(b==='far'?band2==='未到预警期':band2===b)));
+    var end=c.end.replace(/\./g,'-');
+    var okD=(!d1||end>=d1)&&(!d2||end<=d2);
+    return okKw&&okB&&okD&&(!bldSel||bld(c.stall)===bldSel)&&(!s||c.state===s);
+  });
+  render();toast('已按条件查询，共 '+curRows.length+' 条');
+}
+function resetSearch(){
+  ['f-kw','f-lv','f-bld','f-state','f-d1','f-d2'].forEach(function(k){document.getElementById(k).value='';});
+  curRows=EX.slice();render();toast('已重置筛选条件');
+}
+function noticeAll(){
+  var n=EX.filter(function(c){return c.left<=90&&c.state==='待处理';}).length;
+  toast('已向 '+n+' 份临近到期合同的 物业 / 商户 / 运营 发送提醒（站内信 + 短信 + 商户端）');
+}
+function noticeOne(no){
+  var c=cOf(no);
+  toast('已就 '+no+'（'+c.name+'，剩 '+(c.left<0?'已过 '+Math.abs(c.left):c.left)+' 天）发送提醒：物业 / 商户 / 运营');
+}
+
+/* ================= 详情抽屉 ================= */
+function openDetail(no){
+  var c=cOf(no),b=band(c);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+esc(c.no)+'　<span class="text-[12px] font-normal text-[#94A3B8]">'+esc(c.name)+'</span></h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+st(b,bandStyle(b))+' '+st(c.state,STC[c.state])+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-file-contract text-[#FF4D2D]"></i>合同与档口</div>'
+    +'<div class="grid grid-cols-2 gap-x-6">'
+    +'<div class="kv"><span class="k">合同号</span><span class="v font-semibold">'+esc(c.no)+'</span></div>'
+    +'<div class="kv"><span class="k">承租人</span><span class="v">'+esc(c.name)+'</span></div>'
+    +'<div class="kv"><span class="k">摊位号 → 档口</span><span class="v">'+esc(c.stall)+' → '+esc(c.gate)+'</span></div>'
+    +'<div class="kv"><span class="k">摊位等级</span><span class="v">'+esc(c.lv)+'（签约 '+LV[c.lv].years+' 年 / 保证金 '+money(LV[c.lv].bond)+' 元）</span></div>'
+    +'<div class="kv"><span class="k">租期结束日</span><span class="v">'+esc(c.end)+'　（剩余 '+c.left+' 天）</span></div>'
+    +'<div class="kv"><span class="k">年租金</span><span class="v">'+money(c.rent)+' 元</span></div>'
+    +'</div></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-bell text-[#B45309]"></i>预警与通知记录</div>'
+    +'<div class="text-[12px] text-[#64748B] leading-7">'
+    +(c.notified.length?c.notified.map(function(x){return '· 已通知 <b>'+x+'</b>（物业 / 商户 / 运营，站内信 + 短信 + 商户端）　系统自动';}).join('<br>'):'· 未到预警期（到期前 90 天才开始通知）')
+    +'</div>'
+    +'<div class="mt-2"><button class="btn btn-ghost" onclick="noticeOne(\''+c.no+'\')">立即发送提醒</button></div></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-link text-[#0EA5E9]"></i>下游联动（办理结果会同步）</div>'
+    +'<div class="grid grid-cols-2 gap-x-6">'
+    +'<div class="kv"><span class="k">02 市场资源</span><span class="v">档口 '+esc(c.gate)+' 现为「在租」；退租/终止后回「空闲」并记空置开始日</span></div>'
+    +'<div class="kv"><span class="k">06 缴费管理</span><span class="v">年度账单随续约顺延；退租/终止后停账（有未结账单需先处理）</span></div>'
+    +'<div class="kv"><span class="k">04 商户管理</span><span class="v">退租且无其他在租档口 → 商户类型由「线上兼档口」回退「仅线上」</span></div>'
+    +'<div class="kv"><span class="k">保证金</span><span class="v"><span class="lk" onclick="location.href=\'contract-deposit.html\'">去保证金台账（P5）</span></span></div>'
+    +'</div></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">关闭</button>'
+    +'<button class="btn btn-ghost" onclick="toast(\'跳转 06 缴费管理（原型）\')">查看账单</button>'
+    +'<button class="btn btn-primary" onclick="openRenew(\''+c.no+'\')">办理续约</button></div>';
+  show('drawer',h);
+}
+
+/* ================= 办理续约 ================= */
+function openRenew(no){
+  curNo=no;curMode='续约';
+  var c=cOf(no),lv=LV[c.lv];
+  var nStart=addDay(c.end,1);                    /* 新租期起点 = 原到期日次日（不断档） */
+  var nEnd=addDay(addYear(nStart,lv.years),-1);  /* 按摊位等级 N 年一签 */
+  var nNo='HT'+TODAY.slice(0,4)+'-00'+seqNo;     /* 合同号规则：HT + 年份 + 序号 */
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">办理续约　'+esc(c.no)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">续约生成<b>新合同号</b>并与原合同「续签自」关联；原合同置「已续签」（终态保留）</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-circle-info text-[#64748B]"></i>原合同</div>'
+    +'<div class="grid grid-cols-2 gap-x-6">'
+    +'<div class="kv"><span class="k">摊位号 → 档口</span><span class="v">'+esc(c.stall)+' → '+esc(c.gate)+'</span></div>'
+    +'<div class="kv"><span class="k">承租人</span><span class="v">'+esc(c.name)+'</span></div>'
+    +'<div class="kv"><span class="k">现租期至</span><span class="v">'+esc(c.end)+'</span></div>'
+    +'<div class="kv"><span class="k">现年租金</span><span class="v">'+money(c.rent)+' 元</span></div>'
+    +'</div></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-pen-to-square text-[#FF4D2D]"></i>新合同信息</div>'
+    +'<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl">新合同号（自动生成，可改）</label><input class="fi" id="r-no" value="'+nNo+'"></div>'
+    +'<div><label class="fl">关联「续签自」</label><input class="fi" value="'+esc(c.no)+'" readonly></div>'
+    +'<div><label class="fl">新租期开始（原到期日次日，不断档）</label><input class="fi" id="r-s" value="'+nStart.replace(/\./g,'-')+'" onchange="termHint(\''+nStart+'\')"></div>'
+    +'<div><label class="fl">新租期结束（'+lv.years+' 年一签，建议对齐 8.31）</label><input class="fi" id="r-e" value="'+nEnd.replace(/\./g,'-')+'"></div>'
+    +'<div><label class="fl">新年租金（元）</label><input class="fi" id="r-rent" value="'+c.rent+'" oninput="calcUp()"></div>'
+    +'<div><label class="fl">较原租金涨幅</label><input class="fi" id="r-up" value="0%" readonly></div>'
+    +'</div>'
+    +'<div class="rounded-xl border p-3 mt-3" style="border-color:#FDE68A;background:#FFFBEB">'
+    +'<p class="text-[11px] text-[#64748B]">保证金：'+esc(c.lv)+'固定 <b>'+money(lv.bond)+' 元</b>，等级不变 → <b>无需补缴</b>（差额 0 元）。等级变化只影响新签合同，变更需走合同变更流程。</p></div>'
+    +'<div class="rounded-xl border p-3 mt-3" style="border-color:#FDB4A3;background:#FFF6F3" id="r-hint">'
+    +'<p class="text-[11px] text-[#64748B]"></p></div>'
+    +'</div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-diagram-project text-[#0EA5E9]"></i>提交后自动完成</div>'
+    +'<div class="text-[12px] text-[#64748B] leading-7">'
+    +'· 新合同置「生效中」，原合同置「已续签」<br>'
+    +'· 推送 <b>02 市场资源管理</b>：档口连续在租、租期顺延（不断档）<br>'
+    +'· 推送 <b>06 缴费管理</b>：按新租赁年度顺延生成年度应收计划<br>'
+    +'· 通知商户端「续签成功」，可查看新合同</div></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-ghost" onclick="toast(\'已按模板生成新合同文本供打印（线下签署后回传扫描件）\')">生成合同文本</button>'
+    +'<button class="btn btn-primary" onclick="saveRenew()">提交续约</button></div>';
+  show('drawer',h);
+  termHint(nStart);
+}
+function termHint(nStart){
+  var s=document.getElementById('r-s').value.trim().replace(/-/g,'.');
+  var e=document.getElementById('r-e').value.trim().replace(/-/g,'.');
+  var gap=(s!==nStart?'<b style="color:#E63E20">注意：</b>新租期起点应为原到期日次日（'+nStart+'），否则会断档或重叠。':'起点 = 原到期日次日，<b>不断档</b>。');
+  var ali=(e.slice(4)==='.08.31'?'结束日已对齐租赁年度末 8.31。':'结束日 '+e+' 未对齐 8.31 —— 属非标准租期，允许保存但台账会标「非标准租期」。');
+  document.getElementById('r-hint').innerHTML='<p class="text-[11px] text-[#64748B]">租期衔接校验：'+gap+' '+ali+' 建议在 T-30 前完成续约办理。</p>';
+}
+function calcUp(){
+  var c=cOf(curNo),v=parseInt(document.getElementById('r-rent').value,10)||0;
+  var p=Math.round((v-c.rent)/c.rent*1000)/10;
+  document.getElementById('r-up').value=(p>0?'+':'')+p+'%';
+}
+function saveRenew(){
+  var c=cOf(curNo),nNo=document.getElementById('r-no').value.trim();
+  c.state='已处理';c.notified=c.notified.concat(['已续约']);
+  seqNo++;
+  renderStats();render();closeAll();
+  toast('续约完成：新合同 '+nNo+'（续签自 '+c.no+'）已置「生效中」；原合同置「已续签」；已推送 02（档口连续在租）与 06（顺延出账）');
+}
+
+/* ================= 办理退租 / 终止 ================= */
+function openExit(no,mode){
+  curNo=no;curMode=mode;
+  var c=cOf(no),lv=LV[c.lv];
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">办理'+mode+'　'+esc(c.no)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+(mode==='退租'?'商户提前退租（经审批）':'合同中止：违约 / 协商解除（主管审批）')
+    +'；提交前请<b>逐项确认下游联动</b></p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-circle-info text-[#64748B]"></i>合同信息</div>'
+    +'<div class="grid grid-cols-2 gap-x-6">'
+    +'<div class="kv"><span class="k">摊位号 → 档口</span><span class="v">'+esc(c.stall)+' → '+esc(c.gate)+'</span></div>'
+    +'<div class="kv"><span class="k">承租人</span><span class="v">'+esc(c.name)+'</span></div>'
+    +'<div class="kv"><span class="k">原租期至</span><span class="v">'+esc(c.end)+'</span></div>'
+    +'<div class="kv"><span class="k">摊位等级</span><span class="v">'+esc(c.lv)+'（保证金 '+money(lv.bond)+' 元）</span></div>'
+    +'</div></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-pen-to-square text-[#FF4D2D]"></i>'+mode+'信息</div>'
+    +'<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl">'+(mode==='退租'?'退租生效日':'终止生效日')+'</label><input class="fi" id="x-date" type="date" value="'+esc(c.end.replace(/\./g,'-'))+'"></div>'
+    +'<div><label class="fl">原因（字典）</label><select class="sel" id="x-reason">'
+    +'<option>经营调整</option><option>转让退出</option><option>违约清退</option><option>协商解除</option><option>其他（备注说明）</option></select></div>'
+    +'</div>'
+    +'<div class="mt-3"><label class="fl">原因备注（必填）</label><textarea class="fi" id="x-note" rows="2" placeholder="例：商户经营方向调整，协商一致解除；已结清至退租日"></textarea></div>'
+    +'</div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-list-check text-[#B45309]"></i>下游联动清单（逐项确认）</div>'
+    +'<label class="ck"><input type="checkbox" id="k1"><span><b>02 市场资源管理</b>：档口 '+esc(c.gate)+' 置「空闲」并记录空置开始日</span></label>'
+    +'<label class="ck"><input type="checkbox" id="k2"><span><b>06 缴费管理</b>：停止后续出账；<b>存在未结账单时需先处理</b>（否则保证金不可退）</span></label>'
+    +'<label class="ck"><input type="checkbox" id="k3"><span><b>04 商户管理</b>：若无其他在租档口，「线上兼档口」回退为「仅线上」</span></label>'
+    +'<label class="ck"><input type="checkbox" id="k4"><span><b>保证金结算</b>：<span class="lk" onclick="location.href=\'contract-deposit.html\'">去保证金台账</span>发起退还或抵扣</span></label>'
+    +'</div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveExit()">提交'+mode+'</button></div>';
+  show('drawer',h);
+}
+function saveExit(){
+  var c=cOf(curNo),note=document.getElementById('x-note').value.trim();
+  var ok=['k1','k2','k3','k4'].every(function(k){return document.getElementById(k).checked;});
+  if(!note){toast('原因备注必填');return;}
+  if(!ok){toast('请逐项确认下游联动清单后再提交');return;}
+  c.state='已处理';
+  renderStats();render();closeAll();
+  toast('已办理'+curMode+'：合同 '+c.no+' 置「已'+(curMode==='退租'?'退租':'终止')+'」；02 档口 '+c.gate+' 回「空闲」、06 停账、04 类型回退、保证金待结算（走 P5）');
+}
+
+/* ================= 忽略预警 ================= */
+function openIgnore(no){
+  curNo=no;
+  var c=cOf(no);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">忽略预警　'+esc(c.no)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">忽略后预警事项置「已忽略」，原因必填并留痕</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>'
+    +'<div class="px-5 py-4">'
+    +'<label class="fl">忽略原因（必填）</label>'
+    +'<textarea class="fi" id="ig-note" rows="3" placeholder="例：已线下续签，合同待录入，无需系统处置"></textarea>'
+    +'<div class="rounded-xl border p-3 mt-3" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B]">提示：忽略不等于合同延续。到期未完成续约的，系统仍会在 T+30 自动置「已到期」并升级主管。</p></div>'
+    +'</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveIgnore()">确认忽略</button></div>';
+  show('modal',h);
+}
+function saveIgnore(){
+  var note=document.getElementById('ig-note').value.trim();
+  if(!note){toast('忽略原因必填');return;}
+  var c=cOf(curNo);
+  c.state='已忽略';
+  renderStats();render();closeAll();
+  toast('已忽略 '+c.no+' 的到期预警：原因「'+note+'」已留痕（操作人：合同管理专员 何静）');
+}
+
+/* ================= 商户端申请受理 ================= */
+function accept(id){
+  var a=APPS.filter(function(x){return x.id===id;})[0];
+  a.state='已受理';
+  var c=cOf(a.no);
+  if(c){c.state='处理中';}
+  renderApps();renderStats();render();
+  if(a.type==='续签申请'){openRenew(a.no);}
+  else{openExit(a.no,'退租');}
+  toast('已受理 '+id+'：转入'+(a.type==='续签申请'?'续约':'退租')+'办理流程');
+}
+function openReject(id){
+  curNo=id;
+  var a=APPS.filter(function(x){return x.id===id;})[0];
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">退回申请　'+esc(id)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(a.mer)+'　'+esc(a.type)+'　'+esc(a.stall)+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>'
+    +'<div class="px-5 py-4">'
+    +'<label class="fl">退回原因（必填，将通知商户端）</label>'
+    +'<textarea class="fi" id="rj-note" rows="3" placeholder="例：申请附件缺失租赁意向书，请补充后重新提交"></textarea>'
+    +'</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveReject()">确认退回</button></div>';
+  show('modal',h);
+}
+function saveReject(){
+  var note=document.getElementById('rj-note').value.trim();
+  if(!note){toast('退回原因必填');return;}
+  var a=APPS.filter(function(x){return x.id===curNo;})[0];
+  a.state='已退回';a.note=a.note+'（退回：'+note+'）';
+  renderApps();closeAll();
+  toast('已退回 '+a.id+'：原因已通知商户端（站内信 + 商户端消息）');
+}
+
+/* ================= 基础 ================= */
+function show(which,h){
+  document.getElementById(which).innerHTML=h;
+  document.getElementById('mask').classList.add('on');
+  document.getElementById(which).classList.add('on');
+}
+function closeAll(){
+  document.getElementById('mask').classList.remove('on');
+  document.getElementById('drawer').classList.remove('on');
+  document.getElementById('modal').classList.remove('on');
+}
+renderStats();render();renderApps();
+</script>
+</body>
+</html>

@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>商户管理 - 退租/清退</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}.lk:hover{text-decoration:underline}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}.lk-gray:hover{color:#1F2430;text-decoration:underline}
+.st{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500;white-space:nowrap}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:60}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:620px;max-width:96vw;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:70;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.blk{border:1px solid #E2E8F0;border-radius:12px;padding:14px 16px}
+.blk-t{font-size:12.5px;font-weight:700;color:#1F2430;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.kv{display:flex;gap:8px;font-size:12px;line-height:1.9}
+.kv .k{color:#94A3B8;width:88px;flex-shrink:0}
+.kv .v{color:#1F2430;flex:1}
+.sel{width:100%;padding:6px 8px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none}
+.fi{width:100%;padding:6px 10px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none}
+.fl{display:block;font-size:11px;color:#94A3B8;margin-bottom:4px}
+.opt{display:inline-flex;align-items:center;gap:6px;border:1px solid #E2E8F0;border-radius:8px;padding:6px 12px;font-size:12px;color:#334155;cursor:pointer;background:#fff}
+.opt.on{border-color:#FF4D2D;background:#FFF6F3;color:#E63E20;font-weight:600}
+.ck{width:14px;height:14px;accent-color:#FF4D2D;cursor:pointer}
+button{cursor:pointer}
+</style>
+<!-- Tailwind 静态样式：本地引用（不再依赖 cdn.tailwindcss.com）；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<div class="p-6">
+
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">退租 / 清退</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">04 商户管理</span>
+      </div>
+      <p class="text-[12px] text-gray-400 mt-1"><b>退租</b>=线下档口合同到期/退租（联动 02 档口状态与 06 停账）；<b>清退</b>=平台侧退出（关闭线上权限、档案置已清退，历史保留）</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="toast('已导出退出台账')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+      <button class="btn btn-primary" onclick="openNew()"><i class="fas fa-plus mr-1"></i>发起退租 / 清退</button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-4 gap-3 mb-4" id="stats"></div>
+
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+    <div class="flex items-center gap-3 flex-wrap">
+      <input id="f-kw" type="text" placeholder="商户名称 / 退出单号 / 档口编号" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary w-64">
+      <select id="f-type" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部退出类型</option><option>退租</option><option>清退</option>
+      </select>
+      <select id="f-status" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部状态</option><option>待审批</option><option>已生效</option><option>已驳回</option>
+      </select>
+      <input id="f-d1" type="date" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+      <span class="text-gray-300 text-xs">至</span>
+      <input id="f-d2" type="date" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+      <button class="btn btn-primary" onclick="doSearch()">查询</button>
+      <button class="btn btn-ghost" onclick="resetSearch()">重置</button>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+      <span class="text-[12px] text-[#94A3B8]" id="cnt">共 0 条</span>
+      <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>审批通过后自动执行待办清单；档案与历史数据（合同/缴费/评价）<b>一律保留</b>，不删除</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-[13px]" style="min-width:1240px">
+        <thead>
+          <tr class="bg-gray-50 text-gray-500 text-[12px]">
+            <th class="px-4 py-3 text-left font-medium">退出单号</th>
+            <th class="px-4 py-3 text-left font-medium">商户名称</th>
+            <th class="px-4 py-3 text-left font-medium">商户类型</th>
+            <th class="px-4 py-3 text-left font-medium">关联档口</th>
+            <th class="px-4 py-3 text-left font-medium">退出类型</th>
+            <th class="px-4 py-3 text-left font-medium">退出原因</th>
+            <th class="px-4 py-3 text-left font-medium">发起人</th>
+            <th class="px-4 py-3 text-left font-medium">待办清单</th>
+            <th class="px-4 py-3 text-left font-medium">状态</th>
+            <th class="px-4 py-3 text-center font-medium">操作</th>
+          </tr>
+        </thead>
+        <tbody id="tb" class="divide-y divide-gray-50"></tbody>
+      </table>
+    </div>
+    <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+      <span class="text-[12px] text-gray-400" id="pageInfo">共 0 条记录</span>
+      <div class="flex items-center gap-1">
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100" onclick="toast('已是第一页（原型）')"><i class="fas fa-chevron-left text-[10px]"></i></button>
+        <button class="w-7 h-7 flex items-center justify-center text-white text-[12px] rounded" style="background:#FF4D2D" onclick="toast('当前第 1 页（原型）')">1</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100" onclick="toast('已切换到第 2 页（原型）')"><i class="fas fa-chevron-right text-[10px]"></i></button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div id="mask" class="mask" onclick="closeD()"></div>
+<div id="drawer" class="drawer"></div>
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
+
+<script>
+/* ================= 模拟数据（原型态） ================= */
+var TODO=[
+  {k:'店铺下架',d:'10 商城运营：名下店铺全部下架'},
+  {k:'询价权限回收',d:'采购询价：禁止报价（历史报价与订单不受影响）'},
+  {k:'账单结清',d:'06 缴费管理：结清应收租金 / 电费，出结算单'},
+  {k:'保证金处理',d:'履约保证金退还或抵扣（按合同约定）'},
+  {k:'档口状态回空闲',d:'02 市场资源管理：退租后档口回「空闲」，进空置清单'}
+];
+var EX=[
+  {id:'EX20260928001',m:'极速运动袜业',mt:'仅线上',stall:'',type:'清退',why:'违规累计 3 次且拒不整改',by:'运营专员 王磊',time:'2026-09-28 09:50',status:'待审批',done:['店铺下架','询价权限回收']},
+  {id:'EX20260927002',m:'李海涛（档口租户）',mt:'仅线下档口（未上线）',stall:'B3-12',type:'退租',why:'商户申请提前终止租赁（2026-09-30 生效）',by:'物业 陈国强',time:'2026-09-27 15:20',status:'待审批',done:['账单结清']},
+  {id:'EX20260926003',m:'某贸易商行',mt:'仅线上',stall:'',type:'清退',why:'入驻资质造假，驳回后长期未整改',by:'商户管理专员 张伟',time:'2026-09-26 11:05',status:'待审批',done:[]},
+  {id:'EX20260925004',m:'智造袜机设备有限公司',mt:'仅线上',stall:'',type:'清退',why:'严重违规（虚假宣传）',by:'运营主管 李敏',time:'2026-09-25 14:40',status:'已生效',done:['店铺下架','询价权限回收','账单结清','保证金处理']},
+  {id:'EX20260924005',m:'周雅琴（档口租户）',mt:'仅线下档口（未上线）',stall:'A9-13',type:'退租',why:'租赁合同到期不再续租',by:'合同管理专员 何静',time:'2026-09-24 10:12',status:'已生效',done:['账单结清','保证金处理','档口状态回空闲']},
+  {id:'EX20260923006',m:'花间舞时尚女袜馆',mt:'仅线上',stall:'',type:'清退',why:'商户主动申请退出平台',by:'商户管理专员 张伟',time:'2026-09-23 16:30',status:'已驳回',done:[]}
+];
+var curRows=EX.slice(),curId=null,newType='退租';
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},2800);}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+var STC={'待审批':'background:#FEF3C7;color:#B45309','已生效':'background:#DCFCE7;color:#15803D','已驳回':'background:#FEE2E2;color:#B91C1C'};
+function st(s,c){return '<span class="st" style="'+(c||'background:#F1F5F9;color:#64748B')+'">'+esc(s)+'</span>';}
+function tyTag(t){return st(t,t==='清退'?'background:#FEE2E2;color:#B91C1C':'background:#DBEAFE;color:#2563EB');}
+function todos(x){return TODO;}
+
+function renderStats(){
+  var wait=EX.filter(function(x){return x.status==='待审批';}).length;
+  var done=EX.filter(function(x){return x.status==='已生效';}).length;
+  var rent=EX.filter(function(x){return x.type==='退租';}).length;
+  var kick=EX.filter(function(x){return x.type==='清退';}).length;
+  var cards=[['待审批',wait,'#B45309'],['本月已生效',done,'#15803D'],['退租单',rent,'#2563EB'],['清退单',kick,'#B91C1C']];
+  document.getElementById('stats').innerHTML=cards.map(function(x){
+    return '<div class="bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">'+x[0]+'</p><p class="text-xl font-bold mt-1" style="color:'+x[2]+'">'+x[1]+'</p></div>';
+  }).join('');
+}
+function render(){
+  var h='';
+  curRows.forEach(function(x){
+    var list=todos(x);
+    var total=list.length+(x.type==='退租'?1:0);
+    var dn=x.done.length;
+    h+='<tr class="hover:bg-gray-50 transition">'
+      +'<td class="px-4 py-3 text-[#64748B]">'+esc(x.id)+'</td>'
+      +'<td class="px-4 py-3 font-medium text-[#1F2430]">'+esc(x.m)+'</td>'
+      +'<td class="px-4 py-3">'+st(x.mt,x.mt==='线上兼档口'?'background:#DCFCE7;color:#15803D':(x.mt==='仅线上'?'background:#F1F5F9;color:#475569':'background:#FEF3C7;color:#B45309'))+'</td>'
+      +'<td class="px-4 py-3">'+(x.stall?'<span class="tag" style="background:#FFEDE7;color:#E63E20">'+esc(x.stall)+'</span>':'<span class="text-[#94A3B8]">—</span>')+'</td>'
+      +'<td class="px-4 py-3">'+tyTag(x.type)+'</td>'
+      +'<td class="px-4 py-3 text-[#64748B] text-[12px]">'+esc(x.why)+'</td>'
+      +'<td class="px-4 py-3 text-[#64748B] text-[12px]">'+esc(x.by)+'</td>'
+      +'<td class="px-4 py-3 text-[12px]"><span style="color:'+(dn>=total/2?'#15803D':'#B45309')+'">'+dn+' / '+total+'</span></td>'
+      +'<td class="px-4 py-3">'+st(x.status,STC[x.status])+'</td>'
+      +'<td class="px-4 py-3 text-center whitespace-nowrap">'
+        +(x.status==='待审批'?'<span class="lk" onclick="openD(\''+x.id+'\',1)">审批</span> · ':'')
+        +'<span class="lk-gray" onclick="openD(\''+x.id+'\',0)">详情</span></td></tr>';
+  });
+  if(!curRows.length){h='<tr><td colspan="10" class="px-4 py-16 text-center text-gray-300"><i class="fas fa-inbox text-3xl block mb-2"></i><span class="text-[12px]">暂无匹配的退出单</span></td></tr>';}
+  document.getElementById('tb').innerHTML=h;
+  document.getElementById('cnt').textContent='共 '+curRows.length+' 条（原型演示数据 6 条）';
+  document.getElementById('pageInfo').textContent='共 '+curRows.length+' 条记录，第 1-'+curRows.length+' 条';
+}
+function doSearch(){
+  var kw=document.getElementById('f-kw').value.trim(),t=document.getElementById('f-type').value,s=document.getElementById('f-status').value;
+  curRows=EX.filter(function(x){return (!kw||x.m.indexOf(kw)>-1||x.id.indexOf(kw)>-1||x.stall.indexOf(kw)>-1)&&(!t||x.type===t)&&(!s||x.status===s);});
+  render();toast('已按条件查询，共 '+curRows.length+' 条');
+}
+function resetSearch(){
+  ['f-kw','f-type','f-status','f-d1','f-d2'].forEach(function(k){document.getElementById(k).value='';});
+  curRows=EX.slice();render();toast('已重置筛选条件');
+}
+/* ================= 详情 / 审批 ================= */
+function openD(id,canAudit){
+  curId=id;
+  var x=EX.filter(function(y){return y.id===id;})[0];
+  if(!x){return;}
+  var list=TODO.concat(x.type==='退租'?[]:[]);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+(canAudit?'退出审批':'退出详情')+'　'+esc(x.id)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+tyTag(x.type)+' '+st(x.status,STC[x.status])+'　发起 '+esc(x.time)+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeD()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-right-from-bracket text-[#FF4D2D]"></i>退出信息</div>'
+    +'<div class="grid grid-cols-2 gap-x-6">'
+    +'<div class="kv"><span class="k">商户名称</span><span class="v font-semibold">'+esc(x.m)+'</span></div>'
+    +'<div class="kv"><span class="k">商户类型</span><span class="v">'+esc(x.mt)+'</span></div>'
+    +'<div class="kv"><span class="k">关联档口</span><span class="v">'+(x.stall?esc(x.stall)+'　<span class="lk" onclick="location.href=\'resource-unit.html\'">去 02 查看</span>':'—（无线下档口）')+'</span></div>'
+    +'<div class="kv"><span class="k">发起人</span><span class="v">'+esc(x.by)+'</span></div>'
+    +'<div class="kv" style="grid-column:span 2"><span class="k">退出原因</span><span class="v">'+esc(x.why)+'</span></div>'
+    +'</div></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-list-check text-[#2563EB]"></i>待办执行清单（审批通过后自动执行）</div>';
+  list.forEach(function(t){
+    var done=x.done.indexOf(t.k)>-1;
+    h+='<label class="flex items-start gap-2 py-1.5 cursor-pointer"><input type="checkbox" class="ck" '+(done?'checked':'')+' onchange="toggleTodo(\''+t.k+'\')">'
+      +'<span class="text-[12px] '+(done?'text-[#15803D]':'text-[#334155]')+'"><b>'+esc(t.k)+'</b>　<span class="text-[11px] text-[#94A3B8]">'+esc(t.d)+'</span></span></label>';
+  });
+  if(x.type==='退租'){h+='<p class="text-[11px] text-[#94A3B8] mt-1"><i class="fas fa-circle-info mr-1"></i>退租额外联动：02 档口回「空闲」并记空置开始日；06 缴费停止出账。</p>';}
+  else{h+='<p class="text-[11px] text-[#94A3B8] mt-1"><i class="fas fa-circle-info mr-1"></i>清退额外联动：线上权限全部回收（店铺下架 / 询价冻结），档案置「已清退」，历史数据保留。</p>';}
+  h+='</div>';
+  if(canAudit&&x.status==='待审批'){
+    h+='<div class="blk" style="border-color:#FDB4A3;background:#FFF6F3"><div class="blk-t" style="color:#E63E20"><i class="fas fa-pen-to-square"></i>审批结论（需运营主管）</div>'
+      +'<div id="rejBlk" style="display:none"><label class="fl"><span style="color:#FF4D2D">*</span> 驳回原因（必填）</label>'
+      +'<select id="rejReason" class="sel"><option value="">请选择驳回原因</option><option>存在未结账单 / 押金未决</option><option>纠纷处理中</option><option>商户已达成整改，保留经营</option><option>其他</option></select></div>'
+      +'<label class="fl" style="margin-top:8px">审批备注（选填）</label>'
+      +'<textarea id="memo" rows="2" class="w-full p-2 text-[12px] border border-[#E2E8F0] rounded-lg outline-none" placeholder="补充说明，会记入退出单轨迹"></textarea>'
+      +'<div class="flex items-center gap-2 mt-3">'
+      +'<button class="btn btn-primary" onclick="audit(\'pass\')">审批通过并执行清单</button>'
+      +'<button class="btn btn-ghost" onclick="showRej()" style="color:#B91C1C;border-color:#FECACA">驳回</button>'
+      +'<button class="btn btn-primary" id="btnRej" style="display:none;background:linear-gradient(135deg,#EF4444,#B91C1C)" onclick="audit(\'reject\')">确认驳回</button>'
+      +'</div></div>';
+  } else if(x.status!=='待审批'){
+    h+='<div class="blk"><div class="blk-t"><i class="fas fa-clock-rotate-left text-[#64748B]"></i>审批轨迹</div>'
+      +'<div class="text-[12px] text-[#64748B] leading-7">'
+      +'· 发起退出申请（'+esc(x.by)+'）　'+esc(x.time)+'<br>'
+      +(x.status==='已生效'?'· 运营主管审批通过 → 待办清单已全部执行；档案置「已清退」/档口已回空闲<br>':'· 驳回　原因：存在未结账单 / 押金未决<br>')
+      +'</div></div>';
+  }
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeD()">关闭</button>'
+    +'<button class="btn btn-ghost" onclick="location.href=\'merchant-profile.html\'">查看商户档案</button></div>';
+  document.getElementById('drawer').innerHTML=h;
+  document.getElementById('mask').classList.add('on');
+  document.getElementById('drawer').classList.add('on');
+}
+function closeD(){
+  document.getElementById('mask').classList.remove('on');
+  document.getElementById('drawer').classList.remove('on');
+}
+function toggleTodo(k){
+  var x=EX.filter(function(y){return y.id===curId;})[0];
+  if(!x){return;}
+  var i=x.done.indexOf(k);
+  if(i>-1){x.done.splice(i,1);}else{x.done.push(k);}
+  render();
+}
+function showRej(){document.getElementById('rejBlk').style.display='block';document.getElementById('btnRej').style.display='inline-block';}
+function audit(action){
+  var x=EX.filter(function(y){return y.id===curId;})[0];
+  if(!x){return;}
+  if(action==='pass'){
+    x.status='已生效';x.done=TODO.map(function(t){return t.k;});
+    toast(x.type==='退租'?'退租已生效：档口回空闲、账单停出、清单已执行':'清退已生效：线上权限已回收，档案置「已清退」，历史数据保留');
+  } else {
+    var rs=document.getElementById('rejReason').value;
+    if(!rs){toast('驳回原因必填，请先选择');return;}
+    x.status='已驳回';
+    toast('已驳回（'+rs+'），已通知发起人');
+  }
+  closeD();render();renderStats();
+}
+/* ================= 发起退租/清退 ================= */
+function openNew(){
+  newType='退租';
+  renderNew();
+  document.getElementById('mask').classList.add('on');
+  document.getElementById('drawer').classList.add('on');
+}
+function renderNew(){
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">发起退租 / 清退</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">提交后进入「待审批」，由运营主管审批</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeD()"><i class="fas fa-xmark"></i></button></div>'
+    +'<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div><label class="fl">退出类型</label><div class="flex items-center gap-2">'
+    +'<span class="opt '+(newType==='退租'?'on':'')+'" onclick="pickType(\'退租\')">退租（线下档口）</span>'
+    +'<span class="opt '+(newType==='清退'?'on':'')+'" onclick="pickType(\'清退\')">清退（平台侧）</span></div></div>'
+    +'<div><label class="fl">商户</label><select class="sel" id="n-m">'
+    +'<option>极速运动袜业（仅线上）</option><option>李海涛（档口租户 · B3-12）</option><option>花间舞时尚女袜馆（仅线上）</option><option>周雅琴（档口租户 · A9-13）</option>'
+    +'</select></div>'
+    +(newType==='退租'?'<div><label class="fl">关联档口</label><select class="sel" id="n-stall"><option>B3-12</option><option>A9-13</option></select></div>':'<div><label class="fl">关联档口</label><input class="fi" value="—（该商户无线下档口）" readonly style="background:#F8FAFC;color:#94A3B8"></div>')
+    +'<div><label class="fl"><span style="color:#FF4D2D">*</span> 退出原因</label><textarea id="n-why" rows="3" class="w-full p-2 text-[12px] border border-[#E2E8F0] rounded-lg outline-none" placeholder="如：合同到期不再续租 / 违规累计 3 次 / 商户主动申请退出"></textarea></div>'
+    +'<div><label class="fl">待办清单（默认全选，审批通过后自动执行）</label>'
+    +TODO.map(function(t){return '<label class="flex items-start gap-2 py-1 cursor-pointer"><input type="checkbox" class="ck" checked>'
+      +'<span class="text-[12px] text-[#334155]"><b>'+t.k+'</b>　<span class="text-[11px] text-[#94A3B8]">'+t.d+'</span></span></label>';}).join('')
+    +'</div>'
+    +'<div class="rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B] leading-5">提示：清退只回收<b>线上权限</b>并归档档案，<b>不删除</b>合同 / 缴费 / 评价历史；若同时有线下档口，退租走合同与 02 档口状态。</p></div>'
+    +'</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeD()">取消</button>'
+    +'<button class="btn btn-primary" onclick="submitNew()">提交审批</button></div>';
+  document.getElementById('drawer').innerHTML=h;
+}
+function pickType(t){newType=t;renderNew();}
+function submitNew(){
+  var m=document.getElementById('n-m').value,why=document.getElementById('n-why').value.trim();
+  if(!why){toast('退出原因必填');return;}
+  var stall=newType==='退租'?(document.getElementById('n-stall').value):'';
+  EX.unshift({id:'EX2026'+String(Math.floor(Math.random()*900000)+100000),m:m,mt:m.indexOf('档口租户')>-1?'仅线下档口（未上线）':'仅线上',
+    stall:stall,type:newType,why:why,by:'运营专员 王磊',time:'2026-09-28 17:20',status:'待审批',done:[]});
+  curRows=EX.slice();closeD();render();renderStats();
+  toast('已提交'+newType+'申请，等待运营主管审批（已通知）');
+}
+renderStats();render();
+</script>
+</body>
+</html>

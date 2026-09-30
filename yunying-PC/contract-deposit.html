@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>合同管理 - 保证金台账</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}.lk:hover{text-decoration:underline}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}.lk-gray:hover{color:#1F2430;text-decoration:underline}
+.st{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500;white-space:nowrap}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:60}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:680px;max-width:96vw;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:70;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);width:760px;max-width:95vw;max-height:86vh;overflow-y:auto;background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(15,23,42,.28);opacity:0;pointer-events:none;transition:.22s;z-index:70}
+.modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+.blk{border:1px solid #E2E8F0;border-radius:12px;padding:14px 16px}
+.blk-t{font-size:12.5px;font-weight:700;color:#1F2430;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.kv{display:flex;gap:8px;font-size:12px;line-height:1.9}
+.kv .k{color:#94A3B8;width:110px;flex-shrink:0}
+.kv .v{color:#1F2430;flex:1;word-break:break-all}
+.fi{width:100%;padding:6px 10px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none;background:#fff}
+.fi:focus{border-color:#FF4D2D}
+.fl{display:block;font-size:11px;color:#94A3B8;margin-bottom:4px}
+.sel{width:100%;padding:6px 8px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none}
+button{cursor:pointer}
+.ck{display:flex;align-items:flex-start;gap:7px;font-size:12px;color:#334155;line-height:1.7;padding:6px 0}
+.ck input{margin-top:3px}
+.up{border:2px dashed #E2E8F0;border-radius:12px;padding:14px;text-align:center;color:#94A3B8;cursor:pointer}
+.up:hover{border-color:#FDB4A3;color:#E63E20}
+</style>
+<!-- Tailwind 静态样式：本地引用（不再依赖 cdn.tailwindcss.com）；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<div class="p-6">
+
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">保证金台账</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">05 合同管理</span>
+        <span class="tag" style="background:#F3E8FF;color:#7C3AED">物业履约保证金</span>
+      </div>
+      <p class="text-[12px] text-gray-400 mt-1"><b>固定金额制</b>：精品摊 <b>2 万元</b> / 普通摊 <b>1 万元</b>，由 02 的摊位等级<b>自动带出、不可手改</b>（确需调整须主管审批 + 原因留痕）；与商城资金保证金<b>区分</b>。<b>退还前须校验无未结账单</b>（有则只能抵扣或挂账）</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="toast('已导出保证金台账（含应收/已收/抵扣/应退，身份证已脱敏）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+      <button class="btn btn-ghost" onclick="location.href='contract-list.html'"><i class="fas fa-table-list text-[10px] mr-1"></i>去合同台账</button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-4 gap-3 mb-4" id="stats"></div>
+
+  <!-- 与退租 / 清退的联动待办 -->
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+    <div class="flex items-center justify-between mb-3">
+      <div class="flex items-center gap-2">
+        <span class="text-[13px] font-bold text-[#1F2430]">退租 / 清退联动待办（保证金处理）</span>
+        <span class="tag" style="background:#FEF3C7;color:#B45309" id="todoCnt">0 条待处理</span>
+      </div>
+      <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-link mr-1"></i>来源：04 商户管理 · <span class="lk" onclick="location.href='merchant-exit.html'">退租/清退</span> 单里的「保证金处理」环节</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-[13px]" style="min-width:1100px">
+        <thead>
+          <tr class="bg-gray-50 text-gray-500 text-[12px]">
+            <th class="px-4 py-3 text-left font-medium">退租 / 清退单</th>
+            <th class="px-4 py-3 text-left font-medium">商户 / 档口</th>
+            <th class="px-4 py-3 text-left font-medium">合同号</th>
+            <th class="px-4 py-3 text-left font-medium">应退余额</th>
+            <th class="px-4 py-3 text-left font-medium">未结账单</th>
+            <th class="px-4 py-3 text-center font-medium">操作</th>
+          </tr>
+        </thead>
+        <tbody id="todoTb" class="divide-y divide-gray-50"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 筛选 -->
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+    <div class="flex items-center gap-3 flex-wrap">
+      <input id="f-kw" type="text" placeholder="合同号 / 承租人 / 档口编号" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary w-64">
+      <select id="f-state" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部保证金状态</option><option>待收</option><option>已收</option><option>抵扣中</option><option>已结清</option>
+      </select>
+      <select id="f-lv" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部摊位等级</option><option>精品摊</option><option>普通摊</option>
+      </select>
+      <select id="f-bld" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部楼栋</option><option>A 区</option><option>B 区</option><option>C 区</option><option>D 区</option>
+      </select>
+      <input id="f-d1" type="date" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+      <span class="text-[12px] text-gray-400">至</span>
+      <input id="f-d2" type="date" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+      <button class="btn btn-primary" onclick="doSearch()">查询</button>
+      <button class="btn btn-ghost" onclick="resetSearch()">重置</button>
+      <span class="text-[11px] text-[#94A3B8] ml-auto"><i class="fas fa-circle-info mr-1"></i>日期区间按「最近操作日期」筛</span>
+    </div>
+  </div>
+
+  <!-- 列表 -->
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-[13px] font-bold text-[#1F2430]">保证金台账</span>
+        <span class="text-[12px] text-[#94A3B8]" id="cnt">共 0 条</span>
+      </div>
+      <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>应退余额 = 已收 − 抵扣；退还前校验无未结账单，抵扣需主管审批后由 06 入账</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-[13px]" style="min-width:1520px">
+        <thead>
+          <tr class="bg-gray-50 text-gray-500 text-[12px]">
+            <th class="px-4 py-3 text-left font-medium">合同号</th>
+            <th class="px-4 py-3 text-left font-medium">承租人</th>
+            <th class="px-4 py-3 text-left font-medium">档口</th>
+            <th class="px-4 py-3 text-left font-medium">摊位等级</th>
+            <th class="px-4 py-3 text-right font-medium">应收保证金</th>
+            <th class="px-4 py-3 text-right font-medium">已收</th>
+            <th class="px-4 py-3 text-right font-medium">抵扣</th>
+            <th class="px-4 py-3 text-right font-medium">应退余额</th>
+            <th class="px-4 py-3 text-left font-medium">状态</th>
+            <th class="px-4 py-3 text-left font-medium">最近操作</th>
+            <th class="px-4 py-3 text-center font-medium">操作</th>
+          </tr>
+        </thead>
+        <tbody id="tb" class="divide-y divide-gray-50"></tbody>
+      </table>
+    </div>
+    <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+      <span class="text-[12px] text-gray-400" id="pageInfo">共 0 条记录</span>
+      <div class="flex items-center gap-1">
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100" onclick="toast('已是第一页（原型）')"><i class="fas fa-chevron-left text-[10px]"></i></button>
+        <button class="w-7 h-7 flex items-center justify-center text-white text-[12px] rounded" style="background:#FF4D2D" onclick="toast('当前第 1 页（原型）')">1</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100" onclick="toast('已切换到第 2 页（原型）')"><i class="fas fa-chevron-right text-[10px]"></i></button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div id="mask" class="mask" onclick="closeAll()"></div>
+<div id="drawer" class="drawer"></div>
+<div id="modal" class="modal"></div>
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
+
+<script>
+/* ================= 模拟数据（原型态）　基准日 = 2026-09-28 ================= */
+/* 规则：保证金固定金额 —— 精品摊 2 万 / 普通摊 1 万，按摊位等级自动带出，不可手改 */
+var BOND={'精品摊':20000,'普通摊':10000};
+var DP=[
+  {no:'HT2026-0071',mer:'王建国',stall:'A9-11',gate:'1F-A11',lv:'普通摊',paid:0,offset:0,state:'待收',bills:0,
+   end:'2029.08.31',last:'—',lastAt:'2026-09-05'},
+  {no:'HT2026-0072',mer:'周雅琴',stall:'A9-13',gate:'1F-A13',lv:'普通摊',paid:0,offset:0,state:'待收',bills:0,
+   end:'2029.08.31',last:'合同待签署，保证金待收',lastAt:'2026-09-05'},
+  {no:'HT2026-0069',mer:'汤晓琳',stall:'A9-10',gate:'1F-A09',lv:'普通摊',paid:10000,offset:0,state:'已收',bills:0,
+   end:'2029.08.31',last:'2026-09-10 收款登记（微信）',lastAt:'2026-09-10'},
+  {no:'HT2025-0070',mer:'陈志强',stall:'A9-12',gate:'1F-A12',lv:'精品摊',paid:20000,offset:0,state:'已收',bills:0,
+   end:'2030.08.31',last:'2025-09-05 收款登记（银行转账）',lastAt:'2025-09-05'},
+  {no:'HT2024-0102',mer:'赵敏',stall:'A9-15',gate:'1F-A15',lv:'普通摊',paid:10000,offset:0,state:'已收',bills:0,
+   end:'2026.12.20',last:'2024-01-05 收款登记（POS）',lastAt:'2024-01-05'},
+  {no:'HT2022-0055',mer:'蒋伟民',stall:'C1-05',gate:'1F-C05',lv:'普通摊',paid:10000,offset:3120,state:'抵扣中',bills:1,
+   end:'2026.07.31',last:'2026-09-26 申请抵扣（欠租 3,120 元，待主管审批）',lastAt:'2026-09-26'},
+  {no:'HT2021-0033',mer:'孙建华',stall:'D2-07',gate:'2F-D07',lv:'普通摊',paid:10000,offset:4500,state:'已结清',bills:0,
+   end:'2026.06.30',last:'2026-09-08 抵扣结算：维修赔偿 4,500 元（06 已入账）',lastAt:'2026-09-08'},
+  {no:'HT2022-0011',mer:'某贸易商行',stall:'A9-16',gate:'1F-A16',lv:'普通摊',paid:10000,offset:10000,state:'已结清',bills:0,
+   end:'2025.08.31',last:'2025-09-01 退租结算：全额抵扣欠租 10,000 元',lastAt:'2025-09-01'}
+];
+var TODO=[
+  {id:'TZ2026-0007',type:'退租单',src:'04 商户管理',mer:'吴晓芳',stall:'A9-19',gate:'1F-A19',no:'HT2026-0081',bills:0,date:'2026-10-20'},
+  {id:'QT2026-0001',type:'清退单',src:'04 商户管理',mer:'蒋伟民',stall:'C1-05',gate:'1F-C05',no:'HT2022-0055',bills:1,date:'2026-09-30'}
+];
+var curRows=DP.slice(),curNo=null;
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},2800);}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function money(n){return Number(n).toLocaleString('en-US');}
+function cOf(no){return DP.filter(function(x){return x.no===no;})[0];}
+function due(x){return BOND[x.lv];}
+function bal(x){return x.paid-x.offset;}
+function bld(s){return s.charAt(0)+' 区';}
+var STC={'待收':'background:#FEF3C7;color:#B45309','已收':'background:#DCFCE7;color:#15803D',
+  '抵扣中':'background:#EDE9FE;color:#6D28D9','已结清':'background:#F1F5F9;color:#64748B'};
+function st(s,c){return '<span class="st" style="'+(c||'background:#F1F5F9;color:#64748B')+'">'+esc(s)+'</span>';}
+
+function renderStats(){
+  var wait=0,got=0,will=0,off=0;
+  DP.forEach(function(x){
+    if(x.state==='待收'){wait+=due(x)-x.paid;}
+    got+=x.paid;
+    /* 本期待退：租期 90 天内到期且有应退余额 */
+    if(x.end>='2026.09.28'&&x.end<='2026.12.28'&&bal(x)>0&&(x.state==='已收')){
+      will+=bal(x);
+    }
+    /* 已抵扣（本月）：本月完成结算的抵扣额 */
+    if(x.offset>0&&x.lastAt.slice(0,7)==='2026-09'&&x.state==='已结清'){off+=x.offset;}
+  });
+  var cards=[['待收金额（元）',money(wait),'#B45309'],['已收金额（元）',money(got),'#15803D'],
+    ['本期待退（元）',money(will),'#E63E20'],['已抵扣（本月·元）',money(off),'#6D28D9']];
+  document.getElementById('stats').innerHTML=cards.map(function(x){
+    return '<div class="bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">'+x[0]+'</p><p class="text-xl font-bold mt-1" style="color:'+x[2]+'">'+x[1]+'</p></div>';
+  }).join('');
+}
+function render(){
+  var h='';
+  curRows.forEach(function(x){
+    var b=bal(x);
+    var ops='<span class="lk-gray" onclick="openDetail(\''+x.no+'\')">详情</span>';
+    if(x.state==='待收'){ops='<span class="lk" onclick="openCollect(\''+x.no+'\')">收取登记</span> · '+ops;}
+    if(x.state==='已收'){
+      ops='<span class="lk" onclick="openRefund(\''+x.no+'\')">发起退还</span> · <span class="lk" onclick="openOffset(\''+x.no+'\')">申请抵扣</span> · '+ops;
+    }
+    if(x.state==='抵扣中'){ops='<span class="lk" onclick="approveOffset(\''+x.no+'\')">抵扣审批</span> · '+ops;}
+    if(x.state==='已结清'){ops='<span class="lk-gray" onclick="openDetail(\''+x.no+'\')">查看结算</span>';}
+    h+='<tr class="hover:bg-gray-50 transition">'
+      +'<td class="px-4 py-3"><div class="font-medium text-[#1F2430]">'+esc(x.no)+'</div>'
+        +'<div class="text-[11px] text-[#94A3B8]">租期至 '+esc(x.end)+'</div></td>'
+      +'<td class="px-4 py-3"><span class="font-medium text-[#1F2430]">'+esc(x.mer)+'</span>'
+        +'<div class="text-[11px] text-[#94A3B8]">'+esc(bld(x.stall))+'　'+esc(x.stall)+'</div></td>'
+      +'<td class="px-4 py-3"><span class="tag" style="background:#DCFCE7;color:#15803D">'+esc(x.gate)+'</span></td>'
+      +'<td class="px-4 py-3"><span class="tag" style="'+(x.lv==='精品摊'?'background:#F3E8FF;color:#7C3AED':'background:#F1F5F9;color:#475569')+'">'+esc(x.lv)+'</span></td>'
+      +'<td class="px-4 py-3 text-right font-semibold text-[#1F2430]">'+money(due(x))+'</td>'
+      +'<td class="px-4 py-3 text-right text-[#64748B]">'+money(x.paid)+'</td>'
+      +'<td class="px-4 py-3 text-right" style="color:'+(x.offset?'#6D28D9':'#94A3B8')+'">'+money(x.offset)+'</td>'
+      +'<td class="px-4 py-3 text-right font-semibold" style="color:'+(b>0?'#15803D':'#94A3B8')+'">'+money(b)+'</td>'
+      +'<td class="px-4 py-3">'+st(x.state,STC[x.state])
+        +(x.bills?'<div class="text-[11px] mt-1" style="color:#B91C1C">未结账单 '+x.bills+' 笔，不可退还</div>':'')+'</td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(x.last)+'</td>'
+      +'<td class="px-4 py-3 text-center whitespace-nowrap">'+ops+'</td></tr>';
+  });
+  if(!curRows.length){h='<tr><td colspan="11" class="px-4 py-16 text-center text-gray-300"><i class="fas fa-inbox text-3xl block mb-2"></i><span class="text-[12px]">暂无匹配的保证金记录</span></td></tr>';}
+  document.getElementById('tb').innerHTML=h;
+  document.getElementById('cnt').textContent='共 '+curRows.length+' 条';
+  document.getElementById('pageInfo').textContent='共 '+curRows.length+' 条记录，第 1-'+curRows.length+' 条';
+}
+function renderTodo(){
+  var h='';
+  TODO.forEach(function(t){
+    h+='<tr class="hover:bg-gray-50 transition">'
+      +'<td class="px-4 py-3"><div class="font-medium text-[#1F2430]">'+esc(t.id)+'</div>'
+        +'<div class="text-[11px] text-[#94A3B8]">'+esc(t.type)+'　'+esc(t.src)+'</div></td>'
+      +'<td class="px-4 py-3"><span class="font-medium text-[#1F2430]">'+esc(t.mer)+'</span>'
+        +'<div class="text-[11px] text-[#94A3B8]">'+esc(t.stall)+' → '+esc(t.gate)+'　退租日 '+esc(t.date)+'</div></td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(t.no)+'</td>'
+      +'<td class="px-4 py-3 text-[12px] font-semibold" style="color:#15803D">'+money(bal(cOf(t.no)))+' 元</td>'
+      +'<td class="px-4 py-3">'+(t.bills?st('有 '+t.bills+' 笔','background:#FEE2E2;color:#B91C1C'):st('无','background:#DCFCE7;color:#15803D'))+'</td>'
+      +'<td class="px-4 py-3 text-center whitespace-nowrap">'
+        +(t.bills
+          ?'<span class="lk" onclick="openOffset(\''+t.no+'\')">申请抵扣</span> · <span class="lk-gray" onclick="location.href=\'merchant-exit.html\'">去 04 处理账单</span>'
+          :'<span class="lk" onclick="openRefund(\''+t.no+'\')">发起退还</span> · <span class="lk-gray" onclick="openDetail(\''+t.no+'\')">详情</span>')
+        +'</td></tr>';
+  });
+  document.getElementById('todoTb').innerHTML=h;
+  document.getElementById('todoCnt').textContent=TODO.length+' 条待处理';
+}
+function doSearch(){
+  var kw=document.getElementById('f-kw').value.trim(),s=document.getElementById('f-state').value,
+      lv=document.getElementById('f-lv').value,b=document.getElementById('f-bld').value,
+      d1=document.getElementById('f-d1').value,d2=document.getElementById('f-d2').value;
+  curRows=DP.filter(function(x){
+    var okKw=!kw||x.no.indexOf(kw)>-1||x.mer.indexOf(kw)>-1||x.gate.indexOf(kw)>-1||x.stall.indexOf(kw)>-1;
+    return okKw&&(!s||x.state===s)&&(!lv||x.lv===lv)&&(!b||bld(x.stall)===b)
+      &&(!d1||x.lastAt>=d1)&&(!d2||x.lastAt<=d2);
+  });
+  render();toast('已按条件查询，共 '+curRows.length+' 条');
+}
+function resetSearch(){
+  ['f-kw','f-state','f-lv','f-bld','f-d1','f-d2'].forEach(function(k){document.getElementById(k).value='';});
+  curRows=DP.slice();render();toast('已重置筛选条件');
+}
+
+/* ================= 详情 ================= */
+function openDetail(no){
+  var x=cOf(no);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+esc(x.no)+'　<span class="text-[12px] font-normal text-[#94A3B8]">'+esc(x.mer)+'</span></h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+st(x.state,STC[x.state])+' '+st(x.lv,x.lv==='精品摊'?'background:#F3E8FF;color:#7C3AED':'background:#F1F5F9;color:#475569')+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-shield-halved text-[#7C3AED]"></i>保证金信息（固定金额制）</div>'
+    +'<div class="grid grid-cols-2 gap-x-6">'
+    +'<div class="kv"><span class="k">合同号</span><span class="v font-semibold">'+esc(x.no)+'　<span class="lk" onclick="location.href=\'contract-list.html\'">去台账</span></span></div>'
+    +'<div class="kv"><span class="k">档口</span><span class="v">'+esc(x.stall)+' → '+esc(x.gate)+'</span></div>'
+    +'<div class="kv"><span class="k">摊位等级</span><span class="v">'+esc(x.lv)+'（'+(x.lv==='精品摊'?'精品摊 2 万':'普通摊 1 万')+'）</span></div>'
+    +'<div class="kv"><span class="k">应收保证金</span><span class="v"><b>'+money(due(x))+' 元</b>（自动带出，不可手改）</span></div>'
+    +'<div class="kv"><span class="k">已收 / 抵扣</span><span class="v">'+money(x.paid)+' / '+money(x.offset)+' 元</span></div>'
+    +'<div class="kv"><span class="k">应退余额</span><span class="v"><b style="color:#15803D">'+money(bal(x))+' 元</b></span></div>'
+    +'<div class="kv"><span class="k">未结账单</span><span class="v">'+(x.bills?'<span style="color:#B91C1C">'+x.bills+' 笔未结（不可退还）</span>':'无')+'</span></div>'
+    +'<div class="kv"><span class="k">租期至</span><span class="v">'+esc(x.end)+'</span></div>'
+    +'</div></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-clock-rotate-left text-[#64748B]"></i>资金流水与留痕</div>'
+    +'<div class="text-[12px] text-[#64748B] leading-7">'
+    +'· '+esc(x.last)+'<br>'
+    +(x.paid?'· 保证金收取（合同管理专员 何静）　金额 '+money(x.paid)+' 元<br>':'')
+    +(x.offset?'· 抵扣登记（'+money(x.offset)+' 元）：'+(x.state==='已结清'?'主管审批通过后由 06 缴费管理入账（已入账）':'主管审批中')+'<br>':'')
+    +'· 与<b>商城资金保证金区分</b>：本台账为<b>物业履约保证金</b>，不参与商城资金流水</div></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-diagram-project text-[#0EA5E9]"></i>关联与联动</div>'
+    +'<div class="grid grid-cols-2 gap-x-6">'
+    +'<div class="kv"><span class="k">04 商户档案</span><span class="v"><span class="lk" onclick="location.href=\'merchant-profile.html\'">去档案</span></span></div>'
+    +'<div class="kv"><span class="k">06 缴费账单</span><span class="v"><span class="lk" onclick="toast(\'跳转 06 缴费管理（原型）\')">查看账单</span></span></div>'
+    +'<div class="kv"><span class="k">退租 / 清退</span><span class="v"><span class="lk" onclick="location.href=\'merchant-exit.html\'">去 04 退租/清退</span></span></div>'
+    +'<div class="kv"><span class="k">到期预警</span><span class="v"><span class="lk" onclick="location.href=\'contract-expiry.html\'">去 P3 预警</span></span></div>'
+    +'</div></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">关闭</button>'
+    +(x.state==='待收'?'<button class="btn btn-primary" onclick="openCollect(\''+x.no+'\')">收取登记</button>':'')
+    +(x.state==='已收'?'<button class="btn btn-ghost" onclick="openOffset(\''+x.no+'\')">申请抵扣</button>'
+      +'<button class="btn btn-primary" onclick="openRefund(\''+x.no+'\')">发起退还</button>':'')
+    +'</div>';
+  show('drawer',h);
+}
+
+/* ================= 收取登记 ================= */
+function openCollect(no){
+  curNo=no;
+  var x=cOf(no);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">收取登记　'+esc(x.no)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(x.mer)+'　'+esc(x.stall)+' → '+esc(x.gate)+'　'+esc(x.lv)+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>'
+    +'<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">'
+    +'<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl">应收保证金（系统带出）</label><input class="fi" value="'+money(due(x))+'" readonly></div>'
+    +'<div><label class="fl">实收金额（元）</label><input class="fi" id="c-amt" value="'+due(x)+'"></div>'
+    +'<div><label class="fl">到账日期</label><input class="fi" id="c-date" type="date" value="2026-09-28"></div>'
+    +'<div><label class="fl">收款方式</label><select class="sel" id="c-way"><option>微信</option><option>支付宝</option><option>银行转账</option><option>POS 刷卡</option><option>现金</option></select></div>'
+    +'</div>'
+    +'<label class="up"><i class="fas fa-receipt text-2xl block mb-2"></i>上传收款凭证（收款回单 / 收据照片）<input type="file" class="hidden" onchange="toast(\'已上传收款凭证\')"></label>'
+    +'<div class="rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B]">保证金为<b>固定金额</b>（'+esc(x.lv)+' → '+money(due(x))+' 元），由摊位等级自动带出、<b>不可手改</b>；确需调整须主管审批 + 原因留痕（实收与应收不一致时系统会要求填写原因）。</p></div>'
+    +'<div><label class="fl">差异说明（实收 ≠ 应收 时必填）</label><textarea class="fi" id="c-note" rows="2" placeholder="例：商户分期缴纳，本期先收 5,000 元"></textarea></div>'
+    +'</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveCollect()">确认登记</button></div>';
+  show('drawer',h);
+}
+function saveCollect(){
+  var x=cOf(curNo),amt=parseInt(document.getElementById('c-amt').value,10)||0,
+      note=document.getElementById('c-note').value.trim(),way=document.getElementById('c-way').value,
+      d=document.getElementById('c-date').value;
+  if(amt<=0){toast('请填写实收金额');return;}
+  if(amt!==due(x)&&!note){toast('实收与应收不一致，请填写差异说明');return;}
+  x.paid+=amt;x.state=(x.paid>=due(x)?'已收':'待收');
+  x.last=d.replace(/-/g,'.')+' 收款登记（'+way+(amt!==due(x)?'，部分收款':'')+'）';x.lastAt=d;
+  renderStats();render();renderTodo();closeAll();
+  toast('已登记保证金 '+money(amt)+' 元（'+way+'）：合同 '+x.no+' 当前状态「'+x.state+'」'+(amt!==due(x)?'；应收 '+money(due(x))+' 元尚未收齐':''));
+}
+
+/* ================= 发起退还 ================= */
+function openRefund(no){
+  curNo=no;
+  var x=cOf(no),b=bal(x),block=x.bills>0;
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">发起退还　'+esc(x.no)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">退还前<b>校验无未结账单</b>；退还须经主管审批</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>'
+    +'<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">'
+    +'<div class="blk"><div class="blk-t"><i class="fas fa-shield-halved text-[#7C3AED]"></i>保证金余额</div>'
+    +'<div class="grid grid-cols-3 gap-3">'
+    +'<div class="rounded-lg p-3" style="background:#F8FAFC"><p class="text-[11px] text-gray-400">应收</p><p class="text-[15px] font-bold mt-1">'+money(due(x))+'</p></div>'
+    +'<div class="rounded-lg p-3" style="background:#F8FAFC"><p class="text-[11px] text-gray-400">已收 / 抵扣</p><p class="text-[15px] font-bold mt-1">'+money(x.paid)+' / '+money(x.offset)+'</p></div>'
+    +'<div class="rounded-lg p-3" style="background:#F0FDF4"><p class="text-[11px] text-[#15803D]">应退余额</p><p class="text-[15px] font-bold mt-1" style="color:#15803D">'+money(b)+'</p></div>'
+    +'</div></div>';
+  h+='<div class="rounded-xl border p-3" style="border-color:'+(block?'#FECACA;background:#FEF2F2':'#BBF7D0;background:#F0FDF4')+'">'
+    +'<p class="text-[12px]" style="color:'+(block?'#B91C1C':'#15803D')+'"><b>未结账单校验：</b>'
+    +(block?'该合同存在 <b>'+x.bills+' 笔未结账单</b>，<b>不允许退还</b>：只能选择「申请抵扣」或挂账，请先到 06 缴费管理处理账单。':'无未结账单，可发起退还。')+'</p>'
+    +(block?'<div class="mt-2 flex gap-2"><button class="btn btn-ghost" onclick="toast(\'跳转 06 缴费管理 · 该合同未结账单（原型）\')">去 06 处理账单</button>'
+      +'<button class="btn btn-ghost" onclick="openOffset(\''+x.no+'\')">改为申请抵扣</button></div>':'')
+    +'</div>';
+  h+='<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl">退还金额（元，≤ 应退余额）</label><input class="fi" id="r-amt" value="'+b+'"></div>'
+    +'<div><label class="fl">退还方式</label><select class="sel" id="r-way"><option>原路退回</option><option>银行转账</option><option>现金</option></select></div>'
+    +'<div><label class="fl">退还日期</label><input class="fi" id="r-date" type="date" value="2026-09-28"></div>'
+    +'<div><label class="fl">收款账户（脱敏）</label><input class="fi" value="6222 **** **** 3345　王**" readonly></div>'
+    +'</div>'
+    +'<div><label class="fl">退还说明</label><textarea class="fi" id="r-note" rows="2" placeholder="例：合同到期不再续租，保证金全额退还"></textarea></div>'
+    +'<label class="ck"><input type="checkbox" id="r-appr"><span>已取得<b>主管审批</b>（运营主管 张磊）：保证金退还需审批留痕</span></label>'
+    +'</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveRefund()">提交退还</button></div>';
+  show('drawer',h);
+}
+function saveRefund(){
+  var x=cOf(curNo),b=bal(x),amt=parseInt(document.getElementById('r-amt').value,10)||0;
+  if(x.bills>0){toast('存在 '+x.bills+' 笔未结账单，不允许退还：请先处理账单，或改为申请抵扣');return;}
+  if(amt<=0||amt>b){toast('退还金额需在 0 ~ '+money(b)+' 元之间');return;}
+  if(!document.getElementById('r-appr').checked){toast('请先取得主管审批后再提交退还');return;}
+  x.offset=x.offset+amt;
+  x.state=(bal(x)===0?'已结清':'已收');
+  x.last=document.getElementById('r-date').value.replace(/-/g,'.')+' 发起退还 '+money(amt)+' 元（'+
+    document.getElementById('r-way').value+'，主管已审批）';
+  x.lastAt=document.getElementById('r-date').value;
+  renderStats();render();renderTodo();closeAll();
+  toast('已提交退还 '+money(amt)+' 元：审批通过并完成付款后状态置「已结清」（当前应退余额 '+money(bal(x))+' 元）');
+}
+
+/* ================= 申请抵扣 ================= */
+function openOffset(no){
+  curNo=no;
+  var x=cOf(no),b=bal(x);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">申请抵扣　'+esc(x.no)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">抵扣原因：欠租 / 违约金 / 维修赔偿；须主管审批后由 <b>06 缴费管理</b>入账</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>'
+    +'<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">'
+    +'<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl">应退余额（可抵扣上限）</label><input class="fi" value="'+money(b)+'" readonly></div>'
+    +'<div><label class="fl">抵扣金额（元）</label><input class="fi" id="o-amt" value="'+Math.min(b,3120)+'"></div>'
+    +'<div><label class="fl">抵扣原因（字典）</label><select class="sel" id="o-reason"><option>欠租</option><option>违约金</option><option>维修赔偿</option><option>其他（说明）</option></select></div>'
+    +'<div><label class="fl">抵扣日期</label><input class="fi" id="o-date" type="date" value="2026-09-28"></div>'
+    +'</div>'
+    +'<div><label class="fl">抵扣说明（必填）</label><textarea class="fi" id="o-note" rows="2" placeholder="例：抵扣 2026 租赁年度欠缴年租金 3,120 元"></textarea></div>'
+    +'<label class="up"><i class="fas fa-paperclip text-2xl block mb-2"></i>上传依据附件（欠费明细 / 违约认定 / 维修结算单）<input type="file" class="hidden" onchange="toast(\'已上传抵扣依据附件\')"></label>'
+    +'<label class="ck"><input type="checkbox" id="o-appr"><span>已取得<b>主管审批</b>（运营主管 张磊）：抵扣需审批留痕</span></label>'
+    +'<div class="rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B]">抵扣金额不得超过应退余额；抵扣后应退余额为 0 → 状态置「已结清」。审批通过即写入 06 缴费管理形成入账记录。</p></div>'
+    +'</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveOffset()">提交抵扣申请</button></div>';
+  show('drawer',h);
+}
+function saveOffset(){
+  var x=cOf(curNo),b=bal(x),amt=parseInt(document.getElementById('o-amt').value,10)||0,
+      note=document.getElementById('o-note').value.trim();
+  if(!note){toast('抵扣说明必填');return;}
+  if(amt<=0||amt>b){toast('抵扣金额需在 0 ~ '+money(b)+' 元之间');return;}
+  if(!document.getElementById('o-appr').checked){toast('请先取得主管审批后再提交抵扣申请');return;}
+  x.offset+=amt;x.state='抵扣中';
+  x.last=document.getElementById('o-date').value.replace(/-/g,'.')+' 申请抵扣（'+document.getElementById('o-reason').value+' '+
+    money(amt)+' 元，待主管审批）';
+  renderStats();render();renderTodo();closeAll();
+  toast('已提交抵扣申请 '+money(amt)+' 元：审批通过后由 06 缴费管理入账；当前状态「抵扣中」');
+}
+function approveOffset(no){
+  var x=cOf(no);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">抵扣审批　'+esc(x.no)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(x.mer)+'　'+esc(x.stall)+' → '+esc(x.gate)+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>'
+    +'<div class="px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div class="kv"><span class="k">申请抵扣</span><span class="v">'+money(x.offset)+' 元（已收 '+money(x.paid)+' 元）</span></div>'
+    +'<div class="kv"><span class="k">审批后应退余额</span><span class="v">'+money(bal(x))+' 元'+(bal(x)===0?'　→ 状态置「已结清」':'')+'</span></div>'
+    +'<div class="kv"><span class="k">入账去向</span><span class="v">06 缴费管理（抵扣形成入账记录）</span></div>'
+    +'<div><label class="fl">审批意见</label><textarea class="fi" id="o-apprNote" rows="2" placeholder="例：同意抵扣欠缴年租金，已核对账单"></textarea></div>'
+    +'</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="doApproveOffset()">审批通过并入账</button></div>';
+  show('modal',h);
+}
+function doApproveOffset(){
+  var x=cOf(curNo),note=document.getElementById('o-apprNote').value.trim();
+  x.state=(bal(x)===0?'已结清':'已结清');
+  x.last='2026.09.28 抵扣结算：'+money(x.offset)+' 元（06 已入账，主管已审批）';
+  x.lastAt='2026-09-28';
+  renderStats();render();renderTodo();closeAll();
+  toast('抵扣已审批通过：'+money(x.offset)+' 元由 06 缴费管理入账；合同 '+x.no+' 保证金状态置「已结清」'+(note?'（意见已留痕）':''));
+}
+
+/* ================= 基础 ================= */
+function show(which,h){
+  document.getElementById(which).innerHTML=h;
+  document.getElementById('mask').classList.add('on');
+  document.getElementById(which).classList.add('on');
+}
+function closeAll(){
+  document.getElementById('mask').classList.remove('on');
+  document.getElementById('drawer').classList.remove('on');
+  document.getElementById('modal').classList.remove('on');
+}
+renderStats();render();renderTodo();
+</script>
+</body>
+</html>

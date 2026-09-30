@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>商户管理 - 线下自动建档与同步</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}
+.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}
+.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}
+.lk:hover{text-decoration:underline}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}
+.lk-gray:hover{color:#1F2430;text-decoration:underline}
+.st{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500;white-space:nowrap}
+.blk{border:1px solid #E2E8F0;border-radius:12px;padding:14px 16px;background:#fff}
+.blk-t{font-size:12.5px;font-weight:700;color:#1F2430;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.kv{display:flex;gap:8px;font-size:12px;line-height:1.9}
+.kv .k{color:#94A3B8;width:88px;flex-shrink:0}
+.kv .v{color:#1F2430;flex:1}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:60}
+.mask.on{opacity:1;pointer-events:auto}
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);width:560px;max-width:94vw;max-height:84vh;overflow-y:auto;background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(15,23,42,.28);opacity:0;pointer-events:none;transition:.22s;z-index:70}
+.modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+.fl{display:block;font-size:11px;color:#94A3B8;margin-bottom:4px}
+.sel{width:100%;padding:6px 8px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none}
+button{cursor:pointer}
+</style>
+<!-- Tailwind 静态样式：本地引用（不再依赖 cdn.tailwindcss.com）；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<div class="p-6">
+
+  <!-- 页面标题 -->
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">线下自动建档与同步</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">04 商户管理</span>
+      </div>
+      <p class="text-[12px] text-gray-400 mt-1">有线下档口的商户<b>免申请</b>：系统每日读取「合同管理 + 摊位商铺管理」的在租档口，按<b>姓名 + 身份证</b>自动在本模块建档；本页查看建档结果与异常</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="toast('已导出本次同步日志（CSV，身份证脱敏）')"><i class="fas fa-download text-[10px] mr-1"></i>导出日志</button>
+      <button class="btn btn-primary" onclick="syncNow()"><i class="fas fa-rotate text-[10px] mr-1"></i>立即同步</button>
+    </div>
+  </div>
+
+  <!-- 同步任务卡 -->
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+    <div class="flex items-center justify-between mb-3">
+      <div class="flex items-center gap-2">
+        <span class="text-[13px] font-bold text-[#1F2430]">同步任务</span>
+        <span class="tag" style="background:#DCFCE7;color:#15803D" id="jobState">上次同步成功</span>
+      </div>
+      <span class="text-[11px] text-[#94A3B8]">数据源：02 市场资源管理（在租档口 + 当前租户）｜ 同步方式：接口 · 每日 02:00（可配置）+ 手动</span>
+    </div>
+    <div class="grid grid-cols-5 gap-3">
+      <div class="rounded-lg p-3" style="background:#F8FAFC"><p class="text-[11px] text-gray-400">上次同步</p><p class="text-[13px] font-semibold text-[#1F2430] mt-1" id="lastTime">2026-09-28 02:00</p><p class="text-[10px] text-[#94A3B8] mt-0.5">耗时 12s</p></div>
+      <div class="rounded-lg p-3" style="background:#F8FAFC"><p class="text-[11px] text-gray-400">下次同步</p><p class="text-[13px] font-semibold text-[#1F2430] mt-1" id="nextTime">2026-09-29 02:00</p><p class="text-[10px] text-[#94A3B8] mt-0.5">到达定时点自动执行</p></div>
+      <div class="rounded-lg p-3" style="background:#F8FAFC"><p class="text-[11px] text-gray-400">拉取在租档口</p><p class="text-[13px] font-semibold text-[#1F2430] mt-1" id="nPulled">42</p><p class="text-[10px] text-[#94A3B8] mt-0.5">来自 02</p></div>
+      <div class="rounded-lg p-3" style="background:#F8FAFC"><p class="text-[11px] text-gray-400">建档成功</p><p class="text-[13px] font-semibold mt-1" style="color:#15803D" id="nOk">39</p><p class="text-[10px] text-[#94A3B8] mt-0.5">新建 33 · 合并到已有档案 6</p></div>
+      <div class="rounded-lg p-3" style="background:#FFF6F3"><p class="text-[11px]" style="color:#E63E20">建档异常</p><p class="text-[13px] font-semibold mt-1" style="color:#E63E20" id="nErr">3</p><p class="text-[10px] text-[#94A3B8] mt-0.5">需人工处理</p></div>
+    </div>
+  </div>
+
+  <!-- 建档规则说明 -->
+  <div class="rounded-xl border p-4 mb-4" style="border-color:#FDE68A;background:#FFFBEB">
+    <div class="text-[12.5px] font-bold mb-2" style="color:#B45309"><i class="fas fa-circle-info mr-1"></i>自动建档规则（含身份信息不全时的降级策略）</div>
+    <div class="text-[12px] text-[#64748B] leading-6">
+      ① <b>匹配键</b>：合同的「资产名称」即<b>摊位号</b>（如 `A9-10`）→ 经「摊位号 ↔ 档口编号」映射表落到 02 的档口编号；<br>
+      ② <b>姓名 + 身份证齐全</b> → 精确建档，直接判定唯一性；<br>
+      ③ <b>只有姓名 + 摊位号（当前线下数据常态）</b> → 照建，档案标记「<b>身份待补全</b>」；出现<b>同名冲突</b>（同一姓名命中多个摊位且均无身份证）→ 进异常清单人工确认；<br>
+      ④ 客户后期补全身份证 → 系统<b>自动补齐并去重校验</b>，冲突的进异常清单人工合并；<br>
+      ⑤ 建档只处理「<b>当前在租</b>」租户，<b>历届租户不建档</b>（保留在 02 的历史记录里）。
+    </div>
+  </div>
+
+  <!-- 筛选 -->
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+    <div class="flex items-center gap-3 flex-wrap">
+      <input id="f-kw" type="text" placeholder="租户姓名 / 摊位号 / 商户编号" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary w-64">
+      <select id="f-b" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部楼栋</option><option>A 栋</option><option>B 栋</option>
+      </select>
+      <select id="f-res" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部结果</option><option>成功·新建</option><option>成功·合并到已有档案</option><option>异常</option>
+      </select>
+      <button class="btn btn-primary" onclick="doSearch()">查询</button>
+      <button class="btn btn-ghost" onclick="resetSearch()">重置</button>
+      <span class="text-[11px] text-[#94A3B8] ml-auto"><i class="fas fa-circle-info mr-1"></i>档口与租期数据来自 02，本页只读；建档结果与异常处理为本模块</span>
+    </div>
+  </div>
+
+  <!-- 建档结果 -->
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden mb-4">
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+      <span class="text-[13px] font-bold text-[#1F2430]">建档结果</span>
+      <span class="text-[11px] text-[#94A3B8]" id="cnt1">共 0 条</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-[13px]" style="min-width:1120px">
+        <thead>
+          <tr class="bg-gray-50 text-gray-500 text-[12px]">
+            <th class="px-4 py-3 text-left font-medium">租户姓名</th>
+            <th class="px-4 py-3 text-left font-medium">身份证号</th>
+            <th class="px-4 py-3 text-left font-medium">档口编号</th>
+            <th class="px-4 py-3 text-left font-medium">位置</th>
+            <th class="px-4 py-3 text-left font-medium">租期</th>
+            <th class="px-4 py-3 text-left font-medium">合同号</th>
+            <th class="px-4 py-3 text-left font-medium">建档结果</th>
+            <th class="px-4 py-3 text-left font-medium">商户编号</th>
+            <th class="px-4 py-3 text-center font-medium">操作</th>
+          </tr>
+        </thead>
+        <tbody id="tb1" class="divide-y divide-gray-50"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 异常清单 -->
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+      <span class="text-[13px] font-bold text-[#1F2430]">自动建档异常清单</span>
+      <span class="text-[11px] text-[#94A3B8]" id="cnt2">共 0 条待处理</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-[13px]" style="min-width:1120px">
+        <thead>
+          <tr class="bg-gray-50 text-gray-500 text-[12px]">
+            <th class="px-4 py-3 text-left font-medium">异常类型</th>
+            <th class="px-4 py-3 text-left font-medium">原始信息</th>
+            <th class="px-4 py-3 text-left font-medium">处理建议</th>
+            <th class="px-4 py-3 text-left font-medium">处理状态</th>
+            <th class="px-4 py-3 text-center font-medium">操作</th>
+          </tr>
+        </thead>
+        <tbody id="tb2" class="divide-y divide-gray-50"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div id="mask" class="mask" onclick="closeM()"></div>
+<div id="modal" class="modal"></div>
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
+
+<script>
+/* ================= 模拟数据（原型态） ================= */
+var JOBS={last:'2026-09-28 02:00',next:'2026-09-29 02:00',pulled:42,created:33,merged:6,err:3};
+var ITEMS=[
+  {name:'汤晓琳',idno:'330681198807150021',code:'A9-10',b:'A 栋',floor:'9 层',term:'2026.01.01 ~ 2028.12.31',contract:'LT-2026-0069',res:'成功·新建',mid:'MB2026000123'},
+  {name:'王建国',idno:'',code:'A9-11',b:'A 栋',floor:'9 层',term:'2026.03.01 ~ 2029.02.28',contract:'LT-2026-0071',res:'成功·新建',mid:'MB2026000124'},
+  {name:'陈志强',idno:'330681198503127777',code:'B3-08',b:'B 栋',floor:'3 层',term:'2025.06.01 ~ 2027.05.31',contract:'LT-2025-0231',res:'成功·合并到已有档案',mid:'MB2026000088'},
+  {name:'周雅琴',idno:'',code:'A9-13',b:'A 栋',floor:'9 层',term:'2026.02.01 ~ 2028.01.31',contract:'LT-2026-0072',res:'成功·新建',mid:'MB2026000125'},
+  {name:'李海涛',idno:'330681198810236619',code:'B3-12',b:'B 栋',floor:'3 层',term:'2025.09.01 ~ 2028.08.31',contract:'LT-2025-0315',res:'成功·新建',mid:'MB2026000126'},
+  {name:'赵敏',idno:'330681198702148888',code:'A9-15',b:'A 栋',floor:'9 层',term:'2024.01.01 ~ 2026.12.31',contract:'LT-2024-0102',res:'成功·合并到已有档案',mid:'MB2026000041'}
+];
+var ERRS=[
+  {type:'档口号未映射',info:'合同「资产名称」= 9-12，02 档口台账中无对应档口编号',advice:'请物业在「摊位商铺管理」补录档口，或维护「摊位号 ↔ 档口编号」映射后重跑',state:'待处理'},
+  {type:'命中停用档口',info:'摊位号 A9-14 对应档口状态 = 停用',advice:'核实是停用标记有误，还是合同号填错（数据冲突）',state:'待处理'},
+  {type:'同名冲突需人工确认',info:'姓名「王建国」命中 A9-11 与 A9-16 两个摊位，且两条均无身份证号',advice:'人工核对身份证后确认是同一人（合并为一条档案）还是两人（拆分建档）',state:'待处理'}
+];
+var curItems=ITEMS.slice(),curErrs=ERRS.slice(),curErrIdx=-1;
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},2600);}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function maskId(s){return s?String(s).slice(0,6)+'********'+String(s).slice(-4):'';}
+
+/* ================= 渲染 ================= */
+function renderJob(){
+  document.getElementById('lastTime').textContent=JOBS.last;
+  document.getElementById('nextTime').textContent=JOBS.next;
+  document.getElementById('nPulled').textContent=JOBS.pulled;
+  document.getElementById('nOk').textContent=(JOBS.created+JOBS.merged);
+  document.getElementById('nErr').textContent=JOBS.err;
+}
+function resTag(res){
+  var c=res==='异常'?'background:#FEE2E2;color:#B91C1C':(res==='成功·合并到已有档案'?'background:#DBEAFE;color:#2563EB':'background:#DCFCE7;color:#15803D');
+  return '<span class="st" style="'+c+'">'+esc(res)+'</span>';
+}
+function renderItems(){
+  var h='';
+  curItems.forEach(function(it){
+    var idCell = it.idno
+      ? '<span class="text-[#64748B]">'+esc(maskId(it.idno))+'</span>'
+      : '<span class="tag" style="background:#FEF3C7;color:#B45309">身份待补全</span>';
+    h+='<tr class="hover:bg-gray-50 transition">'
+      +'<td class="px-4 py-3 font-medium text-[#1F2430]">'+esc(it.name)+'</td>'
+      +'<td class="px-4 py-3 whitespace-nowrap">'+idCell+'</td>'
+      +'<td class="px-4 py-3"><span class="tag" style="background:#FFEDE7;color:#E63E20">'+esc(it.code)+'</span></td>'
+      +'<td class="px-4 py-3 text-[#64748B]">'+esc(it.b)+' · '+esc(it.floor)+'</td>'
+      +'<td class="px-4 py-3 text-[#64748B] text-[12px]">'+esc(it.term)+'</td>'
+      +'<td class="px-4 py-3 text-[#64748B] text-[12px]">'+esc(it.contract)+'</td>'
+      +'<td class="px-4 py-3">'+resTag(it.res)+'</td>'
+      +'<td class="px-4 py-3 text-[#64748B]">'+esc(it.mid)+'</td>'
+      +'<td class="px-4 py-3 text-center whitespace-nowrap"><span class="lk" onclick="location.href=\'merchant-profile.html\'">查看档案</span></td>'
+      +'</tr>';
+  });
+  if(!curItems.length){h='<tr><td colspan="9" class="px-4 py-12 text-center text-gray-300 text-[12px]">暂无匹配记录</td></tr>';}
+  document.getElementById('tb1').innerHTML=h;
+  document.getElementById('cnt1').textContent='共 '+curItems.length+' 条';
+}
+function renderErrs(){
+  var h='';
+  curErrs.forEach(function(e,i){
+    var st=e.state==='待处理'?'<span class="st" style="background:#FEE2E2;color:#B91C1C">待处理</span>':'<span class="st" style="background:#F1F5F9;color:#64748B">已处理</span>';
+    var op=e.state==='待处理'
+      ? '<span class="lk" onclick="openM('+i+')">处理</span> · <span class="lk-gray" onclick="location.href=\'resource-unit.html\'">去修正</span>'
+      : '<span class="lk-gray" onclick="openM('+i+')">查看</span>';
+    h+='<tr class="hover:bg-gray-50 transition">'
+      +'<td class="px-4 py-3"><span class="tag" style="background:#FEE2E2;color:#B91C1C">'+esc(e.type)+'</span></td>'
+      +'<td class="px-4 py-3 text-[#64748B] text-[12px]">'+esc(e.info)+'</td>'
+      +'<td class="px-4 py-3 text-[#64748B] text-[12px]">'+esc(e.advice)+'</td>'
+      +'<td class="px-4 py-3">'+st+'</td>'
+      +'<td class="px-4 py-3 text-center whitespace-nowrap">'+op+'</td>'
+      +'</tr>';
+  });
+  if(!curErrs.length){h='<tr><td colspan="5" class="px-4 py-12 text-center text-gray-300 text-[12px]">暂无异常，建档链路运行正常</td></tr>';}
+  document.getElementById('tb2').innerHTML=h;
+  var pending=curErrs.filter(function(e){return e.state==='待处理';}).length;
+  document.getElementById('cnt2').textContent='共 '+curErrs.length+' 条，其中待处理 '+pending+' 条';
+}
+function doSearch(){
+  var kw=document.getElementById('f-kw').value.trim(),b=document.getElementById('f-b').value,res=document.getElementById('f-res').value;
+  curItems=ITEMS.filter(function(it){
+    return (!kw||it.name.indexOf(kw)>-1||it.code.indexOf(kw)>-1||it.mid.indexOf(kw)>-1)&&(!b||it.b===b)&&(!res||it.res===res);
+  });
+  renderItems();toast('已按条件查询，共 '+curItems.length+' 条');
+}
+function resetSearch(){
+  ['f-kw','f-b','f-res'].forEach(function(k){document.getElementById(k).value='';});
+  curItems=ITEMS.slice();renderItems();toast('已重置筛选条件');
+}
+function syncNow(){
+  document.getElementById('jobState').textContent='同步中…';
+  document.getElementById('jobState').style.background='#FEF3C7';
+  document.getElementById('jobState').style.color='#B45309';
+  toast('正在经接口拉取合同与档口数据…');
+  setTimeout(function(){
+    document.getElementById('jobState').textContent='上次同步成功';
+    document.getElementById('jobState').style.background='#DCFCE7';
+    document.getElementById('jobState').style.color='#15803D';
+    JOBS.last='2026-09-28 '+new Date().toTimeString().slice(0,5);
+    renderJob();
+    toast('同步完成：拉取 '+JOBS.pulled+' 条在租档口，新建 '+JOBS.created+' · 合并 '+JOBS.merged+' · 异常 '+JOBS.err+'（异常见下方清单）');
+  },900);
+}
+/* ================= 异常处理弹层 ================= */
+function openM(i){
+  curErrIdx=i;
+  var e=curErrs[i];
+  var done=e.state!=='待处理';
+  var h='<div class="flex items-start justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">处理建档异常</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(e.type)+'　·　建档任务 2026-09-28 02:00</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeM()"><i class="fas fa-xmark"></i></button></div>'
+    +'<div class="px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div class="rounded-xl border border-gray-100 p-3"><div class="kv"><span class="k">原始信息</span><span class="v">'+esc(e.info)+'</span></div>'
+    +'<div class="kv"><span class="k">处理建议</span><span class="v">'+esc(e.advice)+'</span></div>'
+    +'<div class="kv"><span class="k">关联页面</span><span class="v"><span class="lk" onclick="location.href=\'resource-unit.html\'">02 摊位商铺管理</span> · <span class="lk" onclick="toast(\'跳转 05 合同管理（对应合同）\')">05 合同管理</span></span></div></div>';
+  if(done){
+    h+='<div class="rounded-xl border p-3" style="border-color:#BBF7D0;background:#F6FEF9"><p class="text-[12px] text-[#15803D]"><i class="fas fa-circle-check mr-1"></i>该异常已处理完成（'+esc(e.doneBy||'商户管理专员')+'　'+(e.doneAt||'')+'）</p></div>';
+  } else {
+    h+='<div><label class="fl">处理方式</label>'
+      +'<select id="mWay" class="sel"><option value="">请选择处理方式</option>'
+      +'<option value="retry">已修正上游数据 → 重新同步该条</option>'
+      +'<option value="manual">转人工建档（线下核对后手工补档）</option>'
+      +'<option value="ignore">忽略（原因必填）</option></select></div>'
+      +'<div><label class="fl" id="mMemoLb">处理备注</label>'
+      +'<textarea id="mMemo" rows="2" class="w-full p-2 text-[12px] border border-[#E2E8F0] rounded-lg outline-none" placeholder="如：已让物业补录 A9-14 档口 / 已核对身份证为同一人"></textarea>'
+      +'<p class="text-[11px] text-[#94A3B8] mt-1">选择「忽略」时备注必填；处理动作会留痕（人 / 时间 / 前后值）</p></div>';
+  }
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeM()">关闭</button>'
+    +(done?'':'<button class="btn btn-primary" onclick="doErr()">确认处理</button>')
+    +'</div>';
+  document.getElementById('modal').innerHTML=h;
+  document.getElementById('mask').classList.add('on');
+  document.getElementById('modal').classList.add('on');
+}
+function closeM(){
+  curErrIdx=-1;
+  document.getElementById('mask').classList.remove('on');
+  document.getElementById('modal').classList.remove('on');
+}
+function doErr(){
+  var way=document.getElementById('mWay').value,memo=document.getElementById('mMemo').value.trim();
+  if(!way){toast('请选择处理方式');return;}
+  if(way==='ignore'&&!memo){toast('选择「忽略」时备注必填');return;}
+  var e=curErrs[curErrIdx];
+  e.state='已处理';e.doneBy='商户管理专员 张伟';e.doneAt='2026-09-28';
+  JOBS.err=curErrs.filter(function(x){return x.state==='待处理';}).length;
+  renderJob();renderErrs();closeM();
+  toast(way==='retry'?'已重新同步该条：建档成功（若仍失败会再次进入异常清单）':(way==='manual'?'已转人工建档，进入「商户档案」待补档清单':'已忽略该异常（原因已留痕）'));
+}
+/* ================= 初始化 ================= */
+renderJob();
+renderItems();
+renderErrs();
+</script>
+</body>
+</html>

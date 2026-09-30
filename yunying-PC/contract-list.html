@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>合同管理 - 合同台账与签署留档</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}.lk:hover{text-decoration:underline}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}.lk-gray:hover{color:#1F2430;text-decoration:underline}
+.st{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500;white-space:nowrap}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:60}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:680px;max-width:96vw;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:70;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);width:760px;max-width:95vw;max-height:86vh;overflow-y:auto;background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(15,23,42,.28);opacity:0;pointer-events:none;transition:.22s;z-index:70}
+.modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+.blk{border:1px solid #E2E8F0;border-radius:12px;padding:14px 16px}
+.blk-t{font-size:12.5px;font-weight:700;color:#1F2430;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.kv{display:flex;gap:8px;font-size:12px;line-height:1.9}
+.kv .k{color:#94A3B8;width:110px;flex-shrink:0}
+.kv .v{color:#1F2430;flex:1;word-break:break-all}
+.fi{width:100%;padding:6px 10px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none;background:#fff}
+.fi:focus{border-color:#FF4D2D}
+.fl{display:block;font-size:11px;color:#94A3B8;margin-bottom:4px}
+.sel{width:100%;padding:6px 8px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none}
+button{cursor:pointer}
+.up{border:2px dashed #E2E8F0;border-radius:12px;padding:18px;text-align:center;color:#94A3B8;cursor:pointer}
+.up:hover{border-color:#FDB4A3;color:#E63E20}
+</style>
+<!-- Tailwind 静态样式：本地引用（不再依赖 cdn.tailwindcss.com）；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<div class="p-6">
+
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">合同台账与签署留档</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">05 合同管理</span>
+      </div>
+      <p class="text-[12px] text-gray-400 mt-1">线下租赁合同录入/导入与全量台账（对齐客户台账 21 字段）；合同是 02 档口、04 商户建档、06 年度账单的<b>共同源头</b>。本阶段<b>不做在线电子签</b>：线下签署后扫描归档</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="toast('已导出合同台账（身份证、权证号已脱敏）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+      <button class="btn btn-ghost" onclick="openImport()"><i class="fas fa-file-import text-[10px] mr-1"></i>批量导入</button>
+      <button class="btn btn-primary" onclick="openNew()"><i class="fas fa-plus mr-1"></i>录入合同</button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-6 gap-3 mb-4" id="stats"></div>
+
+  <!-- 与 02 的同步卡 -->
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+    <div class="flex items-center justify-between mb-3">
+      <div class="flex items-center gap-2">
+        <span class="text-[13px] font-bold text-[#1F2430]">推送 02 市场资源管理（档口匹配）</span>
+        <span class="tag" style="background:#DCFCE7;color:#15803D" id="syncState">上次同步成功</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-[11px] text-[#94A3B8]">匹配键 = 02 的<b>档口编号</b>（合同侧引用 + 摊位号映射）</span>
+        <button class="btn btn-primary" onclick="syncNow()"><i class="fas fa-rotate text-[10px] mr-1"></i>立即同步</button>
+      </div>
+    </div>
+    <div class="grid grid-cols-5 gap-3">
+      <div class="rounded-lg p-3" style="background:#F8FAFC"><p class="text-[11px] text-gray-400">上次同步</p><p class="text-[13px] font-semibold mt-1">2026-09-28 02:00</p><p class="text-[10px] text-[#94A3B8] mt-0.5">耗时 8s</p></div>
+      <div class="rounded-lg p-3" style="background:#F8FAFC"><p class="text-[11px] text-gray-400">下次同步</p><p class="text-[13px] font-semibold mt-1">2026-09-29 02:00</p><p class="text-[10px] text-[#94A3B8] mt-0.5">每日 02:00</p></div>
+      <div class="rounded-lg p-3" style="background:#F8FAFC"><p class="text-[11px] text-gray-400">本次推送</p><p class="text-[13px] font-semibold mt-1" id="nPush">42 条</p><p class="text-[10px] text-[#94A3B8] mt-0.5">新增 / 变更 / 作废</p></div>
+      <div class="rounded-lg p-3" style="background:#F8FAFC"><p class="text-[11px] text-gray-400">匹配成功</p><p class="text-[13px] font-semibold mt-1" style="color:#15803D">39 条</p><p class="text-[10px] text-[#94A3B8] mt-0.5">档口置「在租」</p></div>
+      <div class="rounded-lg p-3" style="background:#FFF6F3"><p class="text-[11px]" style="color:#E63E20">同步异常</p><p class="text-[13px] font-semibold mt-1" style="color:#E63E20" id="nErr">3 条</p><p class="text-[10px] text-[#94A3B8] mt-0.5"><span class="lk" onclick="toast('跳转 02 市场资源管理 · 合同匹配异常清单')">去处理 →</span></p></div>
+    </div>
+  </div>
+
+  <!-- 筛选 -->
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+    <div class="flex items-center gap-3 flex-wrap">
+      <input id="f-kw" type="text" placeholder="合同号 / 卷号 / 摊位号 / 承租人 / 档口编号" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary w-72">
+      <select id="f-status" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部合同状态</option><option>待映射</option><option>待签署</option><option>生效中</option><option>变更中</option><option>已续签</option><option>已退租</option><option>已到期</option><option>已终止</option><option>已作废</option>
+      </select>
+      <select id="f-map" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">映射状态</option><option value="yes">已映射</option><option value="no">待映射（未推送 02）</option>
+      </select>
+      <select id="f-exp" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">到期状态</option><option value="90">90 天内到期</option><option value="30">30 天内到期</option><option value="over">已到期未处置</option>
+      </select>
+      <select id="f-lv" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部摊位等级</option><option>精品摊</option><option>普通摊</option>
+      </select>
+      <button class="btn btn-primary" onclick="doSearch()">查询</button>
+      <button class="btn btn-ghost" onclick="resetSearch()">重置</button>
+      <span class="text-[11px] text-[#94A3B8] ml-auto"><i class="fas fa-circle-info mr-1"></i>柜口/租期/承租人以合同为准，02 只读消费；本页可改合同，不可改档口</span>
+    </div>
+  </div>
+
+  <!-- 列表 -->
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+      <span class="text-[12px] text-[#94A3B8]" id="cnt">共 0 条</span>
+      <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>应收计划按<b>租赁年度（9.1–次年 8.31）</b>生成，每年 8 月底前缴纳、8 月 15 日起催收</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-[13px]" style="min-width:1480px">
+        <thead>
+          <tr class="bg-gray-50 text-gray-500 text-[12px]">
+            <th class="px-4 py-3 text-left font-medium">合同号 / 卷号</th>
+            <th class="px-4 py-3 text-left font-medium">摊位号 → 档口编号</th>
+            <th class="px-4 py-3 text-left font-medium">承租人</th>
+            <th class="px-4 py-3 text-left font-medium">面积</th>
+            <th class="px-4 py-3 text-left font-medium">租期</th>
+            <th class="px-4 py-3 text-left font-medium">年租金 / 总租金</th>
+            <th class="px-4 py-3 text-left font-medium">摊位等级 / 保证金</th>
+            <th class="px-4 py-3 text-left font-medium">应收计划</th>
+            <th class="px-4 py-3 text-left font-medium">状态</th>
+            <th class="px-4 py-3 text-center font-medium">操作</th>
+          </tr>
+        </thead>
+        <tbody id="tb" class="divide-y divide-gray-50"></tbody>
+      </table>
+    </div>
+    <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+      <span class="text-[12px] text-gray-400" id="pageInfo">共 0 条记录</span>
+      <div class="flex items-center gap-1">
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100" onclick="toast('已是第一页（原型）')"><i class="fas fa-chevron-left text-[10px]"></i></button>
+        <button class="w-7 h-7 flex items-center justify-center text-white text-[12px] rounded" style="background:#FF4D2D" onclick="toast('当前第 1 页（原型）')">1</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100" onclick="toast('已切换到第 2 页（原型）')"><i class="fas fa-chevron-right text-[10px]"></i></button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div id="mask" class="mask" onclick="closeAll()"></div>
+<div id="drawer" class="drawer"></div>
+<div id="modal" class="modal"></div>
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
+
+<script>
+/* ================= 模拟数据（原型态） ================= */
+/* 规则：租赁年度 = 当年 9.1 ~ 次年 8.31；精品摊 5 年一签 + 保证金 2 万；普通摊 3 年一签 + 保证金 1 万 */
+var LV={'精品摊':{years:5,bond:20000},'普通摊':{years:3,bond:10000}};
+var CS=[
+  {no:'HT2026-0069',vol:'69-10',stall:'A9-10',gate:'1F-A09',lv:'普通摊',name:'汤晓琳',idno:'330681198807150021',
+   area:'147.2',start:'2026.09.01',end:'2029.08.31',rent:45600,status:'生效中',bond:'已收',signed:1,days:1068,
+   addr:'诸暨市大唐轻纺原料市场 A 区',cert:'浙(2020)诸暨市不动产权第0020999号',std:1},
+  {no:'HT2025-0070',vol:'70-10',stall:'A9-12',gate:'1F-A12',lv:'精品摊',name:'陈志强',idno:'330681198503127777',
+   area:'147.2',start:'2025.09.01',end:'2030.08.31',rent:77900,status:'生效中',bond:'已收',signed:1,days:1433,
+   addr:'诸暨市大唐轻纺原料市场 A 区',cert:'浙(2020)诸暨市不动产权第0021000号',std:1},
+  {no:'HT2026-0071',vol:'71-10',stall:'A9-11',gate:'',lv:'普通摊',name:'王建国',idno:'',
+   area:'147.2',start:'2026.09.01',end:'2029.08.31',rent:45600,status:'待映射',bond:'待收',signed:1,days:1068,
+   addr:'诸暨市大唐轻纺原料市场 A 区',cert:'浙(2020)诸暨市不动产权第0021001号',std:1},
+  {no:'HT2026-0072',vol:'72-10',stall:'A9-13',gate:'1F-A13',lv:'普通摊',name:'周雅琴',idno:'',
+   area:'147.2',start:'2026.09.01',end:'2029.08.31',rent:45600,status:'待签署',bond:'待收',signed:0,days:1068,
+   addr:'诸暨市大唐轻纺原料市场 A 区',cert:'浙(2020)诸暨市不动产权第0021002号',std:1},
+  {no:'HT2023-0088',vol:'88-08',stall:'B3-08',gate:'3F-B08',lv:'普通摊',name:'陈美玲',idno:'330681199005186633',
+   area:'86.5',start:'2023.09.01',end:'2026.08.31',rent:38200,status:'已到期',bond:'已收',signed:1,days:-28,
+   addr:'诸暨市大唐轻纺原料市场 B 区',cert:'浙(2020)诸暨市不动产权第0021003号',std:1},
+  {no:'HT2024-0102',vol:'102-03',stall:'A9-15',gate:'1F-A15',lv:'普通摊',name:'赵敏',idno:'330681198702148888',
+   area:'160.0',start:'2024.01.01',end:'2026.12.20',rent:60000,status:'生效中',bond:'已收',signed:1,days:83,
+   addr:'诸暨市大唐轻纺原料市场 A 区',cert:'浙(2020)诸暨市不动产权第0021004号',std:0},
+  {no:'HT2025-0231',vol:'231-08',stall:'B3-10',gate:'3F-B10',lv:'普通摊',name:'郑强',idno:'330681198912204455',
+   area:'86.5',start:'2025.01.15',end:'2026.11.15',rent:38200,status:'变更中',bond:'待收',signed:1,days:48,
+   addr:'诸暨市大唐轻纺原料市场 B 区',cert:'浙(2020)诸暨市不动产权第0021005号',std:0},
+  {no:'HT2026-0073',vol:'73-10',stall:'A9-14',gate:'1F-A14',lv:'精品摊',name:'李海涛',idno:'330681198810236619',
+   area:'92.0',start:'2026.09.01',end:'2031.08.31',rent:63800,status:'生效中',bond:'已收',signed:1,days:1798,
+   addr:'诸暨市大唐轻纺原料市场 A 区',cert:'浙(2020)诸暨市不动产权第0021006号',std:1},
+  {no:'HT2022-0011',vol:'11-02',stall:'A9-16',gate:'1F-A16',lv:'普通摊',name:'某贸易商行',idno:'330681199307155522',
+   area:'147.2',start:'2022.09.01',end:'2025.08.31',rent:45600,status:'已退租',bond:'已结清',signed:1,days:-393,
+   addr:'诸暨市大唐轻纺原料市场 A 区',cert:'浙(2020)诸暨市不动产权第0021007号',std:1},
+  {no:'HT2026-0075',vol:'75-10',stall:'A9-17',gate:'',lv:'普通摊',name:'孙某某',idno:'330681199506201234',
+   area:'147.2',start:'2026.09.01',end:'2029.08.31',rent:45600,status:'已作废',bond:'待收',signed:0,days:1068,
+   addr:'诸暨市大唐轻纺原料市场 A 区',cert:'',std:1}
+];
+var GATES=['1F-A09','1F-A10','1F-A11','1F-A12','1F-A13','1F-A14','1F-A15','1F-A16','1F-A17','3F-B08','3F-B10'];
+var curRows=CS.slice(),curNo=null;
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},2800);}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function maskId(s){return s?String(s).slice(0,6)+'********'+String(s).slice(-4):'';}
+function bondOf(c){return LV[c.lv].bond;}
+function periods(c){var n=LV[c.lv].years;return n;}
+var STC={'待映射':'background:#FEF3C7;color:#B45309','待签署':'background:#DBEAFE;color:#2563EB','生效中':'background:#DCFCE7;color:#15803D',
+  '变更中':'background:#EDE9FE;color:#6D28D9','已续签':'background:#DBEAFE;color:#2563EB','已退租':'background:#F1F5F9;color:#475569',
+  '已到期':'background:#FFEDE7;color:#E63E20','已终止':'background:#FEE2E2;color:#B91C1C','已作废':'background:#F1F5F9;color:#94A3B8'};
+function st(s,c){return '<span class="st" style="'+(c||'background:#F1F5F9;color:#64748B')+'">'+esc(s)+'</span>';}
+function money(n){return n.toLocaleString('en-US');}
+function expTag(d){return d<0?'<span class="text-[11px]" style="color:#B91C1C">已到期 '+Math.abs(d)+' 天</span>':(d<=30?'<span class="text-[11px]" style="color:#E63E20">'+d+' 天内到期</span>':(d<=90?'<span class="text-[11px]" style="color:#B45309">'+d+' 天内到期</span>':'<span class="text-[11px] text-[#94A3B8]">剩余 '+d+' 天</span>'));}
+
+function renderStats(){
+  var c={total:CS.length,live:0,unmap:0,exp:0,bond:0,wait:0};
+  CS.forEach(function(x){
+    if(x.status==='生效中'||x.status==='变更中'){c.live++;}
+    if(!x.gate&&x.status!=='已作废'&&x.status!=='已退租'){c.unmap++;}
+    if(x.days>0&&x.days<=90&&(x.status==='生效中'||x.status==='变更中')){c.exp++;}
+    if(x.bond==='待收'&&x.status!=='已作废'){c.bond++;}
+    if(x.status==='待签署'){c.wait++;}
+  });
+  var cards=[['合同总数',c.total,'#1F2430'],['生效中',c.live,'#15803D'],['待映射',c.unmap,'#B45309'],['90 天内到期',c.exp,'#E63E20'],['保证金待收',c.bond,'#B45309'],['待签署',c.wait,'#2563EB']];
+  document.getElementById('stats').innerHTML=cards.map(function(x){
+    return '<div class="bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">'+x[0]+'</p><p class="text-xl font-bold mt-1" style="color:'+x[2]+'">'+x[1]+'</p></div>';
+  }).join('');
+}
+function render(){
+  var h='';
+  curRows.forEach(function(c){
+    var gate=c.gate?'<span class="tag" style="background:#DCFCE7;color:#15803D">'+esc(c.gate)+'</span>':'<span class="tag" style="background:#FEF3C7;color:#B45309">待映射</span>';
+    var bondTag=c.bond==='已收'?'<span class="tag" style="background:#DCFCE7;color:#15803D">已收</span>':(c.bond==='已结清'?'<span class="tag" style="background:#F1F5F9;color:#64748B">已结清</span>':'<span class="tag" style="background:#FEF3C7;color:#B45309">待收</span>');
+    var ops='<span class="lk" onclick="openD(\''+c.no+'\')">详情</span>';
+    if(!c.gate&&c.status!=='已作废'&&c.status!=='已退租'){ops+=' · <span class="lk" onclick="openMap(\''+c.no+'\')">建立映射</span>';}
+    if(c.status==='待签署'){ops+=' · <span class="lk" onclick="openSign(\''+c.no+'\')">上传签署件</span>';}
+    ops+=' · <span class="lk-gray" onclick="toast(\'打开变更/续约办理（原型）：'+c.no+'\')">办理</span>';
+    h+='<tr class="hover:bg-gray-50 transition">'
+      +'<td class="px-4 py-3"><div class="font-medium text-[#1F2430]">'+esc(c.no)+'</div><div class="text-[11px] text-[#94A3B8]">卷号 '+esc(c.vol)+'</div></td>'
+      +'<td class="px-4 py-3 whitespace-nowrap"><span class="text-[#64748B]">'+esc(c.stall)+'</span> <i class="fas fa-arrow-right text-[9px] text-[#94A3B8] mx-1"></i>'+gate+'</td>'
+      +'<td class="px-4 py-3"><span class="font-medium text-[#1F2430]">'+esc(c.name)+'</span>'
+        +(c.idno?'<div class="text-[11px] text-[#94A3B8]">'+esc(maskId(c.idno))+'</div>':'<div><span class="tag" style="background:#FEF3C7;color:#B45309">身份待补全</span></div>')+'</td>'
+      +'<td class="px-4 py-3 text-[#64748B]">'+esc(c.area)+' ㎡</td>'
+      +'<td class="px-4 py-3 text-[12px]"><div class="text-[#64748B]">'+esc(c.start)+' ~ '+esc(c.end)+'</div>'
+        +(c.std?'':'<span class="tag" style="background:#F1F5F9;color:#64748B">非标准租期</span> ')+(c.status==='已作废'?'':expTag(c.days))+'</td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+money(c.rent)+' / '+money(c.rent*LV[c.lv].years)+'</td>'
+      +'<td class="px-4 py-3 text-[12px]"><span class="tag" style="background:'+(c.lv==='精品摊'?'#F3E8FF;color:#7C3AED':'#F1F5F9;color:#475569')+'">'+esc(c.lv)+'</span>'
+        +'<div class="mt-1 text-[#64748B]">保证金 '+money(bondOf(c))+' '+bondTag+'</div></td>'
+      +'<td class="px-4 py-3 text-[12px]"><span class="lk" onclick="openD(\''+c.no+'\')">'+periods(c)+' 期</span></td>'
+      +'<td class="px-4 py-3">'+st(c.status,STC[c.status])+'</td>'
+      +'<td class="px-4 py-3 text-center whitespace-nowrap">'+ops+'</td></tr>';
+  });
+  if(!curRows.length){h='<tr><td colspan="10" class="px-4 py-16 text-center text-gray-300"><i class="fas fa-inbox text-3xl block mb-2"></i><span class="text-[12px]">暂无匹配的合同</span></td></tr>';}
+  document.getElementById('tb').innerHTML=h;
+  document.getElementById('cnt').textContent='共 '+curRows.length+' 条（原型演示数据 10 条）';
+  document.getElementById('pageInfo').textContent='共 '+curRows.length+' 条记录，第 1-'+curRows.length+' 条';
+}
+function doSearch(){
+  var kw=document.getElementById('f-kw').value.trim(),s=document.getElementById('f-status').value,m=document.getElementById('f-map').value,
+      e=document.getElementById('f-exp').value,lv=document.getElementById('f-lv').value;
+  curRows=CS.filter(function(c){
+    var okKw=!kw||c.no.indexOf(kw)>-1||c.vol.indexOf(kw)>-1||c.stall.indexOf(kw)>-1||c.name.indexOf(kw)>-1||c.gate.indexOf(kw)>-1;
+    var okM=!m||(m==='yes'?!!c.gate:!c.gate);
+    var okE=!e||(e==='over'?c.days<0&&c.status!=='已退租'&&c.status!=='已作废':(c.days>0&&c.days<=parseInt(e,10)));
+    return okKw&&(!s||c.status===s)&&okM&&okE&&(!lv||c.lv===lv);
+  });
+  render();toast('已按条件查询，共 '+curRows.length+' 条');
+}
+function resetSearch(){
+  ['f-kw','f-status','f-map','f-exp','f-lv'].forEach(function(k){document.getElementById(k).value='';});
+  curRows=CS.slice();render();toast('已重置筛选条件');
+}
+function syncNow(){
+  var s=document.getElementById('syncState');
+  s.textContent='同步中…';s.style.background='#FEF3C7';s.style.color='#B45309';
+  toast('正在按「档口编号」推送合同变更至 02 市场资源管理…');
+  setTimeout(function(){
+    s.textContent='上次同步成功';s.style.background='#DCFCE7';s.style.color='#15803D';
+    toast('同步完成：推送 42 条，匹配成功 39 条，异常 3 条（缺少映射/档口不存在/租期重叠，见 02 异常清单）');
+  },900);
+}
+
+/* ================= 详情抽屉 ================= */
+function openD(no){
+  curNo=no;
+  var c=CS.filter(function(x){return x.no===no;})[0];
+  if(!c){return;}
+  var lv=LV[c.lv],bond=lv.bond;
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+esc(c.no)+'　<span class="text-[12px] font-normal text-[#94A3B8]">卷号 '+esc(c.vol)+'</span></h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+st(c.status,STC[c.status])+' '+st(c.lv,c.lv==='精品摊'?'background:#F3E8FF;color:#7C3AED':'background:#F1F5F9;color:#475569')+(c.std?'':' '+st('非标准租期','background:#F1F5F9;color:#64748B'))+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">';
+
+  /* ① 合同基本信息（对齐客户台账 21 字段） */
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-file-contract text-[#FF4D2D]"></i>① 合同基本信息（对齐线下《出租合同台账》字段）</div>'
+    +'<div class="grid grid-cols-2 gap-x-6">'
+    +'<div class="kv"><span class="k">合同号</span><span class="v font-semibold">'+esc(c.no)+'</span></div>'
+    +'<div class="kv"><span class="k">卷号</span><span class="v">'+esc(c.vol)+'</span></div>'
+    +'<div class="kv"><span class="k">资产类型</span><span class="v">商铺</span></div>'
+    +'<div class="kv"><span class="k">资产名称（摊位号）</span><span class="v">'+esc(c.stall)+'</span></div>'
+    +'<div class="kv"><span class="k">坐落地址</span><span class="v">'+esc(c.addr)+'</span></div>'
+    +'<div class="kv"><span class="k">不动产权证号</span><span class="v">'+(c.cert?'<span id="cert">'+esc(c.cert)+'</span> <span class="lk" onclick="toast(\'已记录查看留痕（审计）\')">查看留痕</span>':'—')+'</span></div>'
+    +'<div class="kv"><span class="k">承租方（乙方）</span><span class="v">'+esc(c.name)+(c.idno?'':' <span class="tag" style="background:#FEF3C7;color:#B45309">身份待补全</span>')+'</span></div>'
+    +'<div class="kv"><span class="k">身份证号</span><span class="v">'+(c.idno?esc(maskId(c.idno)):'<input class="fi" id="inIdno" placeholder="补录身份证号（补录后自动重匹配 02 并升级 04 档案）" style="width:200px"> <button class="btn btn-ghost" onclick="fillIdno()">保存</button>')+'</span></div>'
+    +'<div class="kv"><span class="k">出租面积</span><span class="v">'+esc(c.area)+' ㎡</span></div>'
+    +'<div class="kv"><span class="k">租赁期限</span><span class="v">'+esc(c.start)+' ~ '+esc(c.end)+'</span></div>'
+    +'<div class="kv"><span class="k">新签或续签</span><span class="v">'+(c.no.indexOf('HT2025-0070')>-1?'续签（续签自 HT2020-0031）':'新签')+'</span></div>'
+    +'<div class="kv"><span class="k">租金收取方式</span><span class="v">每年 8 月底前缴清下一租赁年度年租金</span></div>'
+    +'<div class="kv"><span class="k">年租金</span><span class="v">'+money(c.rent)+' 元</span></div>'
+    +'<div class="kv"><span class="k">总租金</span><span class="v">'+money(c.rent*LV[c.lv].years)+' 元（'+LV[c.lv].years+' 个租赁年度）</span></div>'
+    +'<div class="kv"><span class="k">履约保证金</span><span class="v">'+money(bond)+' 元（'+esc(c.lv)+'固定）</span></div>'
+    +'<div class="kv"><span class="k">出租依据</span><span class="v">政府招投标成交确认书（系统外）</span></div>'
+    +'</div></div>';
+
+  /* ② 租赁年度应收计划 */
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-calendar-check text-[#2563EB]"></i>② 租赁年度应收计划（→ 06 缴费管理生成年度账单）</div>'
+    +'<table class="w-full text-[12px]"><thead><tr class="text-gray-500 text-[11px]">'
+    +'<th class="text-left py-1.5 font-medium">期次</th><th class="text-left py-1.5 font-medium">所属租赁年度</th><th class="text-left py-1.5 font-medium">应收金额</th><th class="text-left py-1.5 font-medium">应收时点</th><th class="text-left py-1.5 font-medium">状态</th></tr></thead><tbody>';
+  for(var i=0;i<LV[c.lv].years;i++){
+    var y=parseInt(c.start.slice(0,4),10)+i;
+    var done=i===0&&c.bond!=='待收';
+    h+='<tr class="border-t border-gray-50"><td class="py-2">第 '+(i+1)+' 期</td>'
+      +'<td class="py-2 text-[#64748B]">'+y+'.09.01 ~ '+(y+1)+'.08.31</td>'
+      +'<td class="py-2">'+money(c.rent)+' 元</td>'
+      +'<td class="py-2 text-[#64748B]">'+(y-0===parseInt(c.start.slice(0,4),10)?'2026-08-15 起催收 · 8 月底前':'每年 8.15 起催收 · 8 月底前')+'</td>'
+      +'<td class="py-2">'+(done?st('已收','background:#DCFCE7;color:#15803D'):st('待收','background:#FEF3C7;color:#B45309'))+'</td></tr>';
+  }
+  h+='</tbody></table><p class="text-[11px] text-[#94A3B8] mt-2"><i class="fas fa-circle-info mr-1"></i>账单生成与核销归 <b>06 缴费管理</b>；本模块只维护应收计划与催收时点。</p></div>';
+
+  /* ③ 保证金 */
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-shield-halved text-[#7C3AED]"></i>③ 履约保证金（物业保证金，与商城资金保证金区分）</div>'
+    +'<div class="grid grid-cols-2 gap-x-6">'
+    +'<div class="kv"><span class="k">摊位等级</span><span class="v">'+esc(c.lv)+'</span></div>'
+    +'<div class="kv"><span class="k">应收保证金</span><span class="v"><b>'+money(bond)+' 元</b>（由摊位等级自动带出，不可手改）</span></div>'
+    +'<div class="kv"><span class="k">状态</span><span class="v">'+esc(c.bond)+'</span></div>'
+    +'</div>'
+    +(c.bond==='待收'?'<div class="mt-2"><button class="btn btn-ghost" onclick="markBond(\''+c.no+'\')">登记保证金到账</button></div>':'')
+    +'</div>';
+
+  /* ④ 附件与版本 */
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-paperclip text-[#64748B]"></i>④ 附件与留档（本阶段不做在线电子签）</div>'
+    +'<div class="text-[12px] text-[#64748B] leading-7">'
+    +'· 合同扫描件（签署版）：'+(c.signed?'<span class="lk" onclick="toast(\'预览合同扫描件 PDF\')">'+esc(c.no)+'_签署版.pdf</span>':'<span class="tag" style="background:#DBEAFE;color:#2563EB">待上传</span>')+'<br>'
+    +'· 承租方身份证复印件：'+(c.idno?'<span class="lk" onclick="toast(\'预览身份证复印件\')">已上传</span>':'<span class="tag" style="background:#FEF3C7;color:#B45309">待补</span>')+'<br>'
+    +'· 政府招投标成交确认书：<span class="lk" onclick="toast(\'预览成交确认书\')">已上传</span><br>'
+    +'· 历史版本：v1（初始录入）　v'+(c.status==='变更中'?'2（变更中）':'1')+'</div>'
+    +(c.status==='待签署'?'<div class="mt-2"><label class="btn btn-primary" style="display:inline-block">上传签署件并归档<input type="file" class="hidden" onchange="toast(\'已上传合同扫描件，合同可置「生效中」并推送 02\')"></label></div>':'')
+    +'</div>';
+
+  /* ⑤ 下游联动状态 */
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-diagram-project text-[#0EA5E9]"></i>⑤ 下游联动状态</div>'
+    +'<div class="grid grid-cols-2 gap-x-6">'
+    +'<div class="kv"><span class="k">02 档口匹配</span><span class="v">'+(c.gate?'<span style="color:#15803D">已匹配 '+esc(c.gate)+' → 档口「在租」</span>':'<span style="color:#B45309">待映射（未推送 02）</span>')+'</span></div>'
+    +'<div class="kv"><span class="k">04 商户建档</span><span class="v">'+(c.gate?'<span style="color:#15803D">已建档 / 已并入档案</span>':'—')+'　<span class="lk" onclick="location.href=\'merchant-profile.html\'">去档案</span></span></div>'
+    +'<div class="kv"><span class="k">06 缴费账单</span><span class="v">'+(c.gate?LV[c.lv].years+' 张年度账单（由 06 生成）':'—')+'</span></div>'
+    +'<div class="kv"><span class="k">商户端</span><span class="v">'+(c.gate?'<span style="color:#15803D">我的合同可见</span>':'—')+'</span></div>'
+    +'</div></div>';
+
+  /* ⑥ 留痕 */
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-clock-rotate-left text-[#64748B]"></i>⑥ 变更与操作留痕</div>'
+    +'<div class="text-[12px] text-[#64748B] leading-7">'
+    +'· 合同录入（合同管理专员 何静）　'+esc(c.start)+' 前<br>'
+    +(c.signed?'· 上传签署扫描件并归档（合同管理专员 何静）<br>':'· 待上传签署扫描件<br>')
+    +(c.gate?'· 推送 02 并匹配成功（系统）　档口 '+esc(c.gate)+' 置「在租」<br>':'· 未推送 02（待映射）<br>')
+    +(c.status==='已作废'?'· 合同作废：回滚 02 档口关联与当前租户（系统，幂等）<br>':'')
+    +'</div></div>';
+
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">关闭</button>'
+    +'<button class="btn btn-ghost" onclick="toast(\'发起合同变更（原型）：'+c.no+'\')">变更</button>'
+    +'<button class="btn btn-ghost" onclick="toast(\'发起续约办理（原型）：'+c.no+'\')">续约</button>'
+    +'<button class="btn btn-primary" onclick="toast(\'跳转 06 缴费管理 · 该合同应收计划（原型）\')">查看应收账单</button></div>';
+  show('drawer',h);
+}
+function fillIdno(){
+  var v=document.getElementById('inIdno').value.trim();
+  if(v.length<15){toast('请填写完整身份证号（18 位）');return;}
+  var c=CS.filter(function(x){return x.no===curNo;})[0];
+  c.idno=v;
+  openD(curNo);
+  toast('已补录身份证号：已触发 02 重匹配（升级为精确匹配）并回写 04 商户档案去重校验');
+}
+function markBond(no){
+  var c=CS.filter(function(x){return x.no===no;})[0];
+  c.bond='已收';
+  openD(no);renderStats();render();
+  toast('已登记保证金 '+money(LV[c.lv].bond)+' 元到账（'+c.lv+'固定金额）');
+}
+
+/* ================= 建立映射 ================= */
+function openMap(no){
+  curNo=no;
+  var c=CS.filter(function(x){return x.no===no;})[0];
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">建立摊位号 ↔ 档口编号 映射</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">合同「资产名称（摊位号）」'+esc(c.stall)+' → 选择 02 市场资源管理中的档口编号</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>'
+    +'<div class="px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div><label class="fl">档口编号（来自 02，编号权威）</label><select class="sel" id="mapGate">'
+    +GATES.map(function(g){return '<option>'+g+'</option>';}).join('')+'</select>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">档口编号唯一且以 02「摊位商铺管理」为准；若列表里没有，请先让物业在 02 补录档口。</p></div>'
+    +'<div class="rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B]">建立映射后，合同才能推送 02 并触发档口「在租」、04 商户自动建档、06 年度账单。</p></div>'
+    +'</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-ghost" onclick="toast(\'跳转 02 摊位商铺管理（补录档口）\')">去 02 补录档口</button>'
+    +'<button class="btn btn-primary" onclick="saveMap()">确认映射</button></div>';
+  show('modal',h);
+}
+function saveMap(){
+  var g=document.getElementById('mapGate').value,c=CS.filter(function(x){return x.no===curNo;})[0];
+  c.gate=g;c.status='生效中';
+  closeAll();renderStats();render();
+  toast('映射成功：'+c.stall+' ↔ '+g+'；合同已置「生效中」并推送 02（档口在租、04 建档、06 出年度账单）');
+}
+
+/* ================= 上传签署件 ================= */
+function openSign(no){openD(no);toast('请在详情「④ 附件与留档」中上传签署件并归档');}
+
+/* ================= 批量导入 ================= */
+function openImport(){
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">批量导入合同（Excel）</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">模板字段对齐线下《出租合同台账》；<b>整批校验通过才入库</b>，失败给错误报告</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>'
+    +'<div class="px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<label class="up"><i class="fas fa-file-excel text-2xl block mb-2"></i>点击选择台账 Excel（.xlsx）<input type="file" class="hidden" onchange="toast(\'已选择台账文件，开始预校验…\')"></label>'
+    +'<div class="flex items-center gap-2"><button class="btn btn-ghost" onclick="toast(\'已下载导入模板（含 21 字段 + 必填标记）\')">下载导入模板</button>'
+    +'<span class="text-[11px] text-[#94A3B8]">必填：摊位号 / 承租方姓名 / 租期起止 / 年租金 / 应收期次</span></div>'
+    +'<div class="blk" style="border-color:#FDE68A;background:#FFFBEB"><div class="blk-t" style="color:#B45309"><i class="fas fa-list-check"></i>预校验结果（示例）</div>'
+    +'<p class="text-[12px] text-[#64748B] mb-2">共 12 行：<b style="color:#15803D">通过 9 行</b>，<b style="color:#B91C1C">错误 3 行</b>（整批不入库，修正后重导）</p>'
+    +'<table class="w-full text-[12px]"><thead><tr class="text-gray-500 text-[11px]"><th class="text-left py-1.5 font-medium w-16">行号</th><th class="text-left py-1.5 font-medium">错误原因</th></tr></thead><tbody>'
+    +'<tr class="border-t border-gray-50"><td class="py-2">第 5 行</td><td class="py-2" style="color:#B91C1C">「资产名称（摊位号）」为空 —— 无法建立档口映射</td></tr>'
+    +'<tr class="border-t border-gray-50"><td class="py-2">第 8 行</td><td class="py-2" style="color:#B91C1C">「承租方（乙方）」为空 —— 04 无法建档</td></tr>'
+    +'<tr class="border-t border-gray-50"><td class="py-2">第 11 行</td><td class="py-2" style="color:#B91C1C">「租赁期限」格式错误（应为 2026.09.01-2029.08.31）</td></tr>'
+    +'</tbody></table>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-2">提示：导入成功后合同状态为「待映射」（若摊位号未映射）或「生效中」，并自动生成<b>租赁年度应收计划</b>。</p></div>'
+    +'</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="toast(\'已按校验通过的行导入 9 份合同（示例）\')">确认导入通过行</button></div>';
+  show('modal',h);
+}
+
+/* ================= 录入合同 ================= */
+function openNew(){
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">录入合同</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">选择摊位号后，<b>摊位等级自动带出签约年限与保证金</b></p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>'
+    +'<div class="px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl">合同号</label><input class="fi" id="n-no" value="HT2026-0076"></div>'
+    +'<div><label class="fl">卷号（线下卷宗）</label><input class="fi" id="n-vol" value="76-10"></div>'
+    +'</div>'
+    +'<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl">资产名称（摊位号）</label><input class="fi" id="n-stall" value="A9-18"></div>'
+    +'<div><label class="fl">摊位等级（来自 02）</label><select class="sel" id="n-lv" onchange="lvHint()"><option>普通摊</option><option>精品摊</option></select></div>'
+    +'</div>'
+    +'<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl">承租方（乙方）</label><input class="fi" id="n-name" placeholder="姓名"></div>'
+    +'<div><label class="fl">身份证号（可后补）</label><input class="fi" id="n-idno" placeholder="选填；缺失将标记「身份待补全」"></div>'
+    +'</div>'
+    +'<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl">出租面积（㎡）</label><input class="fi" id="n-area" value="147.2"></div>'
+    +'<div><label class="fl">年租金（元）</label><input class="fi" id="n-rent" value="45600"></div>'
+    +'</div>'
+    +'<div class="rounded-xl border p-3" style="border-color:#FDB4A3;background:#FFF6F3" id="lvBox"></div>'
+    +'<div><label class="fl">租赁期限（按租赁年度 9.1–次年 8.31 自动生成，可调整）</label><input class="fi" id="n-term" value="2026.09.01 - 2029.08.31"></div>'
+    +'<div class="rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B]">保存后：状态「待映射」→ 建立映射后推送 02；同步生成 <b>3 个租赁年度应收计划</b>（每年 8 月底前缴纳、8.15 起催收）。</p></div>'
+    +'</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveNew()">保存合同</button></div>';
+  show('modal',h);
+  lvHint();
+}
+function lvHint(){
+  var lv=document.getElementById('n-lv').value,years=LV[lv].years,bond=LV[lv].bond;
+  document.getElementById('lvBox').innerHTML='<p class="text-[12px]" style="color:#E63E20"><b>'+lv+'</b> → 签约年限 <b>'+years+' 年一签</b>，履约保证金 <b>'+money(bond)+' 元</b>（自动带出，不可手改）</p>';
+  document.getElementById('n-term').value='2026.09.01 - '+(2026+years)+'.08.31';
+}
+function saveNew(){
+  var no=document.getElementById('n-no').value.trim(),vol=document.getElementById('n-vol').value.trim(),
+      stall=document.getElementById('n-stall').value.trim(),lv=document.getElementById('n-lv').value,
+      name=document.getElementById('n-name').value.trim(),idno=document.getElementById('n-idno').value.trim(),
+      area=document.getElementById('n-area').value.trim(),rent=parseInt(document.getElementById('n-rent').value,10);
+  if(!no||!stall||!name){toast('合同号 / 摊位号 / 承租方姓名 为必填');return;}
+  if(!idno||idno.length<15){/* 允许后补 */}
+  var t=document.getElementById('n-term').value;
+  CS.unshift({no:no,vol:vol,stall:stall,gate:'',lv:lv,name:name,idno:idno,area:area,
+    start:t.split(' - ')[0],end:t.split(' - ')[1],rent:rent,status:'待映射',bond:'待收',signed:0,days:LV[lv].years*365,
+    addr:'诸暨市大唐轻纺原料市场 A 区',cert:'',std:1});
+  curRows=CS.slice();closeAll();renderStats();render();
+  toast('已保存合同 '+no+'：状态「待映射」；请建立摊位号 ↔ 档口编号映射后推送 02；已生成 '+LV[lv].years+' 期租赁年度应收计划');
+}
+
+/* ================= 基础 ================= */
+function show(which,h){
+  document.getElementById(which).innerHTML=h;
+  document.getElementById('mask').classList.add('on');
+  document.getElementById(which).classList.add('on');
+}
+function closeAll(){
+  document.getElementById('mask').classList.remove('on');
+  document.getElementById('drawer').classList.remove('on');
+  document.getElementById('modal').classList.remove('on');
+}
+renderStats();render();
+</script>
+</body>
+</html>

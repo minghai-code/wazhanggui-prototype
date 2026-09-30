@@ -4,281 +4,305 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>商户管理 - 信用评级</title>
-<script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<script>
-tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D','primary-d':'#E63E20','primary-l':'#FF7849'}}}}
-</script>
 <style>
 *{box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#f1f5f9}
-::-webkit-scrollbar{width:6px;height:6px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
-.tab-active{color:#FF4D2D;border-bottom:2px solid #FF4D2D;font-weight:600}
-.status-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500}
-.level-badge{display:inline-flex;align-items:center;justify-content:center;font-size:11px;padding:2px 7px;border-radius:4px;font-weight:600;min-width:32px}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}.lk:hover{text-decoration:underline}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}.lk-gray:hover{color:#1F2430;text-decoration:underline}
+.st{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500;white-space:nowrap}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:60}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:640px;max-width:96vw;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:70;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.blk{border:1px solid #E2E8F0;border-radius:12px;padding:14px 16px}
+.blk-t{font-size:12.5px;font-weight:700;color:#1F2430;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.kv{display:flex;gap:8px;font-size:12px;line-height:1.9}
+.kv .k{color:#94A3B8;width:92px;flex-shrink:0}
+.kv .v{color:#1F2430;flex:1}
+.fi{width:100%;padding:6px 10px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none;background:#fff}
+.fl{display:block;font-size:11px;color:#94A3B8;margin-bottom:4px}
+.sel{width:100%;padding:6px 8px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none}
+button{cursor:pointer}
 </style>
+<!-- Tailwind 静态样式：本地引用（不再依赖 cdn.tailwindcss.com）；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
+<link rel="stylesheet" href="tailwind.css">
 </head>
 <body>
 
 <div class="p-6">
 
-  <!-- 页面标题 -->
-  <div class="flex items-center justify-between mb-5">
+  <div class="flex items-start justify-between mb-5">
     <div>
-      <h1 class="text-[18px] font-bold text-gray-800">商户管理</h1>
-      <p class="text-[12px] text-gray-400 mt-0.5">商户全生命周期管理 · 入驻审核 · 档案 · 信用 · 退租</p>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">信用评级</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">04 商户管理</span>
+        <span class="tag" style="background:#F3E8FF;color:#7C3AED">规则 v2.3 生效中</span>
+      </div>
+      <p class="text-[12px] text-gray-400 mt-1">按信用指标体系自动定级：数据来自 <b>交易（商城）· 评价（买家端）· 缴费（06 缴费管理）</b>；<b>缴费无数据源时标「数据缺失」，不计 0 分</b>；人工调整需填原因并留痕</p>
     </div>
-
-  </div>
-
-  <!-- Tab 导航 -->
-  <div class="flex items-center gap-6 mb-4 border-b border-gray-200">
-    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">入驻申请审核</span>
-    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">资质审核</span>
-    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">资料变更审核</span>
-    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">商户档案</span>
-    <span class="tab-active py-2.5 text-[13px] cursor-pointer">信用评级</span>
-    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">退租/清退</span>
-  </div>
-
-  <!-- 统计卡片 -->
-  <div class="grid grid-cols-4 gap-3 mb-5">
-    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
-      <p class="text-[11px] text-gray-400">AAA商户</p>
-      <p class="text-xl font-bold text-green-500 mt-1">8</p>
-    </div>
-    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
-      <p class="text-[11px] text-gray-400">AA商户</p>
-      <p class="text-xl font-bold text-blue-500 mt-1">24</p>
-    </div>
-    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
-      <p class="text-[11px] text-gray-400">A商户</p>
-      <p class="text-xl font-bold text-cyan-500 mt-1">67</p>
-    </div>
-    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
-      <p class="text-[11px] text-gray-400">待评级</p>
-      <p class="text-xl font-bold text-primary mt-1">12</p>
+    <div class="flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="openRule()"><i class="fas fa-sliders text-[10px] mr-1"></i>信用指标规则配置</button>
+      <button class="btn btn-primary" onclick="rescore()"><i class="fas fa-rotate text-[10px] mr-1"></i>重新评分</button>
     </div>
   </div>
 
-  <!-- 筛选栏 -->
+  <div class="grid grid-cols-8 gap-3 mb-4" id="stats"></div>
+
   <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
     <div class="flex items-center gap-3 flex-wrap">
-      <div class="relative">
-        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
-        <input type="text" placeholder="商户名称" class="w-56 pl-8 pr-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary focus:bg-white transition">
-      </div>
-      <select class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
-        <option value="">全部信用等级</option>
-        <option>AAA</option>
-        <option>AA</option>
-        <option>A</option>
-        <option>B</option>
-        <option>C</option>
-        <option>D</option>
+      <input id="f-kw" type="text" placeholder="商户名称 / 商户编号" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary w-64">
+      <select id="f-grade" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部信用等级</option><option>AAA</option><option>AA</option><option>A</option><option>B</option><option>C</option><option>D</option>
       </select>
-      <select class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
-        <option value="">全部评估周期</option>
-        <option>2026-07</option>
-        <option>2026-06</option>
-        <option>2026-05</option>
+      <select id="f-mtype" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部商户类型</option><option>仅线上</option><option>线上兼档口</option><option>仅线下档口（未上线）</option>
       </select>
-      <button class="px-4 py-1.5 text-[13px] text-white rounded-lg" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)">查询</button>
-      <button class="px-4 py-1.5 text-[13px] text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition">重置</button>
+      <select id="f-state" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部评估状态</option><option>已评级</option><option>待评级</option><option>数据缺失</option>
+      </select>
+      <select id="f-period" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部评估周期</option><option>2026-09</option><option>2026-08</option><option>2026-07</option>
+      </select>
+      <button class="btn btn-primary" onclick="doSearch()">查询</button>
+      <button class="btn btn-ghost" onclick="resetSearch()">重置</button>
     </div>
   </div>
 
-  <!-- 表格 -->
   <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
-    <div class="px-5 py-3 border-b border-gray-100 flex items-center gap-2 flex-wrap">
-      <button class="px-3 py-1.5 text-[12px] text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition"><i class="fas fa-cog text-[10px] mr-1"></i>评分模型配置</button>
-      <button class="px-3 py-1.5 text-[12px] text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+      <span class="text-[12px] text-[#94A3B8]" id="cnt">共 0 条</span>
+      <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>自动评分来自多源数据；「数据缺失」表示该分项暂无数据源（如 06 缴费管理未落地）</span>
     </div>
-    <table class="w-full text-[13px]">
-      <thead>
-        <tr class="bg-gray-50 text-gray-500 text-[12px]">
-          <th class="px-4 py-3 text-left font-medium">商户名称</th>
-          <th class="px-4 py-3 text-left font-medium">信用总分</th>
-          <th class="px-4 py-3 text-left font-medium">交易评分</th>
-          <th class="px-4 py-3 text-left font-medium">缴费评分</th>
-          <th class="px-4 py-3 text-left font-medium">违规评分</th>
-          <th class="px-4 py-3 text-left font-medium">评价评分</th>
-          <th class="px-4 py-3 text-left font-medium">信用等级</th>
-          <th class="px-4 py-3 text-left font-medium">评估周期</th>
-          <th class="px-4 py-3 text-center font-medium">操作</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-gray-50">
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#FF8A4C,#FF4D2D)"><i class="fas fa-crown"></i></div>
-              <span class="font-medium text-gray-800">大唐袜业旗舰</span>
-            </div>
-          </td>
-          <td class="px-4 py-3"><span class="font-bold text-green-500">96.50</span></td>
-          <td class="px-4 py-3 text-gray-600">98.00</td>
-          <td class="px-4 py-3 text-gray-600">100.00</td>
-          <td class="px-4 py-3 text-gray-600">95.00</td>
-          <td class="px-4 py-3 text-gray-600">93.00</td>
-          <td class="px-4 py-3"><span class="level-badge bg-green-50 text-green-600">AAA</span></td>
-          <td class="px-4 py-3 text-gray-600">2026-07</td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-primary text-[12px] hover:underline mr-2">详情</button>
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">调整</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)"><i class="fas fa-snowflake"></i></div>
-              <span class="font-medium text-gray-800">暖足坊袜业有限公司</span>
-            </div>
-          </td>
-          <td class="px-4 py-3"><span class="font-bold text-green-500">91.20</span></td>
-          <td class="px-4 py-3 text-gray-600">92.00</td>
-          <td class="px-4 py-3 text-gray-600">95.00</td>
-          <td class="px-4 py-3 text-gray-600">90.00</td>
-          <td class="px-4 py-3 text-gray-600">88.00</td>
-          <td class="px-4 py-3"><span class="level-badge bg-blue-50 text-blue-600">AA</span></td>
-          <td class="px-4 py-3 text-gray-600">2026-07</td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-primary text-[12px] hover:underline mr-2">详情</button>
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">调整</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#34D399,#10B981)"><i class="fas fa-seedling"></i></div>
-              <span class="font-medium text-gray-800">棉田纱线厂</span>
-            </div>
-          </td>
-          <td class="px-4 py-3"><span class="font-bold text-green-500">89.80</span></td>
-          <td class="px-4 py-3 text-gray-600">90.00</td>
-          <td class="px-4 py-3 text-gray-600">92.00</td>
-          <td class="px-4 py-3 text-gray-600">88.00</td>
-          <td class="px-4 py-3 text-gray-600">89.00</td>
-          <td class="px-4 py-3"><span class="level-badge bg-blue-50 text-blue-600">AA</span></td>
-          <td class="px-4 py-3 text-gray-600">2026-07</td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-primary text-[12px] hover:underline mr-2">详情</button>
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">调整</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#FB7185,#EC4899)"><i class="fas fa-socks"></i></div>
-              <span class="font-medium text-gray-800">花间舞袜业</span>
-            </div>
-          </td>
-          <td class="px-4 py-3"><span class="font-bold text-cyan-500">85.50</span></td>
-          <td class="px-4 py-3 text-gray-600">86.00</td>
-          <td class="px-4 py-3 text-gray-600">88.00</td>
-          <td class="px-4 py-3 text-gray-600">82.00</td>
-          <td class="px-4 py-3 text-gray-600">86.00</td>
-          <td class="px-4 py-3"><span class="level-badge bg-cyan-50 text-cyan-600">A</span></td>
-          <td class="px-4 py-3 text-gray-600">2026-07</td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-primary text-[12px] hover:underline mr-2">详情</button>
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">调整</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#2DD4BF,#14B8A6)"><i class="fas fa-leaf"></i></div>
-              <span class="font-medium text-gray-800">绿源纤维科技有限公司</span>
-            </div>
-          </td>
-          <td class="px-4 py-3"><span class="font-bold text-cyan-500">82.30</span></td>
-          <td class="px-4 py-3 text-gray-600">80.00</td>
-          <td class="px-4 py-3 text-gray-600">85.00</td>
-          <td class="px-4 py-3 text-gray-600">84.00</td>
-          <td class="px-4 py-3 text-gray-600">80.00</td>
-          <td class="px-4 py-3"><span class="level-badge bg-cyan-50 text-cyan-600">A</span></td>
-          <td class="px-4 py-3 text-gray-600">2026-07</td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-primary text-[12px] hover:underline mr-2">详情</button>
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">调整</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#38BDF8,#3B82F6)"><i class="fas fa-bolt"></i></div>
-              <span class="font-medium text-gray-800">极速运动袜业</span>
-            </div>
-          </td>
-          <td class="px-4 py-3"><span class="font-bold text-amber-500">75.60</span></td>
-          <td class="px-4 py-3 text-gray-600">76.00</td>
-          <td class="px-4 py-3 text-gray-600">78.00</td>
-          <td class="px-4 py-3 text-gray-600">70.00</td>
-          <td class="px-4 py-3 text-gray-600">78.00</td>
-          <td class="px-4 py-3"><span class="level-badge bg-amber-50 text-amber-600">B</span></td>
-          <td class="px-4 py-3 text-gray-600">2026-07</td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-primary text-[12px] hover:underline mr-2">详情</button>
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">调整</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#A78BFA,#7C3AED)"><i class="fas fa-gears"></i></div>
-              <span class="font-medium text-gray-800">智造袜机设备有限公司</span>
-            </div>
-          </td>
-          <td class="px-4 py-3"><span class="font-bold text-red-500">62.40</span></td>
-          <td class="px-4 py-3 text-gray-600">60.00</td>
-          <td class="px-4 py-3 text-gray-600">65.00</td>
-          <td class="px-4 py-3 text-gray-600">55.00</td>
-          <td class="px-4 py-3 text-gray-600">70.00</td>
-          <td class="px-4 py-3"><span class="level-badge bg-red-50 text-red-500">C</span></td>
-          <td class="px-4 py-3 text-gray-600">2026-07</td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-primary text-[12px] hover:underline mr-2">详情</button>
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">调整</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#9CA3AF,#6B7280)"><i class="fas fa-store"></i></div>
-              <span class="font-medium text-gray-800">某商贸有限公司</span>
-            </div>
-          </td>
-          <td class="px-4 py-3"><span class="font-bold text-gray-500">48.20</span></td>
-          <td class="px-4 py-3 text-gray-600">45.00</td>
-          <td class="px-4 py-3 text-gray-600">50.00</td>
-          <td class="px-4 py-3 text-gray-600">40.00</td>
-          <td class="px-4 py-3 text-gray-600">58.00</td>
-          <td class="px-4 py-3"><span class="level-badge bg-gray-100 text-gray-500">D</span></td>
-          <td class="px-4 py-3 text-gray-600">2026-07</td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-primary text-[12px] hover:underline mr-2">详情</button>
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">调整</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <!-- 分页 -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-[13px]" style="min-width:1180px">
+        <thead>
+          <tr class="bg-gray-50 text-gray-500 text-[12px]">
+            <th class="px-4 py-3 text-left font-medium">商户名称</th>
+            <th class="px-4 py-3 text-left font-medium">商户类型</th>
+            <th class="px-4 py-3 text-left font-medium">信用总分</th>
+            <th class="px-4 py-3 text-left font-medium">交易 45%</th>
+            <th class="px-4 py-3 text-left font-medium">评价 25%</th>
+            <th class="px-4 py-3 text-left font-medium">缴费 20%</th>
+            <th class="px-4 py-3 text-left font-medium">违规扣分</th>
+            <th class="px-4 py-3 text-left font-medium">等级</th>
+            <th class="px-4 py-3 text-left font-medium">评估周期</th>
+            <th class="px-4 py-3 text-center font-medium">操作</th>
+          </tr>
+        </thead>
+        <tbody id="tb" class="divide-y divide-gray-50"></tbody>
+      </table>
+    </div>
     <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
-      <span class="text-[12px] text-gray-400">共 174 条记录，第 1-8 条</span>
+      <span class="text-[12px] text-gray-400" id="pageInfo">共 0 条记录</span>
       <div class="flex items-center gap-1">
-        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100"><i class="fas fa-chevron-left text-[10px]"></i></button>
-        <button class="w-7 h-7 flex items-center justify-center text-white text-[12px] rounded" style="background:#FF4D2D">1</button>
-        <button class="w-7 h-7 flex items-center justify-center text-gray-600 text-[12px] rounded hover:bg-gray-100">2</button>
-        <button class="w-7 h-7 flex items-center justify-center text-gray-600 text-[12px] rounded hover:bg-gray-100">3</button>
-        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100"><i class="fas fa-chevron-right text-[10px]"></i></button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100" onclick="toast('已是第一页（原型）')"><i class="fas fa-chevron-left text-[10px]"></i></button>
+        <button class="w-7 h-7 flex items-center justify-center text-white text-[12px] rounded" style="background:#FF4D2D" onclick="toast('当前第 1 页（原型）')">1</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100" onclick="toast('已切换到第 2 页（原型）')"><i class="fas fa-chevron-right text-[10px]"></i></button>
       </div>
     </div>
   </div>
 
 </div>
 
+<div id="mask" class="mask" onclick="closeD()"></div>
+<div id="drawer" class="drawer"></div>
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
+
+<script>
+/* ================= 模拟数据（原型态） ================= */
+var RS=[
+  {name:'大唐旗舰精梳棉',mtype:'线上兼档口',trade:43.5,review:24.0,pay:null,penal:-2.0,grade:'AAA',period:'2026-09',state:'已评级'},
+  {name:'棉田纱线直营店',mtype:'线上兼档口',trade:41.0,review:23.5,pay:null,penal:0,grade:'AA',period:'2026-09',state:'已评级'},
+  {name:'晓琳袜业经营部',mtype:'线上兼档口',trade:39.0,review:22.5,pay:null,penal:0,grade:'A',period:'2026-09',state:'已评级'},
+  {name:'花间舞时尚女袜馆',mtype:'仅线上',trade:38.5,review:23.0,pay:null,penal:-1.0,grade:'A',period:'2026-09',state:'已评级'},
+  {name:'王建国（档口租户）',mtype:'仅线下档口（未上线）',trade:null,review:null,pay:null,penal:0,grade:'—',period:'2026-09',state:'数据缺失'},
+  {name:'周雅琴（档口租户）',mtype:'仅线下档口（未上线）',trade:null,review:null,pay:null,penal:0,grade:'—',period:'2026-09',state:'数据缺失'},
+  {name:'李海涛（档口租户）',mtype:'仅线下档口（未上线）',trade:null,review:null,pay:null,penal:0,grade:'—',period:'2026-09',state:'待评级'},
+  {name:'极速运动袜业',mtype:'仅线上',trade:34.0,review:20.0,pay:null,penal:-4.0,grade:'B',period:'2026-09',state:'已评级'},
+  {name:'智造袜机设备有限公司',mtype:'仅线上',trade:30.0,review:17.5,pay:null,penal:-8.0,grade:'C',period:'2026-09',state:'已评级'},
+  {name:'某贸易商行',mtype:'仅线上',trade:24.5,review:12.0,pay:null,penal:-12.0,grade:'D',period:'2026-09',state:'已评级'}
+];
+var curRows=RS.slice(),curId=null,ruleEdit=false;
+var WEIGHT={trade:45,review:25,pay:20};
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},2800);}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function total(r){if(r.state==='数据缺失'){return null;}return (r.trade||0)+(r.review||0)+(r.pay||0)+r.penal;}
+function gradeColor(g){return g==='AAA'||g==='AA'?'#15803D':(g==='A'?'#334155':(g==='B'?'#B45309':(g==='C'||g==='D'?'#B91C1C':'#94A3B8')));}
+function st(s,c){return '<span class="st" style="'+(c||'background:#F1F5F9;color:#64748B')+'">'+esc(s)+'</span>';}
+function num(v){return v==null?'<span class="tag" style="background:#FEF3C7;color:#B45309">数据缺失</span>':v.toFixed(1);}
+
+function renderStats(){
+  var c={AAA:0,AA:0,A:0,B:0,C:0,D:0},miss=0,pend=0;
+  RS.forEach(function(r){
+    if(r.state==='已评级'&&c[r.grade]!=null){c[r.grade]++;}
+    if(r.state==='数据缺失'){miss++;}
+    if(r.state==='待评级'){pend++;}
+  });
+  var cards=[['AAA',c.AAA,'#15803D'],['AA',c.AA,'#15803D'],['A',c.A,'#334155'],['B',c.B,'#B45309'],['C',c.C,'#B91C1C'],['D',c.D,'#B91C1C'],['待评级',pend,'#2563EB'],['数据缺失',miss,'#B45309']];
+  document.getElementById('stats').innerHTML=cards.map(function(x){
+    return '<div class="bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">'+x[0]+'</p><p class="text-xl font-bold mt-1" style="color:'+x[2]+'">'+x[1]+'</p></div>';
+  }).join('');
+}
+function render(){
+  var h='';
+  curRows.forEach(function(r,i){
+    var t=total(r);
+    var stateTag=r.state==='已评级'?st('已评级','background:#DCFCE7;color:#15803D'):(r.state==='数据缺失'?st('数据缺失','background:#FEF3C7;color:#B45309'):st('待评级','background:#DBEAFE;color:#2563EB'));
+    h+='<tr class="hover:bg-gray-50 transition">'
+      +'<td class="px-4 py-3 font-medium text-[#1F2430]">'+esc(r.name)+'</td>'
+      +'<td class="px-4 py-3">'+st(r.mtype,r.mtype==='线上兼档口'?'background:#DCFCE7;color:#15803D':(r.mtype==='仅线上'?'background:#F1F5F9;color:#475569':'background:#FEF3C7;color:#B45309'))+'</td>'
+      +'<td class="px-4 py-3"><span class="font-bold" style="color:'+gradeColor(r.grade)+'">'+(t==null?'—':t.toFixed(1))+'</span> '+stateTag+'</td>'
+      +'<td class="px-4 py-3 text-[#64748B]">'+num(r.trade)+'</td>'
+      +'<td class="px-4 py-3 text-[#64748B]">'+num(r.review)+'</td>'
+      +'<td class="px-4 py-3 text-[#64748B]">'+num(r.pay)+'</td>'
+      +'<td class="px-4 py-3 text-[#64748B]">'+r.penal.toFixed(1)+'</td>'
+      +'<td class="px-4 py-3"><span class="font-bold" style="color:'+gradeColor(r.grade)+'">'+esc(r.grade)+'</span></td>'
+      +'<td class="px-4 py-3 text-[#94A3B8] text-[12px]">'+esc(r.period)+'</td>'
+      +'<td class="px-4 py-3 text-center whitespace-nowrap"><span class="lk" onclick="openD(\''+esc(r.name)+'\')">详情</span> · <span class="lk-gray" onclick="openAdjust(\''+esc(r.name)+'\')">调整</span></td>'
+      +'</tr>';
+  });
+  if(!curRows.length){h='<tr><td colspan="10" class="px-4 py-16 text-center text-gray-300"><i class="fas fa-inbox text-3xl block mb-2"></i><span class="text-[12px]">暂无匹配的商户</span></td></tr>';}
+  document.getElementById('tb').innerHTML=h;
+  document.getElementById('cnt').textContent='共 '+curRows.length+' 条（原型演示数据 10 条）';
+  document.getElementById('pageInfo').textContent='共 '+curRows.length+' 条记录，第 1-'+curRows.length+' 条';
+}
+function doSearch(){
+  var kw=document.getElementById('f-kw').value.trim(),g=document.getElementById('f-grade').value,mt=document.getElementById('f-mtype').value,
+      s=document.getElementById('f-state').value,p=document.getElementById('f-period').value;
+  curRows=RS.filter(function(r){
+    return (!kw||r.name.indexOf(kw)>-1)&&(!g||r.grade===g)&&(!mt||r.mtype===mt)&&(!s||r.state===s)&&(!p||r.period===p);
+  });
+  render();toast('已按条件查询，共 '+curRows.length+' 条');
+}
+function resetSearch(){
+  ['f-kw','f-grade','f-mtype','f-state','f-period'].forEach(function(k){document.getElementById(k).value='';});
+  curRows=RS.slice();render();toast('已重置筛选条件');
+}
+function rescore(){
+  toast('已按规则 v2.3 重新计算 174 家商户（原型演示）：其中 2 家"数据缺失"（无缴费数据源）不参与等级判定');
+}
+/* ================= 评级详情 / 人工调整 ================= */
+function openD(name){
+  var r=RS.filter(function(x){return x.name===name;})[0];
+  if(!r){return;}
+  var t=total(r);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">信用评级详情　'+esc(r.name)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+st(r.mtype,r.mtype==='线上兼档口'?'background:#DCFCE7;color:#15803D':'background:#F1F5F9;color:#475569')+'　评估周期 '+esc(r.period)+'　规则版本 v2.3</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeD()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">';
+  h+='<div class="blk" style="border-color:#BBF7D0;background:#F6FEF9"><div class="blk-t" style="color:#15803D"><i class="fas fa-star"></i>综合得分</div>'
+    +'<p class="text-[26px] font-bold" style="color:'+gradeColor(r.grade)+'">'+(t==null?'—':t.toFixed(1))+'<span class="text-[13px] font-normal text-[#94A3B8] ml-2">分　等级 '+esc(r.grade)+'</span></p>'
+    +(r.state==='数据缺失'?'<p class="text-[11px] text-[#B45309] mt-1"><i class="fas fa-triangle-exclamation mr-1"></i>该商户为线下档口租户，暂无线上交易与评价数据，缴费数据源亦缺失 → 不计分（不用 0 分参与定级）</p>':'')+'</div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-list-check text-[#2563EB]"></i>分项明细（含数据来源与取数区间）</div>'
+    +'<table class="w-full text-[12px]"><thead><tr class="text-gray-500 text-[11px]">'
+    +'<th class="text-left py-1.5 font-medium">指标</th><th class="text-left py-1.5 font-medium">权重</th><th class="text-left py-1.5 font-medium">得分</th><th class="text-left py-1.5 font-medium">数据来源</th><th class="text-left py-1.5 font-medium">取数区间</th></tr></thead><tbody>'
+    +'<tr class="border-t border-gray-50"><td class="py-2">交易</td><td class="py-2 text-[#64748B]">'+WEIGHT.trade+'%</td><td class="py-2">'+num(r.trade)+'</td><td class="py-2 text-[#64748B]">10 商城运营（GMV / 履约 / 退款率）</td><td class="py-2 text-[#64748B]">2026-08-01 ~ 2026-08-31</td></tr>'
+    +'<tr class="border-t border-gray-50"><td class="py-2">评价</td><td class="py-2 text-[#64748B]">'+WEIGHT.review+'%</td><td class="py-2">'+num(r.review)+'</td><td class="py-2 text-[#64748B]">买家端评价（星级 / 投诉率）</td><td class="py-2 text-[#64748B]">2026-08-01 ~ 2026-08-31</td></tr>'
+    +'<tr class="border-t border-gray-50"><td class="py-2">缴费</td><td class="py-2 text-[#64748B]">'+WEIGHT.pay+'%</td><td class="py-2">'+num(r.pay)+'</td><td class="py-2 text-[#64748B]">06 缴费管理（按时缴费率 / 欠费）</td><td class="py-2 text-[#B45309]">数据源未落地</td></tr>'
+    +'<tr class="border-t border-gray-50"><td class="py-2">违规</td><td class="py-2 text-[#64748B]">扣分制</td><td class="py-2">'+r.penal.toFixed(1)+'</td><td class="py-2 text-[#64748B]">运营端违规 / 下架 / 处罚记录</td><td class="py-2 text-[#64748B]">近 12 个月</td></tr>'
+    +'</tbody></table>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-2">规则：AAA ≥ 90 ｜ AA 85–89 ｜ A 75–84 ｜ B 65–74 ｜ C 55–64 ｜ D &lt; 55（可在「信用指标规则配置」中调整，调整<b>不回溯</b>历史周期）</p></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-clock-rotate-left text-[#64748B]"></i>人工校准记录</div>'
+    +'<div class="text-[12px] text-[#64748B] leading-7">'
+    +(r.manual?('· '+esc(r.manual)+'<br>'):'· 暂无人工调整记录（本次为自动评分结果）<br>')
+    +'</div></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeD()">关闭</button>'
+    +'<button class="btn btn-primary" onclick="openAdjust(\''+esc(r.name)+'\')">人工调整</button></div>';
+  document.getElementById('drawer').innerHTML=h;
+  document.getElementById('mask').classList.add('on');
+  document.getElementById('drawer').classList.add('on');
+}
+function openAdjust(name){
+  curId=name;
+  var r=RS.filter(function(x){return x.name===name;})[0];
+  if(!r){return;}
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">人工调整信用等级</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(r.name)+'　当前：'+esc(r.grade)+'（'+(total(r)==null?'—':total(r).toFixed(1))+' 分）</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeD()"><i class="fas fa-xmark"></i></button></div>'
+    +'<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div><label class="fl">调整后等级</label><select id="adjGrade" class="sel"><option value="">请选择</option><option>AAA</option><option>AA</option><option>A</option><option>B</option><option>C</option><option>D</option></select></div>'
+    +'<div><label class="fl"><span style="color:#FF4D2D">*</span> 调整原因</label><select id="adjWhy" class="sel">'
+    +'<option value="">请选择</option><option>线下经营异常（人工核实）</option><option>重大贡献 / 示范商户上浮</option><option>投诉纠纷待处理，临时降级</option><option>数据源缺失的兜底评级</option><option>其他（见说明）</option></select></div>'
+    +'<div><label class="fl">说明（必填）</label><textarea id="adjMemo" rows="3" class="w-full p-2 text-[12px] border border-[#E2E8F0] rounded-lg outline-none" placeholder="请写明依据，会写入评级留痕并对商户可见"></textarea></div>'
+    +'<div class="rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B] leading-5">人工调整<b>只影响当前评估周期</b>，不改变自动评分规则；调整记录会留痕（人 / 时间 / 调整前后 / 原因），并在商户端可见等级变更说明。</p></div>'
+    +'</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeD()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveAdjust()">确认调整</button></div>';
+  document.getElementById('drawer').innerHTML=h;
+  document.getElementById('mask').classList.add('on');
+  document.getElementById('drawer').classList.add('on');
+}
+function saveAdjust(){
+  var g=document.getElementById('adjGrade').value,w=document.getElementById('adjWhy').value,m=document.getElementById('adjMemo').value.trim();
+  if(!g){toast('请选择调整后等级');return;}
+  if(!w){toast('调整原因必选');return;}
+  if(!m){toast('请填写调整说明（必填，需对商户可见）');return;}
+  var r=RS.filter(function(x){return x.name===curId;})[0];
+  if(r){r.grade=g;r.manual='人工校准：'+r.grade+' ← 原等级　原因：'+w+'　说明：'+m+'　操作人：运营主管 李敏　2026-09-28';}
+  curRows=RS.slice();closeD();render();renderStats();
+  toast('已调整 '+curId+' 为 '+g+'（留痕：人 / 时间 / 前后值 / 原因）');
+}
+/* ================= 规则配置 ================= */
+function openRule(){
+  ruleEdit=false;renderRule();
+  document.getElementById('mask').classList.add('on');
+  document.getElementById('drawer').classList.add('on');
+}
+function renderRule(){
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">信用指标规则配置</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">当前生效版本 <b>v2.3</b>（生效日 2026-09-01）　·　规则调整<b>不回溯</b>历史评级</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeD()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-scale-balanced text-[#2563EB]"></i>指标组与权重</div>'
+    +'<table class="w-full text-[12px]"><thead><tr class="text-gray-500 text-[11px]"><th class="text-left py-1.5 font-medium">指标</th><th class="text-left py-1.5 font-medium">权重</th><th class="text-left py-1.5 font-medium">评分算法</th><th class="text-left py-1.5 font-medium">数据源</th><th class="text-left py-1.5 font-medium">状态</th></tr></thead><tbody>'
+    + row('交易','trade','45%','区间打分（GMV / 履约率 / 退款率）','10 商城运营','启用')
+    + row('评价','review','25%','线性映射（星级 1–5 / 投诉率）','买家端评价','启用')
+    + row('缴费','pay','20%','区间打分（按时缴费率 / 欠费次数）','06 缴费管理','<span class="tag" style="background:#FEF3C7;color:#B45309">数据源未落地</span>')
+    +'<tr class="border-t border-gray-50"><td class="py-2">违规</td><td class="py-2 text-[#64748B]">扣分制</td><td class="py-2 text-[#64748B]">每次违规 −2 分，单周期上限 −10 分</td><td class="py-2 text-[#64748B]">运营端处罚记录</td><td class="py-2">启用</td></tr>'
+    +'</tbody></table>'
+    +(ruleEdit?'<div class="flex items-center gap-2 mt-3">'
+      +'<button class="btn btn-primary" onclick="saveRule()">保存为新版本</button>'
+      +'<button class="btn btn-ghost" onclick="ruleEdit=false;renderRule()">取消</button>'
+      +'<span class="text-[11px] text-[#94A3B8]">在上方表格里直接改权重，三项之和须为 100%</span></div>'
+      :'<div class="mt-3"><button class="btn btn-ghost" onclick="ruleEdit=true;renderRule()"><i class="fas fa-pen text-[10px] mr-1"></i>编辑权重</button>'
+        +'<button class="btn btn-ghost" onclick="toast(\'新增指标项（原型）：填写名称 / 算法 / 权重 / 数据源后生效\')"><i class="fas fa-plus text-[10px] mr-1"></i>新增指标项</button></div>')
+    +'</div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-code-branch text-[#7C3AED]"></i>版本历史</div>'
+    +'<div class="text-[12px] text-[#64748B] leading-7">'
+    +'· <b>v2.3</b>（生效 2026-09-01，当前生效）　交易 45 / 评价 25 / 缴费 20 / 违规扣分　操作人：运营主管 李敏<br>'
+    +'· v2.2（2026-06-01 ~ 2026-08-31）　交易 50 / 评价 25 / 缴费 15 / 违规扣分<br>'
+    +'· v2.1（2026-03-01 ~ 2026-05-31）　交易 60 / 评价 30 / 缴费 10<br>'
+    +'<span class="text-[11px]">改规则只影响生效日之后的新评估周期，历史周期保留原等级（可在商户评级详情中看到当时的规则版本）。</span></div></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeD()">关闭</button></div>';
+  document.getElementById('drawer').innerHTML=h;
+}
+function row(name,key,w,alg,src,stt){
+  var edit=ruleEdit&&key!=='trade'&&key!=='review'&&key!=='pay'?false:ruleEdit;
+  return '<tr class="border-t border-gray-50"><td class="py-2">'+name+'</td>'
+    +'<td class="py-2">'+(edit?'<input class="fi" style="width:74px" id="w-'+key+'" value="'+WEIGHT[key]+'">':'<span class="text-[#64748B]">'+w+'</span>')+'</td>'
+    +'<td class="py-2 text-[#64748B]">'+alg+'</td><td class="py-2 text-[#64748B]">'+src+'</td><td class="py-2">'+stt+'</td></tr>';
+}
+function saveRule(){
+  var a=parseInt(document.getElementById('w-trade').value,10),b=parseInt(document.getElementById('w-review').value,10),c=parseInt(document.getElementById('w-pay').value,10);
+  if(isNaN(a)||isNaN(b)||isNaN(c)){toast('权重必须是数字');return;}
+  if(a+b+c!==100){toast('三项权重之和必须为 100%（当前 '+(a+b+c)+'%）');return;}
+  WEIGHT={trade:a,review:b,pay:c};
+  ruleEdit=false;renderRule();render();
+  toast('已保存为规则 v2.4（生效日 2026-10-01）；历史周期评级不回溯，10 月起按新权重评分');
+}
+renderStats();render();
+</script>
 </body>
 </html>

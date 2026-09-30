@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>合同管理 - 合同模板管理</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}.lk:hover{text-decoration:underline}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}.lk-gray:hover{color:#1F2430;text-decoration:underline}
+.st{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500;white-space:nowrap}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:60}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:680px;max-width:96vw;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:70;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);width:760px;max-width:95vw;max-height:86vh;overflow-y:auto;background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(15,23,42,.28);opacity:0;pointer-events:none;transition:.22s;z-index:70}
+.modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+.blk{border:1px solid #E2E8F0;border-radius:12px;padding:14px 16px}
+.blk-t{font-size:12.5px;font-weight:700;color:#1F2430;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.kv{display:flex;gap:8px;font-size:12px;line-height:1.9}
+.kv .k{color:#94A3B8;width:110px;flex-shrink:0}
+.kv .v{color:#1F2430;flex:1;word-break:break-all}
+.fi{width:100%;padding:6px 10px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none;background:#fff}
+.fi:focus{border-color:#FF4D2D}
+.fl{display:block;font-size:11px;color:#94A3B8;margin-bottom:4px}
+.sel{width:100%;padding:6px 8px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none}
+button{cursor:pointer}
+textarea.fi{font-family:inherit;line-height:1.7;resize:vertical}
+.vchip{display:inline-block;padding:2px 7px;border-radius:5px;font-size:11px;background:#F1F5F9;color:#475569;margin:0 4px 4px 0;cursor:pointer}
+.vchip:hover{background:#FFEDE7;color:#E63E20}
+.up{border:2px dashed #E2E8F0;border-radius:12px;padding:14px;text-align:center;color:#94A3B8;cursor:pointer}
+.up:hover{border-color:#FDB4A3;color:#E63E20}
+</style>
+<!-- Tailwind 静态样式：本地引用（不再依赖 cdn.tailwindcss.com）；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<div class="p-6">
+
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">合同模板管理</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">05 合同管理</span>
+      </div>
+      <p class="text-[12px] text-gray-400 mt-1">维护合同模板（租赁合同 / 物业合同 / 电子协议），用于<b>生成 / 打印合同文本</b>；模板<b>版本化 + 启停</b>，<b>新合同只能引用启用中的模板</b>。本阶段<b>不做在线电子签</b>：线下签署后扫描归档</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="toast('已导出全部模板（含变量占位清单）')"><i class="fas fa-download text-[10px] mr-1"></i>导出模板</button>
+      <button class="btn btn-ghost" onclick="location.href='contract-list.html'"><i class="fas fa-table-list text-[10px] mr-1"></i>去合同台账</button>
+      <button class="btn btn-primary" onclick="openEdit(null)"><i class="fas fa-plus mr-1"></i>新增模板</button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-4 gap-3 mb-4" id="stats"></div>
+
+  <!-- 筛选 -->
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+    <div class="flex items-center gap-3 flex-wrap">
+      <input id="f-kw" type="text" placeholder="模板名称" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary w-56">
+      <select id="f-type" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部适用类型</option><option>租赁合同</option><option>物业合同</option><option>电子协议</option>
+      </select>
+      <select id="f-state" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部状态</option><option>启用</option><option>停用</option>
+      </select>
+      <select id="f-by" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部更新人</option><option>合同管理专员 何静</option><option>物业 吴海</option><option>运营 沈璐</option>
+      </select>
+      <button class="btn btn-primary" onclick="doSearch()">查询</button>
+      <button class="btn btn-ghost" onclick="resetSearch()">重置</button>
+      <span class="text-[11px] text-[#94A3B8] ml-auto"><i class="fas fa-circle-info mr-1"></i>模板已被合同引用时<b>不可删除，只能停用</b></span>
+    </div>
+  </div>
+
+  <!-- 列表 -->
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-[13px] font-bold text-[#1F2430]">模板列表</span>
+        <span class="text-[12px] text-[#94A3B8]" id="cnt">共 0 条</span>
+      </div>
+      <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-code mr-1"></i>变量占位：<b>&#123;&#123;承租人&#125;&#125;</b> / <b>&#123;&#123;档口编号&#125;&#125;</b> / <b>&#123;&#123;租期起止&#125;&#125;</b> / <b>&#123;&#123;租金&#125;&#125;</b> / <b>&#123;&#123;保证金&#125;&#125;</b></span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-[13px]" style="min-width:1180px">
+        <thead>
+          <tr class="bg-gray-50 text-gray-500 text-[12px]">
+            <th class="px-4 py-3 text-left font-medium">模板名称</th>
+            <th class="px-4 py-3 text-left font-medium">适用类型</th>
+            <th class="px-4 py-3 text-left font-medium">版本</th>
+            <th class="px-4 py-3 text-left font-medium">最近更新</th>
+            <th class="px-4 py-3 text-left font-medium">更新人</th>
+            <th class="px-4 py-3 text-left font-medium">引用合同</th>
+            <th class="px-4 py-3 text-left font-medium">状态</th>
+            <th class="px-4 py-3 text-center font-medium">操作</th>
+          </tr>
+        </thead>
+        <tbody id="tb" class="divide-y divide-gray-50"></tbody>
+      </table>
+    </div>
+    <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+      <span class="text-[12px] text-gray-400" id="pageInfo">共 0 条记录</span>
+      <div class="flex items-center gap-1">
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100" onclick="toast('已是第一页（原型）')"><i class="fas fa-chevron-left text-[10px]"></i></button>
+        <button class="w-7 h-7 flex items-center justify-center text-white text-[12px] rounded" style="background:#FF4D2D" onclick="toast('当前第 1 页（原型）')">1</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100" onclick="toast('已切换到第 2 页（原型）')"><i class="fas fa-chevron-right text-[10px]"></i></button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div id="mask" class="mask" onclick="closeAll()"></div>
+<div id="drawer" class="drawer"></div>
+<div id="modal" class="modal"></div>
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
+
+<script>
+/* ================= 模拟数据（原型态）　基准日 = 2026-09-28 ================= */
+/* 规则：模板版本化（改动生成新版本，历史保留）；启用 ⇄ 停用；新合同只能引用启用中的模板 */
+var VARS={
+  '租赁合同':['{{承租人}}','{{身份证号}}','{{摊位号}}','{{档口编号}}','{{租期起止}}','{{年租金}}','{{总租金}}','{{履约保证金}}'],
+  '物业合同':['{{档口编号}}','{{承租人}}','{{物业费标准}}','{{计费周期}}','{{缴费期限}}'],
+  '电子协议':['{{商户名称}}','{{入驻日期}}','{{服务条款版本}}']
+};
+var TP=[
+  {id:'TPL-001',name:'诸暨袜业城商铺租赁合同',type:'租赁合同',ver:'v3',up:'2026-09-20 14:10',by:'合同管理专员 何静',ref:42,state:'启用',
+   body:'甲方（出租方）：诸暨市大唐袜业城运营管理有限公司\n乙方（承租方）：{{承租人}}（身份证号 {{身份证号}}）\n\n第一条　出租标的：{{摊位号}}（档口编号 {{档口编号}}），面积以实测为准。\n第二条　租赁期限：{{租期起止}}，租赁年度为当年 9 月 1 日至次年 8 月 31 日。\n第三条　租金：年租金 {{年租金}} 元，总租金 {{总租金}} 元；每年 8 月底前预缴下一租赁年度年租金，8 月 15 日起催收。\n第四条　履约保证金：{{履约保证金}} 元（按摊位等级固定收取），退租结清后按约定退还。\n第五条　其他约定：（略）',
+   history:[
+     {v:'v3',at:'2026-09-20 14:10',by:'合同管理专员 何静',note:'保证金条款改为固定金额表述（精品 2 万 / 普通 1 万）'},
+     {v:'v2',at:'2026-06-11 09:30',by:'合同管理专员 何静',note:'增加「按租赁年度预付」条款与 8 月 15 日起催收约定'},
+     {v:'v1',at:'2025-09-01 10:00',by:'合同管理专员 何静',note:'初始版本（线下合同电子化）'}]},
+  {id:'TPL-002',name:'物业服务合同（标准版）',type:'物业合同',ver:'v2',up:'2026-08-15 11:05',by:'物业 吴海',ref:36,state:'启用',
+   body:'甲方（服务方）：诸暨市大唐袜业城物业管理有限公司\n乙方（承租方）：{{承租人}}（档口编号 {{档口编号}}）\n\n第一条　服务内容：公共区域保洁、安保、绿化、设施维护。\n第二条　物业费标准：{{物业费标准}}，计费周期 {{计费周期}}。\n第三条　缴费期限：{{缴费期限}}（与租赁年度账单同步生成）。\n第四条　其他约定：（略）',
+   history:[
+     {v:'v2',at:'2026-08-15 11:05',by:'物业 吴海',note:'物业费计费周期由「季度」调整为「租赁年度」'},
+     {v:'v1',at:'2025-10-08 15:20',by:'物业 吴海',note:'初始版本'}]},
+  {id:'TPL-003',name:'平台入驻电子协议',type:'电子协议',ver:'v1',up:'2025-12-01 09:00',by:'运营 沈璐',ref:0,state:'停用',
+   body:'甲方（平台方）：袜掌柜智慧运营平台\n乙方（入驻商户）：{{商户名称}}\n\n第一条　入驻日期：{{入驻日期}}。\n第二条　服务条款：{{服务条款版本}}。\n第三条　本协议为平台线上入驻通用条款，与线下租赁合同并行不冲突。',
+   history:[
+     {v:'v1',at:'2025-12-01 09:00',by:'运营 沈璐',note:'初始版本（线上入驻通用条款）'}]}
+];
+var curRows=TP.slice(),curId=null;
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},2800);}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function tOf(id){return TP.filter(function(x){return x.id===id;})[0];}
+var TYC={'租赁合同':'background:#FFEDE7;color:#E63E20','物业合同':'background:#DBEAFE;color:#2563EB','电子协议':'background:#EDE9FE;color:#6D28D9'};
+function st(s,c){return '<span class="st" style="'+(c||'background:#F1F5F9;color:#64748B')+'">'+esc(s)+'</span>';}
+function stState(s){return st(s,s==='启用'?'background:#DCFCE7;color:#15803D':'background:#F1F5F9;color:#64748B');}
+
+function renderStats(){
+  var total=TP.length,on=0,m=0,ref=0;
+  TP.forEach(function(x){
+    if(x.state==='启用'){on++;}
+    if(x.up.slice(0,7)==='2026-09'){m++;}
+    ref+=x.ref;
+  });
+  var cards=[['模板总数',total,'#1F2430'],['启用中',on,'#15803D'],['本月更新',m,'#2563EB'],['使用中（引用合同数）',ref,'#7C3AED']];
+  document.getElementById('stats').innerHTML=cards.map(function(x){
+    return '<div class="bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">'+x[0]+'</p><p class="text-xl font-bold mt-1" style="color:'+x[2]+'">'+x[1]+'</p></div>';
+  }).join('');
+}
+function render(){
+  var h='';
+  curRows.forEach(function(x){
+    h+='<tr class="hover:bg-gray-50 transition">'
+      +'<td class="px-4 py-3"><div class="font-medium text-[#1F2430]">'+esc(x.name)+'</div>'
+        +'<div class="text-[11px] text-[#94A3B8]">'+esc(x.id)+'　'+
+        (x.ref?'已被 '+x.ref+' 份合同引用':'尚未被引用')+'</div></td>'
+      +'<td class="px-4 py-3"><span class="tag" style="'+TYC[x.type]+'">'+esc(x.type)+'</span></td>'
+      +'<td class="px-4 py-3"><span class="lk" onclick="openVer(\''+x.id+'\')">'+esc(x.ver)+'</span>'
+        +'<div class="text-[11px] text-[#94A3B8]">共 '+x.history.length+' 个版本</div></td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(x.up)+'</td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(x.by)+'</td>'
+      +'<td class="px-4 py-3 text-[12px]">'
+        +(x.ref?'<span class="lk" onclick="toast(\'跳转合同台账 · 按模板「'+esc(x.name)+'」筛选（'+x.ref+' 份合同）\')">'+x.ref+' 份</span>':'<span class="text-[#94A3B8]">0 份</span>')+'</td>'
+      +'<td class="px-4 py-3">'+stState(x.state)+'</td>'
+      +'<td class="px-4 py-3 text-center whitespace-nowrap">'
+        +'<span class="lk" onclick="openEdit(\''+x.id+'\')">编辑</span>'
+        +' · <span class="lk-gray" onclick="openVer(\''+x.id+'\')">版本</span>'
+        +' · <span class="lk-gray" onclick="toggleTpl(\''+x.id+'\')">'+(x.state==='启用'?'停用':'启用')+'</span>'
+        +' · <span class="lk-gray" onclick="copyTpl(\''+x.id+'\')">复制</span>'
+        +'</td></tr>';
+  });
+  if(!curRows.length){h='<tr><td colspan="8" class="px-4 py-16 text-center text-gray-300"><i class="fas fa-inbox text-3xl block mb-2"></i><span class="text-[12px]">暂无匹配的模板</span></td></tr>';}
+  document.getElementById('tb').innerHTML=h;
+  document.getElementById('cnt').textContent='共 '+curRows.length+' 条';
+  document.getElementById('pageInfo').textContent='共 '+curRows.length+' 条记录，第 1-'+curRows.length+' 条';
+}
+function doSearch(){
+  var kw=document.getElementById('f-kw').value.trim(),t=document.getElementById('f-type').value,
+      s=document.getElementById('f-state').value,b=document.getElementById('f-by').value;
+  curRows=TP.filter(function(x){
+    return (!kw||x.name.indexOf(kw)>-1)&&(!t||x.type===t)&&(!s||x.state===s)&&(!b||x.by===b);
+  });
+  render();toast('已按条件查询，共 '+curRows.length+' 条');
+}
+function resetSearch(){
+  ['f-kw','f-type','f-state','f-by'].forEach(function(k){document.getElementById(k).value='';});
+  curRows=TP.slice();render();toast('已重置筛选条件');
+}
+function toggleTpl(id){
+  var x=tOf(id);
+  x.state=(x.state==='启用'?'停用':'启用');
+  x.up='2026-09-28 09:20';
+  renderStats();render();
+  toast('模板「'+x.name+'」已'+(x.state==='启用'?'启用：新合同可引用':'停用：新合同不能引用，已引用合同不受影响')+'（不删除历史版本）');
+}
+function copyTpl(id){
+  var x=tOf(id);
+  var n={id:'TPL-00'+(TP.length+1),name:x.name+'（副本）',type:x.type,ver:'v1',up:'2026-09-28 09:22',by:'合同管理专员 何静',ref:0,state:'停用',body:x.body,history:[{v:'v1',at:'2026-09-28 09:22',by:'合同管理专员 何静',note:'复制自 '+x.id+'（'+x.name+'）'}]};
+  TP.push(n);curRows=TP.slice();renderStats();render();
+  toast('已复制为「'+n.name+'」（v1 · 停用状态）：请校对正文后再启用');
+}
+function exportTpl(id){
+  var x=tOf(id);
+  toast('已导出模板「'+x.name+'」（'+x.ver+'，含变量占位清单）');
+}
+
+/* ================= 模板编辑抽屉 ================= */
+function openEdit(id){
+  curId=id;
+  var x=id?tOf(id):null;
+  var type=x?x.type:'租赁合同';
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+(x?'编辑模板　'+esc(x.name):'新增模板')+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+(x?'当前 '+esc(x.ver)+'　最近更新 '+esc(x.up)+'（'+esc(x.by)+'）':'模板名称、适用类型、正文与启用状态')+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">';
+  h+='<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl">模板名称</label><input class="fi" id="t-name" value="'+(x?esc(x.name):'')+'" placeholder="例：诸暨袜业城商铺租赁合同"></div>'
+    +'<div><label class="fl">适用类型</label><select class="sel" id="t-type" onchange="varsHint()">'
+    +['租赁合同','物业合同','电子协议'].map(function(t){return '<option'+(t===type?' selected':'')+'>'+t+'</option>';}).join('')
+    +'</select></div>'
+    +'</div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-code text-[#7C3AED]"></i>变量占位（点击插入正文）</div>'
+    +'<div id="vBox"></div>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-2">生成合同文本时，变量按合同 / 档口数据自动替换；缺失字段会以黄色标记提示补录。</p></div>';
+  h+='<div><label class="fl">正文（富文本 / 亦可上传 Word、PDF 模板）</label>'
+    +'<textarea class="fi" id="t-body" rows="10">'+(x?esc(x.body):'')+'</textarea>'
+    +'<div class="mt-2 flex items-center gap-2">'
+    +'<label class="up" style="flex:1;padding:8px"><i class="fas fa-file-word mr-1"></i>上传 Word / PDF 模板（可选）<input type="file" class="hidden" onchange="toast(\'已上传模板文件（原型）\')"></label>'
+    +'</div></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-circle-info text-[#64748B]"></i>启用与删除规则</div>'
+    +'<div class="text-[12px] text-[#64748B] leading-7">'
+    +'· 新合同<b>只能引用启用中</b>的模板；停用不影响已引用合同<br>'
+    +'· 模板'+(x&&x.ref?'已被 <b>'+x.ref+' 份合同</b>引用 → <b>不可删除，只能停用</b>':'未被引用，可停用；删除需主管确认（原型不做删除入口）')+'<br>'
+    +'· 保存正文即生成<b>新版本</b>（'+(x?x.ver+' → v'+(x.history.length+1):'v1')+'），历史版本保留可查、可回滚</div></div>';
+  h+='<label class="ck"><input type="checkbox" id="t-on" '+(x?(x.state==='启用'?'checked':''):'checked')+'><span>启用该模板（不勾选则保存为「停用」）</span></label>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +(x?'<button class="btn btn-ghost" onclick="exportTpl(\''+x.id+'\')">导出</button>'
+      +'<button class="btn btn-ghost" onclick="openVer(\''+x.id+'\')">版本历史</button>':'')
+    +'<button class="btn btn-primary" onclick="saveTpl()">保存</button></div>';
+  show('drawer',h);
+  varsHint();
+}
+function varsHint(){
+  var t=document.getElementById('t-type').value;
+  document.getElementById('vBox').innerHTML=VARS[t].map(function(v){
+    return '<span class="vchip" onclick="insertVar(\''+v+'\')">'+v+'</span>';
+  }).join('');
+}
+function insertVar(v){
+  var a=document.getElementById('t-body');
+  a.value=a.value+v;
+  a.focus();
+  toast('已插入变量占位 '+v+'（生成合同时自动替换为合同 / 档口数据）');
+}
+function saveTpl(){
+  var name=document.getElementById('t-name').value.trim(),type=document.getElementById('t-type').value,
+      body=document.getElementById('t-body').value.trim(),on=document.getElementById('t-on').checked;
+  if(!name){toast('模板名称必填');return;}
+  if(!body){toast('模板正文必填');return;}
+  if(curId){
+    var x=tOf(curId);
+    var nv='v'+(x.history.length+1);
+    x.name=name;x.type=type;x.body=body;x.ver=nv;x.state=(on?'启用':'停用');
+    x.up='2026-09-28 09:25';x.by='合同管理专员 何静';
+    x.history.unshift({v:nv,at:'2026-09-28 09:25',by:'合同管理专员 何静',note:'编辑正文 / 属性'});
+    curRows=TP.slice();renderStats();render();closeAll();
+    toast('已保存模板「'+name+'」：生成新版本 '+nv+'（历史版本保留，可回滚）；当前状态「'+x.state+'」');
+  }else{
+    var nn='TPL-00'+(TP.length+1);
+    TP.push({id:nn,name:name,type:type,ver:'v1',up:'2026-09-28 09:25',by:'合同管理专员 何静',ref:0,state:(on?'启用':'停用'),body:body,
+      history:[{v:'v1',at:'2026-09-28 09:25',by:'合同管理专员 何静',note:'新建模板'}]});
+    curRows=TP.slice();renderStats();render();closeAll();
+    toast('已新增模板「'+name+'」（v1 · '+(on?'启用':'停用')+'）：新合同可引用');
+  }
+}
+
+/* ================= 版本历史 ================= */
+function openVer(id){
+  curId=id;
+  var x=tOf(id);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">版本历史　'+esc(x.name)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">当前 '+esc(x.ver)+'　共 '+x.history.length+' 个版本；<b>回滚会生成新版本，历史保留</b></p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-clock-rotate-left text-[#64748B]"></i>版本列表</div>';
+  x.history.forEach(function(v,i){
+    var cur=(i===0);
+    h+='<div class="flex items-start gap-3 py-2.5'+(i?' border-t border-gray-50':'')+'">'
+      +'<span class="tag" style="'+(cur?'background:#DCFCE7;color:#15803D':'background:#F1F5F9;color:#475569')+'">'+esc(v.v)+'</span>'
+      +'<div class="flex-1"><p class="text-[12px] text-[#1F2430]">'+esc(v.note)+'</p>'
+      +'<p class="text-[11px] text-[#94A3B8] mt-0.5">'+esc(v.at)+'　'+esc(v.by)+(cur?'　（当前版本）':'')+'</p></div>'
+      +'<div class="whitespace-nowrap">'
+      +'<span class="lk-gray" onclick="toast(\'预览 '+esc(v.v)+' 正文（原型）\')">预览</span>'
+      +(cur?'':' · <span class="lk" onclick="rollback(\''+x.id+'\',\''+v.v+'\')">回滚</span>')
+      +'</div></div>';
+  });
+  h+='</div>';
+  h+='<div class="blk" style="border-color:#FDE68A;background:#FFFBEB"><div class="blk-t" style="color:#B45309"><i class="fas fa-circle-info"></i>回滚规则</div>'
+    +'<p class="text-[11px] text-[#64748B]">回滚不删除任何历史：选定版本的内容会被复制成<b>新版本</b>（如 v'+x.history.length+' → v'+(x.history.length+1)+'），留痕可追溯；已引用该模板的合同不受影响。</p></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">关闭</button>'
+    +'<button class="btn btn-ghost" onclick="exportTpl(\''+x.id+'\')">导出模板</button>'
+    +'<button class="btn btn-primary" onclick="openEdit(\''+x.id+'\')">编辑正文</button></div>';
+  show('drawer',h);
+}
+function rollback(id,v){
+  var x=tOf(id);
+  var nv='v'+(x.history.length+1);
+  x.ver=nv;x.up='2026-09-28 09:30';x.by='合同管理专员 何静';
+  x.history.unshift({v:nv,at:'2026-09-28 09:30',by:'合同管理专员 何静',note:'回滚自 '+v+'（内容复制为 '+nv+'，历史保留）'});
+  renderStats();render();openVer(id);
+  toast('已回滚到 '+v+' 的内容：生成新版本 '+nv+'（历史版本全部保留，可追溯）');
+}
+
+/* ================= 基础 ================= */
+function show(which,h){
+  document.getElementById(which).innerHTML=h;
+  document.getElementById('mask').classList.add('on');
+  document.getElementById(which).classList.add('on');
+}
+function closeAll(){
+  document.getElementById('mask').classList.remove('on');
+  document.getElementById('drawer').classList.remove('on');
+  document.getElementById('modal').classList.remove('on');
+}
+renderStats();render();
+</script>
+</body>
+</html>

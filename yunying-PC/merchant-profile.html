@@ -4,290 +4,423 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>商户管理 - 商户档案</title>
-<script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<script>
-tailwind.config={theme:{extend:{colors:{primary:'#FF4D2D','primary-d':'#E63E20','primary-l':'#FF7849'}}}}
-</script>
 <style>
 *{box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#f1f5f9}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
-.tab-active{color:#FF4D2D;border-bottom:2px solid #FF4D2D;font-weight:600}
-.status-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500}
-.level-badge{display:inline-flex;align-items:center;justify-content:center;font-size:11px;padding:2px 7px;border-radius:4px;font-weight:600;min-width:32px}
+::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}
+.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}
+.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}
+.lk:hover{text-decoration:underline}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}
+.lk-gray:hover{color:#1F2430;text-decoration:underline}
+.st{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500;white-space:nowrap}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:60}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:640px;max-width:96vw;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:70;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.blk{border:1px solid #E2E8F0;border-radius:12px;padding:14px 16px}
+.blk-t{font-size:12.5px;font-weight:700;color:#1F2430;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.kv{display:flex;gap:8px;font-size:12px;line-height:1.9}
+.kv .k{color:#94A3B8;width:84px;flex-shrink:0}
+.kv .v{color:#1F2430;flex:1;word-break:break-all}
+.fl{display:block;font-size:11px;color:#94A3B8;margin-bottom:4px}
+.fi{width:100%;padding:6px 10px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none;background:#fff}
+.fi:focus{border-color:#FF4D2D}
+.fi[readonly]{background:#F8FAFC;color:#94A3B8;cursor:not-allowed}
+.sel{width:100%;padding:6px 8px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none}
+button{cursor:pointer}
 </style>
+<!-- Tailwind 静态样式：本地引用（不再依赖 cdn.tailwindcss.com）；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
+<link rel="stylesheet" href="tailwind.css">
 </head>
 <body>
 
 <div class="p-6">
 
-  <!-- 页面标题 -->
-  <div class="flex items-center justify-between mb-5">
+  <div class="flex items-start justify-between mb-5">
     <div>
-      <h1 class="text-[18px] font-bold text-gray-800">商户管理</h1>
-      <p class="text-[12px] text-gray-400 mt-0.5">商户全生命周期管理 · 入驻审核 · 档案 · 信用 · 退租</p>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">商户档案</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">04 商户管理</span>
+      </div>
+      <p class="text-[12px] text-gray-400 mt-1">全平台商户唯一主档。档案由两条链路产生：<b>线上入驻审核通过</b> 与 <b>线下自动建档</b>；档口信息来自 02 市场资源管理，本页<b>只读</b></p>
     </div>
-
-  </div>
-
-  <!-- Tab 导航 -->
-  <div class="flex items-center gap-6 mb-4 border-b border-gray-200">
-    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">入驻申请审核</span>
-    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">资质审核</span>
-    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">资料变更审核</span>
-    <span class="tab-active py-2.5 text-[13px] cursor-pointer">商户档案</span>
-    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">信用评级</span>
-    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">退租/清退</span>
-  </div>
-
-  <!-- 统计卡片 -->
-  <div class="grid grid-cols-4 gap-3 mb-5">
-    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
-      <p class="text-[11px] text-gray-400">总商户数</p>
-      <p class="text-xl font-bold text-primary mt-1">186</p>
-    </div>
-    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
-      <p class="text-[11px] text-gray-400">正常经营</p>
-      <p class="text-xl font-bold text-green-500 mt-1">172</p>
-    </div>
-    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
-      <p class="text-[11px] text-gray-400">暂停/冻结</p>
-      <p class="text-xl font-bold text-amber-500 mt-1">8</p>
-    </div>
-    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
-      <p class="text-[11px] text-gray-400">本月新增</p>
-      <p class="text-xl font-bold text-blue-500 mt-1">12</p>
+    <div class="flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="toast('已导出商户台账（身份证、手机号已脱敏）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+      <button class="btn btn-primary" onclick="openNew()"><i class="fas fa-plus mr-1"></i>手工补档</button>
     </div>
   </div>
 
-  <!-- 筛选栏 -->
+  <div class="grid grid-cols-6 gap-3 mb-4" id="stats"></div>
+
   <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
     <div class="flex items-center gap-3 flex-wrap">
-      <div class="relative">
-        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
-        <input type="text" placeholder="企业名称 / 信用代码" class="w-56 pl-8 pr-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary focus:bg-white transition">
-      </div>
-      <select class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
-        <option value="">全部品类</option>
-        <option>男袜</option>
-        <option>女袜</option>
-        <option>童袜</option>
-        <option>运动袜</option>
-        <option>原料</option>
-        <option>袜机</option>
+      <input id="f-kw" type="text" placeholder="主体名称 / 商户编号 / 联系人 / 身份证后4位" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary w-72">
+      <select id="f-type" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部商户类型</option><option>仅线上</option><option>线上兼档口</option><option>仅线下档口（未上线）</option>
       </select>
-      <select class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
-        <option value="">全部状态</option>
-        <option>正常</option>
-        <option>暂停</option>
-        <option>冻结</option>
-        <option>清退</option>
+      <select id="f-open" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部线上开通状态</option><option>未申请</option><option>审核中</option><option>需补充材料</option><option>已通过</option><option>已驳回</option>
       </select>
-      <select class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
-        <option value="">全部信用等级</option>
-        <option>AAA</option>
-        <option>AA</option>
-        <option>A</option>
-        <option>B</option>
-        <option>C</option>
-        <option>D</option>
+      <select id="f-stall" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">是否关联档口</option><option value="yes">有关联档口</option><option value="no">无线下档口</option>
       </select>
-      <button class="px-4 py-1.5 text-[13px] text-white rounded-lg" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)">查询</button>
-      <button class="px-4 py-1.5 text-[13px] text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition">重置</button>
+      <select id="f-status" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部状态</option><option>正常</option><option>暂停</option><option>冻结</option><option>已清退</option>
+      </select>
+      <select id="f-credit" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部信用等级</option><option>AAA</option><option>AA</option><option>A</option><option>B</option><option>C</option><option>D</option>
+      </select>
+      <select id="f-src" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部建档来源</option><option>线上申请</option><option>线下自动</option><option>手工补档</option>
+      </select>
+      <button class="btn btn-primary" onclick="doSearch()">查询</button>
+      <button class="btn btn-ghost" onclick="resetSearch()">重置</button>
     </div>
   </div>
 
-  <!-- 表格 -->
   <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
-    <div class="px-5 py-3 border-b border-gray-100 flex items-center gap-2 flex-wrap">
-      <button class="px-3 py-1.5 text-[12px] text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
-      <button class="px-3 py-1.5 text-[12px] text-white rounded-lg transition" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)"><i class="fas fa-plus text-[10px] mr-1"></i>新建商户</button>
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+      <span class="text-[12px] text-[#94A3B8]" id="cnt">共 0 条</span>
+      <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>「关联档口」「商户类型」由系统判定，本页不可编辑；如需修正请去 02 市场资源管理 / 自动建档页处理</span>
     </div>
-    <table class="w-full text-[13px]">
-      <thead>
-        <tr class="bg-gray-50 text-gray-500 text-[12px]">
-          <th class="px-4 py-3 text-left font-medium">商户编号</th>
-          <th class="px-4 py-3 text-left font-medium">企业名称</th>
-          <th class="px-4 py-3 text-left font-medium">信用代码</th>
-          <th class="px-4 py-3 text-left font-medium">主营品类</th>
-          <th class="px-4 py-3 text-left font-medium">商位号</th>
-          <th class="px-4 py-3 text-left font-medium">入驻时间</th>
-          <th class="px-4 py-3 text-left font-medium">信用等级</th>
-          <th class="px-4 py-3 text-left font-medium">状态</th>
-          <th class="px-4 py-3 text-center font-medium">操作</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-gray-50">
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 text-gray-600">M20260001</td>
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#FF8A4C,#FF4D2D)"><i class="fas fa-crown"></i></div>
-              <span class="font-medium text-gray-800">大唐袜业旗舰</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-gray-600">91330681MA****1A</td>
-          <td class="px-4 py-3 text-gray-600">男袜</td>
-          <td class="px-4 py-3 text-gray-600">1F-A08</td>
-          <td class="px-4 py-3 text-gray-400">2024-03-15</td>
-          <td class="px-4 py-3"><span class="level-badge bg-green-50 text-green-600">AAA</span></td>
-          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">正常</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-primary text-[12px] hover:underline mr-2">详情</button>
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">编辑</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 text-gray-600">M20260002</td>
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)"><i class="fas fa-snowflake"></i></div>
-              <span class="font-medium text-gray-800">暖足坊袜业有限公司</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-gray-600">91330681MA****2B</td>
-          <td class="px-4 py-3 text-gray-600">保暖袜</td>
-          <td class="px-4 py-3 text-gray-600">1F-B03</td>
-          <td class="px-4 py-3 text-gray-400">2024-05-20</td>
-          <td class="px-4 py-3"><span class="level-badge bg-blue-50 text-blue-600">AA</span></td>
-          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">正常</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-primary text-[12px] hover:underline mr-2">详情</button>
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">编辑</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 text-gray-600">M20260003</td>
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#FB7185,#EC4899)"><i class="fas fa-socks"></i></div>
-              <span class="font-medium text-gray-800">花间舞袜业</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-gray-600">91330681MA****3C</td>
-          <td class="px-4 py-3 text-gray-600">女袜</td>
-          <td class="px-4 py-3 text-gray-600">1F-B08</td>
-          <td class="px-4 py-3 text-gray-400">2024-07-10</td>
-          <td class="px-4 py-3"><span class="level-badge bg-cyan-50 text-cyan-600">A</span></td>
-          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">正常</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-primary text-[12px] hover:underline mr-2">详情</button>
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">编辑</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 text-gray-600">M20260004</td>
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#38BDF8,#3B82F6)"><i class="fas fa-bolt"></i></div>
-              <span class="font-medium text-gray-800">极速运动袜业</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-gray-600">91330681MA****4D</td>
-          <td class="px-4 py-3 text-gray-600">运动袜</td>
-          <td class="px-4 py-3 text-gray-600">1F-A12</td>
-          <td class="px-4 py-3 text-gray-400">2025-01-08</td>
-          <td class="px-4 py-3"><span class="level-badge bg-amber-50 text-amber-600">B</span></td>
-          <td class="px-4 py-3"><span class="status-badge bg-amber-50 text-amber-600">暂停</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-primary text-[12px] hover:underline mr-2">详情</button>
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">编辑</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 text-gray-600">M20260005</td>
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#2DD4BF,#14B8A6)"><i class="fas fa-leaf"></i></div>
-              <span class="font-medium text-gray-800">绿源纤维科技有限公司</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-gray-600">91330681MA****5E</td>
-          <td class="px-4 py-3 text-gray-600">竹纤维原料</td>
-          <td class="px-4 py-3 text-gray-600">2F-A05</td>
-          <td class="px-4 py-3 text-gray-400">2024-09-12</td>
-          <td class="px-4 py-3"><span class="level-badge bg-cyan-50 text-cyan-600">A</span></td>
-          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">正常</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-primary text-[12px] hover:underline mr-2">详情</button>
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">编辑</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 text-gray-600">M20260006</td>
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#A78BFA,#7C3AED)"><i class="fas fa-gears"></i></div>
-              <span class="font-medium text-gray-800">智造袜机设备有限公司</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-gray-600">91330681MA****6F</td>
-          <td class="px-4 py-3 text-gray-600">袜机设备</td>
-          <td class="px-4 py-3 text-gray-600">3F-C02</td>
-          <td class="px-4 py-3 text-gray-400">2024-11-25</td>
-          <td class="px-4 py-3"><span class="level-badge bg-red-50 text-red-500">C</span></td>
-          <td class="px-4 py-3"><span class="status-badge bg-red-50 text-red-500">冻结</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-primary text-[12px] hover:underline mr-2">详情</button>
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">编辑</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 text-gray-600">M20260007</td>
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#34D399,#10B981)"><i class="fas fa-seedling"></i></div>
-              <span class="font-medium text-gray-800">棉田纱线厂</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-gray-600">91330681MA****7G</td>
-          <td class="px-4 py-3 text-gray-600">棉纱原料</td>
-          <td class="px-4 py-3 text-gray-600">2F-B01</td>
-          <td class="px-4 py-3 text-gray-400">2025-03-18</td>
-          <td class="px-4 py-3"><span class="level-badge bg-blue-50 text-blue-600">AA</span></td>
-          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">正常</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-primary text-[12px] hover:underline mr-2">详情</button>
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">编辑</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 text-gray-600">M20260008</td>
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#9CA3AF,#6B7280)"><i class="fas fa-store"></i></div>
-              <span class="font-medium text-gray-800">某商贸有限公司</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-gray-600">91330681MA****8H</td>
-          <td class="px-4 py-3 text-gray-600">综合</td>
-          <td class="px-4 py-3 text-gray-600">1F-C10</td>
-          <td class="px-4 py-3 text-gray-400">2024-04-02</td>
-          <td class="px-4 py-3"><span class="level-badge bg-gray-100 text-gray-500">D</span></td>
-          <td class="px-4 py-3"><span class="status-badge bg-gray-100 text-gray-500">清退</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <!-- 分页 -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-[13px]" style="min-width:1300px">
+        <thead>
+          <tr class="bg-gray-50 text-gray-500 text-[12px]">
+            <th class="px-4 py-3 text-left font-medium">商户编号</th>
+            <th class="px-4 py-3 text-left font-medium">主体名称</th>
+            <th class="px-4 py-3 text-left font-medium">主体类型</th>
+            <th class="px-4 py-3 text-left font-medium">商户类型</th>
+            <th class="px-4 py-3 text-left font-medium">线上开通状态</th>
+            <th class="px-4 py-3 text-left font-medium">关联档口</th>
+            <th class="px-4 py-3 text-left font-medium">主营品类</th>
+            <th class="px-4 py-3 text-left font-medium">建档时间</th>
+            <th class="px-4 py-3 text-left font-medium">信用等级</th>
+            <th class="px-4 py-3 text-left font-medium">状态</th>
+            <th class="px-4 py-3 text-center font-medium">操作</th>
+          </tr>
+        </thead>
+        <tbody id="tb" class="divide-y divide-gray-50"></tbody>
+      </table>
+    </div>
     <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
-      <span class="text-[12px] text-gray-400">共 186 条记录，第 1-8 条</span>
+      <span class="text-[12px] text-gray-400" id="pageInfo">共 0 条记录</span>
       <div class="flex items-center gap-1">
-        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100"><i class="fas fa-chevron-left text-[10px]"></i></button>
-        <button class="w-7 h-7 flex items-center justify-center text-white text-[12px] rounded" style="background:#FF4D2D">1</button>
-        <button class="w-7 h-7 flex items-center justify-center text-gray-600 text-[12px] rounded hover:bg-gray-100">2</button>
-        <button class="w-7 h-7 flex items-center justify-center text-gray-600 text-[12px] rounded hover:bg-gray-100">3</button>
-        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100"><i class="fas fa-chevron-right text-[10px]"></i></button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100" onclick="toast('已是第一页（原型）')"><i class="fas fa-chevron-left text-[10px]"></i></button>
+        <button class="w-7 h-7 flex items-center justify-center text-white text-[12px] rounded" style="background:#FF4D2D" onclick="toast('当前第 1 页（原型）')">1</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-600 text-[12px] rounded hover:bg-gray-100" onclick="toast('已切换到第 2 页（原型）')">2</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100" onclick="toast('已切换到第 2 页（原型）')"><i class="fas fa-chevron-right text-[10px]"></i></button>
       </div>
     </div>
   </div>
 
 </div>
 
+<div id="mask" class="mask" onclick="closeD()"></div>
+<div id="drawer" class="drawer"></div>
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
+
+<script>
+/* ================= 模拟数据（原型态） ================= */
+var TAG_POOL={strong:['源头工厂','实力商家','企业商家','新晋商家'],risk:['欠费','违规','投诉','资质过期']};
+var MS=[
+  {id:'MB2026000041',name:'大唐旗舰精梳棉',sub:'企业',type:'线上兼档口',open:'已通过',src:'线上申请',
+   stalls:[{code:'A9-15',b:'A 栋',floor:'9 层',area:'160.0',term:'2024.01.01 ~ 2026.12.31',contract:'LT-2024-0102'}],
+   cat:'男袜 / 商务袜',time:'2026-01-08',credit:'AAA',score:96.5,status:'正常',person:'赵敏',idno:'330681198702148888',
+   code:'91330681MA2D1XXXX1',phone:'137****8891',addr:'诸暨市大唐街道袜业城 A 栋 9 层',
+   tags:['实力商家','源头工厂'],shops:2,ecom:'已开通',rfq:'已开通'},
+  {id:'MB2026000088',name:'棉田纱线直营店',sub:'工厂制造商',type:'线上兼档口',open:'已通过',src:'线上申请',
+   stalls:[{code:'B3-08',b:'B 栋',floor:'3 层',area:'86.5',term:'2025.06.01 ~ 2027.05.31',contract:'LT-2025-0231'},
+           {code:'A9-12',b:'A 栋',floor:'9 层',area:'147.2',term:'2026.01.01 ~ 2028.12.31',contract:'LT-2026-0070'}],
+   cat:'原料 / 纱线',time:'2026-03-12',credit:'AA',score:91.2,status:'正常',person:'陈志强',idno:'330681198503127777',
+   code:'91330681MA2D2XXXX2',phone:'136****2208',addr:'诸暨市大唐街道轻纺原料市场 B 区',
+   tags:['源头工厂'],shops:1,ecom:'已开通',rfq:'已开通'},
+  {id:'MB2026000123',name:'晓琳袜业经营部',sub:'个体工商户',type:'线上兼档口',open:'已通过',src:'线上申请',
+   stalls:[{code:'A9-10',b:'A 栋',floor:'9 层',area:'147.2',term:'2026.01.01 ~ 2028.12.31',contract:'LT-2026-0069'}],
+   cat:'女袜 / 打底裤',time:'2026-09-28',credit:'A',score:85.5,status:'正常',person:'汤晓琳',idno:'330681198807150021',
+   code:'92330681MA2XXXXX31',phone:'138****6621',addr:'诸暨市大唐街道袜业城 A 栋 9 层',
+   tags:['新晋商家'],shops:1,ecom:'已开通',rfq:'未认证'},
+  {id:'MB2026000124',name:'王建国（档口租户）',sub:'个体工商户',type:'仅线下档口（未上线）',open:'未申请',src:'线下自动',
+   stalls:[{code:'A9-11',b:'A 栋',floor:'9 层',area:'147.2',term:'2026.03.01 ~ 2029.02.28',contract:'LT-2026-0071'}],
+   cat:'男袜',time:'2026-09-28',credit:'B',score:75.6,status:'正常',person:'王建国',idno:'',
+   code:'',phone:'135****7712',addr:'诸暨市大唐街道袜业城 A 栋 9 层',
+   tags:['新晋商家'],shops:0,ecom:'未开通',rfq:'未开通'},
+  {id:'MB2026000125',name:'周雅琴（档口租户）',sub:'个体工商户',type:'仅线下档口（未上线）',open:'未申请',src:'线下自动',
+   stalls:[{code:'A9-13',b:'A 栋',floor:'9 层',area:'147.2',term:'2026.02.01 ~ 2028.01.31',contract:'LT-2026-0072'}],
+   cat:'女袜',time:'2026-09-28',credit:'B',score:74.1,status:'正常',person:'周雅琴',idno:'',
+   code:'',phone:'137****9034',addr:'诸暨市大唐街道袜业城 A 栋 9 层',
+   tags:[],shops:0,ecom:'未开通',rfq:'未开通'},
+  {id:'MB2026000126',name:'李海涛（档口租户）',sub:'企业',type:'仅线下档口（未上线）',open:'审核中',src:'线下自动',
+   stalls:[{code:'B3-12',b:'B 栋',floor:'3 层',area:'92.0',term:'2025.09.01 ~ 2028.08.31',contract:'LT-2025-0315'}],
+   cat:'运动袜',time:'2026-09-28',credit:'C',score:62.4,status:'正常',person:'李海涛',idno:'330681198810236619',
+   code:'91330681MA2D3XXXX3',phone:'139****4477',addr:'诸暨市大唐街道袜业城 B 栋 3 层',
+   tags:[],shops:0,ecom:'审核中',rfq:'未开通'},
+  {id:'MB2026000201',name:'花间舞时尚女袜馆',sub:'个体工商户',type:'仅线上',open:'已通过',src:'线上申请',
+   stalls:[],cat:'女袜 / 船袜',time:'2026-08-15',credit:'A',score:84.9,status:'正常',person:'刘倩',idno:'330681199201054456',
+   code:'92330681MA2XXXXX52',phone:'137****1188',addr:'诸暨市大唐街道（线上经营）',
+   tags:['新晋商家'],shops:1,ecom:'已开通',rfq:'未认证'},
+  {id:'MB2026000155',name:'极速运动袜业',sub:'企业',type:'仅线上',open:'已通过',src:'线上申请',
+   stalls:[],cat:'运动袜',time:'2026-06-20',credit:'B',score:73.8,status:'暂停',person:'郑强',idno:'330681198912204455',
+   code:'91330681MA2D4XXXX4',phone:'135****6690',addr:'诸暨市大唐街道（线上经营）',
+   tags:['欠费'],shops:1,ecom:'已开通',rfq:'已冻结'},
+  {id:'MB2026000090',name:'智造袜机设备有限公司',sub:'企业',type:'仅线上',open:'已通过',src:'线上申请',
+   stalls:[],cat:'袜机',time:'2026-04-02',credit:'C',score:61.2,status:'冻结',person:'吴晓峰',idno:'330681199005186633',
+   code:'91330681MA2D5XXXX5',phone:'133****2210',addr:'诸暨市大唐街道工业园',
+   tags:['违规','投诉'],shops:1,ecom:'已停用',rfq:'已冻结'},
+  {id:'MB2025000031',name:'某贸易商行',sub:'个体工商户',type:'仅线上',open:'已驳回',src:'线上申请',
+   stalls:[],cat:'女袜',time:'2025-11-06',credit:'D',score:48.2,status:'已清退',person:'孙某某',idno:'330681199307155522',
+   code:'92330681MA2XXXXX70',phone:'131****5566',addr:'诸暨市大唐街道',
+   tags:['违规'],shops:0,ecom:'已停用',rfq:'已停用'}
+];
+var shownId={},curRows=MS.slice(),curId=null,curMode='view',tagTarget=null;
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},2600);}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function maskId(s){return s?String(s).slice(0,6)+'********'+String(s).slice(-4):'';}
+function hasStall(m){return m.stalls&&m.stalls.length>0;}
+function typeColor(t){return t==='线上兼档口'?'background:#DCFCE7;color:#15803D':(t==='仅线上'?'background:#F1F5F9;color:#475569':'background:#FEF3C7;color:#B45309');}
+var OPEN_C={'已通过':'background:#DCFCE7;color:#15803D','审核中':'background:#DBEAFE;color:#2563EB','需补充材料':'background:#FFEDE7;color:#E63E20','已驳回':'background:#FEE2E2;color:#B91C1C','未申请':'background:#F1F5F9;color:#64748B'};
+var MS_C={'正常':'background:#DCFCE7;color:#15803D','暂停':'background:#FEF3C7;color:#B45309','冻结':'background:#FEE2E2;color:#B91C1C','已清退':'background:#F1F5F9;color:#64748B'};
+function st(s,c){return '<span class="st" style="'+(c||'background:#F1F5F9;color:#64748B')+'">'+esc(s)+'</span>';}
+
+/* ================= 渲染 ================= */
+function renderStats(){
+  var c={'仅线上':0,'线上兼档口':0,'仅线下档口（未上线）':0};
+  MS.forEach(function(m){if(c[m.type]!=null){c[m.type]++;}});
+  var push=MS.filter(function(m){return m.type==='仅线下档口（未上线）'&&m.open==='未申请';}).length;
+  var cards=[
+    ['商户总数',MS.length,'#1F2430'],
+    ['仅线上',c['仅线上'],'#475569'],
+    ['线上兼档口',c['线上兼档口'],'#15803D'],
+    ['仅线下档口（未上线）',c['仅线下档口（未上线）'],'#B45309'],
+    ['待推动上线',push,'#E63E20']
+  ];
+  var h=cards.map(function(x){return '<div class="bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">'+x[0]+'</p><p class="text-xl font-bold mt-1" style="color:'+x[2]+'">'+x[1]+'</p></div>';}).join('');
+  h+='<a href="merchant-auto.html" class="bg-white rounded-lg border p-3.5 block hover:shadow transition" style="border-color:#FDB4A3">'
+    +'<p class="text-[11px]" style="color:#E63E20"><i class="fas fa-triangle-exclamation mr-1"></i>自动建档异常</p>'
+    +'<p class="text-xl font-bold mt-1" style="color:#E63E20">3</p><p class="text-[10px] text-[#94A3B8] mt-0.5">点击去处理 →</p></a>';
+  document.getElementById('stats').innerHTML=h;
+}
+function render(){
+  var h='';
+  curRows.forEach(function(m){
+    var stall=hasStall(m)
+      ? m.stalls.map(function(s){return '<span class="tag" style="background:#FFEDE7;color:#E63E20;margin-right:3px">'+esc(s.code)+'</span>';}).join('')
+      : '<span class="text-[#94A3B8]">—</span>';
+    h+='<tr class="hover:bg-gray-50 transition">'
+      +'<td class="px-4 py-3 text-[#64748B]">'+esc(m.id)+'</td>'
+      +'<td class="px-4 py-3"><span class="font-medium text-[#1F2430]">'+esc(m.name)+'</span>'
+        +(m.idno?'':' <span class="tag" style="background:#FEF3C7;color:#B45309">身份待补全</span>')+'</td>'
+      +'<td class="px-4 py-3 text-[#64748B]">'+esc(m.sub)+'</td>'
+      +'<td class="px-4 py-3">'+st(m.type,typeColor(m.type))+'</td>'
+      +'<td class="px-4 py-3">'+st(m.open,OPEN_C[m.open])+'</td>'
+      +'<td class="px-4 py-3 whitespace-nowrap">'+stall+'</td>'
+      +'<td class="px-4 py-3 text-[#64748B]">'+esc(m.cat)+'</td>'
+      +'<td class="px-4 py-3 text-[#94A3B8] text-[12px]">'+esc(m.time)+'</td>'
+      +'<td class="px-4 py-3"><span class="font-semibold" style="color:'+(m.credit==='AAA'||m.credit==='AA'?'#15803D':(m.credit==='D'?'#B91C1C':'#334155'))+'">'+esc(m.credit)+'</span> <span class="text-[11px] text-[#94A3B8]">'+m.score+'</span></td>'
+      +'<td class="px-4 py-3">'+st(m.status,MS_C[m.status])+'</td>'
+      +'<td class="px-4 py-3 text-center whitespace-nowrap"><span class="lk" onclick="openD(\''+m.id+'\',\'view\')">详情</span> · <span class="lk-gray" onclick="openD(\''+m.id+'\',\'edit\')">编辑</span></td>'
+      +'</tr>';
+  });
+  if(!curRows.length){h='<tr><td colspan="11" class="px-4 py-16 text-center text-gray-300"><i class="fas fa-inbox text-3xl block mb-2"></i><span class="text-[12px]">暂无匹配的商户</span></td></tr>';}
+  document.getElementById('tb').innerHTML=h;
+  document.getElementById('cnt').textContent='共 '+curRows.length+' 条（原型演示数据 10 条）';
+  document.getElementById('pageInfo').textContent='共 '+curRows.length+' 条记录，第 1-'+curRows.length+' 条';
+}
+function doSearch(){
+  var kw=document.getElementById('f-kw').value.trim(),t=document.getElementById('f-type').value,o=document.getElementById('f-open').value,
+      s=document.getElementById('f-stall').value,stt=document.getElementById('f-status').value,c=document.getElementById('f-credit').value,src=document.getElementById('f-src').value;
+  curRows=MS.filter(function(m){
+    var okKw=!kw||m.name.indexOf(kw)>-1||m.id.indexOf(kw)>-1||m.person.indexOf(kw)>-1||(m.idno&&m.idno.slice(-4).indexOf(kw)>-1);
+    return okKw&&(!t||m.type===t)&&(!o||m.open===o)&&(!s||(s==='yes'?hasStall(m):!hasStall(m)))&&(!stt||m.status===stt)&&(!c||m.credit===c)&&(!src||m.src===src);
+  });
+  render();toast('已按条件查询，共 '+curRows.length+' 条');
+}
+function resetSearch(){
+  ['f-kw','f-type','f-open','f-stall','f-status','f-credit','f-src'].forEach(function(k){document.getElementById(k).value='';});
+  curRows=MS.slice();render();toast('已重置筛选条件');
+}
+function showId(id){shownId[id]=true;openD(id,'view');toast('已展示完整身份证号，并记录查看留痕（人 / 时间 / IP）');}
+
+/* ================= 详情 / 编辑抽屉 ================= */
+function openD(id,mode){
+  curId=id;curMode=mode;
+  var m=MS.filter(function(x){return x.id===id;})[0];
+  if(!m){return;}
+  var edit=(mode==='edit');
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+esc(m.name)+'　<span class="text-[12px] font-normal text-[#94A3B8]">'+esc(m.id)+'</span></h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+st(m.type,typeColor(m.type))+' '+st(m.open,OPEN_C[m.open])+' '+st(m.status,MS_C[m.status])+'　建档来源：'+esc(m.src)+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeD()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">';
+
+  /* ① 主体信息 */
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-id-card text-[#FF4D2D]"></i>① 主体信息</div>'
+    +'<div class="grid grid-cols-2 gap-x-6">'
+    +'<div class="kv"><span class="k">商户编号</span><span class="v">'+esc(m.id)+'<span class="text-[10px] text-[#94A3B8]">（系统生成，不可改）</span></span></div>'
+    +'<div class="kv"><span class="k">主体类型</span><span class="v">'+esc(m.sub)+'</span></div>'
+    +'<div class="kv"><span class="k">经营者 / 法人</span><span class="v">'+esc(m.person)+'</span></div>'
+    +'<div class="kv"><span class="k">身份证号</span><span class="v">'
+      +(m.idno?(shownId[id]?esc(m.idno)+' <span class="text-[10px] text-[#94A3B8]">已留痕</span>':esc(maskId(m.idno))+' <span class="lk" onclick="showId(\''+m.id+'\')">查看</span>'):'<span class="tag" style="background:#FEF3C7;color:#B45309">身份待补全（客户后期补录）</span>')
+    +'</span></div>'
+    +'<div class="kv"><span class="k">统一社会信用代码</span><span class="v">'+(m.code?esc(m.code):'—')+'</span></div>'
+    +'<div class="kv"><span class="k">联系电话</span><span class="v">'+(edit?'<input class="fi" value="'+esc(m.phone)+'" id="e-phone">':esc(m.phone))+'</span></div>'
+    +'<div class="kv"><span class="k">经营品类</span><span class="v">'+(edit?'<input class="fi" value="'+esc(m.cat)+'" id="e-cat">':esc(m.cat))+'</span></div>'
+    +'<div class="kv"><span class="k">注册 / 经营地址</span><span class="v">'+esc(m.addr)+'</span></div>'
+    +'</div></div>';
+
+  /* ② 线上信息 */
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-store text-[#2563EB]"></i>② 线上信息</div>'
+    +'<div class="kv"><span class="k">入驻申请单</span><span class="v">'+((m.src==='线上申请'||m.open!=='未申请')?'<span class="lk" onclick="location.href=\'merchant.html\'">查看申请单与审核轨迹</span>':'—（未申请线上入驻）')+'</span></div>'
+    +'<div class="kv"><span class="k">线上开通状态</span><span class="v">'+st(m.open,OPEN_C[m.open])+(m.open==='未申请'?'　<span class="lk" onclick="toast(\'已记录：请商户管理专员线下推动其申请线上入驻（可加入待推动清单）\')">加入待推动清单</span>':'')+'</span></div>'
+    +'<div class="kv"><span class="k">店铺数</span><span class="v">'+m.shops+' 个'+(m.shops>0?'　<span class="lk" onclick="toast(\'跳转 10 商城运营 · 店铺列表（该商户名下店铺）\')">查看店铺</span>':'')+'</span></div>'
+    +'<div class="kv"><span class="k">权限状态</span><span class="v">电商权限：'+esc(m.ecom)+'　·　询价权限：'+esc(m.rfq)+'　'+(m.rfq==='未认证'?'<span class="lk" onclick="location.href=\'merchant-qual.html\'">去认证审核</span>':'')+'</span></div>'
+    +'</div>';
+
+  /* ③ 线下信息（只读） */
+  if(hasStall(m)){
+    h+='<div class="blk" style="border-color:#BBF7D0;background:#F6FEF9"><div class="blk-t" style="color:#15803D"><i class="fas fa-link"></i>③ 线下信息（只读 · 来自 02 市场资源管理）</div>'
+      +m.stalls.map(function(s){
+        return '<div class="rounded-lg bg-white border border-gray-100 p-3 mb-2"><div class="flex items-center gap-2 mb-1">'
+          +'<span class="tag" style="background:#FFEDE7;color:#E63E20">档口 '+esc(s.code)+'</span>'
+          +'<span class="text-[11px] text-[#94A3B8]">合同匹配结果</span></div>'
+          +'<div class="grid grid-cols-2 gap-x-6">'
+          +'<div class="kv"><span class="k">位置</span><span class="v">'+esc(s.b)+' · '+esc(s.floor)+'</span></div>'
+          +'<div class="kv"><span class="k">面积</span><span class="v">'+esc(s.area)+' ㎡</span></div>'
+          +'<div class="kv"><span class="k">租期</span><span class="v">'+esc(s.term)+'</span></div>'
+          +'<div class="kv"><span class="k">合同号</span><span class="v"><span class="lk" onclick="toast(\'跳转 05 合同管理（对应合同）\')">'+esc(s.contract)+'</span></span></div>'
+          +'</div></div>';
+      }).join('')
+      +'<p class="text-[11px] text-[#15803D]"><i class="fas fa-circle-info mr-1"></i>档口与租期以 02 数据为准，本页不可编辑；如需修正请去 02 摊位商铺管理。</p></div>';
+  } else {
+    h+='<div class="blk" style="border-color:#FDE68A;background:#FFFBEB"><div class="blk-t" style="color:#B45309"><i class="fas fa-link-slash"></i>③ 线下信息</div>'
+      +'<p class="text-[12px] text-[#64748B]">该商户<b>无线下档口</b>（仅线上商户）。若其实际有档口，请先到「线下自动建档与同步」页处理建档异常，不要在此手工关联。</p></div>';
+  }
+
+  /* ④ 信用评级 */
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-star text-[#F59E0B]"></i>④ 信用评级</div>'
+    +'<div class="grid grid-cols-2 gap-x-6">'
+    +'<div class="kv"><span class="k">信用等级</span><span class="v font-semibold">'+esc(m.credit)+'（'+m.score+' 分）</span></div>'
+    +'<div class="kv"><span class="k">评估周期</span><span class="v">2026-09</span></div>'
+    +'</div><div class="mt-2 text-[12px] text-[#64748B]">分项：交易 38.5 / 评价 19.0 / 缴费 <span style="color:#B45309">数据缺失</span> / 违规 −2.0　'
+    +'<span class="lk" onclick="location.href=\'merchant-rating.html\'">查看评级详情</span></div></div>';
+
+  /* ⑤ 画像标签 */
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-tags text-[#7C3AED]"></i>⑤ 画像标签</div>'
+    +'<div class="mb-2"><span class="text-[11px] text-[#94A3B8] mr-2">实力标签</span>'
+    +(m.tags.filter(function(t){return TAG_POOL.strong.indexOf(t)>-1;}).map(function(t){return '<span class="tag" style="background:#F3E8FF;color:#7C3AED;margin-right:4px">'+esc(t)+'</span>';}).join('')||'<span class="text-[11px] text-[#94A3B8]">—</span>')+'</div>'
+    +'<div><span class="text-[11px] text-[#94A3B8] mr-2">风险标签</span>'
+    +(m.tags.filter(function(t){return TAG_POOL.risk.indexOf(t)>-1;}).map(function(t){return '<span class="tag" style="background:#FEE2E2;color:#B91C1C;margin-right:4px">'+esc(t)+'</span>';}).join('')||'<span class="text-[11px] text-[#94A3B8]">—</span>')+'</div>'
+    +'<div class="flex items-center gap-2 mt-3"><select id="tagSel" class="sel" style="width:220px">'
+    +TAG_POOL.strong.concat(TAG_POOL.risk).map(function(t){return '<option>'+t+'</option>';}).join('')
+    +'</select><button class="btn btn-ghost" onclick="addTag()">＋ 添加标签</button>'
+    +(m.tags.length?'<button class="btn btn-ghost" onclick="toast(\'已清除全部标签（原型）\')">清除标签</button>':'')+'</div></div>';
+
+  /* ⑥ 变更与操作留痕 */
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-clock-rotate-left text-[#64748B]"></i>⑥ 变更与操作留痕</div>'
+    +'<div class="text-[12px] text-[#64748B] leading-7">'
+    +'· 建档（'+(m.src==='线上申请'?'线上入驻审核通过':(m.src==='线下自动'?'线下自动建档任务':'运营手工补档'))+'）　'+esc(m.time)+'<br>'
+    +(m.type==='线上兼档口'?'· 类型判定「线上兼档口」（依据：命中线下档口）<br>':'')
+    +(m.type==='仅线下档口（未上线）'?'· 自动建档，标记「身份待补全」'+(m.idno?'':'（缺身份证号）')+'<br>':'')
+    +'· 信用评级更新为 '+esc(m.credit)+'　2026-09-01<br>'
+    +'</div></div>';
+
+  /* ⑦ 关联数据入口 */
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-diagram-project text-[#64748B]"></i>⑦ 关联数据入口</div>'
+    +'<div class="flex flex-wrap gap-2">'
+    +'<button class="btn btn-ghost" onclick="toast(\'跳转 05 合同管理（该商户名下合同）\')">合同管理</button>'
+    +'<button class="btn btn-ghost" onclick="toast(\'跳转 06 缴费管理（该商户账单与欠费）\')">缴费管理</button>'
+    +'<button class="btn btn-ghost" onclick="toast(\'跳转 10 商城运营 · 店铺列表\')">名下店铺</button>'
+    +'<button class="btn btn-ghost" onclick="toast(\'跳转买家端评价（该商户评价明细）\')">买家评价</button>'
+    +'</div></div>';
+
+  if(edit){
+    h+='<div class="blk" style="border-color:#FDB4A3;background:#FFF6F3"><div class="blk-t" style="color:#E63E20"><i class="fas fa-triangle-exclamation"></i>只读字段说明</div>'
+      +'<p class="text-[12px] text-[#64748B] leading-6">证件号、商户编号、<b>商户类型</b>、<b>关联档口</b>均<b>不可在本页编辑</b>——类型与档口由系统按来源判定（线上审核结果 + 02 档口数据），如需修正请去对应来源处理。</p></div>';
+  }
+
+  h+='</div>';
+  h+='<div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeD()">关闭</button>'
+    +(edit
+      ? '<button class="btn btn-primary" onclick="saveEdit()">保存修改</button>'
+      : '<button class="btn btn-primary" onclick="openD(\''+m.id+'\',\'edit\')">编辑</button>'
+        +'<button class="btn btn-ghost" style="color:#B91C1C;border-color:#FECACA" onclick="toast(\'已发起暂停/冻结申请，待运营主管审批（原型）\')">暂停 / 冻结</button>')
+    +'</div>';
+  document.getElementById('drawer').innerHTML=h;
+  document.getElementById('mask').classList.add('on');
+  document.getElementById('drawer').classList.add('on');
+}
+function closeD(){
+  document.getElementById('mask').classList.remove('on');
+  document.getElementById('drawer').classList.remove('on');
+}
+function addTag(){
+  var m=MS.filter(function(x){return x.id===curId;})[0];
+  var t=document.getElementById('tagSel').value;
+  if(!m||!t){return;}
+  if(m.tags.indexOf(t)>-1){toast('该标签已存在');return;}
+  m.tags.push(t);openD(curId,curMode);toast('已添加标签「'+t+'」（留痕）；风险标签会自动联动风控规则');
+}
+function saveEdit(){
+  var m=MS.filter(function(x){return x.id===curId;})[0];
+  if(!m){return;}
+  m.phone=document.getElementById('e-phone').value.trim();
+  m.cat=document.getElementById('e-cat').value.trim();
+  openD(curId,'view');render();toast('已保存修改（联系方式 / 经营品类），变更已留痕');
+}
+/* ================= 手工补档 ================= */
+function openNew(){
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">手工补档</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">仅用于自动建档未覆盖的线下租户补录；能自动建档的请走「线下自动建档与同步」</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeD()"><i class="fas fa-xmark"></i></button></div>'
+    +'<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div><label class="fl">主体名称（商户 / 经营户）</label><input class="fi" id="n-name" placeholder="如：晓琳袜业经营部"></div>'
+    +'<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl">经营者姓名</label><input class="fi" id="n-person" placeholder="如：汤晓琳"></div>'
+    +'<div><label class="fl">身份证号（可后补）</label><input class="fi" id="n-idno" placeholder="选填；缺失将标记「身份待补全」"></div>'
+    +'</div>'
+    +'<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl">主体类型</label><select class="sel" id="n-sub"><option>个体工商户</option><option>企业</option><option>工厂制造商</option></select></div>'
+    +'<div><label class="fl">主营品类</label><input class="fi" id="n-cat" placeholder="如：女袜"></div>'
+    +'</div>'
+    +'<div><label class="fl">补档原因（必填）</label><input class="fi" id="n-why" placeholder="如：该档口合同缺身份证号，自动建档未命中，人工核对后补档"></div>'
+    +'<div class="rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B]">提示：补档后<b>档口关联仍需在 02 侧维护</b>；若同一身份证已存在档案，系统会提示合并而不是新建。</p></div>'
+    +'</div>'
+    +'<div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeD()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveNew()">确认补档</button></div>';
+  document.getElementById('drawer').innerHTML=h;
+  document.getElementById('mask').classList.add('on');
+  document.getElementById('drawer').classList.add('on');
+}
+function saveNew(){
+  var name=document.getElementById('n-name').value.trim(),person=document.getElementById('n-person').value.trim(),
+      idno=document.getElementById('n-idno').value.trim(),why=document.getElementById('n-why').value.trim(),
+      sub=document.getElementById('n-sub').value,cat=document.getElementById('n-cat').value.trim();
+  if(!name||!person){toast('主体名称与经营者姓名为必填');return;}
+  if(!why){toast('补档原因必填（用于留痕与审核）');return;}
+  var dup=MS.filter(function(x){return idno&&x.idno===idno;})[0];
+  if(dup){toast('该身份证已存在档案「'+dup.name+'」，请走资料变更 / 合并流程，不新建');return;}
+  MS.unshift({id:'MB2026'+String(Math.floor(Math.random()*900000)+100000),name:name,sub:sub,type:'仅线下档口（未上线）',open:'未申请',src:'手工补档',
+    stalls:[],cat:cat||'—',time:'2026-09-28',credit:'待评级',score:'—',status:'正常',person:person,idno:idno,
+    code:'',phone:'—',addr:'—',tags:[],shops:0,ecom:'未开通',rfq:'未开通'});
+  curRows=MS.slice();closeD();render();renderStats();
+  toast('已补档：'+name+'（来源=手工补档'+(idno?'':'，身份待补全')+'）');
+}
+/* ================= 初始化 ================= */
+renderStats();
+render();
+</script>
 </body>
 </html>

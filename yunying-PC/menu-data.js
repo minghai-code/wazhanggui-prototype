@@ -18,8 +18,8 @@
  * 【顺序】数组顺序 = 侧边栏展示顺序，调整顺序即移动数组元素，勿复制粘贴
  * ========================================================================== */
 
-window.MENU_VERSION = '2026.09.24-01';
-window.MENU_UPDATED = '2026-09-24';
+window.MENU_VERSION = '2026.09.30-01';
+window.MENU_UPDATED = '2026-09-30';
 
 window.MENU_DATA = [
 
@@ -58,10 +58,13 @@ window.MENU_DATA = [
 {
   id: '04-merchant', name: '商户管理', icon: 'fa-store', open: false,
   children: [
-    { type: 'item', name: '入驻申请审核', page: 'merchant.html', status: 'done', points: ['新增商户', '入驻申请列表', '通过/驳回'] },
-    { type: 'item', name: '资料变更审核', page: 'merchant-change.html', status: 'done', points: ['申请列表', '通过/驳回'] },
-    { type: 'item', name: '商户档案', page: 'merchant-profile.html', status: 'done', points: ['商户列表', '详情', '编辑', '画像标签'] },
-    { type: 'item', name: '信用评级', page: 'merchant-rating.html', status: 'done', points: ['信用指标规则配置', '商户列表', '评级详情', '调整'] }
+    { type: 'item', name: '入驻申请审核', page: 'merchant.html', status: 'done', points: ['线上入驻申请初审/复审', '关联线下档口（只读，来自 02）', '商户类型预判（仅线上/线上兼档口）', '驳回原因必填 + 需补充材料 + 通过后开通权限'] },
+    { type: 'item', name: '线下自动建档与同步', page: 'merchant-auto.html', status: 'done', points: ['每日任务：读「合同管理 + 摊位商铺管理」在租档口', '按姓名+身份证自动建档（免申请，身份不全时降级建档）', '同步任务卡与同步日志', '自动建档异常清单与处理'] },
+    { type: 'item', name: '资料变更审核', page: 'merchant-change.html', status: 'done', points: ['变更类型：企业信息/联系方式/资质/经营类目（移除商位）', '申请列表', '通过/驳回（原因必填）', '主档回写留痕'] },
+    { type: 'item', name: '商户档案', page: 'merchant-profile.html', status: 'done', points: ['商户类型（仅线上/线上兼档口/仅线下档口（未上线））', '线上开通状态', '关联档口（只读，来自 02）', '详情/编辑/画像标签/操作留痕'] },
+    { type: 'item', name: '信用评级', page: 'merchant-rating.html', status: 'done', points: ['信用指标规则配置（交易/评价/缴费，版本化不回溯）', '多源自动评分（缴费无源时标"数据缺失"）', '商户评级列表', '评级详情与人工调整留痕'] },
+    { type: 'item', name: '资质认证审核', page: 'merchant-qual.html', status: 'done', points: ['企业资质在线审批（营业执照/生产许可/品牌授权/质检报告）', '通过 → 开启询价权限', '到期/驳回 → 自动冻结询价权限', '到期提醒与重传'] },
+    { type: 'item', name: '退租/清退', page: 'merchant-exit.html', status: 'done', points: ['退租（联动 02 档口回空闲、06 停账）', '清退（关闭线上权限，档案置已清退、历史保留）', '待办清单（店铺下架/权限回收/账单结清/保证金/档口回空闲）与审批'] }
   ]
 },
 
@@ -69,8 +72,11 @@ window.MENU_DATA = [
 {
   id: '05-contract', name: '合同管理', icon: 'fa-file-contract', open: false,
   children: [
-    { type: 'item', name: '合同模板管理', page: null, status: 'dev', points: ['模板列表', '新增编辑'] },
-    { type: 'item', name: '合同签署留档', page: null, status: 'dev', points: ['合同列表', '签署状态', '归档查看'] }
+    { type: 'item', name: '合同模板管理', page: 'contract-template.html', status: 'done', points: ['模板列表（租赁合同 / 物业合同 / 电子协议）', '新增编辑与版本（版本化 + 启停，回滚生成新版本）', '变量占位（生成 / 打印用），被引用不可删除只能停用'] },
+    { type: 'item', name: '合同台账与签署留档', page: 'contract-list.html', status: 'done', points: ['合同台账（对齐客户台账 21 字段）', '批量导入 + 错误报告（整批校验）', '摊位号 ↔ 档口编号映射', '线下签署扫描归档（不做在线电子签）', '租赁年度应收计划（→ 06 年度账单与催收）', '固定保证金（精品 2 万 / 普通 1 万）'] },
+    { type: 'item', name: '到期预警与续约退租', page: 'contract-expiry.html', status: 'done', points: ['到期预警 T-90/60/30（锚定租赁年度末 8.31）', '续约（生成新合同，租期不断档）/ 退租 / 终止 / 忽略', '商户端续签·退租申请受理', '退租下游联动逐项确认（02 回空闲 / 06 停账 / 04 类型回退 / 保证金结算）'] },
+    { type: 'item', name: '合同变更审核', page: 'contract-change.html', status: 'done', points: ['变更类型：租金 / 租期 / 面积 / 承租人 / 摊位号', '前后对比 + 变更原因 + 附件 + 下游影响预览', '审批（合同号不变，生成新版本）→ 回写留痕 + 重推 02/06'] },
+    { type: 'item', name: '保证金台账', page: 'contract-deposit.html', status: 'done', points: ['固定金额：精品摊 2 万 / 普通摊 1 万（摊位等级带出，不可手改）', '应收 / 已收 / 退还 / 抵扣（主管审批）', '退还前校验无未结账单', '与 04 退租·清退单的「保证金处理」待办联动'] }
   ]
 },
 

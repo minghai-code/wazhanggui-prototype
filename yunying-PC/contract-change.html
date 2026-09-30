@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>合同管理 - 合同变更审核</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}.lk:hover{text-decoration:underline}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}.lk-gray:hover{color:#1F2430;text-decoration:underline}
+.st{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500;white-space:nowrap}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:60}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:680px;max-width:96vw;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:70;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);width:760px;max-width:95vw;max-height:86vh;overflow-y:auto;background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(15,23,42,.28);opacity:0;pointer-events:none;transition:.22s;z-index:70}
+.modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+.blk{border:1px solid #E2E8F0;border-radius:12px;padding:14px 16px}
+.blk-t{font-size:12.5px;font-weight:700;color:#1F2430;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.kv{display:flex;gap:8px;font-size:12px;line-height:1.9}
+.kv .k{color:#94A3B8;width:110px;flex-shrink:0}
+.kv .v{color:#1F2430;flex:1;word-break:break-all}
+.fi{width:100%;padding:6px 10px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none;background:#fff}
+.fi:focus{border-color:#FF4D2D}
+.fl{display:block;font-size:11px;color:#94A3B8;margin-bottom:4px}
+.sel{width:100%;padding:6px 8px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none}
+button{cursor:pointer}
+.ck{display:flex;align-items:flex-start;gap:7px;font-size:12px;color:#334155;line-height:1.7;padding:6px 0}
+.ck input{margin-top:3px}
+</style>
+<!-- Tailwind 静态样式：本地引用（不再依赖 cdn.tailwindcss.com）；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<div class="p-6">
+
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">合同变更审核</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">05 合同管理</span>
+      </div>
+      <p class="text-[12px] text-gray-400 mt-1">受理并审批合同变更（租金 / 租期 / 面积 / 承租人 / 摊位号）。<b>变更不改合同号</b>：通过后<b>生成新版本 + 回写留痕</b>，并<b>重推 02 市场资源管理 / 06 缴费管理</b>；变更生效日默认次日。敏感字段（承租人 / 租期 / 租金）必须填写变更原因并经主管审批</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="toast('已导出变更单（含前后对比，身份证已脱敏）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+      <button class="btn btn-ghost" onclick="location.href='contract-list.html'"><i class="fas fa-table-list text-[10px] mr-1"></i>去合同台账</button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-4 gap-3 mb-4" id="stats"></div>
+
+  <!-- 筛选 -->
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+    <div class="flex items-center gap-3 flex-wrap">
+      <input id="f-kw" type="text" placeholder="变更单号 / 合同号 / 承租人" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary w-64">
+      <select id="f-type" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部变更类型</option><option>租金变更</option><option>租期变更</option><option>面积变更</option><option>承租人变更</option><option>摊位号变更</option>
+      </select>
+      <select id="f-src" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部来源</option><option>运营发起</option><option>商户端申请</option>
+      </select>
+      <select id="f-state" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部状态</option><option>待审核</option><option>已通过</option><option>已驳回</option>
+      </select>
+      <input id="f-d1" type="date" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+      <span class="text-[12px] text-gray-400">至</span>
+      <input id="f-d2" type="date" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+      <button class="btn btn-primary" onclick="doSearch()">查询</button>
+      <button class="btn btn-ghost" onclick="resetSearch()">重置</button>
+      <span class="text-[11px] text-[#94A3B8] ml-auto"><i class="fas fa-circle-info mr-1"></i>日期区间按「提交时间」筛</span>
+    </div>
+  </div>
+
+  <!-- 列表 -->
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-[13px] font-bold text-[#1F2430]">变更单列表</span>
+        <span class="text-[12px] text-[#94A3B8]" id="cnt">共 0 条</span>
+      </div>
+      <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>通过后：合同状态回到「生效中」+ 版本 v+1 + 重推 02/06 + 通知商户</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-[13px]" style="min-width:1400px">
+        <thead>
+          <tr class="bg-gray-50 text-gray-500 text-[12px]">
+            <th class="px-4 py-3 text-left font-medium">变更单号</th>
+            <th class="px-4 py-3 text-left font-medium">合同号 / 承租人</th>
+            <th class="px-4 py-3 text-left font-medium">变更类型</th>
+            <th class="px-4 py-3 text-left font-medium">变更前后对比</th>
+            <th class="px-4 py-3 text-left font-medium">来源 / 提交人</th>
+            <th class="px-4 py-3 text-left font-medium">提交时间</th>
+            <th class="px-4 py-3 text-left font-medium">状态</th>
+            <th class="px-4 py-3 text-center font-medium">操作</th>
+          </tr>
+        </thead>
+        <tbody id="tb" class="divide-y divide-gray-50"></tbody>
+      </table>
+    </div>
+    <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+      <span class="text-[12px] text-gray-400" id="pageInfo">共 0 条记录</span>
+      <div class="flex items-center gap-1">
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100" onclick="toast('已是第一页（原型）')"><i class="fas fa-chevron-left text-[10px]"></i></button>
+        <button class="w-7 h-7 flex items-center justify-center text-white text-[12px] rounded" style="background:#FF4D2D" onclick="toast('当前第 1 页（原型）')">1</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100" onclick="toast('已切换到第 2 页（原型）')"><i class="fas fa-chevron-right text-[10px]"></i></button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div id="mask" class="mask" onclick="closeAll()"></div>
+<div id="drawer" class="drawer"></div>
+<div id="modal" class="modal"></div>
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
+
+<script>
+/* ================= 模拟数据（原型态）　基准日 = 2026-09-28 ================= */
+/* 规则：变更不改合同号；通过 → 生成新版本（v+1）+ 留痕 + 重推 02/06；生效日默认次日 */
+var CH=[
+  {id:'BG2026-0012',no:'HT2025-0231',mer:'郑强',stall:'B3-10',gate:'3F-B10',type:'租金变更',src:'商户端申请',
+   from:'38,200 元/年',to:'40,110 元/年',eff:'2026-09-29',ver:'v1 → v2',by:'商户端 郑强',time:'2026-09-27 09:35',state:'待审核',
+   reason:'周边市场租金上调，协商一致按年递增 5%',
+   fields:[['年租金','38,200 元','40,110 元'],['总租金（3 年）','114,600 元','120,330 元']],
+   file:'租金调整协商函.pdf'},
+  {id:'BG2026-0013',no:'HT2026-0069',mer:'汤晓琳',stall:'A9-10',gate:'1F-A09',type:'租期变更',src:'运营发起',
+   from:'2026.09.01~2029.08.31',to:'2026.09.01~2030.08.31',eff:'2026-09-29',ver:'v1 → v2',by:'合同管理专员 何静',time:'2026-09-27 14:20',state:'待审核',
+   reason:'商户申请扩期，经运营评估同意延期 1 年（租金不变）',
+   fields:[['租赁期限','2026.09.01 ~ 2029.08.31','2026.09.01 ~ 2030.08.31'],['总租金','136,800 元（3 年）','182,400 元（4 年）'],['应收期次','3 期','4 期']],
+   file:'扩期申请审批单.pdf'},
+  {id:'BG2026-0014',no:'HT2024-0102',mer:'赵敏',stall:'A9-15',gate:'1F-A15',type:'面积变更',src:'运营发起',
+   from:'160.0 ㎡',to:'147.2 ㎡',eff:'2026-09-29',ver:'v1 → v2',by:'物业 吴海',time:'2026-09-26 11:05',state:'待审核',
+   reason:'物业实测复尺，因隔断调整实际可用面积减少 12.8 ㎡',
+   fields:[['出租面积','160.0 ㎡','147.2 ㎡']],
+   file:'实测复尺记录.pdf'},
+  {id:'BG2026-0015',no:'HT2025-0070',mer:'陈志强 → 周建华',stall:'A9-12',gate:'1F-A12',type:'承租人变更',src:'商户端申请',
+   from:'陈志强',to:'周建华（亲属承接）',eff:'2026-09-29',ver:'v1 → v2',by:'商户端 陈志强',time:'2026-09-26 16:48',state:'待审核',
+   reason:'原承租人不再经营，由亲属承接档口经营权（需补交新承租人身份证与承接协议）',
+   fields:[['承租方（乙方）','陈志强','周建华'],['身份证号','3306811985********','3306811993********'],['历届租户','留痕：陈志强（2025.09–2026.09）','新增：周建华（承接）']],
+   file:'档口承接协议.pdf'},
+  {id:'BG2026-0016',no:'HT2024-0098',mer:'顾建平',stall:'A9-20',gate:'1F-A20',type:'摊位号变更',src:'运营发起',
+   from:'A9-20',to:'A9-21',eff:'—',ver:'v1',by:'物业 吴海',time:'2026-09-25 10:30',state:'已驳回',
+   reason:'物业申请将 A9-20 相邻的 A9-21 调换给该商户',
+   fields:[['资产名称（摊位号）','A9-20','A9-21']],
+   file:'摊位调整申请.pdf',rj:'摊位号变更等同换租，按规范应拆为「退租 + 新签」两笔业务（避免租期与账单错乱），请重新提交'},
+  {id:'BG2026-0008',no:'HT2026-0071',mer:'王建国',stall:'A9-11',gate:'1F-A11',type:'租金变更',src:'运营发起',
+   from:'45,600 元/年',to:'43,320 元/年',eff:'2026-09-20',ver:'v1 → v2',by:'合同管理专员 何静',time:'2026-09-18 15:10',state:'已通过',
+   reason:'长期免租期折算，招商让利（主管已审批）',
+   fields:[['年租金','45,600 元','43,320 元']],
+   file:'让利审批单.pdf',ok:'运营主管 张磊 已审批（2026-09-19）：同意按 43,320 元执行，已重推 02/06'},
+  {id:'BG2026-0009',no:'HT2025-0070',mer:'陈志强',stall:'A9-12',gate:'1F-A12',type:'租期变更',src:'运营发起',
+   from:'2025.09.01~2030.08.31',to:'2025.09.01~2031.08.31',eff:'2026-09-12',ver:'v1 → v2',by:'合同管理专员 何静',time:'2026-09-10 09:00',state:'已通过',
+   reason:'精品摊续签前置扩期 1 年，与下一租赁年度衔接',
+   fields:[['租赁期限','2025.09.01 ~ 2030.08.31','2025.09.01 ~ 2031.08.31'],['应收期次','5 期','6 期']],
+   file:'扩期审批单.pdf',ok:'运营主管 张磊 已审批（2026-09-11）：同意'},
+  {id:'BG2026-0010',no:'HT2026-0072',mer:'周雅琴',stall:'A9-13',gate:'1F-A13',type:'租金变更',src:'商户端申请',
+   from:'45,600 元/年',to:'38,000 元/年',eff:'—',ver:'v1',by:'商户端 周雅琴',time:'2026-09-14 11:26',state:'已驳回',
+   reason:'商户以经营困难为由申请下调年租金 16.7%',
+   fields:[['年租金','45,600 元','38,000 元']],
+   file:'调价申请.pdf',rj:'缺乏调价依据：请补充周边同类档口比价材料与近 3 个月经营流水，再行提交'}
+];
+var curRows=CH.slice(),curId=null;
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},2800);}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function cOf(id){return CH.filter(function(x){return x.id===id;})[0];}
+var STC={'待审核':'background:#FEF3C7;color:#B45309','已通过':'background:#DCFCE7;color:#15803D','已驳回':'background:#F1F5F9;color:#64748B'};
+var TYC={'租金变更':'background:#FFEDE7;color:#E63E20','租期变更':'background:#DBEAFE;color:#2563EB',
+  '面积变更':'background:#F1F5F9;color:#475569','承租人变更':'background:#EDE9FE;color:#6D28D9','摊位号变更':'background:#FEF3C7;color:#B45309'};
+function st(s,c){return '<span class="st" style="'+(c||'background:#F1F5F9;color:#64748B')+'">'+esc(s)+'</span>';}
+function isKey(t){return t==='租金变更'||t==='租期变更';}
+
+function renderStats(){
+  var c={wait:0,ok:0,rj:0,key:0};
+  CH.forEach(function(x){
+    if(x.state==='待审核'){c.wait++;}
+    if(x.state==='已通过'){c.ok++;}
+    if(x.state==='已驳回'){c.rj++;}
+    if(isKey(x.type)&&x.state==='待审核'){c.key++;}
+  });
+  var cards=[['待审核',c.wait,'#B45309'],['本月通过',c.ok,'#15803D'],['本月驳回',c.rj,'#64748B'],['待审中含租金 / 租期变更',c.key,'#E63E20']];
+  document.getElementById('stats').innerHTML=cards.map(function(x){
+    return '<div class="bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">'+x[0]+'</p><p class="text-xl font-bold mt-1" style="color:'+x[2]+'">'+x[1]+'</p></div>';
+  }).join('');
+}
+function render(){
+  var h='';
+  curRows.forEach(function(x){
+    var ops=x.state==='待审核'
+      ?'<span class="lk" onclick="openReview(\''+x.id+'\')">审核</span> · <span class="lk-gray" onclick="openReview(\''+x.id+'\')">详情</span>'
+      :'<span class="lk-gray" onclick="openReview(\''+x.id+'\')">详情</span>';
+    h+='<tr class="hover:bg-gray-50 transition">'
+      +'<td class="px-4 py-3"><div class="font-medium text-[#1F2430]">'+esc(x.id)+'</div>'
+        +'<div class="text-[11px] text-[#94A3B8]">'+esc(x.ver)+'</div></td>'
+      +'<td class="px-4 py-3"><div class="font-medium text-[#1F2430]">'+esc(x.no)+'</div>'
+        +'<div class="text-[11px] text-[#94A3B8]">'+esc(x.mer)+'　'+esc(x.stall)+' → '+esc(x.gate)+'</div></td>'
+      +'<td class="px-4 py-3"><span class="tag" style="'+TYC[x.type]+'">'+esc(x.type)+'</span>'
+        +(isKey(x.type)?'<div class="text-[11px]" style="color:#E63E20">敏感字段，需主管审批</div>':'')+'</td>'
+      +'<td class="px-4 py-3 text-[12px]"><span class="text-[#94A3B8] line-through">'+esc(x.from)+'</span>'
+        +' <i class="fas fa-arrow-right text-[9px] text-[#94A3B8] mx-1"></i><span class="font-semibold text-[#1F2430]">'+esc(x.to)+'</span>'
+        +'<div class="text-[11px] text-[#94A3B8] mt-0.5">期望生效：'+esc(x.eff)+'</div></td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(x.src)+'<div class="text-[11px] text-[#94A3B8]">'+esc(x.by)+'</div></td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(x.time)+'</td>'
+      +'<td class="px-4 py-3">'+st(x.state,STC[x.state])
+        +(x.state==='已驳回'&&x.rj?'<div class="text-[11px] mt-1" style="color:#B91C1C">'+esc(x.rj.slice(0,12))+'…</div>':'')
+        +(x.state==='已通过'&&x.ok?'<div class="text-[11px] mt-1" style="color:#15803D">已回写并重推 02/06</div>':'')+'</td>'
+      +'<td class="px-4 py-3 text-center whitespace-nowrap">'+ops+'</td></tr>';
+  });
+  if(!curRows.length){h='<tr><td colspan="8" class="px-4 py-16 text-center text-gray-300"><i class="fas fa-inbox text-3xl block mb-2"></i><span class="text-[12px]">暂无匹配的变更单</span></td></tr>';}
+  document.getElementById('tb').innerHTML=h;
+  document.getElementById('cnt').textContent='共 '+curRows.length+' 条';
+  document.getElementById('pageInfo').textContent='共 '+curRows.length+' 条记录，第 1-'+curRows.length+' 条';
+}
+function doSearch(){
+  var kw=document.getElementById('f-kw').value.trim(),t=document.getElementById('f-type').value,
+      s=document.getElementById('f-src').value,ss=document.getElementById('f-state').value,
+      d1=document.getElementById('f-d1').value,d2=document.getElementById('f-d2').value;
+  curRows=CH.filter(function(x){
+    var okKw=!kw||x.id.indexOf(kw)>-1||x.no.indexOf(kw)>-1||x.mer.indexOf(kw)>-1;
+    var d=x.time.slice(0,10);
+    return okKw&&(!t||x.type===t)&&(!s||x.src===s)&&(!ss||x.state===ss)&&(!d1||d>=d1)&&(!d2||d<=d2);
+  });
+  render();toast('已按条件查询，共 '+curRows.length+' 条');
+}
+function resetSearch(){
+  ['f-kw','f-type','f-src','f-state','f-d1','f-d2'].forEach(function(k){document.getElementById(k).value='';});
+  curRows=CH.slice();render();toast('已重置筛选条件');
+}
+
+/* ================= 审核抽屉 ================= */
+function openReview(id){
+  curId=id;
+  var x=cOf(id);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+esc(x.id)+'　<span class="text-[12px] font-normal text-[#94A3B8]">'+esc(x.type)+'</span></h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+st(x.state,STC[x.state])+' '+st(x.ver,'background:#F1F5F9;color:#475569')+(isKey(x.type)?' '+st('敏感字段','background:#FFEDE7;color:#E63E20'):'')+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-file-signature text-[#FF4D2D]"></i>变更单信息</div>'
+    +'<div class="grid grid-cols-2 gap-x-6">'
+    +'<div class="kv"><span class="k">变更单号</span><span class="v font-semibold">'+esc(x.id)+'</span></div>'
+    +'<div class="kv"><span class="k">合同号</span><span class="v">'+esc(x.no)+'　<span class="lk" onclick="location.href=\'contract-list.html\'">去台账</span></span></div>'
+    +'<div class="kv"><span class="k">承租人</span><span class="v">'+esc(x.mer)+'</span></div>'
+    +'<div class="kv"><span class="k">摊位号 → 档口</span><span class="v">'+esc(x.stall)+' → '+esc(x.gate)+'</span></div>'
+    +'<div class="kv"><span class="k">来源 / 提交人</span><span class="v">'+esc(x.src)+'　'+esc(x.by)+'</span></div>'
+    +'<div class="kv"><span class="k">提交时间</span><span class="v">'+esc(x.time)+'</span></div>'
+    +'<div class="kv"><span class="k">期望生效日</span><span class="v">'+esc(x.eff)+'（变更生效日默认次日）</span></div>'
+    +'<div class="kv"><span class="k">版本</span><span class="v">'+esc(x.ver)+'（变更不改合同号，生成新版本）</span></div>'
+    +'</div></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-code-compare text-[#B45309]"></i>变更前后对比</div>'
+    +'<table class="w-full text-[12px]"><thead><tr class="text-gray-500 text-[11px]">'
+    +'<th class="text-left py-1.5 font-medium">字段</th><th class="text-left py-1.5 font-medium">改前</th><th class="text-left py-1.5 font-medium">改后</th></tr></thead><tbody>';
+  x.fields.forEach(function(f){
+    h+='<tr class="border-t border-gray-50"><td class="py-2 text-[#64748B]">'+esc(f[0])+'</td>'
+      +'<td class="py-2 text-[#94A3B8] line-through">'+esc(f[1])+'</td>'
+      +'<td class="py-2 font-semibold text-[#1F2430]">'+esc(f[2])+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-comment-dots text-[#64748B]"></i>变更原因与附件</div>'
+    +'<p class="text-[12px] text-[#334155] leading-6">'+esc(x.reason)+'</p>'
+    +'<div class="mt-2"><span class="lk" onclick="toast(\'预览附件：'+esc(x.file)+'\')"><i class="fas fa-paperclip text-[10px] mr-1"></i>'+esc(x.file)+'</span></div>'
+    +(x.rj?'<div class="rounded-xl border p-3 mt-3" style="border-color:#FEE2E2;background:#FEF2F2"><p class="text-[11px]" style="color:#B91C1C"><b>驳回原因：</b>'+esc(x.rj)+'</p></div>':'')
+    +(x.ok?'<div class="rounded-xl border p-3 mt-3" style="border-color:#BBF7D0;background:#F0FDF4"><p class="text-[11px] text-[#15803D]"><b>审批记录：</b>'+esc(x.ok)+'</p></div>':'')
+    +'</div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-diagram-project text-[#0EA5E9]"></i>下游影响预览（通过后自动执行）</div>'
+    +'<div class="text-[12px] text-[#64748B] leading-7">'
+    +'· <b>02 市场资源管理</b>：档口 '+esc(x.gate)+' 的'+(x.type==='租期变更'?'租期':(x.type==='面积变更'?'面积':'租期 / 当前租户'))+'同步更新（按合同唯一写入方口径）<br>'
+    +'· <b>06 缴费管理</b>：'+(isKey(x.type)?'<b>年度账单将重算</b>（涉及租金 / 期次）':'年度账单金额不变，仅同步租期口径')+'<br>'
+    +'· <b>04 商户管理</b>：'+(x.type==='承租人变更'?'承租人变更 → <b>档案更新 + 历届租户留痕</b>，新承租人需补交身份证与承接协议':'档案按合同口径增量更新')+'<br>'
+    +'· <b>商户端</b>：通知商户变更结果，商户端「我的合同」展示新版本</div></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">关闭</button>'
+    +(x.state==='待审核'
+      ?'<button class="btn btn-ghost" onclick="openRejectChange(\''+x.id+'\')">驳回</button>'
+        +'<button class="btn btn-primary" onclick="openApprove(\''+x.id+'\')">审核通过</button>'
+      :'<button class="btn btn-ghost" onclick="toast(\'查看该合同的历史版本与留痕（原型）\')">查看版本留痕</button>')
+    +'</div>';
+  show('drawer',h);
+}
+
+/* ================= 通过 ================= */
+function openApprove(id){
+  curId=id;
+  var x=cOf(id);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">审核通过　'+esc(x.id)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">回写变更 + 生成新版本 + 重推下游（合同号不变）</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>'
+    +'<div class="px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl">变更生效日（默认次日）</label><input class="fi" id="a-eff" type="date" value="2026-09-29"></div>'
+    +'<div><label class="fl">版本</label><input class="fi" value="'+esc(x.ver)+'" readonly></div>'
+    +'</div>'
+    +'<div><label class="fl">审批意见（可选）</label><textarea class="fi" id="a-note" rows="2" placeholder="例：同意按协商结果执行，已核对附件材料"></textarea></div>'
+    +'<div class="blk" style="border-color:#FDE68A;background:#FFFBEB"><div class="blk-t" style="color:#B45309"><i class="fas fa-list-check"></i>通过后自动执行</div>'
+    +'<label class="ck"><input type="checkbox" id="p1" checked><span>回写合同字段并生成新版本 '+esc(x.ver)+'（原版本仍可查）</span></label>'
+    +'<label class="ck"><input type="checkbox" id="p2" checked><span>重推 <b>02 市场资源管理</b>（档口租期 / 面积口径）</span></label>'
+    +'<label class="ck"><input type="checkbox" id="p3" checked><span>重推 <b>06 缴费管理</b>（年度账单重算，如涉及租金 / 期次）</span></label>'
+    +'<label class="ck"><input type="checkbox" id="p4" checked><span>通知商户端变更结果</span></label>'
+    +'</div></div>'
+    +'<div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveApprove()">确认通过</button></div>';
+  show('modal',h);
+}
+function saveApprove(){
+  var x=cOf(curId),note=document.getElementById('a-note').value.trim();
+  var eff=document.getElementById('a-eff').value.replace(/-/g,'.');
+  x.state='已通过';
+  x.ok='运营主管 张磊 已审批（'+eff+'）：'+(note||'同意，按变更单执行');
+  renderStats();render();closeAll();
+  toast('变更已通过：'+x.no+' 已回写（'+x.type+'）+ 生成新版本 v2 + 重推 02/06 + 通知商户；合同状态回「生效中」');
+}
+
+/* ================= 驳回 ================= */
+function openRejectChange(id){
+  curId=id;
+  var x=cOf(id);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">驳回变更　'+esc(x.id)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(x.no)+'　'+esc(x.type)+'　'+esc(x.mer)+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>'
+    +'<div class="px-5 py-4">'
+    +'<div><label class="fl">驳回原因（必填，将通知提交人）</label><textarea class="fi" id="rj-note" rows="3" placeholder="例：附件材料不全 / 缺乏调价依据 / 应拆为退租 + 新签"></textarea></div>'
+    +'<div class="rounded-xl border p-3 mt-3" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B]">驳回后合同状态<b>维持「生效中」不变</b>（不产生新版本）；提交人可修改后重新提交。</p></div>'
+    +'</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveRejectChange()">确认驳回</button></div>';
+  show('modal',h);
+}
+function saveRejectChange(){
+  var note=document.getElementById('rj-note').value.trim();
+  if(!note){toast('驳回原因必填');return;}
+  var x=cOf(curId);
+  x.state='已驳回';x.rj=note;
+  renderStats();render();closeAll();
+  toast('已驳回 '+x.id+'：合同维持「生效中」，原因已通知'+x.src.replace('申请','')+'提交人');
+}
+
+/* ================= 基础 ================= */
+function show(which,h){
+  document.getElementById(which).innerHTML=h;
+  document.getElementById('mask').classList.add('on');
+  document.getElementById(which).classList.add('on');
+}
+function closeAll(){
+  document.getElementById('mask').classList.remove('on');
+  document.getElementById('drawer').classList.remove('on');
+  document.getElementById('modal').classList.remove('on');
+}
+renderStats();render();
+</script>
+</body>
+</html>
