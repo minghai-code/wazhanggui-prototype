@@ -260,6 +260,59 @@ var routes={
   }
 };
 
+/* 往期活动三要素：系统自动生成（研学活动内容 + 用户评价 + 照片），对齐后台 */
+var HISTORY_EXTRA={
+  '浙江大学研学团':{content:'走进大唐袜业智能制造工厂，实地观摩全自动织袜生产线，并与工程师围绕纱线材料、智能袜机展开交流，学生亲手完成一双定制袜。',photos:[img('Students visiting sock factory production line with machines','square'),img('Close up of automated sock knitting machine operation','square'),img('Students hands on making socks at workshop','square')],reviews:[{name:'王教授',school:'浙江大学',rating:5,date:'2026-05-20',text:'研学安排专业，讲解深入浅出，学生收获很大。'},{name:'李同学',school:'浙江大学',rating:5,date:'2026-05-20',text:'第一次看到袜子怎么织出来的，体验环节特别棒！'}]},
+  '绍兴一中研学团':{content:'绍兴一中师生参观智能制造工厂，了解从纱线到成袜的全流程，互动问答环节气氛热烈。',photos:[img('School students learning about sock manufacturing technology','square'),img('Students group discussion at factory','square')],reviews:[{name:'陈老师',school:'绍兴一中',rating:4,date:'2026-04-28',text:'工厂参观很震撼，建议增加更多互动体验时间。'}]},
+  '大唐镇中心小学':{content:'大唐镇中心小学亲子日走进工厂，孩子们近距离观察智能袜机，感受家乡产业魅力。',photos:[img('Children watching automated sock knitting machines in factory','square'),img('Children smiling at sock factory tour','square')],reviews:[{name:'周妈妈',school:'家长',rating:5,date:'2026-03-18',text:'孩子看得特别认真，回家还讲了好多袜子的知识。'}]},
+  '杭州外国语学校':{content:'杭州外国语学校学子沉浸式体验织袜工艺，技师一对一指导完成专属袜品。',photos:[img('Students making socks at workshop with knitting machines','square'),img('Students showing handmade socks','square')],reviews:[{name:'林老师',school:'杭州外国语学校',rating:5,date:'2026-03-15',text:'动手实践比课堂更直观，学生很有成就感。'}]},
+  '诸暨海亮小学':{content:'诸暨海亮小学师生漫游袜业博物馆，VR 全景体验织袜工艺演变，完成研学任务卡。',photos:[img('Students visiting sock museum exhibition hall with displays','square'),img('Students at sock museum interactive answering quiz area','square')],reviews:[{name:'赵老师',school:'诸暨海亮小学',rating:5,date:'2026-06-20',text:'小学生也能看懂听懂，VR 体验让孩子们尖叫连连。'}]},
+  '金华外国语学校':{content:'金华外国语学校团体体验 VR 织袜，了解大唐袜业四十年变迁，收获满满。',photos:[img('Children experiencing VR sock knitting at museum interactive zone','square'),img('Students at museum VR experience','square')],reviews:[{name:'吴老师',school:'金华外国语学校',rating:5,date:'2026-05-15',text:'VR 体验是最大亮点，寓教于乐。'}]},
+  '绍兴文理学院附中':{content:'绍兴文理学院附中师生参观博物馆，认真记录袜业历史文化，互动答题踊跃。',photos:[img('School group listening to museum guide at sock history display','square'),img('Students at museum history display','square')],reviews:[{name:'孙老师',school:'绍兴文理学院附中',rating:5,date:'2026-04-15',text:'文化底蕴深厚，研学任务卡设计得好。'}]},
+  '杭州学军中学':{content:'杭州学军中学团体研学，深度体验袜业文化，VR 互动区意犹未尽。',photos:[img('Students at sock museum interactive answering quiz area','square'),img('Students group photo at museum','square')],reviews:[{name:'郑老师',school:'杭州学军中学',rating:5,date:'2026-03-10',text:'博物馆底蕴深厚，研学安排很专业。'}]},
+  '杭州二中研学团':{content:'杭州二中体验营一日，从选纱到成品全程动手，带走专属袜子。',photos:[img('Students making socks at workshop with knitting machines','square'),img('Kids learning yarn dyeing process at sock workshop','square')],reviews:[{name:'张老师',school:'杭州二中',rating:5,date:'2026-06-10',text:'动手实践模式非常值得推广。'}]},
+  '宁波诺丁汉附校':{content:'宁波诺丁汉附校学生设计并织造专属袜品，体验染色印花，成果满满。',photos:[img('Children designing colorful socks at creative workshop','square'),img('Students designing socks at workshop','square')],reviews:[{name:'何老师',school:'宁波诺丁汉附校',rating:5,date:'2026-05-12',text:'孩子们特别有成就感。'}]},
+  '温州实验中学':{content:'温州实验中学研学营，亲手织袜并染色，研学证书颁发仪式温馨。',photos:[img('Students showing handmade sock creations proudly','square'),img('Students making socks at workshop','square')],reviews:[{name:'周老师',school:'温州实验中学',rating:5,date:'2026-04-20',text:'午餐丰盛，服务周到，体验很棒。'}]},
+  '嘉兴一中研学团':{content:'嘉兴一中团体体验织袜工艺，技师一对一指导，学习纱线染色。',photos:[img('Kids learning yarn dyeing process at sock workshop','square'),img('Students making socks workshop','square')],reviews:[{name:'钱老师',school:'嘉兴一中',rating:5,date:'2026-03-18',text:'学生都非常投入，体验感很好。'}]}
+};
+(function augmentHistory(){
+  Object.keys(routes).forEach(function(k){
+    (routes[k].history||[]).forEach(function(h){
+      var ex=HISTORY_EXTRA[h.title];
+      if(ex){h.content=ex.content;h.photos=ex.photos;h.reviews=ex.reviews;}
+      if(h.status===undefined)h.status='shown';
+    });
+  });
+})();
+function openHistory(title){
+  var h=null;(r.history||[]).forEach(function(x){if(x.title===title)h=x;});
+  if(!h)return;
+  var ex=HISTORY_EXTRA[title]||{};
+  var photos=ex.photos||[h.img];
+  var reviews=ex.reviews||[];
+  var html='<div class="relative px-4 pt-2 pb-5 overflow-hidden" style="background:linear-gradient(135deg,#34D399 0%,#10B981 40%,#059669 100%)">'
+    +'<div class="relative flex items-center justify-between mt-1"><a onclick="closeHistory()" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>'
+    +'<span class="text-white font-extrabold text-[17px]" style="text-shadow:0 2px 10px rgba(0,0,0,.18)">历史活动风采</span><span style="width:36px"></span></div>';
+  html+='<p class="text-white font-extrabold text-[19px] mt-2">'+h.title+'</p>';
+  html+='<p class="text-white/80 text-[11px] mt-1">'+h.date+' · '+h.count+'</p></div>';
+  html+='<div class="px-3 mt-3 grid grid-cols-3 gap-2">';
+  photos.forEach(function(p){html+='<img src="'+p+'" class="w-full h-[80px] rounded-xl object-cover" onerror="this.style.display=\'none\'">';});
+  html+='</div>';
+  html+='<div class="px-3 mt-3"><div class="flex items-center gap-1.5 mb-2"><div class="w-6 h-6 rounded-lg flex items-center justify-center text-white" style="background:linear-gradient(135deg,#10B981,#34D399)"><i class="fas fa-book-open text-[10px]"></i></div><span class="sec-title">研学活动内容</span></div>';
+  html+='<p class="text-[12px] text-gray-600 leading-relaxed bg-white rounded-2xl shadow-soft p-3">'+(h.content||'')+'</p></div>';
+  html+='<div class="px-3 mt-3 mb-6"><div class="flex items-center gap-1.5 mb-2"><div class="w-6 h-6 rounded-lg flex items-center justify-center text-white" style="background:linear-gradient(135deg,#059669,#10B981)"><i class="fas fa-comment-dots text-[10px]"></i></div><span class="sec-title">用户评价（'+reviews.length+'）</span></div>';
+  reviews.forEach(function(rv){
+    var stars='';for(var i=1;i<=5;i++)stars+='<i class="'+(i<=rv.rating?'fas':'far')+' fa-star text-[10px]" style="color:#FBBF24"></i>';
+    html+='<div class="bg-white rounded-2xl shadow-soft p-3 mb-2">';
+    html+='<div class="flex items-center justify-between"><div class="flex items-center gap-2"><div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-[11px] font-bold" style="background:#3B82F6">'+rv.name.charAt(0)+'</div><div><p class="text-[12px] font-bold text-gray-800">'+rv.name+'</p><p class="text-[9px] text-gray-400">'+rv.school+' · '+rv.date+'</p></div></div><div>'+stars+'</div></div>';
+    html+='<p class="text-[11px] text-gray-600 mt-2 leading-relaxed">'+rv.text+'</p></div>';
+  });
+  html+='</div>';
+  var det=document.getElementById('historyDetail');if(det)det.innerHTML=html;
+  var ov=document.getElementById('historyOverlay');if(ov){ov.style.display='';ov.scrollTop=0;}
+}
+function closeHistory(){var ov=document.getElementById('historyOverlay');if(ov)ov.style.display='none';}
+
 var comments=[
   {name:'王老师',school:'浙江大学',avatar:'W',avatarBg:'#3B82F6',rating:5,content:'研学内容丰富，讲解专业，学生们对智能制造有了直观认识。特别是互动体验环节，每个学生都能近距离观察袜机运作，收获很大。',date:'2026-06-20',route:1},
   {name:'李老师',school:'杭州学军中学',avatar:'L',avatarBg:'#7C3AED',rating:5,content:'博物馆的文化底蕴很深厚，VR体验区是最大亮点，学生们排队体验意犹未尽。研学任务卡设计得很好，寓教于乐。',date:'2026-06-15',route:2},
@@ -354,21 +407,24 @@ function renderContent(tab){
     html+='<div class="bg-emerald-50 rounded-xl p-3 mt-2 border border-emerald-100"><p class="text-[10px] text-emerald-700 leading-relaxed"><i class="fas fa-circle-info mr-1"></i>个人报名：选择日期点击「个人报名」，家长需在线签署安全责任书。团体研学请使用<a href="study-apply.html" class="font-bold underline">团体研学申请</a>。</p></div>';
     html+='</div>';
   }else if(tab==='history'){
-    /* 历史风采 */
+    var hist=r.history.filter(function(h){return h.status!=='hidden'});
     html+='<div class="fade-up">';
     html+='<div class="flex items-center gap-1.5 mb-2"><div class="w-6 h-6 rounded-lg flex items-center justify-center text-white" style="background:linear-gradient(135deg,#34D399,#059669)"><i class="fas fa-camera text-[10px]"></i></div><span class="sec-title">历史活动风采</span></div>';
-    html+='<div class="grid grid-cols-2 gap-2.5">';
-    r.history.forEach(function(h){
-      html+='<div class="card relative rounded-2xl overflow-hidden shadow-soft fade-up" style="height:130px">';
-      html+='<div class="w-full h-full img-loading"><img src="'+h.img+'" class="w-full h-full object-cover" onload="this.parentElement.classList.remove(\'img-loading\')" onerror="this.style.display=\'none\'"></div>';
-      html+='<div class="absolute inset-0" style="background:linear-gradient(180deg,transparent 40%,rgba(0,0,0,.75) 100%)"></div>';
-      html+='<div class="absolute bottom-0 left-0 right-0 p-2"><p class="text-white text-[11px] font-bold">'+h.title+'</p><div class="flex items-center gap-1.5 mt-0.5"><span class="text-white/70 text-[8px]">'+h.date+'</span><span class="text-white/70 text-[8px]">·</span><span class="text-white/70 text-[8px]">'+h.count+'</span></div></div>';
-      html+='</div>';
+    html+='<div class="space-y-2.5">';
+    hist.forEach(function(h){
+      var rev=h.reviews||[];
+      html+='<div class="card bg-white rounded-2xl overflow-hidden shadow-soft" onclick="openHistory(\''+h.title+'\')">';
+      html+='<div class="relative h-[96px]"><img src="'+h.img+'" class="w-full h-full object-cover" onerror="this.style.display=\'none\'">';
+      html+='<div class="absolute inset-0" style="background:linear-gradient(180deg,transparent 40%,rgba(0,0,0,.6) 100%)"></div>';
+      html+='<p class="absolute bottom-1.5 left-2 text-white text-[11px] font-bold">'+h.title+' <span class="text-[9px] font-normal">· '+h.count+'</span></p></div>';
+      html+='<div class="p-2.5"><p class="text-[9px] text-gray-400">'+h.date+'</p>';
+      html+='<p class="text-[10px] text-gray-600 mt-1 leading-relaxed line-clamp-2">'+(h.content||'')+'</p>';
+      html+='<p class="text-[9px] mt-1.5" style="color:#059669"><i class="far fa-comment-dots mr-1"></i>'+rev.length+' 条评价 · 点击查看详情</p></div></div>';
     });
     html+='</div>';
-    var totalPeople=r.history.reduce(function(s,h){return s+parseInt(h.count)},0);
-    html+='<div class="bg-white/85 backdrop-blur-xl rounded-xl shadow-soft p-3 border border-white mt-3 flex items-center justify-around">';
-    html+='<div class="text-center"><p class="text-[18px] font-extrabold" style="color:#059669">'+r.history.length+'</p><p class="text-[9px] text-gray-400 mt-0.5">已开展场次</p></div>';
+    var totalPeople=hist.reduce(function(s,h){return s+parseInt(h.count)},0);
+    html+='<div class="bg-white/85 backdrop-blur-xl rounded-xl shadow-soft p-3 mt-3 flex items-center justify-around">';
+    html+='<div class="text-center"><p class="text-[18px] font-extrabold" style="color:#059669">'+hist.length+'</p><p class="text-[9px] text-gray-400 mt-0.5">已开展场次</p></div>';
     html+='<div class="w-px h-8 bg-gray-200"></div>';
     html+='<div class="text-center"><p class="text-[18px] font-extrabold" style="color:#059669">'+totalPeople+'</p><p class="text-[9px] text-gray-400 mt-0.5">累计参与人数</p></div>';
     html+='<div class="w-px h-8 bg-gray-200"></div>';
@@ -411,5 +467,10 @@ function goApplyDate(idx){
   window.location.href='study-personal.html?id='+rid+'&date='+idx;
 }
 </script>
+<!-- 历史活动风采详情弹层 -->
+<div id="historyOverlay" style="display:none;position:fixed;left:0;top:0;width:393px;height:100%;background:#fff;z-index:500;overflow-y:auto;-webkit-overflow-scrolling:touch">
+  <div id="historyDetail"></div>
+</div>
+
 </body>
 </html>

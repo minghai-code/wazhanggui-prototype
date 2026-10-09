@@ -141,7 +141,7 @@ function toast(msg){var t=document.getElementById('toast');document.getElementBy
 
 var urlParams=new URLSearchParams(window.location.search);
 var id=parseInt(urlParams.get('id'))||1;
-var signed=id===1;
+var signed=id===2; /* id=1 默认待签署（展示签署流程），id=2 默认已签署；localStorage 有值则覆盖 */
 
 var data={
   1:{type:'personal',title:'智能制造工厂参观',date:'2026年9月15日（周六）· 半天',school:'大唐镇中心小学',people:'1人',contact:'王小明',phone:'138****6688',no:'YX20260915001',stuName:'王小明',stuAge:'10岁',stuGrade:'小学4年级',parentName:'王先生',parentRel:'父亲',startAt:'2026-09-15T09:00:00',endAt:'2026-09-15T12:00:00'},
@@ -403,10 +403,10 @@ function scrollToSign(){
 
 renderPage();
 
-/* ===== 我的报名 快捷列表（顶部概览；待签署项提供“去签署”入口，复用责任书 7 条个人版） ===== */
+/* ===== 我的报名 快捷列表（顶部概览；待签署项提供"去签署"入口，复用责任书 7 条个人版） ===== */
 var MY_REG=[
-  {id:1,type:'个人',title:'智能制造工厂参观',date:'2026年9月15日 · 半天',sub:'王小明 · 大唐镇中心小学'},
-  {id:2,type:'团体',title:'袜业博物馆文化游',date:'2026年10月12日 · 2小时',sub:'48人 · 诸暨海亮小学'}
+  {id:1,type:'个人',title:'智能制造工厂参观',date:'2026年9月15日 · 半天',sub:'王小明 · 大唐镇中心小学',status:'unsigned'},
+  {id:2,type:'团体',title:'袜业博物馆文化游',date:'2026年10月12日 · 2小时',sub:'48人 · 诸暨海亮小学',status:'signed'}
 ];
 var REG_BADGE={
   signed:{t:'已签署',bg:'#D1FAE5',c:'#059669'},
@@ -418,20 +418,22 @@ var REG_BADGE={
 function renderMyRegList(){
   var box=document.getElementById('myRegList');if(!box)return;var h='';
   MY_REG.forEach(function(m){
-    var st='signed';
+    var st=m.status||'signed';
     try{var raw=localStorage.getItem('studyRegState_'+m.id);if(raw){var sv=JSON.parse(raw);if(sv&&sv.status)st=sv.status;}}catch(e){}
     var s=REG_BADGE[st]||REG_BADGE.signed;
     var typeBg=m.type==='个人'?'background:#DBEAFE;color:#2563EB':'background:#EDE9FE;color:#7C3AED';
-    h+='<div class="flex items-center gap-2.5 p-2 rounded-xl" style="background:#F8FAFC">';
-    h+='<div class="flex-1 min-w-0"><div class="flex items-center gap-1.5"><p class="text-[12px] font-bold text-gray-800 truncate">'+m.title+'</p>';
-    h+='<span class="text-[8px] px-1.5 py-0.5 rounded font-bold" style="'+typeBg+'">'+m.type+'</span></div>';
-    h+='<p class="text-[9px] text-gray-400 mt-0.5">'+m.date+' · '+m.sub+'</p></div>';
+    var head='<div class="flex-1 min-w-0"><div class="flex items-center gap-1.5"><p class="text-[12px] font-bold text-gray-800 truncate">'+m.title+'</p>';
+    head+='<span class="text-[8px] px-1.5 py-0.5 rounded font-bold" style="'+typeBg+'">'+m.type+'</span></div>';
+    head+='<p class="text-[9px] text-gray-400 mt-0.5">'+m.date+' · '+m.sub+'</p></div>';
     if(st==='unsigned'){
+      h+='<div class="flex items-center gap-2.5 p-2 rounded-xl" style="background:#F8FAFC">'+head;
       h+='<a href="study-my.html?id='+m.id+'" class="text-[10px] text-white px-3 py-1.5 rounded-full font-bold flex-shrink-0" style="background:linear-gradient(135deg,#F59E0B,#D97706)">去签署</a>';
+      h+='</div>';
     }else{
+      h+='<a href="study-my.html?id='+m.id+'" class="flex items-center gap-2.5 p-2 rounded-xl" style="background:#F8FAFC">'+head;
       h+='<span class="text-[9px] px-2 py-0.5 rounded-full font-bold flex-shrink-0" style="background:'+s.bg+';color:'+s.c+'">'+s.t+'</span>';
+      h+='</a>';
     }
-    h+='</div>';
   });
   box.innerHTML=h;
 }

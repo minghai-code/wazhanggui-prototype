@@ -303,28 +303,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#059669,#34D399)"><i class="fas fa-camera text-xs"></i></div>
 <span class="sec-title">往期研学风采</span>
 </div>
-<div class="grid grid-cols-2 gap-2.5">
-<div class="card relative rounded-2xl overflow-hidden shadow-soft fade-up" style="height:120px">
-<img src="images/scene_02.jpg" class="w-full h-full object-cover">
-<div class="absolute inset-0" style="background:linear-gradient(180deg,transparent 50%,rgba(0,0,0,.7) 100%)"></div>
-<p class="absolute bottom-2 left-2 text-white text-[10px] font-medium">浙江大学研学团</p>
-</div>
-<div class="card relative rounded-2xl overflow-hidden shadow-soft fade-up" style="height:120px;animation-delay:.05s">
-<img src="images/scene_05.jpg" class="w-full h-full object-cover">
-<div class="absolute inset-0" style="background:linear-gradient(180deg,transparent 50%,rgba(0,0,0,.7) 100%)"></div>
-<p class="absolute bottom-2 left-2 text-white text-[10px] font-medium">织袜工艺体验</p>
-</div>
-<div class="card relative rounded-2xl overflow-hidden shadow-soft fade-up" style="height:120px;animation-delay:.1s">
-<img src="images/scene_11.jpg" class="w-full h-full object-cover">
-<div class="absolute inset-0" style="background:linear-gradient(180deg,transparent 50%,rgba(0,0,0,.7) 100%)"></div>
-<p class="absolute bottom-2 left-2 text-white text-[10px] font-medium">博物馆参观</p>
-</div>
-<div class="card relative rounded-2xl overflow-hidden shadow-soft fade-up" style="height:120px;animation-delay:.15s">
-<img src="images/scene_06.jpg" class="w-full h-full object-cover">
-<div class="absolute inset-0" style="background:linear-gradient(180deg,transparent 50%,rgba(0,0,0,.7) 100%)"></div>
-<p class="absolute bottom-2 left-2 text-white text-[10px] font-medium">文化课堂学习</p>
-</div>
-</div>
+<div class="grid grid-cols-2 gap-2.5" id="gloryList"></div>
 </div>
 
 <div class="h-28"></div>
@@ -364,6 +343,60 @@ var STATUS_STYLE={
   completed:{text:'已完成',bg:'#EDE9FE',color:'#7C3AED',tip:'已评价'},
   cancelled:{text:'已取消',bg:'#F3F4F6',color:'#6B7280',tip:'名额已释放'}
 };
+
+/* --- 往期风采：系统自动生成（研学活动内容 + 用户评价 + 照片） --- */
+var GLORIES=[
+  {id:1,title:'浙江大学研学团',route:'智能制造工厂参观',date:'2026年5月18日',people:46,status:'shown',
+   content:'浙江大学材料学院 46 名师生走进大唐袜业智能制造工厂，实地观摩全自动织袜生产线，并与工程师围绕纱线材料、智能袜机展开交流，学生亲手完成一双定制袜的制作。',
+   photos:['images/scene_02.jpg','images/machine_03.jpg','images/scene_11.jpg','images/scene_06.jpg'],
+   reviews:[{name:'王教授',role:'带队教师',rating:5,date:'2026-05-20',text:'研学安排专业，讲解深入浅出，学生收获很大。'},{name:'李同学',role:'学生',rating:5,date:'2026-05-20',text:'第一次看到袜子是怎么织出来的，体验环节特别棒！'}]},
+  {id:2,title:'杭州学军中学研学团',route:'袜业博物馆文化游',date:'2026年4月12日',people:62,status:'shown',
+   content:'杭州学军中学 62 名师生参观大唐袜业博物馆，通过 VR 全景与文物展陈了解袜业 40 年变迁，并完成研学任务卡，寓教于乐。',
+   photos:['images/scene_05.jpg','images/scene_14.jpg','images/scene_09.jpg'],
+   reviews:[{name:'赵老师',role:'带队教师',rating:5,date:'2026-04-15',text:'博物馆底蕴深厚，VR 体验是最大亮点。'}]},
+  {id:3,title:'织袜工艺体验营',route:'织袜工艺体验营',date:'2026年3月20日',people:30,status:'shown',
+   content:'面向亲子家庭的织袜工艺体验营，技师耐心指导，每个孩子都带走了自己织的袜子，动手实践模式深受好评。',
+   photos:['images/scene_06.jpg','images/scene_02.jpg'],
+   reviews:[{name:'陈妈妈',role:'家长',rating:5,date:'2026-03-22',text:'孩子玩得很开心，既动手又学了知识。'}]},
+  {id:4,title:'某中学春季研学',route:'袜业博物馆文化游',date:'2026年2月',people:50,status:'hidden',content:'',photos:[],reviews:[]}
+];
+function renderGloryList(){
+  var box=document.getElementById('gloryList');if(!box)return;var h='';
+  GLORIES.filter(function(g){return g.status==='shown'}).forEach(function(g){
+    h+='<div class="card bg-white rounded-2xl overflow-hidden shadow-soft" onclick="openGlory('+g.id+')">';
+    h+='<div class="relative h-[90px]"><img src="'+g.photos[0]+'" class="w-full h-full object-cover">';
+    h+='<div class="absolute inset-0" style="background:linear-gradient(180deg,transparent 45%,rgba(0,0,0,.65) 100%)"></div>';
+    h+='<p class="absolute bottom-1.5 left-2 text-white text-[11px] font-bold">'+g.title+' <span class="text-[9px] font-normal">· '+g.people+'人</span></p></div>';
+    h+='<div class="p-2"><p class="text-[9px] text-gray-400">'+g.route+' · '+g.date+'</p>';
+    h+='<p class="text-[10px] text-gray-600 mt-1 leading-relaxed line-clamp-2">'+g.content+'</p>';
+    h+='<p class="text-[9px] mt-1.5" style="color:#059669"><i class="far fa-comment-dots mr-1"></i>'+g.reviews.length+' 条评价</p></div></div>';
+  });
+  box.innerHTML=h;
+}
+function openGlory(id){
+  var g=GLORIES.filter(function(x){return x.id===id})[0];if(!g)return;
+  var html='<div class="relative px-4 pt-2 pb-5 overflow-hidden" style="background:linear-gradient(135deg,#34D399 0%,#10B981 40%,#059669 100%)">'
+    +'<div class="relative flex items-center justify-between mt-1"><a onclick="closeGlory()" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>'
+    +'<span class="text-white font-extrabold text-[17px]" style="text-shadow:0 2px 10px rgba(0,0,0,.18)">往期研学风采</span><span style="width:36px"></span></div>';
+  html+='<p class="text-white font-extrabold text-[19px] mt-2">'+g.title+'</p>';
+  html+='<p class="text-white/80 text-[11px] mt-1">'+g.route+' · '+g.date+' · '+g.people+'人</p></div>';
+  html+='<div class="px-3 mt-3 grid grid-cols-3 gap-2">';
+  g.photos.forEach(function(p){html+='<img src="'+p+'" class="w-full h-[80px] rounded-xl object-cover">';});
+  html+='</div>';
+  html+='<div class="px-3 mt-3"><div class="flex items-center gap-1.5 mb-2"><div class="w-6 h-6 rounded-lg flex items-center justify-center text-white" style="background:linear-gradient(135deg,#10B981,#34D399)"><i class="fas fa-book-open text-[10px]"></i></div><span class="sec-title">研学活动内容</span></div>';
+  html+='<p class="text-[12px] text-gray-600 leading-relaxed bg-white rounded-2xl shadow-soft p-3">'+g.content+'</p></div>';
+  html+='<div class="px-3 mt-3 mb-6"><div class="flex items-center gap-1.5 mb-2"><div class="w-6 h-6 rounded-lg flex items-center justify-center text-white" style="background:linear-gradient(135deg,#059669,#10B981)"><i class="fas fa-comment-dots text-[10px]"></i></div><span class="sec-title">用户评价（'+g.reviews.length+'）</span></div>';
+  g.reviews.forEach(function(r){
+    var stars='';for(var i=1;i<=5;i++)stars+='<i class="'+(i<=r.rating?'fas':'far')+' fa-star text-[10px]" style="color:#FBBF24"></i>';
+    html+='<div class="bg-white rounded-2xl shadow-soft p-3 mb-2">';
+    html+='<div class="flex items-center justify-between"><div class="flex items-center gap-2"><div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-[11px] font-bold" style="background:#3B82F6">'+r.name.charAt(0)+'</div><div><p class="text-[12px] font-bold text-gray-800">'+r.name+'</p><p class="text-[9px] text-gray-400">'+r.role+' · '+r.date+'</p></div></div><div>'+stars+'</div></div>';
+    html+='<p class="text-[11px] text-gray-600 mt-2 leading-relaxed">'+r.text+'</p></div>';
+  });
+  html+='</div>';
+  var det=document.getElementById('gloryDetail');if(det)det.innerHTML=html;
+  var ov=document.getElementById('gloryOverlay');if(ov){ov.style.display='';ov.scrollTop=0;}
+}
+function closeGlory(){var ov=document.getElementById('gloryOverlay');if(ov)ov.style.display='none';}
 
 /* --- 站内消息：后台改期通知 --- */
 function renderNotice(){
@@ -460,6 +493,12 @@ renderNotice();
 renderMyStudy();
 renderRoutes();
 renderBases();
+renderGloryList();
 </script>
+<!-- 往期风采详情弹层 -->
+<div id="gloryOverlay" style="display:none;position:fixed;left:0;top:0;width:393px;height:100%;background:#fff;z-index:500;overflow-y:auto;-webkit-overflow-scrolling:touch">
+  <div id="gloryDetail"></div>
+</div>
+
 </body>
 </html>

@@ -23,6 +23,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 .tab-item{transition:all .2s ease;white-space:nowrap}
 .tab-active{background:linear-gradient(90deg,#FF4D2D,#FF7849);color:#fff;box-shadow:0 4px 12px rgba(255,77,45,.32)}
 .tab-inactive{background:#fff;color:#9aa0ac;box-shadow:0 1px 4px rgba(20,20,40,.04)}
+.type-active{background:linear-gradient(90deg,#FF4D2D,#FF7849);color:#fff;box-shadow:0 4px 12px rgba(255,77,45,.32)}
+.type-inactive{background:#fff;color:#9aa0ac;box-shadow:0 1px 4px rgba(20,20,40,.04)}
 /* 订单状态标签颜色 */
 .st-pay{color:#FF4D2D;background:rgba(255,77,45,.10)}
 .st-ship{color:#3B82F6;background:rgba(59,130,246,.10)}
@@ -72,11 +74,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <div class="sticky top-0 z-30 bg-[#FFF7F4] shadow-soft" style="padding:10px 0">
   <div class="flex gap-2 overflow-x-auto no-bar px-3" id="tabBar">
     <button class="tab-item tab-active text-[12px] font-semibold px-3.5 py-2 rounded-full" data-tab="all">全部</button>
-    <button class="tab-item tab-inactive text-[12px] font-semibold px-3.5 py-2 rounded-full flex items-center gap-1" data-tab="pay">待付款<span class="bg-primary text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full leading-none">3</span></button>
+    <button class="tab-item tab-inactive text-[12px] font-semibold px-3.5 py-2 rounded-full flex items-center gap-1" data-tab="pay">待付款<span class="bg-primary text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full leading-none" id="badge-pay">3</span></button>
     <button class="tab-item tab-inactive text-[12px] font-semibold px-3.5 py-2 rounded-full" data-tab="ship">待发货</button>
-    <button class="tab-item tab-inactive text-[12px] font-semibold px-3.5 py-2 rounded-full flex items-center gap-1" data-tab="receipt">待收货<span class="bg-primary text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full leading-none">1</span></button>
-    <button class="tab-item tab-inactive text-[12px] font-semibold px-3.5 py-2 rounded-full flex items-center gap-1" data-tab="review">待评价<span class="bg-primary text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full leading-none">4</span></button>
+    <button class="tab-item tab-inactive text-[12px] font-semibold px-3.5 py-2 rounded-full flex items-center gap-1" data-tab="receipt">待收货<span class="bg-primary text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full leading-none" id="badge-receipt">1</span></button>
+    <button class="tab-item tab-inactive text-[12px] font-semibold px-3.5 py-2 rounded-full flex items-center gap-1" data-tab="review">待评价<span class="bg-primary text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full leading-none" id="badge-review">4</span></button>
     <button class="tab-item tab-inactive text-[12px] font-semibold px-3.5 py-2 rounded-full" data-tab="after">售后</button>
+  </div>
+</div>
+
+<!-- ===== 订单类型筛选 ===== -->
+<div class="px-3 pt-2 pb-1">
+  <div class="flex gap-2 overflow-x-auto no-bar" id="typeBar">
+    <button class="type-item type-active text-[11px] font-semibold px-3 py-1.5 rounded-full" data-type="all" onclick="switchType('all')">全部</button>
+    <button class="type-item type-inactive text-[11px] font-semibold px-3 py-1.5 rounded-full" data-type="purchase" onclick="switchType('purchase')">采购订单</button>
+    <button class="type-item type-inactive text-[11px] font-semibold px-3 py-1.5 rounded-full flex items-center gap-1" data-type="inquiry" onclick="switchType('inquiry')">询价订单<span class="bg-primary text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full leading-none" id="badge-inquiry">3</span></button>
   </div>
 </div>
 
@@ -141,7 +152,7 @@ const allBtn=[{t:'查看详情',cls:'btn-ghost'}];
 /* 渲染询价订单卡片 */
 function renderInquiryCard(o,delay){
   const total=(o.price*o.qty).toFixed(2);
-  const detail='order-detail-inquiry.html?status='+o.status;
+  const detail='order-detail.html?type=inquiry&id='+o.id+'&status='+o.status;
   const btns=(o.status==='after'?allBtn:(btnConfig[o.status]||allBtn));
   const pri=btns[btns.length-1].t;
   return `
@@ -220,11 +231,28 @@ function renderCard(o,delay){
   </div>`;
 }
 
+/* 订单类型筛选 */
+let currentType='all';
+function filterByType(list){
+  if(currentType==='all')return list;
+  if(currentType==='purchase')return list.filter(o=>!o.type||o.type==='purchase');
+  return list.filter(o=>o.type==='inquiry');
+}
+function updateBadges(){
+  const base=filterByType(orders);
+  const set=(id,n)=>{const el=document.getElementById(id);if(el)el.textContent=n;};
+  set('badge-pay',base.filter(o=>o.status==='pay').length);
+  set('badge-receipt',base.filter(o=>o.status==='receipt').length);
+  set('badge-review',base.filter(o=>o.status==='review').length);
+  set('badge-inquiry',orders.filter(o=>o.type==='inquiry').length);
+}
+
 /* 渲染各 Tab 面板 */
 function renderPanels(){
+  const base=filterByType(orders);
   const map={all:'panel-all',pay:'panel-pay',ship:'panel-ship',receipt:'panel-receipt',review:'panel-review',after:'panel-after'};
   for(const key in map){
-    const list = key==='all'? orders : orders.filter(o=>o.status===key);
+    const list = key==='all'? base : base.filter(o=>o.status===key);
     const el=document.getElementById(map[key]);
     if(list.length){
       el.innerHTML=list.map((o,i)=>renderCard(o,i*0.06)).join('');
@@ -232,8 +260,21 @@ function renderPanels(){
       el.innerHTML=`<div class="text-center py-16"><i class="fas fa-box-open text-gray-200 text-5xl"></i><p class="text-[12px] text-gray-400 mt-3">暂无相关订单</p></div>`;
     }
   }
+  updateBadges();
 }
 renderPanels();
+
+/* 类型筛选切换 */
+function switchType(t){
+  currentType=t;
+  const bar=document.getElementById('typeBar');
+  bar.querySelectorAll('.type-item').forEach(b=>{
+    b.classList.remove('type-active');b.classList.add('type-inactive');
+  });
+  bar.querySelector('.type-item[data-type="'+t+'"]').classList.remove('type-inactive');
+  bar.querySelector('.type-item[data-type="'+t+'"]').classList.add('type-active');
+  renderPanels();
+}
 
 /* Tab 切换 */
 const tabBar=document.getElementById('tabBar');

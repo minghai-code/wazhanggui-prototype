@@ -292,37 +292,63 @@ function setStepBadge(n,text,bg,color){
   el.style.background=bg;
   el.style.color=color;
 }
-function markSubmitted(){
-  setStepBadge(1,'已完成','#D1FAE5','#059669');
-  setStepBadge(2,'审核中','#FEF3C7','#D97706');
-  setStepBadge(3,'待签署','#F3F4F6','#9CA3AF');
-  setStepBadge(4,'待出行','#F3F4F6','#9CA3AF');
-}
-
 function submitForm(e){
   e.preventDefault();
   var rid=document.getElementById('applyRoute').value;
   var num=parseInt(document.getElementById('applyPeople').value,10)||0;
   var cfg=STUDY_CFG.routes[rid]||{left:0,seatStatus:'可报名'};
   var waitlist=num>cfg.left;
-  var no='YX'+'20260910'+'003';
-  markSubmitted();
+  var no='YX20260910'+'003';
+  renderApplyStatus('submitted',{no:no,waitlist:waitlist});
+  toast('申请已提交，请等待审核');
+  return false;
+}
+
+/* 申请状态回显：提交后 / 审核退回待补材料 两种结果态 */
+var NEED_REASON='请补充加盖学校公章的《团体活动审批表》及带队教师资质证明（教师资格证复印件）。';
+function renderApplyStatus(status,opt){
+  opt=opt||{};
   var box=document.getElementById('applyStatus');
+  if(!box)return;
   box.style.display='';
+  if(status==='needMaterial'){
+    setStepBadge(2,'已退回','#FEE2E2','#EF4444');
+    box.innerHTML='<div class="bg-white/85 backdrop-blur-xl rounded-3xl shadow-soft p-4 border border-white text-center fade-up">'
+      +'<div class="w-16 h-16 rounded-full flex items-center justify-center text-white mx-auto mb-2" style="background:linear-gradient(135deg,#F87171,#EF4444)"><i class="fas fa-arrow-rotate-left text-2xl"></i></div>'
+      +'<p class="text-[15px] font-bold text-gray-800 mb-1">资料待补充</p>'
+      +'<p class="text-[10px] text-gray-400 leading-relaxed mb-2">申请编号 <b style="color:#059669">'+opt.no+'</b></p>'
+      +'<div class="bg-amber-50 rounded-xl p-3 text-left mb-3 border border-amber-100">'
+      +'<p class="text-[10px] text-amber-800 font-bold mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>审核退回原因</p>'
+      +'<p class="text-[11px] text-amber-700 leading-relaxed">'+(opt.reason||NEED_REASON)+'</p></div>'
+      +'<button onclick="scrollToForm()" class="inline-block w-full text-[12px] text-white px-5 py-2.5 rounded-full font-bold" style="background:linear-gradient(135deg,#F59E0B,#D97706)"><i class="fas fa-paperclip mr-1"></i>补充材料</button>'
+      +'<p class="text-[9px] text-gray-300 mt-2">补充后重新提交，审核将重新进入排队</p></div>';
+    box.scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
+  setStepBadge(1,'已完成','#D1FAE5','#059669');
+  setStepBadge(2,'审核中','#FEF3C7','#D97706');
+  setStepBadge(3,'待签署','#F3F4F6','#9CA3AF');
+  setStepBadge(4,'待出行','#F3F4F6','#9CA3AF');
   box.innerHTML='<div class="bg-white/85 backdrop-blur-xl rounded-3xl shadow-soft p-4 border border-white text-center fade-up">'
     +'<div class="w-16 h-16 rounded-full flex items-center justify-center text-white mx-auto mb-2" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)"><i class="fas fa-hourglass-half text-2xl"></i></div>'
     +'<p class="text-[15px] font-bold text-gray-800 mb-1">申请已提交，等待审核</p>'
-    +'<p class="text-[10px] text-gray-400 leading-relaxed mb-3">申请编号 <b style="color:#059669">'+no+'</b><br>'
-    +(waitlist?'当前名额不足，已进入<b style="color:#D97706">候补队列</b>（候补人数计入统计，暂不自动递补）。<br>':'')
+    +'<p class="text-[10px] text-gray-400 leading-relaxed mb-3">申请编号 <b style="color:#059669">'+opt.no+'</b><br>'
+    +(opt.waitlist?'当前名额不足，已进入<b style="color:#D97706">候补队列</b>（候补人数计入统计，暂不自动递补）。<br>':'')
     +'预计 1-3 个工作日完成审核，结果将短信通知联系人。</p>'
     +'<div class="bg-gray-50 rounded-xl p-3 text-left mb-3">'
     +'<p class="text-[10px] text-gray-500 mb-1.5">后续步骤</p>'
     +'<p class="text-[10px] text-gray-600 leading-relaxed">1. 运营专员审核（≥50 人需主管终审）<br>2. 审核通过后，负责人需在「我的报名」在线签署安全责任书<br>3. 出行前 24 小时可自助取消，出行当日凭签到码现场签到</p></div>'
-    +'<a href="study-my.html?id=2" class="inline-block text-[12px] text-white px-5 py-2.5 rounded-full font-bold mr-2" style="background:linear-gradient(135deg,#34D399,#059669)">查看我的报名</a>'
-    +'<a href="study-tour.html" class="inline-block text-[12px] text-gray-500 px-5 py-2.5 rounded-full font-bold bg-gray-100">返回研学</a></div>';
+    +'<div class="flex items-center gap-2">'
+    +'<a href="study-my.html?id=2" class="inline-block text-[12px] text-white px-4 py-2.5 rounded-full font-bold flex-1" style="background:linear-gradient(135deg,#34D399,#059669)">查看我的报名</a>'
+    +'<a href="study-tour.html" class="inline-block text-[12px] text-gray-500 px-4 py-2.5 rounded-full font-bold bg-gray-100 flex-1">返回研学</a></div>'
+    +'<button onclick="renderApplyStatus(\'needMaterial\',{no:\''+opt.no+'\'})" class="inline-block w-full mt-2 text-[11px] text-gray-400 px-4 py-2 rounded-full border border-gray-200"><i class="fas fa-flask mr-1"></i>（演示）模拟审核退回</button>'
+    +'</div>';
   box.scrollIntoView({behavior:'smooth',block:'center'});
-  toast('申请已提交，请等待审核');
-  return false;
+}
+function scrollToForm(){
+  var f=document.querySelector('form');
+  if(f)f.scrollIntoView({behavior:'smooth',block:'start'});
+  toast('请补充材料后重新提交');
 }
 </script>
 </body>

@@ -88,11 +88,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <span class="text-[9px] text-white px-1.5 py-0.5 rounded font-medium" style="background:linear-gradient(90deg,#34D399,#10B981)"><i class="fas fa-shield-halved mr-0.5"></i>正品保证</span>
 <span class="text-[9px] text-white px-1.5 py-0.5 rounded font-medium" style="background:linear-gradient(90deg,#38BDF8,#3B82F6)"><i class="fas fa-rotate-left mr-0.5"></i>7天退换</span>
 <span class="text-[9px] text-white px-1.5 py-0.5 rounded font-medium" style="background:linear-gradient(90deg,#FBBF24,#F59E0B)"><i class="fas fa-medal mr-0.5"></i>实力工厂</span>
+<span class="text-[9px] text-white px-1.5 py-0.5 rounded font-medium" id="tierTag" style="background:linear-gradient(90deg,#7C3AED,#A855F7)"><i class="fas fa-layer-group mr-0.5"></i>阶梯价</span>
 </div>
 </div>
 
 <!-- 阶梯价表 - 玻璃容器 -->
-<div class="bg-white/75 backdrop-blur-xl mx-3 mt-2 rounded-3xl shadow-soft p-3 border border-white">
+<div class="bg-white/75 backdrop-blur-xl mx-3 mt-2 rounded-3xl shadow-soft p-3 border border-white" id="priceTierBlock">
 <div class="flex items-center gap-1.5 mb-2"><div class="w-6 h-6 rounded-lg flex items-center justify-center text-white" style="background:linear-gradient(135deg,#FF8A4C,#FF4D2D)"><i class="fas fa-layer-group text-[10px]"></i></div><span class="text-[12px] font-bold text-gray-800">阶梯价格</span></div>
 <div class="grid grid-cols-3 gap-2">
 <div class="text-center rounded-xl py-2" style="background:#FFF0E8;border:1px solid #FFD4C5">
@@ -314,7 +315,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <button onclick="openSpecSheet('buy')" class="card flex-1 ml-1 rounded-full text-center font-bold text-[12px] py-2.5 text-white shadow-card" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D,#FF2D78)">
 立即下单
 </button>
-<button onclick="openSpecSheet('group')" class="card flex-1 ml-1 rounded-full text-center font-bold text-[12px] py-2.5 text-white shadow-card" style="background:linear-gradient(135deg,#2DD4BF,#059669)">
+<button onclick="openSpecSheet('group')" id="mainGroupBtn" class="card flex-1 ml-1 rounded-full text-center font-bold text-[12px] py-2.5 text-white shadow-card" style="background:linear-gradient(135deg,#2DD4BF,#059669)">
 发起拼单
 </button>
 </div>
@@ -384,7 +385,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
   <div class="flex gap-3 px-4 pb-3 border-b border-gray-50">
     <img src="images/sock_03.jpg" class="w-20 h-20 rounded-xl object-cover flex-shrink-0">
     <div class="flex-1">
-      <p class="text-primary font-bold text-[18px]">¥3.50<span class="text-[10px] text-gray-400 font-normal">/双</span></p>
+      <p class="text-primary font-bold text-[18px]" id="specPrice">¥3.50<span class="text-[10px] text-gray-400 font-normal">/双</span></p>
       <p class="text-[11px] text-gray-400 mt-0.5">精梳棉商务男袜 透气防臭</p>
       <p class="text-[10px] text-gray-500 mt-1" id="specSummary">请选择：颜色 · 尺码</p>
     </div>
@@ -484,6 +485,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 
 <script>
 var toastTimer;
+/* 商品级开关：是否支持拼单 / 是否配置阶梯价（由后台商品设置驱动；?nogroup=1 模拟“不支持拼单、无阶梯价”商品） */
+var PRODUCT={isGroup:true,hasTier:true};
+(function(){
+  var p=new URLSearchParams(window.location.search);
+  if(p.get('group')==='0'||p.get('nogroup')==='1'){PRODUCT.isGroup=false;PRODUCT.hasTier=false;}
+  if(!PRODUCT.isGroup){var gb=document.getElementById('mainGroupBtn');if(gb)gb.style.display='none';}
+  if(!PRODUCT.hasTier){var tt=document.getElementById('tierTag');if(tt)tt.style.display='none';var pt=document.getElementById('priceTierBlock');if(pt)pt.style.display='none';}
+})();
 function toast(msg){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},1600)}
 function openChat(){document.getElementById('chatMask').style.display='block';document.getElementById('chatPanel').style.display='flex';}
 function closeChat(){document.getElementById('chatMask').style.display='none';document.getElementById('chatPanel').style.display='none';}
@@ -559,9 +568,9 @@ function openSpecSheet(action){
   btnCart.style.display='none';
   btnBuy.style.display='none';
   btnGroup.style.display='none';
-  if(action==='cart'){btnCart.style.display='block';tierBlock.style.display='none';input.value=120;hint.innerHTML='<i class="fas fa-triangle-exclamation text-[8px] mr-0.5"></i>该商品100双起批';}
-  else if(action==='buy'){btnBuy.style.display='block';tierBlock.style.display='none';input.value=120;hint.innerHTML='<i class="fas fa-triangle-exclamation text-[8px] mr-0.5"></i>该商品100双起批';}
-  else if(action==='group'){btnGroup.style.display='block';tierBlock.style.display='block';tierPrice=3.5;tierMin=100;input.value=20;hint.innerHTML='<i class="fas fa-triangle-exclamation text-[8px] mr-0.5"></i>拼单数量不低于20双（100双的20%），当前阶梯价¥3.50/双';}
+  if(action==='cart'){btnCart.style.display='block';input.value=120;if(PRODUCT.hasTier){tierBlock.style.display='block';applyQtyTier();}else{tierBlock.style.display='none';hint.innerHTML='<i class="fas fa-triangle-exclamation text-[8px] mr-0.5"></i>该商品100双起批';}}
+  else if(action==='buy'){btnBuy.style.display='block';input.value=120;if(PRODUCT.hasTier){tierBlock.style.display='block';applyQtyTier();}else{tierBlock.style.display='none';hint.innerHTML='<i class="fas fa-triangle-exclamation text-[8px] mr-0.5"></i>该商品100双起批';}}
+  else if(action==='group'){btnGroup.style.display=PRODUCT.isGroup?'block':'none';input.value=20;if(PRODUCT.hasTier){tierBlock.style.display='block';applyQtyTier();}else{tierBlock.style.display='none';hint.innerHTML='<i class="fas fa-triangle-exclamation text-[8px] mr-0.5"></i>拼单数量不低于20双（100双的20%）';}}
   setTimeout(function(){sheet.style.transform='translateY(0)';},10);
 }
 function closeSpec(){
@@ -575,12 +584,42 @@ function specSingle(el,group){
   items.forEach(function(i){i.classList.remove('on')});
   el.classList.add('on');
 }
+/* 阶梯价档位：拼单数量≥阈值自动选档并联动单价 */
+var TIERS=[{min:100,price:3.5},{min:500,price:3.2},{min:1000,price:2.9},{min:5000,price:2.5}];
+function applyQtyTier(){
+  if(!PRODUCT.hasTier)return;
+  if(isClearance)return;
+  var input=document.getElementById('specQty');
+  var qty=parseInt(input.value)||20;
+  var selected=TIERS[0];
+  TIERS.forEach(function(t){if(qty>=t.min)selected=t;});
+  tierPrice=selected.price;
+  tierMin=Math.max(selected.min,100);
+  var items=document.querySelectorAll('.tier-item');
+  items.forEach(function(i){
+    var m=parseInt(i.getAttribute('data-min'));
+    i.classList.remove('on');
+    var c=i.querySelector('.tier-check');c.classList.remove('fa-circle-check');c.classList.add('fa-circle');
+    if(m===selected.min){i.classList.add('on');c.classList.remove('fa-circle');c.classList.add('fa-circle-check');}
+  });
+  var sp=document.getElementById('specPrice');
+  if(sp)sp.innerHTML='¥'+selected.price.toFixed(2)+'<span class="text-[10px] text-gray-400 font-normal">/双</span>';
+  var base=3.5;
+  var save=(base-selected.price).toFixed(2);
+  var hint=document.getElementById('specHint');
+  if(qty<100){
+    hint.innerHTML='<i class="fas fa-triangle-exclamation text-[8px] mr-0.5"></i>'+(specMode==='group'?('拼单'+Math.ceil(100*0.2)+'双起（当前 '+qty+'双）· '):'')+'阶梯价¥'+selected.price.toFixed(2)+'/双';
+  }else{
+    hint.innerHTML='<i class="fas fa-check-circle text-[8px] mr-0.5"></i>已达 '+selected.min+'双档 · 单价¥'+selected.price.toFixed(2)+'/双'+(save>0?(' · <span style="color:#059669">较起批价省¥'+save+'/双</span>'):'');
+  }
+}
 function stepQty(delta){
   var input=document.getElementById('specQty');
   var v=parseInt(input.value)||100;
   var min=specMode==='group'?Math.ceil(tierMin*0.2):100;
   v=Math.max(min,v+delta*10);
   input.value=v;
+  applyQtyTier();
 }
 function addToCart(){
   closeSpec();

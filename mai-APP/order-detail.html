@@ -45,6 +45,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
   </div>
 </div>
 
+<!-- 采购订单详情（type=purchase 默认） -->
+<div id="purchaseDetail">
 <!-- 订单状态 -->
 <div class="px-3 pt-3">
   <div class="rounded-2xl p-4 text-white shadow-card grad-h">
@@ -97,11 +99,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
     </button>
   </div>
 </div>
+</div>
+
+<!-- 询价订单详情（type=inquiry，由脚本渲染） -->
+<div id="inquiryDetail" style="display:none"></div>
 
 <div class="h-20"></div>
 
-<!-- 底部操作 -->
-<div class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-gray-100 px-3 flex items-center gap-2" style="height:60px;z-index:100;width:393px">
+<!-- 底部操作（采购订单） -->
+<div id="purchaseBottom" class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-gray-100 px-3 flex items-center gap-2" style="height:60px;z-index:100;width:393px">
   <a href="purchase-records.html" class="card flex-1 text-center py-2.5 rounded-full text-[13px] font-medium text-gray-500 bg-gray-100">返回列表</a>
   <button onclick="openReviewSheet()" class="card flex-1 text-center py-2.5 rounded-full text-[13px] font-bold text-white shadow-card grad-h">发表评价</button>
 </div>
@@ -254,6 +260,67 @@ function submitReview(){
   closeReview();
   setTimeout(function(){toast('评价提交成功，感谢您的反馈');},300);
 }
+
+/* ===== 询价订单详情（type=inquiry） ===== */
+var INQUIRY_ORDERS=[
+  {id:'QJ20260920-007',status:'pay',statusText:'待付款',shop:'大唐自有品牌旗舰店',shopColor:'linear-gradient(135deg,#3B82F6,#6366F1)',shopIcon:'fas fa-store',name:'男士刺绣薄袜 莱卡棉',spec:'询价成交 · 含运费 · 已寄定制样',qty:200,price:2.85,demandId:'XQ20260920-008',demandTitle:'男士刺绣薄袜 200双起'},
+  {id:'QJ20260920-004',status:'ship',statusText:'待发货',shop:'广东劲步体育',shopColor:'linear-gradient(135deg,#F59E0B,#D97706)',shopIcon:'fas fa-store',name:'运动压缩跑步袜 减震防滑',spec:'询价成交 · 含运费',qty:300,price:5.80,demandId:'XQ20260920-004',demandTitle:'运动压缩跑步袜 300双'},
+  {id:'QJ20260920-006',status:'review',statusText:'待评价',shop:'丰棉织造',shopColor:'linear-gradient(135deg,#FF8A4C,#FF4D2D)',shopIcon:'fas fa-store',name:'精梳棉商务男袜 透气防臭',spec:'询价成交 · 含运费',qty:1000,price:3.10,demandId:'XQ20260920-006',demandTitle:'精梳棉商务男袜 1000双'}
+];
+function renderInquiryDetail(o){
+  var total=(o.price*o.qty).toFixed(2);
+  var sm={pay:{icon:'fa-clock',title:'待付款',sub:'请在 24 小时内完成付款，逾期订单将自动取消'},ship:{icon:'fa-box',title:'待发货',sub:'商家已确认成交，正在备货中'},receipt:{icon:'fa-truck',title:'待收货',sub:'包裹已发出，请注意查收'},review:{icon:'fa-star',title:'待评价',sub:'订单已签收，期待您的评价'}}[o.status]||{icon:'fa-receipt',title:'进行中',sub:''};
+  var nextBtn={pay:'去付款',ship:'查看物流',receipt:'确认收货',review:'去评价'}[o.status]||'查看详情';
+  var nextAction={pay:"toast('跳转收银台')",ship:"toast('查看物流')",receipt:"toast('已确认收货')",review:"openReviewSheet()"}[o.status]||"toast('查看详情')";
+  var html='';
+  html+='<div class="px-3 pt-3"><div class="rounded-2xl p-4 text-white shadow-card grad-h">';
+  html+='<div class="flex items-center gap-2 mb-1"><span class="text-[9px] font-bold px-1.5 py-0.5 rounded text-white" style="background:rgba(255,255,255,.25)">询价订单</span><span class="text-[14px] font-bold ml-1"><i class="fas '+sm.icon+' text-[15px] mr-1"></i>'+sm.title+'</span></div>';
+  html+='<p class="text-[11px] text-white/80">'+sm.sub+'</p></div></div>';
+  /* 报价中标卡 */
+  html+='<div class="px-3 mt-3"><div class="bg-white rounded-2xl shadow-soft p-3.5">';
+  html+='<div class="flex items-center gap-1.5 mb-2.5"><i class="fas fa-handshake text-[11px]" style="color:#7C3AED"></i><span class="text-[12px] font-bold text-gray-800">中标报价</span><span class="text-[9px] text-white px-1.5 py-0.5 rounded" style="background:linear-gradient(135deg,#7C3AED,#A855F7)">已选标成交</span></div>';
+  html+='<div class="flex items-center gap-2.5"><div class="w-9 h-9 rounded-full flex items-center justify-center text-white text-[11px]" style="background:'+o.shopColor+'"><i class="'+o.shopIcon+'"></i></div><span class="text-[12px] font-semibold text-gray-800">'+o.shop+'</span></div>';
+  html+='<div class="mt-2 grid grid-cols-2 gap-2 text-[11px]">';
+  html+='<div class="bg-gray-50 rounded-xl p-2"><p class="text-gray-400">成交单价</p><p class="text-[13px] font-bold text-gray-800 mt-0.5">¥'+o.price.toFixed(2)+'<span class="text-[9px] text-gray-400 font-normal">/双</span></p></div>';
+  html+='<div class="bg-gray-50 rounded-xl p-2"><p class="text-gray-400">供货数量</p><p class="text-[13px] font-bold text-gray-800 mt-0.5">'+o.qty+' 双</p></div>';
+  html+='<div class="bg-gray-50 rounded-xl p-2"><p class="text-gray-400">交期</p><p class="text-[12px] font-bold text-gray-800 mt-0.5">15 天</p></div>';
+  html+='<div class="bg-gray-50 rounded-xl p-2"><p class="text-gray-400">运费 / 样品</p><p class="text-[12px] font-bold text-gray-800 mt-0.5">含运费 · 已寄样</p></div>';
+  html+='</div>';
+  /* 阶梯价 */
+  html+='<div class="mt-2"><p class="text-[10px] text-gray-400 mb-1">阶梯价（按量优惠）</p><div class="flex gap-1.5">';
+  var tiers=[[100,'¥'+(o.price+0.4).toFixed(2)],[500,'¥'+(o.price+0.2).toFixed(2)],[1000,'¥'+o.price.toFixed(2)],[3000,'¥'+(o.price-0.2).toFixed(2)]];
+  tiers.forEach(function(t){html+='<div class="flex-1 text-center bg-gray-50 rounded-lg py-1.5"><p class="text-[8px] text-gray-400">'+t[0]+'双+</p><p class="text-[10px] font-bold text-gray-800">'+t[1]+'</p></div>';});
+  html+='</div></div>';
+  html+='<div class="mt-2 flex items-center justify-between border-t border-gray-50 pt-2"><span class="text-[11px] text-gray-500">成交额合计</span><span class="text-[15px] font-bold text-primary">¥'+total+'</span></div>';
+  html+='</div></div>';
+  /* 订单信息 */
+  html+='<div class="px-3 mt-3"><div class="bg-white rounded-2xl shadow-soft p-3.5 text-[11px] space-y-2">';
+  html+='<div class="flex justify-between"><span class="text-gray-400">订单编号</span><span class="text-gray-700">'+o.id+'</span></div>';
+  html+='<div class="flex justify-between"><span class="text-gray-400">关联询价需求</span><span class="text-gray-700" style="color:#FF4D2D">'+o.demandId+'</span></div>';
+  html+='<div class="flex justify-between"><span class="text-gray-400">商品</span><span class="text-gray-700 text-right max-w-[200px]">'+o.name+'</span></div>';
+  html+='<div class="flex justify-between"><span class="text-gray-400">规格说明</span><span class="text-gray-700 text-right max-w-[200px]">'+o.spec+'</span></div>';
+  html+='<div class="flex justify-between"><span class="text-gray-400">成交单价</span><span class="text-gray-700">¥'+o.price.toFixed(2)+'/双</span></div>';
+  html+='<div class="flex justify-between"><span class="text-gray-400">成交数量</span><span class="text-gray-700">'+o.qty+' 双</span></div>';
+  html+='<div class="flex justify-between pt-1"><span class="text-gray-600 font-medium">实付 / 应付</span><span class="text-grad font-bold text-[16px]">¥'+total+'</span></div>';
+  html+='</div></div>';
+  /* 下一步固定底栏 */
+  html+='<div class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-gray-100 px-3 flex items-center gap-2" style="height:60px;z-index:100;width:393px">';
+  html+='<a href="orders.html?type=inquiry" class="card flex-1 text-center py-2.5 rounded-full text-[13px] font-medium text-gray-500 bg-gray-100">返回列表</a>';
+  html+='<button onclick="'+nextAction+'" class="card flex-1 text-center py-2.5 rounded-full text-[13px] font-bold text-white shadow-card grad-h">'+nextBtn+'</button>';
+  html+='</div><div class="h-20"></div>';
+  var box=document.getElementById('inquiryDetail');if(box)box.innerHTML=html;
+}
+(function initOrderType(){
+  var params=new URLSearchParams(location.search);
+  if(params.get('type')==='inquiry'){
+    var pd=document.getElementById('purchaseDetail'),pb=document.getElementById('purchaseBottom');
+    if(pd)pd.style.display='none';if(pb)pb.style.display='none';
+    var id=params.get('id');
+    var o=INQUIRY_ORDERS.filter(function(x){return x.id===id})[0]||INQUIRY_ORDERS[0];
+    renderInquiryDetail(o);
+    var idBox=document.getElementById('inquiryDetail');if(idBox)idBox.style.display='block';
+  }
+})();
 </script>
 </body>
 </html>
