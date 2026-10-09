@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>品牌馆 - 袜掌柜买家版</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--p:#FF4D2D;--pl:#FF7849;--bg:#FFF7F4;--v1:#7C3AED;--v2:#FF2D78}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+::-webkit-scrollbar{width:2px;height:2px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#dfdfdf;border-radius:1px}
+.no-bar::-webkit-scrollbar{display:none}
+.grad-h{background:linear-gradient(135deg,#FF6B35 0%,#FF4D2D 45%,#FF2D78 100%)}
+.shadow-card{box-shadow:0 8px 24px rgba(255,77,45,.14)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
+.tag-brand{background:linear-gradient(90deg,#7C3AED,#C084FC)}
+.card{transition:transform .16s ease, box-shadow .16s ease}
+.card:active{transform:scale(.965)}
+.sec-title{font-size:17px;font-weight:800;letter-spacing:.3px;color:#1F2430}
+.sec-more{font-size:11px;color:#9aa0ac}
+.text-grad{background:linear-gradient(90deg,#FF4D2D,#FF2D78);-webkit-background-clip:text;background-clip:text;color:transparent}
+.h-scroll{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:3px}
+.h-scroll::-webkit-scrollbar{display:none}
+.h-scroll>*{scroll-snap-align:start;flex:0 0 auto}
+.fade-up{animation:fadeUp .4s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.brand-tab{flex-shrink:0;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:600;background:#fff;color:#6b7080;transition:.15s;cursor:pointer;border:1.5px solid #eceef0}
+.brand-tab.on{background:linear-gradient(90deg,#7C3AED,#C084FC);color:#fff;border-color:transparent;box-shadow:0 4px 12px rgba(124,58,237,.25)}
+.follow-btn{transition:.15s}
+.follow-btn.on{background:#F3F4F6!important;color:#6b7280!important}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:9999;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.25);min-width:140px;justify-content:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<!-- 顶部渐变头部 -->
+<div class="relative px-4 pt-2 pb-4 overflow-hidden grad-h">
+  <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-50" style="background:#FF8A4C"></div>
+  <div class="absolute -top-6 right-[-30px] w-48 h-48 rounded-full blur-3xl opacity-40" style="background:#FF2D78"></div>
+  <div class="absolute -bottom-10 left-12 w-44 h-44 rounded-full blur-3xl opacity-35" style="background:#7C3AED"></div>
+
+  <!-- iOS状态栏 -->
+  <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5">
+      <i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i>
+    </div>
+  </div>
+
+  <!-- 导航栏 -->
+  <div class="relative flex items-center justify-between mt-1">
+    <a href="home.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+    <div>
+      <h1 class="text-white font-extrabold text-[18px] tracking-wide text-center" style="text-shadow:0 2px 10px rgba(0,0,0,.18)">品牌馆</h1>
+      <p class="text-white/70 text-[10px] mt-0.5 text-center">实力商家 · 旗舰甄选</p>
+    </div>
+    <a href="messages.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-comment-dots text-sm"></i></a>
+  </div>
+</div>
+
+<!-- 搜索栏 -->
+<div class="px-3 -mt-2 relative z-10">
+  <div class="bg-white rounded-2xl shadow-soft p-2.5 flex items-center gap-2">
+    <i class="fas fa-search text-gray-400 text-sm ml-1"></i>
+    <input type="text" id="brandSearch" placeholder="搜索品牌 / 主营品类 / 商家" class="flex-1 text-[13px] outline-none bg-transparent text-gray-700" oninput="filterBrand(this.value)">
+    <button onclick="clearSearch()" class="text-gray-400 px-2" style="display:none" id="clearSearch"><i class="fas fa-times-circle"></i></button>
+    <button onclick="filterBrand(document.getElementById('brandSearch').value)" class="text-white text-[11px] font-bold px-3 py-1.5 rounded-full" style="background:linear-gradient(135deg,#7C3AED,#C084FC)">搜索</button>
+  </div>
+</div>
+
+<!-- 品牌数据简报 -->
+<div class="px-3 mt-3">
+  <div class="bg-white/80 backdrop-blur-xl rounded-2xl shadow-soft p-3 border border-white flex items-center justify-around">
+    <div class="text-center"><p class="text-[18px] font-extrabold text-grad">128</p><p class="text-[9px] text-gray-400 mt-0.5">入驻品牌</p></div>
+    <div class="w-px h-8 bg-gray-100"></div>
+    <div class="text-center"><p class="text-[18px] font-extrabold text-grad">86</p><p class="text-[9px] text-gray-400 mt-0.5">源头工厂</p></div>
+    <div class="w-px h-8 bg-gray-100"></div>
+    <div class="text-center"><p class="text-[18px] font-extrabold text-grad">4.8</p><p class="text-[9px] text-gray-400 mt-0.5">平均评分</p></div>
+  </div>
+</div>
+
+<!-- 类目筛选 -->
+<div class="px-3 mt-3">
+  <div class="h-scroll no-bar" id="cateTabs">
+    <div class="brand-tab on" data-cate="all" onclick="switchCate('all',this)">全部品牌</div>
+    <div class="brand-tab" data-cate="男袜" onclick="switchCate('男袜',this)">男袜</div>
+    <div class="brand-tab" data-cate="女袜" onclick="switchCate('女袜',this)">女袜</div>
+    <div class="brand-tab" data-cate="童袜" onclick="switchCate('童袜',this)">童袜</div>
+    <div class="brand-tab" data-cate="运动" onclick="switchCate('运动',this)">运动袜</div>
+    <div class="brand-tab" data-cate="外贸" onclick="switchCate('外贸',this)">外贸优品</div>
+    <div class="brand-tab" data-cate="设计" onclick="switchCate('设计',this)">设计师</div>
+  </div>
+</div>
+
+<!-- 品牌榜单速览 -->
+<div class="px-3 mt-3">
+  <div class="flex items-center justify-between mb-2">
+    <span class="sec-title">品牌榜单</span>
+    <a href="ranking-search.html" class="sec-more">查看榜单 <i class="fas fa-chevron-right text-[9px]"></i></a>
+  </div>
+  <div class="h-scroll no-bar" id="topBrandScroll">
+    <!-- JS填充 -->
+  </div>
+</div>
+
+<!-- 品牌列表 -->
+<div class="px-3 mt-3 mb-6">
+  <div class="flex items-center justify-between mb-2">
+    <span class="sec-title">全部品牌</span>
+    <div class="flex items-center gap-2">
+      <span class="text-[10px] text-gray-400" id="brandCount">共 12 家</span>
+      <select id="sortSelect" onchange="sortBrand()" class="text-[10px] text-gray-600 bg-white border border-gray-100 rounded-lg px-1.5 py-1 outline-none">
+        <option value="default">综合排序</option>
+        <option value="rating">评分最高</option>
+        <option value="followers">关注最多</option>
+      </select>
+    </div>
+  </div>
+  <div class="space-y-2.5" id="brandList">
+    <!-- JS填充 -->
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function toast(msg){
+  var t=document.getElementById('toast');t.innerHTML='<i class="fas fa-circle-check text-green-400"></i><span>'+msg+'</span>';t.classList.add('on');setTimeout(function(){t.classList.remove('on')},1800);
+}
+
+var BRANDS=[
+  {id:1,name:'浪莎',slogan:'中国驰名商标 · 全品类袜品',tags:['男袜','女袜','童袜'],main:'商务男袜、连裤袜、儿童棉袜',rating:4.9,followers:12800,location:'大唐袜业城 A区 3F-108',cert:true,hot:true},
+  {id:2,name:'宝娜斯',slogan:'丝袜织造专家 · 时尚打底',tags:['女袜','外贸'],main:'丝袜、连裤袜、打底袜',rating:4.8,followers:9600,location:'大唐袜业城 B区 2F-206',cert:true,hot:true},
+  {id:3,name:'梦娜',slogan:'30年专注袜业 · 品质工厂',tags:['男袜','女袜'],main:'运动袜、休闲袜、礼盒袜',rating:4.7,followers:8200,location:'大唐袜业城 A区 2F-315',cert:true,hot:false},
+  {id:4,name:'耐尔',slogan:'抗菌防臭科技袜',tags:['男袜','运动'],main:'抗菌男袜、运动压缩袜',rating:4.8,followers:7400,location:'大唐袜业城 C区 1F-018',cert:true,hot:false},
+  {id:5,name:'丹吉娅',slogan:'儿童袜安全标准制定者',tags:['童袜','设计'],main:'A类童袜、卡通袜、学生袜',rating:4.9,followers:6900,location:'大唐袜业城 D区 2F-122',cert:true,hot:true},
+  {id:6,name:'步人',slogan:'高端商务袜 · 礼盒定制',tags:['男袜','外贸'],main:'商务袜、礼品袜、企业定制',rating:4.6,followers:5100,location:'大唐袜业城 B区 1F-088',cert:false,hot:false},
+  {id:7,name:'芬丽',slogan:'外贸出口TOP · 跨境优选',tags:['外贸','女袜'],main:'出口女袜、跨境专供袜',rating:4.7,followers:4800,location:'大唐袜业城 E区 1F-036',cert:true,hot:false},
+  {id:8,name:'东方缘',slogan:'原创设计师袜品',tags:['设计','女袜'],main:'潮袜、联名款、设计师款',rating:4.8,followers:6300,location:'大唐袜业城 F区 2F-208',cert:false,hot:true},
+  {id:9,name:'洁丽雅袜业',slogan:'毛巾袜 · 居家袜专家',tags:['女袜','童袜'],main:'毛巾袜、地板袜、居家袜',rating:4.5,followers:3900,location:'大唐袜业城 A区 1F-066',cert:true,hot:false},
+  {id:10,name:'恒源祥袜业',slogan:'国民品牌 · 保暖袜系列',tags:['男袜','女袜'],main:'保暖袜、羊毛袜、礼盒袜',rating:4.6,followers:5500,location:'大唐袜业城 B区 3F-302',cert:true,hot:false},
+  {id:11,name:'南极人袜品',slogan:'全渠道供应链 · 一件代发',tags:['男袜','女袜','童袜'],main:'全品类袜品、电商代发',rating:4.4,followers:11200,location:'大唐袜业城 C区 3F-158',cert:false,hot:false},
+  {id:12,name:'ZOO SOCKS',slogan:'原创潮袜 · 年轻力',tags:['设计','运动'],main:'潮牌袜、运动机能袜',rating:4.7,followers:4200,location:'大唐袜业城 F区 1F-012',cert:false,hot:true}
+];
+
+var followed=JSON.parse(localStorage.getItem('brandFollowed')||'[]');
+var currentCate='all';
+
+function renderBrandList(list){
+  var box=document.getElementById('brandList');
+  var countEl=document.getElementById('brandCount');
+  if(!box)return;
+  countEl.textContent='共 '+list.length+' 家';
+  if(!list.length){box.innerHTML='<div class="text-center py-12"><i class="fas fa-search text-gray-200 text-4xl"></i><p class="text-[12px] text-gray-400 mt-3">未找到匹配品牌</p></div>';return;}
+  var h='';
+  list.forEach(function(b,i){
+    var isFollow=followed.indexOf(b.id)>-1;
+    var logoBg='background:linear-gradient(135deg,'+(i%2?'#A78BFA,#7C3AED':'#F472B6,#DB2777')+')';
+    h+='<a href="brand-detail.html?id='+b.id+'" class="card bg-white rounded-2xl shadow-soft p-3 flex gap-3 fade-up" style="animation-delay:'+(i*0.05)+'s">';
+    h+='<div class="w-14 h-14 rounded-2xl flex items-center justify-center text-white font-bold text-[18px] flex-shrink-0 shadow-soft" style="'+logoBg+'">'+b.name.charAt(0)+'</div>';
+    h+='<div class="flex-1 min-w-0">';
+    h+='<div class="flex items-start justify-between gap-2">';
+    h+='<div class="min-w-0"><div class="flex items-center gap-1.5"><p class="text-[14px] font-bold text-gray-800 truncate">'+b.name+'</p>'+(b.cert?'<span class="text-white text-[8px] px-1 py-0.5 rounded font-medium" style="background:linear-gradient(90deg,#34D399,#10B981)"><i class="fas fa-circle-check mr-0.5"></i>认证</span>':'')+(b.hot?'<span class="text-white text-[8px] px-1 py-0.5 rounded font-medium tag-brand">热</span>':'')+'</div>';
+    h+='<p class="text-[10px] text-gray-400 mt-0.5 truncate">'+b.slogan+'</p></div>';
+    h+='<button type="button" onclick="event.preventDefault();toggleFollow('+b.id+')" class="follow-btn '+(!isFollow?'text-white':'on text-gray-500')+' text-[10px] font-bold px-2.5 py-1 rounded-full flex-shrink-0" style="'+(isFollow?'':'background:linear-gradient(135deg,#7C3AED,#C084FC)')+'">'+(isFollow?'已关注':'+ 关注')+'</button></div>';
+    h+='<div class="flex flex-wrap gap-1 mt-2">';
+    b.tags.forEach(function(t){h+='<span class="text-[9px] px-1.5 py-0.5 rounded bg-purple-50 text-purple-600 font-medium">'+t+'</span>';});
+    h+='</div>';
+    h+='<p class="text-[10px] text-gray-500 mt-1.5 truncate">主营：'+b.main+'</p>';
+    h+='<div class="flex items-center justify-between mt-2 pt-2 border-t border-gray-50">';
+    h+='<div class="flex items-center gap-3"><span class="text-[10px] text-amber-500 font-bold"><i class="fas fa-star mr-0.5"></i>'+b.rating+'</span><span class="text-[9px] text-gray-400">'+b.followers+' 关注</span></div>';
+    h+='<span class="text-[9px] text-gray-400 truncate max-w-[120px]"><i class="fas fa-location-dot mr-0.5"></i>'+b.location+'</span></div>';
+    h+='</div></a>';
+  });
+  box.innerHTML=h;
+}
+
+function renderTopBrands(){
+  var box=document.getElementById('topBrandScroll');if(!box)return;
+  var top=[BRANDS[0],BRANDS[4],BRANDS[1],BRANDS[7]];
+  var h='';
+  top.forEach(function(b,i){
+    var ranks=['金牌品牌','口碑品牌','热销品牌','新锐品牌'];
+    var bg=['background:linear-gradient(135deg,#F59E0B,#D97706)','background:linear-gradient(135deg,#EF4444,#DC2626)','background:linear-gradient(135deg,#7C3AED,#C084FC)','background:linear-gradient(135deg,#10B981,#059669)'][i];
+    h+='<a href="brand-detail.html?id='+b.id+'" class="card bg-white rounded-2xl shadow-soft p-2.5" style="width:130px">';
+    h+='<div class="flex items-center gap-2 mb-2"><div class="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm" style="'+bg+'">'+b.name.charAt(0)+'</div><div><p class="text-[12px] font-bold text-gray-800">'+b.name+'</p><p class="text-[8px] text-gray-400">'+ranks[i]+'</p></div></div>';
+    h+='<p class="text-[9px] text-gray-500 truncate">'+b.main+'</p>';
+    h+='<div class="mt-2 flex items-center justify-between"><span class="text-[10px] text-amber-500 font-bold"><i class="fas fa-star"></i> '+b.rating+'</span><span class="text-[9px] px-1.5 py-0.5 rounded-full text-white" style="background:linear-gradient(90deg,#FF4D2D,#FF7849)">进店</span></div>';
+    h+='</a>';
+  });
+  box.innerHTML=h;
+}
+
+function toggleFollow(id){
+  var idx=followed.indexOf(id);
+  if(idx>-1){followed.splice(idx,1);toast('已取消关注');}else{followed.push(id);toast('关注成功');}
+  localStorage.setItem('brandFollowed',JSON.stringify(followed));
+  applyFilter();
+}
+
+function switchCate(cate,el){
+  currentCate=cate;
+  document.querySelectorAll('#cateTabs .brand-tab').forEach(function(t){t.classList.remove('on');});
+  el.classList.add('on');
+  applyFilter();
+}
+
+function filterBrand(kw){
+  var clearBtn=document.getElementById('clearSearch');
+  if(clearBtn)clearBtn.style.display=kw?'block':'none';
+  applyFilter();
+}
+
+function clearSearch(){
+  var input=document.getElementById('brandSearch');if(input)input.value='';
+  filterBrand('');
+}
+
+function applyFilter(){
+  var kw=(document.getElementById('brandSearch').value||'').trim().toLowerCase();
+  var list=BRANDS.filter(function(b){
+    if(currentCate!=='all' && b.tags.indexOf(currentCate)===-1)return false;
+    if(!kw)return true;
+    return b.name.toLowerCase().indexOf(kw)>-1 || b.main.toLowerCase().indexOf(kw)>-1 || b.tags.join(' ').indexOf(kw)>-1;
+  });
+  renderBrandList(list);
+}
+
+function sortBrand(){
+  var val=document.getElementById('sortSelect').value;
+  var kw=(document.getElementById('brandSearch').value||'').trim().toLowerCase();
+  var list=BRANDS.filter(function(b){
+    if(currentCate!=='all' && b.tags.indexOf(currentCate)===-1)return false;
+    if(!kw)return true;
+    return b.name.toLowerCase().indexOf(kw)>-1 || b.main.toLowerCase().indexOf(kw)>-1 || b.tags.join(' ').indexOf(kw)>-1;
+  });
+  if(val==='rating')list.sort(function(a,b){return b.rating-a.rating;});
+  if(val==='followers')list.sort(function(a,b){return b.followers-a.followers;});
+  renderBrandList(list);
+}
+
+renderTopBrands();
+applyFilter();
+</script>
+</body>
+</html>
