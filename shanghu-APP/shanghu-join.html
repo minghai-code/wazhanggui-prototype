@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>注册并申请入驻 - 袜掌柜商户版</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--p:#2563EB;--pd:#1D4ED8;--bg:#F0F6FF}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+::-webkit-scrollbar{width:2px;height:2px}
+.card{transition:transform .16s ease}
+.card:active{transform:scale(.985)}
+.grad-h{background:linear-gradient(135deg,#2563EB 0%,#1D4ED8 55%,#0EA5E9 100%)}
+.shadow-card{box-shadow:0 8px 24px rgba(37,99,235,.18)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,40,80,.06)}
+.fade-up{animation:fadeUp .4s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.inp{width:100%;background:rgba(248,249,250,.8);border:1px solid rgba(240,240,240,.8);border-radius:12px;padding:11px 13px;font-size:13px;color:#1F2430;outline:none;transition:border-color .16s ease,background .16s ease}
+.inp::placeholder{color:#C0C0C0}
+.inp:focus{border-color:#2563EB;background:#fff}
+.lbl{font-size:11px;color:#6b7080;font-weight:500;display:block;margin-bottom:6px}
+.lbl b{color:#2563EB}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:200;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.25);min-width:140px;justify-content:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.progress{position:relative;z-index:5;display:flex;align-items:center}
+.progress .dot{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:700;transition:.2s}
+.progress .dot.done{background:#2563EB}
+.progress .dot.cur{background:#2563EB;box-shadow:0 0 0 4px rgba(37,99,235,.18)}
+.progress .dot.todo{background:#D1D5DB}
+.progress .line{flex:1;height:2px;margin:0 4px;border-radius:2px;background:#E5E7EB;transition:.2s}
+.progress .line.done{background:#2563EB}
+.tag-opt{font-size:11px;color:#6b7080;background:#fff;border:1px solid #eceef0;border-radius:10px;padding:6px 12px;cursor:pointer;transition:.15s;font-weight:500}
+.tag-opt.on{border-color:#2563EB;color:#2563EB;background:#EFF6FF;font-weight:600}
+.upload-box{border:1.5px dashed #D1D5DB;border-radius:12px;padding:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;transition:.15s;background:#fff}
+.upload-box:active{border-color:#2563EB;background:#EFF6FF}
+.step-panel{display:none}
+.step-panel.on{display:block;animation:fadeUp .35s ease both}
+</style>
+<!-- Tailwind 静态样式：本地引用（不再依赖 cdn.tailwindcss.com）；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<!-- ===== 顶部渐变头部 ===== -->
+<div class="relative px-4 pt-2 pb-5 overflow-hidden grad-h">
+  <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-50" style="background:#60A5FA"></div>
+  <div class="absolute -top-6 right-[-30px] w-48 h-48 rounded-full blur-3xl opacity-40" style="background:#06B6D4"></div>
+
+  <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+  </div>
+
+  <div class="relative flex items-center gap-3">
+    <a href="mine.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white flex-shrink-0"><i class="fas fa-chevron-left text-sm"></i></a>
+    <div>
+      <span class="text-white font-extrabold text-[20px] tracking-wide" style="text-shadow:0 2px 10px rgba(0,0,0,.18)">注册并申请入驻</span>
+      <p class="text-white/85 text-[10px] mt-0.5">注册即提交入驻申请　·　审核通过后开通店铺与报价权限</p>
+    </div>
+  </div>
+
+  <!-- 步骤条 -->
+  <div class="relative mt-4 px-2">
+    <div class="progress">
+      <div class="flex flex-col items-center" style="width:60px">
+        <div class="dot cur" id="dot1">1</div>
+        <span class="text-[9px] text-white/90 font-medium mt-1.5">注册账号</span>
+      </div>
+      <div class="line" id="line1"></div>
+      <div class="flex flex-col items-center" style="width:60px">
+        <div class="dot todo" id="dot2">2</div>
+        <span class="text-[9px] text-white/60 font-medium mt-1.5">身份与商户</span>
+      </div>
+      <div class="line" id="line2"></div>
+      <div class="flex flex-col items-center" style="width:60px">
+        <div class="dot todo" id="dot3">3</div>
+        <span class="text-[9px] text-white/60 font-medium mt-1.5">确认档口</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 表单区 ===== -->
+<div class="px-3 pt-4 pb-16">
+
+  <!-- Step 1: 注册账号 -->
+  <div class="step-panel on" id="step1">
+    <div class="bg-white rounded-2xl shadow-soft p-3.5 fade-up">
+      <div class="flex items-center gap-2 mb-3">
+        <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white" style="background:linear-gradient(135deg,#60A5FA,#2563EB)"><i class="fas fa-mobile-screen-button text-[11px]"></i></div>
+        <span class="text-[13px] font-bold text-gray-800">注册商户账号</span>
+        <span class="ml-auto text-[9px] font-bold text-[#2563EB] bg-[#EFF6FF] px-1.5 py-0.5 rounded">与买家端同一账号体系</span>
+      </div>
+      <div class="mb-3">
+        <label class="lbl">手机号码 <b>*</b>（登录账号）</label>
+        <div class="flex gap-2">
+          <input type="text" class="inp" style="width:80px;text-align:center" value="+86" readonly>
+          <input type="tel" class="inp flex-1" placeholder="请输入手机号" maxlength="11">
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="lbl">短信验证码 <b>*</b></label>
+        <div class="flex gap-2">
+          <input type="text" class="inp flex-1" placeholder="请输入短信验证码" maxlength="6">
+          <button class="card px-3 rounded-xl text-[12px] font-medium text-white" style="background:linear-gradient(135deg,#60A5FA,#2563EB);min-width:90px" onclick="sendCode(this)">获取验证码</button>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="lbl">设置登录密码 <b>*</b></label>
+        <input type="password" class="inp" placeholder="设置6-20位登录密码">
+      </div>
+      <div class="mb-1">
+        <label class="lbl">确认密码 <b>*</b></label>
+        <input type="password" class="inp" placeholder="再次输入登录密码">
+      </div>
+    </div>
+    <button class="card w-full mt-4 py-3 rounded-2xl text-white text-[14px] font-bold shadow-card grad-h" onclick="nextStep(2)">下一步：身份与商户信息</button>
+  </div>
+
+  <!-- Step 2: 身份与商户信息 -->
+  <div class="step-panel" id="step2">
+    <div class="bg-white rounded-2xl shadow-soft p-3.5 fade-up">
+      <div class="flex items-center gap-2 mb-3">
+        <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white" style="background:linear-gradient(135deg,#60A5FA,#2563EB)"><i class="fas fa-user text-[11px]"></i></div>
+        <span class="text-[13px] font-bold text-gray-800">法人 / 经营者身份信息</span>
+      </div>
+      <div class="mb-3">
+        <label class="lbl">真实姓名 <b>*</b>（用于匹配线下档口）</label>
+        <input type="text" class="inp" placeholder="请输入身份证上的真实姓名">
+      </div>
+      <div class="mb-3">
+        <label class="lbl">身份证号 <b>*</b></label>
+        <input type="text" class="inp" placeholder="请输入18位身份证号码" maxlength="18">
+      </div>
+      <div class="mb-1">
+        <label class="lbl">身份证照片 <b>*</b></label>
+        <div class="grid grid-cols-2 gap-2">
+          <div class="upload-box" onclick="toast('选择身份证人像面')"><i class="fas fa-id-card text-2xl text-gray-300"></i><span class="text-[10px] text-gray-400 mt-1">人像面</span></div>
+          <div class="upload-box" onclick="toast('选择身份证国徽面')"><i class="fas fa-id-card-clip text-2xl text-gray-300"></i><span class="text-[10px] text-gray-400 mt-1">国徽面</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-soft p-3.5 mt-3 fade-up">
+      <div class="flex items-center gap-2 mb-3">
+        <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white" style="background:linear-gradient(135deg,#60A5FA,#2563EB)"><i class="fas fa-store text-[11px]"></i></div>
+        <span class="text-[13px] font-bold text-gray-800">商户基本信息</span>
+      </div>
+      <div class="mb-3">
+        <label class="lbl">商户 / 店铺名称 <b>*</b></label>
+        <input type="text" class="inp" placeholder="如：大唐袜业旗舰店">
+      </div>
+      <div class="mb-3">
+        <label class="lbl">经营主体类型 <b>*</b></label>
+        <div class="flex flex-wrap gap-1.5">
+          <span class="tag-opt on" onclick="tagSelect(this)">个体工商户</span>
+          <span class="tag-opt" onclick="tagSelect(this)">企业</span>
+          <span class="tag-opt" onclick="tagSelect(this)">工厂/制造商</span>
+        </div>
+        <p class="text-[10px] text-gray-400 mt-1.5">主体类型只区分经营身份；<b>有无线下档口由系统自动识别</b>，无需选择</p>
+      </div>
+      <div class="mb-3">
+        <label class="lbl">主营品类 <b>*</b></label>
+        <div class="flex flex-wrap gap-1.5">
+          <span class="tag-opt on" onclick="tagSelect(this)">男袜</span>
+          <span class="tag-opt" onclick="tagSelect(this)">女袜</span>
+          <span class="tag-opt" onclick="tagSelect(this)">童袜</span>
+          <span class="tag-opt" onclick="tagSelect(this)">运动袜</span>
+          <span class="tag-opt" onclick="tagSelect(this)">保暖袜</span>
+          <span class="tag-opt" onclick="tagSelect(this)">功能袜</span>
+          <span class="tag-opt" onclick="tagSelect(this)">其他</span>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="lbl">营业执照号 <b>*</b></label>
+        <input type="text" class="inp" placeholder="统一社会信用代码">
+      </div>
+      <div class="mb-3">
+        <label class="lbl">营业执照照片 <b>*</b></label>
+        <div class="upload-box" onclick="toast('选择营业执照照片')"><i class="fas fa-file-lines text-2xl text-gray-300"></i><span class="text-[10px] text-gray-400 mt-1">上传营业执照</span></div>
+      </div>
+      <div class="mb-1">
+        <label class="lbl">店铺 Logo（选填）</label>
+        <div class="upload-box" onclick="toast('选择店铺Logo')"><i class="fas fa-image text-2xl text-gray-300"></i><span class="text-[10px] text-gray-400 mt-1">上传店铺Logo</span></div>
+      </div>
+      <p class="text-[10px] text-gray-400 mt-2 leading-relaxed"><i class="fas fa-circle-info mr-1"></i>营业执照等资质信息随入驻审核一并核对，<b>审核通过后无需再做资质认证</b>（资质认证仅用于证书到期复核与受限品类校验）。</p>
+    </div>
+
+    <div class="flex gap-2 mt-4">
+      <button class="card flex-1 py-3 rounded-2xl text-[14px] font-bold text-gray-600 bg-white border border-gray-200" onclick="nextStep(1)">上一步</button>
+      <button class="card flex-1 py-3 rounded-2xl text-white text-[14px] font-bold shadow-card grad-h" onclick="nextStep(3)">下一步：确认档口</button>
+    </div>
+  </div>
+
+  <!-- Step 3: 确认档口 + 提交 -->
+  <div class="step-panel" id="step3">
+    <div class="bg-white rounded-2xl shadow-soft p-3.5 fade-up">
+      <div class="flex items-center gap-2 mb-3">
+        <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white" style="background:linear-gradient(135deg,#60A5FA,#2563EB)"><i class="fas fa-warehouse text-[11px]"></i></div>
+        <span class="text-[13px] font-bold text-gray-800">确认线下档口</span>
+      </div>
+      <div class="rounded-xl border border-gray-200 p-3">
+        <div class="flex items-center gap-2 mb-2">
+          <i class="fas fa-magnifying-glass text-[11px] text-gray-400"></i>
+          <span class="text-[10px] text-gray-500">已按「真实姓名 + 身份证号」查询市场档口台账</span>
+          <span class="ml-auto text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">已识别到档口</span>
+        </div>
+        <div class="bg-gray-50 rounded-lg p-2.5 text-[10px]">
+          <div class="grid grid-cols-2 gap-2">
+            <div><span class="text-gray-400">档口编号</span><p class="text-gray-700 font-medium mt-0.5">1F-A08</p></div>
+            <div><span class="text-gray-400">位置</span><p class="text-gray-700 font-medium mt-0.5">A 区 1 层</p></div>
+            <div><span class="text-gray-400">出租面积</span><p class="text-gray-700 font-medium mt-0.5">50 ㎡</p></div>
+            <div><span class="text-gray-400">租期</span><p class="text-gray-700 font-medium mt-0.5 num">2024.09.01-2026.08.31</p></div>
+          </div>
+        </div>
+        <p class="text-[10px] text-gray-400 mt-2 leading-relaxed">识别到您已有线下档口 → 审核通过后您将成为「<b class="text-[#2563EB]">线上兼档口商户</b>」。档口信息以市场台账为准，<b>无需也不能自行填写</b>；未识别到档口时不显示此区块（审核通过后为「仅线上商户」）。</p>
+        <button class="card w-full mt-2 py-2 rounded-lg text-[11px] text-gray-600 bg-white border border-gray-200" onclick="requeryShop()">重新识别</button>
+      </div>
+    </div>
+
+    <!-- 入驻权益 -->
+    <div class="bg-white rounded-2xl shadow-soft p-3.5 mt-3 fade-up">
+      <div class="flex items-center gap-2 mb-2.5">
+        <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white" style="background:linear-gradient(135deg,#7C3AED,#C084FC)"><i class="fas fa-gift text-[11px]"></i></div>
+        <span class="text-[13px] font-bold text-gray-800">审核通过后自动开通</span>
+      </div>
+      <div class="space-y-2">
+        <div class="flex items-center gap-2"><i class="fas fa-circle-check text-[#10B981] text-[11px]"></i><span class="text-[11px] text-gray-600">店铺管理权限（发布商品 · 上下架 · 店铺装修）</span></div>
+        <div class="flex items-center gap-2"><i class="fas fa-circle-check text-[#10B981] text-[11px]"></i><span class="text-[11px] text-gray-600">采购询价<b>报价权限</b>（浏览需求池 · 提交报价单）</span></div>
+        <div class="flex items-center gap-2"><i class="fas fa-circle-check text-[#10B981] text-[11px]"></i><span class="text-[11px] text-gray-600">订单 / 售后、缴费 / 报修、合同查看等经营功能</span></div>
+        <div class="flex items-center gap-2"><i class="fas fa-circle-info text-[#F59E0B] text-[11px]"></i><span class="text-[11px] text-gray-600">审核通过前可登录并查看需求池，但<b>不能报价</b></span></div>
+      </div>
+    </div>
+
+    <!-- 协议 -->
+    <div class="flex items-center gap-2 mt-3 px-1">
+      <input type="checkbox" id="agreeBox" class="w-4 h-4 accent-[#2563EB]">
+      <label for="agreeBox" class="text-[11px] text-gray-500">我已阅读并同意<span class="text-[#2563EB] font-medium" onclick="toast('商户入驻协议')">《商户入驻协议》</span>及<span class="text-[#2563EB] font-medium" onclick="toast('隐私政策')">《隐私政策》</span></label>
+    </div>
+
+    <div class="flex gap-2 mt-4">
+      <button class="card flex-1 py-3 rounded-2xl text-[14px] font-bold text-gray-600 bg-white border border-gray-200" onclick="nextStep(2)">上一步</button>
+      <button class="card flex-1 py-3 rounded-2xl text-white text-[14px] font-bold shadow-card grad-h" onclick="submitForm()">提交入驻申请</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- 提交成功弹窗 -->
+<div class="fixed inset-0 flex items-center justify-center" id="successMask" style="display:none;background:rgba(0,0,0,.5);z-index:300">
+  <div class="bg-white rounded-3xl mx-6 p-6 text-center shadow-card" style="max-width:290px;animation:fadeUp .35s ease both">
+    <div class="w-16 h-16 mx-auto rounded-full flex items-center justify-center" style="background:linear-gradient(135deg,#34D399,#10B981);box-shadow:0 8px 24px rgba(16,185,129,.3)">
+      <i class="fas fa-check text-white text-2xl"></i>
+    </div>
+    <p class="text-[16px] font-bold text-gray-800 mt-4">注册成功，入驻申请已提交</p>
+    <p class="text-[12px] text-gray-500 mt-1.5 leading-relaxed">账号状态：<b class="text-[#B45309]">审核中</b>（1-3 个工作日）<br>审核通过后<b>自动开通</b>店铺管理与报价权限</p>
+    <div class="rounded-xl border p-2.5 mt-3 text-left" style="border-color:#BFDBFE;background:#EFF6FF">
+      <p class="text-[10px] leading-relaxed" style="color:#2563EB"><i class="fas fa-circle-info mr-1"></i>同一手机号也可从<b>买家端 App 入驻 banner</b> 进入注册；两端共用同一账号与同一份申请单。<br>未通过审核前可查看需求池，但<b>不能报价</b>。</p>
+    </div>
+    <button class="card block w-full mt-3 py-2.5 rounded-xl text-white text-[13px] font-bold" style="background:linear-gradient(135deg,#2563EB,#1D4ED8)" onclick="closeSuccess()">查看入驻进度</button>
+    <a href="mine.html" class="card block w-full mt-2 py-2.5 rounded-xl text-[13px] font-bold text-gray-600 bg-white border border-gray-200">返回我的</a>
+  </div>
+</div>
+
+<!-- Home Indicator -->
+<div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none">
+<div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:3px"></div>
+</div>
+
+<div class="toast" id="toast"><i class="fas fa-circle-check text-[#4ADE80]"></i><span id="toastTxt">操作成功</span></div>
+
+<script>
+var toastTimer;
+function toast(msg){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},1800)}
+function tagSelect(el){el.classList.toggle('on')}
+function sendCode(btn){var n=60;btn.textContent=n+'s后重试';btn.style.opacity='.6';btn.disabled=true;var iv=setInterval(function(){n--;if(n<=0){clearInterval(iv);btn.textContent='获取验证码';btn.style.opacity='1';btn.disabled=false}else{btn.textContent=n+'s后重试'}},1000)}
+function requeryShop(){toast('已按「姓名 + 身份证」重新查询档口台账：识别到 1 个在租档口 1F-A08（A 区 1 层 · 50㎡ · 租期至 2026.08.31）')}
+function nextStep(n){
+  for(var i=1;i<=3;i++){document.getElementById('step'+i).classList.remove('on')}
+  document.getElementById('step'+n).classList.add('on');
+  for(var j=1;j<=3;j++){var d=document.getElementById('dot'+j);d.className='dot '+(j<n?'done':j===n?'cur':'todo');if(j<n)d.innerHTML='<i class="fas fa-check text-[9px]"></i>';else d.textContent=j}
+  document.getElementById('line1').className='line'+(n>1?' done':'');
+  document.getElementById('line2').className='line'+(n>2?' done':'');
+  window.scrollTo(0,0);
+}
+function submitForm(){
+  if(!document.getElementById('agreeBox').checked){toast('请先勾选同意协议');return}
+  document.getElementById('successMask').style.display='flex';
+}
+function closeSuccess(){
+  document.getElementById('successMask').style.display='none';
+  toast('已提交入驻申请（来源：商户端 App 注册）：待初审 → 复审；可在「我的 → 入驻申请」查看进度 / 补件 / 撤回');
+}
+</script>
+</body>
+</html>

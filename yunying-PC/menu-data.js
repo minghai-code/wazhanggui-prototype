@@ -18,8 +18,8 @@
  * 【顺序】数组顺序 = 侧边栏展示顺序，调整顺序即移动数组元素，勿复制粘贴
  * ========================================================================== */
 
-window.MENU_VERSION = '2026.09.30-01';
-window.MENU_UPDATED = '2026-09-30';
+window.MENU_VERSION = '2026.10.09-03';
+window.MENU_UPDATED = '2026-10-09';
 
 window.MENU_DATA = [
 
@@ -63,7 +63,7 @@ window.MENU_DATA = [
     { type: 'item', name: '资料变更审核', page: 'merchant-change.html', status: 'done', points: ['变更类型：企业信息/联系方式/资质/经营类目（移除商位）', '申请列表', '通过/驳回（原因必填）', '主档回写留痕'] },
     { type: 'item', name: '商户档案', page: 'merchant-profile.html', status: 'done', points: ['商户类型（仅线上/线上兼档口/仅线下档口（未上线））', '线上开通状态', '关联档口（只读，来自 02）', '详情/编辑/画像标签/操作留痕'] },
     { type: 'item', name: '信用评级', page: 'merchant-rating.html', status: 'done', points: ['信用指标规则配置（交易/评价/缴费，版本化不回溯）', '多源自动评分（缴费无源时标"数据缺失"）', '商户评级列表', '评级详情与人工调整留痕'] },
-    { type: 'item', name: '资质认证审核', page: 'merchant-qual.html', status: 'done', points: ['企业资质在线审批（营业执照/生产许可/品牌授权/质检报告）', '通过 → 开启询价权限', '到期/驳回 → 自动冻结询价权限', '到期提醒与重传'] },
+    { type: 'item', name: '资质与到期管理', page: 'merchant-qual.html', status: 'done', points: ['资质台账（营业执照/生产许可/品牌授权/质检报告）', '定位：不再作为报价前置门槛（随入驻审核默认开通）', '证书到期复核（过期 → 自动冻结报价）+ 受限场景校验（品牌授权类/大额/需质检报告）', '到期提醒与商户重传'] },
     { type: 'item', name: '退租/清退', page: 'merchant-exit.html', status: 'done', points: ['退租（联动 02 档口回空闲、06 停账）', '清退（关闭线上权限，档案置已清退、历史保留）', '待办清单（店铺下架/权限回收/账单结清/保证金/档口回空闲）与审批'] }
   ]
 },
@@ -121,9 +121,11 @@ window.MENU_DATA = [
 {
   id: '09-content', name: '内容管理', icon: 'fa-newspaper', open: false,
   children: [
-    { type: 'item', name: '资讯文章', page: 'content.html', status: 'done', points: ['新增', '资讯文章列表', '编辑', '删除'] },
-    { type: 'item', name: '公告通知', page: 'content-notice.html', status: 'done', points: ['新增', '公告通知列表', '编辑', '删除'] },
-    { type: 'item', name: 'Banner管理', page: 'content-banner.html', status: 'done', points: ['banner列表', '新增编辑'] }
+    { type: 'item', name: '资讯文章', page: 'content.html', status: 'done', points: ['资讯文章列表（分类 / 状态 / 投放端筛选）', '编辑抽屉（富文本 + 封面）+ 各端预览', '多端投放位 + 定时上下线', '端上：买家端首页资讯瀑布流 + 资讯详情页'] },
+    { type: 'item', name: '公告通知', page: 'content-notice.html', status: 'done', points: ['通知对象（全平台 / 仅买家 / 仅商户）+ 置顶显著提示', '有效期 + 定时发布 + 类别筛选与关键词搜索', '可选「同步推送消息」（生成推送任务）', '端上：买家端消息中心 / 商户端通知公告 + 工作台'] },
+    { type: 'item', name: 'Banner管理', page: 'content-banner.html', status: 'done', points: ['投放位（端 × 页面 × 位次）+ 排序与展示优先级', '点击行为 + 生效期 + 排期视图 + 各端预览', '按位曝光统计（投标 4.2.1.4.5）', '活动审批通过 → 曝光位草稿（招标 #105）'] },
+    { type: 'item', name: '产业指数发布', page: 'content-index.html', status: 'done', points: ['简化版：客户线下每年发布 → 只做录入 / 导入（不做自动计算与图表生成）', '指数类型：原料价格 / 景气 / 创新 / 趋势（可只填实际发布的类型）、一年一期', '年度期次 + 数值 + 单位 + 较上期（人工）+ 口径说明（必填）+ 附件（客户发布稿）+ 定时发布', '台账按年度回溯；端上消费位待确认（买家端行情参考 / 驾驶舱）'] },
+    { type: 'item', name: '消息推送', page: 'content-push.html', status: 'done', points: ['消息模板（触发条件 / 目标人群 / 渠道 / 频次限制 / 变量占位）', '渠道 = 站内推送 + 微信消息推送（H5 挂公众号）；短信暂不开通', '推送记录：送达 / 失败 / 已读未读统计 + 失败原因分布', '人工补发；与「公告通知」联动（公告可勾选同步推送，生成推送任务）'] }
   ]
 },
 
@@ -157,7 +159,7 @@ window.MENU_DATA = [
     ]},
     { type: 'item', name: '营销运营', page: null, status: 'dev', points: ['团购活动', '秒杀活动', '新品发售', '尾货专区', '细分主题'] },
     { type: 'item', name: '热搜词管理', page: 'trend-data.html', status: 'done', points: ['关键词热度列表', '置顶', '隐藏'] },
-    { type: 'item', name: '推荐位管理', page: null, status: 'dev', points: ['线下商场商铺推荐位'] },
+    { type: 'item', name: '推荐位管理', page: null, status: 'dev', points: ['线下商场商铺推荐位（2026-10-09 业务确认：推荐位 = 推荐线下商铺，归本模块）', '与 09 内容管理的「平台级内容位」分界：两处不得改同一前端位'] },
     { type: 'item', name: '趋势榜单管理', page: 'trend-ranking.html', status: 'done', points: ['榜单类型', '榜单列表（配置/详情）'] },
     { type: 'item', name: '财务资金管理', page: null, status: 'dev', points: ['对账管理', '结算管理', '提现流水'] },
     { type: 'item', name: '商城报表', page: null, status: 'dev', points: ['销售报表', '商品报表', '活动报表', '客户报表'] }

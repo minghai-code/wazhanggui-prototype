@@ -54,6 +54,7 @@ button{cursor:pointer}
     </div>
     <div class="flex items-center gap-2">
       <button class="btn btn-ghost" onclick="toast('已导出到期清单（剩余天数 + 通知记录，身份证已脱敏）')"><i class="fas fa-download text-[10px] mr-1"></i>导出到期清单</button>
+      <button class="btn btn-ghost" onclick="openManual()"><i class="fas fa-file-pen text-[10px] mr-1"></i>运营代提</button>
       <button class="btn btn-ghost" onclick="noticeAll()"><i class="fas fa-paper-plane text-[10px] mr-1"></i>批量发送提醒</button>
       <button class="btn btn-primary" onclick="location.href='contract-list.html'"><i class="fas fa-table-list mr-1"></i>去合同台账</button>
     </div>
@@ -132,7 +133,7 @@ button{cursor:pointer}
         <span class="text-[13px] font-bold text-[#1F2430]">商户端待办申请</span>
         <span class="tag" style="background:#EDE9FE;color:#6D28D9" id="appCnt">0 条待受理</span>
       </div>
-      <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-mobile-screen mr-1"></i>来源：商户端 App「我的合同 → 续签 / 退租申请」；受理后进入对应办理流程</span>
+      <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-mobile-screen mr-1"></i>来源：① 商户端 App「我的合同 → 续签 / 退租申请」自助提交；② <b>运营代提</b>——<b>仅线下档口（未上线）的商户无线上账号</b>，纸质办理后由运营录入；受理后进入对应办理流程</span>
     </div>
     <div class="overflow-x-auto">
       <table class="w-full text-[13px]" style="min-width:1220px">
@@ -140,6 +141,7 @@ button{cursor:pointer}
           <tr class="bg-gray-50 text-gray-500 text-[12px]">
             <th class="px-4 py-3 text-left font-medium">申请单号</th>
             <th class="px-4 py-3 text-left font-medium">类型</th>
+            <th class="px-4 py-3 text-left font-medium">来源</th>
             <th class="px-4 py-3 text-left font-medium">商户 / 档口</th>
             <th class="px-4 py-3 text-left font-medium">期望起止</th>
             <th class="px-4 py-3 text-left font-medium">说明 / 附件</th>
@@ -174,10 +176,10 @@ var EX=[
   {no:'HT2024-0098',stall:'A9-20',gate:'1F-A20',lv:'精品摊',name:'顾建平',end:'2027.08.31',left:337,rent:63800,notified:[],state:'待处理',std:1}
 ];
 var APPS=[
-  {id:'SQ2026-0031',type:'续签申请',mer:'郑强',stall:'B3-10',gate:'3F-B10',no:'HT2025-0231',want:'2026.11.16 ~ 2029.11.15',note:'档口继续经营，申请续签 3 年',file:'续签申请书.pdf',time:'2026-09-26 10:12',state:'待受理'},
-  {id:'SQ2026-0032',type:'退租申请',mer:'吴晓芳',stall:'A9-19',gate:'1F-A19',no:'HT2026-0081',want:'退租日 2026.10.20',note:'经营调整，申请提前退租',file:'退租申请书.pdf',time:'2026-09-27 16:40',state:'待受理'}
+  {id:'SQ2026-0031',type:'续签申请',mer:'郑强',stall:'B3-10',gate:'3F-B10',no:'HT2025-0231',want:'2026.11.16 ~ 2029.11.15',note:'档口继续经营，申请续签 3 年',file:'续签申请书.pdf',time:'2026-09-26 10:12',state:'待受理',src:'商户端 App'},
+  {id:'SQ2026-0032',type:'退租申请',mer:'吴晓芳',stall:'A9-19',gate:'1F-A19',no:'HT2026-0081',want:'退租日 2026.10.20',note:'经营调整，申请提前退租',file:'退租申请书.pdf',time:'2026-09-27 16:40',state:'待受理',src:'商户端 App'}
 ];
-var curRows=EX.slice(),curNo=null,curMode=null,seqNo=84;
+var curRows=EX.slice(),curNo=null,curMode=null,seqNo=84,seqApp=33;
 var tid;
 function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},2800);}
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
@@ -279,6 +281,7 @@ function renderApps(){
     h+='<tr class="hover:bg-gray-50 transition">'
       +'<td class="px-4 py-3 font-medium text-[#1F2430]">'+esc(a.id)+'</td>'
       +'<td class="px-4 py-3"><span class="tag" style="'+(a.type==='续签申请'?'background:#DBEAFE;color:#2563EB':'background:#FFEDE7;color:#E63E20')+'">'+esc(a.type)+'</span></td>'
+      +'<td class="px-4 py-3 whitespace-nowrap"><span class="tag" style="'+((a.src||'').indexOf('代提')>-1?'background:#FEF3C7;color:#B45309':'background:#DBEAFE;color:#2563EB')+'">'+esc(a.src||'商户端 App')+'</span></td>'
       +'<td class="px-4 py-3"><span class="font-medium text-[#1F2430]">'+esc(a.mer)+'</span><div class="text-[11px] text-[#94A3B8]">'+esc(a.stall)+' → '+esc(a.gate)+'　'+esc(a.no)+'</div></td>'
       +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(a.want)+'</td>'
       +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(a.note)+'<div class="mt-1"><span class="lk" onclick="toast(\'预览附件：'+esc(a.file)+'\')"><i class="fas fa-paperclip text-[10px] mr-1"></i>'+esc(a.file)+'</span></div></td>'
@@ -286,7 +289,7 @@ function renderApps(){
       +'<td class="px-4 py-3">'+st(a.state,APC[a.state])+'</td>'
       +'<td class="px-4 py-3 text-center whitespace-nowrap">'+ops+'</td></tr>';
   });
-  if(!APPS.length){h='<tr><td colspan="8" class="px-4 py-12 text-center text-gray-300"><span class="text-[12px]">暂无待办申请</span></td></tr>';}
+  if(!APPS.length){h='<tr><td colspan="9" class="px-4 py-12 text-center text-gray-300"><span class="text-[12px]">暂无待办申请</span></td></tr>';}
   document.getElementById('appTb').innerHTML=h;
   document.getElementById('appCnt').textContent=APPS.filter(function(a){return a.state==='待受理';}).length+' 条待受理';
 }
@@ -315,6 +318,44 @@ function noticeAll(){
 function noticeOne(no){
   var c=cOf(no);
   toast('已就 '+no+'（'+c.name+'，剩 '+(c.left<0?'已过 '+Math.abs(c.left):c.left)+' 天）发送提醒：物业 / 商户 / 运营');
+}
+
+/* ================= 运营代提申请（线下户无线上账号） ================= */
+function openManual(){
+  var opts=EX.map(function(c){return '<option value="'+c.no+'">'+c.no+'（'+c.name+'　'+c.stall+' → '+c.gate+'　'+c.lv+'）</option>';}).join('');
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">运营代提申请</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">用于<b>仅线下档口（未上线）</b>的商户：<b>没有线上账号</b>，纸质 / 线下办理后由运营在此录入，生成与商户端自助申请<b>同样的申请单</b></p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl">合同号（含承租人 / 档口）</label><select class="sel" id="m-no">'+opts+'</select></div>'
+    +'<div><label class="fl">申请类型</label><select class="sel" id="m-type"><option>续签申请</option><option>退租申请</option></select></div>'
+    +'</div>'
+    +'<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl">期望起止 / 退租日</label><input class="fi" id="m-want" value="2026.12.21 ~ 2029.12.20"></div>'
+    +'<div><label class="fl">办理依据</label><select class="sel" id="m-basis"><option>线下纸质申请（已签字）</option><option>电话 / 微信确认</option><option>现场办理登记</option></select></div>'
+    +'</div>'
+    +'<div><label class="fl">说明（必填）</label><textarea class="fi" id="m-note" rows="2" placeholder="例：商户到物业窗口提交纸质续签申请，经办人 何静，原件已归档"></textarea></div>'
+    +'<label class="up"><i class="fas fa-paperclip text-2xl block mb-2"></i>上传纸质申请扫描件（可选）<input type="file" class="hidden" onchange="toast(\'已上传纸质申请扫描件\')"></label>'
+    +'<div class="rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B]">代提后的申请单与商户端自助提交<b>走同一套受理流程</b>（受理 → 办理续约 / 退租），仅在「来源」列区分；<b>不要给线下户开线上账号</b>——商户想自助使用系统，需先完成线上入驻（升级为「线上兼档口」）。</p></div>'
+    +'</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveManual()">提交代提</button></div>';
+  show('drawer',h);
+}
+function saveManual(){
+  var no=document.getElementById('m-no').value,type=document.getElementById('m-type').value,
+      want=document.getElementById('m-want').value.trim(),note=document.getElementById('m-note').value.trim();
+  var c=cOf(no);
+  if(!note){toast('说明必填（须写明线下办理依据）');return;}
+  var id='SQ2026-00'+seqApp;
+  seqApp++;
+  APPS.unshift({id:id,type:type,mer:c.name,stall:c.stall,gate:c.gate,no:c.no,want:want,note:note,
+    file:'纸质申请扫描件.pdf',time:'2026-09-28 10:05',state:'待受理',src:'运营代提（线下户）'});
+  if(c.state==='待处理'){c.state='处理中';}
+  renderApps();renderStats();render();closeAll();
+  toast('已代提 '+id+'（'+type+'）：合同 '+no+' 置「处理中」；请继续「受理 → 办理续约 / 退租」，来源标注为「运营代提（线下户）」');
 }
 
 /* ================= 详情抽屉 ================= */

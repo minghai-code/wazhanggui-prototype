@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>内容管理 - 产业指数发布</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}.lk:hover{text-decoration:underline}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}.lk-gray:hover{color:#1F2430;text-decoration:underline}
+.st{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500;white-space:nowrap}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:60}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:760px;max-width:96vw;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:70;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);width:760px;max-width:95vw;max-height:86vh;overflow-y:auto;background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(15,23,42,.28);opacity:0;pointer-events:none;transition:.22s;z-index:70}
+.modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+.blk{border:1px solid #E2E8F0;border-radius:12px;padding:14px 16px}
+.blk-t{font-size:12.5px;font-weight:700;color:#1F2430;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.kv{display:flex;gap:8px;font-size:12px;line-height:1.9}
+.kv .k{width:104px;flex-shrink:0}
+.fi{width:100%;padding:6px 10px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none;background:#fff}
+.fi:focus{border-color:#FF4D2D}
+.fl{display:block;font-size:11px;color:#94A3B8;margin-bottom:4px}
+.sel{width:100%;padding:6px 8px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none}
+button{cursor:pointer}
+textarea.fi{font-family:inherit;line-height:1.8;resize:vertical}
+.up{border:2px dashed #E2E8F0;border-radius:12px;padding:14px;text-align:center;color:#94A3B8;cursor:pointer;background:#fff}
+.up:hover{border-color:#FDB4A3;color:#E63E20}
+.idxcard{border:1px solid #E2E8F0;border-radius:12px;padding:12px;background:#fff}
+.idxval{font-size:22px;font-weight:800;color:#1F2430;line-height:1.2}
+.idxname{font-size:11.5px;color:#64748B}
+.fileitem{display:flex;align-items:center;gap:8px;font-size:12px;color:#334155;padding:7px 10px;background:#F8FAFC;border-radius:8px;margin-top:6px}
+</style>
+<!-- Tailwind 静态样式：本地引用（不再依赖 cdn.tailwindcss.com）；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<div class="p-6">
+
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">产业指数发布</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">09 内容管理</span>
+        <span class="tag" style="background:#FEF3C7;color:#B45309">简化版 · 录入 / 导入</span>
+      </div>
+      <p class="text-[12px] text-gray-400 mt-1">客户<b>线下每年发布</b>产业指数，本期系统只做<b>录入 / 导入与归档</b>（年度期次 + 四类指数数值 + 口径说明 + <b>附件（客户发布稿）</b> + 定时发布）；<b>不做自动计算、不做图表生成</b>（2026-10-09 业务确认）</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="toast('已下载导入模板：产业指数_导入模板.xlsx（年度 / 原料价格 / 景气 / 创新 / 趋势 / 单位 / 口径说明）')"><i class="fas fa-file-import text-[10px] mr-1"></i>导入模板</button>
+      <button class="btn btn-ghost" onclick="toast('已导出产业指数台账（按年度，含数值、口径说明、附件清单）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+      <button class="btn btn-primary" onclick="openEdit(null)"><i class="fas fa-plus mr-1"></i>新增年度期次</button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-4 gap-3 mb-4" id="stats"></div>
+
+  <!-- 最新一期速览 -->
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+    <div class="flex items-center justify-between mb-3">
+      <div class="flex items-center gap-2">
+        <span class="text-[13px] font-bold text-[#1F2430]">最新一期速览</span>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB" id="latestTag">2026 年度</span>
+        <span class="text-[11px] text-[#94A3B8]">数值为人工录入（客户发布稿口径），系统不做换算</span>
+      </div>
+      <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>端上消费位待确认（买家端行情参考 / 驾驶舱）→ 分册 §10.2-1</span>
+    </div>
+    <div class="grid grid-cols-4 gap-3" id="cards"></div>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+    <div class="flex items-center gap-3 flex-wrap">
+      <input id="f-kw" type="text" placeholder="年度 / 口径说明关键词 / 发布人" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary w-56">
+      <select id="f-year" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600"><option value="">全部年度</option></select>
+      <select id="f-state" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+        <option value="">全部状态</option><option>草稿</option><option>待发布</option><option>已发布</option><option>已下线</option>
+      </select>
+      <button class="btn btn-primary" onclick="doSearch()">查询</button>
+      <button class="btn btn-ghost" onclick="resetSearch()">重置</button>
+      <span class="text-[11px] text-[#94A3B8] ml-auto"><i class="fas fa-circle-info mr-1"></i>一年一期；可只填客户实际发布的指数类型（其余留空）</span>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-[13px] font-bold text-[#1F2430]">年度期次台账</span>
+        <span class="text-[12px] text-[#94A3B8]" id="cnt">共 0 条</span>
+      </div>
+      <span class="text-[11px] text-[#94A3B8]">数值单位：点（指数）／%（增速）；口径说明为必填</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-[13px]" style="min-width:1320px">
+        <thead>
+          <tr class="bg-gray-50 text-gray-500 text-[12px]">
+            <th class="px-4 py-3 text-left font-medium">年度期次</th>
+            <th class="px-4 py-3 text-left font-medium">原料价格</th>
+            <th class="px-4 py-3 text-left font-medium">景气指数</th>
+            <th class="px-4 py-3 text-left font-medium">创新指数</th>
+            <th class="px-4 py-3 text-left font-medium">趋势指数</th>
+            <th class="px-4 py-3 text-left font-medium">口径说明</th>
+            <th class="px-4 py-3 text-left font-medium">附件</th>
+            <th class="px-4 py-3 text-left font-medium">发布人 / 时间</th>
+            <th class="px-4 py-3 text-left font-medium">状态</th>
+            <th class="px-4 py-3 text-center font-medium">操作</th>
+          </tr>
+        </thead>
+        <tbody id="tb" class="divide-y divide-gray-50"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div id="mask" class="mask" onclick="closeAll()"></div>
+<div id="drawer" class="drawer"></div>
+<div id="modal" class="modal"></div>
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
+
+<script>
+/* ================= 指数类型（功能清单口径：价格 / 景气 / 创新 / 趋势） ================= */
+var TYPES=[
+  {k:'price', name:'原料价格指数', hint:'纱线 / 化纤 / 面料 / 辅料（可参照投标 4.3.1.4.3 原料价格指数口径）'},
+  {k:'climate', name:'景气指数', hint:'行业景气度（订单 / 开工 / 库存综合判断）'},
+  {k:'inno', name:'创新指数', hint:'研发投入 / 新品占比 / 专利等'},
+  {k:'trend', name:'趋势指数', hint:'流行趋势 / 品类结构变化'}
+];
+var YEARS=['2026','2025','2024'];
+var STC={'草稿':'background:#F1F5F9;color:#64748B','待发布':'background:#DBEAFE;color:#2563EB','已发布':'background:#DCFCE7;color:#15803D','已下线':'background:#F1F5F9;color:#475569'};
+
+/* ================= 模拟数据（原型态） ================= */
+var IDX=[
+  {id:'IDX-2026', year:'2026', state:'待发布', by:'内容运营 何静', up:'2026-10-09 09:50', start:'2026-10-20 09:00',
+   vals:{price:{v:'128.6',u:'点',mom:'-1.2%'},climate:{v:'106.4',u:'点',mom:'+0.8%'},inno:{v:'92.5',u:'点',mom:'+3.1%'},trend:{v:'104.2',u:'点',mom:'+1.5%'}},
+   desc:'数据来源：客户线下年度发布《大唐袜业产业指数报告（2026）》；价格指数以 2020 年 = 100 为基期，覆盖纱线 / 化纤 / 面料 / 辅料四类；景气 / 创新 / 趋势指数取自报告第三章。',
+   files:['大唐袜业产业指数报告2026.pdf','指数汇总表2026.xlsx']},
+  {id:'IDX-2025', year:'2025', state:'已发布', by:'内容运营 何静', up:'2025-10-15 10:20', start:'2025-10-20 09:00',
+   vals:{price:{v:'130.2',u:'点',mom:'+2.4%'},climate:{v:'105.6',u:'点',mom:'+1.1%'},inno:{v:'89.7',u:'点',mom:'+2.8%'},trend:{v:'102.7',u:'点',mom:'+0.9%'}},
+   desc:'数据来源：客户线下年度发布《大唐袜业产业指数报告（2025）》；口径与 2024 年保持一致。',
+   files:['大唐袜业产业指数报告2025.pdf']},
+  {id:'IDX-2024', year:'2024', state:'已发布', by:'内容运营 何静', up:'2024-10-18 09:40', start:'2024-10-20 09:00',
+   vals:{price:{v:'127.1',u:'点',mom:'—'},climate:{v:'104.4',u:'点',mom:'—'},inno:{v:'',u:'',mom:''},trend:{v:'',u:'',mom:''}},
+   desc:'数据来源：客户线下年度发布资料（当年仅发布价格指数与景气指数两项；创新 / 趋势指数未发布，留空）。',
+   files:['2024年度指数发布稿.pdf']},
+  {id:'IDX-2027', year:'2027', state:'草稿', by:'内容运营 何静', up:'2026-10-09 10:15', start:'',
+   vals:{price:{v:'',u:'点',mom:''},climate:{v:'',u:'点',mom:''},inno:{v:'',u:'点',mom:''},trend:{v:'',u:'点',mom:''}},
+   desc:'', files:[]}
+];
+var curRows=IDX.slice(),curId=null;
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},2900);}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function iOf(id){return IDX.filter(function(x){return x.id===id;})[0];}
+function st(s,c){return '<span class="st" style="'+(c||STC[s]||'background:#F1F5F9;color:#64748B')+'">'+esc(s)+'</span>';}
+function filled(x){var n=0;TYPES.forEach(function(t){if(x.vals[t.k]&&x.vals[t.k].v){n++;}});return n;}
+function fileCnt(){var n=0;IDX.forEach(function(x){n+=(x.files||[]).length;});return n;}
+function sorted(){return IDX.slice().sort(function(a,b){return b.year.localeCompare(a.year);});}
+
+function renderStats(){
+  var pub=0,wait=0,draft=0;
+  IDX.forEach(function(x){if(x.state==='已发布'){pub++;}if(x.state==='待发布'){wait++;}if(x.state==='草稿'){draft++;}});
+  var cards=[['已发布期次',pub,'#15803D'],['待发布',wait,'#2563EB'],['草稿 / 未完成',draft,'#94A3B8'],['附件总数（客户发布稿）',fileCnt(),'#7C3AED']];
+  document.getElementById('stats').innerHTML=cards.map(function(x){
+    return '<div class="bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">'+x[0]+'</p><p class="text-xl font-bold mt-1" style="color:'+x[2]+'">'+x[1]+'</p></div>';
+  }).join('');
+}
+function renderLatest(){
+  var x=sorted().filter(function(y){return y.state==='已发布'||y.state==='待发布';})[0]||sorted()[0];
+  document.getElementById('latestTag').textContent=x.year+' 年度　'+x.state;
+  document.getElementById('cards').innerHTML=TYPES.map(function(t){
+    var d=x.vals[t.k]||{v:'',u:'点',mom:''};
+    var has=!!d.v;
+    return '<div class="idxcard" style="'+(has?'border-color:#FDB4A3;background:#FFF9F6':'')+'">'
+      +'<div class="idxname">'+t.name+'</div>'
+      +'<div class="idxval mt-1">'+(has?esc(d.v):'<span class="text-[14px] text-[#94A3B8]">未发布</span>')+(has?' <span class="text-[12px] text-[#94A3B8] font-normal">'+esc(d.u||'')+'</span>':'')+'</div>'
+      +'<div class="text-[11px] text-[#94A3B8] mt-1">'+(has?(d.mom?'较上期 '+esc(d.mom):'无上期数据'):'客户该年度未发布此指数')+'</div></div>';
+  }).join('');
+}
+function renderYearFilter(){
+  var ys={};IDX.forEach(function(x){ys[x.year]=1;});
+  document.getElementById('f-year').innerHTML='<option value="">全部年度</option>'+Object.keys(ys).sort().reverse().map(function(y){return '<option>'+y+'</option>';}).join('');
+}
+function render(){
+  var h='';
+  curRows.forEach(function(x){
+    var ops='<span class="lk-gray" onclick="openDetail(\''+x.id+'\')">查看</span>';
+    if(x.state==='草稿'||x.state==='已下线'){ops='<span class="lk" onclick="openEdit(\''+x.id+'\')">编辑</span> · <span class="lk" onclick="publish(\''+x.id+'\')">发布</span> · '+ops;}
+    if(x.state==='已发布'){ops='<span class="lk-gray" onclick="offline(\''+x.id+'\')">下线</span> · '+ops;}
+    if(x.state==='待发布'){ops='<span class="lk" onclick="publishNow(\''+x.id+'\')">立即发布</span> · <span class="lk-gray" onclick="offline(\''+x.id+'\')">下线</span> · '+ops;}
+    var cells=TYPES.map(function(t){
+      var d=x.vals[t.k]||{v:'',u:'',mom:''};
+      return '<td class="px-4 py-3 text-[12px]">'+(d.v?('<span class="text-[#1F2430] font-semibold">'+esc(d.v)+'</span> <span class="text-[10px] text-[#94A3B8]">'+esc(d.u||'')+'</span>'
+        +(d.mom?'<div class="text-[10px] text-[#94A3B8]">较上期 '+esc(d.mom)+'</div>':'')):'<span class="text-[#CBD5E1]">未发布</span>')+'</td>';
+    }).join('');
+    h+='<tr class="hover:bg-gray-50 transition">'
+      +'<td class="px-4 py-3"><div class="font-medium text-[#1F2430]">'+esc(x.year)+' 年度</div>'
+        +'<div class="text-[11px] text-[#94A3B8] mt-0.5">'+esc(x.id)+'　已填 '+filled(x)+' / 4 类</div></td>'
+      +cells
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]" style="max-width:280px">'+(x.desc?esc(x.desc.slice(0,42))+'…':'<span style="color:#B91C1C">未填写（必填）</span>')+'</td>'
+      +'<td class="px-4 py-3 text-[12px]">'+((x.files||[]).length?('<span class="tag" style="background:#EDE9FE;color:#6D28D9"><i class="fas fa-paperclip text-[9px]"></i>'+x.files.length+' 个</span>'):'<span class="text-[#CBD5E1]">无</span>')+'</td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(x.by)+'<br><span class="text-[11px] text-[#94A3B8]">'+esc(x.up)+'</span></td>'
+      +'<td class="px-4 py-3">'+st(x.state)+'</td>'
+      +'<td class="px-4 py-3 text-center whitespace-nowrap">'+ops+'</td></tr>';
+  });
+  if(!curRows.length){h='<tr><td colspan="10" class="px-4 py-16 text-center text-gray-300"><i class="fas fa-inbox text-3xl block mb-2"></i><span class="text-[12px]">暂无匹配的年度期次</span></td></tr>';}
+  document.getElementById('tb').innerHTML=h;
+  document.getElementById('cnt').textContent='共 '+curRows.length+' 条';
+}
+function doSearch(){
+  var kw=document.getElementById('f-kw').value.trim(),y=document.getElementById('f-year').value,s=document.getElementById('f-state').value;
+  curRows=IDX.filter(function(x){
+    return (!kw||x.year.indexOf(kw)>-1||(x.desc||'').indexOf(kw)>-1||x.by.indexOf(kw)>-1)&&(!y||x.year===y)&&(!s||x.state===s);
+  });
+  render();toast('已按条件查询，共 '+curRows.length+' 条');
+}
+function resetSearch(){
+  ['f-kw','f-year','f-state'].forEach(function(k){document.getElementById(k).value='';});
+  curRows=IDX.slice();render();toast('已重置筛选条件');
+}
+function publish(id){
+  var x=iOf(id);
+  if(!x.desc){toast('「口径说明」为必填：请补全来源与统计范围后再发布');return;}
+  if(!filled(x)){toast('请至少录入一类指数数值后再发布（可只填客户实际发布的类型）');return;}
+  x.state='待发布';
+  if(!x.start){x.start='2026-10-20 09:00';}
+  renderStats();renderLatest();render();
+  toast('已发布 '+x.year+' 年度期次（待生效）：按生效时间 '+x.start+' 自动上线；已归档 '+x.files.length+' 个附件');
+}
+function publishNow(id){
+  var x=iOf(id);
+  x.state='已发布';x.up='2026-10-09 11:00';
+  renderStats();renderLatest();render();
+  toast('已立即发布：'+x.year+' 年度产业指数（端上消费位待确认，如已配置则同步展示）');
+}
+function offline(id){
+  var x=iOf(id);
+  x.state='已下线';
+  renderStats();renderLatest();render();
+  toast('已下线 '+x.year+' 年度期次：端上撤下（台账与附件保留，可重新发布）');
+}
+
+/* ================= 详情 ================= */
+function openDetail(id){
+  curId=id;
+  var x=iOf(id);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+esc(x.year)+' 年度产业指数　'+esc(x.id)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+st(x.state)+'　已填 '+filled(x)+' / 4 类　发布人 '+esc(x.by)+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-chart-line text-[#FF4D2D]"></i>指数数值（人工录入，系统不换算）</div>';
+  TYPES.forEach(function(t){
+    var d=x.vals[t.k]||{v:'',u:'',mom:''};
+    h+='<div class="kv"><span class="k">'+t.name+'</span><span class="v">'+(d.v?('<b>'+esc(d.v)+'</b> '+esc(d.u||'')+(d.mom?'　较上期 '+esc(d.mom):'')):'<span style="color:#94A3B8">未发布</span>')+'</span></div>';
+  });
+  h+='</div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-circle-info text-[#2563EB]"></i>口径说明（必填）</div>'
+    +'<p class="text-[12px] text-[#64748B] leading-7">'+(x.desc?esc(x.desc):'<span style="color:#B91C1C">未填写</span>')+'</p></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-paperclip text-[#7C3AED]"></i>附件（客户发布稿）</div>';
+  if((x.files||[]).length){x.files.forEach(function(f){h+='<div class="fileitem"><i class="fas fa-file-pdf text-[#E63E20]"></i>'+esc(f)+'<span class="lk-gray ml-auto" onclick="toast(\'预览/下载：'+esc(f)+'\')">预览</span></div>';});}
+  else{h+='<p class="text-[12px] text-[#94A3B8]">暂无附件（建议上传客户发布稿原件，便于长期归档与追溯）</p>';}
+  h+='</div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-mobile-screen text-[#7C3AED]"></i>端上消费位</div>'
+    +'<p class="text-[12px] text-[#64748B] leading-7">本期决定：<b>只做后台录入与附件归档</b>；买家端行情参考 / 驾驶舱展示<b>待业务确认</b>（分册 §10.2-1）。确认后可在「投放位」中登记对应位置。</p></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-clock-rotate-left text-[#64748B]"></i>留痕</div>'
+    +'<div class="text-[12px] text-[#64748B] leading-7">· 新建 / 修改：'+esc(x.by)+'　'+esc(x.up)+'<br>· 发布：'+(x.start?esc(x.start):'未设置生效时间')+'<br>· 版本与历史年度长期保留（可按年度回溯）</div></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">关闭</button>'
+    +(x.state==='草稿'||x.state==='已下线'?'<button class="btn btn-ghost" onclick="openEdit(\''+x.id+'\')">编辑</button><button class="btn btn-primary" onclick="publish(\''+x.id+'\')">发布</button>':'')
+    +(x.state==='待发布'?'<button class="btn btn-primary" onclick="publishNow(\''+x.id+'\')">立即发布</button>':'')+'</div>';
+  show('drawer',h);
+}
+
+/* ================= 录入抽屉 ================= */
+function openEdit(id){
+  curId=id;
+  var x=id?iOf(id):null;
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+(x?'编辑年度期次　'+esc(x.id):'新增年度期次')+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">一年一期，录入客户线下发布的数值；<b>不做自动计算与图表生成</b>（环比等可直接填人工值）</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-calendar text-[#2563EB]"></i>期次</div>'
+    +'<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl">年度</label><input class="fi" id="e-year" value="'+(x?esc(x.year):'2027')+'" placeholder="如 2027"></div>'
+    +'<div><label class="fl">生效时间（可定时发布）</label><input class="fi" id="e-start" type="datetime-local" value="2026-10-20T09:00"></div>'
+    +'</div></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-table-list text-[#7C3AED]"></i>指数数值（可只填客户实际发布的类型）</div>';
+  TYPES.forEach(function(t){
+    var d=(x&&x.vals[t.k])||{v:'',u:'点',mom:''};
+    h+='<div class="mb-3"><label class="fl">'+t.name+'　<span class="text-[10px]">'+t.hint+'</span></label>'
+      +'<div class="grid gap-2" style="grid-template-columns:1.6fr 0.9fr 1.2fr">'
+      +'<input class="fi" id="v-'+t.k+'" value="'+esc(d.v)+'" placeholder="数值，如 128.6">'
+      +'<input class="fi" id="u-'+t.k+'" value="'+esc(d.u||'点')+'" placeholder="单位">'
+      +'<input class="fi" id="m-'+t.k+'" value="'+esc(d.mom)+'" placeholder="较上期（选填，如 -1.2%）">'
+      +'</div></div>';
+  });
+  h+='<p class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>留空的类型在台账 / 详情中显示「未发布」，不参与任何自动计算。</p></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-circle-info text-[#2563EB]"></i>口径说明（必填）</div>'
+    +'<textarea class="fi" id="e-desc" rows="4" placeholder="说明数据来源、基期、覆盖范围与统计口径，例：数据来源：客户线下年度发布《大唐袜业产业指数报告（2027）》；价格指数以 2020 年 = 100 为基期，覆盖纱线 / 化纤 / 面料 / 辅料四类。">'+(x?esc(x.desc):'')+'</textarea></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-paperclip text-[#7C3AED]"></i>附件（客户发布稿，建议上传原件）</div>'
+    +'<label class="up" onclick="toast(\'已上传：大唐袜业产业指数报告2027.pdf（支持 PDF / 图片 / Excel，可多件）\')"><i class="fas fa-cloud-arrow-up text-2xl block mb-2"></i>点击上传附件<input type="file" class="hidden"></label>';
+  if(x&&(x.files||[]).length){x.files.forEach(function(f){h+='<div class="fileitem"><i class="fas fa-file-pdf text-[#E63E20]"></i>'+esc(f)+'<span class="lk-gray ml-auto" onclick="toast(\'已移除附件：'+esc(f)+'\')">移除</span></div>';});}
+  else{h+='<p class="text-[11px] text-[#94A3B8] mt-2">已上传 0 个附件</p>';}
+  h+='</div>';
+  h+='<div class="blk" style="border-color:#FDE68A;background:#FFFBEB"><div class="blk-t" style="color:#B45309"><i class="fas fa-ban"></i>本期不做（避免误解）</div>'
+    +'<p class="text-[11px] text-[#64748B] leading-6">· 不自动计算环比 / 同比（如需，人工填「较上期」）<br>· 不生成走势图 / 多期对比图<br>· 不做指数编制与权重模型<br>· 端上消费位待业务确认</p></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-ghost" onclick="toast(\'已保存草稿\')">保存草稿</button>'
+    +'<button class="btn btn-primary" onclick="saveI()">'+(x&&x.state==='已发布'?'保存并重新发布':'发布')+'</button></div>';
+  show('drawer',h);
+}
+function saveI(){
+  var year=document.getElementById('e-year').value.trim();
+  var desc=document.getElementById('e-desc').value.trim();
+  if(!year){toast('请填写年度');return;}
+  if(!desc){toast('「口径说明」为必填：请说明数据来源与统计口径');return;}
+  var vals={},any=false;
+  TYPES.forEach(function(t){
+    var v=document.getElementById('v-'+t.k).value.trim();
+    var u=document.getElementById('u-'+t.k).value.trim();
+    var m=document.getElementById('m-'+t.k).value.trim();
+    vals[t.k]={v:v,u:u||'点',mom:m};
+    if(v){any=true;}
+  });
+  if(!any){toast('请至少录入一类指数数值');return;}
+  var x=curId?iOf(curId):null;
+  if(x){
+    x.year=year;x.vals=vals;x.desc=desc;x.state='待发布';x.up='2026-10-09 11:05';
+  }else{
+    x={id:'IDX-'+year, year:year, state:'待发布', by:'内容运营 何静', up:'2026-10-09 11:05', start:'2026-10-20 09:00', vals:vals, desc:desc, files:['大唐袜业产业指数报告'+year+'.pdf']};
+    IDX.push(x);
+  }
+  curRows=IDX.slice();
+  renderYearFilter();renderStats();renderLatest();render();closeAll();
+  toast('已保存并置「待发布」：'+year+' 年度产业指数（已填 '+filled(x)+' / 4 类）；定时 '+x.start+' 上线');
+}
+
+/* ================= 基础 ================= */
+function show(which,h){
+  document.getElementById(which).innerHTML=h;
+  document.getElementById('mask').classList.add('on');
+  document.getElementById(which).classList.add('on');
+}
+function closeAll(){
+  document.getElementById('mask').classList.remove('on');
+  document.getElementById('drawer').classList.remove('on');
+  document.getElementById('modal').classList.remove('on');
+}
+renderYearFilter();renderStats();renderLatest();render();
+</script>
+</body>
+</html>

@@ -3,16 +3,40 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>内容管理 - 公告管理</title>
+<title>内容管理 - 公告通知</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
 *{box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#f1f5f9}
-::-webkit-scrollbar{width:6px;height:6px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
-.tab-active{color:#FF4D2D;border-bottom:2px solid #FF4D2D;font-weight:600}
-.status-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}.lk:hover{text-decoration:underline}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}.lk-gray:hover{color:#1F2430;text-decoration:underline}
+.st{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500;white-space:nowrap}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:60}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:760px;max-width:96vw;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:70;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);width:780px;max-width:95vw;max-height:86vh;overflow-y:auto;background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(15,23,42,.28);opacity:0;pointer-events:none;transition:.22s;z-index:70}
+.modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+.blk{border:1px solid #E2E8F0;border-radius:12px;padding:14px 16px}
+.blk-t{font-size:12.5px;font-weight:700;color:#1F2430;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.kv{display:flex;gap:8px;font-size:12px;line-height:1.9}
+.kv .k{width:118px;flex-shrink:0}
+.fi{width:100%;padding:6px 10px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none;background:#fff}
+.fi:focus{border-color:#FF4D2D}
+.fl{display:block;font-size:11px;color:#94A3B8;margin-bottom:4px}
+.sel{width:100%;padding:6px 8px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none}
+button{cursor:pointer}
+textarea.fi{font-family:inherit;line-height:1.8;resize:vertical}
+.ck{display:flex;align-items:flex-start;gap:7px;font-size:12px;color:#334155;line-height:1.7;padding:5px 0}
+.ck input{margin-top:3px}
+.opt{flex:1;border:1px solid #E2E8F0;border-radius:10px;padding:10px;text-align:center;cursor:pointer;font-size:12px;color:#64748B;background:#fff;transition:.15s}
+.opt.on{border-color:#FF4D2D;background:#FFF6F3;color:#E63E20;font-weight:600}
+.thumb{width:52px;height:52px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;flex-shrink:0}
 </style>
 <!-- Tailwind 静态样式：本地引用（不再依赖 cdn.tailwindcss.com）；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
 <link rel="stylesheet" href="tailwind.css">
@@ -21,234 +45,437 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 
 <div class="p-6">
 
-  <!-- 页面标题 -->
-  <div class="flex items-center justify-between mb-5">
+  <div class="flex items-start justify-between mb-5">
     <div>
-      <h1 class="text-[18px] font-bold text-gray-800">内容管理</h1>
-      <p class="text-[12px] text-gray-400 mt-0.5">门户内容运营 · 资讯 · 公告 · Banner · 精品展示 · 产业指数</p>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">公告通知</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">09 内容管理</span>
+        <span class="tag" style="background:#FEF3C7;color:#B45309">定向发布</span>
+        <span class="tag" style="background:#DCFCE7;color:#15803D">可联动消息推送</span>
+      </div>
+      <p class="text-[12px] text-gray-400 mt-1">平台公告的定向发布：选<b>通知对象（全平台 / 仅买家 / 仅商户）</b>即自动决定投放到哪些端（<b>买家端消息中心 / 商户端通知公告 / 商户端工作台</b>）；支持<b>置顶显著提示</b>、有效期与定时、可选<b>同步推送消息</b>（站内 + 微信）；历史公告长期可查、可按类别筛选与关键词搜索（投标 4.1.5.4）</p>
     </div>
-
-  </div>
-
-  <!-- Tab 导航 -->
-  <div class="flex items-center gap-6 mb-4 border-b border-gray-200">
-    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">资讯管理</span>
-    <span class="tab-active py-2.5 text-[13px] cursor-pointer">公告管理</span>
-    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">Banner管理</span>
-    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">精品展示</span>
-    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">产业指数发布</span>
-  </div>
-
-  <!-- 统计卡片 -->
-  <div class="grid grid-cols-4 gap-3 mb-5">
-    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
-      <p class="text-[11px] text-gray-400">已发布</p>
-      <p class="text-xl font-bold text-green-500 mt-1">42</p>
-    </div>
-    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
-      <p class="text-[11px] text-gray-400">草稿</p>
-      <p class="text-xl font-bold text-gray-500 mt-1">6</p>
-    </div>
-    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
-      <p class="text-[11px] text-gray-400">置顶中</p>
-      <p class="text-xl font-bold text-amber-500 mt-1">3</p>
-    </div>
-    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
-      <p class="text-[11px] text-gray-400">已过期</p>
-      <p class="text-xl font-bold text-red-500 mt-1">5</p>
+    <div class="flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="openSlots()"><i class="fas fa-table-cells-large text-[10px] mr-1"></i>投放位字典</button>
+      <button class="btn btn-ghost" onclick="toast('已导出公告台账（含通知对象、置顶、有效期、推送记录、已读率）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+      <button class="btn btn-primary" onclick="openEdit(null)"><i class="fas fa-plus mr-1"></i>新增公告</button>
     </div>
   </div>
 
-  <!-- 筛选栏 -->
+  <div class="grid grid-cols-5 gap-3 mb-4" id="stats"></div>
+
   <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
     <div class="flex items-center gap-3 flex-wrap">
-      <div class="relative">
-        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
-        <input type="text" placeholder="公告标题 / 公告编号" class="w-56 pl-8 pr-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary focus:bg-white transition">
-      </div>
-      <select class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
-        <option value="">全部类型</option>
-        <option>平台公告</option>
-        <option>政策通知</option>
-        <option>缴费通知</option>
-        <option>违规提醒</option>
+      <input id="f-kw" type="text" placeholder="标题 / 正文关键词 / 创建人" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary w-56">
+      <select id="f-to" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+        <option value="">全部通知对象</option><option>全平台</option><option>仅买家</option><option>仅商户</option>
       </select>
-      <select class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
-        <option value="">全部状态</option>
-        <option>已发布</option>
-        <option>草稿</option>
-        <option>置顶</option>
-        <option>已过期</option>
+      <select id="f-cat" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600"><option value="">全部类别</option></select>
+      <select id="f-state" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+        <option value="">全部状态</option><option>草稿</option><option>待审核</option><option>已驳回</option><option>待发布</option><option>生效中</option><option>已下线</option><option>已过期</option>
       </select>
-      <input type="date" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
-      <span class="text-gray-300 text-xs">至</span>
-      <input type="date" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
-      <button class="px-4 py-1.5 text-[13px] text-white rounded-lg" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)">查询</button>
-      <button class="px-4 py-1.5 text-[13px] text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition">重置</button>
+      <label class="flex items-center gap-1.5 text-[12px] text-gray-600"><input type="checkbox" id="f-top" class="accent-[#FF4D2D]">仅看置顶</label>
+      <button class="btn btn-primary" onclick="doSearch()">查询</button>
+      <button class="btn btn-ghost" onclick="resetSearch()">重置</button>
+      <span class="text-[11px] text-[#94A3B8] ml-auto"><i class="fas fa-circle-info mr-1"></i>置顶上限 <b>3 条</b>（超出保存即拦截）；置顶不改动有效期判定</span>
     </div>
   </div>
 
-  <!-- 表格 -->
   <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
-    <div class="px-5 py-3 border-b border-gray-100 flex items-center gap-2 flex-wrap">
-      <button class="px-3 py-1.5 text-[12px] text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
-      <button class="px-3 py-1.5 text-[12px] text-white rounded-lg transition" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)"><i class="fas fa-plus text-[10px] mr-1"></i>发布公告</button>
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-[13px] font-bold text-[#1F2430]">公告列表</span>
+        <span class="text-[12px] text-[#94A3B8]" id="cnt">共 0 条</span>
+      </div>
+      <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-clock-rotate-left mr-1"></i>历史公告长期可查（默认倒序，可回溯全部历史版本内容）</span>
     </div>
-    <table class="w-full text-[13px]">
-      <thead>
-        <tr class="bg-gray-50 text-gray-500 text-[12px]">
-          <th class="px-4 py-3 text-left font-medium">公告编号</th>
-          <th class="px-4 py-3 text-left font-medium">公告标题</th>
-          <th class="px-4 py-3 text-left font-medium">公告类型</th>
-          <th class="px-4 py-3 text-left font-medium">发布范围</th>
-          <th class="px-4 py-3 text-left font-medium">发布时间</th>
-          <th class="px-4 py-3 text-left font-medium">浏览量</th>
-          <th class="px-4 py-3 text-left font-medium">状态</th>
-          <th class="px-4 py-3 text-center font-medium">操作</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-gray-50">
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 text-gray-600">GG20260712001</td>
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <i class="fas fa-thumbtack text-amber-500 text-[10px]"></i>
-              <span class="font-medium text-gray-800">关于2026大唐袜业夏季订货会延期举办的通知</span>
-            </div>
-          </td>
-          <td class="px-4 py-3"><span class="status-badge bg-blue-50 text-blue-500">平台公告</span></td>
-          <td class="px-4 py-3 text-gray-600">全体商户</td>
-          <td class="px-4 py-3 text-gray-400">2026-07-12 09:00</td>
-          <td class="px-4 py-3 text-gray-600">1,286</td>
-          <td class="px-4 py-3"><span class="status-badge bg-amber-50 text-amber-600">置顶</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-primary text-[12px] hover:underline mr-2">编辑</button>
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 text-gray-600">GG20260711002</td>
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <i class="fas fa-thumbtack text-amber-500 text-[10px]"></i>
-              <span class="font-medium text-gray-800">大唐袜业产业集群数字化转型政策解读</span>
-            </div>
-          </td>
-          <td class="px-4 py-3"><span class="status-badge bg-purple-50 text-purple-500">政策通知</span></td>
-          <td class="px-4 py-3 text-gray-600">规模以上商户</td>
-          <td class="px-4 py-3 text-gray-400">2026-07-11 14:30</td>
-          <td class="px-4 py-3 text-gray-600">956</td>
-          <td class="px-4 py-3"><span class="status-badge bg-amber-50 text-amber-600">置顶</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-primary text-[12px] hover:underline mr-2">编辑</button>
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 text-gray-600">GG20260710003</td>
-          <td class="px-4 py-3">
-            <span class="font-medium text-gray-800">2026年第二季度商铺租金缴纳通知</span>
-          </td>
-          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">缴费通知</span></td>
-          <td class="px-4 py-3 text-gray-600">自持商铺商户</td>
-          <td class="px-4 py-3 text-gray-400">2026-07-10 10:00</td>
-          <td class="px-4 py-3 text-gray-600">2,103</td>
-          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">已发布</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-primary text-[12px] hover:underline mr-2">编辑</button>
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 text-gray-600">GG20260709004</td>
-          <td class="px-4 py-3">
-            <span class="font-medium text-gray-800">关于竹纤维原料市场规范定价的公告</span>
-          </td>
-          <td class="px-4 py-3"><span class="status-badge bg-blue-50 text-blue-500">平台公告</span></td>
-          <td class="px-4 py-3 text-gray-600">原料市场商户</td>
-          <td class="px-4 py-3 text-gray-400">2026-07-09 16:20</td>
-          <td class="px-4 py-3 text-gray-600">743</td>
-          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">已发布</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-primary text-[12px] hover:underline mr-2">编辑</button>
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 text-gray-600">GG20260708005</td>
-          <td class="px-4 py-3">
-            <span class="font-medium text-gray-800">某商户虚假宣传运动袜功能违规处理通报</span>
-          </td>
-          <td class="px-4 py-3"><span class="status-badge bg-red-50 text-red-500">违规提醒</span></td>
-          <td class="px-4 py-3 text-gray-600">全体商户</td>
-          <td class="px-4 py-3 text-gray-400">2026-07-08 11:15</td>
-          <td class="px-4 py-3 text-gray-600">3,421</td>
-          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">已发布</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-primary text-[12px] hover:underline mr-2">编辑</button>
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 text-gray-600">GG20260707006</td>
-          <td class="px-4 py-3">
-            <span class="font-medium text-gray-800">袜机设备市场年度检修安排通知（草稿）</span>
-          </td>
-          <td class="px-4 py-3"><span class="status-badge bg-blue-50 text-blue-500">平台公告</span></td>
-          <td class="px-4 py-3 text-gray-600">袜机市场商户</td>
-          <td class="px-4 py-3 text-gray-400">-</td>
-          <td class="px-4 py-3 text-gray-600">0</td>
-          <td class="px-4 py-3"><span class="status-badge bg-gray-100 text-gray-500">草稿</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-primary text-[12px] hover:underline mr-2">编辑</button>
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 text-gray-600">GG20260628007</td>
-          <td class="px-4 py-3">
-            <span class="font-medium text-gray-800">2026年端午节物流市场调运安排公告</span>
-          </td>
-          <td class="px-4 py-3"><span class="status-badge bg-blue-50 text-blue-500">平台公告</span></td>
-          <td class="px-4 py-3 text-gray-600">物流市场商户</td>
-          <td class="px-4 py-3 text-gray-400">2026-06-28 09:00</td>
-          <td class="px-4 py-3 text-gray-600">1,872</td>
-          <td class="px-4 py-3"><span class="status-badge bg-red-50 text-red-500">已过期</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 text-gray-600">GG20260620008</td>
-          <td class="px-4 py-3">
-            <span class="font-medium text-gray-800">关于童袜新国标GB/T 22849-2026实施的政策通知</span>
-          </td>
-          <td class="px-4 py-3"><span class="status-badge bg-purple-50 text-purple-500">政策通知</span></td>
-          <td class="px-4 py-3 text-gray-600">童袜生产商</td>
-          <td class="px-4 py-3 text-gray-400">2026-06-20 15:00</td>
-          <td class="px-4 py-3 text-gray-600">4,567</td>
-          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">已发布</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-primary text-[12px] hover:underline mr-2">编辑</button>
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <!-- 分页 -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-[13px]" style="min-width:1380px">
+        <thead>
+          <tr class="bg-gray-50 text-gray-500 text-[12px]">
+            <th class="px-4 py-3 text-left font-medium">标题 / 类别</th>
+            <th class="px-4 py-3 text-left font-medium">通知对象</th>
+            <th class="px-4 py-3 text-left font-medium">投放位（自动带出）</th>
+            <th class="px-4 py-3 text-left font-medium">有效期（定时）</th>
+            <th class="px-4 py-3 text-left font-medium">置顶</th>
+            <th class="px-4 py-3 text-left font-medium">消息推送</th>
+            <th class="px-4 py-3 text-left font-medium">状态</th>
+            <th class="px-4 py-3 text-center font-medium">操作</th>
+          </tr>
+        </thead>
+        <tbody id="tb" class="divide-y divide-gray-50"></tbody>
+      </table>
+    </div>
     <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
-      <span class="text-[12px] text-gray-400">共 53 条记录，第 1-8 条</span>
+      <span class="text-[12px] text-gray-400" id="pageInfo">共 0 条记录</span>
       <div class="flex items-center gap-1">
-        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100"><i class="fas fa-chevron-left text-[10px]"></i></button>
-        <button class="w-7 h-7 flex items-center justify-center text-white text-[12px] rounded" style="background:#FF4D2D">1</button>
-        <button class="w-7 h-7 flex items-center justify-center text-gray-600 text-[12px] rounded hover:bg-gray-100">2</button>
-        <button class="w-7 h-7 flex items-center justify-center text-gray-600 text-[12px] rounded hover:bg-gray-100">3</button>
-        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100"><i class="fas fa-chevron-right text-[10px]"></i></button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100" onclick="toast('已是第一页（原型）')"><i class="fas fa-chevron-left text-[10px]"></i></button>
+        <button class="w-7 h-7 flex items-center justify-center text-white text-[12px] rounded" style="background:#FF4D2D" onclick="toast('当前第 1 页（原型）')">1</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100" onclick="toast('已切换到第 2 页（原型）')"><i class="fas fa-chevron-right text-[10px]"></i></button>
       </div>
     </div>
   </div>
 
 </div>
 
+<div id="mask" class="mask" onclick="closeAll()"></div>
+<div id="drawer" class="drawer"></div>
+<div id="modal" class="modal"></div>
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
+
+<script>
+/* ================= 投放位字典（公告类） ================= */
+var SLOTS=[
+  {id:'T-BUY-MSG', end:'买家端 App', page:'消息中心', pos:'公告类别', max:20, spec:'纯文本；标题 ≤30 字', on:true},
+  {id:'T-SH-NOTICE', end:'商户端 App', page:'通知公告', pos:'列表（含详情页）', max:20, spec:'纯文本 / 富文本正文', on:true},
+  {id:'T-SH-WORK', end:'商户端 App', page:'工作台', pos:'平台通知位（最新 3 条）', max:3, spec:'标题 ≤24 字', on:true}
+];
+/* 通知对象 → 投放位（自动带出，避免选错端） */
+var TO_SLOTS={'全平台':['T-BUY-MSG','T-SH-NOTICE','T-SH-WORK'],'仅买家':['T-BUY-MSG'],'仅商户':['T-SH-NOTICE','T-SH-WORK']};
+var CATS=['平台公告','物业通知','政策制度','活动通知','系统维护'];
+var STC={'草稿':'background:#F1F5F9;color:#64748B','待审核':'background:#FEF3C7;color:#B45309','已驳回':'background:#FEE2E2;color:#B91C1C',
+  '待发布':'background:#DBEAFE;color:#2563EB','生效中':'background:#DCFCE7;color:#15803D','已下线':'background:#F1F5F9;color:#475569','已过期':'background:#F1F5F9;color:#94A3B8'};
+var CH=['站内推送','微信消息推送'];
+var TOPMAX=3;
+
+/* ================= 模拟数据（原型态） ================= */
+var NT=[
+  {id:'TG2026-0021', title:'关于 2026 年度租金缴纳的通知', cat:'物业通知', to:'全平台', top:true,
+   start:'2026-09-20 09:00', end:'2026-11-15 23:59', state:'生效中', push:true, ch:['站内推送','微信消息推送'], msg:'MSG2026-0088',
+   sent:1840, read:1226, by:'内容运营 何静', up:'2026-09-20 09:05'},
+  {id:'TG2026-0022', title:'平台服务时间调整公告（国庆期间）', cat:'系统维护', to:'全平台', top:false,
+   start:'2026-09-30 00:00', end:'2026-10-08 23:59', state:'已过期', push:true, ch:['站内推送'], msg:'MSG2026-0091',
+   sent:1840, read:1610, by:'内容运营 何静', up:'2026-09-29 17:40'},
+  {id:'TG2026-0023', title:'【仅商户】冬季用电安全提示', cat:'物业通知', to:'仅商户', top:true,
+   start:'2026-10-01 00:00', end:'2026-12-31 23:59', state:'生效中', push:true, ch:['站内推送','微信消息推送'], msg:'MSG2026-0094',
+   sent:326, read:298, by:'物业管理 周敏', up:'2026-10-01 10:20'},
+  {id:'TG2026-0024', title:'袜博会观众预约通道开启', cat:'活动通知', to:'仅买家', top:false,
+   start:'2026-10-15 00:00', end:'2026-11-30 23:59', state:'待发布', push:true, ch:['站内推送','微信消息推送'], msg:'MSG2026-0096',
+   sent:0, read:0, by:'内容运营 何静', up:'2026-10-08 15:12'},
+  {id:'TG2026-0025', title:'秋冬新品季招商公告（含展位政策）', cat:'平台公告', to:'仅商户', top:false,
+   start:'2026-10-20 00:00', end:'2026-12-31 23:59', state:'待审核', push:true, ch:['站内推送'], msg:'',
+   sent:0, read:0, by:'内容运营 何静', up:'2026-10-09 09:35'},
+  {id:'TG2026-0026', title:'【已驳回】某品牌优惠活动公告', cat:'活动通知', to:'全平台', top:false,
+   start:'2026-10-10 00:00', end:'2026-10-31 23:59', state:'已驳回', push:false, ch:[], msg:'',
+   sent:0, read:0, by:'内容运营 何静', up:'2026-10-09 10:02', rj:'含未审批的促销折扣承诺，请与商城运营确认后重提'},
+  {id:'TG2026-0027', title:'春节放假安排（历史归档）', cat:'平台公告', to:'全平台', top:false,
+   start:'2026-02-10 00:00', end:'2026-02-28 23:59', state:'已过期', push:true, ch:['站内推送'], msg:'MSG2026-0012',
+   sent:1620, read:1440, by:'内容运营 何静', up:'2026-02-05 11:00'},
+  {id:'TG2026-0028', title:'原料市场价格指数解读会报名（草稿）', cat:'活动通知', to:'仅商户', top:false,
+   start:'2026-10-20 00:00', end:'2026-11-10 23:59', state:'草稿', push:false, ch:[], msg:'',
+   sent:0, read:0, by:'内容运营 何静', up:'2026-10-09 10:30'}
+];
+var curRows=NT.slice(),curId=null;
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},2900);}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function nOf(id){return NT.filter(function(x){return x.id===id;})[0];}
+function slotOf(id){return SLOTS.filter(function(s){return s.id===id;})[0];}
+function st(s,c){return '<span class="st" style="'+(c||STC[s]||'background:#F1F5F9;color:#64748B')+'">'+esc(s)+'</span>';}
+function slotsOf(n){return TO_SLOTS[n.to]||[];}
+function topCount(){return NT.filter(function(n){return n.top&&(n.state==='生效中'||n.state==='待发布'||n.state==='待审核');}).length;}
+
+function renderStats(){
+  var live=0,wait=0,audit=0,exp=0,push=0;
+  NT.forEach(function(n){
+    if(n.state==='生效中'){live++;}
+    if(n.state==='待发布'){wait++;}
+    if(n.state==='待审核'){audit++;}
+    if(n.state==='已过期'){exp++;}
+    if(n.push){push++;}
+  });
+  var cards=[['生效中',live,'#15803D'],['待发布（定时未到）',wait,'#2563EB'],['待审核',audit,'#B45309'],
+    ['置顶使用（上限 '+TOPMAX+'）',topCount()+' / '+TOPMAX,'#E63E20'],['联动消息推送',push,'#7C3AED']];
+  document.getElementById('stats').innerHTML=cards.map(function(x){
+    return '<div class="bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">'+x[0]+'</p><p class="text-xl font-bold mt-1" style="color:'+x[2]+'">'+x[1]+'</p></div>';
+  }).join('');
+}
+function renderCatFilter(){
+  document.getElementById('f-cat').innerHTML='<option value="">全部类别</option>'+CATS.map(function(c){return '<option>'+c+'</option>';}).join('');
+}
+function render(){
+  var h='';
+  curRows.forEach(function(n){
+    var ops='<span class="lk-gray" onclick="openDetail(\''+n.id+'\')">详情</span>';
+    if(n.state==='草稿'||n.state==='已驳回'){ops='<span class="lk" onclick="openEdit(\''+n.id+'\')">编辑</span> · <span class="lk" onclick="submitN(\''+n.id+'\')">提交审核</span> · <span class="lk-gray" onclick="delN(\''+n.id+'\')">删除</span> · '+ops;}
+    if(n.state==='待审核'){ops='<span class="lk" onclick="openAudit(\''+n.id+'\')">审核</span> · '+ops;}
+    if(n.state==='生效中'||n.state==='待发布'){ops='<span class="lk-gray" onclick="offline(\''+n.id+'\')">下线</span> · <span class="lk-gray" onclick="toggleTop(\''+n.id+'\')">'+(n.top?'取消置顶':'置顶')+'</span> · '+ops;}
+    if(n.state==='已过期'||n.state==='已下线'){ops='<span class="lk-gray" onclick="rollback(\''+n.id+'\')">重新发布</span> · '+ops;}
+    var toTag=(n.to==='全平台'?'background:#DBEAFE;color:#2563EB':(n.to==='仅商户'?'background:#EDE9FE;color:#6D28D9':'background:#DCFCE7;color:#15803D'));
+    var slotTxt=slotsOf(n).map(function(s){var o=slotOf(s);return '<div class="text-[11px] text-[#64748B]">'+esc(o.end)+' · '+esc(o.page)+' · '+esc(o.pos)+'</div>';}).join('');
+    h+='<tr class="hover:bg-gray-50 transition">'
+      +'<td class="px-4 py-3" style="max-width:330px"><div class="font-medium text-[#1F2430]">'+(n.top?'<span class="tag mr-1" style="background:#FFEDE7;color:#E63E20"><i class="fas fa-thumbtack text-[9px]"></i>置顶</span>':'')+esc(n.title)+'</div>'
+        +'<div class="text-[11px] text-[#94A3B8] mt-1">'+esc(n.id)+'　'+esc(n.cat)+'　'+esc(n.by)+'　'+esc(n.up)+'</div>'
+        +(n.rj?'<div class="text-[11px] mt-1" style="color:#B91C1C">已驳回：'+esc(n.rj.slice(0,16))+'…</div>':'')+'</td>'
+      +'<td class="px-4 py-3"><span class="tag" style="'+toTag+'">'+esc(n.to)+'</span></td>'
+      +'<td class="px-4 py-3">'+slotTxt+'</td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(n.start)+'<br>~ '+esc(n.end)+'</td>'
+      +'<td class="px-4 py-3">'+(n.top?'<span class="st" style="background:#FFEDE7;color:#E63E20">已置顶</span>':'<span class="text-[12px] text-[#94A3B8]">—</span>')+'</td>'
+      +'<td class="px-4 py-3 text-[12px]">'+(n.push?('<span class="tag" style="background:#EDE9FE;color:#6D28D9">'+esc(n.ch.join(' + '))+'</span>'
+          +(n.msg?'<div class="text-[11px] text-[#64748B] mt-1">任务 '+esc(n.msg)+'</div>':'<div class="text-[11px] text-[#94A3B8] mt-1">待发布后生成任务</div>')
+          +(n.sent?'<div class="text-[11px] text-[#94A3B8] mt-1">送达 '+n.sent+' · 已读 '+n.read+'（'+Math.round(n.read/n.sent*100)+'%）</div>':''))
+        :'<span class="text-[12px] text-[#94A3B8]">不推送</span>')+'</td>'
+      +'<td class="px-4 py-3">'+st(n.state)+'</td>'
+      +'<td class="px-4 py-3 text-center whitespace-nowrap">'+ops+'</td></tr>';
+  });
+  if(!curRows.length){h='<tr><td colspan="8" class="px-4 py-16 text-center text-gray-300"><i class="fas fa-inbox text-3xl block mb-2"></i><span class="text-[12px]">暂无匹配的公告</span></td></tr>';}
+  document.getElementById('tb').innerHTML=h;
+  document.getElementById('cnt').textContent='共 '+curRows.length+' 条';
+  document.getElementById('pageInfo').textContent='共 '+curRows.length+' 条记录，第 1-'+curRows.length+' 条';
+}
+function doSearch(){
+  var kw=document.getElementById('f-kw').value.trim(),to=document.getElementById('f-to').value,
+      cat=document.getElementById('f-cat').value,stt=document.getElementById('f-state').value,onlyTop=document.getElementById('f-top').checked;
+  curRows=NT.filter(function(n){
+    var hitKw=!kw||n.title.indexOf(kw)>-1||n.by.indexOf(kw)>-1||n.id.indexOf(kw)>-1||n.body&&n.body.indexOf(kw)>-1;
+    return hitKw&&(!to||n.to===to)&&(!cat||n.cat===cat)&&(!stt||n.state===stt)&&(!onlyTop||n.top);
+  });
+  render();toast('已按条件查询，共 '+curRows.length+' 条（支持关键词 / 通知对象 / 类别 / 状态 / 仅看置顶）');
+}
+function resetSearch(){
+  ['f-kw','f-to','f-cat','f-state'].forEach(function(k){document.getElementById(k).value='';});
+  document.getElementById('f-top').checked=false;
+  curRows=NT.slice();render();toast('已重置筛选条件');
+}
+function submitN(id){
+  var n=nOf(id);
+  if(n.state==='已驳回'){n.rj='';}
+  if(n.top&&topCount()>=TOPMAX){toast('置顶已达上限 '+TOPMAX+' 条：请先取消其他置顶，或取消本条置顶后再提交');return;}
+  n.state='待审核';
+  renderStats();render();
+  toast('已提交审核：'+n.id+'（通知对象「'+n.to+'」→ 将投放到 '+slotsOf(n).length+' 个位置）');
+}
+function toggleTop(id){
+  var n=nOf(id);
+  if(n.top){n.top=false;renderStats();render();toast('已取消置顶：'+n.id+'（买家端 / 商户端同步生效）');return;}
+  if(topCount()>=TOPMAX){toast('置顶已达上限 '+TOPMAX+' 条：请先取消其他置顶（置顶为「重要显著提示」，投标 4.1.5.4）');return;}
+  n.top=true;renderStats();render();toast('已置顶：'+n.id+'（端上显著提示，排在其他公告之前）');
+}
+function offline(id){
+  var n=nOf(id);
+  n.state='已下线';n.top=false;
+  renderStats();render();
+  toast('已下线 '+n.id+'：各端同步撤下并从消息中心归档（历史可查，可重新发布）');
+}
+function rollback(id){
+  var n=nOf(id);
+  n.state='待发布';n.start='2026-10-15 00:00';n.end='2026-11-30 23:59';
+  renderStats();render();
+  toast('已重新发布：'+n.id+'（生效期 2026-10-15 ~ 11-30；如需推送请重新勾选「同步推送消息」）');
+}
+function delN(id){
+  var n=nOf(id);
+  if(n.state!=='草稿'){toast('仅「草稿」可删除；已发布公告请用「下线」（历史需长期可查）');return;}
+  NT.splice(NT.indexOf(n),1);
+  curRows=NT.slice();renderStats();render();
+  toast('已删除草稿 '+id);
+}
+
+/* ================= 详情 ================= */
+function openDetail(id){
+  curId=id;
+  var n=nOf(id);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+esc(n.title)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(n.id)+'　'+esc(n.cat)+'　'+st(n.state)+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-bullhorn text-[#FF4D2D]"></i>公告信息</div>'
+    +'<div class="grid grid-cols-2 gap-x-6">'
+    +'<div class="kv"><span class="k">通知对象</span><span class="v">'+esc(n.to)+'</span></div>'
+    +'<div class="kv"><span class="k">类别</span><span class="v">'+esc(n.cat)+'</span></div>'
+    +'<div class="kv"><span class="k">置顶</span><span class="v">'+(n.top?'是（显著提示）':'否')+'</span></div>'
+    +'<div class="kv"><span class="k">有效期</span><span class="v">'+esc(n.start)+' ~ '+esc(n.end)+'</span></div>'
+    +'<div class="kv"><span class="k">创建人</span><span class="v">'+esc(n.by)+'</span></div>'
+    +'<div class="kv"><span class="k">最近更新</span><span class="v">'+esc(n.up)+'</span></div>'
+    +'</div></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-file-lines text-[#2563EB]"></i>正文</div>'
+    +'<p class="text-[12px] text-[#64748B] leading-7">各商户 / 买家：<br>根据公司安排，现将有关事项通知如下——<br>一、适用范围与时间；<br>二、办理方式与所需材料；<br>三、联系人及联系方式。<br>特此通知。</p></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-layer-group text-[#7C3AED]"></i>投放位（由通知对象自动带出）</div>';
+  slotsOf(n).forEach(function(s){
+    var o=slotOf(s);
+    h+='<div class="kv"><span class="k">'+esc(o.end)+'</span><span class="v">'+esc(o.page)+' · '+esc(o.pos)+'</span></div>';
+  });
+  h+='<p class="text-[11px] text-[#94A3B8] mt-2"><i class="fas fa-circle-info mr-1"></i>「仅商户」只投商户端两处；「全平台」投三处；买家端公告落在<b>消息中心</b>，不做首页展示。</p></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-paper-plane text-[#7C3AED]"></i>消息推送联动（站内 + 微信）</div>'
+    +(n.push?('<div class="kv"><span class="k">是否推送</span><span class="v">是</span></div>'
+      +'<div class="kv"><span class="k">渠道</span><span class="v">'+esc(n.ch.join(' + '))+'</span></div>'
+      +'<div class="kv"><span class="k">推送任务</span><span class="v">'+(n.msg?esc(n.msg)+'　<span class="lk-gray" onclick="toast(\'跳转「消息推送」页查看该任务（content-push.html）\')">查看任务</span>':'发布后生成')+'</span></div>'
+      +'<div class="kv"><span class="k">送达 / 已读</span><span class="v">'+n.sent+' / '+n.read+(n.sent?'（已读率 '+Math.round(n.read/n.sent*100)+'%）':'')+'</span></div>')
+      :'<p class="text-[12px] text-[#64748B]">本条公告未勾选「同步推送消息」，仅在端上陈列。</p>')
+    +'<p class="text-[11px] text-[#94A3B8] mt-2"><i class="fas fa-circle-info mr-1"></i>短信渠道暂不开通（2026-10-09 业务确认）；移动端为 H5 挂公众号，微信消息推送依赖公众号模板消息。</p></div>';
+  if(n.rj){h+='<div class="blk" style="border-color:#FECACA;background:#FEF2F2"><div class="blk-t" style="color:#B91C1C"><i class="fas fa-xmark"></i>驳回原因</div><p class="text-[12px] text-[#64748B]">'+esc(n.rj)+'</p></div>';}
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-clock-rotate-left text-[#64748B]"></i>留痕</div>'
+    +'<div class="text-[12px] text-[#64748B] leading-7">· 新建（'+esc(n.by)+'）　'+esc(n.up)+'<br>· 提交审核 → 审核通过 → 定时发布（系统）<br>· '+(n.top?'置顶操作：已置顶':'未置顶')+'（操作人留痕）</div></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">关闭</button>'
+    +(n.state==='待审核'?'<button class="btn btn-primary" onclick="openAudit(\''+n.id+'\')">审核</button>':'')
+    +(n.state==='生效中'?'<button class="btn btn-ghost" onclick="toggleTop(\''+n.id+'\')">'+(n.top?'取消置顶':'置顶')+'</button>':'')
+    +'<button class="btn btn-ghost" onclick="openEdit(\''+n.id+'\')">编辑</button></div>';
+  show('drawer',h);
+}
+
+/* ================= 编辑抽屉 ================= */
+function openEdit(id){
+  curId=id;
+  var n=id?nOf(id):null;
+  var to=n?n.to:'全平台';
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+(n?'编辑公告　'+esc(n.id):'新增公告')+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">选「通知对象」即自动决定投放端（买家端消息中心 / 商户端通知公告 / 商户端工作台）</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-pen-to-square text-[#2563EB]"></i>基本信息</div>'
+    +'<div class="mb-3"><label class="fl">标题（≤30 字）</label><input class="fi" id="e-title" value="'+(n?esc(n.title):'')+'" placeholder="例：关于 2026 年度租金缴纳的通知"></div>'
+    +'<div class="mb-3"><label class="fl">类别（用于端上筛选与历史检索）</label><select class="sel" id="e-cat">'+CATS.map(function(c){return '<option'+(n&&n.cat===c?' selected':'')+'>'+c+'</option>';}).join('')+'</select></div>'
+    +'<label class="fl">通知对象（决定投放端）</label>'
+    +'<div class="flex gap-2" id="toBox">'
+    +['全平台','仅买家','仅商户'].map(function(x){return '<div class="opt'+(to===x?' on':'')+'" onclick="pickTo(this,\''+x+'\')">'+x+'</div>';}).join('')
+    +'</div>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-2" id="toHint"></p></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-file-lines text-[#7C3AED]"></i>正文（富文本）</div>'
+    +'<div class="mb-2">'
+    +'<span class="tool" onclick="toast(\'已加粗（原型略）\')" style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border:1px solid #E2E8F0;border-radius:6px;font-size:11px;color:#64748B;background:#fff;margin-right:4px;cursor:pointer"><i class="fas fa-bold"></i>加粗</span>'
+    +'<span class="tool" onclick="toast(\'已插入附件占位（原型略）\')" style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border:1px solid #E2E8F0;border-radius:6px;font-size:11px;color:#64748B;background:#fff;margin-right:4px;cursor:pointer"><i class="fas fa-paperclip"></i>附件</span>'
+    +'<span class="tool" onclick="toast(\'已插入表格占位（原型略）\')" style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border:1px solid #E2E8F0;border-radius:6px;font-size:11px;color:#64748B;background:#fff;margin-right:4px;cursor:pointer"><i class="fas fa-table"></i>表格</span>'
+    +'</div>'
+    +'<textarea class="fi" id="e-body" rows="6" placeholder="各商户 / 买家：&#10;根据公司安排，现将有关事项通知如下……">'+(n?'各商户 / 买家：\n根据公司安排，现将有关事项通知如下——\n一、适用范围与时间；\n二、办理方式与所需材料；\n三、联系人及联系方式。\n特此通知。':'')+'</textarea></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-thumbtack text-[#E63E20]"></i>置顶与有效期</div>'
+    +'<label class="ck"><input type="checkbox" id="e-top" '+(n&&n.top?'checked':'')+'><span>置顶（买家端 / 商户端显著提示，排在其他公告之前；<b>上限 '+TOPMAX+' 条</b>，当前已用 '+topCount()+' 条）</span></label>'
+    +'<div class="grid grid-cols-2 gap-3 mt-2">'
+    +'<div><label class="fl">生效开始（定时发布）</label><input class="fi" id="e-start" type="datetime-local" value="2026-10-15T00:00"></div>'
+    +'<div><label class="fl">生效结束（到期自动下线）</label><input class="fi" id="e-end" type="datetime-local" value="2026-11-30T23:59"></div>'
+    +'</div></div>';
+  h+='<div class="blk" style="border-color:#DDD6FE;background:#FAF8FF"><div class="blk-t" style="color:#6D28D9"><i class="fas fa-paper-plane"></i>同步推送消息（可选）</div>'
+    +'<label class="ck"><input type="checkbox" id="e-push" '+(n&&n.push?'checked':'')+'><span>发布时<b>同时向「通知对象」推送一条消息</b>（在「消息推送」页生成推送任务，可在那里查看送达与已读统计）</span></label>'
+    +'<label class="ck"><input type="checkbox" id="e-ch1" checked><span><b>站内推送</b>（端上消息中心）</span></label>'
+    +'<label class="ck"><input type="checkbox" id="e-ch2" '+(n&&n.ch&&n.ch.indexOf('微信消息推送')>-1?'checked':'')+'><span><b>微信消息推送</b>（H5 挂公众号，公众号模板消息）</span></label>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1"><i class="fas fa-circle-info mr-1"></i>短信渠道暂不开通（2026-10-09 业务确认）。</p></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-ghost" onclick="toast(\'已保存草稿\')">保存草稿</button>'
+    +'<button class="btn btn-primary" onclick="saveN()">提交审核</button></div>';
+  show('drawer',h);
+  updToHint(to);
+}
+function pickTo(el,x){
+  var box=document.getElementById('toBox');
+  for(var i=0;i<box.children.length;i++){box.children[i].className='opt';}
+  el.className='opt on';
+  updToHint(x);
+}
+function curTo(){
+  var box=document.getElementById('toBox');
+  for(var i=0;i<box.children.length;i++){if(box.children[i].className.indexOf('on')>-1){return box.children[i].textContent;}}
+  return '全平台';
+}
+function updToHint(to){
+  var ids=TO_SLOTS[to]||[],txt=ids.map(function(s){var o=slotOf(s);return o.end+' · '+o.page+' · '+o.pos;}).join('　｜　');
+  var el=document.getElementById('toHint');
+  if(el){el.innerHTML='<i class="fas fa-arrow-right mr-1"></i>将投放到：'+txt+'（'+ids.length+' 个位置，端上按此展示）';}
+}
+function saveN(){
+  var title=document.getElementById('e-title').value.trim();
+  var to=curTo();
+  var top=document.getElementById('e-top').checked;
+  var push=document.getElementById('e-push').checked;
+  var ch=[];
+  if(push){
+    if(document.getElementById('e-ch1').checked){ch.push('站内推送');}
+    if(document.getElementById('e-ch2').checked){ch.push('微信消息推送');}
+    if(!ch.length){toast('已勾选「同步推送消息」，请至少选择一个渠道（站内推送 / 微信消息推送）');return;}
+  }
+  if(!title){toast('请填写标题');return;}
+  if(top&&topCount()>=TOPMAX){toast('置顶已达上限 '+TOPMAX+' 条：请先取消其他置顶后再提交');return;}
+  var n=curId?nOf(curId):null;
+  if(n){
+    n.title=title;n.cat=document.getElementById('e-cat').value;n.to=to;n.top=top;n.push=push;n.ch=ch;n.state='待审核';n.rj='';
+  }else{
+    n={id:'TG2026-00'+(29+NT.length), title:title, cat:document.getElementById('e-cat').value, to:to, top:top,
+       start:'2026-10-15 00:00', end:'2026-11-30 23:59', state:'待审核', push:push, ch:ch, msg:'',
+       sent:0, read:0, by:'内容运营 何静', up:'2026-10-09 10:40'};
+    NT.unshift(n);
+  }
+  curRows=NT.slice();
+  renderStats();render();closeAll();
+  toast('已提交审核：'+n.id+'　通知对象「'+to+'」→ '+(TO_SLOTS[to]||[]).length+' 个投放位'+(push?'；已配置消息推送（'+ch.join(' + ')+'）':'；未配置推送'));
+}
+
+/* ================= 审核 ================= */
+function openAudit(id){
+  curId=id;
+  var n=nOf(id);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">审核公告　'+esc(n.id)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(n.cat)+'　通知对象 '+esc(n.to)+'　'+esc(n.start)+' ~ '+esc(n.end)+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>'
+    +'<div class="px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div class="kv"><span class="k">标题</span><span class="v">'+esc(n.title)+'</span></div>'
+    +'<div class="kv"><span class="k">投放位置</span><span class="v">'+slotsOf(n).map(function(s){var o=slotOf(s);return o.end+' · '+o.page;}).join('　｜　')+'</span></div>'
+    +'<div class="kv"><span class="k">消息推送</span><span class="v">'+(n.push?esc(n.ch.join(' + '))+'（审批通过并发布后生成推送任务）':'不推送')+'</span></div>'
+    +'<div class="kv"><span class="k">置顶占用</span><span class="v">'+(n.top?'本条置顶，占用 '+topCount()+' / '+TOPMAX:'不置顶')+'</span></div>'
+    +'<div><label class="fl">审核意见（驳回时必填）</label><textarea class="fi" id="a-note" rows="2" placeholder="例：涉及收费口径，需与财务确认后重提"></textarea></div>'
+    +'</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-ghost" style="color:#B91C1C;border-color:#FECACA" onclick="auditN(\'rej\')">驳回</button>'
+    +'<button class="btn btn-primary" onclick="auditN(\'ok\')">通过</button></div>';
+  show('modal',h);
+}
+function auditN(act){
+  var n=nOf(curId),note=document.getElementById('a-note').value.trim();
+  if(act==='rej'){
+    if(!note){toast('驳回原因必填');return;}
+    n.state='草稿';n.rj=note;
+    renderStats();render();closeAll();
+    toast('已驳回：'+n.id+' 回「草稿」并通知创建人（原因已留痕）');
+  }else{
+    n.state='待发布';
+    if(n.push&&!n.msg){n.msg='MSG2026-00'+(98+NT.length);}
+    renderStats();render();closeAll();
+    toast('审核通过：'+n.id+' 置「待发布」'+n.start+' 定时发布；'+(n.push?'已生成推送任务 '+n.msg+'（'+n.ch.join(' + ')+'）':'未配置推送'));
+  }
+}
+
+/* ================= 投放位字典 ================= */
+function openSlots(){
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">投放位字典（公告类）</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">公告的投放位由「通知对象」自动带出，<b>不由人工逐个选择</b>（避免把商户公告投到买家端）</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="px-5 py-4" style="display:flex;flex-direction:column;gap:12px"><div class="blk">'
+    +'<table class="w-full text-[12px]"><thead><tr class="text-gray-500 text-[11px]">'
+    +'<th class="text-left py-1.5 font-medium">投放位 ID</th><th class="text-left py-1.5 font-medium">端</th><th class="text-left py-1.5 font-medium">页面 · 位置</th>'
+    +'<th class="text-left py-1.5 font-medium">上限</th><th class="text-left py-1.5 font-medium">素材规格</th><th class="text-left py-1.5 font-medium">状态</th></tr></thead><tbody>';
+  SLOTS.forEach(function(s){
+    h+='<tr class="border-t border-gray-50"><td class="py-2 text-[#64748B]">'+esc(s.id)+'</td>'
+      +'<td class="py-2"><span class="tag" style="'+((s.end.indexOf('商户端')>-1)?'background:#EDE9FE;color:#6D28D9':'background:#DBEAFE;color:#2563EB')+'">'+esc(s.end)+'</span></td>'
+      +'<td class="py-2 text-[#1F2430]">'+esc(s.page)+' · '+esc(s.pos)+'</td>'
+      +'<td class="py-2 text-[#64748B]">'+s.max+'</td>'
+      +'<td class="py-2 text-[#64748B]">'+esc(s.spec)+'</td>'
+      +'<td class="py-2">'+(s.on?'<span class="tag" style="background:#DCFCE7;color:#15803D">启用</span>':'<span class="tag" style="background:#F1F5F9;color:#94A3B8">停用</span>')+'</td></tr>';
+  });
+  h+='</tbody></table></div>'
+    +'<div class="blk" style="border-color:#FDE68A;background:#FFFBEB"><div class="blk-t" style="color:#B45309"><i class="fas fa-arrow-right-arrow-left"></i>通知对象 → 投放位映射</div>'
+    +'<p class="text-[11px] text-[#64748B] leading-6">· <b>全平台</b> → 买家端消息中心 + 商户端通知公告 + 商户端工作台（3 处）<br>'
+    +'· <b>仅买家</b> → 买家端消息中心（1 处）<br>'
+    +'· <b>仅商户</b> → 商户端通知公告 + 商户端工作台（2 处）<br>'
+    +'· 买家端公告<b>只落消息中心</b>，不做首页展示；商户端工作台只取<b>最新 3 条</b>。</p></div>'
+    +'</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2"><button class="btn btn-primary" onclick="closeAll()">关闭</button></div>';
+  show('modal',h);
+}
+
+/* ================= 基础 ================= */
+function show(which,h){
+  document.getElementById(which).innerHTML=h;
+  document.getElementById('mask').classList.add('on');
+  document.getElementById(which).classList.add('on');
+}
+function closeAll(){
+  document.getElementById('mask').classList.remove('on');
+  document.getElementById('drawer').classList.remove('on');
+  document.getElementById('modal').classList.remove('on');
+}
+renderCatFilter();renderStats();render();
+</script>
 </body>
 </html>

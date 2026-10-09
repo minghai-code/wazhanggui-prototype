@@ -41,7 +41,12 @@ else {
 }
 
 Write-Host '[2/3] 编译 tailwind.css …'
-npx tailwindcss -c tailwind.config.js -i input.css -o dist/tailwind.css --minify
+# 注意：直接 -o dist/tailwind.css 覆盖写，在本机出现过「输出文件未被刷新」的情况（编译日志正常、文件字节与时间戳不变，新 class 不生效）。
+# 因此改为：编译到临时文件 → 强制覆盖（原子替换），保证产物一定是本次编译结果。
+$tmp = Join-Path $here 'dist\tailwind.new.css'
+if (Test-Path $tmp) { Remove-Item $tmp -Force }
+npx tailwindcss -c tailwind.config.js -i input.css -o dist/tailwind.new.css --minify
+Move-Item $tmp (Join-Path $here 'dist\tailwind.css') -Force
 
 Write-Host '[3/3] 分发到各端目录 …'
 foreach ($d in $dirs) {
@@ -49,5 +54,5 @@ foreach ($d in $dirs) {
     Copy-Item (Join-Path $here 'dist\tailwind.css') (Join-Path $base "$d\tailwind.css") -Force
   }
 }
-$kb = [math]::Round((Get-Item (Join-Path $here 'dist\tailwind.css')).Length / 1KB)
-Write-Host ("完成：dist/tailwind.css {0}KB → {1}" -f $kb, ($dirs -join ' / '))
+$size = (Get-Item (Join-Path $here 'dist\tailwind.css')).Length
+Write-Host ("完成：dist/tailwind.css {0} bytes → {1}" -f $size, ($dirs -join ' / '))

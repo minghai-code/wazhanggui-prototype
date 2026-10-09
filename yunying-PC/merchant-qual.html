@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>商户管理 - 资质认证审核</title>
+<title>商户管理 - 资质与到期管理</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
 *{box-sizing:border-box}
@@ -40,11 +40,12 @@ button{cursor:pointer}
   <div class="flex items-start justify-between mb-5">
     <div>
       <div class="flex items-center gap-2">
-        <h1 class="text-[20px] font-bold text-[#1F2430]">资质认证审核</h1>
+        <h1 class="text-[20px] font-bold text-[#1F2430]">资质与到期管理</h1>
         <span class="tag" style="background:#DBEAFE;color:#2563EB">04 商户管理</span>
+        <span class="tag" style="background:#DCFCE7;color:#15803D">权限随入驻默认开通 · 本页做到期复核</span>
         <span class="tag" style="background:#F3E8FF;color:#7C3AED">招标 #88 / #10 前置门槛</span>
       </div>
-      <p class="text-[12px] text-gray-400 mt-1">企业资质在线审批。<b>通过 → 开启询价（报价）权限；过期 → 自动冻结询价权限</b>；与商户端「企业资质认证」页一一对应</p>
+      <p class="text-[12px] text-gray-400 mt-1"><b>资质不再作为报价的前置门槛</b>：<b>入驻审核通过即默认开通询价报价权限</b>（与电商权限一并开通，不做二次审核）。本页职责调整为：① <b>证书到期复核</b>（<b>过期 → 自动冻结报价</b>，商户端重传 → 复核解冻）；② <b>受限场景校验</b>（品牌授权类 / 大额询价 / 需质检报告的品类）。资质信息来源：线上随入驻申请一并核对（不重复审），<b>线下户由运营端代录 / 线下核验</b></p>
     </div>
     <button class="btn btn-ghost" onclick="toast('已导出资质台账（含到期提醒清单）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
   </div>
@@ -71,7 +72,7 @@ button{cursor:pointer}
   <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
     <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
       <span class="text-[12px] text-[#94A3B8]" id="cnt">共 0 条</span>
-      <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>询价权限状态：已通过=已开通 ｜ 已过期/已驳回=已冻结</span>
+      <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>报价权限<b>随入驻审核默认开通</b>；本页状态含义：资质有效（受限品类可报价）｜ 已过期/已驳回（<b>报价已冻结</b>，仍可浏览需求池）</span>
     </div>
     <div class="overflow-x-auto">
       <table class="w-full text-[13px]" style="min-width:1120px">
@@ -195,11 +196,11 @@ function openD(id){
     +'<div class="mt-3"><span class="text-[11px] text-[#94A3B8]">资质附件</span>'
     +'<div class="flex items-center gap-3 mt-1"><div class="thumb" onclick="toast(\'预览大图：'+esc(x.file)+'\')"><i class="fas fa-image text-lg mr-1"></i>'+esc(x.file)+'</div>'
     +'<div class="thumb" onclick="toast(\'预览大图：法人身份证\')"><i class="fas fa-id-card text-lg mr-1"></i>法人身份证</div></div></div></div>';
-  h+='<div class="blk" style="border-color:#BBF7D0;background:#F6FEF9"><div class="blk-t" style="color:#15803D"><i class="fas fa-key"></i>询价权限联动（招标 #88 / #10）</div>'
-    +'<p class="text-[12px] text-[#64748B] leading-6">资质认证是<b>采购询价报价权限</b>的前置门槛：<br>'
-    +'· <b>审核通过</b> → 自动开启询价权限（商户端可参与报价）；<br>'
-    +'· <b>到期 / 驳回</b> → 自动冻结询价权限（不可报价，历史报价与订单不受影响）；<br>'
-    +'· 商户重传资质 → 回到「待审核」，通过后自动解冻。<br>'
+  h+='<div class="blk" style="border-color:#BBF7D0;background:#F6FEF9"><div class="blk-t" style="color:#15803D"><i class="fas fa-key"></i>询价报价权限联动（招标 #88 / #10）</div>'
+    +'<p class="text-[12px] text-[#64748B] leading-6"><b>权限来源已调整（2026-10-08）</b>：询价报价权限随<b>入驻审核通过默认开通</b>，资质认证<b>不再作为开通前置</b>。<br>'
+    +'· <b>资质有效</b> → 基础报价照常；<b>品牌授权类 / 大额询价 / 需质检报告</b>的受限场景可正常参与；<br>'
+    +'· <b>证书到期 / 复核驳回</b> → <b>自动冻结报价</b>（可浏览需求池，不可提交报价单；历史报价与订单不受影响）；<br>'
+    +'· 商户重传资质 → 回到「待复核」，复核通过后自动解冻。<br>'
     +'当前状态：'+RFQ[x.status]+'</p></div>';
   if(can){
     h+='<div class="blk" style="border-color:#FDB4A3;background:#FFF6F3"><div class="blk-t" style="color:#E63E20"><i class="fas fa-pen-to-square"></i>审核结论</div>'
@@ -208,7 +209,7 @@ function openD(id){
       +'<label class="fl" style="margin-top:8px">审核备注（选填）</label>'
       +'<textarea id="memo" rows="2" class="w-full p-2 text-[12px] border border-[#E2E8F0] rounded-lg outline-none" placeholder="补充说明，会记入资质审核轨迹"></textarea>'
       +'<div class="flex items-center gap-2 mt-3">'
-      +'<button class="btn btn-primary" onclick="audit(\'pass\')">通过并开启询价权限</button>'
+      +'<button class="btn btn-primary" onclick="audit(\'pass\')">复核通过（恢复报价权限）</button>'
       +'<button class="btn btn-ghost" onclick="showRej()" style="color:#B91C1C;border-color:#FECACA">驳回</button>'
       +'<button class="btn btn-primary" id="btnRej" style="display:none;background:linear-gradient(135deg,#EF4444,#B91C1C)" onclick="audit(\'reject\')">确认驳回</button>'
       +'</div></div>';
@@ -240,7 +241,7 @@ function audit(action){
   if(!x){return;}
   if(action==='pass'){
     x.status='已通过';
-    toast('已通过：询价权限已开通，商户端可参与报价；资质有效期 30 天内会提前提醒');
+    toast('复核通过：报价权限已恢复/解冻（基础报价权限本已随入驻审核默认开通，本次为到期或受限场景复核）；资质 30 天内到期会提前提醒');
   } else {
     var rs=document.getElementById('rejReason').value;
     if(!rs){toast('驳回原因必填，请先选择');return;}

@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>内容管理 - 消息推送</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}.lk:hover{text-decoration:underline}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}.lk-gray:hover{color:#1F2430;text-decoration:underline}
+.st{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500;white-space:nowrap}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:60}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:760px;max-width:96vw;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:70;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);width:760px;max-width:95vw;max-height:86vh;overflow-y:auto;background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(15,23,42,.28);opacity:0;pointer-events:none;transition:.22s;z-index:70}
+.modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+.blk{border:1px solid #E2E8F0;border-radius:12px;padding:14px 16px}
+.blk-t{font-size:12.5px;font-weight:700;color:#1F2430;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.kv{display:flex;gap:8px;font-size:12px;line-height:1.9}
+.kv .k{width:104px;flex-shrink:0}
+.fi{width:100%;padding:6px 10px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none;background:#fff}
+.fi:focus{border-color:#FF4D2D}
+.fl{display:block;font-size:11px;color:#94A3B8;margin-bottom:4px}
+.sel{width:100%;padding:6px 8px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none}
+button{cursor:pointer}
+textarea.fi{font-family:inherit;line-height:1.8;resize:vertical}
+.ck{display:flex;align-items:flex-start;gap:7px;font-size:12px;color:#334155;line-height:1.7;padding:5px 0}
+.ck input{margin-top:3px}
+.tab{display:flex;gap:22px;border-bottom:1px solid #E2E8F0;margin-bottom:16px}
+.tab span{padding:9px 0;font-size:13px;color:#64748B;cursor:pointer;border-bottom:2px solid transparent}
+.tab span.on{color:#FF4D2D;border-bottom-color:#FF4D2D;font-weight:600}
+.dis{opacity:.55}
+</style>
+<!-- Tailwind 静态样式：本地引用（不再依赖 cdn.tailwindcss.com）；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<div class="p-6">
+
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">消息推送</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">09 内容管理</span>
+        <span class="tag" style="background:#DCFCE7;color:#15803D">站内推送 + 微信消息推送</span>
+        <span class="tag" style="background:#F1F5F9;color:#94A3B8">短信暂不开通</span>
+      </div>
+      <p class="text-[12px] text-gray-400 mt-1">统一消息触达：<b>模板化（触发条件 / 目标人群 / 渠道 / 频次限制）+ 推送记录（送达 · 失败 · 已读未读）</b>；移动端为 <b>H5 挂公众号</b>，微信渠道走公众号模板消息（投标 4.1.7.5.4 消息中心 + 统一消息；短信暂不开通，2026-10-09 业务确认）</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="openChannel()"><i class="fas fa-plug text-[10px] mr-1"></i>渠道配置</button>
+      <button class="btn btn-ghost" onclick="toast('已导出推送记录（含渠道、送达/失败、已读未读，可按时间与模板筛选）')"><i class="fas fa-download text-[10px] mr-1"></i>导出记录</button>
+      <button class="btn btn-primary" onclick="openManual()"><i class="fas fa-paper-plane mr-1"></i>人工补发</button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-5 gap-3 mb-4" id="stats"></div>
+
+  <!-- 分工说明 + 公告联动 -->
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+    <div class="flex items-start justify-between gap-6">
+      <div class="flex-1">
+        <div class="text-[12.5px] font-bold text-[#1F2430] mb-1.5"><i class="fas fa-arrow-right-arrow-left text-[#7C3AED] mr-1"></i>与「公告通知」的分工</div>
+        <p class="text-[11.5px] text-[#64748B] leading-6"><b>公告通知 = 内容</b>（人工编辑、有正文与详情页、可置顶、长期可查 → 解决"发什么内容"）；<b>消息推送 = 触达</b>（模板 + 触发规则 + 渠道 + 统计 → 解决"怎么送到、送到没有"）。公告发布时勾选「同步推送消息」→ 在此生成一条推送任务，端上的消息中心同时承载两者。</p>
+      </div>
+      <div class="w-[300px] flex-shrink-0">
+        <div class="rounded-xl border p-3" style="border-color:#DDD6FE;background:#FAF8FF">
+          <div class="text-[11.5px] font-bold mb-1" style="color:#6D28D9"><i class="fas fa-bullhorn mr-1"></i>公告联动任务（1）</div>
+          <p class="text-[11px] text-[#64748B] leading-5">「袜博会观众预约通道开启」待发布 · 通知对象：仅买家 · 渠道：站内 + 微信</p>
+          <button class="btn btn-ghost w-full mt-2" onclick="toast('跳转「公告通知」查看来源公告（content-notice.html）')">查看来源公告</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab" id="tabs">
+    <span class="on" onclick="switchTab(0,this)">消息模板</span>
+    <span onclick="switchTab(1,this)">推送记录</span>
+  </div>
+
+  <!-- Tab1 模板 -->
+  <div id="pane0">
+    <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+      <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-[13px] font-bold text-[#1F2430]">消息模板</span>
+          <span class="text-[12px] text-[#94A3B8]" id="tplCnt">共 0 个</span>
+        </div>
+        <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>「推送规则」已合并进模板：<b>触发条件 + 目标人群 + 渠道 + 频次限制</b>（避免两处重复配置）</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-[13px]" style="min-width:1340px">
+          <thead>
+            <tr class="bg-gray-50 text-gray-500 text-[12px]">
+              <th class="px-4 py-3 text-left font-medium">模板</th>
+              <th class="px-4 py-3 text-left font-medium">触发条件</th>
+              <th class="px-4 py-3 text-left font-medium">目标人群</th>
+              <th class="px-4 py-3 text-left font-medium">渠道</th>
+              <th class="px-4 py-3 text-left font-medium">频次限制</th>
+              <th class="px-4 py-3 text-left font-medium">近 30 天推送 / 已读率</th>
+              <th class="px-4 py-3 text-left font-medium">状态</th>
+              <th class="px-4 py-3 text-center font-medium">操作</th>
+            </tr>
+          </thead>
+          <tbody id="tb" class="divide-y divide-gray-50"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab2 记录 -->
+  <div id="pane1" style="display:none">
+    <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+      <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-[13px] font-bold text-[#1F2430]">推送记录</span>
+          <span class="text-[12px] text-[#94A3B8]" id="runCnt">共 0 条</span>
+        </div>
+        <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-chart-simple mr-1"></i>送达 / 失败由渠道回执；<b>已读</b>由端上（站内）与公众号（微信）上报</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-[13px]" style="min-width:1320px">
+          <thead>
+            <tr class="bg-gray-50 text-gray-500 text-[12px]">
+              <th class="px-4 py-3 text-left font-medium">推送单号</th>
+              <th class="px-4 py-3 text-left font-medium">模板 / 来源</th>
+              <th class="px-4 py-3 text-left font-medium">目标人群</th>
+              <th class="px-4 py-3 text-left font-medium">渠道</th>
+              <th class="px-4 py-3 text-left font-medium">送达 / 失败</th>
+              <th class="px-4 py-3 text-left font-medium">已读（率）</th>
+              <th class="px-4 py-3 text-left font-medium">发送时间</th>
+              <th class="px-4 py-3 text-center font-medium">操作</th>
+            </tr>
+          </thead>
+          <tbody id="tb2" class="divide-y divide-gray-50"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div id="mask" class="mask" onclick="closeAll()"></div>
+<div id="drawer" class="drawer"></div>
+<div id="modal" class="modal"></div>
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
+
+<script>
+/* ================= 渠道（2026-10-09 业务确认） ================= */
+var CHANNELS=[
+  {name:'站内推送', on:true, note:'端上消息中心（买家端 / 商户端），支持已读未读与一键已读'},
+  {name:'微信消息推送', on:true, note:'H5 挂公众号 → 公众号模板消息（需公众号模板 ID 映射）'},
+  {name:'短信', on:false, note:'暂不开通（有成本）；如后续开启，只需在模板中勾选渠道'}
+];
+/* ================= 模板 ================= */
+var TPL=[
+  {id:'TPL-01', code:'ORDER_PAID', name:'订单支付成功通知', trig:'订单支付成功', to:'买家', ch:['站内推送','微信消息推送'], freq:'实时（每单 1 次）',
+   on:true, cnt30:8640, readRate:38, body:'您的订单 {{订单号}} 已支付成功，金额 {{金额}} 元，商家将尽快发货。'},
+  {id:'TPL-02', code:'ORDER_SHIP', name:'待发货提醒（商户）', trig:'订单支付成功且 24h 未发货', to:'商户', ch:['站内推送'], freq:'每单 1 次',
+   on:true, cnt30:5120, readRate:74, body:'您有 {{笔数}} 笔订单待发货（超 24 小时），请尽快处理，以免影响店铺评分。'},
+  {id:'TPL-03', code:'FEE_DUE', name:'缴费到期提醒', trig:'账单到期前 7 天 / 到期当天', to:'商户', ch:['站内推送','微信消息推送'], freq:'每账期 ≤ 2 次',
+   on:true, cnt30:1308, readRate:81, body:'您有 {{金额}} 元账单将于 {{到期日}} 到期，请及时缴纳（租赁年度 9.1–8.31，8.15 起催收）。'},
+  {id:'TPL-04', code:'PROP_ALERT', name:'物业告警 / 派单通知', trig:'报修派单、巡检异常上报', to:'商户', ch:['站内推送'], freq:'实时（每单 1 次）',
+   on:true, cnt30:642, readRate:88, body:'您报修的「{{工单内容}}」已派单，处理人 {{处理人}}，预计 {{预计时间}} 上门。'},
+  {id:'TPL-05', code:'POLICY_DUE', name:'政策申报到期提醒', trig:'政策申报截止前 7 天', to:'商户', ch:['站内推送','微信消息推送'], freq:'每条政策 1 次',
+   on:false, cnt30:0, readRate:0, body:'「{{政策名称}}」申报将于 {{截止日}} 截止，请及时提交材料。'}
+];
+/* ================= 推送记录 ================= */
+var RUNS=[
+  {id:'MSG2026-0096', tpl:'袜博会观众预约通道开启', src:'公告联动（TG2026-0024）', to:'买家 · 1840 人', ch:'站内推送 + 微信消息推送',
+   ok:1826, fail:14, read:1233, t:'2026-10-09 09:12'},
+  {id:'MSG2026-0094', tpl:'冬季用电安全提示', src:'公告联动（TG2026-0023）', to:'商户 · 326 人', ch:'站内推送 + 微信消息推送',
+   ok:322, fail:4, read:298, t:'2026-10-01 10:20'},
+  {id:'MSG2026-0098', tpl:'缴费到期提醒（第 2 次）', src:'模板自动（TPL-03）', to:'商户 · 96 人', ch:'站内推送 + 微信消息推送',
+   ok:95, fail:1, read:78, t:'2026-09-30 09:00'},
+  {id:'MSG2026-0099', tpl:'订单支付成功通知', src:'模板自动（TPL-01）', to:'买家 · 218 人', ch:'站内推送 + 微信消息推送',
+   ok:218, fail:0, read:83, t:'2026-09-29 20:41'},
+  {id:'MSG2026-0100', tpl:'【人工补发】平台服务时间调整', src:'人工补发（运营 何静）', to:'全平台 · 1840 人', ch:'站内推送',
+   ok:1836, fail:4, read:1204, t:'2026-09-29 17:40'}
+];
+var curTab=0,curId=null;
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},2900);}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function money(n){return Number(n).toLocaleString('en-US');}
+function tOf(id){return TPL.filter(function(x){return x.id===id;})[0];}
+function pct(a,b){return b?Math.round(a/b*100)+'%':'—';}
+
+function renderStats(){
+  var on=TPL.filter(function(t){return t.on;}).length;
+  var sent=0,ok=0,read=0;
+  RUNS.forEach(function(r){sent+=r.ok+r.fail;ok+=r.ok;read+=r.read;});
+  var cards=[['启用中的模板',on+' / '+TPL.length,'#7C3AED'],['推送记录条数',RUNS.length,'#2563EB'],
+    ['累计送达 / 失败',money(ok)+' / '+money(sent-ok),'#15803D'],['平均已读率',pct(read,ok),'#B45309'],
+    ['可用渠道','2 个（站内 / 微信）','#E63E20']];
+  document.getElementById('stats').innerHTML=cards.map(function(x){
+    return '<div class="bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">'+x[0]+'</p><p class="text-xl font-bold mt-1" style="color:'+x[2]+'">'+x[1]+'</p></div>';
+  }).join('');
+}
+function renderTpl(){
+  var h='';
+  TPL.forEach(function(t){
+    h+='<tr class="hover:bg-gray-50 transition'+(t.on?'':' dis')+'">'
+      +'<td class="px-4 py-3"><div class="font-medium text-[#1F2430]">'+esc(t.name)+'</div>'
+        +'<div class="text-[11px] text-[#94A3B8] mt-0.5">'+esc(t.id)+'　'+esc(t.code)+'</div></td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(t.trig)+'</td>'
+      +'<td class="px-4 py-3"><span class="tag" style="'+((t.to==='商户')?'background:#EDE9FE;color:#6D28D9':'background:#DCFCE7;color:#15803D')+'">'+esc(t.to)+'</span></td>'
+      +'<td class="px-4 py-3 text-[12px]">'+t.ch.map(function(c){return '<span class="tag mr-1" style="'+((c.indexOf('微信')>-1)?'background:#DCFCE7;color:#15803D':'background:#DBEAFE;color:#2563EB')+'">'+esc(c)+'</span>';}).join('')+'</td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(t.freq)+'</td>'
+      +'<td class="px-4 py-3 text-[12px]">'+(t.on?('<span class="text-[#1F2430] font-medium">'+money(t.cnt30)+'</span><div class="text-[10px] text-[#94A3B8]">已读率 '+t.readRate+'%</div>'):'<span class="text-[#94A3B8]">未启用</span>')+'</td>'
+      +'<td class="px-4 py-3">'+(t.on?'<span class="st" style="background:#DCFCE7;color:#15803D">启用</span>':'<span class="st" style="background:#F1F5F9;color:#94A3B8">停用</span>')+'</td>'
+      +'<td class="px-4 py-3 text-center whitespace-nowrap"><span class="lk" onclick="openTpl(\''+t.id+'\')">编辑</span> · <span class="lk-gray" onclick="toggleTpl(\''+t.id+'\')">'+(t.on?'停用':'启用')+'</span></td></tr>';
+  });
+  document.getElementById('tb').innerHTML=h;
+  document.getElementById('tplCnt').textContent='共 '+TPL.length+' 个';
+}
+function renderRuns(){
+  var h='';
+  RUNS.forEach(function(r){
+    h+='<tr class="hover:bg-gray-50 transition">'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(r.id)+'</td>'
+      +'<td class="px-4 py-3" style="max-width:330px"><div class="font-medium text-[#1F2430] text-[12.5px]">'+esc(r.tpl)+'</div>'
+        +'<div class="text-[11px] text-[#94A3B8] mt-0.5">'+esc(r.src)+'</div></td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(r.to)+'</td>'
+      +'<td class="px-4 py-3 text-[12px]">'+r.ch.split(' + ').map(function(c){return '<span class="tag mr-1" style="'+((c.indexOf('微信')>-1)?'background:#DCFCE7;color:#15803D':'background:#DBEAFE;color:#2563EB')+'">'+esc(c)+'</span>';}).join('')+'</td>'
+      +'<td class="px-4 py-3 text-[12px]"><span class="text-[#15803D] font-medium">'+money(r.ok)+'</span>'+(r.fail?' / <span style="color:#B91C1C">'+r.fail+'</span>':' / 0')+'</td>'
+      +'<td class="px-4 py-3 text-[12px]"><span class="text-[#1F2430] font-medium">'+money(r.read)+'</span><div class="text-[10px] text-[#94A3B8]">'+pct(r.read,r.ok)+'</div></td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(r.t)+'</td>'
+      +'<td class="px-4 py-3 text-center"><span class="lk-gray" onclick="openRun(\''+r.id+'\')">明细</span></td></tr>';
+  });
+  document.getElementById('tb2').innerHTML=h;
+  document.getElementById('runCnt').textContent='共 '+RUNS.length+' 条';
+}
+function switchTab(i,el){
+  curTab=i;
+  var ts=document.getElementById('tabs').children;
+  for(var k=0;k<ts.length;k++){ts[k].className='';}
+  el.className='on';
+  document.getElementById('pane0').style.display=(i===0?'':'none');
+  document.getElementById('pane1').style.display=(i===1?'':'none');
+}
+function toggleTpl(id){
+  var t=tOf(id);
+  t.on=!t.on;
+  renderStats();renderTpl();
+  toast('模板「'+t.name+'」已'+(t.on?'启用：按触发条件自动推送':'停用：不再自动推送（历史记录保留）'));
+}
+
+/* ================= 模板编辑 ================= */
+function openTpl(id){
+  curId=id;
+  var t=id?tOf(id):null;
+  var chs=t?t.ch:[];
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+(t?'编辑消息模板　'+esc(t.id):'新增消息模板')+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">模板 = 触发条件 + 目标人群 + 渠道 + 频次限制 + 内容（推送规则的配置就落在这里）</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-tag text-[#2563EB]"></i>基本信息</div>'
+    +'<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl">模板名称</label><input class="fi" id="t-name" value="'+(t?esc(t.name):'')+'" placeholder="如：缴费到期提醒"></div>'
+    +'<div><label class="fl">模板编码（技术用，唯一）</label><input class="fi" id="t-code" value="'+(t?esc(t.code):'')+'" placeholder="如 FEE_DUE"></div>'
+    +'</div></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-bolt text-[#B45309]"></i>触发条件（业务事件驱动）</div>'
+    +'<div class="mb-3"><input class="fi" id="t-trig" value="'+(t?esc(t.trig):'')+'" placeholder="如：账单到期前 7 天 / 到期当天"></div>'
+    +'<div class="rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B]">触发事件由对应业务模块提供（订单 / 缴费 06 / 物业 07 / 政策）；本模块负责模板与触达统计，<b>不重复实现业务逻辑</b>。</p></div></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-users text-[#7C3AED]"></i>目标人群与渠道</div>'
+    +'<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl">目标人群</label><select class="sel" id="t-to">'
+    +['买家','商户','指定对象'].map(function(x){return '<option'+(t&&t.to===x?' selected':'')+'>'+x+'</option>';}).join('')
+    +'</select></div>'
+    +'<div><label class="fl">频次限制（防打扰）</label><input class="fi" id="t-freq" value="'+(t?esc(t.freq):'实时（每单 1 次）')+'"></div>'
+    +'</div>'
+    +'<label class="fl mt-3">渠道</label>'
+    +'<label class="ck"><input type="checkbox" id="c-1" '+(chs.indexOf('站内推送')>-1?'checked':'')+'><span><b>站内推送</b>（端上消息中心，可统计已读未读）</span></label>'
+    +'<label class="ck"><input type="checkbox" id="c-2" '+(chs.indexOf('微信消息推送')>-1?'checked':'')+'><span><b>微信消息推送</b>（H5 挂公众号 → 公众号模板消息）</span></label>'
+    +'<label class="ck dis"><input type="checkbox" disabled><span><b>短信</b>　<span class="tag" style="background:#F1F5F9;color:#94A3B8">暂不开通（有成本，2026-10-09 确认）</span></span></label>'
+    +'</div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-file-lines text-[#7C3AED]"></i>消息内容（支持变量占位）</div>'
+    +'<div class="mb-2">'
+    +'<span class="lk-gray mr-2" onclick="toast(\'可用变量：{{订单号}} {{金额}} {{到期日}} {{笔数}} {{政策名称}} {{截止日}} {{处理人}} {{预计时间}}\')"><i class="fas fa-code mr-1"></i>查看可用变量</span>'
+    +'</div>'
+    +'<textarea class="fi" id="t-body" rows="4" placeholder="例：您有 {{金额}} 元账单将于 {{到期日}} 到期，请及时缴纳。">'+(t?esc(t.body):'')+'</textarea>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-2"><i class="fas fa-circle-info mr-1"></i>变量由触发事件的业务字段填充；微信渠道受公众号模板消息字段数量与长度限制（正文过长需精简）。</p></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveTpl()">保存</button></div>';
+  show('drawer',h);
+}
+function saveTpl(){
+  var name=document.getElementById('t-name').value.trim();
+  var trig=document.getElementById('t-trig').value.trim();
+  var body=document.getElementById('t-body').value.trim();
+  var ch=[];
+  if(document.getElementById('c-1').checked){ch.push('站内推送');}
+  if(document.getElementById('c-2').checked){ch.push('微信消息推送');}
+  if(!name){toast('请填写模板名称');return;}
+  if(!trig){toast('请填写触发条件（业务事件驱动，模板不能空触发）');return;}
+  if(!ch.length){toast('请至少选择一个渠道（站内推送 / 微信消息推送）');return;}
+  if(!body){toast('请填写消息内容');return;}
+  var t=curId?tOf(curId):null;
+  if(t){
+    t.name=name;t.trig=trig;t.body=body;t.ch=ch;
+    t.to=document.getElementById('t-to').value;
+    t.freq=document.getElementById('t-freq').value.trim();
+  }else{
+    TPL.push({id:'TPL-0'+(TPL.length+1), code:document.getElementById('t-code').value.trim()||'NEW_TPL', name:name, trig:trig,
+      to:document.getElementById('t-to').value, ch:ch, freq:document.getElementById('t-freq').value.trim(), on:true, cnt30:0, readRate:0, body:body});
+  }
+  renderStats();renderTpl();closeAll();
+  toast('已保存模板「'+name+'」：触发「'+trig+'」→ 人群 '+document.getElementById('t-to').value+' → 渠道 '+ch.join(' + '));
+}
+
+/* ================= 推送记录明细 ================= */
+function openRun(id){
+  var r=RUNS.filter(function(x){return x.id===id;})[0];
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">推送明细　'+esc(r.id)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(r.tpl)+'　'+esc(r.ch)+'　'+esc(r.t)+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div class="grid grid-cols-4 gap-3">'
+    +'<div class="blk text-center"><p class="text-[11px] text-[#94A3B8]">目标人数</p><p class="text-lg font-bold text-[#1F2430]">'+money(r.ok+r.fail)+'</p></div>'
+    +'<div class="blk text-center"><p class="text-[11px] text-[#94A3B8]">送达</p><p class="text-lg font-bold" style="color:#15803D">'+money(r.ok)+'</p></div>'
+    +'<div class="blk text-center"><p class="text-[11px] text-[#94A3B8]">失败</p><p class="text-lg font-bold" style="color:#B91C1C">'+money(r.fail)+'</p></div>'
+    +'<div class="blk text-center"><p class="text-[11px] text-[#94A3B8]">已读（率）</p><p class="text-lg font-bold" style="color:#B45309">'+money(r.read)+'</p><p class="text-[10px] text-[#94A3B8]">'+pct(r.read,r.ok)+'</p></div>'
+    +'</div>'
+    +'<div class="blk"><div class="blk-t">失败原因分布（'+r.fail+' 条）</div>'
+    +(r.fail?('<div class="kv"><span class="k">公众号未关注</span><span class="v">'+Math.max(1,r.fail-2)+' 条（微信渠道不可达，站内已送达）</span></div>'
+      +'<div class="kv"><span class="k">用户已退订</span><span class="v">'+Math.min(2,r.fail)+' 条（订阅设置关闭）</span></div>')
+      :'<p class="text-[12px] text-[#64748B]">本次全部送达</p>')
+    +'<p class="text-[11px] text-[#94A3B8] mt-2"><i class="fas fa-circle-info mr-1"></i>失败不影响站内消息：微信不可达时站内照常展示（双渠道并行）。</p></div>'
+    +'<div class="blk"><div class="blk-t">渠道回执</div>'
+    +'<div class="kv"><span class="k">站内推送</span><span class="v">送达 '+(r.ch.indexOf('站内')>-1?money(r.ok):'—')+'　已读 '+money(r.read)+'</span></div>'
+    +'<div class="kv"><span class="k">微信消息推送</span><span class="v">'+(r.ch.indexOf('微信')>-1?'送达 '+money(r.ok-r.fail)+'　失败 '+money(r.fail):'本次未使用')+'</span></div>'
+    +'</div>'
+    +'</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="toast(\'已导出本次推送明细（脱敏，仅号码尾号）\')">导出明细</button>'
+    +'<button class="btn btn-primary" onclick="closeAll()">关闭</button></div>';
+  show('modal',h);
+}
+
+/* ================= 人工补发 ================= */
+function openManual(){
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">人工补发消息</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">用于临时通知或模板未覆盖的场景；建议优先用「公告通知 + 同步推送」留档</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-paper-plane text-[#FF4D2D]"></i>发送设置</div>'
+    +'<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl">选择模板（可空 → 自定义）</label><select class="sel" id="m-tpl"><option value="">自定义消息</option>'
+    +TPL.filter(function(t){return t.on;}).map(function(t){return '<option>'+t.name+'</option>';}).join('')+'</select></div>'
+    +'<div><label class="fl">目标人群</label><select class="sel" id="m-to"><option>全部商户（326 人）</option><option>欠费商户（96 人）</option><option>全部买家（1840 人）</option><option>指定标签人群（自定义）</option></select></div>'
+    +'</div>'
+    +'<label class="fl mt-3">渠道</label>'
+    +'<label class="ck"><input type="checkbox" id="m-c1" checked><span><b>站内推送</b>（端上消息中心）</span></label>'
+    +'<label class="ck"><input type="checkbox" id="m-c2"><span><b>微信消息推送</b>（公众号模板消息）</span></label>'
+    +'<label class="ck dis"><input type="checkbox" disabled><span><b>短信</b>　<span class="tag" style="background:#F1F5F9;color:#94A3B8">暂不开通</span></span></label>'
+    +'<div class="mt-3"><label class="fl">消息内容</label><textarea class="fi" id="m-body" rows="3" placeholder="例：平台服务时间调整，请提前安排业务办理。">平台服务时间调整，请提前安排业务办理。</textarea></div>'
+    +'</div>';
+  h+='<div class="blk" style="border-color:#DDD6FE;background:#FAF8FF"><div class="blk-t" style="color:#6D28D9"><i class="fas fa-mobile-screen"></i>预览（站内）</div>'
+    +'<div style="width:280px;border:7px solid #1F2430;border-radius:18px;background:#fff;padding:10px">'
+    +'<div class="text-[11px] text-[#94A3B8]" style="border-bottom:1px solid #F1F5F9;padding-bottom:6px">消息中心 · 系统</div>'
+    +'<div class="text-[12px] text-[#1F2430] mt-2" style="line-height:1.7" id="pvBody">平台服务时间调整，请提前安排业务办理。</div>'
+    +'<div class="text-[10px] text-[#94A3B8] mt-2">刚刚</div></div>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-2">微信渠道预览为公众号模板消息样式（受字段长度限制，超长自动截断）。</p></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="sendManual()">确认发送</button></div>';
+  show('drawer',h);
+}
+function sendManual(){
+  var ch=[];
+  if(document.getElementById('m-c1').checked){ch.push('站内推送');}
+  if(document.getElementById('m-c2').checked){ch.push('微信消息推送');}
+  var body=document.getElementById('m-body').value.trim();
+  if(!ch.length){toast('请至少选择一个渠道');return;}
+  if(!body){toast('请填写消息内容');return;}
+  var to=document.getElementById('m-to').value;
+  var num=(to.indexOf('欠费')>-1?96:(to.indexOf('商户')>-1?326:(to.indexOf('买家')>-1?1840:120)));
+  var who=(to.indexOf('商户')>-1?'商户':'买家');
+  var r={id:'MSG2026-0'+(101+RUNS.length), tpl:document.getElementById('m-tpl').value||'自定义消息', src:'人工补发（运营 何静）',
+    to:who+' · '+num+' 人', ch:ch.join(' + '),
+    ok:num, fail:0, read:0, t:'2026-10-09 11:15'};
+  RUNS.unshift(r);
+  renderStats();renderRuns();closeAll();
+  toast('已发送：'+r.id+'　目标 '+num+' 人　渠道 '+ch.join(' + ')+'（送达与已读将在回执后更新到「推送记录」）');
+}
+
+/* ================= 渠道配置 ================= */
+function openChannel(){
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">推送渠道配置</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">2026-10-09 业务确认：<b>站内推送 + 微信消息推送</b>；<b>短信暂不开通</b></p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="px-5 py-4" style="display:flex;flex-direction:column;gap:12px">';
+  CHANNELS.forEach(function(c){
+    h+='<div class="blk'+(c.on?'':' dis')+'"><div class="flex items-center justify-between">'
+      +'<div><div class="text-[12.5px] font-bold text-[#1F2430]">'+esc(c.name)+'　'+(c.on?'<span class="tag" style="background:#DCFCE7;color:#15803D">已开通</span>':'<span class="tag" style="background:#F1F5F9;color:#94A3B8">未开通</span>')+'</div>'
+      +'<p class="text-[11px] text-[#64748B] mt-1">'+esc(c.note)+'</p></div>'
+      +(c.on?'<button class="btn btn-ghost" onclick="toast(\'渠道参数配置（原型略）：公众号 AppID / 模板 ID 映射 / 回执地址\')">配置</button>':'<button class="btn btn-ghost" onclick="toast(\'短信渠道需成本评估，开启后只需在模板中勾选「短信」（2026-10-09 暂缓）\')">了解开启成本</button>')
+      +'</div></div>';
+  });
+  h+='<div class="rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B]">移动端为 <b>H5 挂公众号</b>：站内推送在页面内消息中心展示；微信渠道需公众号（服务号）模板消息能力与<b>模板 ID 映射</b>。两端（买家端 / 商户端）共用一套渠道配置。</p></div>'
+    +'</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2"><button class="btn btn-primary" onclick="closeAll()">关闭</button></div>';
+  show('modal',h);
+}
+
+/* ================= 基础 ================= */
+function show(which,h){
+  document.getElementById(which).innerHTML=h;
+  document.getElementById('mask').classList.add('on');
+  document.getElementById(which).classList.add('on');
+}
+function closeAll(){
+  document.getElementById('mask').classList.remove('on');
+  document.getElementById('drawer').classList.remove('on');
+  document.getElementById('modal').classList.remove('on');
+}
+renderStats();renderTpl();renderRuns();
+</script>
+</body>
+</html>
