@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>产业链服务 - 技术需求发布管理</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}.lk:hover{text-decoration:underline}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}.lk-gray:hover{color:#1F2430;text-decoration:underline}
+.st{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500;white-space:nowrap}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:60}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:780px;max-width:96vw;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:70;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);width:700px;max-width:95vw;max-height:86vh;overflow-y:auto;background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(15,23,42,.28);opacity:0;pointer-events:none;transition:.22s;z-index:70}
+.modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+.blk{border:1px solid #E2E8F0;border-radius:12px;padding:14px 16px}
+.blk-t{font-size:12.5px;font-weight:700;color:#1F2430;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.kv{display:flex;gap:8px;font-size:12px;line-height:1.9}
+.kv .k{width:106px;flex-shrink:0}
+.fi{width:100%;padding:6px 10px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none;background:#fff}
+.fi:focus{border-color:#FF4D2D}
+.fl{display:block;font-size:11px;color:#94A3B8;margin-bottom:4px}
+.sel{width:100%;padding:6px 8px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none}
+button{cursor:pointer}
+textarea.fi{font-family:inherit;line-height:1.8;resize:vertical}
+.up{border:2px dashed #E2E8F0;border-radius:10px;padding:10px;text-align:center;color:#94A3B8;cursor:pointer;background:#fff}
+.up:hover{border-color:#FDB4A3;color:#E63E20}
+/* 时间线 */
+.tl{position:relative;padding-left:16px;border-left:2px solid #E2E8F0;margin-left:4px}
+.tl .node{position:relative;margin-bottom:12px}
+.tl .node:before{content:'';position:absolute;left:-23px;top:5px;width:8px;height:8px;border-radius:50%;background:#FF4D2D;border:2px solid #fff}
+.tl .node.done:before{background:#15803D}
+.star{color:#F59E0B}
+</style>
+<!-- Tailwind 静态样式：本地引用（不再依赖 cdn.tailwindcss.com）；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<div class="p-6">
+
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">技术需求发布管理</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">13 产业链服务</span>
+        <span class="tag" style="background:#FEF3C7;color:#B45309">供需对接</span>
+        <span class="tag" style="background:#F1F5F9;color:#94A3B8">发布即生效</span>
+      </div>
+      <p class="text-[12px] text-gray-400 mt-1">企业技术需求（难题）的收集、发布与<b>对接过程管理</b>（招标 #123：高校/研究所新技术新成果展示，推动供需对接）；对接记录与结果登记是招标指标「<b>需求发布到匹配的平均时长与成功率</b>」的唯一数据来源；成果侧见「技术成果管理」</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="toast('已导出需求台账（含对接记录明细、匹配时长、结果、评价）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+      <button class="btn btn-primary" onclick="openEdit(null)"><i class="fas fa-plus mr-1"></i>新增需求（代录）</button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-5 gap-3 mb-4" id="stats"></div>
+
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+    <div class="flex items-center gap-3 flex-wrap">
+      <input id="f-kw" type="text" placeholder="需求编号 / 标题 / 提出方" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary w-56">
+      <select id="f-field" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600"><option value="">全部技术领域</option></select>
+      <select id="f-state" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+        <option value="">全部对接状态</option><option>待对接</option><option>对接中</option><option>已匹配</option><option>已关闭</option>
+      </select>
+      <select id="f-pub" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+        <option value="">全部发布状态</option><option>已发布</option><option>草稿</option>
+      </select>
+      <label class="flex items-center gap-1.5 text-[12px] text-gray-600"><input type="checkbox" id="f-over" class="accent-[#FF4D2D]">仅看超期未对接</label>
+      <button class="btn btn-primary" onclick="doSearch()">查询</button>
+      <button class="btn btn-ghost" onclick="resetSearch()">重置</button>
+      <span class="text-[11px] text-[#94A3B8] ml-auto"><i class="fas fa-circle-info mr-1"></i>超期规则：发布后 <b>15 天</b>无对接记录 → 红标；<b>60 天</b>无进展 → 自动关闭（本期系统提示，原型不自动关）</span>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-[13px] font-bold text-[#1F2430]">技术需求列表</span>
+        <span class="text-[12px] text-[#94A3B8]" id="cnt">共 0 条</span>
+      </div>
+      <span class="text-[11px] text-[#94A3B8]">需求来源：商户端提交 + 运营代录（线下收集）；可按领域与端上「技术需求」Tab 对应</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-[13px]" style="min-width:1440px">
+        <thead>
+          <tr class="bg-gray-50 text-gray-500 text-[12px]">
+            <th class="px-4 py-3 text-left font-medium">需求</th>
+            <th class="px-4 py-3 text-left font-medium">提出方</th>
+            <th class="px-4 py-3 text-left font-medium">技术领域</th>
+            <th class="px-4 py-3 text-left font-medium">期望投入 / 周期</th>
+            <th class="px-4 py-3 text-left font-medium">发布 / 已发布天数</th>
+            <th class="px-4 py-3 text-left font-medium">对接状态</th>
+            <th class="px-4 py-3 text-left font-medium">对接次数</th>
+            <th class="px-4 py-3 text-left font-medium">结果 / 评价</th>
+            <th class="px-4 py-3 text-center font-medium">操作</th>
+          </tr>
+        </thead>
+        <tbody id="tb" class="divide-y divide-gray-50"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div id="mask" class="mask" onclick="closeAll()"></div>
+<div id="drawer" class="drawer"></div>
+<div id="modal" class="modal"></div>
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
+
+<script>
+/* 技术领域：沿用 16 数据底座主题域口径（分册存疑-6 已确认） */
+var FIELDS=['袜机设备与自动化','原料与工艺','智能制造与数字化','智能质检','设计研发','仓储物流','节能环保'];
+var DSTC={'待对接':'background:#DBEAFE;color:#2563EB','对接中':'background:#EDE9FE;color:#6D28D9','已匹配':'background:#DCFCE7;color:#15803D','已关闭':'background:#F1F5F9;color:#475569'};
+var PSTC={'已发布':'background:#DCFCE7;color:#15803D','草稿':'background:#F1F5F9;color:#64748B'};
+var OVER=15;
+var TODAY='2026-10-10';
+
+/* ===== 模拟数据 ===== */
+var DEM=[
+  {id:'XQ-2026-012', title:'高速袜机断线自动停机改造', by:'浙江××袜业股份', field:'袜机设备与自动化',
+   desc:'现有 120 台高速袜机断线需人工看护，夜班漏检导致次品率偏高，希望实现断线自动检测并停机报警。',
+   diff:'断线检测响应速度与误报率难以平衡；现有设备无标准通讯接口。', budget:'10–20 万元', cycle:'3 个月', contact:'企业技术部 王工 138××××6688',
+   mo:'both', pub:'2026-09-20', pubState:'已发布', state:'对接中', result:'', matchedAt:'', evalS:0, evalT:'', evalX:'',
+   records:[{t:'2026-09-25 10:20', to:'浙江理工大学纺织装备研究所', way:'线上', by:'产业服务 何静', txt:'已建立技术对接群，提交设备型号与现场照片；拟安排现场勘察。'},
+            {t:'2026-10-08 15:40', to:'浙江理工大学纺织装备研究所', way:'线下', by:'产业服务 何静', txt:'现场勘察完成，方案初步可行（加装光电检测 + 停机联动），等待对方报价。'},
+            {t:'2026-10-10 09:30', to:'诸暨××自动化科技（服务商）', way:'线上', by:'产业服务 何静', txt:'同步询价中，作为备选方案。'}]},
+  {id:'XQ-2026-014', title:'再生涤纶混纺纱线稳定性提升', by:'大唐××针织厂', field:'原料与工艺',
+   desc:'使用再生涤纶混纺纱时断头率高、布面风格波动大，需工艺配方优化。',
+   diff:'不同批次原料差异大，缺乏稳定的混纺与上机工艺参数。', budget:'5–10 万元', cycle:'2 个月', contact:'生产部 李工 139××××1234',
+   mo:'both', pub:'2026-08-15', pubState:'已发布', state:'已匹配', result:'成功', matchedAt:'2026-09-05', evalS:5, evalT:'专业高效', evalX:'东华大学团队给出的混纺配比方案试产成功，断头率下降 40%。',
+   records:[{t:'2026-08-20 14:00', to:'东华大学纺织学院', way:'线上', by:'产业服务 何静', txt:'提交纱线与布面样品，安排实验室分析。'},
+            {t:'2026-09-05 10:00', to:'东华大学纺织学院', way:'线下', by:'产业服务 何静', txt:'确定混纺配比与上机参数方案，企业试产验证通过 → 对接成功。'}]},
+  {id:'XQ-2026-015', title:'车间能耗（电/气）实时监测与降本', by:'诸暨××针织', field:'节能环保',
+   desc:'希望按机台采集电耗与压缩空气用量，找出高耗能设备并优化运行策略。',
+   diff:'设备老旧、无采集接口，需加装计量装置。', budget:'20–30 万元', cycle:'4 个月', contact:'设备科 陈工 136××××9900',
+   mo:'both', pub:'2026-08-20', pubState:'已发布', state:'待对接', result:'', matchedAt:'', evalS:0, evalT:'', evalX:'',
+   records:[]},
+  {id:'XQ-2026-016', title:'袜品外观瑕疵 AI 视觉检测', by:'义乌××袜业（大唐生产基地）', field:'智能质检',
+   desc:'需要对袜口、袜身、脚尖三处外观瑕疵在线检测，替代人工验袜。',
+   diff:'瑕疵种类多、OK 品样本少，模型泛化难；产线速度要求 ≤0.8 秒/双。', budget:'30–50 万元', cycle:'6 个月', contact:'品质部 张工 137××××5566',
+   mo:'both', pub:'2026-09-28', pubState:'已发布', state:'对接中', result:'', matchedAt:'', evalS:0, evalT:'', evalX:'',
+   records:[{t:'2026-10-05 11:00', to:'江南大学人工智能学院', way:'线上', by:'产业服务 何静', txt:'已提供 200 张瑕疵样本，评估算法可行性。'}]},
+  {id:'XQ-2026-017', title:'（原）老旧袜机提速改造', by:'诸暨××袜厂', field:'袜机设备与自动化',
+   desc:'拟对 2015 年购置的 60 台袜机提速。', diff:'设备寿命末期，改造经济性不足。', budget:'面议', cycle:'—', contact:'—',
+   mo:'both', pub:'2026-07-10', pubState:'已发布', state:'已关闭', result:'失败', matchedAt:'', evalS:0, evalT:'', evalX:'',
+   records:[{t:'2026-07-20 09:00', to:'浙江理工大学纺织装备研究所', way:'线上', by:'产业服务 何静', txt:'评估结论：设备本体与电控均接近寿命末期，改造投入接近新机价格，建议购置新机 → 需求关闭。'}]},
+  {id:'XQ-2026-019', title:'数字化车间 MES 与袜机联网', by:'浙江××袜业股份', field:'智能制造与数字化',
+   desc:'拟将 3 号车间 MES 与袜机数据打通，实现产量/停机原因自动采集。',
+   diff:'设备品牌杂（4 个品牌），协议不统一。', budget:'40–60 万元', cycle:'6 个月', contact:'信息部 赵工 135××××7788',
+   mo:'both', pub:'', pubState:'草稿', state:'待对接', result:'', matchedAt:'', evalS:0, evalT:'', evalX:'',
+   records:[]}
+];
+var curRows=DEM.slice(),curId=null,curRec=null;
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},3100);}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function money(n){return Number(n).toLocaleString('en-US');}
+function dOf(id){return DEM.filter(function(x){return x.id===id;})[0];}
+function st(s,c){return '<span class="st" style="'+(c||DSTC[s]||'background:#F1F5F9;color:#64748B')+'">'+esc(s)+'</span>';}
+function pi(s){return s?parseInt(s,10):0;}
+function d2(s){var p=String(s).split('-');return new Date(Date.UTC(pi(p[0]),pi(p[1])-1,pi(p[2])));}
+function dayDiff(a,b){return Math.round((d2(b)-d2(a))/86400000);}
+function days(x){return x.pub?dayDiff(x.pub,TODAY):0;}
+function isOver(x){return x.pubState==='已发布'&&x.state==='待对接'&&!x.records.length&&days(x)>OVER;}
+function matchedDays(x){return (x.state==='已匹配'&&x.matchedAt&&x.pub)?dayDiff(x.pub,x.matchedAt):0;}
+
+function renderStats(){
+  var wait=0,ing=0,ok=0,over=0,sum=0,cnt=0;
+  DEM.forEach(function(x){
+    if(x.pubState!=='已发布'){return;}
+    if(x.state==='待对接'){wait++;}
+    if(x.state==='对接中'){ing++;}
+    if(x.state==='已匹配'){ok++;sum+=matchedDays(x);cnt++;}
+    if(isOver(x)){over++;}
+  });
+  var total=DEM.filter(function(x){return x.pubState==='已发布';}).length;
+  var rate=total?Math.round(ok/total*100):0;
+  var cards=[['待对接',wait,'#2563EB'],['对接中',ing,'#6D28D9'],['已匹配',ok,'#15803D'],['超期未对接（>'+OVER+' 天）',over,'#E63E20'],
+    ['平均匹配时长 / 成功率',(cnt?Math.round(sum/cnt):0)+' 天 / '+rate+'%','#B45309']];
+  document.getElementById('stats').innerHTML=cards.map(function(x){
+    return '<div class="bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">'+x[0]+'</p><p class="text-xl font-bold mt-1" style="color:'+x[2]+'">'+x[1]+'</p></div>';
+  }).join('');
+}
+function renderFieldFilter(){
+  document.getElementById('f-field').innerHTML='<option value="">全部技术领域</option>'+FIELDS.map(function(f){return '<option>'+f+'</option>';}).join('');
+}
+function render(){
+  var kw=document.getElementById('f-kw').value.trim(),fd=document.getElementById('f-field').value,
+      ss=document.getElementById('f-state').value,ps=document.getElementById('f-pub').value,onlyOver=document.getElementById('f-over').checked;
+  var rows=curRows;
+  rows=rows.filter(function(x){
+    return (!kw||x.id.indexOf(kw)>-1||x.title.indexOf(kw)>-1||x.by.indexOf(kw)>-1)&&(!fd||x.field===fd)&&(!ss||x.state===ss)&&(!ps||x.pubState===ps)&&(!onlyOver||isOver(x));
+  });
+  var h='';
+  rows.forEach(function(x){
+    var ops='<span class="lk-gray" onclick="openDetail(\''+x.id+'\')">对接详情</span>';
+    if(x.pubState==='草稿'){ops='<span class="lk" onclick="openEdit(\''+x.id+'\')">编辑</span> · <span class="lk" onclick="publish(\''+x.id+'\')">发布</span> · '+ops+' · <span class="lk-gray" onclick="delD(\''+x.id+'\')">删除</span>';}
+    else{
+      if(x.state==='待对接'||x.state==='对接中'){ops='<span class="lk" onclick="openRecord(\''+x.id+'\')">登记对接</span> · '+ops;}
+      if(x.state==='对接中'){ops='<span class="lk" onclick="openResult(\''+x.id+'\')">登记结果</span> · '+ops;}
+      if(x.state==='已匹配'){ops='<span class="lk" onclick="openEval(\''+x.id+'\')">评价</span> · '+ops;}
+      if(x.state==='待对接'){ops='<span class="lk-gray" onclick="closeD(\''+x.id+'\')">关闭</span> · '+ops;}
+      ops+=' · <span class="lk-gray" onclick="openEdit(\''+x.id+'\')">编辑</span>';
+    }
+    var res=(x.result?('<span class="tag" style="'+((x.result==='成功')?'background:#DCFCE7;color:#15803D':'background:#FEE2E2;color:#B91C1C')+'">'+esc(x.result)+'</span>'):'<span class="text-[#94A3B8]">—</span>');
+    var ev=(x.evalS?('<div class="star mt-0.5" style="font-size:11px">'+'★'.repeat(x.evalS)+' '+x.evalS.toFixed(1)+' <span class="text-[10px] text-[#94A3B8]">'+esc(x.evalT)+'</span></div>'):'');
+    h+='<tr class="hover:bg-gray-50 transition">'
+      +'<td class="px-4 py-3" style="max-width:330px"><div class="font-medium text-[#1F2430]">'+esc(x.title)+'</div>'
+        +'<div class="text-[11px] text-[#94A3B8] mt-0.5">'+esc(x.id)+'　'+esc(x.diff.slice(0,26))+'…</div>'
+        +(isOver(x)?'<div class="text-[11px] mt-0.5" style="color:#E63E20"><i class="fas fa-triangle-exclamation mr-1"></i>超期未对接（已 '+days(x)+' 天）</div>':'')+'</td>'
+      +'<td class="px-4 py-3 text-[12px]">'+esc(x.by)+'<div class="text-[11px] text-[#94A3B8]">'+esc(x.contact)+'</div></td>'
+      +'<td class="px-4 py-3"><span class="tag" style="background:#DBEAFE;color:#2563EB">'+esc(x.field)+'</span></td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(x.budget)+'<div class="text-[11px] text-[#94A3B8]">'+esc(x.cycle)+'</div></td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+(x.pub?esc(x.pub)+'<div class="text-[11px] text-[#94A3B8]">已 '+days(x)+' 天</div>':'<span class="st" style="'+PSTC['草稿']+'">草稿未发布</span>')+'</td>'
+      +'<td class="px-4 py-3">'+st(x.state)+(x.state==='已关闭'?'<div class="text-[10px] text-[#94A3B8]">超期/失败关闭</div>':'')+'</td>'
+      +'<td class="px-4 py-3 text-[12px]">'+(x.records.length?('<span class="text-[#1F2430] font-medium">'+x.records.length+'</span> 次'):'<span class="text-[#94A3B8]">0</span>')+'</td>'
+      +'<td class="px-4 py-3 text-[12px]">'+res+ev+'</td>'
+      +'<td class="px-4 py-3 text-center whitespace-nowrap">'+ops+'</td></tr>';
+  });
+  document.getElementById('tb').innerHTML=h||'<tr><td colspan="9" class="px-4 py-16 text-center text-gray-300"><i class="fas fa-inbox text-3xl block mb-2"></i><span class="text-[12px]">暂无匹配的技术需求</span></td></tr>';
+  document.getElementById('cnt').textContent='共 '+rows.length+' 条';
+}
+function doSearch(){
+  curRows=DEM.slice();render();
+  toast('已按条件查询（关键词 / 技术领域 / 对接状态 / 发布状态'+(document.getElementById('f-over').checked?' / 仅超期未对接':'')+'）');
+}
+function resetSearch(){
+  ['f-kw','f-field','f-state','f-pub'].forEach(function(k){document.getElementById(k).value='';});
+  document.getElementById('f-over').checked=false;
+  curRows=DEM.slice();render();toast('已重置筛选条件');
+}
+function publish(id){
+  var x=dOf(id);
+  if(!x.title||!x.desc){toast('发布前请补全「需求描述」（端上技术需求 Tab 必展示）');return;}
+  x.pubState='已发布';x.pub=TODAY;
+  renderStats();render();
+  toast('已发布需求 '+x.id+'：端上「技术需求」Tab 可见（发布即生效）；从今天起计入「匹配时长」（超期阈值 '+OVER+' 天）');
+}
+function closeD(id){
+  var x=dOf(id);
+  x.state='已关闭';x.result='失败';
+  renderStats();render();
+  toast('已关闭 '+x.id+'：需求置「已关闭」（记录已保留，可重新发起）');
+}
+function delD(id){
+  var x=dOf(id);
+  if(x.pubState!=='草稿'){toast('仅「草稿」可删除；已发布需求请用「关闭」（历史需可查）');return;}
+  DEM.splice(DEM.indexOf(x),1);
+  curRows=DEM.slice();renderStats();render();
+  toast('已删除草稿需求 '+id);
+}
+
+/* ============ 需求编辑 ============ */
+function openEdit(id){
+  curId=id;
+  var x=id?dOf(id):null;
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+(x?'编辑技术需求　'+esc(x.id):'新增技术需求（运营代录）')+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">需求可由商户端提交或运营代录；<b>发布即生效</b>（本期无审核）</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-lightbulb text-[#FF4D2D]"></i>需求基本信息</div>'
+    +'<div class="mb-3"><label class="fl">需求标题</label><input class="fi" id="d-title" value="'+(x?esc(x.title):'')+'" placeholder="例：高速袜机断线自动停机改造"></div>'
+    +'<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl">提出方（企业）</label><input class="fi" id="d-by" value="'+(x?esc(x.by):'')+'" placeholder="如：浙江××袜业股份（可关联 04 商户档案）"></div>'
+    +'<div><label class="fl">技术领域</label><select class="sel" id="d-field">'+FIELDS.map(function(f){return '<option'+(x&&x.field===f?' selected':'')+'>'+f+'</option>';}).join('')+'</select></div>'
+    +'<div><label class="fl">期望投入</label><input class="fi" id="d-budget" value="'+(x?esc(x.budget):'')+'" placeholder="如 10–20 万元 / 面议"></div>'
+    +'<div><label class="fl">期望周期</label><input class="fi" id="d-cycle" value="'+(x?esc(x.cycle):'')+'" placeholder="如 3 个月"></div>'
+    +'<div><label class="fl">联系人（企业侧）</label><input class="fi" id="d-contact" value="'+(x?esc(x.contact):'')+'" placeholder="姓名 / 部门 / 电话"></div>'
+    +'<div><label class="fl">投放端</label><select class="sel" id="d-mo"><option value="both">买家端 + 商户端</option><option value="sh"'+(x&&x.mo==='sh'?' selected':'')+'>仅商户端</option></select></div>'
+    +'</div>'
+    +'<div class="mt-3"><label class="fl">需求描述（端上展示）</label><textarea class="fi" id="d-desc" rows="3" placeholder="现状、痛点、希望达到的目标">'+(x?esc(x.desc):'')+'</textarea></div>'
+    +'<div class="mt-3"><label class="fl">技术难点</label><textarea class="fi" id="d-diff" rows="2" placeholder="已尝试过的方案与受阻原因（便于精准匹配高校/成果）">'+(x?esc(x.diff):'')+'</textarea></div>'
+    +'<div class="mt-3"><label class="fl">附件（图纸 / 样品照片 / 检测报告）</label>'
+    +'<label class="up" onclick="toast(\'已上传：现场照片与设备型号清单.zip（可多件）\')" style="display:block"><i class="fas fa-cloud-arrow-up mr-1"></i>点击上传附件<input type="file" class="hidden"></label></div>'
+    +'</div>';
+  h+='<div class="blk" style="border-color:#FDE68A;background:#FFFBEB"><div class="blk-t" style="color:#B45309"><i class="fas fa-circle-info"></i>配套说明</div>'
+    +'<p class="text-[11px] text-[#64748B] leading-6">· 需求发布后进入「待对接」，专员通过「登记对接」向高校 / 研究所 / 服务商发起对接，每条对接形成时间线记录；<br>'
+    +'· 「登记结果」选"成功"时系统记录<b>匹配成功时间</b>，用于计算「平均匹配时长」与「成功率」（招标指标）；<br>'
+    +'· 对接完成后可登记<b>双方评价</b>（满意度评分 → 影响服务商/成果提供方评分）。</p></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-ghost" onclick="saveEdit(false)">保存草稿</button>'
+    +'<button class="btn btn-primary" onclick="saveEdit(true)">保存并发布</button></div>';
+  show('drawer',h);
+}
+function saveEdit(pub){
+  var title=document.getElementById('d-title').value.trim();
+  var by=document.getElementById('d-by').value.trim();
+  var desc=document.getElementById('d-desc').value.trim();
+  if(!title){toast('请填写需求标题');return;}
+  if(!by){toast('请填写提出方（企业）');return;}
+  if(pub&&!desc){toast('发布前请填写「需求描述」（端上必展示）');return;}
+  var x=curId?dOf(curId):null;
+  var data={title:title, by:by, field:document.getElementById('d-field').value, budget:document.getElementById('d-budget').value.trim()||'面议',
+    cycle:document.getElementById('d-cycle').value.trim()||'—', contact:document.getElementById('d-contact').value.trim()||'—',
+    mo:document.getElementById('d-mo').value, desc:desc, diff:document.getElementById('d-diff').value.trim()};
+  if(x){for(var k in data){x[k]=data[k];}if(pub){x.pubState='已发布';x.pub=x.pub||TODAY;}}
+  else{
+    data.id='XQ-2026-0'+(20+DEM.length);data.pubState=pub?'已发布':'草稿';data.pub=pub?TODAY:'';data.state='待对接';
+    data.result='';data.matchedAt='';data.records=[];data.evalS=0;data.evalT='';data.evalX='';
+    DEM.unshift(data);x=data;
+  }
+  curRows=DEM.slice();
+  renderStats();render();closeAll();
+  toast(pub?('已发布需求 '+x.id+'（发布即生效，端上「技术需求」Tab 可见）'):('已保存草稿 '+x.id+'（补齐描述后可发布）'));
+}
+
+/* ============ 对接详情（时间线 + 结果 + 评价） ============ */
+function openDetail(id){
+  curId=id;
+  var x=dOf(id);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+esc(x.title)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(x.id)+'　'+esc(x.by)+'　'+st(x.state)+'　'+esc(x.field)+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-circle-info text-[#2563EB]"></i>需求信息</div>'
+    +'<div class="kv"><span class="k">需求描述</span><span class="v">'+esc(x.desc||'—')+'</span></div>'
+    +'<div class="kv"><span class="k">技术难点</span><span class="v">'+esc(x.diff||'—')+'</span></div>'
+    +'<div class="kv"><span class="k">期望投入 / 周期</span><span class="v">'+esc(x.budget)+'　/　'+esc(x.cycle)+'</span></div>'
+    +'<div class="kv"><span class="k">联系人</span><span class="v">'+esc(x.contact)+'</span></div>'
+    +'<div class="kv"><span class="k">发布</span><span class="v">'+(x.pub?esc(x.pub)+'（已 '+days(x)+' 天）':'草稿未发布')+(x.matchedAt?('　匹配成功：'+esc(x.matchedAt)+'（用时 '+matchedDays(x)+' 天）'):'')+'</span></div>'
+    +'</div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-timeline text-[#7C3AED]"></i>对接记录（'+x.records.length+' 条）</div>';
+  if(x.records.length){
+    h+='<div class="tl">';
+    x.records.forEach(function(r,i){
+      h+='<div class="node'+(i===x.records.length-1?' done':'')+'">'
+        +'<div class="text-[12px] text-[#1F2430] font-medium">'+esc(r.to)+'　<span class="tag" style="background:#DBEAFE;color:#2563EB">'+esc(r.way)+'</span></div>'
+        +'<div class="text-[11px] text-[#94A3B8]">'+esc(r.t)+'　登记人 '+esc(r.by)+'</div>'
+        +'<div class="text-[12px] text-[#64748B] mt-1 leading-6">'+esc(r.txt)+'</div></div>';
+    });
+    h+='</div>';
+  }else{
+    h+='<p class="text-[12px] text-[#94A3B8]">'+(isOver(x)?'<span style="color:#E63E20">发布已 '+days(x)+' 天仍无对接记录（超期未对接）：请尽快匹配高校 / 成果 / 服务商</span>':'暂无对接记录：点击下方「登记对接」发起首次对接')+'</p>';
+  }
+  h+='<div class="flex justify-end mt-2"><button class="btn btn-ghost" onclick="openRecord(\''+x.id+'\')"><i class="fas fa-plus mr-1"></i>登记对接</button></div></div>';
+  if(x.result){
+    h+='<div class="blk" style="border-color:'+(x.result==='成功'?'#BBF7D0':'#FECACA')+';background:'+(x.result==='成功'?'#F0FDF4':'#FEF2F2')+'">'
+      +'<div class="blk-t" style="color:'+(x.result==='成功'?'#15803D':'#B91C1C')+'"><i class="fas '+(x.result==='成功'?'fa-circle-check':'fa-circle-xmark')+'"></i>对接结果：'+esc(x.result)+'</div>'
+      +'<div class="kv"><span class="k">匹配成功时间</span><span class="v">'+(x.matchedAt?esc(x.matchedAt)+'（用时 '+matchedDays(x)+' 天）':'—')+'</span></div>'
+      +'<div class="kv"><span class="k">满意度评价</span><span class="v">'+(x.evalS?('<span class="star">'+'★'.repeat(x.evalS)+'</span> '+x.evalS.toFixed(1)+'　'+esc(x.evalT)+'　<span class="text-[11px] text-[#94A3B8]">'+esc(x.evalX)+'</span>'):'未评价（对接完成后可评价）')+'</span></div>'
+      +(x.evalS?'':'<div class="flex justify-end mt-2"><button class="btn btn-ghost" onclick="openEval(\''+x.id+'\')">登记评价</button></div>')
+      +'</div>';
+  }
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">关闭</button>'
+    +(x.state==='对接中'?'<button class="btn btn-primary" onclick="openResult(\''+x.id+'\')">登记结果</button>':'')
+    +(x.state==='已匹配'&&!x.evalS?'<button class="btn btn-primary" onclick="openEval(\''+x.id+'\')">评价</button>':'')
+    +'</div>';
+  show('drawer',h);
+}
+function openRecord(id){
+  curId=id;
+  var x=dOf(id);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">登记对接　'+esc(x.id)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(x.title)+'　当前 '+esc(x.state)+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>'
+    +'<div class="px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl">对接对象（高校 / 研究所 / 服务商 / 其他）</label><input class="fi" id="r-to" placeholder="如：浙江理工大学纺织装备研究所"></div>'
+    +'<div><label class="fl">对接方式</label><select class="sel" id="r-way"><option>线上</option><option>线下</option><option>电话</option></select></div>'
+    +'</div>'
+    +'<div><label class="fl">进展说明（必填）</label><textarea class="fi" id="r-txt" rows="3" placeholder="已沟通内容、下一步安排、双方关注点…"></textarea></div>'
+    +'<div class="rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B]">登记后需求状态自动置「对接中」；每次对接都会进入时间线，形成对接过程留痕（招标要求"推动供需对接"需可追踪）。</p></div>'
+    +'</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="doRecord()">保存对接记录</button></div>';
+  show('modal',h);
+}
+function doRecord(){
+  var x=dOf(curId),to=document.getElementById('r-to').value.trim(),txt=document.getElementById('r-txt').value.trim();
+  if(!to){toast('请填写对接对象');return;}
+  if(!txt){toast('进展说明必填');return;}
+  x.records.push({t:TODAY+' 10:30', to:to, way:document.getElementById('r-way').value, by:'产业服务 何静', txt:txt});
+  if(x.state==='待对接'){x.state='对接中';}
+  renderStats();render();closeAll();
+  toast('已登记对接：'+to+'（'+x.id+' 对接记录 '+x.records.length+' 条）→ 状态「'+x.state+'」');
+}
+function openResult(id){
+  curId=id;
+  var x=dOf(id);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">登记对接结果　'+esc(x.id)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(x.title)+'　已发布 '+days(x)+' 天</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>'
+    +'<div class="px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div><label class="fl">对接结果</label><div style="display:flex;gap:8px">'
+    +'<label class="flex-1" style="border:1px solid #BBF7D0;background:#F0FDF4;border-radius:10px;padding:10px;text-align:center;cursor:pointer"><input type="radio" name="res" value="成功" checked> <b style="color:#15803D">成功</b><div class="text-[10px] text-[#64748B]">需求找到可用方案</div></label>'
+    +'<label class="flex-1" style="border:1px solid #FECACA;background:#FEF2F2;border-radius:10px;padding:10px;text-align:center;cursor:pointer"><input type="radio" name="res" value="失败"> <b style="color:#B91C1C">失败</b><div class="text-[10px] text-[#64748B]">无可行情景方案</div></label>'
+    +'<label class="flex-1" style="border:1px solid #E2E8F0;background:#F8FAFC;border-radius:10px;padding:10px;text-align:center;cursor:pointer"><input type="radio" name="res" value="终止"> <b>终止</b><div class="text-[10px] text-[#64748B]">企业主动放弃</div></label>'
+    +'</div></div>'
+    +'<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl">匹配成功时间（结果=成功时必填）</label><input class="fi" id="q-date" type="date" value="'+TODAY+'"></div>'
+    +'<div><label class="fl">成交 / 委托金额（选填）</label><input class="fi" id="q-amt" placeholder="如 150000"></div>'
+    +'</div>'
+    +'<div><label class="fl">结果说明（必填）</label><textarea class="fi" id="q-txt" rows="3" placeholder="如：与浙江理工大学确定改造方案，企业已下单，用时 18 天。"></textarea></div>'
+    +'<div class="rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B]">结果=成功 → 状态「已匹配」并记录<b>匹配成功时间</b>，自动计算匹配时长（本需求 '+days(x)+' 天）；结果=失败/终止 → 状态「已关闭」，失败原因留痕，可重新发起对接。</p></div>'
+    +'</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="doResult()">确认登记</button></div>';
+  show('modal',h);
+}
+function doResult(){
+  var x=dOf(curId),txt=document.getElementById('q-txt').value.trim();
+  var res=(document.querySelector('input[name=res]:checked')||{}).value||'成功';
+  if(!txt){toast('结果说明必填');return;}
+  x.result=res;
+  if(res==='成功'){
+    x.state='已匹配';x.matchedAt=document.getElementById('q-date').value||TODAY;
+    toast('已登记结果「成功」：'+x.id+' 匹配成功时间 '+x.matchedAt+'（用时 '+matchedDays(x)+' 天）→ 计入平均匹配时长与成功率；可继续进行「评价」');
+  }else{
+    x.state='已关闭';x.matchedAt='';
+    toast('已登记结果「'+res+'」：'+x.id+' 置「已关闭」，原因留痕；可重新发起对接（新增对接记录）');
+  }
+  renderStats();render();closeAll();
+}
+function openEval(id){
+  curId=id;
+  var x=dOf(id);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">登记评价　'+esc(x.id)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(x.title)+'　对接对象：'+esc(x.records.length?x.records[x.records.length-1].to:'—')+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>'
+    +'<div class="px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div><label class="fl">满意度评分（1–5 分，来自商户反馈；专员代录）</label><select class="sel" id="e-score"><option value="5">5 分 · 非常满意</option><option value="4">4 分 · 满意</option><option value="3">3 分 · 一般</option><option value="2">2 分 · 不满意</option><option value="1">1 分 · 很不满意</option></select></div>'
+    +'<div><label class="fl">评价标签</label><select class="sel" id="e-tag"><option>专业高效</option><option>响应及时</option><option>方案可行</option><option>性价比高</option><option>沟通一般</option><option>进度偏慢</option></select></div>'
+    +'<div><label class="fl">评价内容</label><textarea class="fi" id="e-txt" rows="2" placeholder="如：方案落地效果好，试产断头率明显下降。"></textarea></div>'
+    +'<div class="rounded-xl border p-3" style="border-color:#DDD6FE;background:#FAF8FF"><p class="text-[11px] text-[#64748B]">评价计入<b>满意度评分</b>（招标指标），并影响「服务商 / 成果提供方」的评分与"优质服务商占比"。</p></div>'
+    +'</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="doEval()">提交评价</button></div>';
+  show('modal',h);
+}
+function doEval(){
+  var x=dOf(curId);
+  x.evalS=parseInt(document.getElementById('e-score').value,10);
+  x.evalT=document.getElementById('e-tag').value;
+  x.evalX=document.getElementById('e-txt').value.trim();
+  renderStats();render();closeAll();
+  toast('已提交评价：'+x.id+'　'+x.evalS.toFixed(1)+' 分 · '+x.evalT+'（计入满意度评分与提供方评分）');
+}
+
+/* ============ 基础 ============ */
+function show(which,h){
+  document.getElementById(which).innerHTML=h;
+  document.getElementById('mask').classList.add('on');
+  document.getElementById(which).classList.add('on');
+}
+function closeAll(){
+  document.getElementById('mask').classList.remove('on');
+  document.getElementById('drawer').classList.remove('on');
+  document.getElementById('modal').classList.remove('on');
+}
+renderFieldFilter();renderStats();render();
+</script>
+</body>
+</html>

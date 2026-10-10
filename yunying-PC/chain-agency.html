@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>产业链服务 - 中介服务发布管理</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}.lk:hover{text-decoration:underline}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}.lk-gray:hover{color:#1F2430;text-decoration:underline}
+.st{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500;white-space:nowrap}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:60}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:740px;max-width:96vw;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:70;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);width:720px;max-width:95vw;max-height:86vh;overflow-y:auto;background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(15,23,42,.28);opacity:0;pointer-events:none;transition:.22s;z-index:70}
+.modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+.blk{border:1px solid #E2E8F0;border-radius:12px;padding:14px 16px}
+.blk-t{font-size:12.5px;font-weight:700;color:#1F2430;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.kv{display:flex;gap:8px;font-size:12px;line-height:1.9}
+.kv .k{width:110px;flex-shrink:0}
+.fi{width:100%;padding:6px 10px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none;background:#fff}
+.fi:focus{border-color:#FF4D2D}
+.fl{display:block;font-size:11px;color:#94A3B8;margin-bottom:4px}
+.sel{width:100%;padding:6px 8px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none}
+button{cursor:pointer}
+textarea.fi{font-family:inherit;line-height:1.8;resize:vertical}
+.ck{display:flex;align-items:flex-start;gap:7px;font-size:12px;color:#334155;line-height:1.7;padding:5px 0}
+.ck input{margin-top:3px}
+.up{border:2px dashed #E2E8F0;border-radius:10px;padding:12px;text-align:center;color:#94A3B8;cursor:pointer;background:#fff}
+.up:hover{border-color:#FDB4A3;color:#E63E20}
+.tab{display:flex;gap:22px;border-bottom:1px solid #E2E8F0;margin-bottom:16px}
+.tab span{padding:9px 0;font-size:13px;color:#64748B;cursor:pointer;border-bottom:2px solid transparent}
+.tab span.on{color:#FF4D2D;border-bottom-color:#FF4D2D;font-weight:600}
+.star{color:#F59E0B;font-size:11px}
+</style>
+<!-- Tailwind 静态样式：本地引用（不再依赖 cdn.tailwindcss.com）；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<div class="p-6">
+
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">中介服务发布管理</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">13 产业链服务</span>
+        <span class="tag" style="background:#DCFCE7;color:#15803D">服务商主数据</span>
+        <span class="tag" style="background:#F1F5F9;color:#94A3B8">发布即生效（本期无审核）</span>
+      </div>
+      <p class="text-[12px] text-gray-400 mt-1">中介服务商与其服务项目的台账：招标 #121「中介服务商展示配置 + 链接配置跳转」；本页是 <b>服务商主数据的产生方</b>（知产配置 / 技术共享对接均引用此台账）；<b>评分来自端上评价聚合，只读不可改</b></p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="toast('已导出服务商台账（含类型、资质附件、评分、对接/委托数）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+      <button class="btn btn-ghost" onclick="openItem(null)"><i class="fas fa-plus mr-1"></i>新增服务项目</button>
+      <button class="btn btn-primary" onclick="openPv(null)"><i class="fas fa-plus mr-1"></i>新增服务商</button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-5 gap-3 mb-4" id="stats"></div>
+
+  <div class="tab" id="tabs">
+    <span class="on" onclick="switchTab(0,this)">服务商台账</span>
+    <span onclick="switchTab(1,this)">服务项目</span>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+    <div class="flex items-center gap-3 flex-wrap">
+      <input id="f-kw" type="text" placeholder="服务商 / 服务项目关键词" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary w-56">
+      <select id="f-type" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600"><option value="">全部类型</option></select>
+      <select id="f-state" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+        <option value="">全部状态</option><option>已上架</option><option>草稿</option><option>已下架</option>
+      </select>
+      <select id="f-score" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+        <option value="">全部评分</option><option value="45">≥ 4.5（优质）</option><option value="40">≥ 4.0</option><option value="0">＜ 4.0</option>
+      </select>
+      <button class="btn btn-primary" onclick="doSearch()">查询</button>
+      <button class="btn btn-ghost" onclick="resetSearch()">重置</button>
+      <span class="text-[11px] text-[#94A3B8] ml-auto"><i class="fas fa-circle-info mr-1"></i>端上分类口径固定为 <b>财务服务 / 法律咨询 / 管理咨询 / 认证检测</b>（与买家端 agency-service.html 的 Tab 一致）</span>
+    </div>
+  </div>
+
+  <!-- Tab1 服务商 -->
+  <div id="pane0">
+    <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+      <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-[13px] font-bold text-[#1F2430]">服务商台账</span>
+          <span class="text-[12px] text-[#94A3B8]" id="pvCnt">共 0 家</span>
+        </div>
+        <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>「优质服务商」= 评分 ≥ 4.5 且无投诉（招标考核指标）</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-[13px]" style="min-width:1360px">
+          <thead>
+            <tr class="bg-gray-50 text-gray-500 text-[12px]">
+              <th class="px-4 py-3 text-left font-medium">服务商</th>
+              <th class="px-4 py-3 text-left font-medium">类型</th>
+              <th class="px-4 py-3 text-left font-medium">服务范围</th>
+              <th class="px-4 py-3 text-left font-medium">资质</th>
+              <th class="px-4 py-3 text-left font-medium">评分</th>
+              <th class="px-4 py-3 text-left font-medium">对接 / 委托</th>
+              <th class="px-4 py-3 text-left font-medium">状态 / 排序</th>
+              <th class="px-4 py-3 text-center font-medium">操作</th>
+            </tr>
+          </thead>
+          <tbody id="tb" class="divide-y divide-gray-50"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab2 服务项目 -->
+  <div id="pane1" style="display:none">
+    <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+      <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-[13px] font-bold text-[#1F2430]">服务项目</span>
+          <span class="text-[12px] text-[#94A3B8]" id="itCnt">共 0 项</span>
+        </div>
+        <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>服务项目可单独上下架；「跳转」用于端上"立即咨询/在线办理"（外链或小程序）</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-[13px]" style="min-width:1300px">
+          <thead>
+            <tr class="bg-gray-50 text-gray-500 text-[12px]">
+              <th class="px-4 py-3 text-left font-medium">项目名称</th>
+              <th class="px-4 py-3 text-left font-medium">所属服务商</th>
+              <th class="px-4 py-3 text-left font-medium">服务内容</th>
+              <th class="px-4 py-3 text-left font-medium">计费方式</th>
+              <th class="px-4 py-3 text-left font-medium">价格</th>
+              <th class="px-4 py-3 text-left font-medium">服务周期</th>
+              <th class="px-4 py-3 text-left font-medium">跳转</th>
+              <th class="px-4 py-3 text-left font-medium">状态</th>
+              <th class="px-4 py-3 text-center font-medium">操作</th>
+            </tr>
+          </thead>
+          <tbody id="tb2" class="divide-y divide-gray-50"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div id="mask" class="mask" onclick="closeAll()"></div>
+<div id="drawer" class="drawer"></div>
+<div id="modal" class="modal"></div>
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
+
+<script>
+/* ============ 字典（与买家端 agency-service.html 的 Tab 一致；知识产权类型供 13 知识产权配置引用） ============ */
+var TYPES=['财务服务','法律咨询','管理咨询','认证检测','知识产权','其他'];
+var STC={'已上架':'background:#DCFCE7;color:#15803D','草稿':'background:#F1F5F9;color:#64748B','已下架':'background:#F1F5F9;color:#475569'};
+
+/* ============ 模拟数据 ============ */
+var PV=[
+  {id:'SP-001', name:'诸暨诚信财税事务所', type:'财务服务', scope:'代理记账 / 汇算清缴 / 税务筹划 / 工商变更', qual:['营业执照','代理记账许可证'], tel:'0575-8878 1122', addr:'大唐袜业城 B 座 2F', link:'https://example.com/cx-cs', mo:'both',
+   score:4.8, rate:36, match:12, deal:8, amount:86000, state:'已上架', sort:1, complaint:0, desc:'本地老牌财税机构，服务袜业商户 120+ 家。'},
+  {id:'SP-002', name:'大唐法律服务站', type:'法律咨询', scope:'合同审查 / 债权催收 / 劳资纠纷 / 知识产权维权', qual:['律师事务所执业许可'], tel:'0575-8878 3344', addr:'大唐袜业城 A 座 1F', link:'', mo:'both',
+   score:4.6, rate:22, match:9, deal:5, amount:42000, state:'已上架', sort:2, complaint:0, desc:'驻市场法律服务点，可按次或按年顾问。'},
+  {id:'SP-003', name:'华夏企业管理咨询', type:'管理咨询', scope:'生产精益改善 / 5S / 数字化诊断', qual:['营业执照'], tel:'0575-8878 5566', addr:'诸暨市大唐街道科创园', link:'https://example.com/hx-mc', mo:'both',
+   score:4.4, rate:14, match:6, deal:3, amount:68000, state:'已上架', sort:3, complaint:0, desc:'专注袜业工厂精益生产与数字化改造咨询。'},
+  {id:'SP-004', name:'浙江纺织检测中心', type:'认证检测', scope:'纤维成分 / 色牢度 / 甲醛 / 质检报告', qual:['CMA 资质认定','CNAS 认可'], tel:'0575-8878 7788', addr:'绍兴市柯桥区检测园', link:'https://example.com/zj-test', mo:'both',
+   score:4.9, rate:48, match:26, deal:19, amount:215000, state:'已上架', sort:4, complaint:0, desc:'第三方检测机构，出报告 3–5 个工作日。'},
+  {id:'SP-005', name:'中品标质量认证', type:'认证检测', scope:'ISO9001 / ISO14001 / 产品认证', qual:['认证机构批准书'], tel:'0575-8878 9900', addr:'杭州市滨江区', link:'', mo:'sh',
+   score:4.2, rate:9, match:4, deal:1, amount:26000, state:'已上架', sort:5, complaint:1, desc:'体系认证服务商（近期 1 起投诉：报告延期，已处理）。'},
+  {id:'SP-006', name:'华知知识产权代理', type:'知识产权', scope:'专利申请 / 商标注册 / 版权登记', qual:['专利代理机构注册证'], tel:'0575-8878 2200', addr:'诸暨市暨阳街道', link:'https://example.com/hz-ip', mo:'both',
+   score:4.7, rate:31, match:11, deal:7, amount:96000, state:'已上架', sort:1, complaint:0, desc:'知产代理机构，同时作为「知识产权」页的跳转目标被引用。'},
+  {id:'SP-007', name:'安达仓储物流服务', type:'其他', scope:'仓配一体 / 短驳运输', qual:['道路运输经营许可证'], tel:'0575-8878 6600', addr:'诸暨市大唐物流园', link:'', mo:'sh',
+   score:4.5, rate:7, match:3, deal:2, amount:38000, state:'草稿', sort:6, complaint:0, desc:'草稿态：资质附件待补齐后上架。'},
+  {id:'SP-008', name:'（原）宏图财税代理', type:'财务服务', scope:'代理记账', qual:['营业执照'], tel:'0575-8878 1010', addr:'—', link:'', mo:'both',
+   score:3.8, rate:5, match:2, deal:0, amount:0, state:'已下架', sort:9, complaint:2, desc:'评分 3.8 且有 2 起投诉，已下架。'}
+];
+var IT=[
+  {id:'IT-001', pv:'SP-001', name:'小微企业代理记账（年付）', content:'月度记账 + 季度申报 + 年度汇算清缴', bill:'按年', price:'3,600 元 / 年', cycle:'12 个月', link:'https://example.com/cx-cs', state:'已上架'},
+  {id:'IT-002', pv:'SP-001', name:'税务健康体检（单次）', content:'税负分析 + 风险提示 + 优化建议', bill:'按次', price:'1,200 元 / 次', cycle:'5 个工作日', link:'', state:'已上架'},
+  {id:'IT-003', pv:'SP-002', name:'合同审查（标准版）', content:'单份合同法律风险审查并出意见', bill:'按次', price:'600 元 / 份', cycle:'2 个工作日', link:'', state:'已上架'},
+  {id:'IT-004', pv:'SP-004', name:'纤维成分含量检测', content:'按 GB/T 标准检测并出具报告', bill:'按次', price:'面议（按项计）', cycle:'3–5 个工作日', link:'https://example.com/zj-test', state:'已上架'},
+  {id:'IT-005', pv:'SP-005', name:'ISO9001 体系认证', content:'体系搭建辅导 + 认证审核', bill:'按次', price:'面议', cycle:'2–3 个月', link:'', state:'已下架'},
+  {id:'IT-006', pv:'SP-006', name:'商标注册（1 类）', content:'查询 + 申报 + 跟踪至下证', bill:'按次', price:'1,200 元 / 类', cycle:'9–12 个月', link:'https://example.com/hz-ip', state:'已上架'},
+  {id:'IT-007', pv:'SP-006', name:'实用新型专利申请', content:'撰写 + 申报 + 答复审查意见', bill:'按次', price:'3,800 元 / 件', cycle:'6–8 个月', link:'', state:'已上架'},
+  {id:'IT-008', pv:'SP-003', name:'精益生产诊断（3 天）', content:'现场诊断 + 改善方案 + 复盘', bill:'按次', price:'12,000 元 / 次', cycle:'3 天（含复盘）', link:'', state:'已上架'}
+];
+var curTab=0,curPv=null,curIt=null;
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},2900);}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function money(n){return Number(n).toLocaleString('en-US');}
+function pOf(id){return PV.filter(function(x){return x.id===id;})[0];}
+function itOf(id){return IT.filter(function(x){return x.id===id;})[0];}
+function itemsOf(id){return IT.filter(function(x){return x.pv===id;});}
+function st(s){return '<span class="st" style="'+(STC[s]||'background:#F1F5F9;color:#64748B')+'">'+esc(s)+'</span>';}
+function stars(n){return '<span class="star">'+'★'.repeat(Math.round(n))+'</span> <b style="color:#1F2430">'+n.toFixed(1)+'</b>';}
+function isGood(p){return p.score>=4.5&&!p.complaint;}
+function typeTag(t){
+  var c=(t==='财务服务'?'background:#DBEAFE;color:#2563EB':(t==='法律咨询'?'background:#EDE9FE;color:#6D28D9':(t==='管理咨询'?'background:#FEF3C7;color:#B45309':(t==='认证检测'?'background:#DCFCE7;color:#15803D':(t==='知识产权'?'background:#FFEDE7;color:#E63E20':'background:#F1F5F9;color:#64748B')))));
+  return '<span class="tag" style="'+c+'">'+esc(t)+'</span>';
+}
+
+function renderStats(){
+  var on=PV.filter(function(p){return p.state==='已上架';}).length;
+  var good=PV.filter(function(p){return p.state==='已上架'&&isGood(p);}).length;
+  var amount=0;
+  PV.forEach(function(p){amount+=p.amount||0;});
+  var g=PV.filter(function(p){return p.state==='已上架';});
+  var mean=g.length?(g.reduce(function(s,p){return s+p.score;},0)/g.length):0;
+  var cards=[['在架服务商',on,'#15803D'],['服务项目',IT.filter(function(i){return i.state==='已上架';}).length+' / '+IT.length,'#2563EB'],
+    ['平均评分（在架）',mean.toFixed(1),'#B45309'],['优质服务商占比',(on?Math.round(good/on*100):0)+'%','#7C3AED'],['累计委托金额',money(amount)+' 元','#E63E20']];
+  document.getElementById('stats').innerHTML=cards.map(function(x){
+    return '<div class="bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">'+x[0]+'</p><p class="text-xl font-bold mt-1" style="color:'+x[2]+'">'+x[1]+'</p></div>';
+  }).join('');
+}
+function renderTypeFilter(){
+  document.getElementById('f-type').innerHTML='<option value="">全部类型</option>'+TYPES.map(function(t){return '<option>'+t+'</option>';}).join('');
+}
+function renderPv(){
+  var kw=document.getElementById('f-kw').value.trim(),tp=document.getElementById('f-type').value,ss=document.getElementById('f-state').value;
+  var rows=PV.filter(function(p){
+    return (!kw||p.name.indexOf(kw)>-1||p.scope.indexOf(kw)>-1)&&(!tp||p.type===tp)&&(!ss||p.state===ss);
+  });
+  var h='';
+  rows.forEach(function(p){
+    var ops='<span class="lk" onclick="openPv(\''+p.id+'\')">编辑</span>'
+      +' · <span class="lk-gray" onclick="togglePv(\''+p.id+'\')">'+(p.state==='已上架'?'下架':'上架')+'</span>'
+      +' · <span class="lk-gray" onclick="openRate(\''+p.id+'\')">评价明细</span>'
+      +' · <span class="lk-gray" onclick="openDeal(\''+p.id+'\')">委托登记</span>'
+      +(itemsOf(p.id).length?'':' · <span class="lk-gray" onclick="delPv(\''+p.id+'\')">删除</span>');
+    h+='<tr class="hover:bg-gray-50 transition">'
+      +'<td class="px-4 py-3"><div class="font-medium text-[#1F2430]">'+esc(p.name)+'</div>'
+        +'<div class="text-[11px] text-[#94A3B8] mt-0.5">'+esc(p.id)+'　'+(isGood(p)?'<span class="tag" style="background:#FFEDE7;color:#E63E20">优质服务商</span>':'')+(p.complaint?'　<span class="tag" style="background:#FEE2E2;color:#B91C1C">投诉 '+p.complaint+' 起</span>':'')+'</div>'
+        +'<div class="text-[11px] text-[#94A3B8]">'+esc(p.tel)+'　'+esc(p.addr)+'</div></td>'
+      +'<td class="px-4 py-3">'+typeTag(p.type)+'</td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]" style="max-width:250px">'+esc(p.scope)+'</td>'
+      +'<td class="px-4 py-3 text-[12px]">'+(p.qual.length?('<span class="tag" style="background:#EDE9FE;color:#6D28D9"><i class="fas fa-paperclip text-[9px]"></i>'+p.qual.length+' 项</span><div class="text-[10px] text-[#94A3B8] mt-0.5">'+esc(p.qual[0])+'</div>'):'<span class="text-[#CBD5E1]">未上传</span>')+'</td>'
+      +'<td class="px-4 py-3 text-[12px]">'+stars(p.score)+'<div class="text-[10px] text-[#94A3B8]">'+p.rate+' 条评价</div></td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">对接 '+p.match+' 次 / 委托 '+p.deal+' 单<div class="text-[10px] text-[#94A3B8]">'+money(p.amount)+' 元</div></td>'
+      +'<td class="px-4 py-3">'+st(p.state)+'<div class="text-[10px] text-[#94A3B8] mt-0.5">排序 '+p.sort+'</div></td>'
+      +'<td class="px-4 py-3 text-center whitespace-nowrap">'+ops+'</td></tr>';
+  });
+  if(!rows.length){h='<tr><td colspan="8" class="px-4 py-16 text-center text-gray-300"><i class="fas fa-inbox text-3xl block mb-2"></i><span class="text-[12px]">暂无匹配的服务商</span></td></tr>';}
+  document.getElementById('tb').innerHTML=h;
+  document.getElementById('pvCnt').textContent='共 '+rows.length+' 家（含草稿/下架）';
+}
+function renderIt(){
+  var kw=document.getElementById('f-kw').value.trim(),tp=document.getElementById('f-type').value,ss=document.getElementById('f-state').value;
+  var rows=IT.filter(function(i){
+    var p=pOf(i.pv);
+    return (!kw||i.name.indexOf(kw)>-1||p.name.indexOf(kw)>-1)&&(!tp||p.type===tp)&&(!ss||i.state===ss);
+  });
+  var h='';
+  rows.forEach(function(i){
+    var p=pOf(i.pv);
+    h+='<tr class="hover:bg-gray-50 transition">'
+      +'<td class="px-4 py-3"><div class="font-medium text-[#1F2430]">'+esc(i.name)+'</div><div class="text-[11px] text-[#94A3B8] mt-0.5">'+esc(i.id)+'</div></td>'
+      +'<td class="px-4 py-3 text-[12px]">'+esc(p.name)+'<div class="mt-0.5">'+typeTag(p.type)+'</div></td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]" style="max-width:240px">'+esc(i.content)+'</td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(i.bill)+'</td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#1F2430]">'+esc(i.price)+'</td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(i.cycle)+'</td>'
+      +'<td class="px-4 py-3 text-[12px]">'+(i.link?'<span class="lk-gray" onclick="toast(\'测试打开：'+esc(i.link)+'\')">外链</span>':'<span class="text-[#94A3B8]">无（电话咨询）</span>')+'</td>'
+      +'<td class="px-4 py-3">'+st(i.state)+'</td>'
+      +'<td class="px-4 py-3 text-center whitespace-nowrap"><span class="lk" onclick="openItem(\''+i.id+'\')">编辑</span> · <span class="lk-gray" onclick="toggleIt(\''+i.id+'\')">'+(i.state==='已上架'?'下架':'上架')+'</span></td></tr>';
+  });
+  if(!rows.length){h='<tr><td colspan="9" class="px-4 py-16 text-center text-gray-300"><i class="fas fa-inbox text-3xl block mb-2"></i><span class="text-[12px]">暂无匹配的服务项目</span></td></tr>';}
+  document.getElementById('tb2').innerHTML=h;
+  document.getElementById('itCnt').textContent='共 '+rows.length+' 项';
+}
+function switchTab(i,el){
+  curTab=i;
+  var ts=document.getElementById('tabs').children;
+  for(var k=0;k<ts.length;k++){ts[k].className='';}
+  el.className='on';
+  document.getElementById('pane0').style.display=(i===0?'':'none');
+  document.getElementById('pane1').style.display=(i===1?'':'none');
+}
+function doSearch(){renderPv();renderIt();toast('已按条件查询（关键词 / 类型 / 状态 / 评分）');}
+function resetSearch(){
+  ['f-kw','f-type','f-state','f-score'].forEach(function(k){document.getElementById(k).value='';});
+  renderPv();renderIt();toast('已重置筛选条件');
+}
+function togglePv(id){
+  var p=pOf(id);
+  if(p.state==='已上架'){
+    var pending=p.match-p.deal;
+    p.state='已下架';
+    renderStats();renderPv();
+    toast('已下架「'+p.name+'」：端上不再展示'+(pending>0?'（提示：该服务商尚有 '+pending+' 条在跟进对接，建议结清后再下架）':''));
+  }else{
+    if(!p.qual.length){toast('上架前请先上传资质证照（营业执照/许可证等）');return;}
+    p.state='已上架';
+    renderStats();renderPv();
+    toast('已上架「'+p.name+'」：端上买家端 / 商户端按投放端展示（发布即生效）');
+  }
+}
+function toggleIt(id){
+  var i=itOf(id);
+  i.state=(i.state==='已上架'?'已下架':'已上架');
+  renderStats();renderIt();
+  toast('服务项目「'+i.name+'」已'+(i.state==='已上架'?'上架':'下架'));
+}
+function delPv(id){
+  var p=pOf(id);
+  if(itemsOf(id).length){toast('该服务商下还有服务项目，不可删除；请先删除或转移服务项目');return;}
+  PV.splice(PV.indexOf(p),1);
+  renderStats();renderPv();
+  toast('已删除服务商「'+p.name+'」（无服务项目、无对接记录方可删除）');
+}
+
+/* ============ 服务商编辑抽屉 ============ */
+function openPv(id){
+  curPv=id;
+  var p=id?pOf(id):null;
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+(p?'编辑服务商　'+esc(p.id):'新增服务商')+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">服务商主数据：被「知识产权配置」「技术共享对接」引用；<b>发布即生效（本期无审核，§1.6）</b></p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-store text-[#FF4D2D]"></i>基本信息</div>'
+    +'<div class="mb-3"><label class="fl">服务商名称</label><input class="fi" id="p-name" value="'+(p?esc(p.name):'')+'" placeholder="例：诸暨诚信财税事务所"></div>'
+    +'<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl">类型（决定端上分类 Tab）</label><select class="sel" id="p-type">'+TYPES.map(function(t){return '<option'+(p&&p.type===t?' selected':'')+'>'+t+'</option>';}).join('')+'</select></div>'
+    +'<div><label class="fl">投放端</label><select class="sel" id="p-mo"><option value="both"'+(p&&p.mo==='both'?' selected':'')+'>买家端 + 商户端</option><option value="sh"'+(p&&p.mo==='sh'?' selected':'')+'>仅商户端</option><option value="buy"'+(p&&p.mo==='buy'?' selected':'')+'>仅买家端</option></select></div>'
+    +'<div><label class="fl">联系人电话</label><input class="fi" id="p-tel" value="'+(p?esc(p.tel):'')+'" placeholder="如 0575-8888 0000"></div>'
+    +'<div><label class="fl">排序（小在前）</label><input class="fi" id="p-sort" value="'+(p?p.sort:1)+'"></div>'
+    +'<div><label class="fl">服务地址</label><input class="fi" id="p-addr" value="'+(p?esc(p.addr):'')+'"></div>'
+    +'<div><label class="fl">跳转链接（可选，https）</label><input class="fi" id="p-link" value="'+(p?esc(p.link):'')+'" placeholder="端上「立即咨询」跳转目标"></div>'
+    +'</div>'
+    +'<div class="mt-3"><label class="fl">服务范围（端上列表展示）</label><input class="fi" id="p-scope" value="'+(p?esc(p.scope):'')+'" placeholder="用 / 分隔，如：代理记账 / 汇算清缴 / 税务筹划"></div>'
+    +'<div class="mt-3"><label class="fl">简介</label><textarea class="fi" id="p-desc" rows="2" placeholder="服务能力、团队、服务袜业商户经验等">'+(p?esc(p.desc):'')+'</textarea></div>'
+    +'</div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-paperclip text-[#7C3AED]"></i>资质证照（上架校验：至少 1 项）</div>'
+    +'<label class="up" onclick="toast(\'已上传：营业执照.pdf（支持 PDF/图片，可多件；用于资质核对，非审核流）\')"><i class="fas fa-cloud-arrow-up text-2xl block mb-2"></i>点击上传资质附件<input type="file" class="hidden"></label>';
+  if(p&&p.qual.length){p.qual.forEach(function(q){h+='<div class="kv mt-2"><span class="k">已上传</span><span class="v">'+esc(q)+'　<span class="lk-gray" onclick="toast(\'预览：'+esc(q)+'\')">预览</span></span></div>';});}
+  h+='</div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-star text-[#F59E0B]"></i>评分（端上评价聚合，只读）</div>'
+    +'<div class="kv"><span class="k">当前评分</span><span class="v">'+(p?stars(p.score)+'（'+p.rate+' 条评价）':'上架后由端上评价累积')+'</span></div>'
+    +'<div class="kv"><span class="k">优质判定</span><span class="v">'+(p&&isGood(p)?'是（≥4.5 且无投诉）':'否')+'</span></div>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-2"><i class="fas fa-circle-info mr-1"></i>评分不可人工修改；如需处置差评，走"投诉处理"流程（本期在评价明细中记录处理结论）。</p></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-ghost" onclick="savePv(false)">保存草稿</button>'
+    +'<button class="btn btn-primary" onclick="savePv(true)">保存并上架</button></div>';
+  show('drawer',h);
+}
+function savePv(up){
+  var name=document.getElementById('p-name').value.trim();
+  if(!name){toast('请填写服务商名称');return;}
+  var p=curPv?pOf(curPv):null;
+  var data={name:name, type:document.getElementById('p-type').value, mo:document.getElementById('p-mo').value,
+    tel:document.getElementById('p-tel').value.trim(), addr:document.getElementById('p-addr').value.trim(),
+    link:document.getElementById('p-link').value.trim(), scope:document.getElementById('p-scope').value.trim()||'—',
+    desc:document.getElementById('p-desc').value.trim(), sort:parseInt(document.getElementById('p-sort').value,10)||1};
+  if(p){for(var k in data){p[k]=data[k];}}
+  else{
+    p={id:'SP-0'+(PV.length+1), qual:[], score:0, rate:0, match:0, deal:0, amount:0, state:'草稿', complaint:0};
+    for(var k2 in data){p[k2]=data[k2];}
+    PV.push(p);
+  }
+  if(up){
+    if(!p.qual.length){toast('上架前请上传资质证照（营业执照/许可证）');renderStats();renderPv();return;}
+    p.state='已上架';
+  }
+  renderStats();renderPv();renderIt();closeAll();
+  toast(up?('已保存并上架「'+p.name+'」（发布即生效，端上按投放端展示）'):('已保存草稿「'+p.name+'」（补齐资质后可上架）'));
+}
+
+/* ============ 服务项目编辑 ============ */
+function openItem(id){
+  curIt=id;
+  var i=id?itOf(id):null;
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+(i?'编辑服务项目　'+esc(i.id):'新增服务项目')+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">服务项目挂在服务商下，可单独上下架；端上详情页展示服务内容 / 计费方式 / 价格 / 周期</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px"><div class="blk">'
+    +'<div class="mb-3"><label class="fl">项目名称</label><input class="fi" id="i-name" value="'+(i?esc(i.name):'')+'" placeholder="例：小微企业代理记账（年付）"></div>'
+    +'<div class="mb-3"><label class="fl">所属服务商</label><select class="sel" id="i-pv">'
+    +PV.filter(function(p){return p.state!=='已下架';}).map(function(p){return '<option value="'+p.id+'"'+(i&&i.pv===p.id?' selected':'')+'>'+esc(p.name)+'（'+esc(p.type)+'）</option>';}).join('')
+    +'</select></div>'
+    +'<div class="mb-3"><label class="fl">服务内容</label><textarea class="fi" id="i-content" rows="2" placeholder="具体交付内容">'+(i?esc(i.content):'')+'</textarea></div>'
+    +'<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl">计费方式</label><select class="sel" id="i-bill">'+['按次','按年','按月','面议'].map(function(b){return '<option'+(i&&i.bill===b?' selected':'')+'>'+b+'</option>';}).join('')+'</select></div>'
+    +'<div><label class="fl">价格（端上展示，可写"面议"）</label><input class="fi" id="i-price" value="'+(i?esc(i.price):'')+'" placeholder="如 3,600 元 / 年"></div>'
+    +'<div><label class="fl">服务周期</label><input class="fi" id="i-cycle" value="'+(i?esc(i.cycle):'')+'" placeholder="如 5 个工作日 / 12 个月"></div>'
+    +'<div><label class="fl">跳转链接（可选）</label><input class="fi" id="i-link" value="'+(i?esc(i.link):'')+'" placeholder="端上「在线办理」跳转目标"></div>'
+    +'</div>'
+    +'<div class="rounded-xl border p-3 mt-3" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B]">端上口径（招标 #121）：服务商与服务项目 <b>以展示 + 链接跳转为主</b>；平台 <b>不代收款项、不做在线交易</b>（委托登记仅作撮合统计）。</p></div>'
+    +'</div></div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveItem()">保存并上架</button></div>';
+  show('drawer',h);
+}
+function saveItem(){
+  var name=document.getElementById('i-name').value.trim();
+  if(!name){toast('请填写项目名称');return;}
+  var i=curIt?itOf(curIt):null;
+  var data={name:name, pv:document.getElementById('i-pv').value, content:document.getElementById('i-content').value.trim(),
+    bill:document.getElementById('i-bill').value, price:document.getElementById('i-price').value.trim()||'面议',
+    cycle:document.getElementById('i-cycle').value.trim()||'—', link:document.getElementById('i-link').value.trim(), state:'已上架'};
+  if(i){for(var k in data){i[k]=data[k];}}
+  else{data.id='IT-00'+(IT.length+1);IT.push(data);i=data;}
+  renderStats();renderIt();renderPv();closeAll();
+  toast('已保存并上架服务项目「'+i.name+'」（发布即生效）');
+}
+
+/* ============ 评价明细（评分来源 + 投诉处置留痕） ============ */
+function openRate(id){
+  curPv=id;
+  var p=pOf(id);
+  var samples=[
+    {who:'诸暨××袜业有限公司',score:5,tag:'专业高效',txt:'汇算清缴一次通过，响应很快。',t:'2026-09-28',from:'商户端'},
+    {who:'大唐××针织厂',score:5,tag:'价格透明',txt:'报价清晰，没有隐形收费。',t:'2026-09-12',from:'商户端'},
+    {who:'义乌××袜业',score:4,tag:'响应一般',txt:'整体还行，旺季排队时间偏长。',t:'2026-08-30',from:'专员代录'}
+  ];
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">评价明细　'+esc(p.name)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">评分由评价聚合得出（只读）；'+p.rate+' 条评价，平均 '+p.score.toFixed(1)+' 分'+(p.complaint?'；<b style="color:#B91C1C">投诉 '+p.complaint+' 起</b>':'')+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="px-5 py-4" style="display:flex;flex-direction:column;gap:12px">';
+  h+='<div class="grid grid-cols-4 gap-3">'
+    +'<div class="blk text-center"><p class="text-[11px] text-[#94A3B8]">平均评分</p><p class="text-lg font-bold" style="color:#B45309">'+p.score.toFixed(1)+'</p></div>'
+    +'<div class="blk text-center"><p class="text-[11px] text-[#94A3B8]">评价数</p><p class="text-lg font-bold text-[#1F2430]">'+p.rate+'</p></div>'
+    +'<div class="blk text-center"><p class="text-[11px] text-[#94A3B8]">对接 / 委托</p><p class="text-lg font-bold text-[#1F2430]">'+p.match+' / '+p.deal+'</p></div>'
+    +'<div class="blk text-center"><p class="text-[11px] text-[#94A3B8]">累计委托额</p><p class="text-lg font-bold" style="color:#E63E20">'+money(p.amount)+'</p></div>'
+    +'</div>';
+  h+='<div class="blk"><div class="blk-t">评价列表（示意）</div>';
+  samples.forEach(function(s){
+    h+='<div class="kv"><span class="k">'+stars(s.score)+'</span><span class="v">'+esc(s.tag)+'　'+esc(s.txt)+'<span class="text-[11px] text-[#94A3B8]">　'+esc(s.who)+'　'+esc(s.t)+'　'+esc(s.from)+'</span></span></div>';
+  });
+  h+='</div>';
+  if(p.complaint){
+    h+='<div class="blk" style="border-color:#FECACA;background:#FEF2F2"><div class="blk-t" style="color:#B91C1C"><i class="fas fa-triangle-exclamation"></i>投诉处置（'+p.complaint+' 起）</div>'
+      +'<div class="kv"><span class="k">2026-09-05</span><span class="v">认证报告延期 10 天 → 已协调补交　<span class="tag" style="background:#DCFCE7;color:#15803D">已处理</span></span></div>'
+      +'<p class="text-[11px] text-[#94A3B8] mt-2">有未处理投诉时 <b>不可判定为优质服务商</b>（影响「优质服务商占比」指标）。</p></div>';
+  }
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="toast(\'已导出评价明细（脱敏，仅显示企业名与评分）\')">导出明细</button>'
+    +'<button class="btn btn-primary" onclick="closeAll()">关闭</button></div>';
+  show('modal',h);
+}
+
+/* ============ 委托登记（撮合金额来源） ============ */
+function openDeal(id){
+  curPv=id;
+  var p=pOf(id);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">委托登记</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">服务商：'+esc(p.name)+'　累计 '+p.deal+' 单 / '+money(p.amount)+' 元</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>'
+    +'<div class="px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div class="blk"><div class="blk-t"><i class="fas fa-file-signature text-[#FF4D2D]"></i>登记一笔委托</div>'
+    +'<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl">委托商户</label><select class="sel" id="d-m"><option>诸暨××袜业有限公司</option><option>大唐××针织厂</option><option>义乌××袜业</option><option>其他（手填）</option></select></div>'
+    +'<div><label class="fl">服务项目</label><select class="sel" id="d-item">'+itemsOf(id).map(function(i){return '<option>'+esc(i.name)+'</option>';}).join('')+'</select></div>'
+    +'<div><label class="fl">委托金额（元）</label><input class="fi" id="d-amt" placeholder="如 3600"></div>'
+    +'<div><label class="fl">委托日期</label><input class="fi" id="d-date" type="date" value="2026-10-10"></div>'
+    +'</div>'
+    +'<div class="mt-3"><label class="fl">备注（选填）</label><input class="fi" id="d-note" placeholder="如：通过端上「立即咨询」转入线下签约"></div>'
+    +'</div>'
+    +'<div class="rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B]">委托登记是 <b>招标指标「撮合订单数与金额」的唯一数据来源</b>（平台不代收款项，金额为线下实际签约额，由专员登记）。</p></div>'
+    +'</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveDeal()">登记</button></div>';
+  show('modal',h);
+}
+function saveDeal(){
+  var p=pOf(curPv);
+  var amt=parseInt(document.getElementById('d-amt').value.trim(),10);
+  if(!amt||amt<=0){toast('请填写正确的委托金额');return;}
+  p.deal++;p.amount+=amt;
+  renderStats();renderPv();closeAll();
+  toast('已登记委托：'+p.name+'　+'+money(amt)+' 元（累计 '+p.deal+' 单 / '+money(p.amount)+' 元）→ 回填驾驶舱「撮合订单数与金额」');
+}
+
+/* ============ 基础 ============ */
+function show(which,h){
+  document.getElementById(which).innerHTML=h;
+  document.getElementById('mask').classList.add('on');
+  document.getElementById(which).classList.add('on');
+}
+function closeAll(){
+  document.getElementById('mask').classList.remove('on');
+  document.getElementById('drawer').classList.remove('on');
+  document.getElementById('modal').classList.remove('on');
+}
+renderTypeFilter();renderStats();renderPv();renderIt();
+</script>
+</body>
+</html>

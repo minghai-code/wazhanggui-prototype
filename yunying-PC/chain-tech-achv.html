@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>产业链服务 - 技术成果管理</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}.lk:hover{text-decoration:underline}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}.lk-gray:hover{color:#1F2430;text-decoration:underline}
+.st{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500;white-space:nowrap}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:60}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:800px;max-width:96vw;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:70;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);width:700px;max-width:95vw;max-height:86vh;overflow-y:auto;background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(15,23,42,.28);opacity:0;pointer-events:none;transition:.22s;z-index:70}
+.modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+.blk{border:1px solid #E2E8F0;border-radius:12px;padding:14px 16px}
+.blk-t{font-size:12.5px;font-weight:700;color:#1F2430;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.kv{display:flex;gap:8px;font-size:12px;line-height:1.9}
+.kv .k{width:106px;flex-shrink:0}
+.fi{width:100%;padding:6px 10px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none;background:#fff}
+.fi:focus{border-color:#FF4D2D}
+.fl{display:block;font-size:11px;color:#94A3B8;margin-bottom:4px}
+.sel{width:100%;padding:6px 8px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none}
+button{cursor:pointer}
+textarea.fi{font-family:inherit;line-height:1.8;resize:vertical}
+.up{border:2px dashed #E2E8F0;border-radius:10px;padding:10px;text-align:center;color:#94A3B8;cursor:pointer;background:#fff}
+.up:hover{border-color:#FDB4A3;color:#E63E20}
+.tab{display:flex;gap:22px;border-bottom:1px solid #E2E8F0;margin-bottom:16px}
+.tab span{padding:9px 0;font-size:13px;color:#64748B;cursor:pointer;border-bottom:2px solid transparent}
+.tab span.on{color:#FF4D2D;border-bottom-color:#FF4D2D;font-weight:600}
+.tl{position:relative;padding-left:16px;border-left:2px solid #E2E8F0;margin-left:4px}
+.tl .node{position:relative;margin-bottom:12px}
+.tl .node:before{content:'';position:absolute;left:-23px;top:5px;width:8px;height:8px;border-radius:50%;background:#FF4D2D;border:2px solid #fff}
+.tl .node.done:before{background:#15803D}
+.star{color:#F59E0B}
+</style>
+<!-- Tailwind 静态样式：本地引用（不再依赖 cdn.tailwindcss.com）；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<div class="p-6">
+
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">技术成果管理</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">13 产业链服务</span>
+        <span class="tag" style="background:#DCFCE7;color:#15803D">高校 / 研究所成果</span>
+        <span class="tag" style="background:#F1F5F9;color:#94A3B8">发布即生效</span>
+      </div>
+      <p class="text-[12px] text-gray-400 mt-1">高校、研究所的新技术新成果<b>入库 → 发布 → 供需对接</b>（招标 #123：高校/研究所新技术新成果展示，推动供需对接）；与「技术需求发布管理」<b>共用同一套对接记录与评价模型</b>（方向相反：成果 → 需求方）；<b>成果提供方不占「服务商」台账</b>（单列合作机构）</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="toast('已导出成果台账（含提供方、领域、成熟度、被对接次数、成果文件）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+      <button class="btn btn-ghost" onclick="openExp(null)"><i class="fas fa-user-plus mr-1"></i>新增专家</button>
+      <button class="btn btn-primary" onclick="openEdit(null)"><i class="fas fa-plus mr-1"></i>新增成果</button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-5 gap-3 mb-4" id="stats"></div>
+
+  <div class="tab" id="tabs">
+    <span class="on" onclick="switchTab(0,this)">技术成果</span>
+    <span onclick="switchTab(1,this)">技术专家</span>
+  </div>
+
+  <!-- Tab1 成果 -->
+  <div id="pane0">
+    <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+      <div class="flex items-center gap-3 flex-wrap">
+        <input id="f-kw" type="text" placeholder="成果编号 / 名称 / 提供方" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary w-56">
+        <select id="f-field" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600"><option value="">全部领域</option></select>
+        <select id="f-prov" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+          <option value="">全部提供方类型</option><option>高校</option><option>研究所</option><option>企业</option><option>其他</option>
+        </select>
+        <select id="f-mat" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+          <option value="">全部成熟度</option><option>实验室</option><option>中试</option><option>量产</option>
+        </select>
+        <select id="f-state" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+          <option value="">全部状态</option><option>已发布</option><option>草稿</option><option>已下线</option>
+        </select>
+        <button class="btn btn-primary" onclick="doSearch()">查询</button>
+        <button class="btn btn-ghost" onclick="resetSearch()">重置</button>
+        <span class="text-[11px] text-[#94A3B8] ml-auto"><i class="fas fa-circle-info mr-1"></i>端上「技术成果」Tab 展示已发布成果；「联系对接」→ 生成<b>对接记录</b></span>
+      </div>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+      <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-[13px] font-bold text-[#1F2430]">技术成果库</span>
+          <span class="text-[12px] text-[#94A3B8]" id="cnt">共 0 项</span>
+        </div>
+        <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>建议首批录入 8–12 条真实成果（端上原型已用浙江理工 / 东华 / 纺织研究所 / 江南大学作样例）</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-[13px]" style="min-width:1420px">
+          <thead>
+            <tr class="bg-gray-50 text-gray-500 text-[12px]">
+              <th class="px-4 py-3 text-left font-medium">成果</th>
+              <th class="px-4 py-3 text-left font-medium">提供方</th>
+              <th class="px-4 py-3 text-left font-medium">所属领域</th>
+              <th class="px-4 py-3 text-left font-medium">成熟度</th>
+              <th class="px-4 py-3 text-left font-medium">应用场景</th>
+              <th class="px-4 py-3 text-left font-medium">合作方式</th>
+              <th class="px-4 py-3 text-left font-medium">对接次数 / 结果</th>
+              <th class="px-4 py-3 text-left font-medium">状态</th>
+              <th class="px-4 py-3 text-center font-medium">操作</th>
+            </tr>
+          </thead>
+          <tbody id="tb" class="divide-y divide-gray-50"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab2 专家 -->
+  <div id="pane1" style="display:none">
+    <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+      <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-[13px] font-bold text-[#1F2430]">技术专家库</span>
+          <span class="text-[12px] text-[#94A3B8]" id="expCnt">共 0 位</span>
+        </div>
+        <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>端上 tech-service.html 有「技术专家」区块（分册存疑-7 已确认需要）→ 本 Tab 为其数据来源</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-[13px]" style="min-width:1200px">
+          <thead>
+            <tr class="bg-gray-50 text-gray-500 text-[12px]">
+              <th class="px-4 py-3 text-left font-medium">专家</th>
+              <th class="px-4 py-3 text-left font-medium">所属单位</th>
+              <th class="px-4 py-3 text-left font-medium">职称 / 头衔</th>
+              <th class="px-4 py-3 text-left font-medium">研究方向</th>
+              <th class="px-4 py-3 text-left font-medium">可服务领域</th>
+              <th class="px-4 py-3 text-left font-medium">参与对接</th>
+              <th class="px-4 py-3 text-left font-medium">状态</th>
+              <th class="px-4 py-3 text-center font-medium">操作</th>
+            </tr>
+          </thead>
+          <tbody id="tb2" class="divide-y divide-gray-50"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div id="mask" class="mask" onclick="closeAll()"></div>
+<div id="drawer" class="drawer"></div>
+<div id="modal" class="modal"></div>
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
+
+<script>
+var FIELDS=['袜机设备与自动化','原料与工艺','智能制造与数字化','智能质检','设计研发','仓储物流','节能环保'];
+var MATS=['实验室','中试','量产'];
+var COOP=['技术转让','联合开发','委托研发','技术咨询','共建实验室'];
+var ASTC={'已发布':'background:#DCFCE7;color:#15803D','草稿':'background:#F1F5F9;color:#64748B','已下线':'background:#F1F5F9;color:#475569'};
+var DSTC={'待对接':'background:#DBEAFE;color:#2563EB','对接中':'background:#EDE9FE;color:#6D28D9','已匹配':'background:#DCFCE7;color:#15803D','已关闭':'background:#F1F5F9;color:#475569'};
+var TODAY='2026-10-10';
+
+/* ===== 成果数据 ===== */
+var AC=[
+  {id:'CG-2026-031', name:'袜机断线光电检测与自动停机装置', prov:'浙江理工大学纺织装备研究所', ptype:'高校', field:'袜机设备与自动化',
+   brief:'基于光电传感的纱线断线实时检测模块，可加装于主流高速袜机，断线 0.3 秒内停机报警。', spec:'检测响应 ≤0.3s；误报率 ≤1%；适配 4 类主流机型。',
+   mat:'中试', scene:'袜厂织造车间断线看护改造', coop:['技术转让','联合开发'], contact:'纺织装备研究所 王老师 0571-8×××××01',
+   mo:'both', state:'已发布', uses:3, ok:1, file:['成果说明书.pdf','检测模块技术参数.pdf'], pub:'2026-08-10',
+   records:[{t:'2026-09-25 10:20', to:'浙江××袜业股份（需求 XQ-2026-012）', way:'线上', by:'产业服务 何静', txt:'企业提出 120 台袜机改造需求，已提供样品与现场照片。'},
+            {t:'2026-10-08 15:40', to:'浙江××袜业股份（需求 XQ-2026-012）', way:'线下', by:'产业服务 何静', txt:'现场勘察完成，方案可行，等待报价。'}],
+   result:'', matchedAt:'', evalS:0, evalT:'', evalX:''},
+  {id:'CG-2026-033', name:'再生涤纶混纺纱稳定上机工艺', prov:'东华大学纺织学院', ptype:'高校', field:'原料与工艺',
+   brief:'针对再生涤纶混纺的配比与上机参数优化方案，可降低断头率并稳定布面风格。', spec:'断头率下降 ≥35%；布面风格波动 ≤±3%。',
+   mat:'量产', scene:'袜品原料替换与工艺优化', coop:['技术咨询','委托研发'], contact:'纺织学院 李老师 021-6×××××22',
+   mo:'both', state:'已发布', uses:2, ok:1, file:['工艺方案（脱敏）.pdf'], pub:'2026-08-01',
+   records:[{t:'2026-08-20 14:00', to:'大唐××针织厂（需求 XQ-2026-014）', way:'线上', by:'产业服务 何静', txt:'提交纱线与布面样品，安排实验室分析。'},
+            {t:'2026-09-05 10:00', to:'大唐××针织厂（需求 XQ-2026-014）', way:'线下', by:'产业服务 何静', txt:'确定混纺配比与上机参数，企业试产验证通过 → 对接成功。'}],
+   result:'成功', matchedAt:'2026-09-05', evalS:5, evalT:'方案可行', evalX:'试产断头率下降 40%，方案落地效果好。'},
+  {id:'CG-2026-035', name:'袜品外观瑕疵在线视觉检测系统', prov:'江南大学人工智能学院', ptype:'高校', field:'智能质检',
+   brief:'深度学习的袜品外观瑕疵检测系统，覆盖袜口/袜身/脚尖三类，支持产线在线部署。', spec:'识别准确率 ≥96%；单双检测 ≤0.8s；支持 8 类瑕疵。',
+   mat:'中试', scene:'验袜工序自动化替代', coop:['联合开发','技术转让'], contact:'人工智能学院 张老师 0510-8×××××33',
+   mo:'both', state:'已发布', uses:1, ok:0, file:['检测系统介绍.pdf'], pub:'2026-09-15',
+   records:[{t:'2026-10-05 11:00', to:'义乌××袜业（需求 XQ-2026-016）', way:'线上', by:'产业服务 何静', txt:'已提供 200 张瑕疵样本，评估算法适配性。'}],
+   result:'', matchedAt:'', evalS:0, evalT:'', evalX:''},
+  {id:'CG-2026-036', name:'针织车间能耗监测与节能优化方案', prov:'浙江省纺织测试研究院', ptype:'研究所', field:'节能环保',
+   brief:'按机台采集电耗与压缩空气用量，构建能耗基线并给出运行优化策略。', spec:'能耗计量精度 ±1.5%；预期节能 8–12%。',
+   mat:'中试', scene:'车间能耗监测与降本', coop:['技术咨询','联合开发'], contact:'研究院 周老师 0571-8×××××44',
+   mo:'both', state:'已发布', uses:1, ok:0, file:['能耗方案要点.pdf'], pub:'2026-08-25',
+   records:[{t:'2026-08-28 09:30', to:'诸暨××针织（需求 XQ-2026-015）', way:'线上', by:'产业服务 何静', txt:'初步匹配，企业暂缓改造（预算待定）。'}],
+   result:'失败', matchedAt:'', evalS:0, evalT:'', evalX:''},
+  {id:'CG-2026-038', name:'袜机联网数据采集网关（多协议适配）', prov:'浙江××智能装备有限公司', ptype:'企业', field:'智能制造与数字化',
+   brief:'支持 4 个主流袜机品牌的协议适配网关，实现产量、停机原因自动上送 MES。', spec:'支持 Modbus/OPC-UA；采集周期 ≥1s；支持断网续传。',
+   mat:'量产', scene:'袜机数据采集与 MES 打通', coop:['技术转让'], contact:'技术部 赵工 0575-8×××××55',
+   mo:'sh', state:'已发布', uses:0, ok:0, file:['网关规格书.pdf'], pub:'2026-10-02',
+   records:[], result:'', matchedAt:'', evalS:0, evalT:'', evalX:''},
+  {id:'CG-2026-040', name:'花型智能设计（AIGC 辅助）', prov:'江南大学设计学院', ptype:'高校', field:'设计研发',
+   brief:'基于生成式模型的花型辅助设计工具，支持风格迁移与批量出图。', spec:'单次生成 ≤5s；支持 6 类风格模板。',
+   mat:'实验室', scene:'花型设计与打样前置', coop:['联合开发','技术咨询'], contact:'设计学院 陈老师 0510-8×××××66',
+   mo:'both', state:'草稿', uses:0, ok:0, file:[], pub:'',
+   records:[], result:'', matchedAt:'', evalS:0, evalT:'', evalX:''},
+  {id:'CG-2025-019', name:'（旧）袜机整机节能改造方案', prov:'浙江理工大学纺织装备研究所', ptype:'高校', field:'节能环保',
+   brief:'针对老旧袜机电机与控制系统的节能改造方案。', spec:'节能 5–7%。', mat:'中试', scene:'老旧设备节能', coop:['技术转让'], contact:'—',
+   mo:'both', state:'已下线', uses:2, ok:0, file:['方案（2025）.pdf'], pub:'2025-06-01',
+   records:[], result:'失败', matchedAt:'', evalS:0, evalT:'', evalX:''}
+];
+/* ===== 专家数据 ===== */
+var EXP=[
+  {id:'ZJ-001', name:'王××', unit:'浙江理工大学纺织装备研究所', title:'教授 / 博导', dir:'针织装备自动化、纱线检测', fields:'袜机设备与自动化 / 智能质检', uses:3, state:'在库'},
+  {id:'ZJ-002', name:'李××', unit:'东华大学纺织学院', title:'教授', dir:'再生纤维混纺与上机工艺', fields:'原料与工艺', uses:2, state:'在库'},
+  {id:'ZJ-003', name:'张××', unit:'江南大学人工智能学院', title:'副教授', dir:'工业视觉与缺陷检测', fields:'智能质检 / 智能制造与数字化', uses:1, state:'在库'},
+  {id:'ZJ-004', name:'周××', unit:'浙江省纺织测试研究院', title:'高工', dir:'纺织能耗与绿色制造', fields:'节能环保', uses:1, state:'在库'},
+  {id:'ZJ-005', name:'陈××', unit:'江南大学设计学院', title:'副教授', dir:'花型设计与 AIGC 辅助设计', fields:'设计研发', uses:0, state:'停用'}
+];
+var curRows=AC.slice(),curId=null,curExp=null;
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},3100);}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function aOf(id){return AC.filter(function(x){return x.id===id;})[0];}
+function eOf(id){return EXP.filter(function(x){return x.id===id;})[0];}
+function st(s,c){return '<span class="st" style="'+(c||ASTC[s]||'background:#F1F5F9;color:#64748B')+'">'+esc(s)+'</span>';}
+function st2(s){return '<span class="st" style="'+(DSTC[s]||'background:#F1F5F9;color:#64748B')+'">'+esc(s)+'</span>';}
+function matTag(m){
+  var c=(m==='量产'?'background:#DCFCE7;color:#15803D':(m==='中试'?'background:#FEF3C7;color:#B45309':'background:#F1F5F9;color:#64748B'));
+  return '<span class="tag" style="'+c+'">'+esc(m)+'</span>';
+}
+function ptypeTag(t){
+  var c=(t==='高校'?'background:#DBEAFE;color:#2563EB':(t==='研究所'?'background:#EDE9FE;color:#6D28D9':(t==='企业'?'background:#FFEDE7;color:#E63E20':'background:#F1F5F9;color:#64748B')));
+  return '<span class="tag" style="'+c+'">'+esc(t)+'</span>';
+}
+function pi(s){return s?parseInt(s,10):0;}
+function d2(s){var p=String(s).split('-');return new Date(Date.UTC(pi(p[0]),pi(p[1])-1,pi(p[2])));}
+function dayDiff(a,b){return Math.round((d2(b)-d2(a))/86400000);}
+function matchedDays(x){return (x.matchedAt&&x.pub)?dayDiff(x.pub,x.matchedAt):0;}
+function uses(x){return x.records.length;}
+
+function renderStats(){
+  var pub=0,draft=0,ing=0,ok=0,sum=0,cnt=0,top=0,topName='—';
+  AC.forEach(function(x){
+    if(x.state==='已发布'){pub++;}
+    if(x.state==='草稿'){draft++;}
+    if(x.records.length&&x.result!=='成功'&&x.result!=='失败'){ing++;}
+    if(x.result==='成功'){ok++;sum+=matchedDays(x);cnt++;}
+    if(uses(x)>top){top=uses(x);topName=x.name.slice(0,10);}
+  });
+  var cards=[['已发布成果',pub,'#15803D'],['草稿（未发布）',draft,'#94A3B8'],['对接中',ing,'#6D28D9'],
+    ['被对接次数 Top',top+' 次 / '+topName,'#2563EB'],['平均匹配时长 / 成功 '+ok+' 项',(cnt?Math.round(sum/cnt):0)+' 天','#B45309']];
+  document.getElementById('stats').innerHTML=cards.map(function(x){
+    return '<div class="bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">'+x[0]+'</p><p class="text-xl font-bold mt-1" style="color:'+x[2]+'">'+x[1]+'</p></div>';
+  }).join('');
+}
+function renderFilters(){
+  document.getElementById('f-field').innerHTML='<option value="">全部领域</option>'+FIELDS.map(function(f){return '<option>'+f+'</option>';}).join('');
+}
+function render(){
+  var kw=document.getElementById('f-kw').value.trim(),fd=document.getElementById('f-field').value,
+      pv=document.getElementById('f-prov').value,mt=document.getElementById('f-mat').value,ss=document.getElementById('f-state').value;
+  var rows=AC.filter(function(x){
+    return (!kw||x.id.indexOf(kw)>-1||x.name.indexOf(kw)>-1||x.prov.indexOf(kw)>-1)&&(!fd||x.field===fd)&&(!pv||x.ptype===pv)&&(!mt||x.mat===mt)&&(!ss||x.state===ss);
+  });
+  var h='';
+  rows.forEach(function(x){
+    var ops='<span class="lk-gray" onclick="openDetail(\''+x.id+'\')">对接详情</span>';
+    if(x.state==='草稿'){ops='<span class="lk" onclick="openEdit(\''+x.id+'\')">编辑</span> · <span class="lk" onclick="publish(\''+x.id+'\')">发布</span> · '+ops+' · <span class="lk-gray" onclick="delA(\''+x.id+'\')">删除</span>';}
+    else{
+      if(x.result!=='成功'){ops='<span class="lk" onclick="openMatch(\''+x.id+'\')">发起对接</span> · '+ops;}
+      if(x.records.length&&!x.result){ops='<span class="lk" onclick="openResult(\''+x.id+'\')">登记结果</span> · '+ops;}
+      if(x.result==='成功'&&!x.evalS){ops='<span class="lk" onclick="openEval(\''+x.id+'\')">评价</span> · '+ops;}
+      ops+=' · <span class="lk-gray" onclick="openEdit(\''+x.id+'\')">编辑</span> · <span class="lk-gray" onclick="toggleState(\''+x.id+'\')">'+(x.state==='已发布'?'下线':'发布')+'</span>';
+    }
+    var res=(x.result?('<span class="tag" style="'+((x.result==='成功')?'background:#DCFCE7;color:#15803D':'background:#FEE2E2;color:#B91C1C')+'">'+esc(x.result)+'</span>'):'<span class="text-[#94A3B8]">—</span>');
+    h+='<tr class="hover:bg-gray-50 transition">'
+      +'<td class="px-4 py-3" style="max-width:330px"><div class="font-medium text-[#1F2430]">'+esc(x.name)+'</div>'
+        +'<div class="text-[11px] text-[#64748B] mt-0.5">'+esc(x.brief.slice(0,40))+'…</div>'
+        +'<div class="text-[11px] text-[#94A3B8]">'+esc(x.id)+'　发布 '+esc(x.pub||'—')+'</div></td>'
+      +'<td class="px-4 py-3 text-[12px]">'+esc(x.prov)+'<div class="mt-0.5">'+ptypeTag(x.ptype)+'</div></td>'
+      +'<td class="px-4 py-3"><span class="tag" style="background:#DBEAFE;color:#2563EB">'+esc(x.field)+'</span></td>'
+      +'<td class="px-4 py-3">'+matTag(x.mat)+'</td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]" style="max-width:190px">'+esc(x.scene)+'</td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc((x.coop||[]).join(' / '))+'</td>'
+      +'<td class="px-4 py-3 text-[12px]">'+(uses(x)?('<span class="text-[#1F2430] font-medium">'+uses(x)+'</span> 次'):'<span class="text-[#94A3B8]">0</span>')+'<div class="mt-0.5">'+res+'</div></td>'
+      +'<td class="px-4 py-3">'+st(x.state)+'</td>'
+      +'<td class="px-4 py-3 text-center whitespace-nowrap">'+ops+'</td></tr>';
+  });
+  document.getElementById('tb').innerHTML=h||'<tr><td colspan="9" class="px-4 py-16 text-center text-gray-300"><i class="fas fa-inbox text-3xl block mb-2"></i><span class="text-[12px]">暂无匹配的成果</span></td></tr>';
+  document.getElementById('cnt').textContent='共 '+rows.length+' 项';
+}
+function renderExp(){
+  var h='';
+  EXP.forEach(function(e){
+    h+='<tr class="hover:bg-gray-50 transition">'
+      +'<td class="px-4 py-3"><div class="font-medium text-[#1F2430]">'+esc(e.name)+'</div><div class="text-[11px] text-[#94A3B8]">'+esc(e.id)+'</div></td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(e.unit)+'</td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(e.title)+'</td>'
+      +'<td class="px-4 py-3 text-[12px]">'+esc(e.dir)+'</td>'
+      +'<td class="px-4 py-3 text-[12px]"><span class="tag" style="background:#DBEAFE;color:#2563EB">'+esc(e.fields)+'</span></td>'
+      +'<td class="px-4 py-3 text-[12px]">'+(e.uses?'<span class="text-[#1F2430] font-medium">'+e.uses+'</span> 次':'<span class="text-[#94A3B8]">0</span>')+'</td>'
+      +'<td class="px-4 py-3">'+(e.state==='在库'?'<span class="st" style="background:#DCFCE7;color:#15803D">在库</span>':'<span class="st" style="background:#F1F5F9;color:#94A3B8">停用</span>')+'</td>'
+      +'<td class="px-4 py-3 text-center whitespace-nowrap"><span class="lk" onclick="openExp(\''+e.id+'\')">编辑</span> · <span class="lk-gray" onclick="toggleExp(\''+e.id+'\')">'+(e.state==='在库'?'停用':'启用')+'</span></td></tr>';
+  });
+  document.getElementById('tb2').innerHTML=h;
+  document.getElementById('expCnt').textContent='共 '+EXP.length+' 位（'+EXP.filter(function(e){return e.state==='在库';}).length+' 位在库）';
+}
+function switchTab(i,el){
+  var ts=document.getElementById('tabs').children;
+  for(var k=0;k<ts.length;k++){ts[k].className='';}
+  el.className='on';
+  document.getElementById('pane0').style.display=(i===0?'':'none');
+  document.getElementById('pane1').style.display=(i===1?'':'none');
+}
+function doSearch(){render();toast('已按条件查询（关键词 / 领域 / 提供方类型 / 成熟度 / 状态）');}
+function resetSearch(){
+  ['f-kw','f-field','f-prov','f-mat','f-state'].forEach(function(k){document.getElementById(k).value='';});
+  render();toast('已重置筛选条件');
+}
+function publish(id){
+  var x=aOf(id);
+  if(!x.brief||!x.spec){toast('发布前请补全「成果简介」与「技术指标」（端上详情必展示）');return;}
+  x.state='已发布';x.pub=TODAY;
+  renderStats();render();
+  toast('已发布成果 '+x.id+'：端上「技术成果」Tab 可见（发布即生效），可被需求方对接');
+}
+function toggleState(id){
+  var x=aOf(id);
+  if(x.state==='已发布'){
+    x.state='已下线';
+    renderStats();render();
+    toast('已下线 '+x.id+'：端上撤下（历史与对接记录保留）');
+    return;
+  }
+  if(!x.brief){toast('请先补全成果简介再发布');return;}
+  x.state='已发布';
+  renderStats();render();
+  toast('已发布 '+x.id+'（发布即生效）');
+}
+function delA(id){
+  var x=aOf(id);
+  if(x.state!=='草稿'){toast('仅「草稿」可删除；已发布成果请用「下线」');return;}
+  AC.splice(AC.indexOf(x),1);
+  curRows=AC.slice();renderStats();render();
+  toast('已删除草稿成果 '+id);
+}
+function toggleExp(id){
+  var e=eOf(id);
+  e.state=(e.state==='在库'?'停用':'在库');
+  renderStats();renderExp();
+  toast('专家「'+e.name+'」已'+(e.state==='在库'?'恢复在库（端上专家区可见）':'停用（端上撤下）'));
+}
+
+/* ============ 成果编辑 ============ */
+function openEdit(id){
+  curId=id;
+  var x=id?aOf(id):null;
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+(x?'编辑成果　'+esc(x.id):'新增技术成果')+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">成果来源为高校 / 研究所（运营线下收集）；<b>发布即生效</b>（本期无审核）</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-flask text-[#FF4D2D]"></i>成果基本信息</div>'
+    +'<div class="mb-3"><label class="fl">成果名称</label><input class="fi" id="a-name" value="'+(x?esc(x.name):'')+'" placeholder="例：袜机断线光电检测与自动停机装置"></div>'
+    +'<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl">提供方（高校 / 研究所 / 企业）</label><input class="fi" id="a-prov" value="'+(x?esc(x.prov):'')+'" placeholder="如：浙江理工大学纺织装备研究所"></div>'
+    +'<div><label class="fl">提供方类型</label><select class="sel" id="a-ptype">'+['高校','研究所','企业','其他'].map(function(t){return '<option'+(x&&x.ptype===t?' selected':'')+'>'+t+'</option>';}).join('')+'</select></div>'
+    +'<div><label class="fl">所属领域</label><select class="sel" id="a-field">'+FIELDS.map(function(f){return '<option'+(x&&x.field===f?' selected':'')+'>'+f+'</option>';}).join('')+'</select></div>'
+    +'<div><label class="fl">成熟度</label><select class="sel" id="a-mat">'+MATS.map(function(m){return '<option'+(x&&x.mat===m?' selected':'')+'>'+m+'</option>';}).join('')+'</select></div>'
+    +'</div>'
+    +'<div class="mt-3"><label class="fl">成果简介（端上展示）</label><textarea class="fi" id="a-brief" rows="3" placeholder="技术原理、解决什么问题、与现有方案相比优势">'+(x?esc(x.brief):'')+'</textarea></div>'
+    +'<div class="mt-3"><label class="fl">技术指标</label><textarea class="fi" id="a-spec" rows="2" placeholder="如：检测响应 ≤0.3s；误报率 ≤1%；适配 4 类主流机型">'+(x?esc(x.spec):'')+'</textarea></div>'
+    +'<div class="mt-3"><label class="fl">应用场景</label><input class="fi" id="a-scene" value="'+(x?esc(x.scene):'')+'" placeholder="如：袜厂织造车间断线看护改造"></div>'
+    +'<div class="mt-3"><label class="fl">合作方式（多选，端上"可合作方式"）</label><div>'
+    +COOP.map(function(c){var ck=x?(x.coop||[]).indexOf(c)>-1:false;return '<label style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#334155;margin-right:12px"><input type="checkbox" class="coop" value="'+c+'"'+(ck?' checked':'')+'>'+c+'</label>';}).join('')
+    +'</div></div>'
+    +'<div class="mt-3"><label class="fl">联系方式（端上"联系对接"后展示给运营，不直接对外）</label><input class="fi" id="a-contact" value="'+(x?esc(x.contact):'')+'" placeholder="姓名 / 电话"></div>'
+    +'<div class="mt-3"><label class="fl">投放端</label><select class="sel" id="a-mo"><option value="both">买家端 + 商户端</option><option value="sh"'+(x&&x.mo==='sh'?' selected':'')+'>仅商户端</option></select></div>'
+    +'</div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-paperclip text-[#7C3AED]"></i>成果附件（说明书 / 专利 / 检测报告）</div>'
+    +'<label class="up" onclick="toast(\'已上传：成果说明书.pdf（可有可无，但建议至少 1 份便于企业了解）\')" style="display:block"><i class="fas fa-cloud-arrow-up mr-1"></i>点击上传附件<input type="file" class="hidden"></label>';
+  if(x&&x.file&&x.file.length){x.file.forEach(function(f){h+='<div class="kv mt-2"><span class="k">已上传</span><span class="v">'+esc(f)+'　<span class="lk-gray" onclick="toast(\'预览：'+esc(f)+'\')">预览</span></span></div>';});}
+  h+='</div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-ghost" onclick="save(false)">保存草稿</button>'
+    +'<button class="btn btn-primary" onclick="save(true)">保存并发布</button></div>';
+  show('drawer',h);
+}
+function save(pub){
+  var name=document.getElementById('a-name').value.trim(), prov=document.getElementById('a-prov').value.trim();
+  var brief=document.getElementById('a-brief').value.trim();
+  if(!name){toast('请填写成果名称');return;}
+  if(!prov){toast('请填写提供方');return;}
+  if(pub&&!brief){toast('发布前请填写「成果简介」（端上必展示）');return;}
+  var coop=[];
+  document.querySelectorAll('.coop').forEach(function(c){if(c.checked){coop.push(c.value);}});
+  if(pub&&!coop.length){toast('请至少选择一种合作方式');return;}
+  var x=curId?aOf(curId):null;
+  var data={name:name, prov:prov, ptype:document.getElementById('a-ptype').value, field:document.getElementById('a-field').value,
+    mat:document.getElementById('a-mat').value, brief:brief, spec:document.getElementById('a-spec').value.trim(),
+    scene:document.getElementById('a-scene').value.trim(), coop:coop, contact:document.getElementById('a-contact').value.trim(),
+    mo:document.getElementById('a-mo').value};
+  if(x){for(var k in data){x[k]=data[k];}if(pub){x.state='已发布';x.pub=x.pub||TODAY;}}
+  else{
+    data.id='CG-2026-0'+(41+AC.length);data.state=pub?'已发布':'草稿';data.pub=pub?TODAY:'';data.uses=0;data.ok=0;
+    data.file=[];data.records=[];data.result='';data.matchedAt='';data.evalS=0;data.evalT='';data.evalX='';
+    AC.unshift(data);x=data;
+  }
+  curRows=AC.slice();
+  renderStats();render();closeAll();
+  toast(pub?('已发布成果 '+x.id+'（发布即生效，端上「技术成果」Tab 可见）'):('已保存草稿 '+x.id));
+}
+
+/* ============ 专家编辑 ============ */
+function openExp(id){
+  curExp=id;
+  var e=id?eOf(id):null;
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+(e?'编辑专家　'+esc(e.id):'新增技术专家')+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">端上 tech-service.html「技术专家」区块的数据来源（分册存疑-7 已确认需要）</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>'
+    +'<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px"><div class="blk">'
+    +'<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl">姓名</label><input class="fi" id="e-name" value="'+(e?esc(e.name):'')+'" placeholder="如：王××"><input type="hidden" id="e-id" value="'+(e?esc(e.id):'')+'"></div>'
+    +'<div><label class="fl">职称 / 头衔</label><input class="fi" id="e-title" value="'+(e?esc(e.title):'')+'" placeholder="如：教授 / 博导"></div>'
+    +'<div><label class="fl">所属单位</label><input class="fi" id="e-unit" value="'+(e?esc(e.unit):'')+'" placeholder="如：浙江理工大学纺织装备研究所"></div>'
+    +'<div><label class="fl">可服务领域</label><input class="fi" id="e-fields" value="'+(e?esc(e.fields):'')+'" placeholder="如：袜机设备与自动化 / 智能质检"></div>'
+    +'</div>'
+    +'<div class="mt-3"><label class="fl">研究方向</label><textarea class="fi" id="e-dir" rows="2" placeholder="如：针织装备自动化、纱线检测">'+(e?esc(e.dir):'')+'</textarea></div>'
+    +'</div></div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveExp()">保存</button></div>';
+  show('drawer',h);
+}
+function saveExp(){
+  var name=document.getElementById('e-name').value.trim(), unit=document.getElementById('e-unit').value.trim();
+  if(!name||!unit){toast('姓名与所属单位必填');return;}
+  var e=curExp?eOf(curExp):null;
+  var data={name:name, unit:unit, title:document.getElementById('e-title').value.trim()||'—',
+    fields:document.getElementById('e-fields').value.trim()||'—', dir:document.getElementById('e-dir').value.trim()};
+  if(e){for(var k in data){e[k]=data[k];}}
+  else{data.id='ZJ-00'+(EXP.length+1);data.uses=0;data.state='在库';EXP.push(data);}
+  renderStats();renderExp();closeAll();
+  toast('已保存专家「'+name+'」（'+(e&&e.state==='停用'?'停用':'在库')+'，端上专家区同步）');
+}
+
+/* ============ 对接详情 / 发起对接 / 结果 / 评价 ============ */
+function openDetail(id){
+  curId=id;
+  var x=aOf(id);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+esc(x.name)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(x.id)+'　'+esc(x.prov)+'　'+esc(x.field)+'　'+matTag(x.mat)+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-circle-info text-[#2563EB]"></i>成果信息</div>'
+    +'<div class="kv"><span class="k">成果简介</span><span class="v">'+esc(x.brief||'—')+'</span></div>'
+    +'<div class="kv"><span class="k">技术指标</span><span class="v">'+esc(x.spec||'—')+'</span></div>'
+    +'<div class="kv"><span class="k">应用场景</span><span class="v">'+esc(x.scene||'—')+'</span></div>'
+    +'<div class="kv"><span class="k">合作方式</span><span class="v">'+esc((x.coop||[]).join(' / ')||'—')+'</span></div>'
+    +'<div class="kv"><span class="k">发布 / 成熟度</span><span class="v">'+esc(x.pub||'草稿')+'　'+esc(x.mat)+'</span></div>'
+    +'</div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-timeline text-[#7C3AED]"></i>对接记录（'+x.records.length+' 条，方向：成果 → 需求方）</div>';
+  if(x.records.length){
+    h+='<div class="tl">';
+    x.records.forEach(function(r,i){
+      h+='<div class="node'+(i===x.records.length-1?' done':'')+'">'
+        +'<div class="text-[12px] text-[#1F2430] font-medium">'+esc(r.to)+'　<span class="tag" style="background:#DBEAFE;color:#2563EB">'+esc(r.way)+'</span></div>'
+        +'<div class="text-[11px] text-[#94A3B8]">'+esc(r.t)+'　登记人 '+esc(r.by)+'</div>'
+        +'<div class="text-[12px] text-[#64748B] mt-1 leading-6">'+esc(r.txt)+'</div></div>';
+    });
+    h+='</div>';
+  }else{h+='<p class="text-[12px] text-[#94A3B8]">暂无对接记录：可对企业需求发起对接（端上"联系对接"也会生成记录）</p>';}
+  h+='<div class="flex justify-end mt-2"><button class="btn btn-ghost" onclick="openMatch(\''+x.id+'\')"><i class="fas fa-handshake mr-1"></i>发起对接</button></div></div>';
+  if(x.result){
+    h+='<div class="blk" style="border-color:'+(x.result==='成功'?'#BBF7D0':'#FECACA')+';background:'+(x.result==='成功'?'#F0FDF4':'#FEF2F2')+'">'
+      +'<div class="blk-t" style="color:'+(x.result==='成功'?'#15803D':'#B91C1C')+'"><i class="fas fa-circle-check"></i>对接结果：'+esc(x.result)+'</div>'
+      +'<div class="kv"><span class="k">匹配成功时间</span><span class="v">'+(x.matchedAt?esc(x.matchedAt)+'（用时 '+matchedDays(x)+' 天）':'—')+'</span></div>'
+      +'<div class="kv"><span class="k">满意度评价</span><span class="v">'+(x.evalS?('<span class="star">'+'★'.repeat(x.evalS)+'</span> '+x.evalS.toFixed(1)+'　'+esc(x.evalT)+'　<span class="text-[11px] text-[#94A3B8]">'+esc(x.evalX)+'</span>'):'未评价')+'</span></div>'
+      +'</div>';
+  }
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">关闭</button>'
+    +(x.records.length&&!x.result?'<button class="btn btn-primary" onclick="openResult(\''+x.id+'\')">登记结果</button>':'')
+    +(x.result==='成功'&&!x.evalS?'<button class="btn btn-primary" onclick="openEval(\''+x.id+'\')">评价</button>':'')
+    +'</div>';
+  show('drawer',h);
+}
+function openMatch(id){
+  curId=id;
+  var x=aOf(id);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">发起对接　'+esc(x.id)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(x.name)+'　→ 推荐给有对应技术需求的企业</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>'
+    +'<div class="px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl">对接企业（需求方）</label><input class="fi" id="m-to" placeholder="如：浙江××袜业股份（需求 XQ-2026-012）"></div>'
+    +'<div><label class="fl">对接方式</label><select class="sel" id="m-way"><option>线上</option><option>线下</option><option>电话</option></select></div>'
+    +'</div>'
+    +'<div><label class="fl">对接进展说明（必填）</label><textarea class="fi" id="m-txt" rows="3" placeholder="已提供成果资料、约定勘察/试验安排…"></textarea></div>'
+    +'<div class="rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B]">对接后可继续「登记结果」（成功时记录<b>匹配成功时间</b>，用于平均匹配时长与成功率）；建议同时在「技术需求发布管理」侧更新对应需求记录，两侧保持一致。</p></div>'
+    +'</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="doMatch()">保存对接记录</button></div>';
+  show('modal',h);
+}
+function doMatch(){
+  var x=aOf(curId),to=document.getElementById('m-to').value.trim(),txt=document.getElementById('m-txt').value.trim();
+  if(!to){toast('请填写对接企业');return;}
+  if(!txt){toast('对接进展说明必填');return;}
+  x.records.push({t:TODAY+' 11:00', to:to, way:document.getElementById('m-way').value, by:'产业服务 何静', txt:txt});
+  renderStats();render();closeAll();
+  toast('已发起对接：'+x.id+' → '+to+'（对接记录 '+x.records.length+' 条）');
+}
+function openResult(id){
+  curId=id;
+  var x=aOf(id);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">登记对接结果　'+esc(x.id)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(x.name)+'　已发布 '+esc(x.pub||'—')+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>'
+    +'<div class="px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div><label class="fl">对接结果</label><div style="display:flex;gap:8px">'
+    +'<label class="flex-1" style="border:1px solid #BBF7D0;background:#F0FDF4;border-radius:10px;padding:10px;text-align:center"><input type="radio" name="ar" value="成功" checked> <b style="color:#15803D">成功</b><div class="text-[10px] text-[#64748B]">已达成合作 / 试产验证</div></label>'
+    +'<label class="flex-1" style="border:1px solid #FECACA;background:#FEF2F2;border-radius:10px;padding:10px;text-align:center"><input type="radio" name="ar" value="失败"> <b style="color:#B91C1C">失败</b><div class="text-[10px] text-[#64748B]">不匹配 / 条件不符</div></label>'
+    +'</div></div>'
+    +'<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl">匹配成功时间（结果=成功时必填）</label><input class="fi" id="ar-date" type="date" value="'+TODAY+'"></div>'
+    +'<div><label class="fl">合作金额（选填）</label><input class="fi" id="ar-amt" placeholder="如 150000"></div>'
+    +'</div>'
+    +'<div><label class="fl">结果说明（必填）</label><textarea class="fi" id="ar-txt" rows="3" placeholder="如：与浙江××袜业签订联合开发协议，金额 15 万元。"></textarea></div>'
+    +'</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="doResult()">确认登记</button></div>';
+  show('modal',h);
+}
+function doResult(){
+  var x=aOf(curId),txt=document.getElementById('ar-txt').value.trim();
+  var res=(document.querySelector('input[name=ar]:checked')||{}).value||'成功';
+  if(!txt){toast('结果说明必填');return;}
+  x.result=res;
+  if(res==='成功'){
+    x.matchedAt=document.getElementById('ar-date').value||TODAY;x.ok=(x.ok||0)+1;
+    toast('已登记「成功」：'+x.id+'　匹配成功时间 '+x.matchedAt+'（用时 '+matchedDays(x)+' 天）→ 计入成功率与平均匹配时长');
+  }else{
+    x.matchedAt='';
+    toast('已登记「失败」：'+x.id+'（原因留痕；可继续对接其他企业）');
+  }
+  renderStats();render();closeAll();
+}
+function openEval(id){
+  curId=id;
+  var x=aOf(id);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">登记评价　'+esc(x.id)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(x.name)+'（提供方：'+esc(x.prov)+'）</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>'
+    +'<div class="px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div><label class="fl">满意度评分（企业对成果/提供方的评价，专员代录）</label><select class="sel" id="ev-s"><option value="5">5 分 · 非常满意</option><option value="4">4 分 · 满意</option><option value="3">3 分 · 一般</option><option value="2">2 分 · 不满意</option><option value="1">1 分 · 很不满意</option></select></div>'
+    +'<div><label class="fl">评价标签</label><select class="sel" id="ev-t"><option>方案可行</option><option>专业高效</option><option>响应及时</option><option>后续跟进不足</option><option>落地周期偏长</option></select></div>'
+    +'<div><label class="fl">评价内容</label><textarea class="fi" id="ev-x" rows="2" placeholder="如：方案落地效果好，试产验证通过。"></textarea></div>'
+    +'<div class="rounded-xl border p-3" style="border-color:#DDD6FE;background:#FAF8FF"><p class="text-[11px] text-[#64748B]">评价计入<b>满意度评分</b>（招标指标），并累积到成果提供方（高校/研究所）的服务质量记录。</p></div>'
+    +'</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="doEval()">提交评价</button></div>';
+  show('modal',h);
+}
+function doEval(){
+  var x=aOf(curId);
+  x.evalS=parseInt(document.getElementById('ev-s').value,10);
+  x.evalT=document.getElementById('ev-t').value;
+  x.evalX=document.getElementById('ev-x').value.trim();
+  renderStats();render();closeAll();
+  toast('已提交评价：'+x.id+'　'+x.evalS.toFixed(1)+' 分 · '+x.evalT);
+}
+
+/* ============ 基础 ============ */
+function show(which,h){
+  document.getElementById(which).innerHTML=h;
+  document.getElementById('mask').classList.add('on');
+  document.getElementById(which).classList.add('on');
+}
+function closeAll(){
+  document.getElementById('mask').classList.remove('on');
+  document.getElementById('drawer').classList.remove('on');
+  document.getElementById('modal').classList.remove('on');
+}
+renderFilters();renderStats();render();renderExp();
+</script>
+</body>
+</html>

@@ -18,8 +18,8 @@
  * 【顺序】数组顺序 = 侧边栏展示顺序，调整顺序即移动数组元素，勿复制粘贴
  * ========================================================================== */
 
-window.MENU_VERSION = '2026.10.09-03';
-window.MENU_UPDATED = '2026-10-09';
+window.MENU_VERSION = '2026.10.10-01';
+window.MENU_UPDATED = '2026-10-10';
 
 window.MENU_DATA = [
 
@@ -206,17 +206,17 @@ window.MENU_DATA = [
       { type: 'item', name: '投递管理', page: null, status: 'dev', points: ['投递记录', '详情', '回复记录'] }
     ]},
     { type: 'group', name: '知识产权', items: [
-      { type: 'item', name: '配置管理', page: null, status: 'dev', points: ['新建', '列表'] }
+      { type: 'item', name: '配置管理', page: 'chain-ip.html', status: 'done', points: ['新建/编辑配置（展示文案 + 跳转目标 + 电话/二维码）', '列表（服务类型：专利查询 / 商标注册 / 版权登记，与端上 Tab 一致）', '投放端（买家端/商户端）+ 排序 + 生效期 + 上下架', '端上预览 + 测试跳转 + 按配置统计点击量'] }
     ]},
     { type: 'group', name: '技术共享', items: [
-      { type: 'item', name: '需求发布管理', page: null, status: 'dev', points: ['需求列表', '对接详情'] },
-      { type: 'item', name: '技术成果管理', page: null, status: 'dev', points: ['成果列表', '对接详情'] }
+      { type: 'item', name: '需求发布管理', page: 'chain-tech-demand.html', status: 'done', points: ['需求列表（技术领域 / 对接状态 / 发布状态 / 仅看超期未对接）', '发布即生效；运营可代录（商户端提交为源）', '对接详情：对接记录时间线 + 结果登记（成功/失败/终止）+ 评价', '超期未对接 15 天红标；匹配成功时间 → 平均匹配时长 / 成功率'] },
+      { type: 'item', name: '技术成果管理', page: 'chain-tech-achv.html', status: 'done', points: ['成果列表（高校/研究所成果：领域 / 成熟度 / 应用场景 / 合作方式）', '技术专家 Tab（端上「技术专家」区块数据源）', '对接详情（方向：成果 → 需求方）+ 结果登记 + 评价', '成果附件（说明书/专利）与端口投放'] }
     ]},
     { type: 'group', name: '政策兑现', items: [
-      { type: 'item', name: '政策发布', page: null, status: 'dev', points: ['新建', '政策列表'] }
+      { type: 'item', name: '政策发布', page: 'chain-policy.html', status: 'done', points: ['政策列表（分类：资金补贴 / 人才政策 / 创新支持，与端上 Tab 一致）', '结构化字段：申报条件 / 申报材料 / 兑现流程 / 申报起止 / 受理方式 + 原文附件', 'AI 图文解读（一键生成 → 人工复核终稿，发布前必填）', '申报受理 Tab：受理 / 退回补正 / 登记兑现 / 未通过，状态回写端上并推送'] }
     ]},
     { type: 'group', name: '中介服务', items: [
-      { type: 'item', name: '服务发布管理', page: null, status: 'dev', points: ['新建', '服务列表（财务/法律/管理/认证检验）'] }
+      { type: 'item', name: '服务发布管理', page: 'chain-agency.html', status: 'done', points: ['服务商台账（**服务商主数据产生方**）：类型 / 服务范围 / 资质 / 评分 / 上下架', '服务项目（内容 / 计费方式 / 价格 / 周期 / 跳转），可单独上下架', '评价明细（评分聚合来源 + 投诉处置留痕）与委托登记（撮合金额来源）', '类型：财务服务 / 法律咨询 / 管理咨询 / 认证检测 / 知识产权，与端上分类一致'] }
     ]}
   ]
 },

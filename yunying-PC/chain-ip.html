@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>产业链服务 - 知识产权配置管理</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}.lk:hover{text-decoration:underline}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}.lk-gray:hover{color:#1F2430;text-decoration:underline}
+.st{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500;white-space:nowrap}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:60}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:720px;max-width:96vw;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:70;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);width:640px;max-width:95vw;max-height:86vh;overflow-y:auto;background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(15,23,42,.28);opacity:0;pointer-events:none;transition:.22s;z-index:70}
+.modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+.blk{border:1px solid #E2E8F0;border-radius:12px;padding:14px 16px}
+.blk-t{font-size:12.5px;font-weight:700;color:#1F2430;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.kv{display:flex;gap:8px;font-size:12px;line-height:1.9}
+.kv .k{width:110px;flex-shrink:0}
+.fi{width:100%;padding:6px 10px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none;background:#fff}
+.fi:focus{border-color:#FF4D2D}
+.fl{display:block;font-size:11px;color:#94A3B8;margin-bottom:4px}
+.sel{width:100%;padding:6px 8px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none}
+button{cursor:pointer}
+textarea.fi{font-family:inherit;line-height:1.8;resize:vertical}
+.mob{width:250px;border:8px solid #1F2430;border-radius:22px;background:#F8FAFC;padding:8px;margin:0 auto}
+.mob-tab{display:flex;gap:6px;font-size:10px;color:#94A3B8;margin-bottom:6px}
+.mob-tab b{color:#E63E20;border-bottom:2px solid #E63E20;padding-bottom:2px}
+.card{border-radius:10px;padding:9px;background:#fff;border:1px solid #EEF2F7;margin-bottom:6px}
+</style>
+<!-- Tailwind 静态样式：本地引用（不再依赖 cdn.tailwindcss.com）；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<div class="p-6">
+
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">知识产权配置管理</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">13 产业链服务</span>
+        <span class="tag" style="background:#DCFCE7;color:#15803D">展示配置 + 链接跳转</span>
+        <span class="tag" style="background:#F1F5F9;color:#94A3B8">发布即生效</span>
+      </div>
+      <p class="text-[12px] text-gray-400 mt-1">端上「知识产权」页三个 Tab（<b>专利查询 / 商标注册 / 版权登记</b>）的展示文案与跳转目标配置（招标 #121）；<b>平台不办知产业务</b>——只做展示 + 跳转 + 点击统计，商标/专利/版权的实际办理由外部机构承接</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="openPreview(null)"><i class="fas fa-mobile-screen text-[10px] mr-1"></i>端上预览</button>
+      <button class="btn btn-ghost" onclick="toast('已导出知产配置（含类型、跳转目标、投放端、点击量）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+      <button class="btn btn-primary" onclick="openEdit(null)"><i class="fas fa-plus mr-1"></i>新增配置</button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-4 gap-3 mb-4" id="stats"></div>
+
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+    <div class="flex items-center gap-3 flex-wrap">
+      <input id="f-kw" type="text" placeholder="配置名称 / 展示标题 / 机构" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary w-56">
+      <select id="f-type" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600"><option value="">全部服务类型</option></select>
+      <select id="f-mo" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+        <option value="">全部投放端</option><option value="both">买家端 + 商户端</option><option value="buy">仅买家端</option><option value="sh">仅商户端</option>
+      </select>
+      <select id="f-state" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+        <option value="">全部状态</option><option>已发布</option><option>草稿</option><option>已下线</option><option>已过期</option>
+      </select>
+      <button class="btn btn-primary" onclick="doSearch()">查询</button>
+      <button class="btn btn-ghost" onclick="resetSearch()">重置</button>
+      <span class="text-[11px] text-[#94A3B8] ml-auto"><i class="fas fa-circle-info mr-1"></i>端上三个 Tab 为 <b>固定口径</b>，新增「其他」类型需同步端上改造（见分册 §9.1）</span>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-[13px] font-bold text-[#1F2430]">知产服务配置</span>
+        <span class="text-[12px] text-[#94A3B8]" id="cnt">共 0 条</span>
+      </div>
+      <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-chart-simple mr-1"></i>点击量由端上报（配置 ID + 端 + 时间）——用于判断知产服务是否被真实使用</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-[13px]" style="min-width:1320px">
+        <thead>
+          <tr class="bg-gray-50 text-gray-500 text-[12px]">
+            <th class="px-4 py-3 text-left font-medium">配置名称 / 展示标题</th>
+            <th class="px-4 py-3 text-left font-medium">服务类型</th>
+            <th class="px-4 py-3 text-left font-medium">服务机构 / 平台</th>
+            <th class="px-4 py-3 text-left font-medium">跳转方式</th>
+            <th class="px-4 py-3 text-left font-medium">投放端</th>
+            <th class="px-4 py-3 text-left font-medium">排序 / 生效期</th>
+            <th class="px-4 py-3 text-left font-medium">近 30 天点击</th>
+            <th class="px-4 py-3 text-left font-medium">状态</th>
+            <th class="px-4 py-3 text-center font-medium">操作</th>
+          </tr>
+        </thead>
+        <tbody id="tb" class="divide-y divide-gray-50"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div id="mask" class="mask" onclick="closeAll()"></div>
+<div id="drawer" class="drawer"></div>
+<div id="modal" class="modal"></div>
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
+
+<script>
+/* 服务类型 = 端上 ip-service.html 三个固定 Tab + 其他 */
+var TYPES=['专利查询','商标注册','版权登记','其他'];
+var WAYS=['外链 H5','小程序','电话','线下窗口'];
+var STC={'已发布':'background:#DCFCE7;color:#15803D','草稿':'background:#F1F5F9;color:#64748B','已下线':'background:#F1F5F9;color:#475569','已过期':'background:#F1F5F9;color:#94A3B8'};
+/* 服务商来源提示：统一引用「中介服务-服务商台账」（chain-agency.html）中 类型=知识产权 的服务商 */
+var PVS=[{n:'华知知识产权代理',t:'知识产权'},{n:'（引自服务商台账）诸暨市知识产权服务中心',t:'知识产权'},{n:'国家知识产权局专利检索（外部平台）',t:'外部平台'}];
+
+var IP=[
+  {id:'IP-001', name:'专利检索（国知局）', title:'专利查询', sub:'国家知识产权局专利检索系统 · 免费检索', type:'专利查询', org:'国家知识产权局（外部平台）', way:'外链 H5',
+   link:'https://pss-system.cponline.cnipa.gov.cn', tel:'', mo:'both', sort:1, start:'2026-01-01', end:'2026-12-31', state:'已发布', clk:1268, icon:'fa-magnifying-glass'},
+  {id:'IP-002', name:'专利申请代办（华知）', title:'专利申请代办', sub:'发明 / 实用新型 / 外观设计 · 本地机构代办', type:'专利查询', org:'华知知识产权代理', way:'电话',
+   link:'', tel:'0575-8878 2200', mo:'both', sort:2, start:'2026-01-01', end:'2026-12-31', state:'已发布', clk:412, icon:'fa-file-circle-check'},
+  {id:'IP-003', name:'商标注册（华知）', title:'商标注册', sub:'查询 + 申报 + 跟踪至下证 · 1,200 元 / 类', type:'商标注册', org:'华知知识产权代理', way:'外链 H5',
+   link:'https://example.com/hz-ip', tel:'0575-8878 2200', mo:'both', sort:1, start:'2026-01-01', end:'2026-12-31', state:'已发布', clk:735, icon:'fa-certificate'},
+  {id:'IP-004', name:'商标变更 · 续展', title:'商标变更 / 续展', sub:'地址变更、名义变更、到期续展', type:'商标注册', org:'诸暨市知识产权服务中心', way:'小程序',
+   link:'https://example.com/mp-ip', tel:'0575-8878 0088', mo:'sh', sort:2, start:'2026-03-01', end:'2026-12-31', state:'已发布', clk:96, icon:'fa-rotate'},
+  {id:'IP-005', name:'版权登记（作品）', title:'版权登记', sub:'花型 / 图案作品著作权登记 · 材料清单可下载', type:'版权登记', org:'华知知识产权代理', way:'外链 H5',
+   link:'https://example.com/hz-ip-cr', tel:'0575-8878 2200', mo:'both', sort:1, start:'2026-01-01', end:'2026-12-31', state:'已发布', clk:521, icon:'fa-copyright'},
+  {id:'IP-006', name:'侵权维权咨询', title:'侵权维权咨询', sub:'仿款取证 / 投诉渠道 / 律师对接（联动法律咨询）', type:'版权登记', org:'大唐法律服务站（引自服务商台账）', way:'电话',
+   link:'', tel:'0575-8878 3344', mo:'sh', sort:3, start:'2026-05-01', end:'2026-12-31', state:'已发布', clk:143, icon:'fa-scale-balanced'},
+  {id:'IP-007', name:'专利导航分析（新增）', title:'专利导航分析', sub:'拟上架：面向袜机设备的专利布局分析', type:'其他', org:'（待定）', way:'外链 H5',
+   link:'', tel:'', mo:'both', sort:9, start:'', end:'', state:'草稿', clk:0, icon:'fa-chart-pie'},
+  {id:'IP-008', name:'（旧）知产代理导航页', title:'知识产权服务', sub:'已下线：原聚合导航，功能并入三个 Tab', type:'其他', org:'—', way:'外链 H5',
+   link:'', tel:'', mo:'both', sort:9, start:'2025-01-01', end:'2025-12-31', state:'已过期', clk:28, icon:'fa-link'}
+];
+var curRows=IP.slice(),curId=null;
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},2900);}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function money(n){return Number(n).toLocaleString('en-US');}
+function iOf(id){return IP.filter(function(x){return x.id===id;})[0];}
+function st(s){return '<span class="st" style="'+(STC[s]||'background:#F1F5F9;color:#64748B')+'">'+esc(s)+'</span>';}
+function typeTag(t){
+  var c=(t==='专利查询'?'background:#DBEAFE;color:#2563EB':(t==='商标注册'?'background:#EDE9FE;color:#6D28D9':(t==='版权登记'?'background:#DCFCE7;color:#15803D':'background:#F1F5F9;color:#64748B')));
+  return '<span class="tag" style="'+c+'">'+esc(t)+'</span>';
+}
+function moTag(m){return m==='both'?'<span class="tag" style="background:#FFEDE7;color:#E63E20">双端</span>':(m==='buy'?'<span class="tag" style="background:#DCFCE7;color:#15803D">买家端</span>':'<span class="tag" style="background:#EDE9FE;color:#6D28D9">商户端</span>');}
+/* 页面工具 */
+
+function renderStats(){
+  var pub=IP.filter(function(x){return x.state==='已发布';}).length;
+  var clk=0;IP.forEach(function(x){clk+=x.clk||0;});
+  var both=IP.filter(function(x){return x.state==='已发布'&&x.mo==='both';}).length;
+  var cards=[['已发布配置',pub,'#15803D'],['草稿 / 下线',(IP.length-pub),'#94A3B8'],['近 30 天端上点击',money(clk),'#2563EB'],['双端生效配置',both,'#7C3AED']];
+  document.getElementById('stats').innerHTML=cards.map(function(x){
+    return '<div class="bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">'+x[0]+'</p><p class="text-xl font-bold mt-1" style="color:'+x[2]+'">'+x[1]+'</p></div>';
+  }).join('');
+}
+function renderTypeFilter(){
+  document.getElementById('f-type').innerHTML='<option value="">全部服务类型</option>'+TYPES.map(function(t){return '<option>'+t+'</option>';}).join('');
+}
+function render(){
+  var h='';
+  curRows.forEach(function(x){
+    var ops='<span class="lk" onclick="openEdit(\''+x.id+'\')">编辑</span>'
+      +' · <span class="lk-gray" onclick="openPreview(\''+x.id+'\')">预览</span>'
+      +' · <span class="lk-gray" onclick="testLink(\''+x.id+'\')">测试跳转</span>'
+      +' · <span class="lk-gray" onclick="toggle(\''+x.id+'\')">'+(x.state==='已发布'?'下架':'发布')+'</span>';
+    if(x.state==='草稿'){ops+=' · <span class="lk-gray" onclick="del(\''+x.id+'\')">删除</span>';}
+    h+='<tr class="hover:bg-gray-50 transition">'
+      +'<td class="px-4 py-3" style="max-width:300px"><div class="font-medium text-[#1F2430]"><i class="fas '+esc(x.icon)+' mr-1" style="color:#FF4D2D"></i>'+esc(x.name)+'</div>'
+        +'<div class="text-[11px] text-[#64748B] mt-0.5">端上卡片：'+esc(x.title)+'　'+esc(x.sub)+'</div>'
+        +'<div class="text-[11px] text-[#94A3B8]">'+esc(x.id)+'</div></td>'
+      +'<td class="px-4 py-3">'+typeTag(x.type)+'</td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(x.org)+(x.tel?'<div class="text-[11px] text-[#94A3B8]">'+esc(x.tel)+'</div>':'')+'</td>'
+      +'<td class="px-4 py-3 text-[12px]">'+esc(x.way)+(x.link?'<div class="text-[11px] text-[#94A3B8]">'+esc(x.link.slice(0,26))+'…</div>':'')+'</td>'
+      +'<td class="px-4 py-3">'+moTag(x.mo)+'</td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">排序 '+x.sort+'<div class="text-[11px] text-[#94A3B8]">'+(x.start?esc(x.start)+' ~ '+esc(x.end||'长期'):'未设置')+'</div></td>'
+      +'<td class="px-4 py-3 text-[12px]">'+(x.clk?'<span class="text-[#1F2430] font-medium">'+money(x.clk)+'</span>':'<span class="text-[#94A3B8]">0</span>')+'</td>'
+      +'<td class="px-4 py-3">'+st(x.state)+'</td>'
+      +'<td class="px-4 py-3 text-center whitespace-nowrap">'+ops+'</td></tr>';
+  });
+  if(!curRows.length){h='<tr><td colspan="9" class="px-4 py-16 text-center text-gray-300"><i class="fas fa-inbox text-3xl block mb-2"></i><span class="text-[12px]">暂无匹配的配置</span></td></tr>';}
+  document.getElementById('tb').innerHTML=h;
+  document.getElementById('cnt').textContent='共 '+curRows.length+' 条';
+}
+function doSearch(){
+  var kw=document.getElementById('f-kw').value.trim(),tp=document.getElementById('f-type').value,
+      mo=document.getElementById('f-mo').value,ss=document.getElementById('f-state').value;
+  curRows=IP.filter(function(x){
+    return (!kw||x.name.indexOf(kw)>-1||x.title.indexOf(kw)>-1||x.org.indexOf(kw)>-1)&&(!tp||x.type===tp)&&(!mo||x.mo===mo)&&(!ss||x.state===ss);
+  });
+  render();toast('已按条件查询，共 '+curRows.length+' 条（支持关键词 / 服务类型 / 投放端 / 状态）');
+}
+function resetSearch(){
+  ['f-kw','f-type','f-mo','f-state'].forEach(function(k){document.getElementById(k).value='';});
+  curRows=IP.slice();render();toast('已重置筛选条件');
+}
+function toggle(id){
+  var x=iOf(id);
+  if(x.state==='已发布'){x.state='已下线';renderStats();render();toast('已下架「'+x.name+'」：端上对应 Tab 撤下该卡片（其余卡片不受影响）');return;}
+  if(!x.link&&!x.tel){toast('发布前请至少配置「跳转链接」或「联系电话」（否则端上点了没反应）');return;}
+  if(x.state==='草稿'&&!x.start){x.start='2026-10-10';x.end='2026-12-31';}
+  x.state='已发布';x.clk=0;
+  renderStats();render();
+  toast('已发布「'+x.name+'」：端上 '+(x.mo==='both'?'买家端 + 商户端':(x.mo==='buy'?'买家端':'商户端'))+'「'+x.type+'」Tab 生效（发布即生效）');
+}
+function testLink(id){
+  var x=iOf(id);
+  if(x.way==='电话'){toast('测试跳转（电话）：将拨打 '+x.tel+'（端上为点击拨号）');return;}
+  if(!x.link){toast('未配置跳转链接：端上点击将无响应，请先补链');return;}
+  toast('测试跳转：'+x.link+'　→ 链接可达（https 校验通过）');
+}
+function del(id){
+  var x=iOf(id);
+  if(x.state!=='草稿'){toast('仅「草稿」可删除；已发布配置请用「下架」（保留点击统计）');return;}
+  IP.splice(IP.indexOf(x),1);
+  curRows=IP.slice();renderStats();render();
+  toast('已删除草稿配置 '+id);
+}
+
+/* ============ 新建 / 编辑 ============ */
+function openEdit(id){
+  curId=id;
+  var x=id?iOf(id):null;
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+(x?'编辑配置　'+esc(x.id):'新增知产配置')+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">配置端上「知识产权」页的卡片文案与跳转目标；<b>发布即生效</b>（本期无审核）</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-list text-[#FF4D2D]"></i>端上展示</div>'
+    +'<div class="mb-3"><label class="fl">配置名称（后台用）</label><input class="fi" id="c-name" value="'+(x?esc(x.name):'')+'" placeholder="例：商标注册（华知）"></div>'
+    +'<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl">服务类型（决定落在端上哪个 Tab）</label><select class="sel" id="c-type">'+TYPES.map(function(t){return '<option'+(x&&x.type===t?' selected':'')+'>'+t+'</option>';}).join('')+'</select></div>'
+    +'<div><label class="fl">图标（FontAwesome 类名）</label><input class="fi" id="c-icon" value="'+(x?esc(x.icon):'fa-certificate')+'"></div>'
+    +'<div><label class="fl">卡片标题（端上）</label><input class="fi" id="c-title" value="'+(x?esc(x.title):'')+'" placeholder="如：商标注册"></div>'
+    +'<div><label class="fl">卡片副标题（端上）</label><input class="fi" id="c-sub" value="'+(x?esc(x.sub):'')+'" placeholder="如：查询 + 申报 + 跟踪至下证"></div>'
+    +'</div></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-arrow-up-right-from-square text-[#2563EB]"></i>服务机构与跳转</div>'
+    +'<div class="mb-3"><label class="fl">服务机构 / 平台（可引自「中介服务」服务商台账）</label>'
+    +'<select class="sel" id="c-org" onchange="pickOrg()">'
+    +'<option value="">— 手动填写 —</option>'
+    +PVS.map(function(p){return '<option value="'+esc(p.n)+'"'+(x&&x.org===p.n?' selected':'')+'>'+esc(p.n)+'（'+esc(p.t)+'）</option>';}).join('')
+    +'</select>'
+    +'<input class="fi mt-2" id="c-orgTxt" value="'+(x?esc(x.org):'')+'" placeholder="机构名称，如：华知知识产权代理"></div>'
+    +'<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl">跳转方式</label><select class="sel" id="c-way">'+WAYS.map(function(w){return '<option'+(x&&x.way===w?' selected':'')+'>'+w+'</option>';}).join('')+'</select></div>'
+    +'<div><label class="fl">联系电话（跳转方式=电话 时必填）</label><input class="fi" id="c-tel" value="'+(x?esc(x.tel):'')+'" placeholder="如 0575-8878 2200"></div>'
+    +'</div>'
+    +'<div class="mt-3"><label class="fl">跳转链接（https / 小程序路径）</label><input class="fi" id="c-link" value="'+(x?esc(x.link):'')+'" placeholder="https://...">'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1"><i class="fas fa-circle-info mr-1"></i>填写外部平台信息时，<b>未取得授权不得使用官方名称</b>（国知局等需为官方入口链接）。</p></div>'
+    +'</div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-paper-plane text-[#7C3AED]"></i>发布设置</div>'
+    +'<div class="grid grid-cols-3 gap-3">'
+    +'<div><label class="fl">投放端</label><select class="sel" id="c-mo"><option value="both"'+(x&&x.mo==='both'?' selected':'')+'>买家端 + 商户端</option><option value="buy"'+(x&&x.mo==='buy'?' selected':'')+'>仅买家端</option><option value="sh"'+(x&&x.mo==='sh'?' selected':'')+'>仅商户端</option></select></div>'
+    +'<div><label class="fl">排序（同 Tab 内小在前）</label><input class="fi" id="c-sort" value="'+(x?x.sort:1)+'"></div>'
+    +'<div><label class="fl">生效开始</label><input class="fi" id="c-start" type="date" value="'+(x&&x.start?esc(x.start.replace(/\./g,'-')):'2026-10-10')+'"></div>'
+    +'<div><label class="fl">生效结束（留空=长期）</label><input class="fi" id="c-end" type="date" value="'+(x&&x.end?esc(x.end.replace(/\./g,'-')):'2026-12-31')+'"></div>'
+    +'<div><label class="fl">状态</label><select class="sel" id="c-state"><option'+(x&&x.state==='已发布'?' selected':'')+'>已发布</option><option'+(x&&x.state==='草稿'?' selected':'')+'>草稿</option><option'+(x&&x.state==='已下线'?' selected':'')+'>已下线</option></select></div>'
+    +'</div></div>';
+  h+='<div class="blk" style="border-color:#FDE68A;background:#FFFBEB"><div class="blk-t" style="color:#B45309"><i class="fas fa-circle-info"></i>端上口径说明</div>'
+    +'<p class="text-[11px] text-[#64748B] leading-6">· 同一 Tab 可配置<b>多条卡片</b>（按排序展示），如"专利查询"下同时挂"国知局检索"与"本地代办"；<br>'
+    +'· 端上 `ip-service.html` 的<b>「已登记记录」区块</b>：本模块只做跳转、平台不存登记数据 → <b>端上需改造</b>（改为"我的咨询/跳转记录"或去掉，见分册 §10.2-4）；<br>'
+    +'· 点击量用于评估各配置的实际使用（招标要求"展示配置"需可证明被使用）。</p></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-ghost" onclick="toast(\'已保存草稿\')">保存草稿</button>'
+    +'<button class="btn btn-primary" onclick="save()">保存并发布</button></div>';
+  show('drawer',h);
+}
+function pickOrg(){
+  var v=document.getElementById('c-org').value;
+  if(v){document.getElementById('c-orgTxt').value=v;}
+}
+function save(){
+  var name=document.getElementById('c-name').value.trim();
+  var title=document.getElementById('c-title').value.trim();
+  var org=document.getElementById('c-orgTxt').value.trim();
+  var way=document.getElementById('c-way').value;
+  var link=document.getElementById('c-link').value.trim();
+  var tel=document.getElementById('c-tel').value.trim();
+  var state=document.getElementById('c-state').value;
+  if(!name){toast('请填写配置名称');return;}
+  if(!title){toast('请填写端上卡片标题');return;}
+  if(!org){toast('请填写服务机构 / 平台');return;}
+  if(way==='电话'&&!tel){toast('跳转方式为「电话」时必须填写联系电话');return;}
+  if((way==='外链 H5'||way==='小程序')&&!link){toast('跳转方式为「'+way+'」时必须填写跳转链接');return;}
+  if(link&&link.indexOf('https://')!==0&&link.indexOf('http://')!==0&&link.indexOf('/pages/')!==0){toast('链接需为 https:// 开头（小程序可填 /pages/... 路径）');return;}
+  var x=curId?iOf(curId):null;
+  var data={name:name, title:title, sub:document.getElementById('c-sub').value.trim(), type:document.getElementById('c-type').value,
+    icon:document.getElementById('c-icon').value.trim()||'fa-certificate', org:org, way:way, link:link, tel:tel,
+    mo:document.getElementById('c-mo').value, sort:parseInt(document.getElementById('c-sort').value,10)||1,
+    start:document.getElementById('c-start').value.replace(/-/g,'.'), end:document.getElementById('c-end').value.replace(/-/g,'.'), state:state};
+  if(x){for(var k in data){x[k]=data[k];}}
+  else{
+    data.id='IP-0'+(IP.length+1);data.clk=0;
+    IP.push(data);x=data;
+  }
+  curRows=IP.slice();
+  renderStats();render();closeAll();
+  toast('已保存「'+x.name+'」：'+(state==='已发布'?'已发布（发布即生效）':'草稿')+'　端上 '+(x.mo==='both'?'买家端 + 商户端':(x.mo==='buy'?'买家端':'商户端'))+'「'+x.type+'」Tab');
+}
+
+/* ============ 端上预览 ============ */
+function openPreview(id){
+  var x=id?iOf(id):null;
+  var list=(x?[x]:IP.filter(function(y){return y.state==='已发布';}));
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">端上预览'+(x?'　'+esc(x.name):'（全部已发布配置）')+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">买家端 ip-service.html（三个固定 Tab）；商户端按各配置的「投放端」决定是否展示</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="px-5 py-4"><div class="mob"><div class="mob-tab"><b>专利查询</b><span>商标注册</span><span>版权登记</span></div>';
+  var shown=list.filter(function(y){return x?true:(y.type==='专利查询');});
+  if(!shown.length){h+='<p class="text-[10px] text-[#94A3B8] text-center py-6">该 Tab 暂无已发布配置</p>';}
+  shown.slice(0,4).forEach(function(y){
+    h+='<div class="card"><div class="text-[11px] font-semibold text-[#1F2430]"><i class="fas '+esc(y.icon)+'" style="color:#FF4D2D"></i> '+esc(y.title)+'</div>'
+      +'<div class="text-[10px] text-[#94A3B8]" style="margin-top:3px">'+esc(y.sub)+'</div>'
+      +'<div class="text-[10px]" style="color:#E63E20;margin-top:5px">'+esc(y.way==='电话'?'拨打 '+y.tel:'立即前往 ›')+'</div></div>';
+  });
+  h+='</div><p class="text-[11px] text-[#94A3B8] mt-3 text-center">预览为「专利查询」Tab 样式；其余 Tab 同理（按排序展示各自配置）</p></div>';
+  h+='<div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2"><button class="btn btn-primary" onclick="closeAll()">关闭</button></div>';
+  show('modal',h);
+}
+/* 预览入口见 openPreview(id) */
+
+/* ============ 基础 ============ */
+function show(which,h){
+  document.getElementById(which).innerHTML=h;
+  document.getElementById('mask').classList.add('on');
+  document.getElementById(which).classList.add('on');
+}
+function closeAll(){
+  document.getElementById('mask').classList.remove('on');
+  document.getElementById('drawer').classList.remove('on');
+  document.getElementById('modal').classList.remove('on');
+}
+renderTypeFilter();renderStats();render();
+</script>
+</body>
+</html>
