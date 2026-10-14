@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>商铺信息维护 - 袜掌柜商户版</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--bg:#F0F6FF}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+.card{transition:transform .16s ease}.card:active{transform:scale(.985)}
+.grad-h{background:linear-gradient(135deg,#2563EB 0%,#1D4ED8 55%,#0EA5E9 100%)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,40,80,.06)}
+.inp{width:100%;background:rgba(248,249,250,.8);border:1px solid rgba(240,240,240,.8);border-radius:12px;padding:11px 13px;font-size:13px;color:#1F2430;outline:none}
+.inp::placeholder{color:#C0C0C0}.inp:focus{border-color:#2563EB;background:#fff}
+.inp[readonly]{background:#F3F4F6;color:#6B7280}
+.lbl{font-size:11px;color:#6b7080;font-weight:500;display:block;margin-bottom:6px}.lbl b{color:#2563EB}
+.tag-opt{font-size:11px;color:#6b7080;background:#fff;border:1px solid #eceef0;border-radius:10px;padding:6px 12px;cursor:pointer}.tag-opt.on{border-color:#2563EB;color:#2563EB;background:#EFF6FF;font-weight:600}
+.readonly{background:#F8FAFC;border:1px solid #EEF2F7;border-radius:12px;padding:3px 12px}
+.upload-box{border:1.5px dashed #D1D5DB;border-radius:12px;padding:14px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;background:#fff}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:300;opacity:0;transition:.2s;max-width:80%;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.switch{width:44px;height:24px;border-radius:12px;background:#D1D5DB;position:relative;transition:.2s;cursor:pointer}
+.switch.on{background:#2563EB}
+.switch::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s}
+.switch.on::after{left:22px}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<!-- 顶部 -->
+<div class="relative px-4 pt-2 pb-5 overflow-hidden grad-h">
+  <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-50" style="background:#60A5FA"></div>
+  <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+  </div>
+  <div class="relative flex items-center gap-3 mt-1">
+    <a href="my-shops.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+    <div><span class="text-white font-extrabold text-[18px]">商铺信息维护</span>
+    <p class="text-white/85 text-[10px] mt-0.5" id="hSub">—</p></div>
+  </div>
+</div>
+
+<div class="px-3 pt-4 pb-24">
+  <!-- 系统台账（只读） -->
+  <div class="bg-white rounded-2xl shadow-soft p-3.5 mb-3">
+    <div class="flex items-center gap-2 mb-2.5">
+      <i class="fas fa-lock text-gray-400 text-xs"></i>
+      <p class="text-[12px] font-bold text-gray-800">实体信息（系统台账 · 只读）</p>
+    </div>
+    <div class="readonly">
+      <div class="grid grid-cols-2 gap-y-2.5 text-[11px] py-2">
+        <span class="text-gray-400">资源编号</span><span class="text-gray-700 num font-medium" id="uCode">—</span>
+        <span class="text-gray-400">场所 / 位置</span><span class="text-gray-700" id="uLoc">—</span>
+        <span class="text-gray-400">资源类型</span><span class="text-gray-700" id="uType">—</span>
+        <span class="text-gray-400">摊位等级</span><span class="text-gray-700" id="uGrade">—</span>
+        <span class="text-gray-400">出租面积</span><span class="text-gray-700 num" id="uArea">—</span>
+        <span class="text-gray-400">租期</span><span class="text-gray-700 num" id="uTerm">—</span>
+        <span class="text-gray-400">当前合同</span><span class="text-gray-700 num" id="uContract">—</span>
+        <span class="text-gray-400">买家端评分</span><span class="text-gray-700" id="uRating">—</span>
+        <span class="text-gray-400">累计订单</span><span class="text-gray-700 num" id="uOrders">—</span>
+      </div>
+    </div>
+    <p class="text-[10px] text-gray-400 mt-2"><i class="fas fa-circle-info mr-1"></i>编号 / 面积 / 租期等信息由市场资源台账与合同同步，不可编辑；如需变更请联系市场管理部。</p>
+  </div>
+
+  <!-- 对外展示信息（可编辑） -->
+  <div class="bg-white rounded-2xl shadow-soft p-3.5">
+    <div class="flex items-center gap-2 mb-3">
+      <i class="fas fa-pen-to-square text-primary text-xs"></i>
+      <p class="text-[12px] font-bold text-gray-800">对外展示信息（买家端「市场导览」展示）</p>
+    </div>
+    <div class="mb-3"><label class="lbl">店铺名称（对外展示） <b>*</b></label><input class="inp" id="fName" placeholder="如：大唐袜业旗舰"></div>
+    <div class="mb-3"><label class="lbl">主营品类 <b>*</b>（可多选）</label>
+      <div class="flex flex-wrap gap-1.5" id="catBox">
+        <span class="tag-opt" onclick="this.classList.toggle('on')">男袜</span>
+        <span class="tag-opt" onclick="this.classList.toggle('on')">女袜</span>
+        <span class="tag-opt" onclick="this.classList.toggle('on')">童袜</span>
+        <span class="tag-opt" onclick="this.classList.toggle('on')">运动袜</span>
+        <span class="tag-opt" onclick="this.classList.toggle('on')">保暖袜</span>
+        <span class="tag-opt" onclick="this.classList.toggle('on')">功能袜</span>
+        <span class="tag-opt" onclick="this.classList.toggle('on')">原料·辅料</span>
+      </div>
+    </div>
+    <div class="mb-3"><label class="lbl">商铺简介 <b>*</b></label><textarea class="inp" id="fDesc" rows="3" placeholder="介绍您的店铺与主营优势，将展示在买家端市场导览"></textarea></div>
+    <div class="mb-3"><label class="lbl">门店图片（最多 5 张）</label>
+      <div class="grid grid-cols-3 gap-2">
+        <div class="upload-box" onclick="toast('上传门店图片')"><i class="fas fa-image text-xl text-gray-300"></i><span class="text-[9px] text-gray-400">+ 上传</span></div>
+        <div class="upload-box" onclick="toast('上传门店图片')"><i class="fas fa-image text-xl text-gray-300"></i><span class="text-[9px] text-gray-400">+ 上传</span></div>
+        <div class="upload-box" onclick="toast('上传门店图片')"><i class="fas fa-image text-xl text-gray-300"></i><span class="text-[9px] text-gray-400">+ 上传</span></div>
+      </div>
+    </div>
+    <div class="grid grid-cols-2 gap-2 mb-3">
+      <div><label class="lbl">营业时间</label><input class="inp" id="fHours" placeholder="如：9:00–18:00"></div>
+      <div><label class="lbl">联系电话</label><input class="inp" id="fPhone" placeholder="对外联系电话"></div>
+    </div>
+    <div class="mb-3"><label class="lbl">营业状态</label>
+      <div class="flex flex-wrap gap-1.5" id="stBox">
+        <span class="tag-opt on" onclick="pickOne('#stBox',this)">营业中</span>
+        <span class="tag-opt" onclick="pickOne('#stBox',this)">休息中</span>
+        <span class="tag-opt" onclick="pickOne('#stBox',this)">暂停营业</span>
+      </div>
+    </div>
+    <div class="flex items-center justify-between pt-1">
+      <div><p class="text-[12px] font-medium text-gray-800">买家端市场导览可见</p><p class="text-[10px] text-gray-400">关闭后买家端不展示该实体</p></div>
+      <div class="switch on" id="visSw" onclick="this.classList.toggle('on')"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 底部操作 -->
+<div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-3 py-2.5 flex gap-2" style="z-index:100;width:393px;padding-bottom:18px">
+  <a onclick="backCancel()" class="flex-1 py-3 rounded-xl border border-gray-200 text-[13px] text-gray-600 font-medium text-center">取消</a>
+  <a onclick="saveInfo()" class="flex-1 py-3 rounded-xl text-white text-[13px] font-bold text-center grad-h">保存</a>
+</div>
+
+<div class="toast" id="toast"><span id="toastTxt">操作成功</span></div>
+<script>
+var toastTimer;
+function toast(m){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=m;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},1800)}
+function pickOne(sel,el){document.querySelectorAll(sel+' .tag-opt').forEach(function(a){a.classList.remove('on')});el.classList.add('on');}
+// 实体台账（来自 02 资源台账，只读）
+var UNITS={
+ '1F-A08':{code:'1F-A08',loc:'大唐袜业城 A栋 1F',type:'档口',grade:'精品摊',area:'50㎡',term:'2026.09.01–2027.08.31',contract:'HT2026-0002',rating:'★5.0',orders:'1280单',name:'大唐袜业旗舰',cat:['男袜','女袜'],desc:'本商铺主营男女袜品批发，经营多年，品质稳定，支持小批量起批，量大从优。',hours:'9:00–18:00',phone:'138****8000',status:'营业中'},
+ '2F-B12':{code:'2F-B12',loc:'大唐袜业城 B栋 2F',type:'档口',grade:'普通摊',area:'40㎡',term:'2025.09.01–2026.08.31',contract:'HT2025-0088',rating:'★4.9',orders:'860单',name:'大唐袜业旗舰·品牌馆',cat:['运动袜','功能袜'],desc:'品牌馆，主营运动与功能袜品，支持 OEM/ODM。',hours:'9:00–18:00',phone:'138****8000',status:'营业中'},
+ 'YLSC-S08':{code:'YLSC-S08',loc:'原料市场 沿街店面',type:'店面',grade:'—',area:'80㎡',term:'2027.06.01–2032.05.31',contract:'HT2026-0010',rating:'★4.8',orders:'320单',name:'大唐袜业·原料仓店',cat:['原料·辅料'],desc:'原料辅料供应，自用兼仓储。',hours:'8:30–17:30',phone:'138****8000',status:'休息中'},
+ 'XZFW-3F-06':{code:'XZFW-3F-06',loc:'行政服务中心 3F',type:'办公室',grade:'—',area:'45㎡',term:'2026.10.01–2029.09.30',contract:'HT2026-0012',rating:'—',orders:'—',name:'大唐袜业·办公',cat:[],desc:'行政办公场所。',hours:'9:00–17:00',phone:'138****8000',status:'营业中'}
+};
+function getParam(k){var m=location.search.match(new RegExp('[?&]'+k+'=([^&]+)'));return m?decodeURIComponent(m[1]):null;}
+var u=UNITS[getParam('unit')]||UNITS['1F-A08'];
+function set(id,v){document.getElementById(id).textContent=v;}
+document.getElementById('hSub').textContent=u.code+' · '+u.type;
+set('uCode',u.code);set('uLoc',u.loc);set('uType',u.type+(u.grade!=='—'?'（'+u.grade+'）':''));set('uGrade',u.grade);
+set('uArea',u.area);set('uTerm',u.term);set('uContract',u.contract);set('uRating',u.rating);set('uOrders',u.orders);
+document.getElementById('fName').value=u.name;
+document.getElementById('fDesc').value=u.desc;
+document.getElementById('fHours').value=u.hours;
+document.getElementById('fPhone').value=u.phone;
+// 品类/状态回显
+document.querySelectorAll('#catBox .tag-opt').forEach(function(a){if(u.cat.indexOf(a.textContent)>-1)a.classList.add('on');});
+document.querySelectorAll('#stBox .tag-opt').forEach(function(a){a.classList.toggle('on',a.textContent===u.status);});
+// 类型为店面/办公室时，摊位等级显示—，品类可选原料
+function saveInfo(){
+  var name=document.getElementById('fName').value.trim();
+  if(!name){toast('请填写店铺名称');return;}
+  toast('已保存，买家端「市场导览」将展示最新信息');
+}
+function backCancel(){toast('已取消，未保存修改');setTimeout(function(){location.href='my-shops.html'},600);}
+</script>
+</body>
+</html>

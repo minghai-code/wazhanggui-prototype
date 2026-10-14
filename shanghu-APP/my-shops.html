@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>我的实体商铺 - 袜掌柜商户版</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--bg:#F0F6FF}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+.card{transition:transform .16s ease}.card:active{transform:scale(.985)}
+.grad-h{background:linear-gradient(135deg,#2563EB 0%,#1D4ED8 55%,#0EA5E9 100%)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,40,80,.06)}
+.fade-up{animation:fadeUp .4s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<!-- 顶部 -->
+<div class="relative px-4 pt-2 pb-5 overflow-hidden grad-h">
+  <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-50" style="background:#60A5FA"></div>
+  <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+  </div>
+  <div class="relative flex items-center gap-3 mt-1">
+    <a href="mine.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+    <div><span class="text-white font-extrabold text-[18px]">我的实体商铺</span>
+    <p class="text-white/85 text-[10px] mt-0.5">维护线下实体展示信息 · 供买家端「市场导览」展示</p></div>
+  </div>
+</div>
+
+<div class="px-3 pt-4 pb-16">
+  <!-- 说明 -->
+  <div class="bg-blue-50/70 border border-blue-100 rounded-2xl p-3.5 mb-3">
+    <p class="text-[11px] text-blue-700 leading-relaxed"><i class="fas fa-circle-info mr-1"></i>实体来自市场资源台账（档口 / 店面 / 办公室），<b>编号 / 面积 / 租期等信息只读</b>；您可维护<b>对外展示信息</b>（店铺名称 / 品类 / 简介 / 图片等），用于买家端「市场导览」。</p>
+  </div>
+
+  <!-- 实体列表 -->
+  <div class="space-y-2.5" id="shopList"></div>
+
+  <!-- 空态（非业主） -->
+  <div id="emptyBox" style="display:none" class="bg-gray-50 border border-gray-100 rounded-2xl p-6 text-center">
+    <i class="fas fa-store-slash text-gray-300 text-3xl"></i>
+    <p class="text-[12px] text-gray-500 mt-2">暂无线下实体</p>
+    <p class="text-[10px] text-gray-400 mt-1">签署档口 / 店面 / 办公室合同后，此处将出现您的实体</p>
+  </div>
+</div>
+
+<script>
+// 业主名下实体（来自 02 资源台账，只读）
+var UNITS=[
+  {code:'1F-A08',venue:'大唐袜业城',loc:'A栋 1F',type:'档口',grade:'精品摊',area:'50㎡',term:'2026.09.01–2027.08.31',contract:'HT2026-0002',name:'大唐袜业旗舰',cat:'男袜·女袜',status:'营业中'},
+  {code:'2F-B12',venue:'大唐袜业城',loc:'B栋 2F',type:'档口',grade:'普通摊',area:'40㎡',term:'2025.09.01–2026.08.31',contract:'HT2025-0088',name:'大唐袜业旗舰·品牌馆',cat:'运动袜·功能袜',status:'营业中'},
+  {code:'YLSC-S08',venue:'原料市场',loc:'沿街店面',type:'店面',grade:'—',area:'80㎡',term:'2027.06.01–2032.05.31',contract:'HT2026-0010',name:'大唐袜业·原料仓店',cat:'原料·辅料',status:'休息中'},
+  {code:'XZFW-3F-06',venue:'行政服务中心',loc:'3F',type:'办公室',grade:'—',area:'45㎡',term:'2026.10.01–2029.09.30',contract:'HT2026-0012',name:'大唐袜业·办公',cat:'办公',status:'营业中'}
+];
+var TYPE_CLS={'档口':'bg-sky-50 text-sky-600','店面':'bg-emerald-50 text-emerald-600','办公室':'bg-violet-50 text-violet-600'};
+function render(){
+  if(!UNITS.length){document.getElementById('emptyBox').style.display='block';return;}
+  document.getElementById('shopList').innerHTML=UNITS.map(function(u){
+    return '<div class="card bg-white rounded-2xl shadow-soft overflow-hidden fade-up">'
+      +'<a href="shop-info-edit.html?unit='+u.code+'" class="block px-3.5 py-3">'
+      +'<div class="flex items-center justify-between mb-2">'
+      +'<div class="flex items-center gap-2 min-w-0">'
+      +'<div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0"><i class="fas fa-store text-primary text-sm"></i></div>'
+      +'<div class="min-w-0"><p class="text-[13px] font-bold text-gray-800">'+u.name+'</p><p class="text-[10px] text-gray-400 num mt-0.5">'+u.code+' · '+u.venue+' '+u.loc+'</p></div>'
+      +'</div>'
+      +'<span class="'+TYPE_CLS[u.type]+' text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0">'+u.type+(u.grade!=='—'?' · '+u.grade:'')+'</span>'
+      +'</div>'
+      +'<div class="grid grid-cols-2 gap-2 bg-gray-50 rounded-lg p-2.5 text-[10px]">'
+      +'<div><span class="text-gray-400">面积</span><p class="text-gray-700 font-medium num mt-0.5">'+u.area+'</p></div>'
+      +'<div><span class="text-gray-400">租期</span><p class="text-gray-700 font-medium num mt-0.5">'+u.term+'</p></div>'
+      +'<div><span class="text-gray-400">主营品类</span><p class="text-gray-700 font-medium mt-0.5">'+u.cat+'</p></div>'
+      +'<div><span class="text-gray-400">当前合同</span><p class="text-gray-700 font-medium num mt-0.5">'+u.contract+'</p></div>'
+      +'</div>'
+      +'<div class="flex items-center justify-between mt-2.5">'
+      +'<span class="text-[10px] '+(u.status==='营业中'?'text-green-600':'text-amber-600')+'"><i class="fas fa-circle text-[7px]"></i> 买家端展示：'+u.status+'</span>'
+      +'<span class="text-[11px] font-bold text-primary">维护展示信息 ›</span>'
+      +'</div>'
+      +'</a></div>';
+  }).join('');
+}
+render();
+</script>
+</body>
+</html>
