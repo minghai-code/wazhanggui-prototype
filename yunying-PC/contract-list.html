@@ -48,12 +48,13 @@ button{cursor:pointer}
         <h1 class="text-[20px] font-bold text-[#1F2430]">合同台账与签署留档</h1>
         <span class="tag" style="background:#DBEAFE;color:#2563EB">05 合同管理</span>
       </div>
-      <p class="text-[12px] text-gray-400 mt-1">线下租赁合同录入/导入与全量台账（对齐客户台账 21 字段）；合同是 02 档口、04 商户建档、06 年度账单的<b>共同源头</b>。本阶段<b>不做在线电子签</b>：线下签署后扫描归档</p>
+      <p class="text-[12px] text-gray-400 mt-1">合同全量台账（客户台账 21 字段 + <b>企业类型</b>；<b>v1.6：不含保证金</b>），是 02 档口 / 04 商户建档 / 应收计划的<b>共同源头</b>。新签合同由<b>合同专员在后台主动发起</b>（见「合同发起与签署」页）；<b>存量合同「录入合同」+「批量导入」</b>逐条录入。<b>v1.6 变化</b>：① 本页新增操作 <b>「终止」</b>（终止生效日 + 原因字典 + 主管确认 → 合同「已终止」+ <b>02 档口「当前租户」清空并回「空闲（待竞拍）」</b> + <b>04 商户状态按原因置「违约终止（违约类）/ 已终止（非违约类）」</b> + 物业权限与关联账号回收）；<b>v1.7 订正</b>：<b>「终止」= 提前终止（租期未满）</b>，<b>该按钮仅对「未到期在租合同」可见</b>；<b>正常到期不叫终止</b>——系统自动置「已到期」、<b>不进 04 清退台账</b>；② <b>到期提醒并入本页</b>（T-90/60/30 红黄标记 + 「仅看到期·逾期」筛选，原「到期预警与竞拍衔接」页已下线）；③ <b>保证金不再展示与录入</b>（浙交会拍下档口必缴且线下已收，无接口）</p>
     </div>
     <div class="flex items-center gap-2">
       <button class="btn btn-ghost" onclick="toast('已导出合同台账（身份证、权证号已脱敏）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
-      <button class="btn btn-ghost" onclick="openImport()"><i class="fas fa-file-import text-[10px] mr-1"></i>批量导入</button>
-      <button class="btn btn-primary" onclick="openNew()"><i class="fas fa-plus mr-1"></i>录入合同</button>
+      <button class="btn btn-ghost" onclick="openImport()"><i class="fas fa-file-import text-[10px] mr-1"></i>批量导入（21 字段）</button>
+      <button class="btn btn-ghost" onclick="openNew()"><i class="fas fa-plus mr-1"></i>录入合同</button>
+      <button class="btn btn-primary" onclick="gotoSigned()"><i class="fas fa-file-signature mr-1"></i>合同发起与签署</button>
     </div>
   </div>
 
@@ -85,7 +86,7 @@ button{cursor:pointer}
     <div class="flex items-center gap-3 flex-wrap">
       <input id="f-kw" type="text" placeholder="合同号 / 卷号 / 摊位号 / 承租人 / 档口编号" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary w-72">
       <select id="f-status" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
-        <option value="">全部合同状态</option><option>待映射</option><option>待签署</option><option>生效中</option><option>变更中</option><option>已续签</option><option>已退租</option><option>已到期</option><option>已终止</option><option>已作废</option>
+        <option value="">全部合同状态</option><option>待映射</option><option>待签署</option><option>生效中</option><option>变更中</option><option>已到期</option><option>已终止</option><option>已作废</option>
       </select>
       <select id="f-map" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
         <option value="">映射状态</option><option value="yes">已映射</option><option value="no">待映射（未推送 02）</option>
@@ -106,7 +107,7 @@ button{cursor:pointer}
   <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
     <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
       <span class="text-[12px] text-[#94A3B8]" id="cnt">共 0 条</span>
-      <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>应收计划按<b>租赁年度（9.1–次年 8.31）</b>生成，每年 8 月底前缴纳、8 月 15 日起催收</span>
+      <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>应收计划按<b>租赁年度（9.1–次年 8.31）</b>生成，每年 8 月底前缴纳；<b>8 月 15 日起由「租金催缴」页自动催缴</b>（v1.2，替代人工电话催收）</span>
     </div>
     <div class="overflow-x-auto">
       <table class="w-full text-[13px]" style="min-width:1480px">
@@ -118,8 +119,9 @@ button{cursor:pointer}
             <th class="px-4 py-3 text-left font-medium">面积</th>
             <th class="px-4 py-3 text-left font-medium">租期</th>
             <th class="px-4 py-3 text-left font-medium">年租金 / 总租金</th>
-            <th class="px-4 py-3 text-left font-medium">摊位等级 / 保证金</th>
+            <th class="px-4 py-3 text-left font-medium">摊位等级</th>
             <th class="px-4 py-3 text-left font-medium">应收计划</th>
+            <th class="px-4 py-3 text-left font-medium">签署状态（v1.2）</th>
             <th class="px-4 py-3 text-left font-medium">状态</th>
             <th class="px-4 py-3 text-center font-medium">操作</th>
           </tr>
@@ -204,7 +206,8 @@ function renderStats(){
     if(x.bond==='待收'&&x.status!=='已作废'){c.bond++;}
     if(x.status==='待签署'){c.wait++;}
   });
-  var cards=[['合同总数',c.total,'#1F2430'],['生效中',c.live,'#15803D'],['待映射',c.unmap,'#B45309'],['90 天内到期',c.exp,'#E63E20'],['保证金待收',c.bond,'#B45309'],['待签署',c.wait,'#2563EB']];
+  var term=CS.filter(function(x){return x.status==='已终止';}).length;
+  var cards=[['合同总数',c.total,'#1F2430'],['生效中',c.live,'#15803D'],['待映射',c.unmap,'#B45309'],['90 天内到期',c.exp,'#E63E20'],['已终止（提前终止·人工）',term,'#B91C1C'],['待签署',c.wait,'#2563EB']];
   document.getElementById('stats').innerHTML=cards.map(function(x){
     return '<div class="bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">'+x[0]+'</p><p class="text-xl font-bold mt-1" style="color:'+x[2]+'">'+x[1]+'</p></div>';
   }).join('');
@@ -216,24 +219,26 @@ function render(){
     var bondTag=c.bond==='已收'?'<span class="tag" style="background:#DCFCE7;color:#15803D">已收</span>':(c.bond==='已结清'?'<span class="tag" style="background:#F1F5F9;color:#64748B">已结清</span>':'<span class="tag" style="background:#FEF3C7;color:#B45309">待收</span>');
     var ops='<span class="lk" onclick="openD(\''+c.no+'\')">详情</span>';
     if(!c.gate&&c.status!=='已作废'&&c.status!=='已退租'){ops+=' · <span class="lk" onclick="openMap(\''+c.no+'\')">建立映射</span>';}
-    if(c.status==='待签署'){ops+=' · <span class="lk" onclick="openSign(\''+c.no+'\')">上传签署件</span>';}
-    ops+=' · <span class="lk-gray" onclick="toast(\'打开变更/续约办理（原型）：'+c.no+'\')">办理</span>';
+    if(signOf(c)==='待商户签字'||signOf(c)==='待签署审核'){ops+=' · <span class="lk" onclick="openSign(\''+c.no+'\')">签署进度</span>';}
+    if(c.status==='生效中'||c.status==='变更中'){ops+=' · <span class="lk" onclick="openTerminate(\''+c.no+'\')">终止</span>';}/* v1.7：仅未到期在租合同可终止；已到期 / 已终止 / 已作废不显示（到期是系统自动结果） */
+    ops+=' · <span class="lk-gray" onclick="toast(\'打开合同变更办理（合同号不变，生成新版本）：'+c.no+'\')">变更</span>';
     h+='<tr class="hover:bg-gray-50 transition">'
       +'<td class="px-4 py-3"><div class="font-medium text-[#1F2430]">'+esc(c.no)+'</div><div class="text-[11px] text-[#94A3B8]">卷号 '+esc(c.vol)+'</div></td>'
       +'<td class="px-4 py-3 whitespace-nowrap"><span class="text-[#64748B]">'+esc(c.stall)+'</span> <i class="fas fa-arrow-right text-[9px] text-[#94A3B8] mx-1"></i>'+gate+'</td>'
       +'<td class="px-4 py-3"><span class="font-medium text-[#1F2430]">'+esc(c.name)+'</span>'
+        +'<div class="mt-0.5"><span class="tag" style="background:#E0E7FF;color:#4338CA">'+esc(c.ent||'企业')+'</span></div>'
         +(c.idno?'<div class="text-[11px] text-[#94A3B8]">'+esc(maskId(c.idno))+'</div>':'<div><span class="tag" style="background:#FEF3C7;color:#B45309">身份待补全</span></div>')+'</td>'
       +'<td class="px-4 py-3 text-[#64748B]">'+esc(c.area)+' ㎡</td>'
       +'<td class="px-4 py-3 text-[12px]"><div class="text-[#64748B]">'+esc(c.start)+' ~ '+esc(c.end)+'</div>'
         +(c.std?'':'<span class="tag" style="background:#F1F5F9;color:#64748B">非标准租期</span> ')+(c.status==='已作废'?'':expTag(c.days))+'</td>'
       +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+money(c.rent)+' / '+money(c.rent*LV[c.lv].years)+'</td>'
-      +'<td class="px-4 py-3 text-[12px]"><span class="tag" style="background:'+(c.lv==='精品摊'?'#F3E8FF;color:#7C3AED':'#F1F5F9;color:#475569')+'">'+esc(c.lv)+'</span>'
-        +'<div class="mt-1 text-[#64748B]">保证金 '+money(bondOf(c))+' '+bondTag+'</div></td>'
+      +'<td class="px-4 py-3 text-[12px]"><span class="tag" style="background:'+(c.lv==='精品摊'?'#F3E8FF;color:#7C3AED':'#F1F5F9;color:#475569')+'">'+esc(c.lv)+'</span></td>'
       +'<td class="px-4 py-3 text-[12px]"><span class="lk" onclick="openD(\''+c.no+'\')">'+periods(c)+' 期</span></td>'
+      +'<td class="px-4 py-3">'+st(signOf(c),SGN[signOf(c)])+'</td>'
       +'<td class="px-4 py-3">'+st(c.status,STC[c.status])+'</td>'
       +'<td class="px-4 py-3 text-center whitespace-nowrap">'+ops+'</td></tr>';
   });
-  if(!curRows.length){h='<tr><td colspan="10" class="px-4 py-16 text-center text-gray-300"><i class="fas fa-inbox text-3xl block mb-2"></i><span class="text-[12px]">暂无匹配的合同</span></td></tr>';}
+  if(!curRows.length){h='<tr><td colspan="11" class="px-4 py-16 text-center text-gray-300"><i class="fas fa-inbox text-3xl block mb-2"></i><span class="text-[12px]">暂无匹配的合同</span></td></tr>';}
   document.getElementById('tb').innerHTML=h;
   document.getElementById('cnt').textContent='共 '+curRows.length+' 条（原型演示数据 10 条）';
   document.getElementById('pageInfo').textContent='共 '+curRows.length+' 条记录，第 1-'+curRows.length+' 条';
@@ -297,7 +302,7 @@ function openD(no){
     +'</div></div>';
 
   /* ② 租赁年度应收计划 */
-  h+='<div class="blk"><div class="blk-t"><i class="fas fa-calendar-check text-[#2563EB]"></i>② 租赁年度应收计划（→ 06 缴费管理生成年度账单）</div>'
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-calendar-check text-[#2563EB]"></i>② 租赁年度应收计划（v1.5：06 本期不做 → 已缴由财务在本模块人工登记）</div>'
     +'<table class="w-full text-[12px]"><thead><tr class="text-gray-500 text-[11px]">'
     +'<th class="text-left py-1.5 font-medium">期次</th><th class="text-left py-1.5 font-medium">所属租赁年度</th><th class="text-left py-1.5 font-medium">应收金额</th><th class="text-left py-1.5 font-medium">应收时点</th><th class="text-left py-1.5 font-medium">状态</th></tr></thead><tbody>';
   for(var i=0;i<LV[c.lv].years;i++){
@@ -307,28 +312,41 @@ function openD(no){
       +'<td class="py-2 text-[#64748B]">'+y+'.09.01 ~ '+(y+1)+'.08.31</td>'
       +'<td class="py-2">'+money(c.rent)+' 元</td>'
       +'<td class="py-2 text-[#64748B]">'+(y-0===parseInt(c.start.slice(0,4),10)?'2026-08-15 起催收 · 8 月底前':'每年 8.15 起催收 · 8 月底前')+'</td>'
-      +'<td class="py-2">'+(done?st('已收','background:#DCFCE7;color:#15803D'):st('待收','background:#FEF3C7;color:#B45309'))+'</td></tr>';
+      +'<td class="py-2">'+(done?st('已缴（人工登记）','background:#DCFCE7;color:#15803D'):st('待缴','background:#FEF3C7;color:#B45309'))+'</td></tr>';
   }
-  h+='</tbody></table><p class="text-[11px] text-[#94A3B8] mt-2"><i class="fas fa-circle-info mr-1"></i>账单生成与核销归 <b>06 缴费管理</b>；本模块只维护应收计划与催收时点。</p></div>';
+  h+='</tbody></table><p class="text-[11px] text-[#94A3B8] mt-2"><i class="fas fa-circle-info mr-1"></i>应收计划由合同生成（本处<b>只读</b>）；<b>v1.6：租金催缴与「登记缴纳（人工核销）」已迁到 04 实体商户管理 →「租金催缴」页</b>（<span class="lk-gray" onclick="location.href=\'merchant-dunning.html\'">打开租金催缴</span>）；06 缴费管理本期不做（客户不做在线支付）。</p></div>';
 
-  /* ③ 保证金 */
-  h+='<div class="blk"><div class="blk-t"><i class="fas fa-shield-halved text-[#7C3AED]"></i>③ 履约保证金（物业保证金，与商城资金保证金区分）</div>'
+  /* ③ 合同终止（v1.6：由本页发起；原「到期预警与竞拍衔接」页的终止操作已迁入） */
+  h+='<div class="blk" style="border-color:'+(c.status==='已终止'?'#FECACA':'#E2E8F0')+'">'
+    +'<div class="blk-t"><i class="fas fa-scissors text-[#B91C1C]"></i>③ 合同终止（提前终止 · v1.6 在合同台账发起；到期 ≠ 终止）</div>'
     +'<div class="grid grid-cols-2 gap-x-6">'
-    +'<div class="kv"><span class="k">摊位等级</span><span class="v">'+esc(c.lv)+'</span></div>'
-    +'<div class="kv"><span class="k">应收保证金</span><span class="v"><b>'+money(bond)+' 元</b>（由摊位等级自动带出，不可手改）</span></div>'
-    +'<div class="kv"><span class="k">状态</span><span class="v">'+esc(c.bond)+'</span></div>'
+    +'<div class="kv"><span class="k">合同状态</span><span class="v">'+st(c.status,STC[c.status])+'</span></div>'
+    +'<div class="kv"><span class="k">到期</span><span class="v">'+esc(c.end)+'　'+expTag(c.days)+'</span></div>'
     +'</div>'
-    +(c.bond==='待收'?'<div class="mt-2"><button class="btn btn-ghost" onclick="markBond(\''+c.no+'\')">登记保证金到账</button></div>':'')
+    +(c.status==='已终止'
+      ? '<p class="text-[12px] mt-2" style="color:#B91C1C">已终止（'+esc(c.termWhy||'违约清租')+'　生效日 '+esc(c.termDate||c.end)+'）　联动结果：<b>02 档口「当前租户」已清空</b>、档口回「空闲（待竞拍）」；<b>04 商户状态已置「'+((c.termWhy||'').indexOf('违约')>=0?'违约终止':'已终止')+'」</b>；物业权限与关联账号已回收</p>'
+      : '<p class="text-[12px] text-[#64748B] mt-2">终止为<b>提前终止</b>（租期未满、不可恢复）：提交后 <b>05 合同「已终止」</b> → <b>02 该档口「当前租户」清空、档口回「空闲（待竞拍）」</b> → <b>04 该商户状态按原因置「违约终止 / 已终止」</b>（进入 04「清退商户」存档，可追溯终止原因）→ <b>物业权限与关联账号自动回收</b>；<b>不计算违约金</b>（保证金线下已收，系统不展示不录入）；<b>正常到期不走此操作</b>（到期由系统自动置「已到期」、不进清退台账）</p>'
+        +'<div class="mt-2"><button class="btn btn-ghost" style="color:#B91C1C;border-color:#FECACA" onclick="openTerminate(\''+c.no+'\')"><i class="fas fa-scissors mr-1"></i>终止合同</button></div>')
     +'</div>';
 
-  /* ④ 附件与版本 */
-  h+='<div class="blk"><div class="blk-t"><i class="fas fa-paperclip text-[#64748B]"></i>④ 附件与留档（本阶段不做在线电子签）</div>'
+  /* ④ 合同生成与签署留档（v1.5：后台主动发起） */
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-file-signature text-[#FF4D2D]"></i>④ 合同生成与签署留档（v1.5：合同专员后台主动发起）</div>'
+    +'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">'
+    +'<span style="font-size:11px;padding:3px 8px;border-radius:6px;background:#DCFCE7;color:#15803D">① 合同专员生成</span>'
+    +'<span style="font-size:11px;padding:3px 8px;border-radius:6px;background:#DCFCE7;color:#15803D">② 发送 + 短信通知</span>'
+    +'<span style="font-size:11px;padding:3px 8px;border-radius:6px;background:#FFEDE7;color:#E63E20;font-weight:600">③ 商户手写签名</span>'
+    +'<span style="font-size:11px;padding:3px 8px;border-radius:6px;background:#F1F5F9;color:#94A3B8">④ 合同专员审核签字</span>'
+    +'<span style="font-size:11px;padding:3px 8px;border-radius:6px;background:#F1F5F9;color:#94A3B8">⑤ 生效存档</span>'
+    +'<span style="font-size:11px;padding:3px 8px;border-radius:6px;background:#F1F5F9;color:#94A3B8">⑥ 盖章件回传（仅归档）</span></div>'
     +'<div class="text-[12px] text-[#64748B] leading-7">'
-    +'· 合同扫描件（签署版）：'+(c.signed?'<span class="lk" onclick="toast(\'预览合同扫描件 PDF\')">'+esc(c.no)+'_签署版.pdf</span>':'<span class="tag" style="background:#DBEAFE;color:#2563EB">待上传</span>')+'<br>'
+    +'· 合同文本（生成版）：'+(c.signed?'<span class="lk" onclick="toast(\'预览合同文本 PDF（含变量填充后的正文）\')">'+esc(c.no)+'_合同文本.pdf</span>':'<span class="tag" style="background:#EDE9FE;color:#6D28D9">待生成</span>')+'<br>'
+    +'· 短信发送记录：'+(c.signed?'<span class="lk" onclick="toast(\'查看短信记录：已送达（重试 0 次）；接收手机号与竞拍登记一致\')">已送达</span>':'<span class="tag" style="background:#FEF3C7;color:#B45309">未发送</span>')+'　<span class="text-[11px] text-[#94A3B8]">（独立短信服务，文案待定）</span><br>'
+    +'· 商户签字页（<b>手写签名，无人脸识别</b>）：'+(c.signed?'<span class="lk" onclick="toast(\'预览签字页（含签署时间与手写签名）\')">'+esc(c.no)+'_签字页.pdf</span>':'<span class="tag" style="background:#EDE9FE;color:#6D28D9">待商户签字</span>')+'<br>'
+    +'· 签署审核意见：'+(c.signed?'<span class="lk" onclick="toast(\'合同专员 何敏 审核签字通过 → 合同生效并存档\')">审核通过 · 生效存档</span>':'<span class="tag" style="background:#FEF3C7;color:#B45309">待审核</span>')+'<br>'
+    +'· <b>盖章扫描件</b>：'+(c.signed?'<span class="lk" onclick="toast(\'预览盖章扫描件（下载合同 → 线下盖章 → 回传扫描件）\')">已回传（归档完成）</span>':'<span class="tag" style="background:#FFEDE7;color:#E63E20">待回传（不影响生效）</span>')+'<br>'
     +'· 承租方身份证复印件：'+(c.idno?'<span class="lk" onclick="toast(\'预览身份证复印件\')">已上传</span>':'<span class="tag" style="background:#FEF3C7;color:#B45309">待补</span>')+'<br>'
-    +'· 政府招投标成交确认书：<span class="lk" onclick="toast(\'预览成交确认书\')">已上传</span><br>'
-    +'· 历史版本：v1（初始录入）　v'+(c.status==='变更中'?'2（变更中）':'1')+'</div>'
-    +(c.status==='待签署'?'<div class="mt-2"><label class="btn btn-primary" style="display:inline-block">上传签署件并归档<input type="file" class="hidden" onchange="toast(\'已上传合同扫描件，合同可置「生效中」并推送 02\')"></label></div>':'')
+    +'· 企业类型：'+(c.ent||'企业')+'　· 版本：v1'+(c.status==='变更中'?'　v2（变更中）':'')+'</div>'
+    +'<div class="mt-2"><button class="btn btn-ghost" onclick="toast(\'已跳转「合同发起与签署」页（contract-apply.html）查看/推进该合同的签署状态\')">去签署流程查看</button></div>'
     +'</div>';
 
   /* ⑤ 下游联动状态 */
@@ -398,18 +416,68 @@ function saveMap(){
 }
 
 /* ================= 上传签署件 ================= */
-function openSign(no){openD(no);toast('请在详情「④ 附件与留档」中上传签署件并归档');}
+/* ================= v1.6：合同终止（被动终止；原「到期预警与竞拍衔接」页的终止操作迁入） ================= */
+var TERM_WHY=['违约清租（欠租）','违规清退','资质造假清退','协商解除','经营调整','转让退出','其他（备注说明）'];
+function openTerminate(no){
+  curNo=no;
+  var c=CS.filter(function(x){return x.no===no;})[0];
+  if(!c){return;}
+  var opts=TERM_WHY.map(function(w){return '<option>'+esc(w)+'</option>';}).join('');
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">终止合同　'+esc(c.no)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(c.name)+'　'+esc(c.stall)+' → '+esc(c.gate||'（待映射）')+'　'+esc(c.start)+' ~ '+esc(c.end)+'　'+expTag(c.days)+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl">终止生效日 *</label><input class="fi" id="t-date" type="date" value="'+esc(String(c.end).replace(/\./g,'-'))+'"></div>'
+    +'<div><label class="fl">终止原因（字典）*</label><select class="sel" id="t-why">'+opts+'</select></div>'
+    +'</div>'
+    +'<div><label class="fl">原因说明 / 依据</label><textarea class="fi" id="t-note" rows="2" placeholder="例：连续两期租金未缴，经催缴仍未缴；依据：催缴记录与线下沟通记录"></textarea></div>'
+    +'<div class="rounded-xl border p-3" style="border-color:#FECACA;background:#FEF2F2"><p class="text-[11px] text-[#64748B]">提交后<b>一次事务</b>联动：<b>05 本合同置「已终止」</b>（<b>提前终止</b>、不可恢复）→ <b>02 该档口「当前租户」清空、档口回「空闲（待竞拍）」</b> → <b>04 该商户状态「按终止原因」置位</b>（<b>违约清租 →「违约终止」</b>；<b>违规清退 / 资质造假 / 协商解除 / 经营调整 / 转让退出 →「已终止」</b>）（进入 04「清退商户」存档，详情可追溯终止原因）→ <b>物业权限与关联账号自动回收</b>；<b>不计算违约金</b>；保证金线下已收，系统不展示不录入。<b>正常到期不走此弹窗</b>（系统自动置「已到期」）。</p></div>'
+    +'<label class="flex items-center gap-2 text-[12px] text-[#334155]"><input type="checkbox" id="t-lead" class="ck"> 已获运营主管确认（终止为重大动作，须主管确认）</label>'
+    +'</div>';
+  h+='<div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" style="background:linear-gradient(135deg,#DC2626,#B91C1C)" onclick="confirmTerminate(\''+no+'\')">确认终止</button></div>';
+  show('modal',h);
+}
+function confirmTerminate(no){
+  var c=CS.filter(function(x){return x.no===no;})[0];
+  if(!c){return;}
+  if(!document.getElementById('t-lead').checked){toast('终止为重大动作，请先勾选「已获运营主管确认」');return;}
+  var d=document.getElementById('t-date').value;
+  var w=document.getElementById('t-why').value;
+  c.status='已终止';c.termWhy=w;c.termDate=String(d).replace(/-/g,'.');
+  var ms=(w.indexOf('违约')>=0)?'违约终止':'已终止';
+  closeAll();renderStats();render();
+  toast('已终止：'+c.no+'（'+w+'，生效 '+c.termDate+'）→ 02 档口 '+(c.gate||c.stall)+' 当前租户已清空并回「空闲（待竞拍）」；04 商户「'+c.name+'」状态已置「'+ms+'」；物业权限与关联账号已回收');
+}
+
+/* ================= v1.2：签署状态映射与跳转 ================= */
+var SGN={'待生成':'background:#DBEAFE;color:#2563EB','待商户签字':'background:#EDE9FE;color:#6D28D9','待签署审核':'background:#FEF3C7;color:#B45309',
+  '已存档·生效中':'background:#DCFCE7;color:#15803D','已存档（存量）':'background:#DCFCE7;color:#15803D','已存档':'background:#DCFCE7;color:#15803D',
+  '已到期':'background:#F1F5F9;color:#475569','已终止':'background:#FEE2E2;color:#B91C1C','已作废':'background:#F1F5F9;color:#94A3B8'};
+function signOf(c){
+  if(c.sign){return c.sign;}
+  if(c.status==='待签署'){return '待商户签字';}
+  if(c.status==='生效中'||c.status==='变更中'){return '已存档·生效中';}
+  if(c.status==='已退租'){return '已到期';}
+  if(c.status==='已作废'){return '已作废';}
+  return '已存档（存量）';
+}
+function gotoSigned(){location.href='contract-apply.html';}
+function openSign(no){openD(no);toast('请在详情「④ 合同生成与签署留档」查看流程、短信记录与盖章件（v1.5：后台主动发起 + 合同专员审核签字生效）');}
 
 /* ================= 批量导入 ================= */
 function openImport(){
   var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
-    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">批量导入合同（Excel）</h3>'
-    +'<p class="text-[11px] text-[#94A3B8] mt-1">模板字段对齐线下《出租合同台账》；<b>整批校验通过才入库</b>，失败给错误报告</p></div>'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">批量导入合同（v1.5：存量逐条导入）</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">存量合同<b>要一条条录进系统</b> → 保留 <b>「录入合同」+「批量导入（Excel，21 字段 + 企业类型）」</b> 两条人工通道；<b>整批校验通过才入库</b>并给出错误报告；存量合同登记为「<b>已存档（存量）</b>」、<b>不走在线签署</b>，可同时上传历史扫描件留档</p></div>'
     +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>'
     +'<div class="px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
     +'<label class="up"><i class="fas fa-file-excel text-2xl block mb-2"></i>点击选择台账 Excel（.xlsx）<input type="file" class="hidden" onchange="toast(\'已选择台账文件，开始预校验…\')"></label>'
     +'<div class="flex items-center gap-2"><button class="btn btn-ghost" onclick="toast(\'已下载导入模板（含 21 字段 + 必填标记）\')">下载导入模板</button>'
-    +'<span class="text-[11px] text-[#94A3B8]">必填：摊位号 / 承租方姓名 / 租期起止 / 年租金 / 应收期次</span></div>'
+    +'<span class="text-[11px] text-[#94A3B8]">必填：摊位号 / 承租方姓名 / <b>企业类型</b> / 租期起止 / 年租金 / 应收期次</span></div>'
     +'<div class="blk" style="border-color:#FDE68A;background:#FFFBEB"><div class="blk-t" style="color:#B45309"><i class="fas fa-list-check"></i>预校验结果（示例）</div>'
     +'<p class="text-[12px] text-[#64748B] mb-2">共 12 行：<b style="color:#15803D">通过 9 行</b>，<b style="color:#B91C1C">错误 3 行</b>（整批不入库，修正后重导）</p>'
     +'<table class="w-full text-[12px]"><thead><tr class="text-gray-500 text-[11px]"><th class="text-left py-1.5 font-medium w-16">行号</th><th class="text-left py-1.5 font-medium">错误原因</th></tr></thead><tbody>'
@@ -417,7 +485,7 @@ function openImport(){
     +'<tr class="border-t border-gray-50"><td class="py-2">第 8 行</td><td class="py-2" style="color:#B91C1C">「承租方（乙方）」为空 —— 04 无法建档</td></tr>'
     +'<tr class="border-t border-gray-50"><td class="py-2">第 11 行</td><td class="py-2" style="color:#B91C1C">「租赁期限」格式错误（应为 2026.09.01-2029.08.31）</td></tr>'
     +'</tbody></table>'
-    +'<p class="text-[11px] text-[#94A3B8] mt-2">提示：导入成功后合同状态为「待映射」（若摊位号未映射）或「生效中」，并自动生成<b>租赁年度应收计划</b>。</p></div>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-2">提示：导入成功后合同状态为「<b>已存档（存量）</b>」（摊位号未映射时标「待映射」），并自动生成<b>应收计划</b>；<b>企业类型</b>必填（个体工商户 / 企业 / 工厂制造商 / 其他），决定 04 商户建档口径。</p></div>'
     +'</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
     +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
     +'<button class="btn btn-primary" onclick="toast(\'已按校验通过的行导入 9 份合同（示例）\')">确认导入通过行</button></div>';
@@ -441,7 +509,11 @@ function openNew(){
     +'</div>'
     +'<div class="grid grid-cols-2 gap-3">'
     +'<div><label class="fl">承租方（乙方）</label><input class="fi" id="n-name" placeholder="姓名"></div>'
+    +'<div><label class="fl">企业类型 *（2026-10-13 新增）</label><select class="sel" id="n-ent"><option>个体工商户</option><option>企业</option><option>工厂制造商</option><option>其他</option></select></div>'
+    +'</div>'
+    +'<div class="grid grid-cols-2 gap-3">'
     +'<div><label class="fl">身份证号（可后补）</label><input class="fi" id="n-idno" placeholder="选填；缺失将标记「身份待补全」"></div>'
+    +'<div><label class="fl">资源类型 *（决定合同模板）</label><select class="sel" id="n-rtype"><option>档口·精品摊</option><option>档口·普通摊</option><option>办公室</option><option>店面</option></select></div>'
     +'</div>'
     +'<div class="grid grid-cols-2 gap-3">'
     +'<div><label class="fl">出租面积（㎡）</label><input class="fi" id="n-area" value="147.2"></div>'
@@ -449,7 +521,7 @@ function openNew(){
     +'</div>'
     +'<div class="rounded-xl border p-3" style="border-color:#FDB4A3;background:#FFF6F3" id="lvBox"></div>'
     +'<div><label class="fl">租赁期限（按租赁年度 9.1–次年 8.31 自动生成，可调整）</label><input class="fi" id="n-term" value="2026.09.01 - 2029.08.31"></div>'
-    +'<div class="rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B]">保存后：状态「待映射」→ 建立映射后推送 02；同步生成 <b>3 个租赁年度应收计划</b>（每年 8 月底前缴纳、8.15 起催收）。</p></div>'
+    +'<div class="rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B]">存量合同<b>逐条录入</b>：保存后状态「<b>已存档（存量）</b>」（摊位号未映射时先「待映射」→ 映射后推送 02），并生成<b>应收计划</b>（每年 8 月底前缴纳、8.15 起催缴且<b>规则可配置</b>）；<b>新签合同不走这里</b>——由「<b>合同发起与签署</b>」页由合同专员<b>后台主动发起</b>线上签署。</p></div>'
     +'</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
     +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
     +'<button class="btn btn-primary" onclick="saveNew()">保存合同</button></div>';
@@ -457,23 +529,25 @@ function openNew(){
   lvHint();
 }
 function lvHint(){
-  var lv=document.getElementById('n-lv').value,years=LV[lv].years,bond=LV[lv].bond;
-  document.getElementById('lvBox').innerHTML='<p class="text-[12px]" style="color:#E63E20"><b>'+lv+'</b> → 签约年限 <b>'+years+' 年一签</b>，履约保证金 <b>'+money(bond)+' 元</b>（自动带出，不可手改）</p>';
+  var lv=document.getElementById('n-lv').value,years=LV[lv].years;
+  document.getElementById('lvBox').innerHTML='<p class="text-[12px]" style="color:#E63E20"><b>'+lv+'</b> → 签约年限 <b>'+years+' 年一签</b>（v1.6：保证金线下已收，系统不录入）</p>';
   document.getElementById('n-term').value='2026.09.01 - '+(2026+years)+'.08.31';
 }
 function saveNew(){
   var no=document.getElementById('n-no').value.trim(),vol=document.getElementById('n-vol').value.trim(),
       stall=document.getElementById('n-stall').value.trim(),lv=document.getElementById('n-lv').value,
       name=document.getElementById('n-name').value.trim(),idno=document.getElementById('n-idno').value.trim(),
+      ent=document.getElementById('n-ent').value,rtype=document.getElementById('n-rtype').value,
       area=document.getElementById('n-area').value.trim(),rent=parseInt(document.getElementById('n-rent').value,10);
   if(!no||!stall||!name){toast('合同号 / 摊位号 / 承租方姓名 为必填');return;}
+  if(!ent){toast('企业类型为必填项（个体工商户 / 企业 / 工厂制造商 / 其他）');return;}
   if(!idno||idno.length<15){/* 允许后补 */}
   var t=document.getElementById('n-term').value;
-  CS.unshift({no:no,vol:vol,stall:stall,gate:'',lv:lv,name:name,idno:idno,area:area,
+  CS.unshift({no:no,vol:vol,stall:stall,gate:'',lv:lv,name:name,idno:idno,ent:ent,rtype:rtype,area:area,
     start:t.split(' - ')[0],end:t.split(' - ')[1],rent:rent,status:'待映射',bond:'待收',signed:0,days:LV[lv].years*365,
     addr:'诸暨市大唐轻纺原料市场 A 区',cert:'',std:1});
   curRows=CS.slice();closeAll();renderStats();render();
-  toast('已保存合同 '+no+'：状态「待映射」；请建立摊位号 ↔ 档口编号映射后推送 02；已生成 '+LV[lv].years+' 期租赁年度应收计划');
+  toast('已保存存量合同 '+no+'（企业类型 '+ent+'，模板按「'+rtype+'」）：状态「已存档（存量）/待映射」；建立摊位号 ↔ 档口编号映射后推送 02；已生成 '+LV[lv].years+' 期应收计划');
 }
 
 /* ================= 基础 ================= */

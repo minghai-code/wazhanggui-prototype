@@ -49,7 +49,7 @@ button{cursor:pointer}
         <h1 class="text-[20px] font-bold text-[#1F2430]">线下自动建档与同步</h1>
         <span class="tag" style="background:#DBEAFE;color:#2563EB">04 商户管理</span>
       </div>
-      <p class="text-[12px] text-gray-400 mt-1">有线下档口的商户<b>免申请</b>：系统每日读取「合同管理 + 摊位商铺管理」的在租档口，按<b>姓名 + 身份证</b>自动在本模块建档。<b>自动建档只生成运营端台账，不产生线上账号</b>——商户想用系统必须自行注册入驻（唯一路径，通过后类型升级为「线上兼档口」并默认开通电商 + 询价报价权限）；<b>线下户的资质材料由运营端代录 / 线下核验</b></p>
+      <p class="text-[12px] text-gray-400 mt-1"><b>v2.1</b>：有线下档口的商户<b>免申请</b>——建档由 <b>05 合同「已存档」事件自动触发</b>（+ <b>每日兜底同步</b>），按<b>姓名 + 身份证</b>建档，并写入<b>企业类型 / 档口 / 租期 / 合同号 / 保证金</b>；<b>同时开通商户端「物业模块」权限</b>。<b>自动建档只生成运营端台账，不产生线上账号</b>——<b>注册只是纯账号</b>（线上开店归 10 商城运营、合同签署在商户端）；<b>线下户的资质材料由运营端代录 / 线下核验</b></p>
     </div>
     <div class="flex items-center gap-2">
       <button class="btn btn-ghost" onclick="toast('已导出本次同步日志（CSV，身份证脱敏）')"><i class="fas fa-download text-[10px] mr-1"></i>导出日志</button>
@@ -64,7 +64,7 @@ button{cursor:pointer}
         <span class="text-[13px] font-bold text-[#1F2430]">同步任务</span>
         <span class="tag" style="background:#DCFCE7;color:#15803D" id="jobState">上次同步成功</span>
       </div>
-      <span class="text-[11px] text-[#94A3B8]">数据源：02 市场资源管理（在租档口 + 当前租户）｜ 同步方式：接口 · 每日 02:00（可配置）+ 手动</span>
+      <span class="text-[11px] text-[#94A3B8]">触发源：<b>05 合同「已存档」事件</b>（实时）+ <b>每日 02:00 兜底同步</b>（读取 02 在租档口 + 合同，防事件丢失）｜ 同步方式：接口 · 可配置 + 手动</span>
     </div>
     <div class="grid grid-cols-5 gap-3">
       <div class="rounded-lg p-3" style="background:#F8FAFC"><p class="text-[11px] text-gray-400">上次同步</p><p class="text-[13px] font-semibold text-[#1F2430] mt-1" id="lastTime">2026-09-28 02:00</p><p class="text-[10px] text-[#94A3B8] mt-0.5">耗时 12s</p></div>
@@ -83,7 +83,9 @@ button{cursor:pointer}
       ② <b>姓名 + 身份证齐全</b> → 精确建档，直接判定唯一性；<br>
       ③ <b>只有姓名 + 摊位号（当前线下数据常态）</b> → 照建，档案标记「<b>身份待补全</b>」；出现<b>同名冲突</b>（同一姓名命中多个摊位且均无身份证）→ 进异常清单人工确认；<br>
       ④ 客户后期补全身份证 → 系统<b>自动补齐并去重校验</b>，冲突的进异常清单人工合并；<br>
-      ⑤ 建档只处理「<b>当前在租</b>」租户，<b>历届租户不建档</b>（保留在 02 的历史记录里）。
+      ⑤ 建档只处理「<b>当前在租</b>」租户，<b>历届租户不建档</b>（保留在 02 的历史记录里）；<br>
+      ⑥ 建档同时写入 <b>企业类型</b>（个体工商户 / 企业 / 工厂制造商 / 其他）并 <b>开通商户端「物业模块」权限</b>；<b>合同到期 / 终止 / 清退 → 档案置对应状态 + 自动回收物业权限（含解除该档口的关联账号）</b>；<br>
+      ⑦ <b>「添加员工」（关联租客账号）在「商户档案」页操作栏与商户端（仅业主可见）进行</b>，本页只负责建档与同步。
     </div>
   </div>
 
@@ -248,7 +250,7 @@ function syncNow(){
   document.getElementById('jobState').textContent='同步中…';
   document.getElementById('jobState').style.background='#FEF3C7';
   document.getElementById('jobState').style.color='#B45309';
-  toast('正在经接口拉取合同与档口数据…');
+  toast('正在消费 05 合同「已存档」事件 + 拉取 02 在租档口数据…');
   setTimeout(function(){
     document.getElementById('jobState').textContent='上次同步成功';
     document.getElementById('jobState').style.background='#DCFCE7';

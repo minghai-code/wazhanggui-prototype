@@ -35,7 +35,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;margi
 <!-- 服务概览 -->
 <div class="px-3 -mt-3 relative z-10">
 <div class="bg-white rounded-2xl shadow-soft p-3.5 fade-up border border-white grid grid-cols-3 gap-2 text-center">
-<div class="border-r border-gray-100"><p class="text-[18px] font-black" style="color:#6366F1">7</p><p class="text-[9px] text-gray-400 mt-0.5">服务模块</p></div>
+<div class="border-r border-gray-100"><p class="text-[18px] font-black" style="color:#6366F1">4<span class="text-[10px] text-gray-400">/7</span></p><p class="text-[9px] text-gray-400 mt-0.5">本期开放</p></div>
 <div class="border-r border-gray-100"><p class="text-[18px] font-black" style="color:#10B981">36</p><p class="text-[9px] text-gray-400 mt-0.5">合作机构</p></div>
 <div><p class="text-[18px] font-black" style="color:#F59E0B">1280+</p><p class="text-[9px] text-gray-400 mt-0.5">服务企业</p></div>
 </div>
@@ -43,6 +43,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;margi
 
 <!-- 服务列表 -->
 <div class="px-3 mt-3 space-y-2.5 mb-28" id="serviceList"></div>
+
+<!-- Toast -->
+<div class="toast" id="toast" style="position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:9999;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.25);min-width:140px;justify-content:center"><i class="fas fa-circle-check text-[#4ADE80]"></i><span id="toastTxt">操作成功</span></div>
 
 <!-- 底部Tab栏 -->
 <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100" style="height:65px;z-index:100;width:393px">
@@ -56,27 +59,34 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;margi
 <div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none"><div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:3px"></div></div>
 
 <script>
+var toastTimer;
+function toast(msg){var t=document.getElementById('toast');if(!t){alert(msg);return;}document.getElementById('toastTxt').textContent=msg;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},1800)}
+
+/* 产业链服务入口：本期后台仅落点知产/技术共享/政策兑现/中介服务 4 项，其余（外贸/金融/人才招聘）标注"敬请期待" */
 var services=[
- {link:'cross-border.html',icon:'fa-globe',title:'外贸服务',desc:'跨境选品·独立站建站·在线教程',features:['跨境选品','独立站','在线教程'],color:'#818CF8',bg:'#EEF2FF'},
- {link:'finance-service.html',icon:'fa-hand-holding-dollar',title:'金融服务撮合',desc:'企业贷款·融资租赁·应收账款融资',features:['企业贷款','融资租赁','应收账款'],color:'#10B981',bg:'#D1FAE5'},
- {link:'recruit-service.html',icon:'fa-user-tie',title:'人才招聘服务',desc:'发布招聘·筛选简历·在线对接',features:['发布招聘','简历筛选','人才对接'],color:'#EC4899',bg:'#FCE7F3'},
+ {link:'cross-border.html',icon:'fa-globe',title:'外贸服务',desc:'跨境选品·独立站建站·在线教程',features:['跨境选品','独立站','在线教程'],color:'#818CF8',bg:'#EEF2FF',pending:true},
+ {link:'finance-service.html',icon:'fa-hand-holding-dollar',title:'金融服务撮合',desc:'企业贷款·融资租赁·应收账款融资',features:['企业贷款','融资租赁','应收账款'],color:'#10B981',bg:'#D1FAE5',pending:true},
+ {link:'recruit-service.html',icon:'fa-user-tie',title:'人才招聘服务',desc:'发布招聘·筛选简历·在线对接',features:['发布招聘','简历筛选','人才对接'],color:'#EC4899',bg:'#FCE7F3',pending:true},
  {link:'ip-service.html',icon:'fa-lightbulb',title:'知识产权网',desc:'专利查询·商标注册·版权登记',features:['专利查询','商标注册','版权登记'],color:'#F59E0B',bg:'#FEF3C7'},
- {link:'tech-service.html',icon:'fa-flask',title:'技术共享',desc:'技术成果·创新案例·专家资源',features:['技术成果','创新案例','专家对接'],color:'#3B82F6',bg:'#DBEAFE'},
+ {link:'tech-service.html',icon:'fa-flask',title:'技术共享',desc:'技术成果·技术需求·专家对接',features:['技术成果','技术需求','专家对接'],color:'#3B82F6',bg:'#DBEAFE'},
  {link:'policy-service.html',icon:'fa-file-signature',title:'政策兑现',desc:'政策查询·申报条件·兑现流程',features:['政策查询','申报指南','兑现流程'],color:'#8B5CF6',bg:'#EDE9FE'},
  {link:'agency-service.html',icon:'fa-briefcase',title:'中介服务',desc:'财务·法律·咨询·认证',features:['财务服务','法律咨询','专业认证'],color:'#F97316',bg:'#FFEDD5'}
 ];
 var html='';
 services.forEach(function(s,i){
  var tags=s.features.map(function(f){return '<span class="text-[8px] px-1.5 py-0.5 rounded-full" style="background:'+s.bg+';color:'+s.color+'">'+f+'</span>'}).join('');
- html+='<a href="'+s.link+'" class="card bg-white rounded-2xl shadow-soft p-3 flex items-center gap-3 fade-up block" style="animation-delay:'+(i*0.05)+'s">';
- html+='<div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft flex-shrink-0" style="background:linear-gradient(135deg,'+s.color+','+s.color+'DD)"><i class="fas '+s.icon+' text-lg"></i></div>';
- html+='<div class="flex-1 min-w-0">';
- html+='<p class="text-[14px] font-bold text-gray-800">'+s.title+'</p>';
- html+='<p class="text-[10px] text-gray-400 mt-0.5">'+s.desc+'</p>';
- html+='<div class="flex gap-1 mt-1.5">'+tags+'</div>';
- html+='</div>';
- html+='<i class="fas fa-chevron-right text-gray-300 text-[10px] flex-shrink-0"></i>';
- html+='</a>';
+ var right=s.pending
+   ?'<span class="text-[9px] px-2 py-0.5 rounded-full font-bold flex-shrink-0" style="background:#F3F4F6;color:#9CA3AF">敬请期待</span>'
+   :'<i class="fas fa-chevron-right text-gray-300 text-[10px] flex-shrink-0"></i>';
+ var inner='<div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft flex-shrink-0" style="background:linear-gradient(135deg,'+s.color+','+s.color+'DD)"><i class="fas '+s.icon+' text-lg"></i></div>'
+  +'<div class="flex-1 min-w-0"><p class="text-[14px] font-bold text-gray-800">'+s.title+'</p>'
+  +'<p class="text-[10px] text-gray-400 mt-0.5">'+s.desc+'</p>'
+  +'<div class="flex gap-1 mt-1.5">'+tags+'</div></div>'+right;
+ if(s.pending){
+  html+='<div class="card bg-white rounded-2xl shadow-soft p-3 flex items-center gap-3 fade-up" style="animation-delay:'+(i*0.05)+'s;opacity:.72" onclick="toast(\''+s.title+'：本期暂未开放，敬请期待\')">'+inner+'</div>';
+ }else{
+  html+='<a href="'+s.link+'" class="card bg-white rounded-2xl shadow-soft p-3 flex items-center gap-3 fade-up block" style="animation-delay:'+(i*0.05)+'s">'+inner+'</a>';
+ }
 });
 document.getElementById('serviceList').innerHTML=html;
 </script>

@@ -8,7 +8,12 @@
 #>
 param([string]$Dir = '.', [string[]]$Names = @())
 
-$Builtins = @('toast','openD','closeD','alert','confirm','console','toggle','_tab','tabSwitch')
+# 白名单：页面间复用的公共函数 + 浏览器原生函数（原生函数不应被判定为"未定义"）
+$Builtins = @('toast','openD','closeD','alert','confirm','console','toggle','_tab','tabSwitch',
+              'stopPropagation','preventDefault','encodeURIComponent','decodeURIComponent',
+              'reload','setTimeout','clearTimeout','setInterval','clearInterval',
+              'querySelector','querySelectorAll','classList','remove','add','forEach','map','filter','function')
+
 $problems = @()
 $total = 0
 

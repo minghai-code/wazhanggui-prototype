@@ -57,7 +57,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
         <h1 class="text-[20px] font-bold text-[#1F2430]">摊位商铺管理</h1>
         <span class="tag" style="background:#FFF1ED;color:#FF4D2D">档口编号权威源</span>
       </div>
-      <p class="text-[12px] text-[#94A3B8] mt-1">市场资源管理 / 摊位商铺管理　·　全市场档口唯一台账；每日经接口同步合同数据并按档口编号匹配，产出"当前租户 / 关联合同 / 历届租户"</p>
+      <p class="text-[12px] text-[#94A3B8] mt-1">市场资源管理 / 摊位商铺管理　·　全市场档口唯一台账。<b>v2.9</b>：<b>「当前租户」的唯一来源 = 05 合同</b>——合同「已存档 · 生效中」→ 当前租户 = 合同承租人（在租）；合同<b>「已终止」</b>（<b>提前终止</b>，05 合同台账发起）→ <b>当前租户清空 + 档口置「空闲（待竞拍）」</b>并记空置开始日，<b>历届租户结束原因 = 终止原因</b>；合同<b>「已到期」</b>（自然到期、系统自动）→ 档口结果相同，<b>但结束原因记「到期（重新竞拍）」，不叫终止</b>；本模块<b>只接收结果、不做终止入口</b></p>
     </div>
     <div class="flex gap-2">
       <button class="btn btn-ghost" onclick="toast('已下载档口导入模板（Excel）')"><i class="fas fa-file-arrow-down mr-1"></i>导入模板</button>
@@ -122,9 +122,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
     <div id="pane-u">
       <div class="px-5 py-3 border-b border-gray-100 flex items-center gap-2 flex-wrap bg-gray-50">
         <input class="fi w-56" id="q" placeholder="档口编号 / 租客姓名 / 合同号" oninput="renderUnits()">
+        <select class="fi w-32" id="fpl" onchange="renderUnits()"><option value="">全部场所</option><option>大唐袜业城</option><option>原料市场</option><option>行政服务中心</option></select>
         <select class="fi w-24" id="fb" onchange="renderUnits()"><option value="">全部楼栋</option><option>A</option><option>B</option><option>C</option></select>
-        <select class="fi w-24" id="ff" onchange="renderUnits()"><option value="">全部楼层</option><option>B1</option><option>1F</option><option>2F</option><option>3F</option></select>
-        <select class="fi w-28" id="ft" onchange="renderUnits()"><option value="">全部类型</option><option>档口</option><option>商铺</option><option>公共设施</option></select>
+        <select class="fi w-24" id="ff" onchange="renderUnits()"><option value="">全部楼层</option><option>B1</option><option>1F</option><option>2F</option><option>3F</option><option>4F</option><option>5F</option></select>
+        <select class="fi w-28" id="ft" onchange="renderUnits()"><option value="">全部类型</option><option>档口</option><option>办公室</option><option>店面</option><option>公共设施</option></select>
+        <select class="fi w-28" id="flv" onchange="renderUnits()"><option value="">全部等级</option><option>精品摊</option><option>普通摊</option></select>
         <select class="fi w-28" id="fs" onchange="renderUnits()"><option value="">全部状态</option><option>空闲</option><option>在租</option><option>装修中</option><option>停用</option></select>
         <select class="fi w-32" id="fh" onchange="renderUnits()"><option value="">是否有当前租户</option><option value="1">有（在租）</option><option value="0">无</option></select>
         <button class="btn btn-ghost" onclick="resetFilter()"><i class="fas fa-eraser mr-1"></i>重置</button>
@@ -140,7 +142,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
         </table>
       </div>
       <div class="px-5 py-3 border-t border-gray-100 text-[11px] text-[#94A3B8]">
-        <i class="fas fa-circle-info mr-1"></i>「当前租户」由合同匹配结果写入（每日定时同步）；「在租 / 空闲」由合同数据判定，不支持手工修改；物业仅可标记「装修中 / 停用」
+        <i class="fas fa-circle-info mr-1"></i>「当前租户」由 <b>05 合同</b>写入——<b>合同「已存档」事件</b>（+ 每日兜底同步）写入当前租户；<b>合同「已终止」（提前终止）或「已到期」（自然到期）</b>→ 当前租户清空、档口回「空闲（待竞拍）」；「在租 / 空闲」由合同判定，<b>不支持手工修改</b>；物业仅可标记「装修中 / 停用」
       </div>
     </div>
 
@@ -183,27 +185,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 var units=[
   {no:'1F-A01',b:'A',floor:'1F',type:'档口',area:36,status:'在租',plan:true,
    tenant:{name:'大唐袜业批发',idno:'330681********1234',phone:'138****6621',start:'2023-03-01',end:'2026-02-28',contract:'HT-2023-0312',biz:'男袜'},
-   hist:[{name:'诸暨市袜源商贸',start:'2020-01-01',end:'2023-02-28',contract:'HT-2020-0117',reason:'换租'}]},
+   hist:[{name:'诸暨市袜源商贸',start:'2020-01-01',end:'2023-02-28',contract:'HT-2020-0117',reason:'换租（承租人变更）'}]},
   {no:'1F-A02',b:'A',floor:'1F',type:'档口',area:36,status:'在租',plan:true,
    tenant:{name:'梦娜针织',idno:'330681********7788',phone:'139****3382',start:'2025-09-01',end:'2028-08-31',contract:'HT-2025-0877',biz:'女袜'},
-   hist:[{name:'诸暨市袜源商贸',start:'2020-01-01',end:'2023-02-28',contract:'HT-2020-0117',reason:'换租'}]},
-  {no:'1F-A03',b:'A',floor:'1F',type:'档口',area:36,status:'空闲',plan:true,tenant:null,hist:[{name:'袜都商贸',start:'2019-05-01',end:'2026-03-31',contract:'HT-2019-0402',reason:'到期'}]},
+   hist:[{name:'诸暨市袜源商贸',start:'2020-01-01',end:'2023-02-28',contract:'HT-2020-0117',reason:'换租（承租人变更）'}]},
+  {no:'1F-A03',b:'A',floor:'1F',type:'档口',area:36,status:'空闲',plan:true,tenant:null,hist:[{name:'袜都商贸',start:'2019-05-01',end:'2026-03-31',contract:'HT-2019-0402',reason:'到期（重新竞拍）'}]},
   {no:'1F-A05',b:'A',floor:'1F',type:'档口',area:42,status:'在租',plan:true,
    tenant:{name:'浪莎袜业',idno:'330681********2210',phone:'137****9911',start:'2024-06-01',end:'2027-05-31',contract:'HT-2024-0518',biz:'袜子全品类'},hist:[]},
   {no:'1F-A06',b:'A',floor:'1F',type:'档口',area:36,status:'装修中',plan:true,
    tenant:{name:'耐尔袜业（装修中）',idno:'330681********5566',phone:'136****4402',start:'2026-08-01',end:'2029-07-31',contract:'HT-2026-0801',biz:'运动袜'},
-   hist:[{name:'耐尔袜业',start:'2021-01-01',end:'2026-07-31',contract:'HT-2021-0063',reason:'续租'}]},
+   hist:[{name:'耐尔袜业',start:'2021-01-01',end:'2026-07-31',contract:'HT-2021-0063',reason:'到期（重新竞拍）'}]},
   {no:'1F-A08',b:'A',floor:'1F',type:'档口',area:50,status:'在租',plan:true,
    tenant:{name:'耐尔袜业',idno:'330681********5566',phone:'136****4402',start:'2023-03-01',end:'2026-02-28',contract:'HT-2023-0330',biz:'男袜'},
-   hist:[{name:'诸暨市利群针纺',start:'2019-01-01',end:'2023-02-28',contract:'HT-2019-0021',reason:'到期'}]},
+   hist:[{name:'诸暨市利群针纺',start:'2019-01-01',end:'2023-02-28',contract:'HT-2019-0021',reason:'到期（重新竞拍）'}]},
   {no:'1F-A09',b:'A',floor:'1F',type:'档口',area:36,status:'空闲',plan:false,tenant:null,hist:[]},
   {no:'1F-A12',b:'A',floor:'1F',type:'档口',area:40,status:'在租',plan:true,
    tenant:{name:'情怡袜业',idno:'330681********9090',phone:'135****7788',start:'2022-07-01',end:'2025-06-30',contract:'HT-2022-0701',biz:'运动袜'},
-   hist:[{name:'情怡袜业',start:'2019-07-01',end:'2022-06-30',contract:'HT-2019-0630',reason:'续租'}]},
+   hist:[{name:'情怡袜业',start:'2019-07-01',end:'2022-06-30',contract:'HT-2019-0630',reason:'违约终止'}]},
   {no:'1F-B03',b:'A',floor:'1F',type:'档口',area:44,status:'在租',plan:true,
    tenant:{name:'宝娜斯',idno:'330681********3311',phone:'138****2200',start:'2025-01-01',end:'2027-12-31',contract:'HT-2025-0101',biz:'丝袜'},hist:[]},
   {no:'1F-B08',b:'A',floor:'1F',type:'档口',area:36,status:'空闲',plan:true,tenant:null,
-   hist:[{name:'袜都商贸',start:'2020-01-01',end:'2025-12-31',contract:'HT-2020-0201',reason:'退租'}]},
+   hist:[{name:'袜都商贸',start:'2020-01-01',end:'2025-12-31',contract:'HT-2020-0201',reason:'违约终止'}]},
   {no:'1F-C02',b:'A',floor:'1F',type:'档口',area:30,status:'停用',plan:true,tenant:null,hist:[]},
   {no:'2F-A05',b:'A',floor:'2F',type:'商铺',area:68,status:'在租',plan:true,
    tenant:{name:'丹吉娅',idno:'330681********4400',phone:'139****1122',start:'2024-01-01',end:'2026-12-31',contract:'HT-2024-0101',biz:'品牌袜品'},hist:[]},
@@ -248,12 +250,14 @@ function stat(){
   document.getElementById('errBadge').textContent=pend;
 }
 function renderUnits(){
-  var q=val('q').toLowerCase(),fb=val('fb'),ff=val('ff'),ft=val('ft'),fs=val('fs'),fh=val('fh');
+  var q=val('q').toLowerCase(),fb=val('fb'),ff=val('ff'),ft=val('ft'),fs=val('fs'),fh=val('fh'),fpl=val('fpl'),flv=val('flv');
   var list=units.filter(function(u){
     if(q){ var hay=(u.no+' '+(u.tenant?u.tenant.name+' '+u.tenant.contract:'')).toLowerCase(); if(hay.indexOf(q)<0) return false; }
+    if(fpl && (u.pl||'大唐袜业城')!==fpl) return false;
     if(fb && u.b!==fb) return false;
     if(ff && u.floor!==ff) return false;
     if(ft && u.type!==ft) return false;
+    if(flv && (u.lv||'')!==flv) return false;
     if(fs && u.status!==fs) return false;
     if(fh==='1' && !u.tenant) return false;
     if(fh==='0' && u.tenant) return false;
@@ -305,7 +309,7 @@ function switchTab(t){
   document.getElementById('pane-u').classList.toggle('hidden',t!=='u');
   document.getElementById('pane-e').classList.toggle('hidden',t!=='e');
 }
-function resetFilter(){ ['q','fb','ff','ft','fs','fh'].forEach(function(id){document.getElementById(id).value='';}); renderUnits(); }
+function resetFilter(){ ['q','fpl','fb','ff','ft','flv','fs','fh'].forEach(function(id){document.getElementById(id).value='';}); renderUnits(); }
 function markUnit(no){
   var u=units.filter(function(x){return x.no===no;})[0];
   if(u.status==='在租'){ toast('「在租」由合同数据判定，不可手工修改；如需标记装修/停用，请先终止或暂停合同'); return; }
@@ -342,8 +346,19 @@ function openUnit(no){
   var u=units.filter(function(x){return x.no===no;})[0]; if(!u) return;
   curUnit=u;
   document.getElementById('d-title').textContent='档口详情 · '+u.no;
-  document.getElementById('d-sub').textContent=u.b+' 栋 · '+u.floor+' · '+u.type+' · '+u.area+'㎡　·　档口编号为全端唯一标识，一经使用不可修改';
+  document.getElementById('d-sub').textContent=(u.pl||'大唐袜业城')+' · '+u.b+' 栋 · '+u.floor+' · '+u.type+(u.lv?('（'+u.lv+'）'):'')+' · '+u.area+'㎡　·　资源编号为全端唯一标识，一经使用不可修改';
   var t=u.tenant, h='';
+  /* v2.8：竞拍信息（线下取得 → 人工录入 / 导入；手机号 = 合同签署匹配键） */
+  h+='<div class="blk" style="border-color:#C4B5FD;background:#FAF8FF"><div class="blk-t" style="color:#6D28D9"><i class="fas fa-gavel mr-1"></i>竞拍信息（本轮竞拍登记 · 线下取得，人工录入）</div>'
+    +(u.bid?('<div class="kv"><span class="k">竞拍批次</span><span class="v">'+u.bid.batch+'</span></div>'
+      +'<div class="kv"><span class="k">竞得人</span><span class="v">'+u.bid.winner+'（身份证 / 信用代码 ＋ 手机号）</span></div>'
+      +'<div class="kv"><span class="k">手机号 *</span><span class="v"><b>'+(u.bid.phone||'—')+'</b>　<span class="tag" style="background:#E0E7FF;color:#4338CA">合同签署匹配键</span></span></div>'
+      +'<div class="kv"><span class="k">成交价</span><span class="v">'+u.bid.price+'</span></div>'
+      +'<div class="kv"><span class="k">竞拍凭证</span><span class="v"><span class="lk" onclick="toast(\'预览竞拍凭证（线下反馈的截图 / 文件）\')">'+u.bid.file+'</span></span></div>')
+      :'<p class="text-[12px] text-[#94A3B8]">本轮尚未登记竞拍信息（竞拍成功后由合同专员录入：竞拍批次 / 竞得人（姓名 + 身份证）+ <b>手机号</b> / 成交价 / 凭证）</p>')
+    +'<div class="mt-2"><button class="btn btn-ghost" onclick="openBid(\''+u.no+'\')"><i class="fas fa-pen mr-1"></i>登记竞拍</button>'
+    +' <button class="btn btn-ghost" onclick="toast(\'已下载竞拍结果导入模板（字段：资源编号 / 竞得人 / 手机号 / 成交价 / 竞拍批次）；整批校验通过才入库\')"><i class="fas fa-file-import mr-1"></i>批量导入竞拍结果</button></div>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-2"><i class="fas fa-circle-info mr-1"></i><b>v2.8</b>：竞拍为<b>线下行为</b>（浙交会线下反馈），系统<b>只做人工录入 / 导入，不做接口对接</b>；<b>手机号必填且强校验</b>——用于 05 合同签署匹配（短信通知 → 竞拍人同号注册 → 才可见待签合同）。<b>办公室（直接出租）无竞拍结果 → 竞拍字段可留空</b>。</p></div>';
 
   /* 1 基础属性 */
   h+='<div class="blk mb-4"><div class="blk-t">基础属性</div>'
@@ -367,10 +382,11 @@ function openUnit(no){
      +'<div class="kv"><span class="k">租期</span><span class="v">'+esc(t.start)+' ~ '+esc(t.end)+'</span></div>'
      +'<div class="kv"><span class="k">关联合同</span><span class="v"><span class="lk" onclick="toast(\'跳转 05 合同管理 · 合同 \'+(\''+esc(t.contract)+'\'))">'+esc(t.contract)+'</span></span></div>'
      +'</div>'
-     +'<div class="mt-2 text-[11px] text-[#64748B]"><i class="fas fa-circle-info mr-1 text-[#059669]"></i>数据来源：合同管理每日经接口同步后按档口编号匹配写入，本模块不可手工编辑</div></div>';
+     +'<div class="mt-2 text-[11px] text-[#64748B]"><i class="fas fa-circle-info mr-1 text-[#059669]"></i>数据来源：<b>05 合同</b>「已存档」事件写入（+ 每日兜底同步）；<b>合同「已终止」（提前终止）或「已到期」（自然到期）时本档口当前租户会被清空并转「空闲（待竞拍）」</b>（到期 ≠ 终止，结束原因分别记「到期（重新竞拍）」/ 终止原因）；本模块不可手工编辑</div></div>';
   } else {
     h+='<div class="blk mb-4"><div class="blk-t">当前租户（来自合同匹配）</div>'
-     +'<div class="text-[13px] text-[#94A3B8] py-2">空闲（无生效合同）</div></div>';
+     +'<div class="text-[13px] text-[#94A3B8] py-2">空闲（无生效合同）</div>'
+     +'<div class="mt-1 text-[11px] text-[#64748B]"><i class="fas fa-circle-info mr-1"></i>合同<b>「已终止」</b>（<b>提前终止</b>，05 合同台账发起）或<b>「已到期」</b>（自然到期，系统自动）→ 当前租户清空 → 档口置「<b>空闲（待竞拍）</b>」并记空置开始日；<b>到期 ≠ 终止</b>（两者写入历届租户的结束原因不同）</div></div>';
   }
 
   /* 3 历届租户 */
@@ -409,10 +425,13 @@ function openNew(){
   document.getElementById('d-sub').textContent='档口编号唯一，是合同匹配键，创建后不可修改';
   document.getElementById('d-body').innerHTML=
     '<div class="grid grid-cols-2 gap-3">'
-    +'<div><label class="fl"><i>*</i>档口编号</label><input class="fi" id="n_no" placeholder="如 1F-A15"></div>'
-    +'<div><label class="fl"><i>*</i>楼栋 / 楼层</label><div class="flex gap-2"><select class="fi" id="n_b"><option>A</option><option>B</option><option>C</option></select><select class="fi" id="n_f"><option>B1</option><option>1F</option><option>2F</option><option>3F</option></select></div></div>'
-    +'<div><label class="fl"><i>*</i>类型</label><select class="fi" id="n_t"><option>档口</option><option>商铺</option><option>公共设施</option></select></div>'
+    +'<div><label class="fl"><i>*</i>资源编号</label><input class="fi" id="n_no" placeholder="如 1F-A15 / YLSC-S01（场所前缀）"></div>'
+    +'<div><label class="fl"><i>*</i>场所（v2.5 多场所）</label><select class="fi" id="n_pl"><option>大唐袜业城</option><option>原料市场</option><option>行政服务中心</option></select></div>'
+    +'<div><label class="fl"><i>*</i>楼栋 / 楼层</label><div class="flex gap-2"><select class="fi" id="n_b"><option>A</option><option>B</option><option>C</option><option>沿街</option></select><select class="fi" id="n_f"><option>B1</option><option>1F</option><option>2F</option><option>3F</option><option>4F</option><option>5F</option></select></div></div>'
+    +'<div><label class="fl"><i>*</i>类型（v2.5 三类）</label><select class="fi" id="n_t"><option>档口</option><option>办公室</option><option>店面</option><option>公共设施</option></select></div>'
+    +'<div><label class="fl">摊位等级（仅"档口"必填）</label><select class="fi" id="n_lv"><option>精品摊</option><option>普通摊</option></select><div class="text-[10px] text-[#94A3B8] mt-1">决定签约年限（5 年 / 3 年）与保证金（2 万 / 1 万）</div></div>'
     +'<div><label class="fl"><i>*</i>面积(㎡)</label><input class="fi" id="n_a" placeholder="如 36"></div>'
+    +'<div><label class="fl">计租方式 / 单价（办公室、店面按面积或按月）</label><div class="flex gap-2"><select class="fi" id="n_bill"><option>按年</option><option>按月</option></select><input class="fi" id="n_price" placeholder="单价，如 1200 元/㎡/年"></div></div>'
     +'</div>'
     +'<div class="mt-4 p-4 bg-gray-50 rounded-xl text-[12px] text-[#64748B]"><i class="fas fa-circle-info mr-1 text-[#FF4D2D]"></i>新建档口状态为「空闲」；被租走后由合同同步匹配自动置为「在租」</div>';
   document.getElementById('d-foot').innerHTML='<button class="btn btn-ghost py-2.5" onclick="closeD()">取消</button>'
@@ -423,8 +442,14 @@ function saveNew(){
   var no=val('n_no').toUpperCase(),a=val('n_a');
   if(!no||!a){ toast('档口编号与面积为必填'); return; }
   if(units.filter(function(x){return x.no===no;}).length){ toast('档口编号已存在，编号必须唯一'); return; }
-  units.unshift({no:no,b:val('n_b'),floor:val('n_f'),type:val('n_t'),area:parseInt(a,10)||0,status:'空闲',plan:false,tenant:null,hist:[]});
+  units.unshift({no:no,pl:val('n_pl'),b:val('n_b'),floor:val('n_f'),type:val('n_t'),lv:(val('n_t')==='档口'?(val('n_lv')||'普通摊'):''),bill:val('n_bill'),price:val('n_price'),area:parseInt(a,10)||0,status:'空闲',plan:false,tenant:null,hist:[]});
   closeD(); toast('已新增档口 '+no); stat(); renderUnits();
+}
+function openBid(no){
+  var u=units.filter(function(x){return x.no===no;})[0]; if(!u){ return; }
+  u.bid={batch:'2027 年首轮竞拍（袜业城）',winner:'（待录入姓名 / 企业名）',phone:'138****0000',price:'（待录入成交价）',file:'竞拍成交确认书.png'};
+  toast('登记竞拍（原型演示）：已写入示例竞拍信息（批次 / 竞得人 + 手机号 / 成交价 / 凭证）。v2.8：竞拍为线下行为，由合同专员人工录入（或 Excel 导入），供 05 合同发起与签署匹配手机号使用');
+  openUnit(no);
 }
 function showD(){ document.getElementById('mask').classList.add('on'); document.getElementById('drawer').classList.add('on'); }
 function closeD(){ document.getElementById('mask').classList.remove('on'); document.getElementById('drawer').classList.remove('on'); }

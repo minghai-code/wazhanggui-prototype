@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>我要提技术需求 - 袜掌柜商户版</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--bg:#F0F9FF}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+.card{transition:transform .16s ease}.card:active{transform:scale(.985)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,40,80,.06)}
+.inp{width:100%;background:rgba(248,249,250,.8);border:1px solid rgba(240,240,240,.8);border-radius:12px;padding:11px 13px;font-size:13px;color:#1F2430;outline:none}
+.inp::placeholder{color:#C0C0C0}.inp:focus{border-color:#0EA5E9;background:#fff}
+.lbl{font-size:11px;color:#6b7080;font-weight:500;display:block;margin-bottom:6px}.lbl b{color:#0EA5E9}
+.tag-opt{font-size:11px;color:#6b7080;background:#fff;border:1px solid #eceef0;border-radius:10px;padding:6px 12px;cursor:pointer}.tag-opt.on{border-color:#0EA5E9;color:#0EA5E9;background:#EFF9FF;font-weight:600}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:200;opacity:0;transition:.2s;max-width:80%;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<!-- 顶部 -->
+<div class="relative px-4 pt-2 pb-5 overflow-hidden" style="background:linear-gradient(135deg,#6366F1 0%,#4338CA 100%)">
+  <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-50" style="background:#A5B4FC"></div>
+  <div class="relative flex items-center gap-3">
+    <a href="industry-service.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+    <div><span class="text-white font-extrabold text-[18px]">我要提技术需求</span>
+    <p class="text-white/85 text-[10px] mt-0.5">提交后台（13 产业链服务）供需对接</p></div>
+  </div>
+</div>
+
+<!-- 表单 -->
+<div class="px-3 pt-4 pb-16" id="formBox">
+  <div class="bg-white rounded-2xl shadow-soft p-3.5">
+    <div class="mb-3"><label class="lbl">需求标题 <b>*</b></label><input class="inp" id="tdTitle" placeholder="如：抗菌防臭袜工艺技术需求"></div>
+    <div class="mb-3"><label class="lbl">技术领域 <b>*</b>（与后台分类一致）</label>
+      <div class="flex flex-wrap gap-1.5" id="fields">
+        <span class="tag-opt on" onclick="pickOne(this)">袜机设备与自动化</span>
+        <span class="tag-opt" onclick="pickOne(this)">原料与工艺</span>
+        <span class="tag-opt" onclick="pickOne(this)">智能制造与数字化</span>
+        <span class="tag-opt" onclick="pickOne(this)">智能质检</span>
+        <span class="tag-opt" onclick="pickOne(this)">设计研发</span>
+        <span class="tag-opt" onclick="pickOne(this)">仓储物流</span>
+        <span class="tag-opt" onclick="pickOne(this)">节能环保</span>
+      </div>
+    </div>
+    <div class="mb-3"><label class="lbl">需求描述 <b>*</b></label><textarea class="inp" rows="3" placeholder="描述你的技术需求与期望目标"></textarea></div>
+    <div class="mb-3"><label class="lbl">技术难点</label><textarea class="inp" rows="2" placeholder="当前遇到的技术难点 / 瓶颈"></textarea></div>
+    <div class="grid grid-cols-2 gap-2 mb-3">
+      <div><label class="lbl">期望投入</label><input class="inp" placeholder="如：10-20 万"></div>
+      <div><label class="lbl">期望周期</label><input class="inp" placeholder="如：3 个月"></div>
+    </div>
+    <div class="mb-3"><label class="lbl">联系人 / 电话 <b>*</b></label><input class="inp" placeholder="用于对接联系"></div>
+    <div class="mb-1"><label class="lbl">附件（选填）</label>
+      <div class="border-[1.5px] border-dashed border-gray-300 rounded-xl p-4 text-center" onclick="toast('选择附件（图纸 / 样品照片 / 说明）')"><i class="fas fa-paperclip text-gray-300 text-xl"></i><p class="text-[10px] text-gray-400 mt-1">上传图纸 / 照片 / 说明文档</p></div>
+    </div>
+  </div>
+  <button class="card w-full mt-4 py-3 rounded-2xl text-white text-[14px] font-bold" style="background:linear-gradient(135deg,#6366F1,#4338CA)" onclick="submitTD()">提交技术需求</button>
+</div>
+
+<!-- 我的技术需求（对接状态跟踪） -->
+<div class="px-3 pb-16">
+  <p class="text-[12px] font-bold text-gray-800 mb-2 px-1">我的技术需求</p>
+  <div class="bg-white rounded-2xl shadow-soft overflow-hidden">
+    <div class="flex items-center gap-3 px-3.5 py-3 border-b border-gray-50">
+      <div class="w-8 h-8 rounded-lg bg-sky-50 flex items-center justify-center flex-shrink-0"><i class="fas fa-lightbulb text-sky-500 text-xs"></i></div>
+      <div class="flex-1 min-w-0"><p class="text-[12px] font-medium text-gray-700 truncate">抗菌防臭袜工艺技术需求</p><p class="text-[9px] text-gray-400 num">TD20260712-02 · 原料与工艺</p></div>
+      <span class="bg-sky-100 text-sky-600 text-[9px] font-bold px-1.5 py-0.5 rounded">对接中</span>
+    </div>
+    <div class="flex items-center gap-3 px-3.5 py-3 border-b border-gray-50">
+      <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center flex-shrink-0"><i class="fas fa-lightbulb text-emerald-500 text-xs"></i></div>
+      <div class="flex-1 min-w-0"><p class="text-[12px] font-medium text-gray-700 truncate">智能质检设备选型需求</p><p class="text-[9px] text-gray-400 num">TD20260628-01 · 智能质检</p></div>
+      <span class="bg-emerald-100 text-emerald-600 text-[9px] font-bold px-1.5 py-0.5 rounded">已匹配</span>
+    </div>
+    <div class="flex items-center gap-3 px-3.5 py-3">
+      <div class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0"><i class="fas fa-lightbulb text-gray-400 text-xs"></i></div>
+      <div class="flex-1 min-w-0"><p class="text-[12px] font-medium text-gray-700 truncate">节能空压机改造需求</p><p class="text-[9px] text-gray-400 num">TD20260610-05 · 节能环保</p></div>
+      <span class="bg-gray-100 text-gray-500 text-[9px] font-bold px-1.5 py-0.5 rounded">已关闭</span>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span id="toastTxt">操作成功</span></div>
+<script>
+var toastTimer;
+function toast(m){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=m;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},1800)}
+function pickOne(el){document.querySelectorAll('#fields .tag-opt').forEach(function(a){a.classList.remove('on')});el.classList.add('on');}
+function submitTD(){
+  if(!document.getElementById('tdTitle').value.trim()){toast('请填写需求标题');return}
+  toast('技术需求已提交后台（13 产业链服务），状态：待对接');
+}
+</script>
+</body>
+</html>

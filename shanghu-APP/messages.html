@@ -40,12 +40,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
     <a onclick="toast('客服设置')" class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500"><i class="fas fa-gear text-sm"></i></a>
   </div>
 
-  <!-- 主Tab：会话中 / 已结束（外采原样） -->
-  <div class="flex items-center gap-6 px-4 mt-3 text-[14px] border-b border-gray-100" id="mainTabs">
+  <!-- 消息分类：客服消息 / 系统通知（站内信） -->
+  <div class="flex items-center gap-4 px-4 mt-3 text-[14px] border-b border-gray-100" id="topTabs">
+    <a onclick="switchTop('kefu',this)" class="font-bold relative pb-2" style="color:#2563EB;border-bottom:2px solid #2563EB">客服消息</a>
+    <a onclick="switchTop('notice',this)" class="text-gray-500 pb-2">系统通知 <span class="num text-[11px] text-red-500 font-bold">(3)</span></a>
+  </div>
+</div>
+
+<!-- ===== 客服消息 ===== -->
+<div id="tabKefu">
+  <div class="flex items-center gap-6 px-4 mt-2.5 text-[13px]" id="mainTabs">
     <a class="font-bold relative pb-2" style="color:#2563EB;border-bottom:2px solid #2563EB">会话中 <span class="num">(3)</span></a>
     <a onclick="switchMain(this,'已结束')" class="text-gray-500 pb-2">已结束 <span class="num">(1)</span></a>
   </div>
-</div>
 
 <!-- 状态条：在线 / 待接入（外采原样） -->
 <div class="px-3 mt-2.5 flex items-center gap-2">
@@ -113,6 +120,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
   </div>
 
 </div>
+</div><!-- /tabKefu -->
+
+<!-- ===== 系统通知（内容管理消息推送 · 站内信：缴费到期/物业告警/政策到期） ===== -->
+<div id="tabNotice" style="display:none">
+  <div class="px-3 mt-2.5 flex items-center justify-between">
+    <span class="text-[11px] text-gray-400">站内信 · 缴费到期 / 物业告警 / 政策到期</span>
+    <a onclick="toast('已一键全部已读')" class="text-[11px] font-bold" style="color:#2563EB"><i class="fas fa-check-double text-[10px]"></i> 一键已读</a>
+  </div>
+  <div class="px-3 mt-2 space-y-2" style="padding-bottom:40px" id="noticeMsgs"></div>
+</div>
 
 <!-- Home Indicator -->
 <div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none">
@@ -126,6 +143,30 @@ function switchMain(el,name){
   document.getElementById('endedBox').style.display=(name==='已结束')?'block':'none';
 }
 function toast(msg){var d=document.createElement('div');d.style.cssText='position:fixed;left:50%;bottom:110px;transform:translateX(-50%);background:rgba(20,20,40,.85);color:#fff;font-size:12px;padding:8px 16px;border-radius:20px;z-index:999;white-space:nowrap';d.textContent=msg;document.body.appendChild(d);setTimeout(function(){d.remove()},1500);}
+function switchTop(t,el){
+  document.querySelectorAll('#topTabs a').forEach(function(a){a.style.color='#6b7280';a.style.fontWeight='400';a.style.borderBottom='2px solid transparent';});
+  el.style.color='#2563EB';el.style.fontWeight='700';el.style.borderBottom='2px solid #2563EB';
+  document.getElementById('tabKefu').style.display=(t==='kefu')?'block':'none';
+  document.getElementById('tabNotice').style.display=(t==='notice')?'block':'none';
+}
+// 内容管理消息推送下发的站内信（模板消息：缴费到期/物业告警/政策到期/系统）
+var NOTICE_MSGS=[
+ {cat:'缴费',cls:'bg-amber-50 text-amber-600',title:'10月商铺租金缴费提醒',desc:'2026 租赁年度租金应于 8月31日前缴清，请及时缴费。',time:'今天 09:00',unread:true},
+ {cat:'物业',cls:'bg-emerald-50 text-emerald-600',title:'A区1层消防管道年检通知',desc:'7月20日 09:00-12:00 短时停水，请提前储水。',time:'昨天 16:20',unread:true},
+ {cat:'政策',cls:'bg-sky-50 text-sky-600',title:'数字化转型补贴申报进行中',desc:'符合条件最高补贴 50 万，申报截止 8月31日。',time:'07-15',unread:true},
+ {cat:'系统',cls:'bg-gray-100 text-gray-500',title:'结算账户信息更新提醒',desc:'请核对并更新收款账户信息，7月15日生效。',time:'07-08',unread:false}
+];
+document.getElementById('noticeMsgs').innerHTML=NOTICE_MSGS.map(function(m){
+  return '<a onclick="toast(\'站内信详情（演示）\')" class="card block bg-white rounded-2xl shadow-soft px-3.5 py-3 fade-up">'
+    +'<div class="flex items-center gap-2">'
+    +'<span class="'+m.cls+' text-[9px] font-bold px-1.5 py-0.5 rounded">'+m.cat+'</span>'
+    +'<p class="text-[13px] font-bold text-gray-800 flex-1 min-w-0 line-clamp-1">'+m.title+'</p>'
+    +(m.unread?'<span class="w-2 h-2 rounded-full bg-red-500 flex-shrink-0"></span>':'')
+    +'</div>'
+    +'<p class="text-[11px] text-gray-500 mt-1 leading-snug">'+m.desc+'</p>'
+    +'<p class="text-[9px] text-gray-400 mt-1.5">'+m.time+'</p>'
+    +'</a>';
+}).join('');
 </script>
 </body>
 </html>

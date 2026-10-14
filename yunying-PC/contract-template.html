@@ -51,7 +51,7 @@ textarea.fi{font-family:inherit;line-height:1.7;resize:vertical}
         <h1 class="text-[20px] font-bold text-[#1F2430]">合同模板管理</h1>
         <span class="tag" style="background:#DBEAFE;color:#2563EB">05 合同管理</span>
       </div>
-      <p class="text-[12px] text-gray-400 mt-1">维护合同模板（租赁合同 / 物业合同 / 电子协议），用于<b>生成 / 打印合同文本</b>；模板<b>版本化 + 启停</b>，<b>新合同只能引用启用中的模板</b>。本阶段<b>不做在线电子签</b>：线下签署后扫描归档</p>
+      <p class="text-[12px] text-gray-400 mt-1"><b>v1.5：模板按资源类型拆分</b>（<b>档口</b>〔精品摊 5 年 / 普通摊 3 年〕/ <b>办公室</b> / <b>店面</b> / 物业 / 其他）——<b>办公室与店面必须使用不同模板</b>，生成合同时按资源类型自动带出；模板<b>版本化 + 启停</b>，<b>新合同只能引用启用中的模板</b>；签署为<b>小程序手写签名（无人脸识别）</b>，<b>不做第三方电子签</b>；盖章为「下载 → 线下盖章 → 上传扫描件」</p>
     </div>
     <div class="flex items-center gap-2">
       <button class="btn btn-ghost" onclick="toast('已导出全部模板（含变量占位清单）')"><i class="fas fa-download text-[10px] mr-1"></i>导出模板</button>
@@ -67,7 +67,7 @@ textarea.fi{font-family:inherit;line-height:1.7;resize:vertical}
     <div class="flex items-center gap-3 flex-wrap">
       <input id="f-kw" type="text" placeholder="模板名称" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary w-56">
       <select id="f-type" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
-        <option value="">全部适用类型</option><option>租赁合同</option><option>物业合同</option><option>电子协议</option>
+        <option value="">全部适用资源类型</option><option>档口</option><option>办公室</option><option>店面</option><option>物业</option><option>其他</option>
       </select>
       <select id="f-state" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
         <option value="">全部状态</option><option>启用</option><option>停用</option>
@@ -95,7 +95,7 @@ textarea.fi{font-family:inherit;line-height:1.7;resize:vertical}
         <thead>
           <tr class="bg-gray-50 text-gray-500 text-[12px]">
             <th class="px-4 py-3 text-left font-medium">模板名称</th>
-            <th class="px-4 py-3 text-left font-medium">适用类型</th>
+            <th class="px-4 py-3 text-left font-medium">适用资源类型</th>
             <th class="px-4 py-3 text-left font-medium">版本</th>
             <th class="px-4 py-3 text-left font-medium">最近更新</th>
             <th class="px-4 py-3 text-left font-medium">更新人</th>
@@ -128,33 +128,42 @@ textarea.fi{font-family:inherit;line-height:1.7;resize:vertical}
 /* ================= 模拟数据（原型态）　基准日 = 2026-09-28 ================= */
 /* 规则：模板版本化（改动生成新版本，历史保留）；启用 ⇄ 停用；新合同只能引用启用中的模板 */
 var VARS={
-  '租赁合同':['{{承租人}}','{{身份证号}}','{{摊位号}}','{{档口编号}}','{{租期起止}}','{{年租金}}','{{总租金}}','{{履约保证金}}'],
-  '物业合同':['{{档口编号}}','{{承租人}}','{{物业费标准}}','{{计费周期}}','{{缴费期限}}'],
-  '电子协议':['{{商户名称}}','{{入驻日期}}','{{服务条款版本}}']
+  '档口':['{{承租人}}','{{身份证号}}','{{资源编号}}','{{租期起止}}','{{年租金}}','{{企业类型}}'],
+  '办公室':['{{承租人}}','{{资源编号}}','{{租期起止}}','{{起租月}}','{{年租金}}','{{企业类型}}'],
+  '店面':['{{承租人}}','{{资源编号}}','{{租期起止}}','{{年租金}}','{{企业类型}}'],
+  '物业':['{{资源编号}}','{{承租人}}','{{物业费标准}}','{{计费周期}}','{{缴费期限}}'],
+  '其他':['{{商户名称}}','{{签署日期}}','{{服务条款版本}}']
 };
 var TP=[
-  {id:'TPL-001',name:'诸暨袜业城商铺租赁合同',type:'租赁合同',ver:'v3',up:'2026-09-20 14:10',by:'合同管理专员 何静',ref:42,state:'启用',
-   body:'甲方（出租方）：诸暨市大唐袜业城运营管理有限公司\n乙方（承租方）：{{承租人}}（身份证号 {{身份证号}}）\n\n第一条　出租标的：{{摊位号}}（档口编号 {{档口编号}}），面积以实测为准。\n第二条　租赁期限：{{租期起止}}，租赁年度为当年 9 月 1 日至次年 8 月 31 日。\n第三条　租金：年租金 {{年租金}} 元，总租金 {{总租金}} 元；每年 8 月底前预缴下一租赁年度年租金，8 月 15 日起催收。\n第四条　履约保证金：{{履约保证金}} 元（按摊位等级固定收取），退租结清后按约定退还。\n第五条　其他约定：（略）',
+  {id:'TPL-001',name:'档口租赁合同模板（精品摊·5 年）',type:'档口',ver:'v3',up:'2026-10-13 09:40',by:'合同专员 何敏',ref:42,state:'启用',
+   body:'甲方（出租方）：诸暨市大唐袜业城运营管理有限公司\n乙方（承租方）：{{承租人}}（身份证号 {{身份证号}}，企业类型 {{企业类型}}）\n\n第一条　租赁资源：{{资源编号}}（档口·精品摊），面积以实测为准。\n第二条　租赁期限：{{租期起止}}（5 年一签；租赁年度为当年 9 月 1 日至次年 8 月 31 日）。\n第三条　租金：年租金 {{年租金}} 元；每年 8 月底前预缴下一租赁年度年租金，8 月 15 日起催收。\n第四条　保证金由乙方按竞拍公告线下缴纳（本系统不代收、不记账）。\n第五条　签署方式：乙方在「袜掌柜」小程序手写签名（不做人脸识别），甲方审核签字后生效。\n第六条　到期与终止：到期后重新竞拍；违约可终止本合同（系统不计算违约金）。',
    history:[
-     {v:'v3',at:'2026-09-20 14:10',by:'合同管理专员 何静',note:'保证金条款改为固定金额表述（精品 2 万 / 普通 1 万）'},
-     {v:'v2',at:'2026-06-11 09:30',by:'合同管理专员 何静',note:'增加「按租赁年度预付」条款与 8 月 15 日起催收约定'},
+     {v:'v3',at:'2026-10-13 09:40',by:'合同专员 何敏',note:'v1.5：模板按资源类型拆分；签署方式改为「手写签名（无人脸识别）」；终止不计算违约金'},
+     {v:'v2',at:'2026-06-11 09:30',by:'合同管理专员 何静',note:'增加「按租赁年度预付」与 8 月 15 日起催收约定'},
      {v:'v1',at:'2025-09-01 10:00',by:'合同管理专员 何静',note:'初始版本（线下合同电子化）'}]},
-  {id:'TPL-002',name:'物业服务合同（标准版）',type:'物业合同',ver:'v2',up:'2026-08-15 11:05',by:'物业 吴海',ref:36,state:'启用',
-   body:'甲方（服务方）：诸暨市大唐袜业城物业管理有限公司\n乙方（承租方）：{{承租人}}（档口编号 {{档口编号}}）\n\n第一条　服务内容：公共区域保洁、安保、绿化、设施维护。\n第二条　物业费标准：{{物业费标准}}，计费周期 {{计费周期}}。\n第三条　缴费期限：{{缴费期限}}（与租赁年度账单同步生成）。\n第四条　其他约定：（略）',
+  {id:'TPL-002',name:'档口租赁合同模板（普通摊·3 年）',type:'档口',ver:'v2',up:'2026-10-13 09:45',by:'合同专员 何敏',ref:28,state:'启用',
+   body:'甲方（出租方）：诸暨市大唐袜业城运营管理有限公司\n乙方（承租方）：{{承租人}}（身份证号 {{身份证号}}，企业类型 {{企业类型}}）\n\n第一条　租赁资源：{{资源编号}}（档口·普通摊）。\n第二条　租赁期限：{{租期起止}}（3 年一签）。\n第三条　租金：年租金 {{年租金}} 元；每年 8 月底前预缴下一租赁年度年租金，8 月 15 日起催收。\n第四条　保证金由乙方按竞拍公告线下缴纳（本系统不代收、不记账）。\n第五条　签署方式：乙方手写签名（不做人脸识别），甲方审核签字后生效。\n第六条　到期后重新竞拍；违约可终止本合同（不计算违约金）。',
+   history:[
+     {v:'v2',at:'2026-10-13 09:45',by:'合同专员 何敏',note:'v1.5：从原「商铺租赁合同」拆出「普通摊」独立模板'},
+     {v:'v1',at:'2025-09-01 10:00',by:'合同管理专员 何静',note:'初始版本'}]},
+  {id:'TPL-003',name:'办公室租赁合同模板',type:'办公室',ver:'v1',up:'2026-10-13 09:50',by:'合同专员 何敏',ref:4,state:'启用',
+   body:'甲方（出租方）：诸暨市大唐袜业城运营管理有限公司\n乙方（承租方）：{{承租人}}（企业类型 {{企业类型}}）\n\n第一条　租赁资源：{{资源编号}}（行政服务中心办公室，直接出租、不经竞拍）。\n第二条　租赁期限：{{租期起止}}；按年计租、租期精确到月（起租月 {{起租月}}），不必对齐「9.1–8.31」租赁年度。\n第三条　租金与付款：年租金 {{年租金}} 元，按合同约定时点支付。\n第四条　保证金由乙方按竞拍公告线下缴纳（本系统不代收、不记账）。\n第五条　签署方式：乙方手写签名（不做人脸识别），甲方审核签字后生效。',
+   history:[{v:'v1',at:'2026-10-13 09:50',by:'合同专员 何敏',note:'v1.5 新建：办公室与店面必须使用不同模板'}]},
+  {id:'TPL-004',name:'店面租赁合同模板',type:'店面',ver:'v1',up:'2026-10-13 09:52',by:'合同专员 何敏',ref:3,state:'启用',
+   body:'甲方（出租方）：诸暨市大唐袜业城运营管理有限公司\n乙方（承租方）：{{承租人}}（企业类型 {{企业类型}}）\n\n第一条　租赁资源：{{资源编号}}（原料市场店面，经政府平台竞拍取得）。\n第二条　租赁期限：{{租期起止}}；按年计租、租期精确到月。\n第三条　年租金：{{年租金}} 元（竞拍成交价）。\n第四条　保证金由乙方按竞拍公告线下缴纳（本系统不代收、不记账）。\n第五条　签署方式：乙方手写签名（不做人脸识别），甲方审核签字后生效；到期后重新竞拍。',
+   history:[{v:'v1',at:'2026-10-13 09:52',by:'合同专员 何敏',note:'v1.5 新建：店面（原料市场）走竞拍，需独立模板'}]},
+  {id:'TPL-005',name:'物业服务合同模板（标准版）',type:'物业',ver:'v2',up:'2026-08-15 11:05',by:'物业 吴海',ref:36,state:'启用',
+   body:'甲方（服务方）：诸暨市大唐袜业城物业管理有限公司\n乙方（承租方）：{{承租人}}（资源编号 {{资源编号}}）\n\n第一条　服务内容：公共区域保洁、安保、绿化、设施维护。\n第二条　物业费标准：{{物业费标准}}，计费周期 {{计费周期}}。\n第三条　缴费期限：{{缴费期限}}。\n第四条　其他约定：（略）',
    history:[
      {v:'v2',at:'2026-08-15 11:05',by:'物业 吴海',note:'物业费计费周期由「季度」调整为「租赁年度」'},
-     {v:'v1',at:'2025-10-08 15:20',by:'物业 吴海',note:'初始版本'}]},
-  {id:'TPL-003',name:'平台入驻电子协议',type:'电子协议',ver:'v1',up:'2025-12-01 09:00',by:'运营 沈璐',ref:0,state:'停用',
-   body:'甲方（平台方）：袜掌柜智慧运营平台\n乙方（入驻商户）：{{商户名称}}\n\n第一条　入驻日期：{{入驻日期}}。\n第二条　服务条款：{{服务条款版本}}。\n第三条　本协议为平台线上入驻通用条款，与线下租赁合同并行不冲突。',
-   history:[
-     {v:'v1',at:'2025-12-01 09:00',by:'运营 沈璐',note:'初始版本（线上入驻通用条款）'}]}
+     {v:'v1',at:'2025-10-08 15:20',by:'物业 吴海',note:'初始版本'}]}
 ];
 var curRows=TP.slice(),curId=null;
 var tid;
 function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},2800);}
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function tOf(id){return TP.filter(function(x){return x.id===id;})[0];}
-var TYC={'租赁合同':'background:#FFEDE7;color:#E63E20','物业合同':'background:#DBEAFE;color:#2563EB','电子协议':'background:#EDE9FE;color:#6D28D9'};
+var TYC={'档口':'background:#FFEDE7;color:#E63E20','办公室':'background:#DBEAFE;color:#2563EB','店面':'background:#FEF3C7;color:#B45309','物业':'background:#EDE9FE;color:#6D28D9','其他':'background:#F1F5F9;color:#64748B'};
 function st(s,c){return '<span class="st" style="'+(c||'background:#F1F5F9;color:#64748B')+'">'+esc(s)+'</span>';}
 function stState(s){return st(s,s==='启用'?'background:#DCFCE7;color:#15803D':'background:#F1F5F9;color:#64748B');}
 
@@ -231,18 +240,19 @@ function exportTpl(id){
 function openEdit(id){
   curId=id;
   var x=id?tOf(id):null;
-  var type=x?x.type:'租赁合同';
+  var type=x?x.type:'档口';
   var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
     +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+(x?'编辑模板　'+esc(x.name):'新增模板')+'</h3>'
     +'<p class="text-[11px] text-[#94A3B8] mt-1">'+(x?'当前 '+esc(x.ver)+'　最近更新 '+esc(x.up)+'（'+esc(x.by)+'）':'模板名称、适用类型、正文与启用状态')+'</p></div>'
     +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
   h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">';
   h+='<div class="grid grid-cols-2 gap-3">'
-    +'<div><label class="fl">模板名称</label><input class="fi" id="t-name" value="'+(x?esc(x.name):'')+'" placeholder="例：诸暨袜业城商铺租赁合同"></div>'
-    +'<div><label class="fl">适用类型</label><select class="sel" id="t-type" onchange="varsHint()">'
-    +['租赁合同','物业合同','电子协议'].map(function(t){return '<option'+(t===type?' selected':'')+'>'+t+'</option>';}).join('')
+    +'<div><label class="fl">模板名称</label><input class="fi" id="t-name" value="'+(x?esc(x.name):'')+'" placeholder="例：档口租赁合同模板（精品摊·5 年）"></div>'
+    +'<div><label class="fl">适用资源类型 *（v1.5：模板按资源类型拆分）</label><select class="sel" id="t-type" onchange="varsHint()">'
+    +['档口','办公室','店面','物业','其他'].map(function(t){return '<option'+(t===type?' selected':'')+'>'+t+'</option>';}).join('')
     +'</select></div>'
-    +'</div>';
+    +'</div>'
+    +'<p class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>档口 / 办公室 / 店面 <b>必须使用不同模板</b>（办公室与店面不得套用档口模板）；生成合同时按资源类型<b>自动带出</b>对应模板。</p>';
   h+='<div class="blk"><div class="blk-t"><i class="fas fa-code text-[#7C3AED]"></i>变量占位（点击插入正文）</div>'
     +'<div id="vBox"></div>'
     +'<p class="text-[11px] text-[#94A3B8] mt-2">生成合同文本时，变量按合同 / 档口数据自动替换；缺失字段会以黄色标记提示补录。</p></div>';

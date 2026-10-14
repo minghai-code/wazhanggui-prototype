@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>添加员工 - 袜掌柜商户版</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--bg:#F0F6FF}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+.card{transition:transform .16s ease}.card:active{transform:scale(.985)}
+.grad-h{background:linear-gradient(135deg,#2563EB 0%,#1D4ED8 55%,#0EA5E9 100%)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,40,80,.06)}
+.inp{width:100%;background:rgba(248,249,250,.8);border:1px solid rgba(240,240,240,.8);border-radius:12px;padding:11px 13px;font-size:13px;color:#1F2430;outline:none}
+.inp::placeholder{color:#C0C0C0}.inp:focus{border-color:#2563EB;background:#fff}
+.lbl{font-size:11px;color:#6b7080;font-weight:500;display:block;margin-bottom:6px}.lbl b{color:#2563EB}
+.tag-opt{font-size:11px;color:#6b7080;background:#fff;border:1px solid #eceef0;border-radius:10px;padding:6px 12px;cursor:pointer}.tag-opt.on{border-color:#2563EB;color:#2563EB;background:#EFF6FF;font-weight:600}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:200;opacity:0;transition:.2s}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<!-- ===== 头部 ===== -->
+<div class="relative px-4 pt-2 pb-5 overflow-hidden grad-h">
+  <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-50" style="background:#60A5FA"></div>
+  <div class="relative flex items-center gap-3">
+    <a href="mine.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+    <div><span class="text-white font-extrabold text-[18px]">添加员工（业主）</span>
+    <p class="text-white/85 text-[10px] mt-0.5">关联租客账号为店铺员工，按角色授权</p></div>
+  </div>
+</div>
+
+<div class="px-3 pt-4 pb-16">
+  <!-- 关联租客账号 -->
+  <div class="bg-white rounded-2xl shadow-soft p-3.5">
+    <p class="text-[11px] text-gray-500 leading-relaxed mb-3"><i class="fas fa-circle-info mr-1 text-[#2563EB]"></i>业主可将其名下的<b>租客账号</b>关联为店铺员工，按角色授权（店长 / 客服 / 财务 / 库管）。受邀人需在租客端确认。</p>
+    <div class="mb-3"><label class="lbl">租客账号手机号 <b>*</b></label><div class="flex gap-2"><input id="phone" class="inp flex-1" placeholder="输入租客账号手机号" maxlength="11"><button class="card px-3 rounded-xl text-[12px] text-white grad-h" onclick="searchTenant()">查询</button></div></div>
+    <div id="tenantBox" style="display:none" class="rounded-xl border border-gray-200 p-3 mb-1">
+      <div class="flex items-center gap-2"><div class="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center"><i class="fas fa-user text-gray-400"></i></div><div class="flex-1"><p class="text-[12px] text-gray-800 font-medium">租客：王女士</p><p class="text-[10px] text-gray-400">账号 139****2233 · 已实名</p></div></div>
+      <div class="mt-2"><label class="lbl">分配角色</label><div class="flex flex-wrap gap-1.5" id="roles">
+        <span class="tag-opt on" onclick="tagSelect(this)">店长</span><span class="tag-opt" onclick="tagSelect(this)">客服</span><span class="tag-opt" onclick="tagSelect(this)">财务</span><span class="tag-opt" onclick="tagSelect(this)">库管</span></div></div>
+      <button class="card w-full mt-3 py-2.5 rounded-xl text-white text-[12px] font-bold grad-h" onclick="invite()">发送员工邀请</button>
+    </div>
+  </div>
+
+  <!-- 当前员工 -->
+  <p class="text-[12px] font-bold text-gray-800 mt-4 mb-2 px-1">当前员工</p>
+  <div class="bg-white rounded-2xl shadow-soft overflow-hidden">
+    <div class="flex items-center gap-3 px-3.5 py-3"><div class="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center"><i class="fas fa-user text-gray-400"></i></div><div class="flex-1"><p class="text-[13px] text-gray-800 font-medium">李经理</p><p class="text-[10px] text-gray-400">店长 · 139****6677</p></div><span class="text-[10px] text-green-600 bg-green-50 px-1.5 py-0.5 rounded">已接受</span></div>
+    <div class="h-px bg-gray-50"></div>
+    <div class="flex items-center gap-3 px-3.5 py-3"><div class="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center"><i class="fas fa-user text-gray-400"></i></div><div class="flex-1"><p class="text-[13px] text-gray-800 font-medium">待加入</p><p class="text-[10px] text-gray-400">客服 · 139****2233</p></div><span class="text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">邀请中</span></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span id="toastTxt">操作成功</span></div>
+<script>
+var toastTimer;
+function toast(m){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=m;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},1800)}
+function tagSelect(el){el.classList.toggle('on')}
+function searchTenant(){
+  var p=document.getElementById('phone').value.trim();
+  if(!p){toast('请输入租客账号手机号');return}
+  document.getElementById('tenantBox').style.display='block';
+  toast('已匹配到租客账号：'+p.replace(/(\d{3})\d{4}(\d{4})/,'$1****$2'));
+}
+function invite(){toast('员工邀请已发送至租客端，待对方确认');}
+</script>
+</body>
+</html>

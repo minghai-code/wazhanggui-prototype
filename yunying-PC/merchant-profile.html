@@ -51,7 +51,7 @@ button{cursor:pointer}
         <h1 class="text-[20px] font-bold text-[#1F2430]">商户档案</h1>
         <span class="tag" style="background:#DBEAFE;color:#2563EB">04 商户管理</span>
       </div>
-      <p class="text-[12px] text-gray-400 mt-1">全平台商户唯一主档。档案由两条链路产生：<b>线上入驻审核通过</b> 与 <b>线下自动建档</b>；档口信息来自 02 市场资源管理，本页<b>只读</b></p>
+      <p class="text-[12px] text-gray-400 mt-1"><b>v2.5</b>：本模块<b>只管理实体（档口）商户</b>——档案由 <b>05 合同「已存档」自动生成</b>（有生效合同才有档案）；线上开店商户在 <b>10 商城运营</b>；档口与「当前租户」来自 02（本页只读）；<b>物业模块权限</b>由合同开通，或通过「<b>添加员工</b>」关联租客账号（<b>有效期随合同期</b>，不新增账号体系）；<b>合同被"提前终止"</b>（05 合同台账发起）时本页该商户状态<b>按终止原因自动置位</b>——<b>违约类 =「违约终止」，非违约类 =「已终止」</b>（进入 04「清退商户」存档，可追溯终止原因）；<b>合同自然到期 → 状态「已到期」</b>（<b>到期 ≠ 终止</b>，不进清退台账）</p>
     </div>
     <div class="flex items-center gap-2">
       <button class="btn btn-ghost" onclick="toast('已导出商户台账（身份证、手机号已脱敏）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
@@ -65,7 +65,7 @@ button{cursor:pointer}
     <div class="flex items-center gap-3 flex-wrap">
       <input id="f-kw" type="text" placeholder="主体名称 / 商户编号 / 联系人 / 身份证后4位" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary w-72">
       <select id="f-type" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
-        <option value="">全部商户类型</option><option>仅线上</option><option>线上兼档口</option><option>仅线下档口（未上线）</option>
+        <option value="">全部商户类型</option><option>线上兼档口</option><option>仅线下档口（未上线）</option>
       </select>
       <select id="f-open" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
         <option value="">全部线上开通状态</option><option>未申请</option><option>审核中</option><option>需补充材料</option><option>已通过</option><option>已驳回</option>
@@ -74,7 +74,7 @@ button{cursor:pointer}
         <option value="">是否关联档口</option><option value="yes">有关联档口</option><option value="no">无线下档口</option>
       </select>
       <select id="f-status" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
-        <option value="">全部状态</option><option>正常</option><option>暂停</option><option>冻结</option><option>已清退</option>
+        <option value="">全部状态</option><option>正常</option><option>暂停</option><option>冻结</option><option>已到期</option><option>已终止</option><option>违约终止</option><option>已清退</option>
       </select>
       <select id="f-credit" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
         <option value="">全部信用等级</option><option>AAA</option><option>AA</option><option>A</option><option>B</option><option>C</option><option>D</option>
@@ -90,7 +90,7 @@ button{cursor:pointer}
   <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
     <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
       <span class="text-[12px] text-[#94A3B8]" id="cnt">共 0 条</span>
-      <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>「关联档口」「商户类型」由系统判定，本页不可编辑；如需修正请去 02 市场资源管理 / 自动建档页处理</span>
+      <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>本模块只管理<b>线下档口商户</b>（档案由 05 合同「已存档」自动生成）；「商户类型 / 关联档口 / 持有标识」由系统判定；<b>物业权限可用「添加员工」关联租客账号</b>（有效期随合同期）</span>
     </div>
     <div class="overflow-x-auto">
       <table class="w-full text-[13px]" style="min-width:1300px">
@@ -100,8 +100,10 @@ button{cursor:pointer}
             <th class="px-4 py-3 text-left font-medium">主体名称</th>
             <th class="px-4 py-3 text-left font-medium">主体类型</th>
             <th class="px-4 py-3 text-left font-medium">商户类型</th>
-            <th class="px-4 py-3 text-left font-medium">线上开通状态</th>
+            <th class="px-4 py-3 text-left font-medium">线上开店状态</th>
             <th class="px-4 py-3 text-left font-medium">关联档口</th>
+            <th class="px-4 py-3 text-left font-medium">授权员工数</th>
+            <th class="px-4 py-3 text-left font-medium">物业权限</th>
             <th class="px-4 py-3 text-left font-medium">主营品类</th>
             <th class="px-4 py-3 text-left font-medium">建档时间</th>
             <th class="px-4 py-3 text-left font-medium">信用等级</th>
@@ -155,31 +157,20 @@ var MS=[
    code:'',phone:'135****7712',addr:'诸暨市大唐街道袜业城 A 栋 9 层',
    tags:['新晋商家'],shops:0,ecom:'未开通',rfq:'未开通'},
   {id:'MB2026000125',name:'周雅琴（档口租户）',sub:'个体工商户',type:'仅线下档口（未上线）',open:'未申请',src:'线下自动',
-   stalls:[{code:'A9-13',b:'A 栋',floor:'9 层',area:'147.2',term:'2026.02.01 ~ 2028.01.31',contract:'LT-2026-0072'}],
-   cat:'女袜',time:'2026-09-28',credit:'B',score:74.1,status:'正常',person:'周雅琴',idno:'',
+   stalls:[{code:'A9-13',b:'A 栋',floor:'9 层',area:'147.2',term:'2023.09.01 ~ 2026.08.31（已到期）',contract:'LT-2023-0072'}],
+   cat:'女袜',time:'2026-09-28',credit:'B',score:74.1,status:'已到期',person:'周雅琴',idno:'',
    code:'',phone:'137****9034',addr:'诸暨市大唐街道袜业城 A 栋 9 层',
    tags:[],shops:0,ecom:'未开通',rfq:'未开通'},
   {id:'MB2026000126',name:'李海涛（档口租户）',sub:'企业',type:'仅线下档口（未上线）',open:'审核中',src:'线下自动',
-   stalls:[{code:'B3-12',b:'B 栋',floor:'3 层',area:'92.0',term:'2025.09.01 ~ 2028.08.31',contract:'LT-2025-0315'}],
-   cat:'运动袜',time:'2026-09-28',credit:'C',score:62.4,status:'正常',person:'李海涛',idno:'330681198810236619',
+   stalls:[{code:'B3-12',b:'B 栋',floor:'3 层',area:'92.0',term:'2024.09.01 ~ 2026.08.31（已提前终止）',contract:'LT-2024-0221'}],
+   cat:'运动袜',time:'2026-09-28',credit:'C',score:62.4,status:'已终止',person:'李海涛',idno:'330681198810236619',
    code:'91330681MA2D3XXXX3',phone:'139****4477',addr:'诸暨市大唐街道袜业城 B 栋 3 层',
    tags:[],shops:0,ecom:'审核中',rfq:'未开通'},
-  {id:'MB2026000201',name:'花间舞时尚女袜馆',sub:'个体工商户',type:'仅线上',open:'已通过',src:'线上申请',
-   stalls:[],cat:'女袜 / 船袜',time:'2026-08-15',credit:'A',score:84.9,status:'正常',person:'刘倩',idno:'330681199201054456',
-   code:'92330681MA2XXXXX52',phone:'137****1188',addr:'诸暨市大唐街道（线上经营）',
-   tags:['新晋商家'],shops:1,ecom:'已开通',rfq:'未认证'},
-  {id:'MB2026000155',name:'极速运动袜业',sub:'企业',type:'仅线上',open:'已通过',src:'线上申请',
-   stalls:[],cat:'运动袜',time:'2026-06-20',credit:'B',score:73.8,status:'暂停',person:'郑强',idno:'330681198912204455',
-   code:'91330681MA2D4XXXX4',phone:'135****6690',addr:'诸暨市大唐街道（线上经营）',
-   tags:['欠费'],shops:1,ecom:'已开通',rfq:'已冻结'},
-  {id:'MB2026000090',name:'智造袜机设备有限公司',sub:'企业',type:'仅线上',open:'已通过',src:'线上申请',
-   stalls:[],cat:'袜机',time:'2026-04-02',credit:'C',score:61.2,status:'冻结',person:'吴晓峰',idno:'330681199005186633',
-   code:'91330681MA2D5XXXX5',phone:'133****2210',addr:'诸暨市大唐街道工业园',
-   tags:['违规','投诉'],shops:1,ecom:'已停用',rfq:'已冻结'},
-  {id:'MB2025000031',name:'某贸易商行',sub:'个体工商户',type:'仅线上',open:'已驳回',src:'线上申请',
-   stalls:[],cat:'女袜',time:'2025-11-06',credit:'D',score:48.2,status:'已清退',person:'孙某某',idno:'330681199307155522',
-   code:'92330681MA2XXXXX70',phone:'131****5566',addr:'诸暨市大唐街道',
-   tags:['违规'],shops:0,ecom:'已停用',rfq:'已停用'}
+  {id:'MB2025000315',name:'大唐××针织厂',sub:'企业',type:'线上兼档口',open:'已通过',src:'合同自动建档',
+   stalls:[{code:'2F-B15',b:'B 栋',floor:'2 层',area:'120.0',term:'2025.10.13 ~ 2028.10.12（已提前终止）',contract:'LT-2025-0315'}],
+   cat:'针织袜品',time:'2026-01-05',credit:'C',score:58.0,status:'违约终止',person:'李××',idno:'330681********3315',
+   code:'91330681MA2D9XXXX9',phone:'138****5566',addr:'诸暨市大唐街道袜业城 B 栋 2 层',
+   tags:['违规'],shops:1,ecom:'已开通',rfq:'已开通'},
 ];
 var shownId={},curRows=MS.slice(),curId=null,curMode='view',tagTarget=null;
 var tid;
@@ -189,19 +180,22 @@ function maskId(s){return s?String(s).slice(0,6)+'********'+String(s).slice(-4):
 function hasStall(m){return m.stalls&&m.stalls.length>0;}
 function typeColor(t){return t==='线上兼档口'?'background:#DCFCE7;color:#15803D':(t==='仅线上'?'background:#F1F5F9;color:#475569':'background:#FEF3C7;color:#B45309');}
 var OPEN_C={'已通过':'background:#DCFCE7;color:#15803D','审核中':'background:#DBEAFE;color:#2563EB','需补充材料':'background:#FFEDE7;color:#E63E20','已驳回':'background:#FEE2E2;color:#B91C1C','未申请':'background:#F1F5F9;color:#64748B'};
-var MS_C={'正常':'background:#DCFCE7;color:#15803D','暂停':'background:#FEF3C7;color:#B45309','冻结':'background:#FEE2E2;color:#B91C1C','已清退':'background:#F1F5F9;color:#64748B'};
+var MS_C={'正常':'background:#DCFCE7;color:#15803D','暂停':'background:#FEF3C7;color:#B45309','冻结':'background:#FEE2E2;color:#B91C1C','已清退':'background:#F1F5F9;color:#64748B',
+  '违约终止':'background:#FEE2E2;color:#B91C1C','已终止':'background:#FEF3C7;color:#B45309','已到期':'background:#F1F5F9;color:#475569'};
 function st(s,c){return '<span class="st" style="'+(c||'background:#F1F5F9;color:#64748B')+'">'+esc(s)+'</span>';}
 
 /* ================= 渲染 ================= */
 function renderStats(){
-  var c={'仅线上':0,'线上兼档口':0,'仅线下档口（未上线）':0};
+  var c={'线上兼档口':0,'仅线下档口（未上线）':0};
   MS.forEach(function(m){if(c[m.type]!=null){c[m.type]++;}});
   var push=MS.filter(function(m){return m.type==='仅线下档口（未上线）'&&m.open==='未申请';}).length;
+  var emp=0;
+  MS.forEach(function(m){emp+=empsOf(m).length;});
   var cards=[
-    ['商户总数',MS.length,'#1F2430'],
-    ['仅线上',c['仅线上'],'#475569'],
+    ['商户总数（实体 / 档口）',MS.length,'#1F2430'],
     ['线上兼档口',c['线上兼档口'],'#15803D'],
     ['仅线下档口（未上线）',c['仅线下档口（未上线）'],'#B45309'],
+    ['授权员工数（关联账号）',emp,'#4338CA'],
     ['待推动上线',push,'#E63E20']
   ];
   var h=cards.map(function(x){return '<div class="bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">'+x[0]+'</p><p class="text-xl font-bold mt-1" style="color:'+x[2]+'">'+x[1]+'</p></div>';}).join('');
@@ -221,17 +215,19 @@ function render(){
       +'<td class="px-4 py-3"><span class="font-medium text-[#1F2430]">'+esc(m.name)+'</span>'
         +(m.idno?'':' <span class="tag" style="background:#FEF3C7;color:#B45309">身份待补全</span>')+'</td>'
       +'<td class="px-4 py-3 text-[#64748B]">'+esc(m.sub)+'</td>'
-      +'<td class="px-4 py-3">'+st(m.type,typeColor(m.type))+'</td>'
+      +'<td class="px-4 py-3">'+st(m.type==='仅线上'?'纯线上':m.type,typeColor(m.type))+'</td>'
       +'<td class="px-4 py-3">'+st(m.open,OPEN_C[m.open])+'</td>'
       +'<td class="px-4 py-3 whitespace-nowrap">'+stall+'</td>'
+      +'<td class="px-4 py-3">'+(empsOf(m).length?('<span class="lk" onclick="openAddEmp(\''+m.id+'\')">'+empsOf(m).length+' 个</span>'):'<span class="text-[#94A3B8]">0</span>')+'</td>'
+      +'<td class="px-4 py-3">'+permTag(m)+'</td>'
       +'<td class="px-4 py-3 text-[#64748B]">'+esc(m.cat)+'</td>'
       +'<td class="px-4 py-3 text-[#94A3B8] text-[12px]">'+esc(m.time)+'</td>'
       +'<td class="px-4 py-3"><span class="font-semibold" style="color:'+(m.credit==='AAA'||m.credit==='AA'?'#15803D':(m.credit==='D'?'#B91C1C':'#334155'))+'">'+esc(m.credit)+'</span> <span class="text-[11px] text-[#94A3B8]">'+m.score+'</span></td>'
       +'<td class="px-4 py-3">'+st(m.status,MS_C[m.status])+'</td>'
-      +'<td class="px-4 py-3 text-center whitespace-nowrap"><span class="lk" onclick="openD(\''+m.id+'\',\'view\')">详情</span> · <span class="lk-gray" onclick="openD(\''+m.id+'\',\'edit\')">编辑</span></td>'
+      +'<td class="px-4 py-3 text-center whitespace-nowrap"><span class="lk" onclick="openD(\''+m.id+'\',\'view\')">详情</span> · <span class="lk-gray" onclick="openAddEmp(\''+m.id+'\')">添加员工</span> · <span class="lk-gray" onclick="openD(\''+m.id+'\',\'edit\')">编辑</span></td>'
       +'</tr>';
   });
-  if(!curRows.length){h='<tr><td colspan="11" class="px-4 py-16 text-center text-gray-300"><i class="fas fa-inbox text-3xl block mb-2"></i><span class="text-[12px]">暂无匹配的商户</span></td></tr>';}
+  if(!curRows.length){h='<tr><td colspan="13" class="px-4 py-16 text-center text-gray-300"><i class="fas fa-inbox text-3xl block mb-2"></i><span class="text-[12px]">暂无匹配的商户</span></td></tr>';}
   document.getElementById('tb').innerHTML=h;
   document.getElementById('cnt').textContent='共 '+curRows.length+' 条（原型演示数据 10 条）';
   document.getElementById('pageInfo').textContent='共 '+curRows.length+' 条记录，第 1-'+curRows.length+' 条';
@@ -250,6 +246,65 @@ function resetSearch(){
   curRows=MS.slice();render();toast('已重置筛选条件');
 }
 function showId(id){shownId[id]=true;openD(id,'view');toast('已展示完整身份证号，并记录查看留痕（人 / 时间 / IP）');}
+
+/* ================= v2.1：持有标识 / 物业权限 / 关联账号（添加员工 = 关联租客账号，不新增账号体系） ================= */
+var EMP={
+  'MB2026000041':[{id:'E1',unit:'A9-15',name:'王××（租客）',phone:'138****1122',at:'2026-10-05 14:20',by:'业主（商户端）'}],
+  'MB2026000088':[{id:'E1',unit:'B3-08',name:'李××（租客）',phone:'137****3344',at:'2026-09-28 10:05',by:'运营 何静（后台代操作）'}]
+};
+function mpOf(id){return MS.filter(function(x){return x.id===id;})[0];}
+function empsOf(m){return EMP[m.id]||[];}
+function holdsOf(m){
+  var a=[];
+  if(hasStall(m)){a.push('档口');}
+  if(m.holds){String(m.holds).split(/[、,\/]/).forEach(function(x){if(x&&a.indexOf(x)<0){a.push(x);}});}
+  return a.length?a:['—'];
+}
+function holdsTag(m){
+  return holdsOf(m).map(function(x){return x==='—'?'<span class="text-[#94A3B8]">—</span>':'<span class="tag" style="background:#E0E7FF;color:#4338CA;margin-right:3px">'+esc(x)+'</span>';}).join('');
+}
+function permTag(m){
+  if(hasStall(m)){return '<span class="st" style="background:#DCFCE7;color:#15803D">已开通（合同）</span>';}
+  if(empsOf(m).length){return '<span class="st" style="background:#DCFCE7;color:#15803D">已开通（档口关联）</span>';}
+  return '<span class="st" style="background:#F1F5F9;color:#64748B">未开通</span>';
+}
+function openAddEmp(id){
+  var m=mpOf(id);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">添加员工（关联租客账号）</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(m.name)+'　关联后该账号获得「物业模块」权限（可见该档口信息 + 物业服务）</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeD()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div><label class="fl">租客账号手机号 *（须已注册商户端账号）</label><input class="fi" id="ae-phone" placeholder="11 位手机号"></div>'
+    +'<div><label class="fl">关联档口 *（多档口业主必选，不给默认值）</label><select class="sel" id="ae-unit">'
+    +(hasStall(m)?m.stalls.map(function(s){return '<option>'+esc(s.code)+'</option>';}).join(''):'<option>（该商户名下暂无可选档口）</option>')
+    +'</select></div>'
+    +'<div><label class="fl">关联原因（后台代操作时必填）</label><input class="fi" id="ae-note" placeholder="如：业主线下转租，租客需使用物业服务"></div>'
+    +'<div class="rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B]">规则：① 关联后<b>权限有效期 = 该档口合同租期</b>，合同<b>到期 / 终止 / 清退时自动解除</b>；② 被关联账号<b>不能申请合同</b>、也<b>不获得电商模块</b>；③ <b>解除关联即时收回</b>；④ 全程留痕（操作人 / 时间 / 原因）。</p></div>'
+    +'</div>';
+  h+='<div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeD()">取消</button>'
+    +'<button class="btn btn-primary" onclick="doAddEmp(\''+id+'\')">确认关联</button></div>';
+  document.getElementById('drawer').innerHTML=h;
+  document.getElementById('mask').classList.add('on');
+  document.getElementById('drawer').classList.add('on');
+}
+function doAddEmp(id){
+  var ph=document.getElementById('ae-phone').value.trim();
+  if(!/^1\d{10}$/.test(ph)){toast('请输入正确的 11 位手机号（对方须已注册商户端账号）');return;}
+  var unit=document.getElementById('ae-unit').value;
+  var note=document.getElementById('ae-note').value.trim();
+  if(!EMP[id]){EMP[id]=[];}
+  EMP[id].push({id:'E'+(EMP[id].length+1),unit:unit,name:'租客（账号待完善）',phone:ph.slice(0,3)+'****'+ph.slice(7),at:'2026-10-13 10:30',
+    by:(note?'运营 何静（后台代操作：'+note+'）':'业主（商户端）')});
+  closeD();openD(id,'view');
+  toast('已关联：'+ph.slice(0,3)+'****'+ph.slice(7)+' → '+unit+'（租客端即时可用物业模块；解除即收回）');
+}
+function delEmp(id,eid){
+  EMP[id]=(EMP[id]||[]).filter(function(e){return e.id!==eid;});
+  closeD();openD(id,'view');
+  toast('已解除关联（即时收回物业模块权限，留痕已写入）');
+}
 
 /* ================= 详情 / 编辑抽屉 ================= */
 function openD(id,mode){
@@ -280,7 +335,7 @@ function openD(id,mode){
 
   /* ② 线上信息 */
   h+='<div class="blk"><div class="blk-t"><i class="fas fa-store text-[#2563EB]"></i>② 线上信息</div>'
-    +'<div class="kv"><span class="k">入驻申请单</span><span class="v">'+((m.src==='线上申请'||m.open!=='未申请')?'<span class="lk" onclick="location.href=\'merchant.html\'">查看申请单与审核轨迹</span>':'—（未申请线上入驻）')+'</span></div>'
+    +'<div class="kv"><span class="k">线上开店申请</span><span class="v">'+((m.src==='线上申请'||m.open!=='未申请')?'线上开店申请（在外采电商系统 · 商城运营/商户管理 审核）':'—（未申请线上开店）')+'</span></div>'
     +'<div class="kv"><span class="k">线上开通状态</span><span class="v">'+st(m.open,OPEN_C[m.open])+(m.open==='未申请'?'　<span class="lk" onclick="toast(\'已记录：请商户管理专员线下推动其申请线上入驻（可加入待推动清单）\')">加入待推动清单</span>':'')+'</span></div>'
     +'<div class="kv"><span class="k">店铺数</span><span class="v">'+m.shops+' 个'+(m.shops>0?'　<span class="lk" onclick="toast(\'跳转 10 商城运营 · 店铺列表（该商户名下店铺）\')">查看店铺</span>':'')+'</span></div>'
     +'<div class="kv"><span class="k">权限状态</span><span class="v">电商权限：'+esc(m.ecom)+'　·　询价权限：'+esc(m.rfq)+'　'+(m.rfq==='未认证'?'<span class="lk" onclick="location.href=\'merchant-qual.html\'">去认证审核</span>':'')+'</span></div>'
@@ -342,6 +397,22 @@ function openD(id,mode){
     +'<button class="btn btn-ghost" onclick="toast(\'跳转 10 商城运营 · 店铺列表\')">名下店铺</button>'
     +'<button class="btn btn-ghost" onclick="toast(\'跳转买家端评价（该商户评价明细）\')">买家评价</button>'
     +'</div></div>';
+
+  /* ⑧ 物业权限与关联账号（v2.1 新增） */
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-user-plus text-[#FF4D2D]"></i>⑧ 物业权限与关联账号（v2.2：权限随合同期，不新增账号体系）</div>'
+    +'<div class="kv"><span class="k">授权员工数</span><span class="v"><b>'+empsOf(m).length+'</b> 个（关联账号 / 档口使用人）</span></div>'
+    +'<div class="kv"><span class="k">物业模块权限</span><span class="v">'+permTag(m)+'</span></div>'
+    +'<div class="kv"><span class="k">权限有效期</span><span class="v">跟随该档口<b>合同租期</b>（合同到期 / 终止 / 清退 → <b>自动解除</b>）</span></div>'
+    +'<div class="mt-2 text-[12px] text-[#64748B]">关联账号（档口使用人）：'
+    +(empsOf(m).length?empsOf(m).map(function(e){
+        return '<div class="mt-1 flex items-center gap-2 flex-wrap"><span class="tag" style="background:#E0E7FF;color:#4338CA">'+esc(e.unit)+'</span>'
+          +'<span>'+esc(e.name)+'　'+esc(e.phone)+'</span>'
+          +'<span class="text-[11px] text-[#94A3B8]">关联时间 '+esc(e.at)+'（'+esc(e.by)+'）</span>'
+          +(edit?'':'<span class="lk-gray" onclick="delEmp(\''+m.id+'\',\''+e.id+'\')">解除关联</span>')+'</div>';
+      }).join(''):'<span class="text-[#94A3B8]">暂无关联账号</span>')
+    +'</div>'
+    +(edit?'':'<div class="mt-2"><button class="btn btn-ghost" onclick="openAddEmp(\''+m.id+'\')"><i class="fas fa-user-plus mr-1"></i>添加员工（关联租客账号）</button></div>')
+    +'<p class="text-[11px] text-[#94A3B8] mt-2"><i class="fas fa-circle-info mr-1"></i>被关联账号在商户端可见<b>该档口信息 + 物业服务</b>（获得物业模块）；<b>多档口业主必须选择关联到哪个档口</b>；解除关联即收回。商户端侧入口（<b>仅拥有档口的业主可见</b>）能力相同，均可留痕。</p></div>';
 
   if(edit){
     h+='<div class="blk" style="border-color:#FDB4A3;background:#FFF6F3"><div class="blk-t" style="color:#E63E20"><i class="fas fa-triangle-exclamation"></i>只读字段说明</div>'

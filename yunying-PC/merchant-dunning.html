@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>合同管理 - 租金催缴（自动）</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}.lk:hover{text-decoration:underline}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}.lk-gray:hover{color:#1F2430;text-decoration:underline}
+.st{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500;white-space:nowrap}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:60}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:740px;max-width:96vw;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:70;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);width:700px;max-width:95vw;max-height:86vh;overflow-y:auto;background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(15,23,42,.28);opacity:0;pointer-events:none;transition:.22s;z-index:70}
+.modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+.blk{border:1px solid #E2E8F0;border-radius:12px;padding:14px 16px}
+.blk-t{font-size:12.5px;font-weight:700;color:#1F2430;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.kv{display:flex;gap:8px;font-size:12px;line-height:1.9}
+.kv .k{width:120px;flex-shrink:0}
+.fi{width:100%;padding:6px 10px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none;background:#fff}
+.fi:focus{border-color:#FF4D2D}
+.fl{display:block;font-size:11px;color:#94A3B8;margin-bottom:4px}
+.sel{width:100%;padding:6px 8px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none}
+button{cursor:pointer}
+textarea.fi{font-family:inherit;line-height:1.8;resize:vertical}
+.tl{position:relative;padding-left:16px;border-left:2px solid #E2E8F0;margin-left:4px}
+.tl .node{position:relative;margin-bottom:12px}
+.tl .node:before{content:'';position:absolute;left:-23px;top:5px;width:8px;height:8px;border-radius:50%;background:#FF4D2D;border:2px solid #fff}
+.rule{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:#334155;background:#F8FAFC;border:1px solid #EEF2F7;border-radius:8px;padding:6px 10px;margin:0 8px 8px 0}
+</style>
+<!-- Tailwind 静态样式：本地引用（不再依赖 cdn.tailwindcss.com）；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<div class="p-6">
+
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">租金催缴（自动）</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">04 实体商户管理</span>
+        <span class="tag" style="background:#FEF3C7;color:#B45309">每年 8 月 15 日起自动</span>
+        <span class="tag" style="background:#DCFCE7;color:#15803D">站内推送 + 微信消息推送</span>
+        <span class="tag" style="background:#E0E7FF;color:#4338CA">短信可选（独立服务）</span>
+        <span class="tag" style="background:#FEF3C7;color:#B45309">规则全部可配置</span>
+      </div>
+      <p class="text-[12px] text-gray-400 mt-1"><b>v2.4（2026-10-14）：本页由 05 合同管理迁入「04 实体商户管理」</b>（原 `contract-dunning.html`）。<b>每年 8 月 15 日起</b>，系统按「下一租赁年度租金未缴清」名单<b>自动向商户发送催缴通知</b>，替代人工电话催收（租赁年度 = 当年 9.1 ~ 次年 8.31，每年 <b>8 月底前</b>缴清）；<b>发送前校验核销状态</b>（已缴清不催）。<b>应收额来自 05 合同管理的「应收计划」</b>；<b>06 缴费管理本期不做</b>（客户不做在线支付）→ <b>「已缴金额 / 缴纳状态」在本模块由财务人工登记</b>；<b>催缴规则（期 / 频率 / 时段 / 升级 / 渠道 / 文案）全部界面可配置</b>；渠道支持<b>站内 + 微信 + 短信（可选 · 独立短信服务）</b></p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="openRule()"><i class="fas fa-sliders text-[10px] mr-1"></i>规则配置</button>
+      <button class="btn btn-ghost" onclick="runNow()"><i class="fas fa-bolt text-[10px] mr-1"></i>立即执行一次</button>
+      <button class="btn btn-ghost" onclick="toast('已导出催缴台账（含通知次数、渠道、缴纳状态；商户与档口维度）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-5 gap-3 mb-4" id="stats"></div>
+
+  <!-- 规则摘要 -->
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+    <div class="flex items-center justify-between mb-2">
+      <div class="text-[12.5px] font-bold text-[#1F2430]"><i class="fas fa-sliders text-[#FF4D2D] mr-1"></i>当前催缴规则（2026 租赁年度）</div>
+      <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>规则全局生效；单个商户可在列表内"暂停该户"</span>
+    </div>
+    <div>
+      <span class="rule"><i class="fas fa-calendar text-[#FF4D2D]"></i>催缴期：<b>8.15 ~ 8.31</b></span>
+      <span class="rule"><i class="fas fa-clock text-[#FF4D2D]"></i>频率：<b>工作日每日 1 次</b></span>
+      <span class="rule"><i class="fas fa-bell text-[#FF4D2D]"></i>时段：<b>09:00–10:00</b></span>
+      <span class="rule"><i class="fas fa-paper-plane text-[#FF4D2D]"></i>渠道：<b>站内推送 + 微信消息推送</b></span>
+      <span class="rule"><i class="fas fa-comment-sms text-[#FF4D2D]"></i>短信：<b>可选（可配置 · 独立短信服务）</b></span>
+      <span class="rule"><i class="fas fa-sliders text-[#FF4D2D]"></i><b>以上规则全部可配置（默认值仅初始值）</b></span>
+      <span class="rule"><i class="fas fa-users text-[#FF4D2D]"></i>对象：<b>未缴 / 部分缴</b>（不含已缴清、已终止）</span>
+      <span class="rule"><i class="fas fa-stop text-[#FF4D2D]"></i>停止：<b>缴清 / 终止 / 到期</b></span>
+      <span class="rule"><i class="fas fa-triangle-exclamation text-[#FF4D2D]"></i>9.1 后升级：<b>每日 + 主管提醒</b></span>
+    </div>
+    <p class="text-[11px] text-[#94A3B8] mt-1"><i class="fas fa-circle-info mr-1"></i>文案模板：<code>【大唐袜业城】尊敬的{{商户}}，您 {{年度}} 租赁年度租金 {{应缴金额}} 元（已缴 {{已缴金额}} 元，未缴 {{未缴金额}} 元）请于 {{截止日}} 前缴清。【去缴费】</code></p>
+    <p class="text-[11px] text-[#94A3B8] mt-1"><i class="fas fa-comment-sms mr-1"></i>短信文案<b>单独配置</b>（模板占位，<b>正式文案待客户定</b>）；短信用客户已有的<b>独立短信服务</b>，<b>不纳入 09 消息推送渠道配置</b>。</p>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+    <div class="flex items-center gap-3 flex-wrap">
+      <input id="f-kw" type="text" placeholder="商户 / 档口 / 合同号" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary w-56">
+      <select id="f-year" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+        <option value="">全部租赁年度</option><option>2026</option><option>2025</option>
+      </select>
+      <select id="f-state" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+        <option value="">全部缴纳状态</option><option>未缴</option><option>部分缴</option><option>已缴清</option><option>已暂停</option><option>已终止</option>
+      </select>
+      <select id="f-cnt" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+        <option value="">全部通知次数</option><option value="0">未通知（0 次）</option><option value="3">≥3 次</option>
+      </select>
+      <button class="btn btn-primary" onclick="doSearch()">查询</button>
+      <button class="btn btn-ghost" onclick="resetS()">重置</button>
+      <span class="text-[11px] text-[#94A3B8] ml-auto"><i class="fas fa-circle-info mr-1"></i>催缴归本模块执行；<b>06 缴费管理本期不做</b> →「已缴金额 / 缴纳状态」由财务在本模块<b>人工登记</b>（登记后自动停止催缴）；<b>催缴规则全部可配置</b></span>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-[13px] font-bold text-[#1F2430]">催缴执行记录</span>
+        <span class="text-[12px] text-[#94A3B8]" id="cnt">共 0 条</span>
+      </div>
+      <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-clock-rotate-left mr-1"></i>每次通知均留痕（渠道 / 时间 / 结果 / 已读），可追溯</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-[13px]" style="min-width:1420px">
+        <thead>
+          <tr class="bg-gray-50 text-gray-500 text-[12px]">
+            <th class="px-4 py-3 text-left font-medium">租赁年度</th>
+            <th class="px-4 py-3 text-left font-medium">商户 / 档口</th>
+            <th class="px-4 py-3 text-left font-medium">合同号</th>
+            <th class="px-4 py-3 text-left font-medium">应收 / 已缴 / 未缴</th>
+            <th class="px-4 py-3 text-left font-medium">通知次数（站内 · 微信）</th>
+            <th class="px-4 py-3 text-left font-medium">最近通知</th>
+            <th class="px-4 py-3 text-left font-medium">缴纳状态</th>
+            <th class="px-4 py-3 text-center font-medium">操作</th>
+          </tr>
+        </thead>
+        <tbody id="tb" class="divide-y divide-gray-50"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div id="mask" class="mask" onclick="closeAll()"></div>
+<div id="drawer" class="drawer"></div>
+<div id="modal" class="modal"></div>
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
+
+<script>
+var SCTC={'未缴':'background:#FEE2E2;color:#B91C1C','部分缴':'background:#FEF3C7;color:#B45309','已缴清':'background:#DCFCE7;color:#15803D',
+  '已暂停':'background:#F1F5F9;color:#64748B','已终止':'background:#F1F5F9;color:#94A3B8'};
+
+/* ===== 模拟数据（应收来自 05 应收计划；已缴 / 核销 = 财务在本模块人工登记，06 本期不做）===== */
+var DN=[
+  {id:1, year:'2026', m:'浙江××袜业股份', unit:'1F-A02', cno:'HT2026-0088', due:'223,200', paid:'0', state:'未缴',
+   site:3, wx:3, last:'2026-08-19 09:05', typ:'年租金', logs:[
+     {t:'2026-08-15 09:02', ch:'站内推送', r:'已送达（已读）', txt:'第 1 次催缴'},
+     {t:'2026-08-16 09:03', ch:'微信消息推送', r:'已送达（未读）', txt:'第 2 次催缴'},
+     {t:'2026-08-19 09:05', ch:'站内推送 + 微信', r:'已送达', txt:'第 3 次催缴'}]},
+  {id:2, year:'2026', m:'诸暨××袜业有限公司', unit:'1F-A08', cno:'HT2026-0091', due:'186,000', paid:'100,000', state:'部分缴',
+   site:3, wx:2, last:'2026-08-19 09:06', typ:'年租金', logs:[
+     {t:'2026-08-15 09:02', ch:'站内推送 + 微信', r:'已送达（已读）', txt:'第 1 次催缴'},
+     {t:'2026-08-18 09:04', ch:'站内推送 + 微信', r:'已送达', txt:'第 3 次催缴（已缴 10 万，剩余 8.6 万）'}]},
+  {id:3, year:'2026', m:'大唐××针织厂', unit:'2F-B15', cno:'HT2026-0093', due:'98,000', paid:'98,000', state:'已缴清',
+   site:2, wx:1, last:'2026-08-16 09:07', typ:'年租金', logs:[
+     {t:'2026-08-15 09:03', ch:'站内推送 + 微信', r:'已送达', txt:'第 1 次催缴'},
+     {t:'2026-08-16 09:07', ch:'系统', r:'检测到已缴清', txt:'停止催缴（核销完成 2026-08-16）'}]},
+  {id:4, year:'2026', m:'义乌××袜业（大唐生产基地）', unit:'1F-C22', cno:'HT2026-0095', due:'92,000', paid:'0', state:'未缴',
+   site:5, wx:5, last:'2026-08-21 09:05', typ:'年租金', logs:[
+     {t:'2026-08-15 09:02', ch:'站内推送 + 微信', r:'已送达', txt:'第 1 次催缴'},
+     {t:'2026-08-21 09:05', ch:'站内推送 + 微信', r:'微信失败（未关注公众号）· 站内送达', txt:'第 5 次催缴'}]},
+  {id:5, year:'2026', m:'诸暨××针织', unit:'B1-07', cno:'HT2026-0097', due:'76,000', paid:'0', state:'已暂停',
+   site:1, wx:0, last:'2026-08-15 09:04', typ:'年租金', logs:[
+     {t:'2026-08-15 09:04', ch:'站内推送', r:'已送达', txt:'第 1 次催缴'},
+     {t:'2026-08-17 10:20', ch:'人工', r:'暂停该户', txt:'合同已进入终止流程（欠租违约），暂停催缴'}]},
+  {id:6, year:'2025', m:'浙江××袜业股份', unit:'1F-A02', cno:'HT2025-0062', due:'210,000', paid:'210,000', state:'已缴清',
+   site:4, wx:3, last:'2025-08-20 09:06', typ:'年租金', logs:[
+     {t:'2025-08-15 09:01', ch:'站内推送 + 微信', r:'已送达', txt:'第 1 次催缴'},
+     {t:'2025-08-20 09:06', ch:'系统', r:'检测到已缴清', txt:'停止催缴（核销完成 2025-08-19）'}]},
+  {id:7, year:'2025', m:'诸暨××服饰（李××）', unit:'2F-A12', cno:'HT2025-0071', due:'105,000', paid:'50,000', state:'部分缴',
+   site:6, wx:4, last:'2025-08-24 09:05', typ:'年租金', logs:[
+     {t:'2025-08-15 09:01', ch:'站内推送 + 微信', r:'已送达', txt:'第 1 次催缴'},
+     {t:'2025-08-24 09:05', ch:'站内推送 + 微信', r:'已送达', txt:'第 6 次催缴（已缴 5 万，剩余 5.5 万）'}]}
+];
+var curRows=DN.slice(),curId=null;
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},3200);}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function dOf(id){return DN.filter(function(x){return x.id===id;})[0];}
+function st(s){return '<span class="st" style="'+(SCTC[s]||'background:#F1F5F9;color:#64748B')+'">'+esc(s)+'</span>';}
+function num(s){return parseInt(String(s).replace(/,/g,''),10)||0;}
+function fmt(n){return Number(n).toLocaleString('en-US');}
+
+function renderStats(){
+  var due=0,paidTotal=0,wait=0,ing=0,today=0;
+  DN.filter(function(d){return d.year==='2026';}).forEach(function(d){
+    due+=num(d.due);paidTotal+=num(d.paid);
+    if(d.state==='未缴'){wait++;}
+    if(d.state==='部分缴'){ing++;}
+    if(d.last&&d.last.indexOf('2026-08-19')===0){today+=1;}
+  });
+  var done=DN.filter(function(d){return d.year==='2026'&&d.state==='已缴清';}).length;
+  var cards=[['应催商户数（2026）',DN.filter(function(d){return d.year==='2026';}).length,'#2563EB'],
+    ['应收总额 / 已缴',fmt(due/10000)+' 万 / '+fmt(paidTotal/10000)+' 万','#1F2430'],
+    ['已缴清',done,'#15803D'],['催缴中（未缴 / 部分缴）',wait+ing,'#E63E20'],['今日实发通知',today+' 条','#7C3AED']];
+  document.getElementById('stats').innerHTML=cards.map(function(x){
+    return '<div class="bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">'+x[0]+'</p><p class="text-xl font-bold mt-1" style="color:'+x[2]+'">'+x[1]+'</p></div>';
+  }).join('');
+}
+function render(){
+  var kw=document.getElementById('f-kw').value.trim(),y=document.getElementById('f-year').value,
+      ss=document.getElementById('f-state').value,cnt=document.getElementById('f-cnt').value;
+  var rows=DN.filter(function(d){
+    var total=d.site+d.wx;
+    return (!kw||d.m.indexOf(kw)>-1||d.unit.indexOf(kw)>-1||d.cno.indexOf(kw)>-1)&&(!y||d.year===y)&&(!ss||d.state===ss)
+      &&(!cnt||(cnt==='0'?total===0:total>=3));
+  });
+  var h='';
+  rows.forEach(function(d){
+    var left=num(d.due)-num(d.paid);
+    var ops='<span class="lk-gray" onclick="openDetail('+d.id+')">明细</span>';
+    if(d.state==='已缴清'||d.state==='已终止'){ops+='';}
+    else if(d.state==='已暂停'){ops='<span class="lk" onclick="resume('+d.id+')">恢复催缴</span> · '+ops;}
+    else{ops='<span class="lk-gray" onclick="resend('+d.id+')">人工补发</span> · <span class="lk-gray" onclick="pause('+d.id+')">暂停该户</span> · '+ops;}
+    h+='<tr class="hover:bg-gray-50 transition">'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(d.year)+' 租赁年度<div class="text-[11px] text-[#94A3B8]">'+esc(d.typ)+'</div></td>'
+      +'<td class="px-4 py-3" style="max-width:230px"><div class="font-medium text-[#1F2430]">'+esc(d.m)+'</div><div class="text-[11px] text-[#94A3B8]">档口 '+esc(d.unit)+'</div></td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]"><span class="lk-gray" onclick="toast(\'跳转合同台账详情（contract-list.html）\')">'+esc(d.cno)+'</span></td>'
+      +'<td class="px-4 py-3 text-[12px]"><b>'+esc(d.due)+'</b> / '+esc(d.paid)+' / <span style="'+(left>0?'color:#B91C1C;font-weight:600':'color:#15803D')+'">'+fmt(left)+'</span></td>'
+      +'<td class="px-4 py-3 text-[12px]">站内 <b>'+d.site+'</b> · 微信 <b>'+d.wx+'</b><div class="text-[10px] text-[#94A3B8]">合计 '+(d.site+d.wx)+' 次</div></td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(d.last||'—')+'</td>'
+      +'<td class="px-4 py-3">'+st(d.state)+'</td>'
+      +'<td class="px-4 py-3 text-center whitespace-nowrap">'+ops+'</td></tr>';
+  });
+  document.getElementById('tb').innerHTML=h||'<tr><td colspan="8" class="px-4 py-16 text-center text-gray-300"><i class="fas fa-inbox text-3xl block mb-2"></i><span class="text-[12px]">暂无匹配的催缴记录</span></td></tr>';
+  document.getElementById('cnt').textContent='共 '+rows.length+' 条';
+}
+function doSearch(){render();toast('已按条件查询催缴记录（关键词 / 租赁年度 / 缴纳状态 / 通知次数）');}
+function resetS(){['f-kw','f-year','f-state','f-cnt'].forEach(function(k){document.getElementById(k).value='';});render();toast('已重置筛选条件');}
+function regPay(id){
+  var d=dOf(id);
+  d.state='已缴清';d.paid=d.due;
+  d.logs.push({t:'2026-10-13 10:15', ch:'人工', r:'登记缴纳', txt:'财务登记已缴清（人工核销）→ 停止催缴'});
+  closeAll();renderStats();render();
+  toast('已登记「'+d.m+'」缴纳完成（人工核销）→ 系统停止催缴');
+}
+function runNow(){
+  toast('已手动触发一轮催缴扫描：2026 租赁年度命中 5 户（未缴 3 / 部分缴 2），发送前已校验核销状态 → 实发 5 条（站内 5 · 微信 4）');
+}
+function resend(id){
+  var d=dOf(id);
+  if(d.state==='已缴清'){toast('该商户已缴清：系统已停止催缴（无需补发）');return;}
+  d.site+=1;d.wx+=1;d.last='2026-10-13 09:05';
+  d.logs.push({t:'2026-10-13 09:05', ch:'站内推送 + 微信（人工补发）', r:'已送达', txt:'人工补发 1 次'});
+  renderStats();render();
+  toast('已人工补发催缴通知：'+d.m+'（站内 + 微信）→ 通知次数已 +1，留痕可查');
+}
+function pause(id){
+  var d=dOf(id);
+  d.state='已暂停';
+  d.logs.push({t:'2026-10-13 09:10', ch:'人工', r:'暂停该户', txt:'原因：合同进入终止流程 / 已协商线下缴纳'});
+  renderStats();render();
+  toast('已暂停该户催缴：'+d.m+'（不再自动发送；可在列表中恢复）');
+}
+function resume(id){
+  var d=dOf(id);
+  d.state=num(d.paid)>0?'部分缴':'未缴';
+  d.logs.push({t:'2026-10-13 09:12', ch:'人工', r:'恢复催缴', txt:'已恢复自动催缴'});
+  renderStats();render();
+  toast('已恢复催缴：'+d.m+'（重新纳入自动催缴名单）');
+}
+
+/* ===== 明细抽屉 ===== */
+function openDetail(id){
+  curId=id;
+  var d=dOf(id);
+  var left=num(d.due)-num(d.paid);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">催缴明细　'+esc(d.m)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(d.year)+' 租赁年度　档口 '+esc(d.unit)+'　合同 '+esc(d.cno)+'　'+st(d.state)+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">';
+  h+='<div class="grid grid-cols-3 gap-3">'
+    +'<div class="blk text-center"><p class="text-[11px] text-[#94A3B8]">应收</p><p class="text-lg font-bold text-[#1F2430]">'+esc(d.due)+'</p></div>'
+    +'<div class="blk text-center"><p class="text-[11px] text-[#94A3B8]">已缴</p><p class="text-lg font-bold" style="color:#15803D">'+esc(d.paid)+'</p></div>'
+    +'<div class="blk text-center"><p class="text-[11px] text-[#94A3B8]">未缴</p><p class="text-lg font-bold" style="color:#B91C1C">'+fmt(left)+'</p></div>'
+    +'</div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-paper-plane text-[#FF4D2D]"></i>催缴时间线（'+d.logs.length+' 条）</div><div class="tl">';
+  d.logs.forEach(function(l,i){
+    h+='<div class="node'+(i===d.logs.length-1?'':'')+'">'
+      +'<div class="text-[12px] text-[#1F2430] font-medium">'+esc(l.txt)+'　<span class="tag" style="background:#DBEAFE;color:#2563EB">'+esc(l.ch)+'</span></div>'
+      +'<div class="text-[11px] text-[#94A3B8]">'+esc(l.t)+'　'+esc(l.r)+'</div></div>';
+  });
+  h+='</div><div class="flex justify-end mt-2"><button class="btn btn-ghost" onclick="resend('+d.id+')"><i class="fas fa-rotate-right mr-1"></i>人工补发</button></div></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-receipt text-[#2563EB]"></i>缴纳记录（v1.5：财务在本模块人工登记 · 06 本期不做）</div>'
+    +(num(d.paid)>0?('<div class="kv"><span class="k">已缴金额</span><span class="v">'+esc(d.paid)+' 元'+(d.year==='2026'&&d.state==='部分缴'?'（2026-08-18 线下转账 · 人工登记）':'（人工登记）')+'</span></div>'
+      +'<div class="kv"><span class="k">剩余未缴</span><span class="v" style="color:#B91C1C">'+fmt(left)+' 元</span></div>')
+      :'<p class="text-[12px] text-[#94A3B8]">暂无缴纳登记（06 缴费管理本期不做 → 收款由财务在本模块人工登记）</p>')
+    +'<div class="mt-2"><button class="btn btn-ghost" onclick="regPay('+d.id+')"><i class="fas fa-pen mr-1"></i>登记缴纳（人工核销）</button></div>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-2"><i class="fas fa-circle-info mr-1"></i>催缴前系统会先读此处登记状态：<b>已缴清则不再发送</b>（避免误催）。</p></div>';
+  if(d.state==='已暂停'||d.state==='已缴清'){
+    h+='<div class="blk" style="border-color:'+(d.state==='已缴清'?'#BBF7D0':'#E2E8F0')+';background:'+(d.state==='已缴清'?'#F0FDF4':'#F8FAFC')+'">'
+      +'<div class="blk-t"><i class="fas fa-stop text-[#64748B]"></i>停催说明</div>'
+      +'<p class="text-[12px] text-[#64748B]">'+esc(d.logs[d.logs.length-1].txt)+'　'+esc(d.logs[d.logs.length-1].t)+'</p></div>';
+  }
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">关闭</button>'
+    +(d.state==='已暂停'?'<button class="btn btn-primary" onclick="resume('+d.id+')">恢复催缴</button>':'')
+    +(d.state!=='已暂停'&&d.state!=='已缴清'?'<button class="btn btn-ghost" onclick="pause('+d.id+')">暂停该户</button>':'')
+    +'</div>';
+  show('drawer',h);
+}
+
+/* ===== 规则配置 ===== */
+function openRule(){
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">催缴规则配置</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">全局规则；保存即对下一轮扫描生效（原型为演示态）</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-calendar text-[#FF4D2D]"></i>催缴期与频率</div>'
+    +'<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl">催缴开始日</label><input class="fi" id="r-start" value="08-15" placeholder="每年 MM-DD"></div>'
+    +'<div><label class="fl">催缴结束日（未缴清可延）</label><input class="fi" id="r-end" value="08-31"></div>'
+    +'<div><label class="fl">频率</label><select class="sel" id="r-freq"><option>每日 1 次（工作日）</option><option>隔日 1 次</option><option>每周 1 次</option></select></div>'
+    +'<div><label class="fl">发送时段</label><input class="fi" id="r-time" value="09:00–10:00"></div>'
+    +'</div>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-2"><i class="fas fa-circle-info mr-1"></i>业务口径：租赁年度 = 当年 9.1 ~ 次年 8.31，<b>每年 8 月底前</b>缴清，故 <b>8.15</b> 起催缴第二年租金。</p></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-users text-[#2563EB]"></i>对象与渠道</div>'
+    +'<label class="fl">催缴对象</label>'
+    +'<div style="margin-bottom:8px">'
+    +'<label style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#334155;margin-right:14px"><input type="checkbox" checked>未缴</label>'
+    +'<label style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#334155;margin-right:14px"><input type="checkbox" checked>部分缴（催剩余）</label>'
+    +'<label style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#94A3B8;margin-right:14px"><input type="checkbox" disabled>已缴清（不发）</label>'
+    +'<label style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#94A3B8"><input type="checkbox" disabled>已终止 / 已到期（不发）</label>'
+    +'</div>'
+    +'<label class="fl">发送渠道</label>'
+    +'<div><label style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#334155;margin-right:14px"><input type="checkbox" checked>站内推送</label>'
+    +'<label style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#334155;margin-right:14px"><input type="checkbox" checked>微信消息推送</label>'
+    +'<label style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#334155"><input type="checkbox">短信（可选 · 独立短信服务）</label></div>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-2"><i class="fas fa-circle-info mr-1"></i>短信用客户已有的<b>独立短信服务</b>（<b>不纳入 09 消息推送渠道配置</b>）；<b>短信文案待客户定</b>，可单独配置模板。</p></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-file-lines text-[#7C3AED]"></i>文案模板（支持变量）</div>'
+    +'<textarea class="fi" id="r-tpl" rows="4">【大唐袜业城】尊敬的{{商户}}，您 {{年度}} 租赁年度租金 {{应缴金额}} 元（已缴 {{已缴金额}} 元，未缴 {{未缴金额}} 元）请于 {{截止日}} 前缴清，逾期可能影响合同履行。【去缴费】</textarea>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-2"><i class="fas fa-circle-info mr-1"></i>可用变量：{{商户}} {{档口}} {{年度}} {{租期}} {{应缴金额}} {{已缴金额}} {{未缴金额}} {{截止日}}；微信渠道受公众号模板消息字段长度限制。</p></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-stop text-[#64748B]"></i>停止条件与升级</div>'
+    +'<div class="kv"><span class="k">停止条件</span><span class="v">缴清 / 合同终止 / 合同到期（满足任一即停）</span></div>'
+    +'<div class="kv"><span class="k">逾期升级</span><span class="v">9.1 后未缴清 → 每日发送 + 抄送主管提醒</span></div>'
+    +'<div class="kv"><span class="k">频控</span><span class="v">同一商户每日最多 1 次（不含人工补发）</span></div></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveRule()">保存规则</button></div>';
+  show('drawer',h);
+}
+function saveRule(){
+  var s=document.getElementById('r-start').value.trim(),f=document.getElementById('r-freq').value;
+  if(!s){toast('请填写催缴开始日');return;}
+  closeAll();
+  toast('催缴规则已保存：每年 '+s+' 起 · '+f+' · 站内 + 微信；下一轮扫描即生效（已缴清/已终止不发送）');
+}
+
+/* ===== 基础 ===== */
+function show(which,h){
+  document.getElementById(which).innerHTML=h;
+  document.getElementById('mask').classList.add('on');
+  document.getElementById(which).classList.add('on');
+}
+function closeAll(){
+  document.getElementById('mask').classList.remove('on');
+  document.getElementById('drawer').classList.remove('on');
+  document.getElementById('modal').classList.remove('on');
+}
+renderStats();render();
+</script>
+</body>
+</html>
