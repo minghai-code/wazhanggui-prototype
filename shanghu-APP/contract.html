@@ -37,16 +37,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
     <div class="w-9"></div>
   </div>
   <p class="relative text-white/80 text-[11px] mt-2"><i class="fas fa-file-contract"></i> 合同查看 · 后台发起签署</p>
-  <div class="relative flex gap-5 mt-3 text-[13px]">
-    <a class="text-white font-bold border-b-2 border-white pb-1.5" onclick="switchCt('active',this)">生效中</a>
-    <a class="text-white/70 pb-1.5" onclick="switchCt('expired',this)">已到期</a>
-    <a class="text-white/70 pb-1.5" onclick="switchCt('all',this)">全部</a>
+  <div class="relative flex gap-4 mt-3 text-[13px]">
+    <a id="ct-sign" class="text-white font-bold border-b-2 border-white pb-1.5" onclick="switchCt('sign',this)">待签署</a>
+    <a id="ct-active" class="text-white/70 pb-1.5" onclick="switchCt('active',this)">生效中</a>
+    <a id="ct-expired" class="text-white/70 pb-1.5" onclick="switchCt('expired',this)">已到期</a>
+    <a id="ct-all" class="text-white/70 pb-1.5" onclick="switchCt('all',this)">全部</a>
   </div>
 </div>
 
-<!-- 待签合同（v1.4：后台发起，同号注册后签署） -->
-<div class="px-3 mt-2" data-ct="sign">
-  <div class="bg-white rounded-2xl shadow-soft overflow-hidden">
+<!-- 待签署（v1.4：后台发起，同号注册后签署） -->
+<div class="px-3 mt-2" data-ct="sign" id="signSection">
+  <p class="text-[12px] font-bold text-gray-800 mb-2 px-1">待签署合同</p>
+  <div id="signCard" class="bg-white rounded-2xl shadow-soft overflow-hidden">
     <div class="flex items-center justify-between px-3.5 py-3 border-b border-gray-50">
       <div class="flex items-center gap-2">
         <div class="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center"><i class="fas fa-file-signature text-indigo-500 text-sm"></i></div>
@@ -57,9 +59,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
     <div class="px-3.5 py-3 text-[11px] text-gray-500 leading-relaxed">
       合同由袜业城后台主动发起，已短信通知至竞拍登记手机号。请核对合同全文后手写签名提交，后台审核签字即生效（无需人脸识别）。
     </div>
-    <div class="px-3.5 pb-3">
-      <a onclick="openSign()" class="block py-2.5 rounded-lg text-white text-[12px] font-bold text-center" style="background:linear-gradient(135deg,#6366F1,#4F46E5)">去签署（手写签名）</a>
+    <div class="flex gap-2 px-3.5 pb-3">
+      <a href="contract-detail.html?no=HT2026-0001" class="flex-1 py-2.5 rounded-lg border border-gray-200 text-[12px] text-gray-600 text-center"><i class="fas fa-file-lines text-[10px]"></i> 查看全文</a>
+      <a onclick="openSign()" class="flex-[1.4] py-2.5 rounded-lg text-white text-[12px] font-bold text-center" style="background:linear-gradient(135deg,#6366F1,#4F46E5)">去签署（手写签名）</a>
     </div>
+  </div>
+  <div id="signNone" style="display:none" class="bg-gray-50 border border-gray-100 rounded-2xl p-4 text-center">
+    <i class="fas fa-circle-check text-emerald-400 text-2xl"></i>
+    <p class="text-[12px] text-gray-500 mt-2">暂无待签合同</p>
+    <p class="text-[10px] text-gray-400 mt-1">竞拍成功后合同由袜业城后台发起并短信通知，请用竞拍登记手机号注册</p>
   </div>
 </div>
 
@@ -77,15 +85,53 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
   </div>
 </div>
 
-<!-- 生效中 -->
-<div class="px-3 mt-3 mb-2" data-ct="active">
-  <p class="text-[12px] font-bold text-gray-800 mb-2 px-1">生效中合同</p>
-  <div class="card bg-white rounded-2xl shadow-soft overflow-hidden">
+<!-- 生效中（含"待审核"过渡态：签署 → 后台审核 → 生效） -->
+<div class="px-3 mt-3 mb-6" data-ct="active" id="activeSection" style="display:none">
+  <p id="activeTitle" class="text-[12px] font-bold text-gray-800 mb-2 px-1">生效中合同</p>
+
+  <!-- 已生效示例（默认展示：2F-B12 档口，老板名下多档口） -->
+  <div class="card bg-white rounded-2xl shadow-soft overflow-hidden mb-2.5" id="activeExample">
+    <div class="px-3.5 py-3">
+      <div class="flex items-center justify-between mb-2">
+        <a href="contract-detail.html?no=HT2025-0088" class="flex items-center gap-2 min-w-0">
+          <div class="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0"><i class="fas fa-file-contract text-indigo-500 text-sm"></i></div>
+          <div class="min-w-0"><p class="text-[13px] font-bold text-gray-800">商铺租赁合同</p><p class="text-[10px] text-gray-400 num">HT2025-0088 · 卷 69-21</p></div>
+        </a>
+        <span class="bg-emerald-100 text-emerald-600 text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0">已生效</span>
+      </div>
+      <div class="grid grid-cols-2 gap-2 bg-gray-50 rounded-lg p-2.5 text-[10px]">
+        <div><span class="text-gray-400">商铺</span><p class="text-gray-700 font-medium mt-0.5">2F-B12 档口 · 40㎡</p></div>
+        <div><span class="text-gray-400">年租金</span><p class="text-gray-700 font-medium num mt-0.5">¥122,880</p></div>
+        <div><span class="text-gray-400">租赁年度</span><p class="text-gray-700 font-medium num mt-0.5">2025.09.01–2026.08.31</p></div>
+        <div><span class="text-gray-400">剩余</span><p class="text-amber-600 font-bold num mt-0.5">T-30</p></div>
+      </div>
+      <div class="flex gap-2 mt-2.5">
+        <a href="contract-detail.html?no=HT2025-0088" class="flex-1 py-2 rounded-lg border border-gray-200 text-[11px] text-gray-600 text-center"><i class="fas fa-eye text-[9px]"></i> 查看详情</a>
+        <a onclick="toast('查看盖章件（演示）')" class="flex-1 py-2 rounded-lg text-white text-[11px] font-medium text-center" style="background:linear-gradient(135deg,#6366F1,#4F46E5)">查看盖章件</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 待审核（签署后显示） -->
+  <div id="reviewCard" style="display:none" class="bg-white rounded-2xl shadow-soft overflow-hidden border border-amber-100">
+    <div class="flex items-center justify-between px-3.5 py-3 border-b border-gray-50">
+      <div class="flex items-center gap-2">
+        <div class="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center"><i class="fas fa-file-signature text-amber-500 text-sm"></i></div>
+        <div><p class="text-[13px] font-bold text-gray-800">商铺租赁合同</p><p class="text-[10px] text-gray-400 num">HT2026-0001 · 卷 69-10</p></div>
+      </div>
+      <span class="bg-amber-100 text-amber-600 text-[9px] font-bold px-1.5 py-0.5 rounded">待审核（后台签字）</span>
+    </div>
+    <div class="px-3.5 py-3 text-[11px] text-gray-500 leading-relaxed">您已提交手写签名，等待合同专员审核签字；审核通过后合同生效，并自动开通物业模块权限。</div>
+    <div class="px-3.5 pb-3"><a onclick="mockApprove()" class="block py-2.5 rounded-lg text-white text-[12px] font-bold text-center" style="background:linear-gradient(135deg,#10B981,#059669)"><i class="fas fa-check-double text-[10px]"></i> 模拟后台审核通过（演示）</a></div>
+  </div>
+
+  <!-- 已生效（审核通过后显示） -->
+  <div id="activeCard" style="display:none" class="card bg-white rounded-2xl shadow-soft overflow-hidden">
     <div class="px-3.5 py-3">
       <div class="flex items-center justify-between mb-2">
         <div class="flex items-center gap-2">
           <div class="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center"><i class="fas fa-file-contract text-indigo-500 text-sm"></i></div>
-          <div><p class="text-[13px] font-bold text-gray-800">商铺租赁合同</p><p class="text-[10px] text-gray-400 num">HT2026-0002 · 卷 69-10</p></div>
+          <div><p class="text-[13px] font-bold text-gray-800">商铺租赁合同</p><p class="text-[10px] text-gray-400 num">HT2026-0001 · 卷 69-10</p></div>
         </div>
         <span class="bg-emerald-100 text-emerald-600 text-[9px] font-bold px-1.5 py-0.5 rounded">已生效</span>
       </div>
@@ -102,8 +148,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
         <div class="flex justify-between mt-0.5"><span class="text-gray-400">状态</span><span class="text-emerald-600 font-bold">已缴</span></div>
       </div>
       <div class="flex gap-2 mt-2.5">
-        <a href="#" class="flex-1 py-2 rounded-lg border border-gray-200 text-[11px] text-gray-600 text-center"><i class="fas fa-file-pdf text-[9px]"></i> 预览合同</a>
-        <a href="#" class="flex-1 py-2 rounded-lg text-white text-[11px] font-medium text-center" style="background:linear-gradient(135deg,#6366F1,#4F46E5)">查看盖章件</a>
+        <a href="contract-detail.html?no=HT2026-0001" class="flex-1 py-2 rounded-lg border border-gray-200 text-[11px] text-gray-600 text-center"><i class="fas fa-eye text-[9px]"></i> 查看详情</a>
+        <a onclick="toast('查看盖章件（演示）')" class="flex-1 py-2 rounded-lg text-white text-[11px] font-medium text-center" style="background:linear-gradient(135deg,#6366F1,#4F46E5)">查看盖章件</a>
       </div>
     </div>
   </div>
@@ -123,18 +169,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
       </div>
       <div class="flex items-center justify-between text-[10px] text-gray-400">
         <span class="num">2023.09.01-2024.09.01</span>
-        <a href="#" class="text-gray-500">查看 ›</a>
+        <a href="contract-detail.html?no=HT2023-0518" class="text-gray-500">查看 ›</a>
       </div>
     </div>
-  </div>
-</div>
-
-<!-- 无待签合同提示（同号注册后仍未收到后台发起的合同时展示） -->
-<div class="px-3 mt-2" data-ct="none" style="display:none">
-  <div class="bg-gray-50 border border-gray-100 rounded-2xl p-4 text-center">
-    <i class="fas fa-info-circle text-gray-300 text-2xl"></i>
-    <p class="text-[12px] text-gray-500 mt-2">未查询到待签合同</p>
-    <p class="text-[10px] text-gray-400 mt-1">请确认注册手机号与竞拍登记一致（合同由袜业城发起并短信通知）</p>
   </div>
 </div>
 
@@ -144,22 +181,36 @@ var SH_PROFILE={type:'线上兼档口商户',shop:'1F-A08',area:'50㎡',floor:'A
 function shFill(){document.querySelectorAll('[data-sh]').forEach(function(el){var k=el.getAttribute('data-sh');if(SH_PROFILE[k]!=null)el.textContent=SH_PROFILE[k];});}
 shFill();
 function toast(msg){var d=document.createElement('div');d.style.cssText='position:fixed;left:50%;bottom:110px;transform:translateX(-50%);background:rgba(20,20,40,.85);color:#fff;font-size:12px;padding:8px 16px;border-radius:20px;z-index:999;white-space:nowrap';d.textContent=msg;document.body.appendChild(d);setTimeout(function(){d.remove()},1800);}
-// Tab 切换（生效中 / 已到期 / 全部）
+// Tab 切换（待签署 / 生效中 / 已到期 / 全部）
 function switchCt(tab,el){
   document.querySelectorAll('[onclick^="switchCt"]').forEach(function(a){a.className='text-white/70 pb-1.5';});
   el.className='text-white font-bold border-b-2 border-white pb-1.5';
-  var map={sign:1,active:1,expired:1};
   document.querySelectorAll('[data-ct]').forEach(function(s){s.style.display='none';});
-  if(tab==='all'){document.querySelectorAll('[data-ct="sign"],[data-ct="active"],[data-ct="expired"]').forEach(function(s){s.style.display='block';});}
-  else if(tab==='active'){document.querySelectorAll('[data-ct="sign"],[data-ct="active"]').forEach(function(s){s.style.display='block';});}
-  else {document.querySelectorAll('[data-ct="expired"]').forEach(function(s){s.style.display='block';});}
+  if(tab==='all'){document.querySelectorAll('[data-ct]').forEach(function(s){s.style.display='block';});}
+  else {document.querySelectorAll('[data-ct="'+tab+'"]').forEach(function(s){s.style.display='block';});}
 }
 // 手写签名（v1.4：无人脸识别）
 var signCtx=null,signing=false,signPad=document.getElementById('signPad');
 function openSign(){document.getElementById('signMask').style.display='flex';var c=signPad;var r=c.getBoundingClientRect();c.width=r.width;c.height=r.height;signCtx=c.getContext('2d');signCtx.lineWidth=2;signCtx.strokeStyle='#1F2937';signCtx.lineCap='round';}
 function closeSign(){document.getElementById('signMask').style.display='none';}
 function clearSign(){if(signCtx)signCtx.clearRect(0,0,signPad.width,signPad.height);}
-function submitSign(){closeSign();toast('签名已提交，待后台审核签字后将生效');var b=document.querySelector('[data-ct="sign"]');if(b)b.style.display='none';}
+function submitSign(){
+  closeSign();
+  // 待签署 → 待审核（转入生效中）
+  document.getElementById('signCard').style.display='none';
+  document.getElementById('signNone').style.display='block';
+  document.getElementById('reviewCard').style.display='block';
+  document.getElementById('activeCard').style.display='none';
+  document.getElementById('activeTitle').textContent='待审核合同';
+  switchCt('active',document.getElementById('ct-active'));
+  toast('签名已提交，待后台审核签字');
+}
+function mockApprove(){
+  document.getElementById('reviewCard').style.display='none';
+  document.getElementById('activeCard').style.display='block';
+  document.getElementById('activeTitle').textContent='生效中合同';
+  toast('审核通过，合同已生效（演示）；物业模块权限已开通');
+}
 signPad.addEventListener('pointerdown',function(e){signing=true;signCtx.beginPath();signCtx.moveTo(e.offsetX,e.offsetY);});
 signPad.addEventListener('pointermove',function(e){if(signing){signCtx.lineTo(e.offsetX,e.offsetY);signCtx.stroke();}});
 signPad.addEventListener('pointerup',function(){signing=false;});

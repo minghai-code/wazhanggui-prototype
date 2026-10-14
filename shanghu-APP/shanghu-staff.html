@@ -16,7 +16,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .inp::placeholder{color:#C0C0C0}.inp:focus{border-color:#2563EB;background:#fff}
 .lbl{font-size:11px;color:#6b7080;font-weight:500;display:block;margin-bottom:6px}.lbl b{color:#2563EB}
 .tag-opt{font-size:11px;color:#6b7080;background:#fff;border:1px solid #eceef0;border-radius:10px;padding:6px 12px;cursor:pointer}.tag-opt.on{border-color:#2563EB;color:#2563EB;background:#EFF6FF;font-weight:600}
-.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:200;opacity:0;transition:.2s}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:300;opacity:0;transition:.2s;max-width:80%;text-align:center}
 .toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
 </style>
 <link rel="stylesheet" href="tailwind.css">
@@ -28,30 +28,83 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
   <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-50" style="background:#60A5FA"></div>
   <div class="relative flex items-center gap-3">
     <a href="mine.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
-    <div><span class="text-white font-extrabold text-[18px]">添加员工（业主）</span>
-    <p class="text-white/85 text-[10px] mt-0.5">关联租客账号为店铺员工，按角色授权</p></div>
+    <div><span class="text-white font-extrabold text-[18px]">添加员工</span>
+    <p class="text-white/85 text-[10px] mt-0.5">业主专属 · 关联已注册账号为档口使用人</p></div>
   </div>
 </div>
 
 <div class="px-3 pt-4 pb-16">
-  <!-- 关联租客账号 -->
-  <div class="bg-white rounded-2xl shadow-soft p-3.5">
-    <p class="text-[11px] text-gray-500 leading-relaxed mb-3"><i class="fas fa-circle-info mr-1 text-[#2563EB]"></i>业主可将其名下的<b>租客账号</b>关联为店铺员工，按角色授权（店长 / 客服 / 财务 / 库管）。受邀人需在租客端确认。</p>
-    <div class="mb-3"><label class="lbl">租客账号手机号 <b>*</b></label><div class="flex gap-2"><input id="phone" class="inp flex-1" placeholder="输入租客账号手机号" maxlength="11"><button class="card px-3 rounded-xl text-[12px] text-white grad-h" onclick="searchTenant()">查询</button></div></div>
-    <div id="tenantBox" style="display:none" class="rounded-xl border border-gray-200 p-3 mb-1">
-      <div class="flex items-center gap-2"><div class="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center"><i class="fas fa-user text-gray-400"></i></div><div class="flex-1"><p class="text-[12px] text-gray-800 font-medium">租客：王女士</p><p class="text-[10px] text-gray-400">账号 139****2233 · 已实名</p></div></div>
-      <div class="mt-2"><label class="lbl">分配角色</label><div class="flex flex-wrap gap-1.5" id="roles">
-        <span class="tag-opt on" onclick="tagSelect(this)">店长</span><span class="tag-opt" onclick="tagSelect(this)">客服</span><span class="tag-opt" onclick="tagSelect(this)">财务</span><span class="tag-opt" onclick="tagSelect(this)">库管</span></div></div>
-      <button class="card w-full mt-3 py-2.5 rounded-xl text-white text-[12px] font-bold grad-h" onclick="invite()">发送员工邀请</button>
+  <!-- 说明 -->
+  <div class="bg-blue-50/70 border border-blue-100 rounded-2xl p-3.5 mb-3">
+    <p class="text-[11px] text-blue-700 leading-relaxed"><i class="fas fa-circle-info mr-1"></i>员工由已拥有档口的业主添加，关联后其账号可查看该档口信息与物业服务。<b>权限有效期跟随该档口合同期</b>；合同到期 / 终止将自动解除关联、权限即时停止。</p>
+  </div>
+
+  <!-- 添加员工 -->
+  <div class="bg-white rounded-2xl shadow-soft p-3.5 mb-3">
+    <p class="text-[13px] font-bold text-gray-800 mb-3">添加员工</p>
+    <div class="mb-3"><label class="lbl">员工手机号 <b>*</b></label>
+      <div class="flex gap-2"><input id="phone" class="inp flex-1" placeholder="输入已注册账号手机号" maxlength="11"><button class="card px-3 rounded-xl text-[12px] text-white grad-h" onclick="searchStaff()">查询</button></div>
+    </div>
+    <div id="staffBox" style="display:none">
+      <div class="flex items-center gap-2 rounded-xl border border-gray-200 p-3 mb-3">
+        <div class="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center"><i class="fas fa-user text-gray-400"></i></div>
+        <div class="flex-1"><p class="text-[12px] text-gray-800 font-medium" id="mName">—</p><p class="text-[10px] text-gray-400" id="mMeta">—</p></div>
+        <span class="text-[10px] text-green-600 bg-green-50 px-1.5 py-0.5 rounded">已注册</span>
+      </div>
+      <div class="mb-3"><label class="lbl">关联档口 <b>*</b><span class="text-gray-400 font-normal">（多名下档口需选择，不给默认值）</span></label>
+        <div class="flex flex-wrap gap-1.5" id="unitSel"></div>
+      </div>
+      <div class="mb-1"><label class="lbl">分配角色 <b>*</b></label>
+        <div class="flex flex-wrap gap-1.5" id="roleSel">
+          <span class="tag-opt on" onclick="pickOne('#roleSel',this)">店长</span>
+          <span class="tag-opt" onclick="pickOne('#roleSel',this)">客服</span>
+          <span class="tag-opt" onclick="pickOne('#roleSel',this)">财务</span>
+          <span class="tag-opt" onclick="pickOne('#roleSel',this)">库管</span>
+        </div>
+      </div>
+      <button class="card w-full mt-3 py-2.5 rounded-xl text-white text-[13px] font-bold grad-h" onclick="addStaff()">发送关联邀请</button>
     </div>
   </div>
 
-  <!-- 当前员工 -->
-  <p class="text-[12px] font-bold text-gray-800 mt-4 mb-2 px-1">当前员工</p>
-  <div class="bg-white rounded-2xl shadow-soft overflow-hidden">
-    <div class="flex items-center gap-3 px-3.5 py-3"><div class="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center"><i class="fas fa-user text-gray-400"></i></div><div class="flex-1"><p class="text-[13px] text-gray-800 font-medium">李经理</p><p class="text-[10px] text-gray-400">店长 · 139****6677</p></div><span class="text-[10px] text-green-600 bg-green-50 px-1.5 py-0.5 rounded">已接受</span></div>
-    <div class="h-px bg-gray-50"></div>
-    <div class="flex items-center gap-3 px-3.5 py-3"><div class="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center"><i class="fas fa-user text-gray-400"></i></div><div class="flex-1"><p class="text-[13px] text-gray-800 font-medium">待加入</p><p class="text-[10px] text-gray-400">客服 · 139****2233</p></div><span class="text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">邀请中</span></div>
+  <!-- 员工列表 -->
+  <div class="flex items-center justify-between mb-2 px-1">
+    <p class="text-[13px] font-bold text-gray-800">员工列表 <span class="text-gray-400 font-normal num" id="staffCount">0</span></p>
+    <span class="text-[10px] text-gray-400">权限有效期 = 档口合同期</span>
+  </div>
+  <div class="bg-white rounded-2xl shadow-soft overflow-hidden" id="staffList"></div>
+</div>
+
+<!-- 编辑角色弹层 -->
+<div id="editMask" style="display:none" class="fixed inset-0 z-[200] flex items-end">
+  <div class="absolute inset-0" style="background:rgba(15,23,42,.45)" onclick="closeEdit()"></div>
+  <div class="relative w-full bg-white rounded-t-3xl p-4 pb-8" onclick="event.stopPropagation()">
+    <div class="w-10 h-1 rounded-full bg-gray-200 mx-auto mb-3"></div>
+    <p class="text-[15px] font-extrabold text-gray-900 text-center">编辑员工角色</p>
+    <p class="text-[11px] text-gray-400 text-center mt-1" id="editWho">—</p>
+    <div class="flex flex-wrap gap-1.5 justify-center mt-3" id="editRoles">
+      <span class="tag-opt" onclick="pickOne('#editRoles',this)">店长</span>
+      <span class="tag-opt" onclick="pickOne('#editRoles',this)">客服</span>
+      <span class="tag-opt" onclick="pickOne('#editRoles',this)">财务</span>
+      <span class="tag-opt" onclick="pickOne('#editRoles',this)">库管</span>
+    </div>
+    <div class="flex gap-2 mt-4">
+      <a onclick="closeEdit()" class="flex-1 py-3 rounded-xl border border-gray-200 text-[13px] text-gray-600 text-center font-medium">取消</a>
+      <a onclick="saveEdit()" class="flex-1 py-3 rounded-xl text-white text-[13px] font-bold text-center grad-h">保存</a>
+    </div>
+  </div>
+</div>
+
+<!-- 解除确认弹层 -->
+<div id="delMask" style="display:none" class="fixed inset-0 z-[200] flex items-center justify-center">
+  <div class="absolute inset-0" style="background:rgba(15,23,42,.45)" onclick="closeDel()"></div>
+  <div class="relative bg-white rounded-3xl mx-6 p-5 text-center" style="max-width:300px">
+    <div class="w-12 h-12 mx-auto rounded-full flex items-center justify-center" style="background:linear-gradient(135deg,#FB7185,#E11D48)"><i class="fas fa-link-slash text-white"></i></div>
+    <p class="text-[15px] font-bold text-gray-800 mt-3">解除员工关联？</p>
+    <p class="text-[11px] text-gray-500 mt-1.5 leading-relaxed" id="delWho">解除后其账号将立即失去该档口的物业权限，可重新添加。</p>
+    <div class="flex gap-2 mt-4">
+      <a onclick="closeDel()" class="flex-1 py-2.5 rounded-xl border border-gray-200 text-[13px] text-gray-600 text-center font-medium">取消</a>
+      <a onclick="confirmDel()" class="flex-1 py-2.5 rounded-xl text-white text-[13px] font-bold text-center" style="background:linear-gradient(135deg,#FB7185,#E11D48)">确认解除</a>
+    </div>
   </div>
 </div>
 
@@ -59,14 +112,59 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 <script>
 var toastTimer;
 function toast(m){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=m;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},1800)}
-function tagSelect(el){el.classList.toggle('on')}
-function searchTenant(){
-  var p=document.getElementById('phone').value.trim();
-  if(!p){toast('请输入租客账号手机号');return}
-  document.getElementById('tenantBox').style.display='block';
-  toast('已匹配到租客账号：'+p.replace(/(\d{3})\d{4}(\d{4})/,'$1****$2'));
+function pickOne(sel,el){document.querySelectorAll(sel+' .tag-opt').forEach(function(a){a.classList.remove('on')});el.classList.add('on');}
+// 业主名下的档口（多名下档口需选择）
+var OWN_UNITS=['1F-A08 档口','2F-B12 档口'];
+// 员工数据（状态：邀请中 / 已生效 / 已失效）
+var EMPLOYEES=[
+  {id:1,name:'王玲',phone:'139****2233',unit:'1F-A08 档口',role:'店长',expire:'2027.08.31',status:'已生效'},
+  {id:2,name:'赵敏',phone:'138****6677',unit:'2F-B12 档口',role:'客服',expire:'2027.08.31',status:'邀请中'},
+  {id:3,name:'孙浩',phone:'137****9900',unit:'1F-A08 档口',role:'库管',expire:'2026.08.31',status:'已失效'}
+];
+var curEditId=null,curDelId=null;
+function sBadge(s){if(s==='已生效')return '<span class="text-[10px] text-green-600 bg-green-50 px-1.5 py-0.5 rounded">已生效</span>';if(s==='邀请中')return '<span class="text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">邀请中</span>';return '<span class="text-[10px] text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">已失效</span>';}
+function renderUnits(){document.getElementById('unitSel').innerHTML=OWN_UNITS.map(function(u){return '<span class="tag-opt" onclick="pickOne(\'#unitSel\',this)">'+u+'</span>';}).join('');}
+function renderList(){
+  document.getElementById('staffCount').textContent=EMPLOYEES.length;
+  document.getElementById('staffList').innerHTML=EMPLOYEES.map(function(e,i){
+    var disabled=(e.status==='已失效');
+    return '<div class="flex items-center gap-3 px-3.5 py-3'+(i<EMPLOYEES.length-1?' border-b border-gray-50':'')+'">'
+      +'<div class="w-9 h-9 rounded-full '+(disabled?'bg-gray-100':'bg-blue-50')+' flex items-center justify-center"><i class="fas fa-user '+(disabled?'text-gray-400':'text-primary')+' text-sm"></i></div>'
+      +'<div class="flex-1 min-w-0"><div class="flex items-center gap-1.5"><p class="text-[13px] text-gray-800 font-medium">'+e.name+'</p>'+sBadge(e.status)+'</div>'
+      +'<p class="text-[10px] text-gray-400 num mt-0.5">'+e.phone+' · '+e.unit+' · '+e.role+'</p>'
+      +'<p class="text-[9px] text-gray-400 mt-0.5">有效期至 '+e.expire+'（跟随合同期）</p></div>'
+      +(disabled?'<span class="text-[11px] text-gray-300">—</span>'
+        :'<div class="flex flex-col gap-1 items-end"><a onclick="openEdit('+e.id+')" class="text-[11px] text-primary font-medium">编辑</a>'
+        +'<a onclick="openDel('+e.id+')" class="text-[11px] text-rose-500 font-medium">解除</a></div>')
+      +'</div>';
+  }).join('');
 }
-function invite(){toast('员工邀请已发送至租客端，待对方确认');}
+function searchStaff(){
+  var p=document.getElementById('phone').value.trim();
+  if(!p){toast('请输入员工手机号');return}
+  document.getElementById('mName').textContent='王玲';
+  document.getElementById('mMeta').textContent='账号 '+p.replace(/(\d{3})\d{4}(\d{4})/,'$1****$2')+' · 已实名';
+  document.getElementById('staffBox').style.display='block';
+  renderUnits();
+  toast('已匹配到账号');
+}
+function addStaff(){
+  var unit=document.querySelector('#unitSel .tag-opt.on');
+  if(!unit){toast('请选择关联档口（多档口必须选择）');return}
+  var role=document.querySelector('#roleSel .tag-opt.on').textContent;
+  var p=document.getElementById('phone').value.trim();
+  EMPLOYEES.unshift({id:Date.now(),name:'王玲',phone:p.replace(/(\d{3})\d{4}(\d{4})/,'$1****$2')||'139****2233',unit:unit.textContent,role:role,expire:'2027.08.31',status:'邀请中'});
+  renderList();
+  document.getElementById('staffBox').style.display='none';document.getElementById('phone').value='';
+  toast('关联邀请已发送，待对方确认（状态：邀请中）');
+}
+function openEdit(id){curEditId=id;var e=EMPLOYEES.find(function(x){return x.id===id;});document.getElementById('editWho').textContent=e.name+' · '+e.unit;document.querySelectorAll('#editRoles .tag-opt').forEach(function(a){a.classList.toggle('on',a.textContent===e.role)});document.getElementById('editMask').style.display='flex';}
+function closeEdit(){document.getElementById('editMask').style.display='none';}
+function saveEdit(){var role=document.querySelector('#editRoles .tag-opt.on');var e=EMPLOYEES.find(function(x){return x.id===curEditId;});if(role)e.role=role.textContent;closeEdit();renderList();toast('角色已更新');}
+function openDel(id){curDelId=id;var e=EMPLOYEES.find(function(x){return x.id===id;});document.getElementById('delWho').textContent='解除「'+e.name+'」与「'+e.unit+'」的关联后，其账号将立即失去该档口物业权限。';document.getElementById('delMask').style.display='flex';}
+function closeDel(){document.getElementById('delMask').style.display='none';}
+function confirmDel(){var i=EMPLOYEES.findIndex(function(x){return x.id===curDelId;});if(i>-1)EMPLOYEES.splice(i,1);closeDel();renderList();toast('已解除关联，权限即时收回');}
+renderList();
 </script>
 </body>
 </html>
