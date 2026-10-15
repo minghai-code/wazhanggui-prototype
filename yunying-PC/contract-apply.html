@@ -60,7 +60,7 @@ textarea.fi{font-family:inherit;line-height:1.8;resize:vertical}
         <span class="tag" style="background:#E0E7FF;color:#4338CA">短信通知（独立服务）</span>
         <span class="tag" style="background:#DCFCE7;color:#15803D">审核签字即生效</span>
       </div>
-      <p class="text-[12px] text-gray-400 mt-1">竞拍结果由<b>浙交会线下</b>给到袜业城 → <b>合同专员录入 / 导入</b> → <b>主动发起合同</b>（模板按资源类型）→ <b>发送并自动发短信</b> → 竞拍人<b>用同一手机号注册</b>后商户端出现待签合同 → <b>手写签名</b>（无人脸识别）→ <b>合同专员审核签字</b> → <b>合同生效 + 存档</b>（盖章件回传仅影响归档完整性）</p>
+      <p class="text-[12px] text-gray-400 mt-1"><b>v1.8（2026-10-15）</b>：① 合同主体分 <b>个人 / 企业</b> —— 企业主体须填 <b>企业名称 / 统一社会信用代码 / 法定代表人·联系人 / 联系电话 / 企业类型</b>（签署匹配键 = 联系人手机号）；② <b>Tab 职责切分</b>：<b>Tab1</b> 录入/导入竞拍结果 + <b>生成合同并发送</b>（生成与发送是同一动作，取消独立「待生成」）；<b>Tab2「签署与盖章」</b> 只处理 <b>待商户签字 / 待签署审核 / 盖章件待回传·已回传</b>。<br>流程：竞拍结果由<b>浙交会线下</b>给到袜业城 → <b>合同专员录入 / 导入</b> → <b>主动发起合同</b>（模板按资源类型）→ <b>发送并自动发短信</b> → 联系人<b>用同一手机号注册</b>后商户端出现待签合同 → <b>手写签名</b>（无人脸识别）→ <b>合同专员审核签字</b> → <b>合同生效 + 存档</b>（盖章件回传仅影响归档完整性）</p>
     </div>
     <div class="flex items-center gap-2">
       <button class="btn btn-ghost" onclick="toast('已导出合同发起台账（含竞拍结果、短信记录、签署状态）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
@@ -107,7 +107,7 @@ textarea.fi{font-family:inherit;line-height:1.8;resize:vertical}
           <thead>
             <tr class="bg-gray-50 text-gray-500 text-[12px]">
               <th class="px-4 py-3 text-left font-medium">资源 / 类型</th>
-              <th class="px-4 py-3 text-left font-medium">竞得人 / 手机号</th>
+              <th class="px-4 py-3 text-left font-medium">承租方（主体 / 联系人 / 电话）</th>
               <th class="px-4 py-3 text-left font-medium">租期 / 年租金</th>
               <th class="px-4 py-3 text-left font-medium">成交价</th>
               <th class="px-4 py-3 text-left font-medium">企业类型</th>
@@ -128,7 +128,7 @@ textarea.fi{font-family:inherit;line-height:1.8;resize:vertical}
       <div class="flex items-center gap-3 flex-wrap">
         <input id="s-kw" type="text" placeholder="合同号 / 承租人 / 资源编号" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary w-56">
         <select id="s-state" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
-          <option value="">全部签署状态</option><option>待生成</option><option>待商户签字</option><option>待签署审核</option><option>已存档·生效中</option>
+          <option value="">全部签署状态</option><option>待商户签字</option><option>待签署审核</option><option>已存档·生效中</option><option>已撤回</option>
         </select>
         <select id="s-own" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
           <option value="">全部处理人</option><option>合同专员</option><option>承租商户</option>
@@ -136,7 +136,7 @@ textarea.fi{font-family:inherit;line-height:1.8;resize:vertical}
         <label class="flex items-center gap-1.5 text-[12px] text-gray-600"><input type="checkbox" id="s-slow" class="accent-[#FF4D2D]">仅看停留超时</label>
         <button class="btn btn-primary" onclick="doSearchSg()">查询</button>
         <button class="btn btn-ghost" onclick="resetSg()">重置</button>
-        <span class="text-[11px] text-[#94A3B8] ml-auto"><i class="fas fa-circle-info mr-1"></i>超时：发送签字后 <b>7 天</b>未签 → 重发短信 / 人工联系；审核 <b>2 个工作日</b>；盖章件 <b>15 天</b>未回传 → 升级提醒（<b>不影响生效</b>）</span>
+        <span class="text-[11px] text-[#94A3B8] ml-auto"><i class="fas fa-circle-info mr-1"></i>超时：发送签字后 <b>7 天</b>未签 → <b>重发短信</b>催办 / 人工联系，或 <b>撤回</b>（需改内容时，撤回后到 Tab1 重新编辑再发送）；审核 <b>2 个工作日</b>；盖章件 <b>15 天</b>未回传 → 升级提醒（<b>不影响生效</b>）</span>
       </div>
     </div>
     <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
@@ -145,7 +145,7 @@ textarea.fi{font-family:inherit;line-height:1.8;resize:vertical}
           <span class="text-[13px] font-bold text-[#1F2430]">合同签署单</span>
           <span class="text-[12px] text-[#94A3B8]" id="sCnt">共 0 条</span>
         </div>
-        <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>生成合同 → 发送（发短信）→ 商户同号注册手写签名 → <b>合同专员审核签字</b> → 生效存档 → 盖章件上传归档</span>
+        <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i><b>本 Tab 只处理"合同已发出之后"的环节</b>（生成与发送在 Tab1「竞拍结果与发起」完成）：<b>待商户签字</b> → 商户同号注册手写签名 → <b>待签署审核</b> → <b>合同专员审核签字</b> → 生效存档 → <b>盖章件待回传 / 已回传</b>；<b>v1.10「撤回」≠ 重发</b>：撤回会把合同<b>收回并退回「待发起」</b>（原签署链接与短信作废），请到 <b>Tab1</b> 重新编辑后再发送（<b>v+1、合同号不变</b>）</span>
       </div>
       <div class="overflow-x-auto">
         <table class="w-full text-[13px]" style="min-width:1380px">
@@ -219,33 +219,34 @@ textarea.fi{font-family:inherit;line-height:1.8;resize:vertical}
 /* ===== 字典 ===== */
 var TPLS={'档口·精品摊':'档口租赁合同模板（精品摊·5 年）','档口·普通摊':'档口租赁合同模板（普通摊·3 年）','办公室':'办公室租赁合同模板','店面':'店面租赁合同模板','物业':'物业合同模板'};
 var AUSTC={'待发起':'background:#DBEAFE;color:#2563EB','已发起':'background:#FEF3C7;color:#B45309','已签约':'background:#DCFCE7;color:#15803D'};
-var SSTC={'待生成':'background:#DBEAFE;color:#2563EB','待商户签字':'background:#EDE9FE;color:#6D28D9','待签署审核':'background:#FEF3C7;color:#B45309','已存档·生效中':'background:#DCFCE7;color:#15803D','已作废':'background:#F1F5F9;color:#94A3B8'};
+var SSTC={'待商户签字':'background:#EDE9FE;color:#6D28D9','待签署审核':'background:#FEF3C7;color:#B45309','已存档·生效中':'background:#DCFCE7;color:#15803D','已作废':'background:#F1F5F9;color:#94A3B8','已撤回':'background:#F1F5F9;color:#475569'};
 var SEAL={'待回传':'background:#FFEDE7;color:#E63E20','已回传':'background:#DCFCE7;color:#15803D'};
 var RJC={'签名有误（错别字 / 签名不符）':'签名有误（错别字 / 签名不符）','合同内容错项':'合同内容错项','手机号与承租人不符':'手机号与承租人不符','其他':'其他'};
 
 /* ===== 模拟数据：竞拍结果 / 发起信息（线下取得，人工录入） ===== */
 var AU=[
-  {id:'JT2027-0031', unit:'1F-A08', type:'档口·精品摊', place:'大唐袜业城 A 区', winner:'王××', idno:'3306**********6688', phone:'138****6688',
-   ent:'个体工商户', term:'2027.09.01 ~ 2032.08.31（5 年）', rent:'18.6 万元/年', dep:'2 万元', price:'18.6 万元/年', batch:'2027 年首轮竞拍',
-   src:'线下录入（合同专员 何敏）', at:'2026-10-13 09:20', state:'待发起', no:'', logs:['2026-10-13 09:20 合同专员录入线下竞拍结果（浙交会反馈单）']},
-  {id:'JT2027-0030', unit:'2F-B15', type:'档口·普通摊', place:'大唐袜业城 B 区', winner:'李××', idno:'3306**********1234', phone:'139****1234',
+  {id:'JT2027-0031', unit:'1F-A08', type:'档口·精品摊', place:'大唐袜业城 A 区', ptype:'个人', winner:'王××', entname:'', uscc:'', contact:'王××', idno:'3306**********6688', phone:'138****6688',
+   ent:'个人（自然人）', term:'2027.09.01 ~ 2032.08.31（5 年）', rent:'18.6 万元/年', dep:'2 万元', price:'18.6 万元/年', batch:'2027 年首轮竞拍',
+   src:'线下录入（合同专员 何敏）', at:'2026-10-13 09:20', state:'待发起', no:'', logs:['2026-10-13 09:20 合同专员录入线下竞拍结果（浙交会反馈单）· 个人主体']},
+  {id:'JT2027-0030', unit:'2F-B15', type:'档口·普通摊', place:'大唐袜业城 B 区', ptype:'企业', winner:'浙江××针织有限公司', entname:'浙江××针织有限公司', uscc:'91330681MA2D1XXXX1', contact:'李××', idno:'3306**********1234', phone:'139****1234',
    ent:'企业', term:'2027.09.01 ~ 2030.08.31（3 年）', rent:'9.8 万元/年', dep:'1 万元', price:'9.8 万元/年', batch:'2027 年首轮竞拍',
    src:'批量导入（浙交会反馈.xlsx）', at:'2026-10-13 08:55', state:'待发起', no:'', logs:['2026-10-13 08:55 批量导入竞拍结果（共 6 条，成功 6 条）']},
-  {id:'JT2027-0029', unit:'B1-07', type:'店面', place:'原料市场 1 号馆', winner:'陈××', idno:'3306**********9900', phone:'136****9900',
+  {id:'JT2027-0029', unit:'B1-07', type:'店面', place:'原料市场 1 号馆', ptype:'企业', winner:'义乌××针织', entname:'义乌××针织', uscc:'91330782MA2X33333X', contact:'陈××', idno:'3306**********9900', phone:'136****9900',
    ent:'个体工商户', term:'2027.06.01 ~ 2032.05.31（5 年）', rent:'面议（8.8 万元/年）', dep:'1 万元', price:'8.8 万元/年', batch:'2027 年首轮竞拍（原料市场）',
-   src:'线下录入（合同专员 何敏）', at:'2026-10-12 16:40', state:'已发起', no:'HT2027-0006', logs:['2026-10-12 16:40 录入竞拍结果','2026-10-12 17:05 发起合同 HT2027-0006 并发送签署']},
-  {id:'JT2027-0028', unit:'1F-A05', type:'档口·精品摊', place:'大唐袜业城 A 区', winner:'王××', idno:'3306**********6677', phone:'138****6677',
+   src:'线下录入（合同专员 何敏）', at:'2026-10-12 16:40', state:'已发起', no:'HT2027-0006', logs:['2026-10-12 16:40 录入竞拍结果（企业主体）','2026-10-12 17:05 发起合同 HT2027-0006 并发送签署']},
+  {id:'JT2027-0028', unit:'1F-A05', type:'档口·精品摊', place:'大唐袜业城 A 区', ptype:'企业', winner:'诸暨××袜业有限公司', entname:'诸暨××袜业有限公司', uscc:'91330681MA2D2XXXX2', contact:'王××', idno:'3306**********6677', phone:'138****6677',
    ent:'企业', term:'2027.09.01 ~ 2032.08.31（5 年）', rent:'19.2 万元/年', dep:'2 万元', price:'19.2 万元/年', batch:'2027 年首轮竞拍',
-   src:'线下录入（合同专员 何敏）', at:'2026-10-12 09:10', state:'已签约', no:'HT2027-0004', logs:['2026-10-12 09:10 录入竞拍结果','2026-10-12 09:25 发起合同 HT2027-0004 并发送签署']},
-  {id:'JT2027-0027', unit:'3F-C01', type:'办公室', place:'行政服务中心 3F', winner:'诸暨××纺织（张××）', idno:'3306**********3322', phone:'137****3322',
+   src:'线下录入（合同专员 何敏）', at:'2026-10-12 09:10', state:'已签约', no:'HT2027-0004', logs:['2026-10-12 09:10 录入竞拍结果（企业主体）','2026-10-12 09:25 发起合同 HT2027-0004 并发送签署']},
+  {id:'JT2027-0027', unit:'3F-C01', type:'办公室', place:'行政服务中心 3F', ptype:'企业', winner:'诸暨××纺织有限公司', entname:'诸暨××纺织有限公司', uscc:'91330681MA2D3XXXX3', contact:'张××', idno:'3306**********3322', phone:'137****3322',
    ent:'企业', term:'2027.01.01 ~ 2029.12.31（3 年 · 起租月 1 月）', rent:'6.6 万元/年', dep:'0.5 万元', price:'—（直接出租，无竞拍）', batch:'—（办公室直接出租）',
    src:'线下录入（合同专员 何敏）', at:'2026-10-12 14:30', state:'待发起', no:'', logs:['2026-10-12 14:30 录入直接出租信息（无竞拍结果，竞拍信息留空）']}
 ];
 /* ===== 模拟数据：签署单 ===== */
 var SG=[
-  {no:'HT2027-0006', unit:'B1-07', type:'店面', m:'义乌××针织（陈××）', ent:'个体工商户', phone:'136****9900',
-   term:'2027.06.01 ~ 2032.05.31', rent:'8.8 万/年', dep:'1 万元', state:'待生成', owner:'合同专员', hrs:3, tmpl:'', ver:0,
-   sms:'', sign:'', audit:'', seal:'', src:'JT2027-0029', logs:['2026-10-12 17:05 发起合同（待生成合同内容）']},
+  {no:'HT2027-0006', unit:'B1-07', type:'店面', m:'义乌××针织（陈××）', ptype:'企业', ent:'个体工商户', phone:'136****9900',
+   term:'2027.06.01 ~ 2032.05.31', rent:'8.8 万/年', dep:'1 万元', state:'待商户签字', owner:'承租商户（陈××）', hrs:19, tmpl:'店面租赁合同模板', ver:1,
+   sms:'2026-10-12 17:05 已送达（重试 0 次）', sign:'', audit:'', seal:'', src:'JT2027-0029',
+   logs:['2026-10-12 17:05 生成合同 v1 并发送签署（短信已送达）']},
   {no:'HT2027-0004', unit:'1F-A05', type:'档口·精品摊', m:'诸暨××袜业有限公司（王××）', ent:'企业', phone:'138****6677',
    term:'2027.09.01 ~ 2032.08.31', rent:'19.2 万/年', dep:'2 万元', state:'待商户签字', owner:'承租商户（王××）', hrs:52,
    tmpl:'档口租赁合同模板（精品摊·5 年）', ver:2, sms:'2026-10-12 09:25 已送达（重试 0 次）', sign:'', audit:'', seal:'', src:'JT2027-0028',
@@ -298,13 +299,17 @@ function renderAu(){
   var h='';
   rows.forEach(function(a){
     var ops='<span class="lk-gray" onclick="openAu(\''+a.id+'\')">详情</span>';
-    if(a.state==='待发起'){ops='<span class="lk" onclick="openDraft(\''+a.id+'\')">发起合同</span> · '+ops;}
+    if(a.state==='待发起'){ops='<span class="lk" onclick="openDraft(\''+a.id+'\')">'+(a.ver?'重新发起（v'+(a.ver+1)+'）':'发起合同')+'</span> · '+ops;}
     if(a.no){ops='<span class="lk-gray" onclick="gotoSign(\''+a.no+'\')">查看签署单</span> · '+ops;}
     h+='<tr class="hover:bg-gray-50 transition">'
       +'<td class="px-4 py-3 text-[12px]"><b>'+esc(a.unit)+'</b>　<span class="tag" style="background:#EDE9FE;color:#6D28D9">'+esc(a.type)+'</span>'
         +'<div class="text-[11px] text-[#94A3B8]">'+esc(a.place)+'</div></td>'
-      +'<td class="px-4 py-3 text-[12px]" style="max-width:210px"><div class="font-medium text-[#1F2430]">'+esc(a.winner)+'</div>'
-        +'<div class="text-[11px] text-[#94A3B8]">'+esc(a.idno)+'</div><div class="text-[11px] text-[#1F2430]"><i class="fas fa-mobile-screen text-[9px] mr-1 text-[#94A3B8]"></i>'+esc(a.phone)+'</div></td>'
+      +'<td class="px-4 py-3 text-[12px]" style="max-width:230px"><div class="font-medium text-[#1F2430]">'+esc(a.winner)+'</div>'
+        +'<div class="mt-0.5">'+(a.ptype==='企业'?'<span class="tag" style="background:#E0E7FF;color:#4338CA">企业主体</span> <span class="tag" style="background:#F1F5F9;color:#64748B">'+esc(a.ent)+'</span>':'<span class="tag" style="background:#F1F5F9;color:#475569">个人主体</span>')+'</div>'
+        +(a.ptype==='企业'
+          ?'<div class="text-[11px] text-[#94A3B8]">联系人 '+esc(a.contact||'—')+'　'+esc(a.phone)+'</div><div class="text-[11px] text-[#94A3B8]">信用代码 '+esc(a.uscc||'（待补）')+'</div>'
+          :'<div class="text-[11px] text-[#94A3B8]">'+esc(a.idno)+'</div><div class="text-[11px] text-[#94A3B8]"><i class="fas fa-mobile-screen text-[9px] mr-1"></i>'+esc(a.phone)+'</div>')
+        +'</td>'
       +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(a.term)+'<div class="text-[11px]"><b>'+esc(a.rent)+'</b></div></td>'
       +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(a.price)+'</td>'
       +'<td class="px-4 py-3 text-[12px]">'+esc(a.ent)+'</td>'
@@ -323,8 +328,9 @@ function renderSg(){
   var h='';
   rows.forEach(function(s){
     var ops='<span class="lk-gray" onclick="openView(\''+s.no+'\')">查看</span>';
-    if(s.state==='待生成'){ops='<span class="lk" onclick="openDraft2(\''+s.no+'\')">生成合同</span> · '+ops;}
-    if(s.state==='待商户签字'){ops='<span class="lk" onclick="resendSms(\''+s.no+'\')">重发短信</span> · <span class="lk-gray" onclick="openRebind(\''+s.no+'\')">改绑手机号</span> · <span class="lk-gray" onclick="withdraw(\''+s.no+'\')">撤回重发</span> · '+ops;}
+    /* v1.8：Tab2 不再有「生成合同」/「待生成」——生成与发送在 Tab1 完成，签署单以「待商户签字」起步 */
+    if(s.state==='待商户签字'){ops='<span class="lk-gray" onclick="resendSms(\''+s.no+'\')">重发短信</span> · <span class="lk-gray" onclick="openRebind(\''+s.no+'\')">改绑手机号</span> · <span class="lk" onclick="openWithdraw(\''+s.no+'\')">撤回</span> · '+ops;}
+    if(s.state==='已撤回'){ops='<span class="lk" onclick="gotoAu()">去 Tab1 重新发起</span> · '+ops;}
     if(s.state==='待签署审核'){ops='<span class="lk" onclick="openAudit(\''+s.no+'\')">审核签字</span> · '+ops;}
     if(s.state==='已存档·生效中'){ops=(s.seal==='待回传'?'<span class="lk" onclick="openSeal(\''+s.no+'\')">上传盖章件</span> · ':'')+'<span class="lk-gray" onclick="toast(\'已下载：合同文本 PDF + 商户签字页 + 盖章扫描件\')">下载归档件</span> · '+ops;}
     h+='<tr class="hover:bg-gray-50 transition">'
@@ -394,13 +400,17 @@ function openNewAu(){
   h+='<div class="grid grid-cols-2 gap-x-5 gap-y-3">'
     +'<div><label class="fl">资源编号 *</label><input class="fi" id="n-unit" placeholder="如 1F-A08 / B1-07 / 3F-C01"></div>'
     +'<div><label class="fl">资源类型 *</label><select class="sel" id="n-type"><option>档口·精品摊</option><option>档口·普通摊</option><option>办公室</option><option>店面</option></select></div>'
-    +'<div><label class="fl">竞得人 / 承租方 *</label><input class="fi" id="n-winner" placeholder="姓名 或 企业名（联系人）"></div>'
-    +'<div><label class="fl">手机号 *（合同签署匹配键）</label><input class="fi" id="n-phone" placeholder="与竞拍登记一致，如 13800006688"></div>'
-    +'<div><label class="fl">身份证号 / 统一社会信用代码</label><input class="fi" id="n-idno" placeholder="用于商户建档与核对"></div>'
-    +'<div><label class="fl">企业类型 *</label><select class="sel" id="n-ent"><option>个体工商户</option><option>企业</option><option>工厂制造商</option><option>其他</option></select></div>'
+    +'<div><label class="fl">主体类型 *（v1.8：个人 / 企业）</label><select class="sel" id="n-ptype" onchange="ptypeHint()"><option>个人（自然人）</option><option>企业</option></select></div>'
+    +'<div><label class="fl">承租方名称 *</label><input class="fi" id="n-winner" placeholder="个人填姓名；企业填企业全称"></div>'
+    +'<div><label class="fl">企业名称（营业执照全称）*（企业主体）</label><input class="fi" id="n-entname" placeholder="如 诸暨市××袜业有限公司"></div>'
+    +'<div><label class="fl">统一社会信用代码 *（企业主体）</label><input class="fi" id="n-uscc" placeholder="18 位，如 91330681MA2D1XXXX1"></div>'
+    +'<div><label class="fl">法定代表人 / 联系人 *（企业主体）</label><input class="fi" id="n-contact" placeholder="签约联系人姓名（合同内体现联系人）"></div>'
+    +'<div><label class="fl">联系电话 *（合同签署匹配键）</label><input class="fi" id="n-phone" placeholder="11 位；企业填联系人手机号"></div>'
+    +'<div><label class="fl">证件号（可后补）</label><input class="fi" id="n-idno" placeholder="个人=身份证号；企业=法定代表人身份证号"></div>'
+    +'<div><label class="fl">企业类型 *（企业主体）</label><select class="sel" id="n-ent"><option>个体工商户</option><option>企业</option><option>工厂制造商</option><option>其他</option></select></div>'
     +'<div><label class="fl">租期 *（精确到月，不必对齐 9.1–8.31）</label><input class="fi" id="n-term" placeholder="如 2027.06.01 ~ 2032.05.31（5 年）"></div>'
     +'<div><label class="fl">年租金 *</label><input class="fi" id="n-rent" placeholder="如 18.6 万元/年"></div>'
-    +'<div><label class="fl">竞拍批次 / 成交价（<b>办公室可留空</b>）</label><input class="fi" id="n-batch" placeholder="如 2027 年首轮竞拍；成交价 18.6 万元/年"></div>'
+    +'<div style="grid-column:span 2"><label class="fl">竞拍批次 / 成交价（<b>办公室可留空</b>）</label><input class="fi" id="n-batch" placeholder="如 2027 年首轮竞拍；成交价 18.6 万元/年"></div>'
     +'</div>';
   h+='<div class="rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B]">竞拍是<b>线下行为</b>：系统<b>不做接口对接、不做推送接收</b>，只提供录入 / 导入；<b>办公室（直接出租）无竞拍结果 → 竞拍批次与成交价可留空</b>，与竞拍资源走同一套发起逻辑。<b>重复录入校验</b>：同一资源 + 同一竞拍批次只允许一条有效记录。</p></div>';
   h+='</div>';
@@ -411,22 +421,34 @@ function openNewAu(){
   document.getElementById('mask').className='mask on';
   document.getElementById('drawer').className='drawer on';
 }
+/* v1.8：主体类型切换（个人 / 企业） */
+function ptypeHint(){
+  var p=document.getElementById('n-ptype').value,isEnt=(p==='企业');
+  document.getElementById('n-winner').placeholder=isEnt?'企业全称（营业执照名称）':'姓名（自然人）';
+}
 function saveAu(){
   var unit=document.getElementById('n-unit').value.trim();
   var phone=document.getElementById('n-phone').value.trim();
   var winner=document.getElementById('n-winner').value.trim();
-  if(!unit||!winner){toast('资源编号与竞得人为必填项');return;}
-  if(!phone){toast('手机号必填（它是合同签署的匹配键）');return;}
+  var ptype=document.getElementById('n-ptype').value,isEnt=(ptype==='企业');
+  var entname=document.getElementById('n-entname').value.trim(),uscc=document.getElementById('n-uscc').value.trim(),contact=document.getElementById('n-contact').value.trim();
+  if(!unit||!winner){toast('资源编号与承租方名称为必填项');return;}
+  if(isEnt&&!entname){toast('企业主体：企业名称（营业执照全称）为必填');return;}
+  if(isEnt&&uscc.length<15){toast('企业主体：统一社会信用代码为必填（18 位）');return;}
+  if(isEnt&&!contact){toast('企业主体：法定代表人 / 联系人为必填（合同内体现联系人）');return;}
+  if(!phone){toast('联系电话必填（它是合同签署的匹配键）');return;}
   if(!/^1\d{10}$/.test(phone)){toast('手机号格式不正确（应为 11 位数字，与竞拍登记一致）');return;}
   var type=document.getElementById('n-type').value;
-  AU.unshift({id:'JT2027-00'+(32+AU.length), unit:unit, type:type, place:(type==='办公室'?'行政服务中心':'资源台账位置'), winner:winner,
+  AU.unshift({id:'JT2027-00'+(32+AU.length), unit:unit, type:type, place:(type==='办公室'?'行政服务中心':'资源台账位置'),
+    ptype:isEnt?'企业':'个人', winner:isEnt?entname:winner, entname:isEnt?entname:'', uscc:isEnt?uscc:'', contact:isEnt?contact:winner,
     idno:document.getElementById('n-idno').value.trim()||'（待补）', phone:phone.slice(0,3)+'****'+phone.slice(7),
-    ent:document.getElementById('n-ent').value, term:document.getElementById('n-term').value.trim()||'（待补）',
+    ent:isEnt?document.getElementById('n-ent').value:'个人', term:document.getElementById('n-term').value.trim()||'（待补）',
     rent:document.getElementById('n-rent').value.trim()||'（待补）', dep:'—（保证金线下缴纳，系统不录入）',
     price:document.getElementById('n-batch').value.trim()||'—（直接出租，无竞拍）', batch:document.getElementById('n-batch').value.trim()||'—（直接出租，无竞拍）',
-    src:'线下录入（合同专员 何敏）', at:'2026-10-13 10:20', state:'待发起', no:'', logs:['2026-10-13 10:20 合同专员录入线下竞拍结果']});
+    src:'线下录入（合同专员 何敏）', at:'2026-10-15 10:20', state:'待发起', no:'',
+    logs:['2026-10-15 10:20 合同专员录入线下竞拍结果（'+(isEnt?'企业主体':'个人主体')+'）']});
   closeDrawer();
-  toast('已保存竞拍结果：'+unit+'（状态「待发起」，可点击「发起合同」');
+  toast('已保存竞拍结果：'+unit+'（'+(isEnt?'企业主体：'+entname+'，联系人 '+contact:'个人主体：'+winner)+'）→ 状态「待发起」，可点击「发起合同」');
 }
 function openImport(){
   var h='<div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">'
@@ -435,9 +457,9 @@ function openImport(){
     +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
   h+='<div class="px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
     +'<div class="rounded-xl border p-4" style="border-color:#E2E8F0;background:#F8FAFC"><p class="text-[12px] text-[#64748B] mb-2">导入模板字段（列名需一致）：</p>'
-    +'<p class="text-[11px] text-[#94A3B8]">资源编号 ｜ 资源类型 ｜ 竞得人 ｜ <b>手机号</b> ｜ 身份证/信用代码 ｜ 企业类型 ｜ 租期 ｜ 年租金 ｜ 竞拍批次 ｜ 成交价（<b>不含保证金</b>：线下已缴，系统不录入）</p></div>'
+    +'<p class="text-[11px] text-[#94A3B8]">资源编号 ｜ 资源类型 ｜ <b>主体类型（个人 / 企业）</b> ｜ <b>承租方名称</b> ｜ <b>企业名称</b> ｜ <b>统一社会信用代码</b> ｜ <b>法定代表人·联系人</b> ｜ <b>联系电话</b>（签署匹配键）｜ 身份证号 ｜ 企业类型 ｜ 租期 ｜ 年租金 ｜ 竞拍批次 ｜ 成交价（<b>不含保证金</b>：线下已缴，系统不录入）</p></div>'
     +'<div class="seal" style="width:100%;height:96px" onclick="toast(\'已选择文件：浙交会竞拍结果_2027首轮.xlsx（6 行）\')"><div><i class="fas fa-file-excel block mb-1 text-[16px]"></i>点击选择文件（.xlsx，首行为表头）</div></div>'
-    +'<div class="rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B]">校验规则：① <b>手机号必填 + 11 位格式 + 重复校验</b>；② 资源编号需存在于 02 资源台账；③ 同一资源 + 竞拍批次不允许重复；④ <b>办公室行竞拍批次 / 成交价可空</b>。</p></div>'
+    +'<div class="rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B]">校验规则：① <b>联系电话必填 + 11 位格式 + 重复校验</b>（合同签署匹配键）；② <b>主体类型 = 企业时：企业名称 / 统一社会信用代码 / 法定代表人·联系人 必填</b>（个人主体免填企业信息）；③ 资源编号需存在于 02 资源台账；④ 同一资源 + 竞拍批次不允许重复；⑤ <b>办公室行竞拍批次 / 成交价可空</b>。</p></div>'
     +'</div>';
   h+='<div class="px-5 py-3 border-t border-gray-100 flex items-center justify-end gap-2" style="margin-top:auto">'
     +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
@@ -460,9 +482,12 @@ function openAu(id){
     +'<div class="grid grid-cols-2 gap-x-6">'
     +'<div class="kv"><span class="k">资源编号</span><span class="v"><b>'+esc(a.unit)+'</b></span></div>'
     +'<div class="kv"><span class="k">资源类型</span><span class="v">'+esc(a.type)+'</span></div>'
-    +'<div class="kv"><span class="k">竞得人</span><span class="v">'+esc(a.winner)+'</span></div>'
-    +'<div class="kv"><span class="k">手机号</span><span class="v">'+esc(a.phone)+'　<span class="tag" style="background:#E0E7FF;color:#4338CA">签署匹配键</span></span></div>'
-    +'<div class="kv"><span class="k">身份证 / 信用代码</span><span class="v">'+esc(a.idno)+'</span></div>'
+    +'<div class="kv"><span class="k">主体类型</span><span class="v">'+(a.ptype==='企业'?'<span class="tag" style="background:#E0E7FF;color:#4338CA">企业主体</span>':'<span class="tag" style="background:#F1F5F9;color:#475569">个人主体</span>')+'</span></div>'
+    +'<div class="kv"><span class="k">竞得人 / 承租方</span><span class="v"><b>'+esc(a.winner)+'</b></span></div>'
+    +'<div class="kv"><span class="k">统一社会信用代码</span><span class="v">'+esc(a.uscc||'—（个人主体无）')+'</span></div>'
+    +'<div class="kv"><span class="k">法定代表人 / 联系人</span><span class="v">'+esc(a.contact||'—')+'</span></div>'
+    +'<div class="kv"><span class="k">联系电话</span><span class="v">'+esc(a.phone)+'　<span class="tag" style="background:#E0E7FF;color:#4338CA">签署匹配键</span></span></div>'
+    +'<div class="kv"><span class="k">证件号（个人=身份证 / 企业=法定代表人身份证）</span><span class="v">'+esc(a.idno)+'</span></div>'
     +'<div class="kv"><span class="k">企业类型</span><span class="v">'+esc(a.ent)+'</span></div>'
     +'<div class="kv"><span class="k">租期</span><span class="v">'+esc(a.term)+'</span></div>'
     +'<div class="kv"><span class="k">年租金</span><span class="v">'+esc(a.rent)+'　<span class="text-[11px] text-[#94A3B8]">（保证金线下缴纳，系统不录入）</span></span></div>'
@@ -473,9 +498,12 @@ function openAu(id){
   h+='<div class="blk"><div class="blk-t"><i class="fas fa-clock-rotate-left text-[#64748B]"></i>处理留痕</div>'
     +'<div class="text-[12px] text-[#64748B] leading-7">'+a.logs.map(function(l){return '· '+esc(l);}).join('<br>')+'</div></div>';
   if(a.state==='待发起'){
-    h+='<div class="blk"><div class="blk-t"><i class="fas fa-paper-plane text-[#FF4D2D]"></i>发起合同</div>'
-      +'<p class="text-[12px] text-[#64748B]">点击下方按钮进入「合同生成」：<b>按资源类型自动带出模板</b> → 变量自动填充 → 可编辑 → <b>发送并自动发短信</b>（短信文案待定，模板占位可配置）。</p>'
-      +'<div class="mt-2"><button class="btn btn-primary" onclick="openDraft(\''+a.id+'\')"><i class="fas fa-pen-nib text-[10px] mr-1"></i>发起并生成合同</button></div></div>';
+    h+='<div class="blk"'+(a.ver?' style="border-color:#E2E8F0;background:#F8FAFC"':'')+'><div class="blk-t"><i class="fas fa-paper-plane text-[#FF4D2D]"></i>'+(a.ver?'重新发起合同（该合同已被撤回）':'发起合同')+'</div>'
+      +'<p class="text-[12px] text-[#64748B]">'+(a.ver
+        ?'<b>该合同已被撤回</b> → 点击下方按钮<b>重新编辑内容 / 承租方主体与联系电话</b>后再发送：<b>版本 v'+(a.ver+1)+'、合同号不变</b>'+(a.no?'（'+esc(a.no)+'）':'')+'，并<b>重新发短信</b>给联系人（原签署链接与短信已作废）。'
+        :'点击下方按钮进入「<b>生成合同并发送</b>」：<b>按资源类型自动带出模板</b> → 变量自动填充（乙方按主体类型取 <b>姓名</b> 或 <b>企业名称 + 统一社会信用代码</b>，并写入<b>联系人 / 联系电话</b>）→ 可编辑 → <b>发送并自动发短信</b>（短信发至<b>联系人手机号</b>；文案待定，模板占位可配置）。<b>生成与发送是同一动作</b>，完成后合同直接进入「待商户签字」（无需再到签署 Tab 生成）。')
+      +'</p>'
+      +'<div class="mt-2"><button class="btn btn-primary" onclick="openDraft(\''+a.id+'\')"><i class="fas fa-pen-nib text-[10px] mr-1"></i>'+(a.ver?'重新发起并发送（v'+(a.ver+1)+' · 合同号不变）':'发起并生成合同')+'</button></div></div>';
   }
   h+='</div>';
   document.getElementById('drawer').innerHTML=h;
@@ -486,7 +514,7 @@ function openDraft(id){
   curAu=id;var a=uOf(id);
   var tpl=TPLS[a.type]||'档口租赁合同模板（普通摊·3 年）';
   var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
-    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">生成合同并发送签署</h3>'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+(a.ver?'重新发起并发送（v'+(a.ver+1)+' · 合同号不变）':'生成合同并发送签署')+'</h3>'
     +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(a.unit)+'　'+esc(a.winner)+'　'+esc(a.phone)+'　合同专员主动发起（由后台发起，商户不申请）</p></div>'
     +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
   h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">';
@@ -499,11 +527,12 @@ function openDraft(id){
     +'<div><label class="fl">资源 / 档口编号</label><input class="fi" id="d-unit" value="'+esc(a.unit)+'"></div>'
     +'<div><label class="fl">租期</label><input class="fi" id="d-term" value="'+esc(a.term)+'"></div>'
     +'<div><label class="fl">年租金</label><input class="fi" id="d-rent" value="'+esc(a.rent)+'"></div>'
-
+    +'<div><label class="fl">统一社会信用代码</label><input class="fi" id="d-uscc" value="'+esc(a.uscc||'—（个人主体无）')+'" readonly></div>'
+    +'<div><label class="fl">法定代表人 / 联系人</label><input class="fi" id="d-contact" value="'+esc(a.contact||'—')+'" readonly></div>'
     +'<div><label class="fl">企业类型</label><input class="fi" id="d-ent" value="'+esc(a.ent)+'"></div>'
     +'</div></div>';
   h+='<div class="blk"><div class="blk-t"><i class="fas fa-align-left text-[#64748B]"></i>合同正文（可编辑）</div>'
-    +'<textarea class="fi" id="d-body" rows="9">'+esc('甲方（出租方）：诸暨市大唐袜业城管理有限公司\n乙方（承租方）：'+a.winner+'\n\n一、租赁资源：'+a.unit+'（'+a.type+'）\n二、租赁期限：'+a.term+'\n三、年租金：'+a.rent+'（保证金由乙方按竞拍公告线下缴纳，本系统不代收不记账）\n四、付款方式：租赁年度按年预付（办公室/店面按合同约定）\n五、逾期未付：按约定承担违约责任（具体以线下执行为准）\n六、到期与终止：合同到期（自然到期）后重新竞拍，到期不视为终止；租期未满可因违约、违规、资质造假或双方协商一致提前终止（系统不计算违约金）\n七、签署方式：乙方在「袜掌柜」小程序手写签名（无人脸识别），甲方审核签字后生效')+'</textarea>'
+    +'<textarea class="fi" id="d-body" rows="10">'+esc('甲方（出租方）：诸暨市大唐袜业城管理有限公司\n乙方（承租方）：'+a.winner+(a.ptype==='企业'?'（统一社会信用代码：'+a.uscc+'）':'')+'\n联系人 / 联系电话：'+(a.contact||a.winner)+'　'+a.phone+'\n\n一、租赁资源：'+a.unit+'（'+a.type+'）\n二、租赁期限：'+a.term+'\n三、年租金：'+a.rent+'（保证金由乙方按竞拍公告线下缴纳，本系统不代收不记账）\n四、付款方式：租赁年度按年预付（办公室/店面按合同约定）\n五、逾期未付：按约定承担违约责任（具体以线下执行为准）\n六、到期与终止：合同到期（自然到期）后重新竞拍，到期不视为终止；租期未满可因违约、违规、资质造假或双方协商一致提前终止（系统不计算违约金）\n七、签署方式：乙方在「袜掌柜」小程序手写签名（无人脸识别），甲方审核签字后生效')+'</textarea>'
     +'<p class="text-[11px] text-[#94A3B8] mt-2"><i class="fas fa-circle-info mr-1"></i>模板按<b>资源类型拆分</b>（档口 / 办公室 / 店面 / 物业）；办公室与店面必须使用不同模板。</p></div>';
   h+='<div class="blk" style="border-color:#E0E7FF;background:#EEF2FF"><div class="blk-t" style="color:#4338CA"><i class="fas fa-comment-sms"></i>发送后自动发短信（独立短信服务）</div>'
     +'<p class="text-[12px] text-[#64748B]">文案<b>待客户定</b>（原型按模板占位实现）：如「您已竞得 XX 资源，请用同一手机号到「袜掌柜」小程序注册并签署合同」；变量：姓名 / 资源 / 租期 / 小程序注册指引。发送失败<b>自动重试 3 次</b>并提醒合同专员。</p></div>';
@@ -511,7 +540,7 @@ function openDraft(id){
   h+='<div class="px-5 py-3 border-t border-gray-100 flex items-center justify-end gap-2">'
     +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
     +'<button class="btn btn-ghost" onclick="toast(\'已暂存合同草稿（生成版本记录）\')">暂存草稿</button>'
-    +'<button class="btn btn-primary" onclick="sendSign(\''+a.id+'\')"><i class="fas fa-paper-plane text-[10px] mr-1"></i>发送给商户签署（并发短信）</button></div>';
+    +'<button class="btn btn-primary" onclick="sendSign(\''+a.id+'\')"><i class="fas fa-paper-plane text-[10px] mr-1"></i>'+(a.ver?'重新生成并发送（v'+(a.ver+1)+' · 合同号不变）':'发送给商户签署（并发短信）')+'</button></div>';
   document.getElementById('drawer').innerHTML=h;
   document.getElementById('mask').className='mask on';
   document.getElementById('drawer').className='drawer on';
@@ -520,44 +549,20 @@ function sendSign(id){
   var a=uOf(id);
   var ent=document.getElementById('d-ent').value, term=document.getElementById('d-term').value, rent=document.getElementById('d-rent').value;
   a.term=term;a.rent=rent;a.ent=ent;
-  var no='HT2027-000'+(7+SG.length);
-  SG.unshift({no:no, unit:a.unit, type:a.type, m:a.winner, ent:a.ent, phone:a.phone, term:term, rent:rent, dep:a.dep, state:'待商户签字',
-    owner:'承租商户（'+a.winner+'）', hrs:0, tmpl:document.getElementById('d-tpl').value, ver:1,
-    sms:'2026-10-13 10:25 已送达（重试 0 次）', sign:'', audit:'', seal:'', src:a.id,
-    logs:['2026-10-13 10:25 生成合同 v1 并发送签署（短信已送达）']});
-  a.state='已发起';a.no=no;a.logs.push('2026-10-13 10:25 发起合同 '+no+' 并发送签署（短信已送达）');
-  SMS.unshift({no:no, phone:a.phone, t:'2026-10-13 10:25', retry:0, state:'已送达', tpl:'签署通知（模板占位·文案待定）'});
+  var no=a.no||('HT2027-000'+(7+SG.length));
+  var ver=(a.ver||0)+1;a.ver=ver;
+  SG.unshift({no:no, unit:a.unit, type:a.type, m:a.winner, ptype:a.ptype||'个人', entname:a.entname||'', uscc:a.uscc||'', contact:a.contact||a.winner,
+    ent:a.ent, phone:a.phone, term:term, rent:rent, dep:a.dep, state:'待商户签字',
+    owner:'承租商户（'+(a.contact||a.winner)+'）', hrs:0, tmpl:document.getElementById('d-tpl').value, ver:ver,
+    sms:'2026-10-15 10:25 已送达（重试 0 次）', sign:'', audit:'', seal:'', src:a.id,
+    logs:['2026-10-15 10:25 生成合同 v'+ver+'（乙方='+(a.ptype==='企业'?'企业主体：'+a.winner:'个人主体：'+a.winner)+'）并发送签署（短信已送达）'+(ver>1?'　—— 撤回后重新发起，合同号不变':'')]});
+  a.state='已发起';a.no=no;a.logs.push('2026-10-15 10:25 发起合同 '+no+'（v'+ver+'）并发送签署（短信已送达）');
+  SMS.unshift({no:no, phone:a.phone, t:'2026-10-15 10:25', retry:0, state:'已送达', tpl:'签署通知（模板占位·文案待定）'});
   closeDrawer();
-  toast('已发送：'+no+'　短信已发（'+a.phone+'）→ 竞拍人同号注册后商户端出现「待签字合同」');
+  toast('已发送：'+no+'　短信已发（'+a.phone+'，联系人 '+(a.contact||a.winner)+'）→ 联系人同号注册后商户端出现「待签字合同」');
 }
-/* 签署 Tab 的「生成合同」（针对已发起但未生成的单） */
-function openDraft2(no){
-  curNo=no;var s=sOf(no);
-  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
-    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">生成合同内容　'+esc(s.no)+'</h3>'
-    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(s.m)+'　'+esc(s.unit)+'　'+esc(s.phone)+'</p></div>'
-    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
-  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">'
-    +'<div class="blk"><div class="blk-t"><i class="fas fa-file-signature text-[#2563EB]"></i>模板（按资源类型）</div>'
-    +'<div><label class="fl">合同模板 *</label><select class="sel" id="d-tpl">'+Object.keys(TPLS).map(function(k){return '<option'+(k===s.type?' selected':'')+'>'+esc(TPLS[k])+'</option>';}).join('')+'</select></div></div>'
-    +'<div class="blk"><div class="blk-t"><i class="fas fa-align-left text-[#64748B]"></i>合同正文（可编辑）</div>'
-    +'<textarea class="fi" id="d-body" rows="8">'+esc('甲方（出租方）：诸暨市大唐袜业城管理有限公司\n乙方（承租方）：'+s.m+'\n\n一、租赁资源：'+s.unit+'（'+s.type+'）\n二、租赁期限：'+s.term+'\n三、年租金：'+s.rent+'（保证金由乙方按竞拍公告线下缴纳，本系统不代收不记账）\n四、付款方式：按合同约定\n五、签署方式：乙方手写签名（无人脸识别），甲方审核签字后生效')+'</textarea></div>'
-    +'</div>';
-  h+='<div class="px-5 py-3 border-t border-gray-100 flex items-center justify-end gap-2">'
-    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
-    +'<button class="btn btn-primary" onclick="sendSign2(\''+no+'\')"><i class="fas fa-paper-plane text-[10px] mr-1"></i>生成并发送（发短信）</button></div>';
-  document.getElementById('drawer').innerHTML=h;
-  document.getElementById('mask').className='mask on';
-  document.getElementById('drawer').className='drawer on';
-}
-function sendSign2(no){
-  var s=sOf(no);
-  s.state='待商户签字';s.tmpl=document.getElementById('d-tpl').value;s.ver=s.ver||1;s.hrs=0;
-  s.owner='承租商户';s.sms='2026-10-13 10:30 已送达（重试 0 次）';
-  s.logs.push('2026-10-13 10:30 生成合同 v'+s.ver+' 并发送签署（短信已送达）');
-  SMS.unshift({no:no, phone:s.phone, t:'2026-10-13 10:30', retry:0, state:'已送达', tpl:'签署通知（模板占位·文案待定）'});
-  closeDrawer();toast('已发送：'+no+'　短信已发 → 等待商户手写签名');
-}
+/* v1.8：原「签署 Tab 的生成合同」（openDraft2 / sendSign2）已删除 —— 「生成合同 + 发送」统一在
+   Tab1「竞拍结果与发起」完成；Tab2 签署与盖章只处理 待商户签字 → 待签署审核 → 盖章件待回传·已回传 */
 /* ===== 重发短信 / 改绑手机号 / 撤回 ===== */
 function resendSms(no){
   var s=sOf(no);
@@ -580,7 +585,7 @@ function openRebind(no){
     +'<div><label class="fl">新手机号 *（须与竞拍登记一致，11 位）</label><input class="fi" id="rb-phone" placeholder="如 13800006688"></div>'
     +'<div><label class="fl">核实方式 *</label><select class="sel" id="rb-way"><option>电话核实竞得人本人</option><option>线下核实（浙交会反馈单）</option><option>其他</option></select></div>'
     +'<div><label class="fl">核实说明 *</label><input class="fi" id="rb-note" placeholder="如：竞得人换号，已电话核实并留存录音编号"></div>'
-    +'<div class="rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B]">规则：注册手机号与竞拍登记不一致时，商户端会提示「<b>未查询到待签合同</b>」；改绑后<b>立即按新手机号匹配</b>并<b>重发短信</b>，全程留痕（操作人 / 核实方式 / 时间）。</p></div>'
+    +'<div class="rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B]">规则：注册手机号与竞拍登记不一致时，商户端会提示「<b>未查询到待签合同</b>」；改绑后<b>立即按新手机号匹配</b>并<b>重发短信</b>，全程留痕（操作人 / 核实方式 / 时间）。<b>v1.9 / v1.10</b>：改绑属<b>联系人电话变更</b> → <b>合同正文「联系人 / 联系电话」同步更新</b>（等同主体信息变更-联系电话变更）；<b>仅改手机号、不改内容</b>，因此<b>不新增版本、不需撤回重签</b>。</p></div>'
     +'</div>';
   h+='<div class="px-5 py-3 border-t border-gray-100 flex items-center justify-end gap-2" style="margin-top:auto">'
     +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
@@ -599,12 +604,44 @@ function doRebind(no){
   SMS.unshift({no:no, phone:s.phone, t:'2026-10-13 10:40', retry:0, state:'已送达', tpl:'签署通知（模板占位·文案待定）'});
   closeDrawer();toast('已改绑并重发短信（'+s.phone+'），留痕已写入');
 }
-function withdraw(no){
+/* ===== v1.10：撤回（收回合同 → 退回「待发起」，重新编辑后再由 Tab1 发送） ===== */
+function openWithdraw(no){
+  curNo=no;var s=sOf(no);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">撤回合同　'+esc(s.no)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(s.m)+'　'+esc(s.unit)+'　当前状态：'+sst(s.state)+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div class="rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B]"><b>撤回 ≠ 重发</b>：撤回会把合同<b>收回并退回「待发起」</b> —— 原签署链接与短信<b>作废</b>、原版本<b>作废留痕</b>；<b>请到 Tab1「竞拍结果与发起」重新编辑内容 / 改绑手机号后再发送</b>（重新发起时版本 <b>v+1</b>、<b>合同号不变</b>）。若只是商户没收到短信、内容无需修改，请用「<b>重发短信</b>」。</p></div>'
+    +'<div><label class="fl">撤回原因 *（必填，将留痕）</label><textarea class="fi" id="wd-note" rows="2" placeholder="例：乙方主体信息需调整（企业名称 / 统一社会信用代码 / 联系人）；年租金或租期表述有误需修订；商户要求调整起租日"></textarea></div>'
+    +'<div class="blk"><div class="blk-t"><i class="fas fa-circle-info text-[#64748B]"></i>撤回后会发生什么</div>'
+    +'<div class="text-[12px] text-[#64748B] leading-7">'
+    +'· 本签署单 → 状态置「<b>已撤回 · 待重新发起</b>」（留痕保留，可追溯原因 / 操作人 / 时间）<br>'
+    +'· Tab1 对应竞拍结果 → 回到「<b>待发起</b>」，可<b>重新编辑模板 / 变量 / 合同正文 / 承租方主体与联系电话</b><br>'
+    +'· 原签署短信与签署链接 → <b>作废</b>；商户端「待签字合同」<b>同步消失</b><br>'
+    +'· 重新发起 → <b>版本 v+1、合同号不变</b>，并<b>重新发短信</b></div></div>'
+    +'</div>';
+  h+='<div class="px-5 py-3 border-t border-gray-100 flex items-center justify-end gap-2" style="margin-top:auto">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" style="background:linear-gradient(135deg,#DC2626,#B91C1C)" onclick="doWithdraw(\''+no+'\')">确认撤回（退回待发起）</button></div>';
+  document.getElementById('drawer').innerHTML=h;
+  document.getElementById('mask').className='mask on';
+  document.getElementById('drawer').className='drawer on';
+}
+function doWithdraw(no){
+  var note=document.getElementById('wd-note').value.trim();
+  if(!note){toast('撤回原因必填（用于留痕与追溯）');return;}
   var s=sOf(no);
-  s.hrs=0;s.sms='2026-10-13 10:45 已重发（撤回后重发，重试 0 次）';
-  s.logs.push('2026-10-13 10:45 撤回并重新发送签署（原签署链接作废）');
-  SMS.unshift({no:no, phone:s.phone, t:'2026-10-13 10:45', retry:0, state:'已送达', tpl:'签署通知（模板占位·文案待定）'});
-  closeDrawer();refresh();toast('已撤回并重新发送：'+no+'（原签署作废，已重发短信）');
+  s.state='已撤回';s.hrs=0;
+  s.logs.push('2026-10-15 11:05 撤回（原因：'+note+'）→ 合同退回「待发起」，原签署链接与短信作废');
+  var a=AU.filter(function(z){return z.no===no;})[0];
+  if(a){a.state='待发起';a.logs.push('2026-10-15 11:05 合同被撤回（'+note+'）→ 可重新编辑后发起（重新发起为 v+1、合同号不变）');}
+  closeDrawer();refresh();
+  toast('已撤回 '+no+'：合同回到「待发起」→ 请到 Tab1 重新编辑内容 / 手机号后再发送（重新发起时 v+1、合同号不变）');
+}
+function gotoAu(){
+  switchTab(0,document.getElementById('tabs').children[0]);
+  toast('已切到 Tab1「竞拍结果与发起」：找到该竞拍结果（状态「待发起」）→ 点「重新发起并发送」编辑后再发送');
 }
 /* ===== 审核签字 ===== */
 function openAudit(no){

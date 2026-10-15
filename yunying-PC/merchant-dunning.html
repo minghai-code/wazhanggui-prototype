@@ -54,7 +54,7 @@ textarea.fi{font-family:inherit;line-height:1.8;resize:vertical}
         <span class="tag" style="background:#E0E7FF;color:#4338CA">短信可选（独立服务）</span>
         <span class="tag" style="background:#FEF3C7;color:#B45309">规则全部可配置</span>
       </div>
-      <p class="text-[12px] text-gray-400 mt-1"><b>v2.4（2026-10-14）：本页由 05 合同管理迁入「04 实体商户管理」</b>（原 `contract-dunning.html`）。<b>每年 8 月 15 日起</b>，系统按「下一租赁年度租金未缴清」名单<b>自动向商户发送催缴通知</b>，替代人工电话催收（租赁年度 = 当年 9.1 ~ 次年 8.31，每年 <b>8 月底前</b>缴清）；<b>发送前校验核销状态</b>（已缴清不催）。<b>应收额来自 05 合同管理的「应收计划」</b>；<b>06 缴费管理本期不做</b>（客户不做在线支付）→ <b>「已缴金额 / 缴纳状态」在本模块由财务人工登记</b>；<b>催缴规则（期 / 频率 / 时段 / 升级 / 渠道 / 文案）全部界面可配置</b>；渠道支持<b>站内 + 微信 + 短信（可选 · 独立短信服务）</b></p>
+      <p class="text-[12px] text-gray-400 mt-1"><b>v2.6（2026-10-15）：新增「缴纳名单导入」</b> —— 运营人员<b>每天手动导入一个"累计更新的 Excel"</b>（当前催缴阶段<b>已缴纳租金的商户名单</b>），系统<b>发送通知前先比对名单</b>，<b>已缴商户不再收到催缴短信 / 站内 / 微信通知</b>（避免每天重复打扰已缴费商户）；导入批次可查看与整批撤销。<b>v2.4（2026-10-14）：本页由 05 合同管理迁入「04 实体商户管理」</b>（原 `contract-dunning.html`）。<b>每年 8 月 15 日起</b>，系统按「下一租赁年度租金未缴清」名单<b>自动向商户发送催缴通知</b>，替代人工电话催收（租赁年度 = 当年 9.1 ~ 次年 8.31，每年 <b>8 月底前</b>缴清）；<b>发送前校验核销状态</b>（已缴清不催）。<b>应收额来自 05 合同管理的「应收计划」</b>；<b>06 缴费管理本期不做</b>（客户不做在线支付）→ <b>「已缴金额 / 缴纳状态」在本模块由财务人工登记</b>；<b>催缴规则（期 / 频率 / 时段 / 升级 / 渠道 / 文案）全部界面可配置</b>；渠道支持<b>站内 + 微信 + 短信（可选 · 独立短信服务）</b></p>
     </div>
     <div class="flex items-center gap-2">
       <button class="btn btn-ghost" onclick="openRule()"><i class="fas fa-sliders text-[10px] mr-1"></i>规则配置</button>
@@ -100,7 +100,7 @@ textarea.fi{font-family:inherit;line-height:1.8;resize:vertical}
       </select>
       <button class="btn btn-primary" onclick="doSearch()">查询</button>
       <button class="btn btn-ghost" onclick="resetS()">重置</button>
-      <span class="text-[11px] text-[#94A3B8] ml-auto"><i class="fas fa-circle-info mr-1"></i>催缴归本模块执行；<b>06 缴费管理本期不做</b> →「已缴金额 / 缴纳状态」由财务在本模块<b>人工登记</b>（登记后自动停止催缴）；<b>催缴规则全部可配置</b></span>
+      <span class="text-[11px] text-[#94A3B8] ml-auto"><i class="fas fa-circle-info mr-1"></i>催缴归本模块执行；<b>06 缴费管理本期不做</b> →「已缴金额 / 缴纳状态」由财务在本模块<b>人工登记</b>，并支持<b>每天导入「累计更新的已缴名单」</b>（<b>发送前先比对，已缴商户不再发送</b>）；<b>催缴规则全部可配置</b></span>
     </div>
   </div>
 
@@ -110,7 +110,11 @@ textarea.fi{font-family:inherit;line-height:1.8;resize:vertical}
         <span class="text-[13px] font-bold text-[#1F2430]">催缴执行记录</span>
         <span class="text-[12px] text-[#94A3B8]" id="cnt">共 0 条</span>
       </div>
-      <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-clock-rotate-left mr-1"></i>每次通知均留痕（渠道 / 时间 / 结果 / 已读），可追溯</span>
+      <div class="flex items-center gap-2">
+        <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-clock-rotate-left mr-1"></i>每次通知均留痕（渠道 / 时间 / 结果 / 已读），可追溯</span>
+        <button class="btn btn-ghost" onclick="openImpLog()"><i class="fas fa-list-check text-[10px] mr-1"></i>导入记录</button>
+        <button class="btn btn-primary" onclick="openPayImport()"><i class="fas fa-file-import text-[10px] mr-1"></i>缴纳名单导入</button>
+      </div>
     </div>
     <div class="overflow-x-auto">
       <table class="w-full text-[13px]" style="min-width:1420px">
@@ -174,6 +178,12 @@ var DN=[
      {t:'2025-08-15 09:01', ch:'站内推送 + 微信', r:'已送达', txt:'第 1 次催缴'},
      {t:'2025-08-24 09:05', ch:'站内推送 + 微信', r:'已送达', txt:'第 6 次催缴（已缴 5 万，剩余 5.5 万）'}]}
 ];
+/* v2.6：缴纳名单导入批次记录（每天一个「累计更新」文件） */
+var IMP=[
+  {t:'2026-08-20 09:10', f:'2026年度已缴名单_累计_0820.xlsx', rows:36, hit:9, part:2, miss:1, by:'运营专员 王倩', undone:false},
+  {t:'2026-08-19 09:08', f:'2026年度已缴名单_累计_0819.xlsx', rows:34, hit:8, part:2, miss:1, by:'运营专员 王倩', undone:false},
+  {t:'2026-08-18 09:12', f:'2026年度已缴名单_累计_0818.xlsx', rows:31, hit:7, part:3, miss:0, by:'运营专员 王倩', undone:true}
+];
 var curRows=DN.slice(),curId=null;
 var tid;
 function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},3200);}
@@ -236,8 +246,57 @@ function regPay(id){
   closeAll();renderStats();render();
   toast('已登记「'+d.m+'」缴纳完成（人工核销）→ 系统停止催缴');
 }
+/* ===== v2.6：缴纳名单导入（每天导入「累计更新的已缴名单」） ===== */
+function openPayImport(){
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">缴纳名单导入（累计更新）</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">运营人员<b>每天手动导入一个「累计更新的 Excel」</b>——即当前催缴阶段<b>已缴纳租金的商户名单</b>；每次导入的都是<b>全量累计名单</b>，系统以最新名单<b>覆盖式更新</b></p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">';
+  h+='<div class="rounded-xl border p-3" style="border-color:#BFDBFE;background:#EFF6FF"><p class="text-[11px] text-[#64748B]"><b>业务目的</b>：催缴规则默认可配为<b>每天提醒</b>，<b>已缴费的商户每天仍收到提醒会比较烦</b> → 每天导入累计已缴名单后，系统在<b>发送通知前先比对名单</b>，<b>识别已缴商户 → 不再发送催缴短信 / 站内 / 微信通知</b>。</p></div>';
+  h+='<div class="rounded-xl border p-3" style="border-color:#E2E8F0;background:#F8FAFC"><p class="text-[12px] text-[#64748B] mb-2">导入模板字段（首行表头，列名需一致）：</p>'
+    +'<p class="text-[11px] text-[#94A3B8]">商户名称 ｜ 档口编号 ｜ <b>合同号</b> ｜ <b>租赁年度</b> ｜ <b>已缴金额</b> ｜ 缴纳日期 ｜ 缴费凭证号 ｜ 备注</p>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">匹配键：<b>合同号 + 租赁年度</b>（首选）；合同号缺失时以「<b>商户名称 + 档口编号</b>」兜底</p></div>';
+  h+='<div class="flex items-center gap-2"><button class="btn btn-ghost" onclick="toast(\'已下载导入模板：缴纳名单模板（累计）_2026年度.xlsx\')"><i class="fas fa-download text-[10px] mr-1"></i>下载导入模板</button>'
+    +'<label class="btn btn-ghost" style="display:inline-flex;align-items:center;gap:6px"><i class="fas fa-file-excel text-[10px]"></i>选择 Excel 文件<input type="file" class="hidden" onchange="toast(\'已选择：2026年度已缴名单_累计_0820.xlsx（36 行），开始预校验…\')"></label></div>';
+  h+='<div class="blk" style="border-color:#FDE68A;background:#FFFBEB"><div class="blk-t" style="color:#B45309"><i class="fas fa-list-check"></i>预校验结果（示例）</div>'
+    +'<p class="text-[12px] text-[#64748B] mb-2">共 36 行：<b style="color:#15803D">命中并更新 9 户</b>（足额 → 置「已缴清」并停催）、<b style="color:#B45309">未缴足 2 户</b>（更新已缴金额，仍催）、<b style="color:#B91C1C">未匹配 1 行</b>（进未匹配清单）、重复行 3 行（自动去重）</p>'
+    +'<table class="w-full text-[12px]"><thead><tr class="text-gray-500 text-[11px]"><th class="text-left py-1.5 font-medium">商户 / 档口</th><th class="text-left py-1.5 font-medium">合同号</th><th class="text-left py-1.5 font-medium">本次累计已缴</th><th class="text-left py-1.5 font-medium">处理结果</th></tr></thead><tbody>'
+    +'<tr class="border-t border-gray-50"><td class="py-2">大唐××针织厂 / 2F-B15</td><td class="py-2">HT2026-0093</td><td class="py-2">98,000</td><td class="py-2" style="color:#15803D">足额 → 置「已缴清」，<b>下一轮不再发送</b></td></tr>'
+    +'<tr class="border-t border-gray-50"><td class="py-2">诸暨××袜业有限公司 / 1F-A08</td><td class="py-2">HT2026-0091</td><td class="py-2">100,000</td><td class="py-2" style="color:#B45309">未缴足（应收 186,000）→ 置「部分缴」，仍催</td></tr>'
+    +'<tr class="border-t border-gray-50"><td class="py-2">某袜业经营部 / B3-12</td><td class="py-2">HT2026-0099</td><td class="py-2">—</td><td class="py-2" style="color:#B91C1C">未匹配：合同号不存在（进未匹配清单，可人工处理）</td></tr>'
+    +'</tbody></table>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-2">规则：① <b>累计名单以最新一次导入为准</b>（同一合同多次出现自动去重）；② 导入结果与「登记缴纳（人工核销）」<b>写同一状态字段、以时间在后者为准</b>，均留痕；③ 每次导入生成一个<b>批次</b>，支持整批撤销。</p></div>';
+  h+='</div>';
+  h+='<div class="px-5 py-3 border-t border-gray-100 flex items-center justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="doPayImport()"><i class="fas fa-file-import text-[10px] mr-1"></i>确认导入并应用</button></div>';
+  document.getElementById('drawer').innerHTML=h;
+  document.getElementById('mask').className='mask on';
+  document.getElementById('drawer').className='drawer on';
+}
+function doPayImport(){
+  IMP.unshift({t:'2026-08-20 09:10', f:'2026年度已缴名单_累计_0820.xlsx', rows:36, hit:9, part:2, miss:1, by:'运营专员 王倩', undone:false});
+  var d=dOf(2);d.state='已缴清';d.paid=d.due;
+  d.logs.push({t:'2026-08-20 09:10', ch:'缴纳名单导入', r:'置已缴清 · 停催', txt:'累计已缴名单命中（足额）→ 下一轮不再发送催缴通知'});
+  closeAll();renderStats();render();
+  toast('已导入累计已缴名单：命中 9 户置「已缴清」、2 户未缴足更新金额、1 行未匹配 → 已缴商户下一轮不再收到催缴通知');
+}
+function openImpLog(){
+  var rows=IMP.map(function(x){
+    return '<tr class="border-t border-gray-50"><td class="py-2">'+esc(x.t)+'</td><td class="py-2">'+esc(x.f)+'</td><td class="py-2">'+x.rows+'</td><td class="py-2" style="color:#15803D">'+x.hit+'</td><td class="py-2" style="color:#B45309">'+x.part+'</td><td class="py-2" style="color:#B91C1C">'+x.miss+'</td><td class="py-2">'+esc(x.by)+'</td><td class="py-2">'+(x.undone?'<span class="lk-gray" onclick="toast(\'已撤销该导入批次（恢复导入前状态）\')">撤销</span>':'已应用')+'</td></tr>';
+  }).join('');
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">缴纳名单导入记录</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">每天一个累计批次；支持整批撤销（恢复导入前状态）并留痕</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4"><div class="overflow-x-auto"><table class="w-full text-[12px]"><thead><tr class="text-gray-500 text-[11px]"><th class="text-left py-1.5 font-medium">导入时间</th><th class="text-left py-1.5 font-medium">文件名</th><th class="text-left py-1.5 font-medium">行数</th><th class="text-left py-1.5 font-medium">命中</th><th class="text-left py-1.5 font-medium">未缴足</th><th class="text-left py-1.5 font-medium">未匹配</th><th class="text-left py-1.5 font-medium">操作人</th><th class="text-left py-1.5 font-medium">操作</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+  document.getElementById('drawer').innerHTML=h;
+  document.getElementById('mask').className='mask on';
+  document.getElementById('drawer').className='drawer on';
+}
 function runNow(){
-  toast('已手动触发一轮催缴扫描：2026 租赁年度命中 5 户（未缴 3 / 部分缴 2），发送前已校验核销状态 → 实发 5 条（站内 5 · 微信 4）');
+  toast('已手动触发一轮催缴扫描：2026 租赁年度命中 5 户（未缴 3 / 部分缴 1 / 已缴清 1）→ 发送前依次校验 ① 累计已缴名单 + 人工核销状态（跳过已缴清 1 户）② 合同状态（已终止 / 已到期不发）③ 暂停标记（跳过 1 户）→ 实发 3 条（站内 3 · 微信 2）');
 }
 function resend(id){
   var d=dOf(id);

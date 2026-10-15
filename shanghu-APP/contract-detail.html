@@ -45,9 +45,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
     <div class="grid grid-cols-2 gap-y-2.5 text-[11px]">
       <span class="text-gray-400">合同编号</span><span class="text-gray-700 num" id="dNo">HT2026-0001</span>
       <span class="text-gray-400">卷号</span><span class="text-gray-700 num" id="dVolume">69-10</span>
-      <span class="text-gray-400">合同类型</span><span class="text-gray-700">商铺租赁合同（按租赁年度预付）</span>
+      <span class="text-gray-400">合同类型</span><span class="text-gray-700" id="dType">商铺租赁合同（按租赁年度预付）</span>
+      <span class="text-gray-400">版本</span><span class="text-gray-700"><b id="dVersion" class="text-indigo-500">v1</b></span>
       <span class="text-gray-400">合同状态</span><span id="dState" class="font-bold">待商户签字</span>
       <span class="text-gray-400">签订日期</span><span class="text-gray-700 num" id="dSignDate">—</span>
+    </div>
+    <div id="changeBlock" style="display:none" class="mt-2.5 bg-amber-50/70 border border-amber-100 rounded-lg p-2.5 text-[10px] text-gray-600">
+      <p><i class="fas fa-clock-rotate-left text-[9px]"></i> 变更留痕：<b id="dChange"></b></p>
+    </div>
+    <div id="endBlock" style="display:none" class="mt-2.5 bg-gray-50 border border-gray-100 rounded-lg p-2.5 text-[10px] text-gray-600">
+      <div class="flex justify-between"><span class="text-gray-400">结束原因</span><span id="dEndReason" class="text-gray-700 font-medium">—</span></div>
+      <div class="flex justify-between mt-1"><span class="text-gray-400">结束日期</span><span id="dEndDate" class="text-gray-700 num">—</span></div>
     </div>
   </div>
 
@@ -77,12 +85,36 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
     </div>
   </div>
 
+  <!-- 合同主体（企业 / 个人） -->
+  <div class="bg-white rounded-2xl shadow-soft p-3.5 mb-2.5 fade-up">
+    <div class="flex items-center gap-2 mb-2.5">
+      <i class="fas fa-building-columns text-indigo-500 text-xs"></i>
+      <p class="text-[12px] font-bold text-gray-800">合同主体</p>
+      <span id="dSubjType" class="ml-auto text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-50 text-blue-600">企业主体</span>
+    </div>
+    <div class="grid grid-cols-2 gap-y-2.5 text-[11px]" id="dSubjGrid"></div>
+  </div>
+
+  <!-- 变更补充协议（若有） -->
+  <div id="suppBlock" style="display:none" class="bg-white rounded-2xl shadow-soft p-3.5 mb-2.5 fade-up border border-indigo-100">
+    <p class="text-[12px] font-bold text-gray-800 mb-2.5"><i class="fas fa-file-pen text-indigo-500 text-xs"></i> 变更补充协议</p>
+    <div class="grid grid-cols-2 gap-y-2.5 text-[11px]">
+      <span class="text-gray-400">协议编号</span><span class="text-gray-700 num" id="dSuppNo">—</span>
+      <span class="text-gray-400">关联主合同</span><span class="text-gray-700 num" id="dSuppMain">—</span>
+      <span class="text-gray-400">变更类型</span><span class="text-gray-700" id="dSuppType">—</span>
+      <span class="text-gray-400">生效日</span><span class="text-gray-700 num" id="dSuppDate">—</span>
+      <span class="text-gray-400">状态</span><span id="dSuppState" class="font-bold text-amber-600">待商户签字</span>
+    </div>
+    <a onclick="toast('去签署变更补充协议（手写签名 · 演示）')" class="block mt-2.5 py-2.5 rounded-lg text-white text-[12px] font-bold text-center" style="background:linear-gradient(135deg,#6366F1,#4F46E5)">去签署（手写签名）</a>
+  </div>
+
   <!-- 签署信息 -->
   <div class="bg-white rounded-2xl shadow-soft p-3.5 mb-2.5 fade-up">
     <p class="text-[12px] font-bold text-gray-800 mb-2.5"><i class="fas fa-signature text-indigo-500 text-xs"></i> 签署信息</p>
     <div class="grid grid-cols-2 gap-y-2.5 text-[11px]">
       <span class="text-gray-400">甲方（出租方）</span><span class="text-gray-700">大唐袜业城管理方</span>
-      <span class="text-gray-400">乙方（承租方）</span><span class="text-gray-700">李老板（大唐袜业旗舰）</span>
+      <span class="text-gray-400">乙方（承租方）</span><span class="text-gray-700" id="dParty">—</span>
+      <span class="text-gray-400">签署人手机号</span><span class="text-gray-700 num" id="dPhone">—</span>
       <span class="text-gray-400">商户手写签名</span><span id="dSign" class="text-gray-700">—</span>
       <span class="text-gray-400">甲方盖章件</span><span id="dSeal" class="text-gray-700">—</span>
     </div>
@@ -113,9 +145,12 @@ var toastTimer;
 function toast(m){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=m;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},1800)}
 // 合同台账（模拟 05 合同管理下发）
 var CONTRACTS={
- 'HT2026-0001':{no:'HT2026-0001',volume:'69-10',state:'待商户签字',stateColor:'#D97706',shop:'1F-A08',area:'50㎡',floor:'A区1层',year:'2026.09.01–2027.08.31',rent:'¥153,600',term:'2026.09.01–2027.08.31',deposit:'¥20,000',depositPaid:'¥20,000',depositStatus:'已缴',signDate:'—',sign:'待商户签署',seal:'后台审核签字后盖章',attach:'商铺租赁合同.pdf'},
- 'HT2025-0088':{no:'HT2025-0088',volume:'69-21',state:'已生效',stateColor:'#059669',shop:'2F-B12 档口',area:'40㎡',floor:'B区2层',year:'2025.09.01–2026.08.31',rent:'¥122,880',term:'2025.09.01–2026.08.31',deposit:'¥20,000',depositPaid:'¥20,000',depositStatus:'已缴',signDate:'2025-08-28',sign:'已签署',seal:'已盖章',attach:'商铺租赁合同（盖章件）.pdf'},
- 'HT2023-0518':{no:'HT2023-0518',volume:'51-08',state:'已到期',stateColor:'#6B7280',shop:'1F-A08',area:'50㎡',floor:'A区1层',year:'2023.09.01–2024.09.01',rent:'¥140,000',term:'2023.09.01–2024.09.01',deposit:'¥20,000',depositPaid:'¥20,000',depositStatus:'已退还',signDate:'2023-08-25',sign:'已签署',seal:'已盖章',attach:'商铺租赁合同（历史存档）.pdf'}
+ 'HT2026-0001':{no:'HT2026-0001',volume:'69-10',type:'商铺租赁合同（按租赁年度预付）',state:'待商户签字',stateColor:'#D97706',shop:'1F-A08',area:'50㎡',floor:'A区1层',year:'2026.09.01–2027.08.31',rent:'¥153,600',term:'2026.09.01–2027.08.31',deposit:'¥20,000',depositPaid:'¥20,000',depositStatus:'已缴',signDate:'—',sign:'待商户签署',seal:'后台审核签字后盖章',attach:'商铺租赁合同.pdf',version:'v2',subject:'enterprise',corpName:'大唐袜业旗舰',uscc:'91330681XXXXXX1234',legal:'李老板',contact:'李老板',phone:'138****8000',change:'主体信息变更（个人 → 企业）· 生效 2026-10-15'},
+ 'HT2025-0088':{no:'HT2025-0088',volume:'69-21',type:'商铺租赁合同（按租赁年度预付）',state:'已生效',stateColor:'#059669',shop:'2F-B12 档口',area:'40㎡',floor:'B区2层',year:'2025.09.01–2026.08.31',rent:'¥122,880',term:'2025.09.01–2026.08.31',deposit:'¥20,000',depositPaid:'¥20,000',depositStatus:'已缴',signDate:'2025-08-28',sign:'已签署',seal:'已盖章',attach:'商铺租赁合同（盖章件）.pdf',version:'v1',subject:'enterprise',corpName:'大唐袜业旗舰',uscc:'91330681XXXXXX1234',legal:'李老板',contact:'李经理',phone:'137****6677'},
+ 'HT2023-0518':{no:'HT2023-0518',volume:'51-08',type:'商铺租赁合同（按租赁年度预付）',state:'已到期',stateColor:'#6B7280',shop:'1F-A08 档口',area:'50㎡',floor:'A栋1层',year:'2023.09.01–2024.09.01',rent:'¥140,000',term:'2023.09.01–2024.09.01',deposit:'¥20,000',depositPaid:'¥20,000',depositStatus:'已退还',signDate:'2023-08-25',sign:'已签署',seal:'已盖章',attach:'商铺租赁合同（历史存档）.pdf',version:'v1',subject:'person',name:'李老板',idcard:'3306**********1234',phone:'138****8000',endReason:'到期（重新竞拍）',endDate:'2024.09.01'},
+ 'HT2024-0203':{no:'HT2024-0203',volume:'60-12',type:'商铺租赁合同（按租赁年度预付）',state:'已终止',stateColor:'#E11D48',shop:'2F-B12 档口',area:'40㎡',floor:'B栋2层',year:'2024.09.01–2025.08.31',rent:'¥118,000',term:'2024.09.01–2025.08.31',deposit:'¥20,000',depositPaid:'¥20,000',depositStatus:'已退还',signDate:'2024-08-26',sign:'已签署',seal:'已盖章',attach:'商铺租赁合同（历史存档）.pdf',version:'v1',subject:'person',name:'李老板',idcard:'3306**********1234',phone:'138****8000',endReason:'协商终止（租期未满提前结束）',endDate:'2025.06.30'},
+ 'HT2025-0007':{no:'HT2025-0007',volume:'69-03',type:'商铺租赁合同（按租赁年度预付）',state:'已作废',stateColor:'#6B7280',shop:'1F-A08 档口',area:'50㎡',floor:'A栋1层',year:'2025.09.01–2026.08.31',rent:'¥150,000',term:'2025.09.01–2026.08.31',deposit:'¥20,000',depositPaid:'¥20,000',depositStatus:'—',signDate:'—',sign:'未签署',seal:'—',attach:'（已作废）',version:'v1',subject:'person',name:'李老板',idcard:'3306**********1234',phone:'138****8000',endReason:'后台撤回（重新发起 · v+1）',endDate:'2025.10.12'},
+ 'BC2026-0001':{no:'BC2026-0001',volume:'补充协议',type:'变更补充协议（租金调整）',state:'待商户签字',stateColor:'#D97706',shop:'2F-B12 档口',area:'40㎡',floor:'B区2层',year:'2025.09.01–2026.08.31',rent:'¥128,000',term:'2025.09.01–2026.08.31',deposit:'¥20,000',depositPaid:'¥20,000',depositStatus:'已缴',signDate:'—',sign:'待商户签署',seal:'后台审核签字后盖章',attach:'变更补充协议.pdf',version:'v1',subject:'enterprise',corpName:'大唐袜业旗舰',uscc:'91330681XXXXXX1234',legal:'李老板',contact:'李经理',phone:'137****6677',supp:{no:'BC2026-0001',main:'HT2026-0002',type:'租金调整',date:'2026-10-20',state:'待商户签字'}}
 };
 function getParam(k){var m=location.search.match(new RegExp('[?&]'+k+'=([^&]+)'));return m?decodeURIComponent(m[1]):null;}
 var no=getParam('no')||'HT2026-0001';
@@ -128,10 +163,33 @@ set('dSignDate',c.signDate);set('dShop',c.shop);set('dArea',c.area);set('dFloor'
 set('dYear',c.year);set('dRent',c.rent);set('dTerm',c.term);set('dDeposit',c.deposit);set('dDepositPaid',c.depositPaid);
 var dsEl=document.getElementById('dDepositStatus');dsEl.textContent=c.depositStatus;dsEl.style.color=(c.depositStatus==='已缴'?'#059669':'#6B7280');
 set('dSign',c.sign);set('dSeal',c.seal);set('dAttach',c.attach);
+// 版本 / 类型
+set('dType',c.type||'商铺租赁合同（按租赁年度预付）');
+document.getElementById('dVersion').textContent=c.version||'v1';
+// 变更留痕
+if(c.change){document.getElementById('changeBlock').style.display='block';document.getElementById('dChange').textContent=c.change;}
+// 合同主体（企业 / 个人）
+var isEnt=(c.subject!=='person');
+var st=document.getElementById('dSubjType');
+st.textContent=isEnt?'企业主体':'个人主体';
+st.className='ml-auto text-[9px] font-bold px-1.5 py-0.5 rounded '+(isEnt?'bg-blue-50 text-blue-600':'bg-emerald-50 text-emerald-600');
+var sg=isEnt
+  ? [['企业名称',c.corpName],['统一社会信用代码',c.uscc],['法定代表人',c.legal],['联系人',c.contact],['联系电话（签署手机号）',c.phone]]
+  : [['姓名',c.name],['身份证号（脱敏）',c.idcard],['手机号',c.phone]];
+document.getElementById('dSubjGrid').innerHTML=sg.map(function(r){return '<span class="text-gray-400">'+r[0]+'</span><span class="text-gray-700 num">'+(r[1]||'—')+'</span>';}).join('');
+// 乙方 + 签署人手机号
+set('dParty',isEnt?(c.corpName+'（企业）'):(c.name+'（个人）'));
+set('dPhone',c.phone||'—');
+// 变更补充协议
+if(c.supp){document.getElementById('suppBlock').style.display='block';set('dSuppNo',c.supp.no);set('dSuppMain',c.supp.main);set('dSuppType',c.supp.type);set('dSuppDate',c.supp.date);
+  var sse=document.getElementById('dSuppState');sse.textContent=c.supp.state;sse.style.color=(c.supp.state==='已生效'?'#059669':'#D97706');}
 if(c.sign==='已签署')document.getElementById('signShot').style.display='flex';
+// 结束信息（历史合同）
+if(c.endReason){document.getElementById('endBlock').style.display='block';document.getElementById('dEndReason').textContent=c.endReason;document.getElementById('dEndDate').textContent=c.endDate||'—';}
 // 状态头部配色
 if(c.state==='已生效')document.getElementById('hdr').style.background='linear-gradient(135deg,#10B981 0%,#059669 50%,#047857 100%)';
-else if(c.state==='已到期')document.getElementById('hdr').style.background='linear-gradient(135deg,#9CA3AF 0%,#6B7280 100%)';
+else if(c.state==='已到期'||c.state==='已作废')document.getElementById('hdr').style.background='linear-gradient(135deg,#9CA3AF 0%,#6B7280 100%)';
+else if(c.state==='已终止')document.getElementById('hdr').style.background='linear-gradient(135deg,#FB7185 0%,#E11D48 100%)';
 // 底部操作
 var foot=document.getElementById('footBar');
 if(c.state==='待商户签字'){
