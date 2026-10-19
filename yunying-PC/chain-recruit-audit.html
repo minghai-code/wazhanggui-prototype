@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>人才招聘 - 招聘审核</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.btn-danger{background:#DC2626;color:#fff}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}.lk:hover{text-decoration:underline}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}.lk-gray:hover{color:#1F2430;text-decoration:underline}
+.st{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500;white-space:nowrap}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:60}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:880px;max-width:97vw;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:70;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);width:720px;max-width:95vw;max-height:86vh;overflow-y:auto;background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(15,23,42,.28);opacity:0;pointer-events:none;transition:.22s;z-index:70}
+.modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+.blk{border:1px solid #E2E8F0;border-radius:12px;padding:14px 16px}
+.blk-t{font-size:12.5px;font-weight:700;color:#1F2430;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.kv{display:flex;gap:8px;font-size:12px;line-height:1.9}
+.kv .k{width:112px;flex-shrink:0;color:#94A3B8}
+.fi{width:100%;padding:6px 10px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none;background:#fff}
+.fi:focus{border-color:#FF4D2D}
+.fl{display:block;font-size:11px;color:#94A3B8;margin-bottom:4px}
+.sel{width:100%;padding:6px 8px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none}
+button{cursor:pointer}
+textarea.fi{font-family:inherit;line-height:1.8;resize:vertical}
+.ai{border:1px dashed #FCA5A5;background:#FEF2F2;border-radius:12px;padding:12px}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<div class="p-6">
+
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">人才招聘 · 招聘审核</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">13 产业链服务</span>
+        <span class="tag" style="background:#FEF3C7;color:#B45309">内容合规闸门</span>
+        <span class="tag" style="background:#F1F5F9;color:#64748B">一级审核</span>
+      </div>
+      <p class="text-[12px] text-gray-400 mt-1"><b>v1.0（2026-10-19 新建）</b>：端上商家发布的岗位<b>必须审核</b>后才在端上展示（运营代发免审）。<b>驳回原因必填</b>（枚举 + 备注），发布方可修改后重提；<b>超 24h 未审红标</b>并升级提醒，但<b>不自动通过</b>；误操作通过后 <b>2 小时内且无投递</b>可撤回审核</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="toast('已导出待审核清单（含提交次数 / 历史驳回原因 / 超时标记）')"><i class="fas fa-download text-[10px] mr-1"></i>导出待审</button>
+      <button class="btn btn-ghost" onclick="toast('审核规则：信息真实 / 薪资可核实 / 不得收取任何费用 / 联系方式有效；驳回需写明原因')"><i class="fas fa-circle-info text-[10px] mr-1"></i>审核规则</button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-5 gap-3 mb-4" id="stats"></div>
+
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+    <div class="flex items-center gap-3 flex-wrap">
+      <select id="f-cat" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600 w-64"><option value="">全部工种</option></select>
+      <input id="f-title" type="text" placeholder="岗位名称（模糊）" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none w-44">
+      <select id="f-unit" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600 w-56"><option value="">全部招聘单位</option></select>
+      <input id="f-contact" type="text" placeholder="联系人（模糊）" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none w-40">
+      <button class="btn btn-primary" onclick="doSearch()">查询</button>
+      <button class="btn btn-ghost" onclick="resetSearch()">重置</button>
+      <span class="text-[11px] text-[#94A3B8] ml-auto"><i class="fas fa-circle-info mr-1"></i>审核列表<b>只读不可编辑</b>（要改内容 → 驳回让发布方改）</span>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-[13px] font-bold text-[#1F2430]">待审核岗位</span>
+        <span class="text-[12px] text-[#94A3B8]" id="cnt">共 0 条</span>
+      </div>
+      <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-clock-rotate-left mr-1"></i>通过 → 端上展示；驳回 → 发布方收到原因并可修改重提</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-[13px]" style="min-width:1180px">
+        <thead>
+          <tr class="bg-gray-50 text-gray-500 text-[12px]">
+            <th class="px-4 py-3 text-left font-medium">工种名称</th>
+            <th class="px-4 py-3 text-left font-medium">岗位名称</th>
+            <th class="px-4 py-3 text-left font-medium">招聘单位</th>
+            <th class="px-4 py-3 text-left font-medium">联系人</th>
+            <th class="px-4 py-3 text-left font-medium">联系方式</th>
+            <th class="px-4 py-3 text-left font-medium">发布时间 / 等待</th>
+            <th class="px-4 py-3 text-center font-medium">状态</th>
+            <th class="px-4 py-3 text-center font-medium">操作</th>
+          </tr>
+        </thead>
+        <tbody id="tb" class="divide-y divide-gray-50"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div id="mask" class="mask" onclick="closeAll()"></div>
+<div id="drawer" class="drawer"></div>
+<div id="modal" class="modal"></div>
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
+
+<script>
+var TODAY='2026-10-19';
+var CATS=['袜子机械工种-机械缝头装配工','袜子机械工种-机械精装工(车床)','袜子机械工种-机械小装配工','袜子机械工种-机械大装配工',
+  '织袜车间-织袜行业工种-织袜档车工','织袜车间-织袜行业工种-质检','织袜车间-织袜行业工种-定型工','织袜车间-织袜行业工种-车间分包工','织袜车间-织袜行业工种-机修工',
+  '前纺-原料行业工种-投料工','前纺-原料行业工种-纺丝工','前纺-原料行业工种-辅助工','前纺-原料行业工种-组件工','前纺-原料行业工种-前纺保全工','前纺-原料行业工种-包装工','前纺-原料行业工种-卷绕工','前纺-原料行业工种-质检员',
+  '后纺-原料行业工种-加弹工','后纺-原料行业工种-后纺保全工','原料行业工种-电工','其他-其他'];
+var AST={'待审核':'background:#FEF3C7;color:#B45309','招聘中':'background:#DCFCE7;color:#15803D','已驳回':'background:#FEE2E2;color:#B91C1C','已关闭':'background:#F1F5F9;color:#64748B'};
+var REASONS=['信息不实（岗位/单位与实际不符）','薪资夸大或描述不清','涉嫌向求职者收费','联系方式无效','内容违规（歧视/夸大/违规承诺）','非库中单位未提供资质','其他'];
+
+/* ===== 待审核队列（与岗位管理同源） ===== */
+var AU=[
+  {id:'GW-2026-0231',cat:'织袜车间-织袜行业工种-织袜档车工',title:'挡车工（两班倒）',unit:'诸暨市金晟袜业有限公司',isM:true,
+   contact:'钱××',phone:'138****6688',addr:'大唐街道袜业城 2F-A08',count:12,pub:'2026-10-18',wait:26,
+   salMin:6500,salMax:9000,welfare:'包住、五险、餐补、夜班补贴',exp:'1 年以上',ver:3,
+   desc:'负责袜机（单/双针筒）看台、换纱、简单排故；两班倒，月休 4 天。',
+   hist:[{t:'2026-10-17 16:40',by:'审核员 何敏',r:'驳回',why:'薪资描述与实际不符（需写明计件/计时）'},
+         {t:'2026-10-16 10:15',by:'审核员 何敏',r:'驳回',why:'联系方式无效（多次拨打无人接听）'}]},
+  {id:'GW-2026-0219',cat:'织袜车间-织袜行业工种-机修工',title:'机修学徒',unit:'诸暨市恒信袜业有限公司',isM:true,
+   contact:'王××',phone:'137****9021',addr:'大唐街道袜业城 3F-B02',count:2,pub:'2026-10-18',wait:30,
+   salMin:4000,salMax:5000,welfare:'师傅带教、包住',exp:'不限',ver:1,
+   desc:'跟师傅学习袜机维修，能吃苦、愿意长期做。',
+   hist:[]},
+  {id:'GW-2026-0218',cat:'后纺-原料行业工种-后纺保全工',title:'后纺保全工',unit:'诸暨市金晟袜业有限公司',isM:true,
+   contact:'钱××',phone:'138****6688',addr:'大唐街道袜业城 2F-A08',count:1,pub:'2026-10-18',wait:22,
+   salMin:7500,salMax:9000,welfare:'五险、年终奖',exp:'3 年以上',ver:2,
+   desc:'后纺设备保全，熟悉加弹机/络筒机。',
+   hist:[{t:'2026-10-17 10:20',by:'审核员 何敏',r:'驳回',why:'职位描述过于简单，需写明班制与待遇'}]},
+  {id:'GW-2026-0232',cat:'前纺-原料行业工种-卷绕工',title:'卷绕工（女工优先）',unit:'浙江棉田纺织有限公司',isM:true,
+   contact:'陈志强',phone:'136****2208',addr:'大唐街道轻纺路 18 号',count:10,pub:'2026-10-19',wait:3,
+   salMin:5800,salMax:7200,welfare:'包住、餐补、全勤奖',exp:'不限',ver:1,
+   desc:'卷绕机操作，站立作业，两班倒。',
+   hist:[]},
+  {id:'GW-2026-0233',cat:'织袜车间-织袜行业工种-质检',title:'质检员（长白班）',unit:'诸暨市云岭针织科技有限公司',isM:true,
+   contact:'周××',phone:'135****3322',addr:'大唐街道科创园 3 号',count:2,pub:'2026-10-19',wait:1,
+   salMin:5000,salMax:6500,welfare:'五险、双休',exp:'1 年以上',ver:1,
+   desc:'成品抽检与记录，长白班，适合女工。',
+   hist:[]},
+  {id:'GW-2026-0234',cat:'其他-其他',title:'跟单员',unit:'大唐××针织厂',isM:false,
+   contact:'李××',phone:'139****1234',addr:'大唐街道××村 32 号',count:1,pub:'2026-10-19',wait:2,
+   salMin:5500,salMax:7000,welfare:'包吃住、单休',exp:'2 年以上',ver:1,
+   desc:'负责订单跟进、物料协调，需会用 Excel。',
+   hist:[]},
+  {id:'GW-2026-0235',cat:'袜子机械工种-机械装配工',title:'装配工（可学徒）',unit:'诸暨市云岭针织科技有限公司',isM:true,
+   contact:'周××',phone:'135****3322',addr:'大唐街道科创园 3 号',count:4,pub:'2026-10-19',wait:0,
+   salMin:6000,salMax:8000,welfare:'五险一金、技术培训',exp:'不限',ver:1,
+   desc:'袜机装配，可接受学徒，师傅带教。',
+   hist:[]},
+  {id:'GW-2026-0236',cat:'前纺-原料行业工种-辅助工',title:'车间辅助工',unit:'诸暨市某贸易商行',isM:true,
+   contact:'钱某某',phone:'135****7712',addr:'大唐街道市场路 6 号',count:3,pub:'2026-10-19',wait:5,
+   salMin:4500,salMax:5500,welfare:'包午餐、日结可选',exp:'不限',ver:1,
+   desc:'搬运、整理、打扫车间，能吃苦。',
+   hist:[]}
+];
+
+var curRows=AU.slice(),tid,curAu=null;
+var stats={pass:12,rej:3};
+
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},3200);}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function st(s,c){return '<span class="st" style="'+(c||AST[s]||'background:#F1F5F9;color:#64748B')+'">'+esc(s)+'</span>';}
+function tag(t,c){return '<span class="tag" style="'+(c||'background:#F1F5F9;color:#64748B')+'">'+esc(t)+'</span>';}
+function aOf(id){return AU.filter(function(x){return x.id===id;})[0];}
+
+function renderStats(){
+  var wait=AU.length;
+  var over=AU.filter(function(x){return x.wait>24;}).length;
+  var avg=AU.length?Math.round(AU.reduce(function(s,x){return s+x.wait;},0)/AU.length):0;
+  var cards=[['待审核',wait,'#B45309'],['超 24h 未审',over,'#B91C1C'],['今日已通过',stats.pass,'#15803D'],['今日已驳回',stats.rej,'#E63E20'],['平均等待',avg+' h','#2563EB']];
+  document.getElementById('stats').innerHTML=cards.map(function(x){
+    return '<div class="bg-white rounded-xl border border-gray-100 p-4"><div class="text-[11px] text-[#94A3B8]">'+x[0]+'</div><div class="text-[22px] font-bold mt-1" style="color:'+x[2]+'">'+x[1]+'</div></div>';
+  }).join('');
+}
+
+function render(){
+  var tb=document.getElementById('tb');
+  if(!curRows.length){
+    tb.innerHTML='<tr><td colspan="8" class="px-4 py-16 text-center text-[13px] text-[#94A3B8]"><i class="fas fa-circle-check text-[26px] block mb-2 text-[#86EFAC]"></i>待审核已清空<br><span class="text-[11px]">队列为空时可去「岗位管理」查看已通过的岗位</span></td></tr>';
+    document.getElementById('cnt').textContent='共 0 条';
+    return;
+  }
+  tb.innerHTML=curRows.map(function(a){
+    var over=(a.wait>24);
+    return '<tr class="hover:bg-gray-50/60'+(over?' style="background:#FEF2F2"':'')+'">'
+      +'<td class="px-4 py-3 text-[11px] text-[#64748B]" style="max-width:190px">'+esc(a.cat)+'</td>'
+      +'<td class="px-4 py-3"><span class="font-medium text-[#1F2430]">'+esc(a.title)+'</span>'
+        +(a.ver>1?'<div class="text-[10px] text-[#B45309] mt-0.5">第 '+a.ver+' 次提交</div>':'')+'</td>'
+      +'<td class="px-4 py-3 text-[12px]">'+esc(a.unit)+(a.isM?'<div class="text-[10px] text-[#15803D]">已关联入驻商户</div>':'<div class="text-[10px] text-[#B45309]">非库中单位</div>')+'</td>'
+      +'<td class="px-4 py-3 text-[12px]">'+esc(a.contact)+'</td>'
+      +'<td class="px-4 py-3 text-[12px]">'+esc(a.phone)+'</td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(a.pub)+'<div class="text-[10px]'+(over?'" style="color:#B91C1C"':'" style="color:#94A3B8"')+'">等待 '+a.wait+' h'+(over?'（超时）':'')+'</div></td>'
+      +'<td class="px-4 py-3 text-center">'+st('待审核')+'</td>'
+      +'<td class="px-4 py-3 text-center"><span class="lk" onclick="openAudit(\''+a.id+'\')">审核</span></td>'
+      +'</tr>';
+  }).join('');
+  document.getElementById('cnt').textContent='共 '+curRows.length+' 条';
+}
+
+function doSearch(){
+  var cat=document.getElementById('f-cat').value;
+  var title=(document.getElementById('f-title').value||'').trim();
+  var unit=document.getElementById('f-unit').value;
+  var ct=(document.getElementById('f-contact').value||'').trim();
+  curRows=AU.filter(function(a){
+    if(cat&&a.cat!==cat) return false;
+    if(title&&a.title.indexOf(title)<0) return false;
+    if(unit&&a.unit!==unit) return false;
+    if(ct&&a.contact.indexOf(ct)<0) return false;
+    return true;
+  });
+  render();
+}
+function resetSearch(){
+  document.getElementById('f-cat').value='';
+  document.getElementById('f-title').value='';
+  document.getElementById('f-unit').value='';
+  document.getElementById('f-contact').value='';
+  curRows=AU.slice();render();
+}
+
+/* ===== 审核详情 ===== */
+function openAudit(id){
+  var a=aOf(id);curAu=a;
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">审核岗位　'+esc(a.title)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(a.id)+'　'+esc(a.unit)+'　提交 '+a.ver+' 次　已等待 '+a.wait+' h</p></div>'
+    +'<button class="btn btn-ghost" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">'
+    +(a.wait>24?'<div class="ai"><p class="text-[12px] font-bold" style="color:#B91C1C"><i class="fas fa-triangle-exclamation mr-1"></i>已超 24h 未审 —— 系统已升级提醒主管，但<b>不会自动通过</b></p></div>':'')
+    +(a.ver>1?'<div class="rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[12px] text-[#64748B]">该岗位为<b>第 '+a.ver+' 次提交</b>，请对照下方<b>历史驳回原因</b>确认已整改。</p></div>':'')
+    +'<div class="blk"><div class="blk-t"><i class="fas fa-circle-info text-[#2563EB]"></i>① 基本信息（只读）</div>'
+    +'<div class="grid grid-cols-2 gap-x-6">'
+    +'<div class="kv"><span class="k">工种名称</span><span>'+esc(a.cat)+'</span></div>'
+    +'<div class="kv"><span class="k">岗位名称</span><span>'+esc(a.title)+'</span></div>'
+    +'<div class="kv"><span class="k">招聘单位</span><span>'+esc(a.unit)+(a.isM?' <span class="tag" style="background:#DCFCE7;color:#15803D">已关联商户</span>':' <span class="tag" style="background:#FEF3C7;color:#B45309">非库中单位</span>')+'</span></div>'
+    +'<div class="kv"><span class="k">招聘人数</span><span>'+a.count+' 人</span></div>'
+    +'<div class="kv"><span class="k">联系人</span><span>'+esc(a.contact)+'</span></div>'
+    +'<div class="kv"><span class="k">联系方式</span><span>'+esc(a.phone)+' <span class="lk-gray" onclick="toast(\'查看完整号码需留痕\')">查看完整</span></span></div>'
+    +'<div class="kv"><span class="k">薪资范围</span><span>'+(a.salMin?'<b style="color:#E63E20">'+a.salMin+' - '+a.salMax+'</b> 元/月':'面议')+'</span></div>'
+    +'<div class="kv"><span class="k">工作经验</span><span>'+esc(a.exp||'不限')+'</span></div>'
+    +'<div class="kv"><span class="k">工作地址</span><span>'+esc(a.addr)+'</span></div>'
+    +'<div class="kv"><span class="k">发布时间</span><span>'+esc(a.pub)+'</span></div>'
+    +'</div></div>'
+    +'<div class="blk"><div class="blk-t"><i class="fas fa-align-left text-[#64748B]"></i>② 职位描述 / 福利</div>'
+    +'<div class="text-[12px] text-[#334155] leading-relaxed whitespace-pre-line">'+esc(a.desc||'（未填写）')+'</div>'
+    +'<div class="mt-3 text-[12px] text-[#64748B]"><b>公司福利：</b>'+esc(a.welfare||'—')+'</div></div>'
+    +'<div class="blk"><div class="blk-t"><i class="fas fa-clock-rotate-left text-[#B45309]"></i>③ 历史审核记录</div>'
+    +(a.hist.length?a.hist.map(function(x){return '<div class="text-[12px] py-1.5 border-b border-gray-50 last:border-0"><span class="text-[11px] text-[#94A3B8] mr-2">'+esc(x.t)+'</span>'+esc(x.by)+'：<b>'+esc(x.r)+'</b>　'+esc(x.why)+'</div>';}).join(''):'<div class="text-[12px] text-[#94A3B8]">首次提交，无历史驳回</div>')
+    +'</div>'
+    +'<div class="rounded-xl border p-3" style="border-color:#E2E8F0;background:#F8FAFC"><p class="text-[11px] text-[#64748B]"><b>审核检查项</b>：① 单位真实（已关联商户可免核） ② 薪资可核实 ③ 不得向求职者收费 ④ 联系方式有效 ⑤ 描述不含歧视/夸大承诺</p></div>'
+    +'</div>';
+  h+='<div class="px-5 py-3 border-t border-gray-100 flex items-center justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">返回</button>'
+    +'<button class="btn btn-danger" onclick="closeAll();openReject(\''+a.id+'\')">驳回</button>'
+    +'<button class="btn btn-primary" onclick="doPass(\''+a.id+'\')"><i class="fas fa-check text-[10px] mr-1"></i>通过</button></div>';
+  show('drawer',h);
+}
+
+function doPass(id){
+  var a=aOf(id);
+  AU=AU.filter(function(x){return x.id!==id;});
+  curRows=curRows.filter(function(x){return x.id!==id;});
+  stats.pass++;
+  closeAll();renderStats();render();
+  toast('审核通过：'+a.title+' → 「招聘中」，端上 5 分钟内展示；已通知发布方'+(a.ver>1?'（第 '+a.ver+' 次提交）':''));
+}
+
+/* ===== 驳回 ===== */
+function openReject(id){
+  curAu=aOf(id);
+  var a=curAu;
+  var h='<div class="p-5"><h3 class="text-[15px] font-bold text-[#1F2430] mb-1">驳回岗位</h3>'
+    +'<p class="text-[12px] text-[#94A3B8] mb-3">'+esc(a.title)+'　'+esc(a.unit)+'</p>'
+    +'<label class="fl">驳回原因 *（枚举）</label>'
+    +'<select class="sel mb-3" id="rj-reason">'+REASONS.map(function(r){return '<option>'+r+'</option>';}).join('')+'</select>'
+    +'<label class="fl">具体说明 *（发布方可见，须能指导整改）</label>'
+    +'<textarea class="fi mb-3" id="rj-note" rows="3" placeholder="例：薪资写「6000-10000」但未说明计件/计时，请补充计算方式"></textarea>'
+    +'<div class="rounded-xl border p-3 mb-4" style="border-color:#FECACA;background:#FEF2F2"><p class="text-[11px] text-[#64748B]">驳回后：状态 →「已驳回」，<b>端上不展示</b>；发布方收到<b>原因通知</b>，可修改后重新提交（提交次数 +1，历史原因保留）。</p></div>'
+    +'<div class="flex justify-end gap-2"><button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-danger" onclick="doReject(\''+id+'\')">确认驳回</button></div></div>';
+  show('modal',h);
+}
+function doReject(id){
+  var a=aOf(id);
+  var r=document.getElementById('rj-reason').value;
+  var n=(document.getElementById('rj-note').value||'').trim();
+  if(!r){toast('请选择驳回原因');return;}
+  if(n.length<5){toast('请填写具体说明（至少 5 个字，发布方要能照着改）');return;}
+  AU=AU.filter(function(x){return x.id!==id;});
+  curRows=curRows.filter(function(x){return x.id!==id;});
+  stats.rej++;
+  closeAll();renderStats();render();
+  toast('已驳回：'+a.title+'（'+r+'）→ 已通知发布方，可修改后重提');
+}
+
+function show(which,h){
+  document.getElementById(which).innerHTML=h;
+  document.getElementById('mask').classList.add('on');
+  document.getElementById(which).classList.add('on');
+}
+function closeAll(){
+  document.getElementById('mask').classList.remove('on');
+  document.getElementById('drawer').classList.remove('on');
+  document.getElementById('modal').classList.remove('on');
+}
+
+/* 初始化下拉 */
+(function(){
+  var sc=document.getElementById('f-cat');
+  CATS.forEach(function(c){var o=document.createElement('option');o.textContent=c;o.value=c;sc.appendChild(o);});
+  var su=document.getElementById('f-unit'),units=[];
+  AU.forEach(function(a){if(units.indexOf(a.unit)<0)units.push(a.unit);});
+  units.forEach(function(u){var o=document.createElement('option');o.textContent=u;o.value=u;su.appendChild(o);});
+})();
+
+renderStats();render();
+</script>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>缴费记录 - 袜掌柜商户版</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--bg:#F0F6FF}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+.card{transition:transform .16s ease}.card:active{transform:scale(.985)}
+.grad-h{background:linear-gradient(135deg,#2563EB 0%,#1D4ED8 55%,#0EA5E9 100%)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,40,80,.06)}
+.chip{font-size:11px;color:#6b7080;background:#fff;border:1px solid #eceef0;border-radius:999px;padding:5px 12px;white-space:nowrap}
+.chip.on{color:#fff;font-weight:700;background:#2563EB;border-color:#2563EB}
+.no-bar::-webkit-scrollbar{display:none}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:300;opacity:0;transition:.2s;max-width:80%;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<div class="relative px-4 pt-2 pb-5 overflow-hidden grad-h">
+  <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-50" style="background:#60A5FA"></div>
+  <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+  </div>
+  <div class="relative flex items-center gap-3 mt-1">
+    <a href="payment.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+    <div><span class="text-white font-extrabold text-[18px]">缴费记录</span>
+    <p class="text-white/85 text-[10px] mt-0.5">各费用缴单与缴纳状态</p></div>
+  </div>
+</div>
+
+<div class="px-3 pt-4 pb-16">
+  <div class="flex gap-1.5 mb-3 overflow-x-auto no-bar" id="chips"></div>
+  <div class="space-y-2.5" id="list"></div>
+</div>
+
+<div class="toast" id="toast"><span id="toastTxt">操作成功</span></div>
+<script>
+var toastTimer;function toast(m){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=m;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},1800)}
+var RECORDS=[
+ {type:'商铺租金',icon:'fa-file-invoice-dollar',cls:'bg-amber-50 text-amber-600',period:'2026 租赁年度',amount:'¥153,600',state:'待缴',time:'应缴 8月31日前'},
+ {type:'物业管理费',icon:'fa-building',cls:'bg-sky-50 text-sky-600',period:'2026年10月',amount:'¥300',state:'待缴',time:'应缴 10月31日前'},
+ {type:'电费',icon:'fa-bolt',cls:'bg-yellow-50 text-yellow-600',period:'2026年9月',amount:'¥268',state:'已缴',time:'2026-09-28'},
+ {type:'商铺租金',icon:'fa-file-invoice-dollar',cls:'bg-amber-50 text-amber-600',period:'2025 租赁年度',amount:'¥150,000',state:'已缴',time:'2025-08-20'},
+ {type:'车位费',icon:'fa-square-parking',cls:'bg-violet-50 text-violet-600',period:'2026年9月',amount:'¥120',state:'已缴',time:'2026-09-05'}
+];
+var filter='全部';
+function badges(){var all=['全部','待缴','已缴'];document.getElementById('chips').innerHTML=all.map(function(c){return '<a onclick="setF(\''+c+'\')" class="chip'+(c===filter?' on':'')+'">'+c+'</a>';}).join('');}
+function setF(c){filter=c;badges();render();}
+function render(){
+  var arr=RECORDS.filter(function(r){return filter==='全部'||r.state===filter;});
+  document.getElementById('list').innerHTML=arr.length?arr.map(function(r){
+    var sc=r.state==='待缴'?'text-rose-500 bg-rose-50':'text-green-600 bg-green-50';
+    return '<div class="card bg-white rounded-2xl shadow-soft px-3.5 py-3">'
+      +'<div class="flex items-center gap-3">'
+      +'<div class="w-9 h-9 rounded-lg '+r.cls+' flex items-center justify-center flex-shrink-0"><i class="fas '+r.icon+' text-sm"></i></div>'
+      +'<div class="flex-1 min-w-0"><div class="flex items-center gap-1.5"><p class="text-[13px] font-bold text-gray-800">'+r.type+'</p><span class="'+sc+' text-[9px] font-bold px-1.5 py-0.5 rounded">'+r.state+'</span></div>'
+      +'<p class="text-[10px] text-gray-400 mt-0.5">'+r.period+' · '+r.time+'</p></div>'
+      +'<span class="text-[14px] font-extrabold num '+(r.state==='待缴'?'text-rose-500':'text-gray-700')+'">'+r.amount+'</span>'
+      +'</div>'
+      +'<div class="flex gap-2 mt-2.5"><a onclick="toast(\'账单详情（演示）\')" class="flex-1 py-2 rounded-lg border border-gray-200 text-[11px] text-gray-600 text-center">账单详情</a>'
+      +(r.state==='待缴'?'<a onclick="toast(\'去缴费（演示）\')" class="flex-1 py-2 rounded-lg text-white text-[11px] font-bold text-center" style="background:linear-gradient(135deg,#3B82F6,#2563EB)">去缴费</a>':'<a onclick="toast(\'缴费凭证（演示）\')" class="flex-1 py-2 rounded-lg border border-gray-200 text-[11px] text-gray-600 text-center">缴费凭证</a>')
+      +'</div></div>';
+  }).join(''):'<div class="text-center text-[12px] text-gray-400 py-10">暂无缴费记录</div>';
+}
+badges();render();
+</script>
+</body>
+</html>

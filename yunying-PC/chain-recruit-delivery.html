@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>人才招聘 - 投递管理</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}.lk:hover{text-decoration:underline}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}.lk-gray:hover{color:#1F2430;text-decoration:underline}
+.st{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500;white-space:nowrap}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:60}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:860px;max-width:97vw;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:70;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);width:720px;max-width:95vw;max-height:86vh;overflow-y:auto;background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(15,23,42,.28);opacity:0;pointer-events:none;transition:.22s;z-index:70}
+.modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+.blk{border:1px solid #E2E8F0;border-radius:12px;padding:14px 16px}
+.blk-t{font-size:12.5px;font-weight:700;color:#1F2430;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.kv{display:flex;gap:8px;font-size:12px;line-height:1.9}
+.kv .k{width:106px;flex-shrink:0;color:#94A3B8}
+.fi{width:100%;padding:6px 10px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none;background:#fff}
+.fi:focus{border-color:#FF4D2D}
+.fl{display:block;font-size:11px;color:#94A3B8;margin-bottom:4px}
+.sel{width:100%;padding:6px 8px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none}
+button{cursor:pointer}
+textarea.fi{font-family:inherit;line-height:1.8;resize:vertical}
+.tl{position:relative;padding-left:16px}
+.tl:before{content:'';position:absolute;left:3px;top:6px;bottom:6px;width:1px;background:#E2E8F0}
+.tli{position:relative;padding:6px 0;font-size:12px;color:#334155}
+.tli:before{content:'';position:absolute;left:-16px;top:11px;width:7px;height:7px;border-radius:50%;background:#FF4D2D}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<div class="p-6">
+
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">人才招聘 · 投递管理</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">13 产业链服务</span>
+        <span class="tag" style="background:#EDE9FE;color:#6D28D9">报名信息</span>
+        <span class="tag" style="background:#F1F5F9;color:#64748B">只读 + 回复</span>
+      </div>
+      <p class="text-[12px] text-gray-400 mt-1"><b>v1.0（2026-10-19 新建）</b>：本页承接客户的「报名信息」能力 —— <b>谁投了哪个岗位、进展如何、怎么回复</b>。投递由求职者在端上发起（<b>运营端不代投</b>）；<b>首次打开详情自动置「已查看」</b>并留痕；<b>简历快照</b>不随简历更新而变化（便于追溯投递时点的信息）；岗位关闭后投递记录仍保留</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="toast('已导出投递台账（岗位 / 求职者 / 状态 / 回复时间，联系方式脱敏）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+      <button class="btn btn-ghost" onclick="toast('已按「待查看 → 已查看待回复」排序，超 48h 未查看红标')"><i class="fas fa-arrow-down-wide-short text-[10px] mr-1"></i>按待办排序</button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-6 gap-3 mb-4" id="stats"></div>
+
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+    <div class="flex items-center gap-3 flex-wrap">
+      <select id="f-job" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600 w-56"><option value="">全部岗位</option></select>
+      <select id="f-unit" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600 w-52"><option value="">全部招聘单位</option></select>
+      <input id="f-kw" type="text" placeholder="求职者姓名（模糊）" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none w-40">
+      <select id="f-state" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+        <option value="">全部状态</option><option>已投递</option><option>已查看</option><option>已回复</option><option>已拒绝</option><option>已撤回</option>
+      </select>
+      <input id="f-d1" type="date" value="2026-10-01" class="px-2 py-1.5 text-[12px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+      <span class="text-[12px] text-[#CBD5E1]">~</span>
+      <input id="f-d2" type="date" value="2026-10-19" class="px-2 py-1.5 text-[12px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+      <button class="btn btn-primary" onclick="doSearch()">查询</button>
+      <button class="btn btn-ghost" onclick="resetSearch()">重置</button>
+      <span class="text-[11px] text-[#94A3B8] ml-auto"><i class="fas fa-circle-info mr-1"></i>48h 未查看红标；同一求职者重复投同一岗位只保留 1 条</span>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-[13px] font-bold text-[#1F2430]">投递记录</span>
+        <span class="text-[12px] text-[#94A3B8]" id="cnt">共 0 条</span>
+      </div>
+      <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-clock-rotate-left mr-1"></i>回复后自动通知求职者（端上消息 + 短信可选）</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-[13px]" style="min-width:1280px">
+        <thead>
+          <tr class="bg-gray-50 text-gray-500 text-[12px]">
+            <th class="px-4 py-3 text-left font-medium">岗位名称</th>
+            <th class="px-4 py-3 text-left font-medium">招聘单位</th>
+            <th class="px-4 py-3 text-left font-medium">求职者</th>
+            <th class="px-4 py-3 text-left font-medium">电话</th>
+            <th class="px-4 py-3 text-center font-medium">工作年限</th>
+            <th class="px-4 py-3 text-left font-medium">投递时间</th>
+            <th class="px-4 py-3 text-center font-medium">状态</th>
+            <th class="px-4 py-3 text-left font-medium">最近回复</th>
+            <th class="px-4 py-3 text-center font-medium">操作</th>
+          </tr>
+        </thead>
+        <tbody id="tb" class="divide-y divide-gray-50"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div id="mask" class="mask" onclick="closeAll()"></div>
+<div id="drawer" class="drawer"></div>
+<div id="modal" class="modal"></div>
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
+
+<script>
+var TODAY='2026-10-19';
+var DSTC={'已投递':'background:#DBEAFE;color:#2563EB','已查看':'background:#FEF3C7;color:#B45309','已回复':'background:#DCFCE7;color:#15803D','已拒绝':'background:#FEE2E2;color:#B91C1C','已撤回':'background:#F1F5F9;color:#94A3B8'};
+
+/* ===== 投递数据（12 条，覆盖 5 状态；与简历管理、岗位管理的投递数一致） ===== */
+var DL=[
+  {id:'TD-2026-0412',jobId:'GW-2026-0231',job:'挡车工（两班倒）',unit:'诸暨市金晟袜业有限公司',seeker:'周××',phone:'13422229999',
+   years:'1 年以内',time:'2026-10-18 10:15',state:'已投递',jobClosed:false,lastReply:'—',
+   snap:{name:'周××',mar:'未婚',addr:'诸暨市大唐街道劳务市场附近',email:'zhouxx@example.com',major:'市场营销',lang:'英语/四级',cert:'—',skill:'沟通能力强，愿意从基层做起'},
+   tl:[{t:'2026-10-18 10:15',by:'求职者（端上）',txt:'投递该岗位'}]},
+  {id:'TD-2026-0411',jobId:'GW-2026-0230',job:'袜机机修工',unit:'浙江棉田纺织有限公司',seeker:'张××',phone:'13812345678',
+   years:'5 年以上',time:'2026-10-17 10:20',state:'已回复',jobClosed:false,lastReply:'2026-10-18 09:20 约面试',
+   snap:{name:'张××',mar:'已婚',addr:'诸暨市大唐街道××小区 3 幢',email:'zhangxx@example.com',major:'纺织工程',lang:'英语/四级',cert:'织袜机操作高级工',skill:'熟悉单/双针筒袜机操作与换纱，能带新人'},
+   tl:[{t:'2026-10-18 09:20',by:'企业（陈志强）',txt:'回复：约面试　时间 2026-10-20 09:30　地点 轻纺路 18 号厂区办公室'},
+         {t:'2026-10-17 15:40',by:'企业（陈志强）',txt:'查看简历，状态 → 已查看'},
+         {t:'2026-10-17 10:20',by:'求职者（端上）',txt:'投递该岗位'}]},
+  {id:'TD-2026-0410',jobId:'GW-2026-0230',job:'袜机机修工',unit:'浙江棉田纺织有限公司',seeker:'李××',phone:'13998765432',
+   years:'3-5 年',time:'2026-10-18 09:10',state:'已回复',jobClosed:false,lastReply:'2026-10-18 16:30 约面试',
+   snap:{name:'李××',mar:'未婚',addr:'诸暨市大唐街道劳务公寓',email:'lixx@example.com',major:'机电一体化',lang:'—',cert:'电工证（低压）',skill:'袜机电气故障排查、PLC 基础'},
+   tl:[{t:'2026-10-18 16:30',by:'企业（陈志强）',txt:'回复：约面试　时间 2026-10-21 14:00　地点 轻纺路 18 号'},
+         {t:'2026-10-18 09:30',by:'企业（陈志强）',txt:'查看简历，状态 → 已查看'},
+         {t:'2026-10-18 09:10',by:'求职者（端上）',txt:'投递该岗位'}]},
+  {id:'TD-2026-0409',jobId:'GW-2026-0228',job:'定型工',unit:'诸暨市恒信袜业有限公司',seeker:'王××',phone:'13755556666',
+   years:'5 年以上',time:'2026-10-15 13:20',state:'已回复',jobClosed:false,lastReply:'2026-10-15 17:00 约面试',
+   snap:{name:'王××',mar:'已婚',addr:'诸暨市大唐街道××村',email:'—',major:'—',lang:'—',cert:'—',skill:'定型机操作 8 年，能适应高温'},
+   tl:[{t:'2026-10-15 17:00',by:'企业（王××）',txt:'回复：约面试　时间 2026-10-16 09:00　地点 袜业城 3F-B02'},
+         {t:'2026-10-15 14:00',by:'企业（王××）',txt:'查看简历，状态 → 已查看'},
+         {t:'2026-10-15 13:20',by:'求职者（端上）',txt:'投递该岗位'}]},
+  {id:'TD-2026-0408',jobId:'GW-2026-0227',job:'成品检针质检员',unit:'诸暨市云岭针织科技有限公司',seeker:'陈××',phone:'13644447777',
+   years:'1-3 年',time:'2026-10-14 15:00',state:'已回复',jobClosed:false,lastReply:'2026-10-14 18:10 约面试',
+   snap:{name:'陈××',mar:'未婚',addr:'诸暨市大唐街道科创园宿舍',email:'chenxx@example.com',major:'现代纺织技术',lang:'英语/三级',cert:'检针工证',skill:'成品检针、外观抽检、工艺单阅读'},
+   tl:[{t:'2026-10-14 18:10',by:'企业（周××）',txt:'回复：约面试　时间 2026-10-15 10:00　地点 科创园 3 号'},
+         {t:'2026-10-14 15:30',by:'企业（周××）',txt:'查看简历，状态 → 已查看'},
+         {t:'2026-10-14 15:00',by:'求职者（端上）',txt:'投递该岗位'}]},
+  {id:'TD-2026-0407',jobId:'GW-2026-0225',job:'加弹工',unit:'诸暨市恒信袜业有限公司',seeker:'杨××',phone:'13533338888',
+   years:'3-5 年',time:'2026-10-11 16:00',state:'已查看',jobClosed:false,lastReply:'—',
+   snap:{name:'杨××',mar:'已婚',addr:'诸暨市大唐街道××路 12 号',email:'—',major:'—',lang:'—',cert:'—',skill:'加弹机操作、断头处理'},
+   tl:[{t:'2026-10-12 09:10',by:'企业（王××）',txt:'查看简历，状态 → 已查看（超 48h 未回复）'},
+         {t:'2026-10-11 16:00',by:'求职者（端上）',txt:'投递该岗位'}]},
+  {id:'TD-2026-0406',jobId:'GW-2026-0226',job:'包装工（计件）',unit:'诸暨市某贸易商行',seeker:'孙××',phone:'13166665555',
+   years:'3-5 年',time:'2026-10-12 10:00',state:'已回复',jobClosed:true,lastReply:'2026-10-12 11:30 约面试',
+   snap:{name:'孙××',mar:'已婚',addr:'诸暨市大唐街道××村 8 号',email:'—',major:'—',lang:'—',cert:'—',skill:'包装、贴标、装箱，计件效率高'},
+   tl:[{t:'2026-10-16 17:05',by:'系统',txt:'岗位已关闭（招满），投递记录保留'},
+         {t:'2026-10-12 11:30',by:'企业（钱某某）',txt:'回复：约面试　时间 2026-10-13 09:00'},
+         {t:'2026-10-12 10:00',by:'求职者（端上）',txt:'投递该岗位'}]},
+  {id:'TD-2026-0405',jobId:'GW-2026-0223',job:'机械装配工',unit:'诸暨市云岭针织科技有限公司',seeker:'徐××',phone:'13288887777',
+   years:'1-3 年',time:'2026-10-08 10:30',state:'已回复',jobClosed:false,lastReply:'2026-10-09 09:40 约面试',
+   snap:{name:'徐××',mar:'未婚',addr:'诸暨市大唐街道××公寓',email:'xuxx@example.com',major:'数控技术',lang:'—',cert:'装配钳工中级',skill:'机械装配、图纸识读'},
+   tl:[{t:'2026-10-09 09:40',by:'企业（周××）',txt:'回复：约面试　时间 2026-10-10 14:00'},
+         {t:'2026-10-08 11:00',by:'企业（周××）',txt:'查看简历，状态 → 已查看'},
+         {t:'2026-10-08 10:30',by:'求职者（端上）',txt:'投递该岗位'}]},
+  {id:'TD-2026-0404',jobId:'GW-2026-0229',job:'纺丝工（临时用工 3 个月）',unit:'大唐××针织厂',seeker:'吴××',phone:'13311112222',
+   years:'5 年以上',time:'2026-10-16 11:00',state:'已查看',jobClosed:false,lastReply:'—',
+   snap:{name:'吴××',mar:'已婚',addr:'诸暨市大唐街道××家园',email:'—',major:'—',lang:'—',cert:'叉车证',skill:'仓储管理、出入库、盘点'},
+   tl:[{t:'2026-10-17 09:20',by:'运营 王倩',txt:'查看简历（企业委托代看），状态 → 已查看；岗位被驳回，待企业补资质'},
+         {t:'2026-10-16 11:00',by:'求职者（端上）',txt:'投递该岗位'}]},
+  {id:'TD-2026-0403',jobId:'GW-2026-0222',job:'仓库管理员',unit:'诸暨市利群针纺有限公司',seeker:'吴××',phone:'13311112222',
+   years:'5 年以上',time:'2026-10-06 09:40',state:'已拒绝',jobClosed:true,lastReply:'2026-10-07 10:10 不合适',
+   snap:{name:'吴××',mar:'已婚',addr:'诸暨市大唐街道××家园',email:'—',major:'—',lang:'—',cert:'叉车证',skill:'仓储管理、出入库、盘点'},
+   tl:[{t:'2026-10-15 09:05',by:'系统',txt:'岗位已关闭（企业停用）'},
+         {t:'2026-10-07 10:10',by:'企业（李海涛）',txt:'回复：不合适　原因 已招满'},
+         {t:'2026-10-06 09:40',by:'求职者（端上）',txt:'投递该岗位'}]},
+  {id:'TD-2026-0402',jobId:'GW-2026-0224',job:'车间分包工',unit:'诸暨市金晟袜业有限公司',seeker:'陈××',phone:'13644447777',
+   years:'1-3 年',time:'2026-10-09 11:20',state:'已拒绝',jobClosed:false,lastReply:'2026-10-09 16:00 不合适',
+   snap:{name:'陈××',mar:'未婚',addr:'诸暨市大唐街道科创园宿舍',email:'chenxx@example.com',major:'现代纺织技术',lang:'英语/三级',cert:'检针工证',skill:'成品检针、外观抽检、工艺单阅读'},
+   tl:[{t:'2026-10-09 16:00',by:'企业（钱××）',txt:'回复：不合适　原因 岗位技能不匹配（已招质检方向）'},
+         {t:'2026-10-09 11:30',by:'企业（钱××）',txt:'查看简历，状态 → 已查看'},
+         {t:'2026-10-09 11:20',by:'求职者（端上）',txt:'投递该岗位'}]},
+  {id:'TD-2026-0401',jobId:'GW-2026-0221',job:'挡车工（白班）',unit:'浙江棉田纺织有限公司',seeker:'张××',phone:'13812345678',
+   years:'5 年以上',time:'2026-10-05 14:30',state:'已查看',jobClosed:false,lastReply:'—',
+   snap:{name:'张××',mar:'已婚',addr:'诸暨市大唐街道××小区 3 幢',email:'zhangxx@example.com',major:'纺织工程',lang:'英语/四级',cert:'织袜机操作高级工',skill:'熟悉单/双针筒袜机操作与换纱，能带新人'},
+   tl:[{t:'2026-10-06 08:50',by:'企业（陈志强）',txt:'查看简历，状态 → 已查看'},
+         {t:'2026-10-05 14:30',by:'求职者（端上）',txt:'投递该岗位'}]}
+];
+
+var curRows=DL.slice(),tid,curId='';
+
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},3200);}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function st(s,c){return '<span class="st" style="'+(c||DSTC[s]||'background:#F1F5F9;color:#64748B')+'">'+esc(s)+'</span>';}
+function tag(t,c){return '<span class="tag" style="'+(c||'background:#F1F5F9;color:#64748B')+'">'+esc(t)+'</span>';}
+function maskPhone(p){return p?p.slice(0,3)+'****'+p.slice(7):'—';}
+function dOf(id){return DL.filter(function(x){return x.id===id;})[0];}
+function hoursSince(t){
+  var a=new Date(t.replace(/-/g,'/')), b=new Date(TODAY.replace(/-/g,'/')+' 12:00:00');
+  return Math.round((b-a)/3600000);
+}
+
+function renderStats(){
+  var total=DL.length;
+  var wait=DL.filter(function(x){return x.state==='已投递';}).length;
+  var viewed=DL.filter(function(x){return x.state==='已查看';}).length;
+  var rep=DL.filter(function(x){return x.state==='已回复';}).length;
+  var rej=DL.filter(function(x){return x.state==='已拒绝';}).length;
+  var today=DL.filter(function(x){return x.time.indexOf('2026-10-19')===0;}).length;
+  var cards=[['投递总数',total,'#1F2430'],['待查看',wait,'#2563EB'],['已查看待回复',viewed,'#B45309'],['已回复（约面试）',rep,'#15803D'],['已拒绝',rej,'#B91C1C'],['今日新增',today,'#7C3AED']];
+  document.getElementById('stats').innerHTML=cards.map(function(x){
+    return '<div class="bg-white rounded-xl border border-gray-100 p-4"><div class="text-[11px] text-[#94A3B8]">'+x[0]+'</div><div class="text-[22px] font-bold mt-1" style="color:'+x[2]+'">'+x[1]+'</div></div>';
+  }).join('');
+}
+
+function render(){
+  var tb=document.getElementById('tb');
+  if(!curRows.length){
+    tb.innerHTML='<tr><td colspan="9" class="px-4 py-16 text-center text-[13px] text-[#94A3B8]"><i class="fas fa-inbox text-[26px] block mb-2 text-[#CBD5E1]"></i>暂无符合条件的投递<br><span class="text-[11px]">投递由求职者在端上发起；运营端不代投</span></td></tr>';
+    document.getElementById('cnt').textContent='共 0 条';
+    return;
+  }
+  tb.innerHTML=curRows.map(function(d){
+    var late=(d.state==='已投递'&&hoursSince(d.time)>48);
+    var ops='<span class="lk" onclick="openDetail(\''+d.id+'\')">详情</span>';
+    if(d.state!=='已回复'&&d.state!=='已拒绝'&&d.state!=='已撤回'){ops+=' · <span class="lk" onclick="openReply(\''+d.id+'\')">回复</span>';}
+    else{ops+=' · <span class="lk-gray" onclick="openReply(\''+d.id+'\')">补充回复</span>';}
+    return '<tr class="hover:bg-gray-50/60'+(late?' style="background:#FEF2F2"':'')+'">'
+      +'<td class="px-4 py-3"><span class="font-medium text-[#1F2430]">'+esc(d.job)+'</span>'
+        +(d.jobClosed?'<div class="text-[10px] mt-0.5" style="color:#94A3B8"><i class="fas fa-lock mr-1"></i>岗位已关闭（投递保留）</div>':'')
+        +'</td>'
+      +'<td class="px-4 py-3 text-[12px]">'+esc(d.unit)+'</td>'
+      +'<td class="px-4 py-3 text-[12px]"><span class="lk" onclick="toResume(\''+esc(d.seeker)+'\')">'+esc(d.seeker)+'</span></td>'
+      +'<td class="px-4 py-3 text-[12px]">'+maskPhone(d.phone)+'</td>'
+      +'<td class="px-4 py-3 text-center text-[12px]">'+esc(d.years)+'</td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(d.time)+(late?'<div class="text-[10px]" style="color:#B91C1C">超 48h 未查看</div>':'')+'</td>'
+      +'<td class="px-4 py-3 text-center">'+st(d.state)+'</td>'
+      +'<td class="px-4 py-3 text-[11px] text-[#64748B]">'+esc(d.lastReply)+'</td>'
+      +'<td class="px-4 py-3 text-center whitespace-nowrap">'+ops+'</td>'
+      +'</tr>';
+  }).join('');
+  document.getElementById('cnt').textContent='共 '+curRows.length+' 条';
+}
+
+function doSearch(){
+  var job=document.getElementById('f-job').value, unit=document.getElementById('f-unit').value;
+  var kw=(document.getElementById('f-kw').value||'').trim(), stt=document.getElementById('f-state').value;
+  var d1=document.getElementById('f-d1').value, d2=document.getElementById('f-d2').value;
+  curRows=DL.filter(function(d){
+    if(job&&d.job!==job) return false;
+    if(unit&&d.unit!==unit) return false;
+    if(kw&&d.seeker.indexOf(kw)<0) return false;
+    if(stt&&d.state!==stt) return false;
+    if(d1&&d.time<d1) return false;
+    if(d2&&d.time>d2+' 23:59') return false;
+    return true;
+  });
+  render();
+}
+function resetSearch(){
+  document.getElementById('f-job').value='';
+  document.getElementById('f-unit').value='';
+  document.getElementById('f-kw').value='';
+  document.getElementById('f-state').value='';
+  document.getElementById('f-d1').value='2026-10-01';
+  document.getElementById('f-d2').value='2026-10-19';
+  curRows=DL.slice();render();
+}
+
+function toResume(name){
+  toast('跳转「简历管理」，筛选求职者='+name);
+}
+function toJob(id){
+  toast('跳转「岗位管理」→ 岗位详情（'+id+'）');
+}
+
+/* ===== 详情（首次打开自动置已查看） ===== */
+function openDetail(id){
+  var d=dOf(id);curId=id;
+  if(d.state==='已投递'){
+    d.state='已查看';
+    d.tl.unshift({t:TODAY+' 10:45',by:'运营 王倩',txt:'打开详情，状态 → 已查看（自动留痕）'});
+    renderStats();render();
+    toast('首次查看：该投递已自动置「已查看」并留痕');
+  }
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+esc(d.seeker)+'　投递「'+esc(d.job)+'」</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(d.id)+'　'+esc(d.unit)+'　投递 '+esc(d.time)+'　'+st(d.state)+'</p></div>'
+    +'<button class="btn btn-ghost" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">'
+    +'<div class="blk"><div class="blk-t"><i class="fas fa-briefcase text-[#FF4D2D]"></i>① 岗位摘要</div>'
+    +'<div class="grid grid-cols-2 gap-x-6">'
+    +'<div class="kv"><span class="k">岗位名称</span><span>'+esc(d.job)+'</span></div>'
+    +'<div class="kv"><span class="k">招聘单位</span><span>'+esc(d.unit)+'</span></div>'
+    +'<div class="kv"><span class="k">岗位状态</span><span>'+(d.jobClosed?'<span class="tag" style="background:#F1F5F9;color:#64748B">已关闭</span>（投递记录保留）':'<span class="tag" style="background:#DCFCE7;color:#15803D">招聘中</span>')+'　<span class="lk" onclick="toJob(\''+d.jobId+'\')">查看岗位详情</span></span></div>'
+    +'<div class="kv"><span class="k">投递时间</span><span>'+esc(d.time)+'</span></div>'
+    +'</div></div>'
+    +'<div class="blk"><div class="blk-t"><i class="fas fa-id-card text-[#2563EB]"></i>② 简历快照（投递时点，不随简历更新）</div>'
+    +'<div class="grid grid-cols-2 gap-x-6">'
+    +'<div class="kv"><span class="k">姓名</span><span>'+esc(d.snap.name)+'</span></div>'
+    +'<div class="kv"><span class="k">电话</span><span>'+maskPhone(d.phone)+' <span class="lk-gray" onclick="toast(\'查看完整号码需留痕\')">查看完整</span></span></div>'
+    +'<div class="kv"><span class="k">婚姻状况</span><span>'+esc(d.snap.mar)+'</span></div>'
+    +'<div class="kv"><span class="k">工作年限</span><span>'+esc(d.years)+'</span></div>'
+    +'<div class="kv"><span class="k">现住地址</span><span>'+esc(d.snap.addr)+'</span></div>'
+    +'<div class="kv"><span class="k">邮箱</span><span>'+esc(d.snap.email)+'</span></div>'
+    +'<div class="kv"><span class="k">专业</span><span>'+esc(d.snap.major)+'</span></div>'
+    +'<div class="kv"><span class="k">外语及等级</span><span>'+esc(d.snap.lang)+'</span></div>'
+    +'<div class="kv"><span class="k">职业资格</span><span>'+esc(d.snap.cert)+'</span></div>'
+    +'<div class="kv"><span class="k">技能</span><span>'+esc(d.snap.skill)+'</span></div>'
+    +'</div></div>'
+    +'<div class="blk"><div class="blk-t"><i class="fas fa-clock-rotate-left text-[#7C3AED]"></i>③ 回复时间线</div>'
+    +'<div class="tl">'+d.tl.map(function(x){return '<div class="tli"><span class="text-[11px] text-[#94A3B8] mr-2">'+esc(x.t)+'</span><b>'+esc(x.by)+'</b>：'+esc(x.txt)+'</div>';}).join('')+'</div></div>'
+    +'</div>';
+  h+='<div class="px-5 py-3 border-t border-gray-100 flex items-center justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">关闭</button>'
+    +'<button class="btn btn-ghost" onclick="closeAll();toResume(\''+esc(d.seeker)+'\')">查看简历</button>'
+    +'<button class="btn btn-primary" onclick="closeAll();openReply(\''+d.id+'\')"><i class="fas fa-reply text-[10px] mr-1"></i>回复</button></div>';
+  show('drawer',h);
+}
+
+/* ===== 回复 ===== */
+function openReply(id){
+  var d=dOf(id);curId=id;
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">回复求职者</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(d.seeker)+'　'+esc(d.job)+'　'+esc(d.phone)+'</p></div>'
+    +'<button class="btn btn-ghost" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">'
+    +'<div class="blk"><div class="blk-t"><i class="fas fa-comment-dots text-[#FF4D2D]"></i>回复内容</div>'
+    +'<label class="fl">回复结论 *</label><select class="sel mb-3" id="r-res" onchange="replyMode()"><option value="ok">约面试</option><option value="no">不合适（拒绝）</option></select>'
+    +'<div id="okBox">'
+    +'<div class="grid grid-cols-2 gap-3"><div><label class="fl">面试时间 *</label><input class="fi" id="r-time" type="datetime-local" value="2026-10-21T09:30"></div>'
+    +'<div><label class="fl">面试地点 *</label><input class="fi" id="r-place" value="大唐街道轻纺路 18 号 厂区办公室"></div></div>'
+    +'<label class="fl mt-3">补充说明</label><textarea class="fi" id="r-note" rows="2" placeholder="携带身份证、健康证等">请携带身份证原件，提前 10 分钟到厂。</textarea>'
+    +'</div>'
+    +'<div id="noBox" style="display:none">'
+    +'<label class="fl">不合适原因 *</label><select class="sel mb-3" id="r-reason"><option>岗位技能不匹配</option><option>经验不足</option><option>已招满</option><option>薪资预期不符</option><option>其他</option></select>'
+    +'<label class="fl">补充说明</label><textarea class="fi" id="r-note2" rows="2" placeholder="可留一句建议，提升体验"></textarea>'
+    +'</div>'
+    +'<div class="mt-3"><label class="chk"><input type="checkbox" id="r-notify" checked> 同步通知求职者（端上消息 + 短信可选）</label></div>'
+    +'</div></div>';
+  h+='</div>';
+  h+='<div class="px-5 py-3 border-t border-gray-100 flex items-center justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="doReply(\''+id+'\')">发送回复</button></div>';
+  show('drawer',h);
+}
+function replyMode(){
+  var v=document.getElementById('r-res').value;
+  document.getElementById('okBox').style.display=(v==='ok'?'':'none');
+  document.getElementById('noBox').style.display=(v==='no'?'':'none');
+}
+function doReply(id){
+  var d=dOf(id);
+  var res=document.getElementById('r-res').value;
+  var notify=document.getElementById('r-notify').checked;
+  if(res==='ok'){
+    var t=document.getElementById('r-time').value, p=document.getElementById('r-place').value.trim();
+    if(!t||!p){toast('约面试需填写面试时间与地点');return;}
+    d.state='已回复';d.lastReply=TODAY+' 10:50 约面试';
+    d.tl.unshift({t:TODAY+' 10:50',by:'运营 王倩',txt:'回复：约面试　时间 '+t.replace('T',' ')+'　地点 '+p});
+    toast('已回复「约面试」→ 求职者收到通知'+(notify?'（端上消息 + 短信）':'（仅站内）'));
+  }else{
+    var r=document.getElementById('r-reason').value;
+    d.state='已拒绝';d.lastReply=TODAY+' 10:50 不合适';
+    d.tl.unshift({t:TODAY+' 10:50',by:'运营 王倩',txt:'回复：不合适　原因 '+r});
+    toast('已回复「不合适（'+r+'）」→ 求职者收到通知');
+  }
+  closeAll();renderStats();render();
+}
+
+function show(which,h){
+  document.getElementById(which).innerHTML=h;
+  document.getElementById('mask').classList.add('on');
+  document.getElementById(which).classList.add('on');
+}
+function closeAll(){
+  document.getElementById('mask').classList.remove('on');
+  document.getElementById('drawer').classList.remove('on');
+  document.getElementById('modal').classList.remove('on');
+}
+
+/* 初始化下拉 */
+(function(){
+  var jobs=[],units=[];
+  DL.forEach(function(d){if(jobs.indexOf(d.job)<0)jobs.push(d.job);if(units.indexOf(d.unit)<0)units.push(d.unit);});
+  var sj=document.getElementById('f-job');
+  jobs.forEach(function(j){var o=document.createElement('option');o.textContent=j;o.value=j;sj.appendChild(o);});
+  var su=document.getElementById('f-unit');
+  units.forEach(function(u){var o=document.createElement('option');o.textContent=u;o.value=u;su.appendChild(o);});
+})();
+
+renderStats();render();
+</script>
+</body>
+</html>

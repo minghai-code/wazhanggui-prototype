@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>人才招聘 - 企业管理</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}.lk:hover{text-decoration:underline}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}.lk-gray:hover{color:#1F2430;text-decoration:underline}
+.st{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500;white-space:nowrap}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:60}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:820px;max-width:97vw;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:70;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);width:760px;max-width:95vw;max-height:86vh;overflow-y:auto;background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(15,23,42,.28);opacity:0;pointer-events:none;transition:.22s;z-index:70}
+.modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+.blk{border:1px solid #E2E8F0;border-radius:12px;padding:14px 16px}
+.blk-t{font-size:12.5px;font-weight:700;color:#1F2430;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.kv{display:flex;gap:8px;font-size:12px;line-height:1.9}
+.kv .k{width:112px;flex-shrink:0;color:#94A3B8}
+.fi{width:100%;padding:6px 10px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none;background:#fff}
+.fi:focus{border-color:#FF4D2D}
+.fl{display:block;font-size:11px;color:#94A3B8;margin-bottom:4px}
+.sel{width:100%;padding:6px 8px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none}
+button{cursor:pointer}
+textarea.fi{font-family:inherit;line-height:1.8;resize:vertical}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<div class="p-6">
+
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">人才招聘 · 企业管理</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">13 产业链服务</span>
+        <span class="tag" style="background:#EDE9FE;color:#6D28D9">招聘主体库</span>
+        <span class="tag" style="background:#F1F5F9;color:#94A3B8">唯一数据源</span>
+      </div>
+      <p class="text-[12px] text-gray-400 mt-1"><b>v1.0（2026-10-19 新建）</b>：本页维护<b>招聘主体库</b>，是「岗位管理」中"招聘单位"的<b>唯一数据源</b>。企业可<b>关联 04 入驻商户</b>（自动带出企业名 / 联系人 / 电话），也可录入<b>非库中单位</b>（需审核）；<b>本页不写 04 档案</b>（只读关联），删除前必须先无在架岗位；<b>企业名重复即拦截</b></p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="toast('已导出招聘企业台账（含关联商户 / 岗位数 / 招聘记录数）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+      <button class="btn btn-primary" onclick="openEdit(null)"><i class="fas fa-plus mr-1"></i>新增企业</button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-5 gap-3 mb-4" id="stats"></div>
+
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+    <div class="flex items-center gap-3 flex-wrap">
+      <input id="f-kw" type="text" placeholder="企业名称 / 联系人 / 电话" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary w-56">
+      <select id="f-type" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+        <option value="">全部企业类型</option><option>企业</option><option>个体工商户</option><option>工厂制造商</option><option>其他</option>
+      </select>
+      <select id="f-link" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+        <option value="">关联状态（全部）</option><option>已关联</option><option>未关联</option>
+      </select>
+      <select id="f-state" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+        <option value="">全部状态</option><option>正常</option><option>停用</option>
+      </select>
+      <button class="btn btn-primary" onclick="doSearch()">查询</button>
+      <button class="btn btn-ghost" onclick="resetSearch()">重置</button>
+      <span class="text-[11px] text-[#94A3B8] ml-auto"><i class="fas fa-circle-info mr-1"></i>企业名<b>不可重复</b>；关联商户后<b>商户名与联系人自动带入</b>，可再修改</span>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-[13px] font-bold text-[#1F2430]">招聘企业</span>
+        <span class="text-[12px] text-[#94A3B8]" id="cnt">共 0 家</span>
+      </div>
+      <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-clock-rotate-left mr-1"></i>停用企业不影响历史岗位与投递记录，仅不可再新建岗位</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-[13px]" style="min-width:1240px">
+        <thead>
+          <tr class="bg-gray-50 text-gray-500 text-[12px]">
+            <th class="px-4 py-3 text-left font-medium">企业名称</th>
+            <th class="px-4 py-3 text-left font-medium">企业类型</th>
+            <th class="px-4 py-3 text-left font-medium">统一社会信用代码</th>
+            <th class="px-4 py-3 text-left font-medium">关联入驻商户</th>
+            <th class="px-4 py-3 text-center font-medium">岗位数</th>
+            <th class="px-4 py-3 text-center font-medium">招聘记录</th>
+            <th class="px-4 py-3 text-center font-medium">状态</th>
+            <th class="px-4 py-3 text-center font-medium">操作</th>
+          </tr>
+        </thead>
+        <tbody id="tb" class="divide-y divide-gray-50"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div id="mask" class="mask" onclick="closeAll()"></div>
+<div id="drawer" class="drawer"></div>
+<div id="modal" class="modal"></div>
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
+
+<script>
+/* ===== 企业主体库（岗位管理的"招聘单位"数据源） ===== */
+var CO=[
+  {id:'QY-001',name:'诸暨市金晟袜业有限公司',type:'企业',uscc:'91330681MA2D1XX101',merchant:'诸暨市金晟袜业（2F-A08）',
+   contact:'钱××',phone:'138****6688',addr:'诸暨市大唐街道袜业城 2F-A08',intro:'主营中高端女袜，现有员工 120 人，年产能 3000 万双。',
+   jobs:3,records:12,rate:'4.8',state:'正常',at:'2026-09-12 10:20'},
+  {id:'QY-002',name:'浙江棉田纺织有限公司',type:'企业',uscc:'91330681MA2D2XX202',merchant:'浙江棉田纺织（1F-A12）',
+   contact:'陈志强',phone:'136****2208',addr:'诸暨市大唐街道轻纺路 18 号',intro:'棉袜与运动袜生产，常年缺挡车工与机修工。',
+   jobs:2,records:8,rate:'4.6',state:'正常',at:'2026-09-15 14:05'},
+  {id:'QY-003',name:'诸暨市某贸易商行',type:'个体工商户',uscc:'92330681MA2XXX331',merchant:'诸暨市某贸易商行（1F-A16）',
+   contact:'钱某某',phone:'135****7712',addr:'诸暨市大唐街道市场路 6 号',intro:'袜品批发兼零售。',
+   jobs:1,records:2,rate:'4.2',state:'正常',at:'2026-09-18 09:40'},
+  {id:'QY-004',name:'大唐××针织厂',type:'工厂制造商',uscc:'—（非库中单位，审核时人工核）',merchant:'未关联',
+   contact:'李××',phone:'139****1234',addr:'诸暨市大唐街道××村 32 号',intro:'家族工厂，主要做代工订单，用工季节性强。',
+   jobs:1,records:1,rate:'—',state:'正常',at:'2026-09-22 16:30'},
+  {id:'QY-005',name:'诸暨市恒信袜业有限公司',type:'企业',uscc:'91330681MA2D5XX505',merchant:'诸暨市恒信袜业（3F-B02）',
+   contact:'王××',phone:'137****9021',addr:'诸暨市大唐街道袜业城 3F-B02',intro:'运动袜出口为主，旺季两班倒。',
+   jobs:4,records:21,rate:'4.9',state:'正常',at:'2026-08-28 11:10'},
+  {id:'QY-006',name:'义乌××针织（大唐生产基地）',type:'企业',uscc:'91330782MA2X33333X',merchant:'未关联',
+   contact:'陈××',phone:'136****9900',addr:'诸暨市大唐街道工业园 7 号',intro:'义乌总部在诸暨设生产基地，主要招缝头工。',
+   jobs:0,records:0,rate:'—',state:'正常',at:'2026-10-08 15:20'},
+  {id:'QY-007',name:'诸暨市利群针纺有限公司',type:'企业',uscc:'91330681MA2D7XX707',merchant:'诸暨市利群针纺（B3-12）',
+   contact:'李海涛',phone:'139****6612',addr:'诸暨市大唐街道袜业城 B3-12',intro:'老厂改造，设备更新后缺操作工。',
+   jobs:1,records:3,rate:'4.0',state:'停用',at:'2026-07-19 10:00'},
+  {id:'QY-008',name:'诸暨市云岭针织科技有限公司',type:'企业',uscc:'91330681MA2D8XX808',merchant:'诸暨市云岭针织（1F-C22）',
+   contact:'周××',phone:'135****3322',addr:'诸暨市大唐街道科创园 3 号',intro:'功能性袜品研发与生产，招纺织工程专业应届生。',
+   jobs:2,records:6,rate:'4.7',state:'正常',at:'2026-09-30 09:15'}
+];
+var TODAY='2026-10-19';
+var CSTC={'正常':'background:#DCFCE7;color:#15803D','停用':'background:#F1F5F9;color:#64748B'};
+var TSTC={'企业':'background:#DBEAFE;color:#2563EB','个体工商户':'background:#FEF3C7;color:#B45309','工厂制造商':'background:#EDE9FE;color:#6D28D9','其他':'background:#F1F5F9;color:#64748B'};
+var curRows=CO.slice(),tid;
+
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},3200);}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function st(s,c){return '<span class="st" style="'+(c||CSTC[s]||'background:#F1F5F9;color:#64748B')+'">'+esc(s)+'</span>';}
+function tag(t,c){return '<span class="tag" style="'+(c||'background:#F1F5F9;color:#64748B')+'">'+esc(t)+'</span>';}
+function coOf(id){return CO.filter(function(x){return x.id===id;})[0];}
+
+function renderStats(){
+  var total=CO.length;
+  var linked=CO.filter(function(x){return x.merchant&&x.merchant!=='未关联';}).length;
+  var live=CO.filter(function(x){return x.state==='正常'&&x.jobs>0;}).length;
+  var jobs=CO.reduce(function(s,x){return s+x.jobs;},0);
+  var cards=[['招聘企业总数',total,'#1F2430'],['已关联入驻商户',linked,'#2563EB'],['在招企业',live,'#15803D'],['关联岗位总数',jobs,'#7C3AED'],['未关联商户',total-linked,'#B45309']];
+  document.getElementById('stats').innerHTML=cards.map(function(x){
+    return '<div class="bg-white rounded-xl border border-gray-100 p-4"><div class="text-[11px] text-[#94A3B8]">'+x[0]+'</div><div class="text-[22px] font-bold mt-1" style="color:'+x[2]+'">'+x[1]+'</div></div>';
+  }).join('');
+}
+
+function render(){
+  var tb=document.getElementById('tb');
+  if(!curRows.length){
+    tb.innerHTML='<tr><td colspan="8" class="px-4 py-16 text-center text-[13px] text-[#94A3B8]"><i class="fas fa-inbox text-[26px] block mb-2 text-[#CBD5E1]"></i>暂无符合条件的招聘企业<br><span class="text-[11px]">可点右上角「新增企业」，或在岗位管理中直接填写非库中单位</span></td></tr>';
+    document.getElementById('cnt').textContent='共 0 家';
+    return;
+  }
+  tb.innerHTML=curRows.map(function(c){
+    var linked=(c.merchant&&c.merchant!=='未关联');
+    var ops='<span class="lk" onclick="openDetail(\''+c.id+'\')">详情</span>'
+      +' · <span class="lk-gray" onclick="openEdit(\''+c.id+'\')">编辑</span>'
+      +' · '+(linked?'<span class="lk-gray" onclick="toast(\'已解除与「'+esc(c.merchant)+'」的关联（历史岗位保留）\')">解除关联</span>':'<span class="lk" onclick="openLink(\''+c.id+'\')">关联商户</span>')
+      +' · '+(c.state==='正常'?'<span class="lk-gray" onclick="toggleState(\''+c.id+'\')">停用</span>':'<span class="lk-gray" onclick="toggleState(\''+c.id+'\')">启用</span>')
+      +' · <span class="lk-gray" onclick="delCo(\''+c.id+'\')">删除</span>';
+    return '<tr class="hover:bg-gray-50/60">'
+      +'<td class="px-4 py-3"><span class="font-medium text-[#1F2430]">'+esc(c.name)+'</span>'
+        +'<div class="text-[11px] text-[#94A3B8] mt-0.5"><i class="fas fa-user text-[9px] mr-1"></i>'+esc(c.contact)+'　'+esc(c.phone)+'</div></td>'
+      +'<td class="px-4 py-3">'+tag(c.type,TSTC[c.type])+'</td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(c.uscc)+'</td>'
+      +'<td class="px-4 py-3 text-[12px]">'+(linked?'<span class="lk" onclick="toast(\'跳转 04 商户档案：'+esc(c.merchant)+'\')">'+esc(c.merchant)+'</span>':'<span class="tag" style="background:#FEF3C7;color:#B45309">未关联</span>')+'</td>'
+      +'<td class="px-4 py-3 text-center">'+(c.jobs?'<span class="lk" onclick="toast(\'跳转岗位管理，筛选企业='+esc(c.name)+'\')">'+c.jobs+'</span>':'<span class="text-[#CBD5E1]">0</span>')+'</td>'
+      +'<td class="px-4 py-3 text-center text-[12px] text-[#64748B]">'+c.records+'</td>'
+      +'<td class="px-4 py-3 text-center">'+st(c.state,CSTC[c.state])+'</td>'
+      +'<td class="px-4 py-3 text-center whitespace-nowrap">'+ops+'</td>'
+      +'</tr>';
+  }).join('');
+  document.getElementById('cnt').textContent='共 '+curRows.length+' 家';
+}
+
+function doSearch(){
+  var kw=(document.getElementById('f-kw').value||'').trim();
+  var ty=document.getElementById('f-type').value;
+  var lk=document.getElementById('f-link').value;
+  var stt=document.getElementById('f-state').value;
+  curRows=CO.filter(function(c){
+    var linked=(c.merchant&&c.merchant!=='未关联');
+    if(kw&&(c.name+c.contact+c.phone).indexOf(kw)<0) return false;
+    if(ty&&c.type!==ty) return false;
+    if(lk==='已关联'&&!linked) return false;
+    if(lk==='未关联'&&linked) return false;
+    if(stt&&c.state!==stt) return false;
+    return true;
+  });
+  render();
+}
+function resetSearch(){
+  document.getElementById('f-kw').value='';
+  document.getElementById('f-type').value='';
+  document.getElementById('f-link').value='';
+  document.getElementById('f-state').value='';
+  curRows=CO.slice();render();
+}
+function toggleState(id){
+  var c=coOf(id);c.state=(c.state==='正常'?'停用':'正常');
+  renderStats();render();
+  toast('已'+(c.state==='正常'?'启用':'停用')+'：'+c.name+(c.state==='停用'?'（历史岗位与投递记录保留，不可再新建岗位）':''));
+}
+function delCo(id){
+  var c=coOf(id);
+  if(c.jobs>0){toast('该企业仍有 '+c.jobs+' 条岗位，不能删除；请先在岗位管理关闭并删除岗位');return;}
+  var h='<div class="p-5"><h3 class="text-[15px] font-bold text-[#1F2430] mb-2">删除招聘企业</h3>'
+    +'<p class="text-[13px] text-[#64748B]">确认删除「<b>'+esc(c.name)+'</b>」？<br>此操作将删除该数据，是否继续？</p>'
+    +'<div class="flex justify-end gap-2 mt-5"><button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="doDel(\''+id+'\')">删除</button></div></div>';
+  show('modal',h);
+}
+function doDel(id){
+  CO=CO.filter(function(x){return x.id!==id;});
+  curRows=curRows.filter(function(x){return x.id!==id;});
+  closeAll();renderStats();render();toast('已删除该招聘企业（软删留痕，可在操作日志回溯）');
+}
+
+/* ===== 新增 / 编辑 ===== */
+function openEdit(id){
+  var c=id?coOf(id):null;
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+(c?'编辑招聘企业':'新增招聘企业')+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">企业名唯一；关联 04 商户可自动带出联系人与电话</p></div>'
+    +'<button class="btn btn-ghost" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">'
+    +'<div class="blk"><div class="blk-t"><i class="fas fa-building text-[#2563EB]"></i>基本信息</div>'
+    +'<div class="grid grid-cols-2 gap-3">'
+    +'<div style="grid-column:span 2"><label class="fl">企业名称 *（营业执照全称）</label><input class="fi" id="e-name" value="'+(c?esc(c.name):'')+'" placeholder="如 诸暨市××袜业有限公司"></div>'
+    +'<div><label class="fl">企业类型 *</label><select class="sel" id="e-type">'+['企业','个体工商户','工厂制造商','其他'].map(function(t){return '<option'+(c&&c.type===t?' selected':'')+'>'+t+'</option>';}).join('')+'</select></div>'
+    +'<div><label class="fl">统一社会信用代码</label><input class="fi" id="e-uscc" value="'+(c?esc(c.uscc):'')+'" placeholder="18 位；非库中单位可留空并备注"></div>'
+    +'<div><label class="fl">联系人 *</label><input class="fi" id="e-contact" value="'+(c?esc(c.contact):'')+'" placeholder="招聘负责人姓名"></div>'
+    +'<div><label class="fl">联系电话 *</label><input class="fi" id="e-phone" value="'+(c?esc(c.phone):'')+'" placeholder="11 位手机号（端上展示脱敏）"></div>'
+    +'<div style="grid-column:span 2"><label class="fl">工作地址</label><input class="fi" id="e-addr" value="'+(c?esc(c.addr):'')+'" placeholder="如 诸暨市大唐街道××路 8 号"></div>'
+    +'<div style="grid-column:span 2"><label class="fl">企业简介</label><textarea class="fi" id="e-intro" rows="2" placeholder="主营产品、规模、用工特点">'+(c?esc(c.intro):'')+'</textarea></div>'
+    +'<div><label class="fl">状态</label><select class="sel" id="e-state"><option'+(c&&c.state==='停用'?'':' selected')+'>正常</option><option'+(c&&c.state==='停用'?' selected':'')+'>停用</option></select></div>'
+    +'</div></div>';
+  if(!c){
+    h+='<div class="rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B]">保存后可在「岗位管理」中作为<b>招聘单位</b>被选择；若企业已在 04 入驻，建议先点列表中的<b>「关联商户」</b>自动带出信息。</p></div>';
+  }
+  h+='</div>';
+  h+='<div class="px-5 py-3 border-t border-gray-100 flex items-center justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveCo(\''+(id||'')+'\')">保存</button></div>';
+  show('drawer',h);
+}
+function saveCo(id){
+  var name=document.getElementById('e-name').value.trim();
+  var type=document.getElementById('e-type').value;
+  var uscc=document.getElementById('e-uscc').value.trim();
+  var contact=document.getElementById('e-contact').value.trim();
+  var phone=document.getElementById('e-phone').value.trim();
+  var addr=document.getElementById('e-addr').value.trim();
+  var intro=document.getElementById('e-intro').value.trim();
+  var state=document.getElementById('e-state').value;
+  if(!name||!contact||!phone){toast('企业名称 / 联系人 / 联系电话 为必填');return;}
+  if(!/^1\d{10}$/.test(phone.replace(/\*/g,''))){/* 原型允许脱敏值，仅做长度提示 */}
+  var dup=CO.filter(function(x){return x.name===name&&x.id!==id;});
+  if(dup.length){toast('企业名称已存在：「'+name+'」，请勿重复录入');return;}
+  if(id){
+    var c=coOf(id);
+    c.name=name;c.type=type;c.uscc=uscc||'—';c.contact=contact;c.phone=phone;c.addr=addr;c.intro=intro;c.state=state;
+    toast('已保存：'+name);
+  }else{
+    var nid='QY-'+String(CO.length+1).padStart(3,'0');
+    CO.unshift({id:nid,name:name,type:type,uscc:uscc||'—',merchant:'未关联',contact:contact,phone:phone,addr:addr,intro:intro,
+      jobs:0,records:0,rate:'—',state:state,at:TODAY+' 10:00'});
+    toast('已新增招聘企业：'+name+'（可在岗位管理中选为招聘单位）');
+  }
+  curRows=CO.slice();closeAll();renderStats();render();
+}
+
+/* ===== 关联入驻商户（mock 04 档案） ===== */
+var MERCHANTS=[
+  {name:'诸暨市金晟袜业（2F-A08）',ent:'诸暨市金晟袜业有限公司',contact:'钱××',phone:'138****6688'},
+  {name:'浙江棉田纺织（1F-A12）',ent:'浙江棉田纺织有限公司',contact:'陈志强',phone:'136****2208'},
+  {name:'诸暨市恒信袜业（3F-B02）',ent:'诸暨市恒信袜业有限公司',contact:'王××',phone:'137****9021'},
+  {name:'诸暨市云岭针织（1F-C22）',ent:'诸暨市云岭针织科技有限公司',contact:'周××',phone:'135****3322'}
+];
+var curLinkId='';
+function openLink(id){
+  curLinkId=id;
+  var c=coOf(id);
+  var rows=MERCHANTS.map(function(m,i){
+    var used=CO.filter(function(x){return x.merchant===m.name&&x.id!==id;}).length;
+    return '<tr class="border-t border-gray-50"><td class="py-2.5">'+esc(m.name)+'</td><td class="py-2.5 text-[11px] text-[#64748B]">'+esc(m.ent)+'</td>'
+      +'<td class="py-2.5 text-[11px]">'+esc(m.contact)+'　'+esc(m.phone)+'</td>'
+      +'<td class="py-2.5 text-right">'+(used?'<span class="tag" style="background:#FEE2E2;color:#B91C1C">已被其他企业关联</span>':'<span class="lk" onclick="pickMerchant('+i+')">选择</span>')+'</td></tr>';
+  }).join('');
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">关联入驻商户　'+esc(c.name)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">数据来自 04 实体商户档案（只读）；一个商户只能关联一个招聘企业</p></div>'
+    +'<button class="btn btn-ghost" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4">'
+    +'<input class="fi mb-3" id="m-kw" placeholder="搜索商户名称 / 统一社会信用代码" oninput="toast(\'原型演示：按关键词过滤商户\')">'
+    +'<table class="w-full text-[12px]"><thead><tr class="text-gray-500 text-[11px]"><th class="text-left py-2 font-medium">商户 / 档口</th><th class="text-left py-2 font-medium">企业全称</th><th class="text-left py-2 font-medium">联系人 / 电话</th><th class="text-right py-2 font-medium">操作</th></tr></thead><tbody>'+rows+'</tbody></table>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-3"><i class="fas fa-circle-info mr-1"></i>关联后：企业名称 / 联系人 / 联系电话自动带入；若商户被清退或合同到期，其岗位将自动关闭</p>'
+    +'</div>';
+  show('drawer',h);
+}
+function pickMerchant(i){
+  var m=MERCHANTS[i];
+  var c=coOf(curLinkId);
+  c.merchant=m.name;c.name=m.ent;c.contact=m.contact;c.phone=m.phone;
+  closeAll();renderStats();render();
+  toast('已关联商户：'+m.name+'（企业名 / 联系人 / 电话已自动带入）');
+}
+
+/* ===== 详情抽屉 ===== */
+function openDetail(id){
+  var c=coOf(id);
+  var linked=(c.merchant&&c.merchant!=='未关联');
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+esc(c.name)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(c.id)+'　'+esc(c.type)+'　'+esc(c.state)+'</p></div>'
+    +'<button class="btn btn-ghost" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">'
+    +'<div class="blk"><div class="blk-t"><i class="fas fa-building text-[#2563EB]"></i>① 基本信息</div>'
+    +'<div class="kv"><span class="k">企业名称</span><span>'+esc(c.name)+'</span></div>'
+    +'<div class="kv"><span class="k">企业类型</span><span>'+tag(c.type,TSTC[c.type])+'</span></div>'
+    +'<div class="kv"><span class="k">统一社会信用代码</span><span>'+esc(c.uscc)+'</span></div>'
+    +'<div class="kv"><span class="k">联系人</span><span>'+esc(c.contact)+'</span></div>'
+    +'<div class="kv"><span class="k">联系电话</span><span>'+esc(c.phone)+' <span class="lk-gray" onclick="toast(\'查看完整号码需留痕（查看人 / 时间）\')">查看完整</span></span></div>'
+    +'<div class="kv"><span class="k">工作地址</span><span>'+esc(c.addr||'—')+'</span></div>'
+    +'<div class="kv"><span class="k">企业简介</span><span>'+esc(c.intro||'—')+'</span></div>'
+    +'<div class="kv"><span class="k">状态</span><span>'+st(c.state,CSTC[c.state])+'</span></div>'
+    +'<div class="kv"><span class="k">录入时间</span><span>'+esc(c.at)+'</span></div></div>'
+    +'<div class="blk"><div class="blk-t"><i class="fas fa-link text-[#7C3AED]"></i>② 关联入驻商户</div>'
+    +(linked?'<div class="kv"><span class="k">关联商户</span><span class="lk" onclick="toast(\'跳转 04 商户档案\')">'+esc(c.merchant)+'</span></div><div class="kv"><span class="k">关联方式</span><span>人工关联（只读，不写 04 档案）</span></div>'
+      :'<div class="rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[12px] text-[#64748B]">未关联入驻商户 → 该企业发布的岗位<b>需人工审核</b>（非库中单位）。建议先关联以复用 04 档案信息。</p></div>')
+    +'</div>'
+    +'<div class="blk"><div class="blk-t"><i class="fas fa-briefcase text-[#FF4D2D]"></i>③ 关联岗位（'+c.jobs+'）</div>'
+    +(c.jobs?'<div class="kv"><span class="k">在架 / 全部</span><span><span class="lk" onclick="toast(\'跳转岗位管理，筛选企业='+esc(c.name)+'\')">'+c.jobs+' 条岗位</span>（含待审核与已关闭）</span></div>'
+      :'<div class="text-[12px] text-[#94A3B8]">暂无岗位 —— 可在「岗位管理」新建，招聘单位选择本企业</div>')
+    +'</div>'
+    +'<div class="blk"><div class="blk-t"><i class="fas fa-clock-rotate-left text-[#64748B]"></i>④ 招聘记录 / ⑤ 评价</div>'
+    +'<div class="kv"><span class="k">累计招聘记录</span><span>'+c.records+' 条投递（近 12 个月）</span></div>'
+    +'<div class="kv"><span class="k">企业评价</span><span>'+(c.rate==='—'?'<span class="text-[#94A3B8]">暂无评价</span>':'<b style="color:#B45309">'+c.rate+' 分</b>（来自求职者投递后评价）')+'</span></div>'
+    +'</div></div>';
+  h+='<div class="px-5 py-3 border-t border-gray-100 flex items-center justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">关闭</button>'
+    +'<button class="btn btn-primary" onclick="closeAll();openEdit(\''+c.id+'\')">编辑</button></div>';
+  show('drawer',h);
+}
+
+/* ===== 基础 ===== */
+function show(which,h){
+  document.getElementById(which).innerHTML=h;
+  document.getElementById('mask').classList.add('on');
+  document.getElementById(which).classList.add('on');
+}
+function closeAll(){
+  document.getElementById('mask').classList.remove('on');
+  document.getElementById('drawer').classList.remove('on');
+  document.getElementById('modal').classList.remove('on');
+}
+
+renderStats();render();
+</script>
+</body>
+</html>

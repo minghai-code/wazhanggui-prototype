@@ -36,6 +36,8 @@ textarea.fi{font-family:inherit;line-height:1.8;resize:vertical}
 .up:hover{border-color:#FDB4A3;color:#E63E20}
 /* 时间线 */
 .tl{position:relative;padding-left:16px;border-left:2px solid #E2E8F0;margin-left:4px}
+.tli{position:relative;padding:6px 0 6px 10px;font-size:12px;color:#334155}
+.tli:before{content:'';position:absolute;left:-5px;top:12px;width:7px;height:7px;border-radius:50%;background:#FF4D2D}
 .tl .node{position:relative;margin-bottom:12px}
 .tl .node:before{content:'';position:absolute;left:-23px;top:5px;width:8px;height:8px;border-radius:50%;background:#FF4D2D;border:2px solid #fff}
 .tl .node.done:before{background:#15803D}
@@ -89,7 +91,7 @@ textarea.fi{font-family:inherit;line-height:1.8;resize:vertical}
         <span class="text-[13px] font-bold text-[#1F2430]">技术需求列表</span>
         <span class="text-[12px] text-[#94A3B8]" id="cnt">共 0 条</span>
       </div>
-      <span class="text-[11px] text-[#94A3B8]">需求来源：商户端提交 + 运营代录（线下收集）；可按领域与端上「技术需求」Tab 对应</span>
+      <span class="text-[11px] text-[#94A3B8]">需求来源：<b>商户端 / 买家端提交 + 运营代录（线下收集）</b>；可按领域与端上「技术需求」Tab 对应</span>
     </div>
     <div class="overflow-x-auto">
       <table class="w-full text-[13px]" style="min-width:1440px">
@@ -161,6 +163,70 @@ var DEM=[
    mo:'both', pub:'', pubState:'草稿', state:'待对接', result:'', matchedAt:'', evalS:0, evalT:'', evalX:'',
    records:[]}
 ];
+
+/* v1.2（2026-10-19）：需求来源端 —— 商户端 / 买家端提交 / 运营代录（与 PRD v1.2 §8.2 P2 口径一致） */
+var SRCSTC={'商户端':'background:#DBEAFE;color:#2563EB','买家端':'background:#EDE9FE;color:#6D28D9','代录':'background:#F1F5F9;color:#64748B'};
+var SRC_MAP={'XQ-2026-012':'商户端','XQ-2026-014':'商户端','XQ-2026-015':'商户端','XQ-2026-016':'买家端','XQ-2026-017':'代录','XQ-2026-019':'代录'};
+DEM.forEach(function(x){x.src=SRC_MAP[x.id]||'商户端';});
+
+/* ============ v1.4（2026-10-19）：对接单 = 一次「自助对接申请」，只挂被对接的一端内容 ============
+   发起方在端上点「发起对接」并留信息 → 系统立即揭示对方联系方式 → 双方线下自行联系 → 任一方回来反馈结果
+   运营不录过程进展，仅在「代录申请 / 异常关闭 / 代反馈」时介入 */
+var DEAL=[
+ {id:'DJ-2026-0005', targetType:'成果', targetId:'CG-2026-031', targetName:'袜机断线光电检测与自动停机装置',
+  targetOwner:{org:'浙江理工大学纺织装备研究所',contact:'王×× 教授',phone:'0571-8×××××01'},
+  applicant:{type:'需求方',name:'钱××',org:'浙江××袜业股份',phone:'138****6688',intent:'120 台高速袜机断线看护改造，希望 11 月前上机'},
+  state:'待反馈',created:'2026-10-08',handler:'',
+  revealed:[{at:'2026-10-08 15:40',by:'需求方 钱××'}],result:null},
+ {id:'DJ-2026-0004', targetType:'需求', targetId:'XQ-2026-014', targetName:'再生涤纶混纺纱线稳定性提升',
+  targetOwner:{org:'大唐××针织厂',contact:'生产部 李工',phone:'139****1234'},
+  applicant:{type:'成果方',name:'李××',org:'东华大学纺织学院',phone:'021-6×××××22',intent:'可提供混纺配比与上机参数方案，已有同类案例'},
+  state:'已成交',created:'2026-08-20',handler:'',
+  revealed:[{at:'2026-08-20 14:00',by:'成果方 李××'}],
+  result:{type:'已成交',amount:80000,reason:'',note:'混纺配比方案落地，试产断头率下降 40%',at:'2026-09-05 10:20'}},
+ {id:'DJ-2026-0003', targetType:'成果', targetId:'CG-2025-019', targetName:'（旧）袜机整机节能改造方案',
+  targetOwner:{org:'浙江理工大学纺织装备研究所',contact:'王×× 教授',phone:'0571-8×××××01'},
+  applicant:{type:'需求方',name:'陈××',org:'诸暨××袜厂',phone:'137****9900',intent:'60 台 2015 年袜机提速改造'},
+  state:'未成交',created:'2026-07-20',handler:'',
+  revealed:[{at:'2026-07-20 09:00',by:'需求方 陈××'}],
+  result:{type:'未成交',amount:'',reason:'成本过高',note:'改造投入接近新机价格，企业选择购置新机',at:'2026-07-28 16:00'}},
+ {id:'DJ-2026-0002', targetType:'需求', targetId:'XQ-2026-016', targetName:'袜品外观瑕疵 AI 视觉检测',
+  targetOwner:{org:'义乌××袜业（大唐生产基地）',contact:'品质部 张工',phone:'137****5566'},
+  applicant:{type:'成果方',name:'张××',org:'江南大学人工智能学院',phone:'0510-8×××××33',intent:'已有袜品瑕疵检测模型，可提供 200 张样本评估'},
+  state:'待反馈',created:'2026-10-05',handler:'',
+  revealed:[{at:'2026-10-05 11:00',by:'成果方 张××'}],result:null},
+ {id:'DJ-2026-0006', targetType:'需求', targetId:'XQ-2026-017', targetName:'（原）老旧袜机提速改造',
+  targetOwner:{org:'诸暨××袜厂',contact:'设备科 陈工',phone:'137****9900'},
+  applicant:{type:'成果方',name:'王××',org:'浙江理工大学纺织装备研究所',phone:'0571-8×××××01',intent:'可先做设备寿命与经济性评估'},
+  state:'未成交',created:'2026-07-20',handler:'',
+  revealed:[{at:'2026-07-20 09:10',by:'成果方 王××'}],
+  result:{type:'未成交',amount:'',reason:'成本过高',note:'设备接近寿命末期，改造不经济',at:'2026-07-28 16:00'}},
+ {id:'DJ-2026-0001', targetType:'成果', targetId:'CG-2026-036', targetName:'针织车间能耗监测与节能优化方案',
+  targetOwner:{org:'浙江省纺织测试研究院',contact:'周老师',phone:'0571-8×××××44'},
+  applicant:{type:'需求方',name:'周××',org:'诸暨××针织',phone:'136****9900',intent:'车间电/气能耗监测，预算 20-30 万'},
+  state:'已关闭',created:'2026-08-28',handler:'产业服务 何静',
+  revealed:[{at:'2026-08-28 09:30',by:'需求方 周××'}],
+  result:null,closeReason:'联系不上申请方（3 次未接），运营关闭'}
+];
+
+/* 派生：需求展示状态由「需求被对接」的申请推导（DEM.records 仅作展示缓存） */
+function syncDemand(){
+  DEM.forEach(function(x){
+    if(x.pubState==='草稿'){return;}
+    var ds=DEAL.filter(function(d){return d.targetType==='需求'&&d.targetId===x.id;});
+    var hasOK=false,hasPending=false;
+    x.records=[];x.result='';x.matchedAt='';x.state='待对接';x.deals=ds.length;
+    ds.forEach(function(d){
+      x.records.push({t:d.created,to:'发起方：'+d.applicant.org+'（'+d.applicant.type+'）',way:'自助对接',by:d.applicant.name,txt:d.applicant.intent});
+      if(d.state==='已成交'){hasOK=true;x.matchedAt=(d.result&&d.result.at)||'';}
+      if(d.state==='待反馈'){hasPending=true;}
+    });
+    if(hasOK){x.result='成功';x.state='已匹配';}
+    else if(hasPending){x.state='对接中';}
+    else if(ds.length){x.result='失败';x.state='已关闭';}
+  });
+}
+syncDemand();
 var curRows=DEM.slice(),curId=null,curRec=null;
 var tid;
 function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},3100);}
@@ -204,14 +270,12 @@ function render(){
   });
   var h='';
   rows.forEach(function(x){
-    var ops='<span class="lk-gray" onclick="openDetail(\''+x.id+'\')">对接详情</span>';
+    var dnum=DEAL.filter(function(d){return d.targetType==='需求'&&d.targetId===x.id;}).length;
+    var ops='<span class="lk" onclick="openAppPanel(\'需求\',\''+x.id+'\')">对接申请('+dnum+')</span> · <span class="lk-gray" onclick="openDetail(\''+x.id+'\')">需求详情</span>';
     if(x.pubState==='草稿'){ops='<span class="lk" onclick="openEdit(\''+x.id+'\')">编辑</span> · <span class="lk" onclick="publish(\''+x.id+'\')">发布</span> · '+ops+' · <span class="lk-gray" onclick="delD(\''+x.id+'\')">删除</span>';}
     else{
-      if(x.state==='待对接'||x.state==='对接中'){ops='<span class="lk" onclick="openRecord(\''+x.id+'\')">登记对接</span> · '+ops;}
-      if(x.state==='对接中'){ops='<span class="lk" onclick="openResult(\''+x.id+'\')">登记结果</span> · '+ops;}
-      if(x.state==='已匹配'){ops='<span class="lk" onclick="openEval(\''+x.id+'\')">评价</span> · '+ops;}
-      if(x.state==='待对接'){ops='<span class="lk-gray" onclick="closeD(\''+x.id+'\')">关闭</span> · '+ops;}
       ops+=' · <span class="lk-gray" onclick="openEdit(\''+x.id+'\')">编辑</span>';
+      if(x.state==='待对接'){ops+=' · <span class="lk-gray" onclick="closeD(\''+x.id+'\')">关闭</span>';}
     }
     var res=(x.result?('<span class="tag" style="'+((x.result==='成功')?'background:#DCFCE7;color:#15803D':'background:#FEE2E2;color:#B91C1C')+'">'+esc(x.result)+'</span>'):'<span class="text-[#94A3B8]">—</span>');
     var ev=(x.evalS?('<div class="star mt-0.5" style="font-size:11px">'+'★'.repeat(x.evalS)+' '+x.evalS.toFixed(1)+' <span class="text-[10px] text-[#94A3B8]">'+esc(x.evalT)+'</span></div>'):'');
@@ -219,7 +283,7 @@ function render(){
       +'<td class="px-4 py-3" style="max-width:330px"><div class="font-medium text-[#1F2430]">'+esc(x.title)+'</div>'
         +'<div class="text-[11px] text-[#94A3B8] mt-0.5">'+esc(x.id)+'　'+esc(x.diff.slice(0,26))+'…</div>'
         +(isOver(x)?'<div class="text-[11px] mt-0.5" style="color:#E63E20"><i class="fas fa-triangle-exclamation mr-1"></i>超期未对接（已 '+days(x)+' 天）</div>':'')+'</td>'
-      +'<td class="px-4 py-3 text-[12px]">'+esc(x.by)+'<div class="text-[11px] text-[#94A3B8]">'+esc(x.contact)+'</div></td>'
+      +'<td class="px-4 py-3 text-[12px]">'+esc(x.by)+'<div class="mt-0.5"><span class="tag" style="'+(SRCSTC[x.src]||SRCSTC['代录'])+'">'+esc(x.src)+'</span></div><div class="text-[11px] text-[#94A3B8] mt-0.5">'+esc(x.contact)+'</div></td>'
       +'<td class="px-4 py-3"><span class="tag" style="background:#DBEAFE;color:#2563EB">'+esc(x.field)+'</span></td>'
       +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(x.budget)+'<div class="text-[11px] text-[#94A3B8]">'+esc(x.cycle)+'</div></td>'
       +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+(x.pub?esc(x.pub)+'<div class="text-[11px] text-[#94A3B8]">已 '+days(x)+' 天</div>':'<span class="st" style="'+PSTC['草稿']+'">草稿未发布</span>')+'</td>'
@@ -273,7 +337,7 @@ function openEdit(id){
   h+='<div class="blk"><div class="blk-t"><i class="fas fa-lightbulb text-[#FF4D2D]"></i>需求基本信息</div>'
     +'<div class="mb-3"><label class="fl">需求标题</label><input class="fi" id="d-title" value="'+(x?esc(x.title):'')+'" placeholder="例：高速袜机断线自动停机改造"></div>'
     +'<div class="grid grid-cols-2 gap-3">'
-    +'<div><label class="fl">提出方（企业）</label><input class="fi" id="d-by" value="'+(x?esc(x.by):'')+'" placeholder="如：浙江××袜业股份（可关联 04 商户档案）"></div>'
+    +'<div><label class="fl">提出方（企业）</label><input class="fi" id="d-by" value="'+(x?esc(x.by):'')+'" placeholder="如：浙江××袜业股份（可关联 04 商户档案）"><div class="text-[11px] text-[#94A3B8] mt-1">来源端：'+(x?esc(x.src):'代录（运营新增）')+(x?'　（由提交端写入，不可修改）':'')+'</div></div>'
     +'<div><label class="fl">技术领域</label><select class="sel" id="d-field">'+FIELDS.map(function(f){return '<option'+(x&&x.field===f?' selected':'')+'>'+f+'</option>';}).join('')+'</select></div>'
     +'<div><label class="fl">期望投入</label><input class="fi" id="d-budget" value="'+(x?esc(x.budget):'')+'" placeholder="如 10–20 万元 / 面议"></div>'
     +'<div><label class="fl">期望周期</label><input class="fi" id="d-cycle" value="'+(x?esc(x.cycle):'')+'" placeholder="如 3 个月"></div>'
@@ -305,7 +369,8 @@ function saveEdit(pub){
   var x=curId?dOf(curId):null;
   var data={title:title, by:by, field:document.getElementById('d-field').value, budget:document.getElementById('d-budget').value.trim()||'面议',
     cycle:document.getElementById('d-cycle').value.trim()||'—', contact:document.getElementById('d-contact').value.trim()||'—',
-    mo:document.getElementById('d-mo').value, desc:desc, diff:document.getElementById('d-diff').value.trim()};
+    mo:document.getElementById('d-mo').value, desc:desc, diff:document.getElementById('d-diff').value.trim(),
+    src:(x?x.src:'代录')};
   if(x){for(var k in data){x[k]=data[k];}if(pub){x.pubState='已发布';x.pub=x.pub||TODAY;}}
   else{
     data.id='XQ-2026-0'+(20+DEM.length);data.pubState=pub?'已发布':'草稿';data.pub=pub?TODAY:'';data.state='待对接';
@@ -346,7 +411,7 @@ function openDetail(id){
   }else{
     h+='<p class="text-[12px] text-[#94A3B8]">'+(isOver(x)?'<span style="color:#E63E20">发布已 '+days(x)+' 天仍无对接记录（超期未对接）：请尽快匹配高校 / 成果 / 服务商</span>':'暂无对接记录：点击下方「登记对接」发起首次对接')+'</p>';
   }
-  h+='<div class="flex justify-end mt-2"><button class="btn btn-ghost" onclick="openRecord(\''+x.id+'\')"><i class="fas fa-plus mr-1"></i>登记对接</button></div></div>';
+  h+='<div class="flex justify-end mt-2"><button class="btn btn-ghost" onclick="closeAll();openAppPanel(\'需求\',\''+x.id+'\')"><i class="fas fa-handshake mr-1"></i>对接申请（查看 / 代录）</button></div></div>';
   if(x.result){
     h+='<div class="blk" style="border-color:'+(x.result==='成功'?'#BBF7D0':'#FECACA')+';background:'+(x.result==='成功'?'#F0FDF4':'#FEF2F2')+'">'
       +'<div class="blk-t" style="color:'+(x.result==='成功'?'#15803D':'#B91C1C')+'"><i class="fas '+(x.result==='成功'?'fa-circle-check':'fa-circle-xmark')+'"></i>对接结果：'+esc(x.result)+'</div>'
@@ -357,8 +422,8 @@ function openDetail(id){
   }
   h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
     +'<button class="btn btn-ghost" onclick="closeAll()">关闭</button>'
-    +(x.state==='对接中'?'<button class="btn btn-primary" onclick="openResult(\''+x.id+'\')">登记结果</button>':'')
-    +(x.state==='已匹配'&&!x.evalS?'<button class="btn btn-primary" onclick="openEval(\''+x.id+'\')">评价</button>':'')
+    +(x.state==='已匹配'&&!x.evalS?'<button class="btn btn-ghost" onclick="closeAll();openEval(\''+x.id+'\')">代录评价</button>':'')
+    +'<button class="btn btn-primary" onclick="closeAll();openAppPanel(\'需求\',\''+x.id+'\')">对接申请</button>'
     +'</div>';
   show('drawer',h);
 }
@@ -452,6 +517,187 @@ function doEval(){
   x.evalX=document.getElementById('e-txt').value.trim();
   renderStats();render();closeAll();
   toast('已提交评价：'+x.id+'　'+x.evalS.toFixed(1)+' 分 · '+x.evalT+'（计入满意度评分与提供方评分）');
+}
+
+/* ============ v1.4：自助对接申请（运营只看与兜底，不录过程进展） ============ */
+var RF={'技术不匹配':'','成本过高':'','周期不满足':'','对方无意向':'','企业放弃':'','其他':''};
+var CLOSE_REASON=['联系不上申请方','被投诉 / 疑似中介','内容已失效','重复申请','其他'];
+function appsOf(type,id){return DEAL.filter(function(d){return d.targetType===type&&d.targetId===id;});}
+function appOf(id){return DEAL.filter(function(d){return d.id===id;})[0];}
+function ast(s){var m={'待反馈':'background:#FEF3C7;color:#B45309','已成交':'background:#DCFCE7;color:#15803D','未成交':'background:#FEE2E2;color:#B91C1C','已关闭':'background:#F1F5F9;color:#64748B'};return '<span class="st" style="'+(m[s]||'')+'">'+esc(s)+'</span>';}
+function nextAppId(){return 'DJ-2026-'+String(DEAL.length+1).padStart(4,'0');}
+function appTargetName(type,id){
+  if(type==='需求'&&typeof dOf==='function'){return (dOf(id)||{}).title||id;}
+  if(type==='成果'&&typeof aOf==='function'){return (aOf(id)||{}).name||id;}
+  return id;
+}
+function resync(){
+  if(typeof syncDemand==='function'){syncDemand();}
+  if(typeof syncAchv==='function'){syncAchv();}
+  renderStats();render();
+}
+
+function openAppPanel(type,id){
+  var name=appTargetName(type,id),ds=appsOf(type,id);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">对接申请　'+esc(name)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(type)+'　'+esc(id)+'　共 '+ds.length+' 条申请</p></div>'
+    +'<button class="btn btn-ghost" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div class="rounded-xl border p-3" style="border-color:#DBEAFE;background:#EFF6FF"><p class="text-[11px] text-[#64748B]"><b>自助对接（v1.4）</b>：双方在端上点「发起对接」→ 系统<b>立即揭示对方联系方式</b> → 双方线下自行联系 → 任一方回来<b>反馈结果</b>。运营<b>不录过程进展</b>，只做代录与异常处理。</p></div>';
+  if(!ds.length){h+='<div class="text-[12px] text-[#94A3B8] py-8 text-center">暂无对接申请 —— 内容发布后，等待另一方在端上发起</div>';}
+  ds.forEach(function(d){
+    h+='<div class="blk">'
+      +'<div class="flex items-start justify-between">'
+      +'<div style="flex:1;min-width:0">'
+      +'<b class="text-[13px] text-[#1F2430]">'+esc(d.id)+'</b> '+ast(d.state)
+      +'<div class="text-[11px] text-[#64748B] mt-1"><i class="fas fa-user mr-1"></i>发起：'+esc(d.applicant.name)+'（'+esc(d.applicant.type)+'）　'+esc(d.applicant.org)+'　'+esc(d.applicant.phone)+'</div>'
+      +'<div class="text-[11px] text-[#64748B]"><i class="fas fa-building mr-1"></i>被申请方：'+esc(d.targetOwner.org)+'　'+esc(d.targetOwner.contact)+'　'+esc(d.targetOwner.phone)+'</div>'
+      +'<div class="text-[11px] text-[#94A3B8] mt-1">诉求：'+esc(d.applicant.intent)+'</div>'
+      +'<div class="text-[11px] text-[#94A3B8]"><i class="fas fa-eye mr-1"></i>已揭示联系方式：'+((d.revealed&&d.revealed.length)?esc(d.revealed[0].at)+'　'+esc(d.revealed[0].by):'—')+'</div>'
+      +(d.result?'<div class="text-[11px] mt-1" style="color:'+(d.result.type==='已成交'?'#15803D':'#B91C1C')+'"><b>'+esc(d.result.type)+'</b>'+(d.result.type==='已成交'?'　成交 '+(d.result.amount||'未填')+' 元':'　原因 '+esc(d.result.reason))+(d.result.note?'　'+esc(d.result.note):'')+'</div>':'')
+      +(d.closeReason?'<div class="text-[11px] mt-1" style="color:#B91C1C">关闭：'+esc(d.closeReason)+'</div>':'')
+      +'</div>'
+      +'<div class="text-[11px] text-[#94A3B8] text-right" style="width:78px;flex-shrink:0">'+esc(d.created)+'<br>'+(d.handler?esc(d.handler):'—')+'</div></div>'
+      +'<div class="flex flex-wrap gap-2 mt-2.5">'
+      +(d.state==='待反馈'?'<button class="btn btn-primary" onclick="openAppFeedback(\''+d.id+'\')"><i class="fas fa-flag-checkered text-[10px] mr-1"></i>代反馈结果</button>':'')
+      +(d.state==='待反馈'?'<button class="btn btn-ghost" onclick="openAppClose(\''+d.id+'\')">异常关闭</button>':'')
+      +'<button class="btn btn-ghost" onclick="openAppView(\''+d.id+'\')">查看</button>'
+      +'</div></div>';
+  });
+  h+='</div>';
+  h+='<div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">关闭</button>'
+    +'<button class="btn btn-primary" onclick="openAppNew(\''+type+'\',\''+id+'\')"><i class="fas fa-plus mr-1"></i>代录申请（电话委托）</button></div>';
+  show('drawer',h);
+}
+
+function openAppNew(type,id){
+  var name=appTargetName(type,id);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">代录对接申请</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(name)+'　（对方电话委托，运营代为录入）</p></div>'
+    +'<button class="btn btn-ghost" onclick="closeAll();openAppPanel(\''+type+'\',\''+id+'\')"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl">发起方身份 *</label><select class="sel" id="an-type"><option>需求方</option><option>成果方</option><option>运营代录</option></select></div>'
+    +'<div><label class="fl">发起人姓名 *</label><input class="fi" id="an-name" placeholder="对接人姓名"></div>'
+    +'<div><label class="fl">发起方单位 *</label><input class="fi" id="an-org" placeholder="企业 / 高校 / 机构"></div>'
+    +'<div><label class="fl">发起方电话 *</label><input class="fi" id="an-phone" placeholder="手机 / 座机"></div>'
+    +'</div>'
+    +'<div><label class="fl">诉求说明 *</label><textarea class="fi" id="an-intent" rows="3" placeholder="对方想解决什么、期望达成什么"></textarea></div>'
+    +'<div class="rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B]">代录后：状态「待反馈」；<b>系统会记录"运营已揭示联系方式"留痕</b>；后续结果仍需任一方回来反馈（或运营代反馈）。</p></div>'
+    +'</div>';
+  h+='<div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll();openAppPanel(\''+type+'\',\''+id+'\')">取消</button>'
+    +'<button class="btn btn-primary" onclick="doAppNew(\''+type+'\',\''+id+'\')">保存</button></div>';
+  show('drawer',h);
+}
+function doAppNew(type,id){
+  var nm=document.getElementById('an-name').value.trim();
+  var org=document.getElementById('an-org').value.trim();
+  var ph=document.getElementById('an-phone').value.trim();
+  var it=document.getElementById('an-intent').value.trim();
+  if(!nm||!org||!ph||!it){toast('发起人姓名 / 单位 / 电话 / 诉求 均为必填');return;}
+  var owner={org:'—',contact:'—',phone:'—'};
+  if(type==='需求'&&typeof dOf==='function'){var x=dOf(id);owner={org:x.by,contact:x.contact,phone:''};}
+  if(type==='成果'&&typeof aOf==='function'){var a=aOf(id);owner={org:a.prov,contact:a.contact,phone:''};}
+  var d={id:nextAppId(),targetType:type,targetId:id,targetName:appTargetName(type,id),
+    targetOwner:owner,applicant:{type:document.getElementById('an-type').value,name:nm,org:org,phone:ph,intent:it},
+    state:'待反馈',created:TODAY,handler:'产业服务 王倩',
+    revealed:[{at:TODAY+' 11:50',by:'运营代录 王倩'}],result:null};
+  DEAL.push(d);resync();closeAll();openAppPanel(type,id);
+  toast('已代录对接申请 '+d.id+'（状态「待反馈」，已记录揭示留痕）');
+}
+
+function openAppFeedback(appId){
+  var d=appOf(appId);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">反馈对接结果　'+esc(d.id)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(d.applicant.org)+' ↔ '+esc(d.targetOwner.org)+'</p></div>'
+    +'<button class="btn btn-ghost" onclick="closeAll();openAppPanel(\''+d.targetType+'\',\''+d.targetId+'\')"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div><label class="fl">对接结果 *</label><div style="display:flex;gap:8px">'
+    +'<label class="flex-1" style="border:1px solid #BBF7D0;background:#F0FDF4;border-radius:10px;padding:10px;text-align:center;cursor:pointer"><input type="radio" name="ar" value="已成交" checked onchange="arMode()"> <b style="color:#15803D">已成交</b><div class="text-[10px] text-[#64748B]">双方达成合作</div></label>'
+    +'<label class="flex-1" style="border:1px solid #FECACA;background:#FEF2F2;border-radius:10px;padding:10px;text-align:center;cursor:pointer"><input type="radio" name="ar" value="未成交" onchange="arMode()"> <b style="color:#B91C1C">未成交</b><div class="text-[10px] text-[#64748B]">谈过但没成</div></label>'
+    +'</div></div>'
+    +'<div id="okBox"><label class="fl">成交 / 委托金额（元）</label><input class="fi" id="ar-amt" type="number" placeholder="如 80000（计入撮合金额）"></div>'
+    +'<div id="noBox" style="display:none"><label class="fl">未成交原因 *</label><select class="sel" id="ar-reason">'+Object.keys(RF).map(function(k){return '<option>'+k+'</option>';}).join('')+'</select></div>'
+    +'<div><label class="fl">说明 *</label><textarea class="fi" id="ar-note" rows="3" placeholder="一句话说清结果与原因"></textarea></div>'
+    +'<div class="rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B]">结果由<b>任一方反馈</b>即生效；成交后内容置「已匹配」并计入撮合指标；未成交不影响内容继续被其他人发起对接。</p></div>'
+    +'</div>';
+  h+='<div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll();openAppPanel(\''+d.targetType+'\',\''+d.targetId+'\')">取消</button>'
+    +'<button class="btn btn-primary" onclick="doAppFeedback(\''+appId+'\')">保存结果</button></div>';
+  show('drawer',h);
+}
+function arMode(){
+  var v=(document.querySelector('input[name=ar]:checked')||{}).value||'已成交';
+  document.getElementById('okBox').style.display=(v==='已成交'?'':'none');
+  document.getElementById('noBox').style.display=(v==='已成交'?'none':'');
+}
+function doAppFeedback(appId){
+  var d=appOf(appId);
+  var v=(document.querySelector('input[name=ar]:checked')||{}).value||'已成交';
+  var note=document.getElementById('ar-note').value.trim();
+  if(!note){toast('请填写说明');return;}
+  if(v==='已成交'){
+    var amt=document.getElementById('ar-amt').value;
+    d.state='已成交';d.result={type:'已成交',amount:(amt?Number(amt):''),reason:'',note:note,at:TODAY+' 12:00'};
+  }else{
+    d.state='未成交';d.result={type:'未成交',amount:'',reason:document.getElementById('ar-reason').value,note:note,at:TODAY+' 12:00'};
+  }
+  var t=d.targetType,id=d.targetId;
+  resync();closeAll();openAppPanel(t,id);
+  toast('已反馈「'+v+'」：'+d.id+'（'+(v==='已成交'?'计入撮合金额':'内容仍可被其他人对接')+'）');
+}
+
+function openAppClose(appId){
+  var d=appOf(appId);
+  var h='<div class="p-5"><h3 class="text-[15px] font-bold text-[#1F2430] mb-1">异常关闭</h3>'
+    +'<p class="text-[12px] text-[#94A3B8] mb-3">'+esc(d.id)+'　'+esc(d.applicant.org)+' ↔ '+esc(d.targetOwner.org)+'</p>'
+    +'<label class="fl">关闭原因 *</label><select class="sel mb-3" id="ac-reason">'+CLOSE_REASON.map(function(r){return '<option>'+r+'</option>';}).join('')+'</select>'
+    +'<label class="fl">说明 *</label><textarea class="fi mb-3" id="ac-note" rows="2" placeholder="如：3 次拨打未接，已短信告知"></textarea>'
+    +'<div class="rounded-xl border p-3 mb-4" style="border-color:#FECACA;background:#FEF2F2"><p class="text-[11px] text-[#64748B]">关闭仅用于<b>异常兜底</b>（联系不上 / 投诉 / 内容失效）；正常谈不成请用「代反馈结果 → 未成交」。</p></div>'
+    +'<div class="flex justify-end gap-2"><button class="btn btn-ghost" onclick="closeAll();openAppPanel(\''+d.targetType+'\',\''+d.targetId+'\')">取消</button>'
+    +'<button class="btn btn-danger" onclick="doAppClose(\''+appId+'\')">确认关闭</button></div></div>';
+  show('modal',h);
+}
+function doAppClose(appId){
+  var d=appOf(appId);
+  var note=document.getElementById('ac-note').value.trim();
+  if(!note){toast('请填写说明');return;}
+  d.state='已关闭';d.closeReason=document.getElementById('ac-reason').value+'：'+note;d.handler='产业服务 王倩';
+  var t=d.targetType,id=d.targetId;
+  resync();closeAll();openAppPanel(t,id);
+  toast('已关闭申请 '+d.id+'（原因：'+document.getElementById('ac-reason').value+'）');
+}
+
+function openAppView(appId){
+  var d=appOf(appId);
+  var seq='';
+  seq+='<div class="tli"><span class="text-[11px] text-[#94A3B8] mr-2">'+esc(d.created)+'</span><b>发起对接</b>：'+esc(d.applicant.name)+'（'+esc(d.applicant.type)+'）提交申请';
+  seq+='<div class="text-[11px] text-[#94A3B8]">诉求：'+esc(d.applicant.intent)+'</div></div>';
+  (d.revealed||[]).forEach(function(r){seq+='<div class="tli"><span class="text-[11px] text-[#94A3B8] mr-2">'+esc(r.at)+'</span><b>揭示联系方式</b>：'+esc(r.by)+'（系统自动留痕）</div>';});
+  if(d.result){seq+='<div class="tli"><span class="text-[11px] text-[#94A3B8] mr-2">'+esc(d.result.at)+'</span><b>'+esc(d.result.type)+'</b>'+(d.result.type==='已成交'?'　成交 '+(d.result.amount||'未填')+' 元':'　原因 '+esc(d.result.reason))+'　'+esc(d.result.note)+'</div>';}
+  if(d.closeReason){seq+='<div class="tli"><span class="text-[11px] text-[#94A3B8] mr-2">—</span><b>运营关闭</b>：'+esc(d.closeReason)+'</div>';}
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">申请详情　'+esc(d.id)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(d.targetType)+'　'+esc(d.targetName)+'　'+ast(d.state)+'</p></div>'
+    +'<button class="btn btn-ghost" onclick="closeAll();openAppPanel(\''+d.targetType+'\',\''+d.targetId+'\')"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div class="blk"><div class="blk-t"><i class="fas fa-arrows-left-right text-[#2563EB]"></i>双方信息</div>'
+    +'<div class="kv"><span class="k">发起方</span><span>'+esc(d.applicant.name)+'（'+esc(d.applicant.type)+'）　'+esc(d.applicant.org)+'　'+esc(d.applicant.phone)+'</span></div>'
+    +'<div class="kv"><span class="k">被申请方</span><span>'+esc(d.targetOwner.org)+'　'+esc(d.targetOwner.contact)+'　'+esc(d.targetOwner.phone)+'</span></div>'
+    +'<div class="kv"><span class="k">对接内容</span><span>'+esc(d.targetName)+'（'+esc(d.targetType)+' '+esc(d.targetId)+'）</span></div>'
+    +'</div>'
+    +'<div class="blk"><div class="blk-t"><i class="fas fa-timeline text-[#7C3AED]"></i>流转记录</div><div class="tl">'+seq+'</div></div>'
+    +'</div>';
+  h+='<div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll();openAppPanel(\''+d.targetType+'\',\''+d.targetId+'\')">返回</button>'
+    +(d.state==='待反馈'?'<button class="btn btn-primary" onclick="closeAll();openAppFeedback(\''+d.id+'\')">代反馈结果</button>':'')
+    +'</div>';
+  show('drawer',h);
 }
 
 /* ============ 基础 ============ */

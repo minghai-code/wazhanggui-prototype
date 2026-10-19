@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>发布岗位 - 袜掌柜商户版</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--bg:#F0F6FF}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+.card{transition:transform .16s ease}.card:active{transform:scale(.985)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,40,80,.06)}
+.inp{width:100%;background:rgba(248,249,250,.8);border:1px solid rgba(240,240,240,.8);border-radius:12px;padding:11px 13px;font-size:13px;color:#1F2430;outline:none}
+.inp::placeholder{color:#C0C0C0}.inp:focus{border-color:#2563EB;background:#fff}
+.lbl{font-size:11px;color:#6b7080;font-weight:500;display:block;margin-bottom:6px}.lbl b{color:#2563EB}
+.tag-opt{font-size:11px;color:#6b7080;background:#fff;border:1px solid #eceef0;border-radius:10px;padding:6px 12px;cursor:pointer}
+.tag-opt.on{border-color:#2563EB;color:#2563EB;background:#EFF6FF;font-weight:600}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:900;opacity:0;transition:.2s;max-width:80%;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.mask{position:fixed;inset:0;z-index:300;display:none;align-items:flex-end}
+.mask.on{display:flex}
+.mask .bd{position:absolute;inset:0;background:rgba(15,23,42,.45)}
+.sheet{position:relative;width:100%;background:#fff;border-radius:22px 22px 0 0;padding:4px 0 18px;max-height:80vh;display:flex;flex-direction:column}
+.no-bar::-webkit-scrollbar{display:none}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<!-- 顶部 -->
+<div class="relative px-4 pt-2 pb-5 overflow-hidden" style="background:linear-gradient(135deg,#2563EB 0%,#1D4ED8 55%,#0EA5E9 100%)">
+  <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-50" style="background:#60A5FA"></div>
+  <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+  </div>
+  <div class="relative flex items-center gap-3 mt-1">
+    <a href="shanghu-recruit.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+    <div><span class="text-white font-extrabold text-[18px]" id="hTitle">发布岗位</span>
+    <p class="text-white/85 text-[10px] mt-0.5">提交后由平台审核（预计 4 小时内完成）</p></div>
+  </div>
+</div>
+
+<div class="px-3 pt-4 pb-24">
+  <!-- 驳回原因 -->
+  <div id="rejectBox" style="display:none" class="bg-rose-50 border border-rose-100 rounded-2xl p-3.5 mb-3">
+    <p class="text-[12px] font-bold text-rose-600"><i class="fas fa-circle-exclamation mr-1"></i>驳回原因</p>
+    <p class="text-[11px] text-rose-500 mt-1 leading-relaxed" id="rejectTxt">—</p>
+    <p class="text-[10px] text-rose-400 mt-1">修改后重新提交，版本 +1，历史驳回原因保留。</p>
+  </div>
+
+  <!-- 基本信息 -->
+  <div class="bg-white rounded-2xl shadow-soft p-3.5 mb-3">
+    <p class="text-[12px] font-bold text-gray-800 mb-3">基本信息</p>
+    <div class="mb-3"><label class="lbl">工种 <b>*</b></label>
+      <a onclick="openCat()" class="flex items-center justify-between inp cursor-pointer"><span id="catTxt" class="text-[13px] text-gray-400">请选择工种（可搜索）</span><i class="fas fa-chevron-down text-gray-300 text-[10px]"></i></a>
+    </div>
+    <div class="mb-1"><label class="lbl">岗位名称 <b>*</b></label><input class="inp" id="fTitle" placeholder="如：挡车工（两班倒）"></div>
+  </div>
+
+  <!-- 招聘单位 -->
+  <div class="bg-white rounded-2xl shadow-soft p-3.5 mb-3">
+    <p class="text-[12px] font-bold text-gray-800 mb-3">招聘单位</p>
+    <div class="flex gap-1.5 mb-2">
+      <span class="tag-opt on" onclick="pickUnit(this,'own')">关联本企业</span>
+      <span class="tag-opt" onclick="pickUnit(this,'other')">非库中单位</span>
+    </div>
+    <div id="ownUnit" class="bg-gray-50 rounded-xl px-3 py-2.5 text-[12px] text-gray-700">大唐袜业旗舰 · 李老板 · 138****8000</div>
+    <input id="otherUnit" class="inp" style="display:none" placeholder="输入非库中招聘单位名称">
+    <div class="grid grid-cols-2 gap-2 mt-3">
+      <div><label class="lbl">联系人 <b>*</b></label><input class="inp" value="李老板"></div>
+      <div><label class="lbl">联系方式 <b>*</b></label><input class="inp" value="138****8000"></div>
+    </div>
+    <div class="mt-2"><label class="lbl">工作地址</label><input class="inp" value="诸暨市大唐袜业城 1F-A08"></div>
+  </div>
+
+  <!-- 招聘条件 -->
+  <div class="bg-white rounded-2xl shadow-soft p-3.5 mb-3">
+    <p class="text-[12px] font-bold text-gray-800 mb-3">招聘条件</p>
+    <div class="grid grid-cols-3 gap-2 mb-3">
+      <div><label class="lbl">招聘人数 <b>*</b></label><input class="inp" id="fNum" value="12" type="number"></div>
+      <div><label class="lbl">薪资下限</label><input class="inp" id="fMin" value="6500" type="number" placeholder="元/月"></div>
+      <div><label class="lbl">薪资上限</label><input class="inp" id="fMax" value="9000" type="number" placeholder="元/月"></div>
+    </div>
+    <div class="mb-3"><label class="lbl">工作经验</label>
+      <div class="flex flex-wrap gap-1.5" id="expBox">
+        <span class="tag-opt" onclick="pickOne('#expBox',this)">不限</span><span class="tag-opt on" onclick="pickOne('#expBox',this)">1 年以上</span><span class="tag-opt" onclick="pickOne('#expBox',this)">3 年以上</span><span class="tag-opt" onclick="pickOne('#expBox',this)">5 年以上</span>
+      </div>
+    </div>
+    <div><label class="lbl">公司福利（可多选）</label>
+      <div class="flex flex-wrap gap-1.5" id="welfareBox">
+        <span class="tag-opt" onclick="this.classList.toggle('on')">包住</span><span class="tag-opt" onclick="this.classList.toggle('on')">五险</span><span class="tag-opt" onclick="this.classList.toggle('on')">餐补</span><span class="tag-opt" onclick="this.classList.toggle('on')">加班补贴</span><span class="tag-opt" onclick="this.classList.toggle('on')">年终奖</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 职位描述 -->
+  <div class="bg-white rounded-2xl shadow-soft p-3.5">
+    <p class="text-[12px] font-bold text-gray-800 mb-3">职位描述</p>
+    <textarea class="inp" id="fDesc" rows="4" placeholder="描述岗位职责、要求、工作时间等"></textarea>
+  </div>
+</div>
+
+<!-- 底部 -->
+<div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-3 py-2.5 flex gap-2" style="z-index:100;width:393px;padding-bottom:18px">
+  <a href="shanghu-recruit.html" class="flex-1 py-3 rounded-xl border border-gray-200 text-[13px] text-gray-600 font-medium text-center">取消</a>
+  <a onclick="submitJob()" class="flex-1 py-3 rounded-xl text-white text-[13px] font-bold text-center" style="background:linear-gradient(135deg,#2563EB,#0EA5E9)">提交审核</a>
+</div>
+
+<!-- 工种选择 -->
+<div id="catMask" class="mask">
+  <div class="bd" onclick="closeCat()"></div>
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="w-10 h-1 rounded-full bg-gray-200 mx-auto my-2"></div>
+    <p class="text-[15px] font-extrabold text-gray-900 text-center">选择工种</p>
+    <div class="px-3 mt-2"><input id="catKw" class="inp" placeholder="搜索工种，如：挡车" oninput="renderCats()"></div>
+    <div class="px-3 mt-2 overflow-y-auto no-bar" style="max-height:52vh" id="catList"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span id="toastTxt">操作成功</span></div>
+<script>
+var toastTimer;function toast(m){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=m;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},1800)}
+function closeCat(){document.getElementById('catMask').classList.remove('on');}
+function pickOne(sel,el){document.querySelectorAll(sel+' .tag-opt').forEach(function(a){a.classList.remove('on')});el.classList.add('on');}
+// 21 项工种字典
+var CATS=[
+ '袜子机械工种-机械缝头装配工','袜子机械工种-机械精装工(车床)','袜子机械工种-机械小装配工','袜子机械工种-机械大装配工',
+ '织袜车间-织袜行业工种-织袜档车工','织袜车间-织袜行业工种-质检','织袜车间-织袜行业工种-定型工','织袜车间-织袜行业工种-车间分包工','织袜车间-织袜行业工种-机修工',
+ '前纺-原料行业工种-投料工','前纺-原料行业工种-纺丝工','前纺-原料行业工种-辅助工','前纺-原料行业工种-组件工','前纺-原料行业工种-前纺保全工','前纺-原料行业工种-包装工','前纺-原料行业工种-卷绕工','前纺-原料行业工种-质检员',
+ '后纺-原料行业工种-加弹工','后纺-原料行业工种-后纺保全工','原料行业工种-电工','其他-其他'
+];
+var selCat='';
+function openCat(){document.getElementById('catKw').value='';renderCats();document.getElementById('catMask').classList.add('on');}
+function renderCats(){
+  var kw=document.getElementById('catKw').value.trim();
+  var arr=CATS.filter(function(c){return !kw||c.indexOf(kw)>-1;});
+  document.getElementById('catList').innerHTML=arr.length?arr.map(function(c){return '<a onclick="chooseCat(\''+c+'\')" class="flex items-center justify-between px-3 py-2.5 border-b border-gray-50 text-[12px] text-gray-700">'+c+'<i class="fas fa-chevron-right text-gray-300 text-[10px]"></i></a>';}).join(''):'<p class="text-center text-[12px] text-gray-400 py-6">未找到工种</p>';
+}
+function chooseCat(c){selCat=c;document.getElementById('catTxt').textContent=c;document.getElementById('catTxt').className='text-[13px] text-gray-800';closeCat();}
+function pickUnit(el,type){document.querySelectorAll('.tag-opt').forEach(function(a){if(a.textContent==='关联本企业'||a.textContent==='非库中单位')a.classList.remove('on')});el.classList.add('on');document.getElementById('ownUnit').style.display=type==='own'?'block':'none';document.getElementById('otherUnit').style.display=type==='other'?'block':'none';}
+// 编辑（驳回重提）
+function getParam(k){var m=location.search.match(new RegExp('[?&]'+k+'=([^&]+)'));return m?decodeURIComponent(m[1]):null;}
+var editId=getParam('edit');
+if(editId){
+  document.getElementById('hTitle').textContent='编辑岗位（重提）';
+  if(editId==='3'){document.getElementById('rejectBox').style.display='block';document.getElementById('rejectTxt').textContent='薪资范围与岗位描述不一致，请修改后重提。';document.getElementById('fTitle').value='包装工（女工优先）';document.getElementById('fNum').value='8';document.getElementById('fMin').value='5000';document.getElementById('fMax').value='6500';selCat='前纺-原料行业工种-包装工';document.getElementById('catTxt').textContent=selCat;document.getElementById('catTxt').className='text-[13px] text-gray-800';}
+}
+function submitJob(){
+  if(!selCat){toast('请选择工种');return;}
+  var t=document.getElementById('fTitle').value.trim();
+  if(!t){toast('请填写岗位名称');return;}
+  var num=parseInt(document.getElementById('fNum').value,10);
+  if(!num||num<=0){toast('招聘人数需为正整数');return;}
+  var mn=document.getElementById('fMin').value, mx=document.getElementById('fMax').value;
+  if(mn&&mx&&parseInt(mn,10)>parseInt(mx,10)){toast('薪资下限不能大于上限');return;}
+  toast('已提交平台审核，预计 4 小时内完成');
+  setTimeout(function(){location.href='shanghu-recruit.html';},900);
+}
+</script>
+</body>
+</html>

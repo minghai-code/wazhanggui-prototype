@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>优惠券 - 袜掌柜商户版</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--bg:#F0F6FF}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+.card{transition:transform .16s ease}.card:active{transform:scale(.985)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,40,80,.06)}
+.chip{font-size:11px;color:#6b7080;background:#fff;border:1px solid #eceef0;border-radius:999px;padding:5px 12px;white-space:nowrap;cursor:pointer}
+.chip.on{color:#fff;font-weight:700;background:#2563EB;border-color:#2563EB}
+.no-bar::-webkit-scrollbar{display:none}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:900;opacity:0;transition:.2s;max-width:80%;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<div class="relative px-4 pt-2 pb-5 overflow-hidden" style="background:linear-gradient(135deg,#3B82F6 0%,#2563EB 55%,#1D4ED8 100%)">
+  <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-50" style="background:#60A5FA"></div>
+  <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+  </div>
+  <div class="relative flex items-center justify-between mt-1">
+    <a href="workbench.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+    <div class="text-center"><p class="text-white font-extrabold text-[18px]">优惠券</p><p class="text-white/75 text-[9px]">营销工具</p></div>
+    <a onclick="toast('新建优惠券（演示）')" class="text-white text-[12px] font-bold"><i class="fas fa-plus mr-0.5"></i>新建</a>
+  </div>
+</div>
+
+<!-- 统计 -->
+<div class="px-3 -mt-3 relative z-10">
+  <div class="bg-white rounded-2xl shadow-soft px-3 py-3 flex items-center justify-around">
+    <div class="text-center"><p class="text-[17px] font-extrabold" style="color:#2563EB" id="s1">0</p><p class="text-[9px] text-gray-400 mt-0.5">发放中</p></div>
+    <div class="w-px h-8 bg-gray-100"></div>
+    <div class="text-center"><p class="text-[17px] font-extrabold" style="color:#0EA5E9" id="s2">0</p><p class="text-[9px] text-gray-400 mt-0.5">已领取</p></div>
+    <div class="w-px h-8 bg-gray-100"></div>
+    <div class="text-center"><p class="text-[17px] font-extrabold" style="color:#10B981" id="s3">0</p><p class="text-[9px] text-gray-400 mt-0.5">已核销</p></div>
+  </div>
+</div>
+
+<div class="px-3 mt-3 pb-16">
+  <div class="flex gap-1.5 mb-2.5 overflow-x-auto no-bar" id="chips"></div>
+  <div class="space-y-2.5" id="list"></div>
+  <div class="bg-blue-50/70 border border-blue-100 rounded-2xl p-3.5 mt-3">
+    <p class="text-[10px] text-blue-700 leading-relaxed"><i class="fas fa-circle-info mr-1"></i>优惠券由商户自行创建并发放，买家端下单时抵扣；核销数据回传外采商城。</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span id="toastTxt">操作成功</span></div>
+<script>
+var toastTimer;function toast(m){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=m;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},1800)}
+var COUPONS=[
+ {name:'满 200 减 20',type:'满减券',face:'¥20',cond:'满 ¥200 可用',period:'2026.10.01–2026.10.31',state:'发放中',got:186,used:92},
+ {name:'新品 9 折',type:'折扣券',face:'9 折',cond:'限新品专区',period:'2026.10.10–2026.11.10',state:'发放中',got:74,used:31},
+ {name:'新人首单立减 10',type:'新人券',face:'¥10',cond:'新客首单',period:'长期有效',state:'发放中',got:320,used:210},
+ {name:'国庆满 500 减 60',type:'满减券',face:'¥60',cond:'满 ¥500 可用',period:'2026.10.01–2026.10.07',state:'已结束',got:240,used:158}
+];
+var filter='全部';
+function chipsRender(){var arr=['全部','发放中','已结束'];document.getElementById('chips').innerHTML=arr.map(function(c){return '<a onclick="setF(\''+c+'\')" class="chip'+(c===filter?' on':'')+'">'+c+'</a>';}).join('');}
+function setF(c){filter=c;chipsRender();render();}
+function render(){
+  document.getElementById('s1').textContent=COUPONS.filter(function(c){return c.state==='发放中'}).length;
+  document.getElementById('s2').textContent=COUPONS.reduce(function(a,c){return a+c.got},0);
+  document.getElementById('s3').textContent=COUPONS.reduce(function(a,c){return a+c.used},0);
+  var arr=COUPONS.filter(function(c){return filter==='全部'||c.state===filter;});
+  document.getElementById('list').innerHTML=arr.length?arr.map(function(c,i){
+    var on=c.state==='发放中';
+    return '<div class="card bg-white rounded-2xl shadow-soft px-3.5 py-3">'
+      +'<div class="flex items-center justify-between"><div class="flex items-center gap-2 min-w-0"><span class="text-[9px] font-bold px-1.5 py-0.5 rounded '+(on?'bg-blue-50 text-blue-600':'bg-gray-100 text-gray-500')+'">'+c.type+'</span><p class="text-[13px] font-bold text-gray-800 line-clamp-1">'+c.name+'</p></div>'
+      +'<span class="text-[9px] font-bold px-1.5 py-0.5 rounded '+(on?'bg-green-50 text-green-600':'bg-gray-100 text-gray-500')+'">'+c.state+'</span></div>'
+      +'<div class="flex items-end gap-2 mt-1.5"><span class="text-[20px] font-extrabold num" style="color:#2563EB">'+c.face+'</span><span class="text-[10px] text-gray-400 pb-1">'+c.cond+'</span></div>'
+      +'<p class="text-[10px] text-gray-400 mt-1">有效期 '+c.period+'</p>'
+      +'<div class="flex items-center gap-3 mt-1.5 text-[10px] text-gray-500"><span>领取 <b class="num text-gray-700">'+c.got+'</b></span><span>核销 <b class="num text-gray-700">'+c.used+'</b></span><span>核销率 <b class="num text-gray-700">'+(c.got?Math.round(c.used/c.got*100):0)+'%</b></span></div>'
+      +'<div class="flex gap-2 mt-2.5">'
+      +'<a onclick="toast(\'查看券数据（演示）\')" class="flex-1 py-2 rounded-lg border border-gray-200 text-[11px] text-gray-600 text-center">数据</a>'
+      +(on?'<a onclick="stopCoupon('+i+')" class="flex-1 py-2 rounded-lg border border-rose-200 text-[11px] text-rose-500 text-center">停止发放</a>':'<a onclick="toast(\'复制券（演示）\')" class="flex-1 py-2 rounded-lg border border-gray-200 text-[11px] text-gray-600 text-center">复制</a>')
+      +'<a onclick="toast(\'编辑优惠券（演示）\')" class="flex-1 py-2 rounded-lg text-white text-[11px] font-bold text-center" style="background:linear-gradient(135deg,#3B82F6,#2563EB)">编辑</a>'
+      +'</div></div>';
+  }).join(''):'<div class="text-center text-[12px] text-gray-400 py-10">暂无优惠券</div>';
+}
+function stopCoupon(i){var arr=COUPONS.filter(function(c){return filter==='全部'||c.state===filter;});arr[i].state='已结束';render();toast('已停止发放');}
+chipsRender();render();
+</script>
+</body>
+</html>

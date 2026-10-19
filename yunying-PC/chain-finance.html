@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>产业链服务 - 金融服务（服务商管理）</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.btn-danger{background:#DC2626;color:#fff}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}.lk:hover{text-decoration:underline}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}.lk-gray:hover{color:#1F2430;text-decoration:underline}
+.st{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500;white-space:nowrap}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:60}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:860px;max-width:97vw;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:70;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);width:720px;max-width:95vw;max-height:86vh;overflow-y:auto;background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(15,23,42,.28);opacity:0;pointer-events:none;transition:.22s;z-index:70}
+.modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+.blk{border:1px solid #E2E8F0;border-radius:12px;padding:14px 16px}
+.blk-t{font-size:12.5px;font-weight:700;color:#1F2430;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.kv{display:flex;gap:8px;font-size:12px;line-height:1.9}
+.kv .k{width:112px;flex-shrink:0;color:#94A3B8}
+.fi{width:100%;padding:6px 10px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none;background:#fff}
+.fi:focus{border-color:#FF4D2D}
+.fl{display:block;font-size:11px;color:#94A3B8;margin-bottom:4px}
+.sel{width:100%;padding:6px 8px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none}
+button{cursor:pointer}
+textarea.fi{font-family:inherit;line-height:1.8;resize:vertical}
+.tab{display:flex;gap:22px;border-bottom:1px solid #E2E8F0;margin-bottom:16px}
+.tab span{padding:9px 0;font-size:13px;color:#64748B;cursor:pointer;border-bottom:2px solid transparent}
+.tab span.on{color:#FF4D2D;border-bottom-color:#FF4D2D;font-weight:600}
+.entryrow{display:grid;grid-template-columns:110px 1fr 1fr 28px;gap:8px;align-items:center;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:8px}
+.bar{height:6px;border-radius:3px;background:#FFEDE7;overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#FF7849,#FF4D2D)}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<div class="p-6">
+
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">金融服务 · 服务商管理</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">13 产业链服务</span>
+        <span class="tag" style="background:#DCFCE7;color:#15803D">只做入口导航</span>
+        <span class="tag" style="background:#FEE2E2;color:#B91C1C">不做申请全流程</span>
+      </div>
+      <p class="text-[12px] text-gray-400 mt-1"><b>v1.0（2026-10-19 新建）</b>：本页维护<b>金融产品橱窗 + 第三方申请入口</b>（机构 / 产品 / 入口 / 上下架 / 点击统计）。<b>平台不收集融资申请、不审批、不放款</b> —— 企业点击产品后<b>直接跳转机构官方渠道</b>（招标 1.3.1"在线申请"落在机构侧）；后端<b>不存申请单、不存企业材料</b>（见 PRD Not-Doing ND-01～ND-05）</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="toast('已导出金融产品台账（机构 / 产品 / 入口形态 / 点击量 / 状态）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+      <button class="btn btn-primary" onclick="openEdit(null)"><i class="fas fa-plus mr-1"></i>新增产品</button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-5 gap-3 mb-4" id="stats"></div>
+
+  <div class="tab" id="tabs">
+    <span class="on" onclick="switchTab(0,this)">机构与产品</span>
+    <span onclick="switchTab(1,this)">点击统计与抽检</span>
+  </div>
+
+  <!-- Tab1 -->
+  <div id="pane0">
+    <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+      <div class="flex items-center gap-3 flex-wrap">
+        <input id="f-kw" type="text" placeholder="机构 / 产品名称" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary w-52">
+        <select id="f-org" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+          <option value="">全部机构类型</option><option>银行</option><option>担保</option><option>融资租赁</option><option>保理</option><option>其他</option>
+        </select>
+        <select id="f-ptype" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+          <option value="">全部产品类型</option><option>企业贷款</option><option>融资租赁</option><option>应收账款融资</option><option>其他</option>
+        </select>
+        <select id="f-state" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+          <option value="">全部状态</option><option>已上架</option><option>已下架</option><option>已过期</option>
+        </select>
+        <button class="btn btn-primary" onclick="doSearch()">查询</button>
+        <button class="btn btn-ghost" onclick="resetSearch()">重置</button>
+        <span class="text-[11px] text-[#94A3B8] ml-auto"><i class="fas fa-circle-info mr-1"></i>上架前校验：<b>至少 1 个入口 + 格式合法 + 二维码有图</b></span>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+      <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-[13px] font-bold text-[#1F2430]">金融产品橱窗</span>
+          <span class="text-[12px] text-[#94A3B8]" id="cnt">共 0 款</span>
+        </div>
+        <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-clock-rotate-left mr-1"></i>端上只展示「已上架」；过期自动隐藏</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-[13px]" style="min-width:1320px">
+          <thead>
+            <tr class="bg-gray-50 text-gray-500 text-[12px]">
+              <th class="px-4 py-3 text-left font-medium">产品名称</th>
+              <th class="px-4 py-3 text-left font-medium">机构</th>
+              <th class="px-4 py-3 text-center font-medium">产品类型</th>
+              <th class="px-4 py-3 text-left font-medium">额度 / 利率 / 期限</th>
+              <th class="px-4 py-3 text-center font-medium">申请入口</th>
+              <th class="px-4 py-3 text-center font-medium">状态</th>
+              <th class="px-4 py-3 text-center font-medium">点击</th>
+              <th class="px-4 py-3 text-center font-medium">操作</th>
+            </tr>
+          </thead>
+          <tbody id="tb" class="divide-y divide-gray-50"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab2 -->
+  <div id="pane1" style="display:none">
+    <div class="grid grid-cols-2 gap-4 mb-4">
+      <div class="bg-white rounded-xl border border-gray-100 p-4">
+        <div class="text-[13px] font-bold text-[#1F2430] mb-1">产品点击排行（本月）</div>
+        <p class="text-[11px] text-[#94A3B8] mb-3">仅统计入口点击，<b>不含企业身份与申请内容</b>（平台不收集申请资料）</p>
+        <div id="rank" class="space-y-2.5"></div>
+      </div>
+      <div class="bg-white rounded-xl border border-gray-100 p-4">
+        <div class="text-[13px] font-bold text-[#1F2430] mb-1">入口形态分布</div>
+        <p class="text-[11px] text-[#94A3B8] mb-3">H5 / 小程序 / 二维码 / 电话 / 线下网点 —— 用于判断企业更习惯哪种入口</p>
+        <div id="ways" class="space-y-2.5"></div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+      <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-[13px] font-bold text-[#1F2430]">入口抽检记录</span>
+          <span class="text-[12px] text-[#94A3B8]">每月 1 次 · 发现打不开即下架或换链</span>
+        </div>
+        <span class="text-[11px] text-[#94A3B8]">最近抽检：2026-10-18（王倩）</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-[13px]" style="min-width:900px">
+          <thead>
+            <tr class="bg-gray-50 text-gray-500 text-[12px]">
+              <th class="px-4 py-3 text-left font-medium">产品</th>
+              <th class="px-4 py-3 text-left font-medium">机构</th>
+              <th class="px-4 py-3 text-center font-medium">入口形态</th>
+              <th class="px-4 py-3 text-left font-medium">上次抽检</th>
+              <th class="px-4 py-3 text-center font-medium">结果</th>
+              <th class="px-4 py-3 text-left font-medium">备注</th>
+              <th class="px-4 py-3 text-center font-medium">操作</th>
+            </tr>
+          </thead>
+          <tbody id="tb2" class="divide-y divide-gray-50"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div id="mask" class="mask" onclick="closeAll()"></div>
+<div id="drawer" class="drawer"></div>
+<div id="modal" class="modal"></div>
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
+
+<script>
+var TODAY='2026-10-19';
+var FSTC={'已上架':'background:#DCFCE7;color:#15803D','已下架':'background:#F1F5F9;color:#64748B','已过期':'background:#FEE2E2;color:#B91C1C'};
+var PTAGC={'企业贷款':'background:#D1FAE5;color:#047857','融资租赁':'background:#DBEAFE;color:#2563EB','应收账款融资':'background:#EDE9FE;color:#6D28D9','其他':'background:#F1F5F9;color:#64748B'};
+var WAYICON={'H5':'fa-globe','小程序':'fa-mini-program','二维码':'fa-qrcode','电话':'fa-phone','线下':'fa-location-dot'};
+
+/* ===== 产品数据（6 款，覆盖三态；含入口异常与临期） ===== */
+var FIN=[
+  {id:'JR-001',org:'中国农业银行·诸暨支行',orgType:'银行',orgPhone:'0575-8878 1001',lic:'B1021-330681',
+   name:'经营贷',ptype:'企业贷款',limit:'10 万-500 万',rate:'年化 3.85% 起',term:'1-5 年',
+   tags:['无抵押','随借随还','循环额度'],target:'企业',hot:true,
+   entries:[{way:'H5',url:'https://abchina.com/cn/business/loan',note:'跳转农行企业掌银申请页'},{way:'电话',url:'0575-8878 1001',note:'对公业务部 王经理'}],
+   start:'2026-10-01',end:'2027-09-30',sort:10,state:'已上架',clicks:186,fail:2,
+   lastCheck:'2026-10-18',checkRes:'可打开',checkNote:'H5 正常；电话可拨通',
+   decl:'本产品由金融机构提供，平台仅提供入口导航，不参与审批与放款。'},
+  {id:'JR-002',org:'中国建设银行·大唐支行',orgType:'银行',orgPhone:'0575-8878 2002',lic:'B1022-330681',
+   name:'流水贷',ptype:'企业贷款',limit:'5 万-200 万',rate:'年化 4.2% 起',term:'6 个月-3 年',
+   tags:['凭流水','秒批秒贷','纯信用'],target:'企业',hot:false,
+   entries:[{way:'H5',url:'https://ccb.com/loan/flow',note:'建行惠懂你企业版'}],
+   start:'2026-09-15',end:'2027-09-14',sort:20,state:'已上架',clicks:94,fail:1,
+   lastCheck:'2026-10-18',checkRes:'可打开',checkNote:'正常',
+   decl:'本产品由金融机构提供，平台仅提供入口导航，不参与审批与放款。'},
+  {id:'JR-003',org:'诸暨农商银行',orgType:'银行',orgPhone:'0575-8878 3003',lic:'B1033-330681',
+   name:'袜业信用贷',ptype:'企业贷款',limit:'10 万-100 万',rate:'年化 4.5% 起',term:'1-3 年',
+   tags:['纯信用','无需抵押','快速审批'],target:'两者',hot:false,
+   entries:[{way:'二维码',url:'qr-jr003.png',note:'扫码进入农商行申请页'},{way:'线下',url:'诸暨市大唐街道市场路 1 号 农商行大唐支行',note:'对公窗口'}],
+   start:'2026-08-01',end:'2027-07-31',sort:30,state:'已上架',clicks:121,fail:0,
+   lastCheck:'2026-10-18',checkRes:'可打开',checkNote:'二维码可识别；网点正常营业',
+   decl:'本产品由金融机构提供，平台仅提供入口导航，不参与审批与放款。'},
+  {id:'JR-004',org:'远东宏信租赁',orgType:'融资租赁',orgPhone:'021-6888 6001',lic:'沪租备 2019-018',
+   name:'袜机融资租赁',ptype:'融资租赁',limit:'50 万-2000 万',rate:'年化 5% 起',term:'2-5 年',
+   tags:['直租回租','设备抵押','首付 30%'],target:'企业',hot:true,
+   entries:[{way:'H5',url:'https://fehorizon.com/equipment',note:'设备融资在线预审（机构页面）'}],
+   start:'2026-10-10',end:'2026-10-26',sort:40,state:'已上架',clicks:163,fail:18,
+   lastCheck:'2026-10-18',checkRes:'不可打开',checkNote:'链接 502，已通知机构；连续 3 天失败 >10 次',
+   decl:'本产品由金融机构提供，平台仅提供入口导航，不参与审批与放款。'},
+  {id:'JR-005',org:'海通恒信租赁',orgType:'融资租赁',orgPhone:'021-6888 7002',lic:'沪租备 2018-006',
+   name:'生产线融资租赁',ptype:'融资租赁',limit:'100 万-3000 万',rate:'年化 5.5% 起',term:'3-5 年',
+   tags:['整线融资','定制方案','灵活还款'],target:'企业',hot:false,
+   entries:[{way:'H5',url:'https://htfl.com/solution',note:'在线提交需求（机构页面）'}],
+   start:'2026-07-01',end:'2026-09-30',sort:50,state:'已过期',clicks:57,fail:1,
+   lastCheck:'2026-09-30',checkRes:'可打开',checkNote:'合作到期，已下架待续期',
+   decl:'本产品由金融机构提供，平台仅提供入口导航，不参与审批与放款。'},
+  {id:'JR-006',org:'招商银行保理',orgType:'保理',orgPhone:'0571-8788 9003',lic:'浙保理 2020-011',
+   name:'订单保理融资',ptype:'应收账款融资',limit:'应收账款的 80%',rate:'月费率 0.5% 起',term:'按账期',
+   tags:['无需抵押','随借随还','T+1 到账'],target:'企业',hot:false,
+   entries:[{way:'电话',url:'0571-8788 9003',note:'保理业务部'},{way:'小程序',url:'pages/factoring/apply',note:'招行企业服务小程序'}],
+   start:'2026-09-20',end:'2027-09-19',sort:60,state:'已下架',clicks:38,fail:0,
+   lastCheck:'2026-10-12',checkRes:'可打开',checkNote:'机构调整产品口径，暂停展示待更新',
+   decl:'本产品由金融机构提供，平台仅提供入口导航，不参与审批与放款。'}
+];
+
+var curRows=FIN.slice(),tid,curId='';
+var CHECKS=[
+  {pid:'JR-001',last:'2026-10-18',res:'可打开',note:'H5 正常；电话可拨通',by:'王倩'},
+  {pid:'JR-002',last:'2026-10-18',res:'可打开',note:'正常',by:'王倩'},
+  {pid:'JR-003',last:'2026-10-18',res:'可打开',note:'二维码可识别；网点正常营业',by:'王倩'},
+  {pid:'JR-004',last:'2026-10-18',res:'不可打开',note:'链接 502，已通知机构',by:'王倩'},
+  {pid:'JR-005',last:'2026-09-30',res:'可打开',note:'合作到期，待续期',by:'何敏'},
+  {pid:'JR-006',last:'2026-10-12',res:'可打开',note:'机构调整口径，暂停展示',by:'何敏'}
+];
+
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},3200);}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function st(s,c){return '<span class="st" style="'+(c||FSTC[s]||'background:#F1F5F9;color:#64748B')+'">'+esc(s)+'</span>';}
+function tag(t,c){return '<span class="tag" style="'+(c||'background:#F1F5F9;color:#64748B')+'">'+esc(t)+'</span>';}
+function fOf(id){return FIN.filter(function(x){return x.id===id;})[0];}
+function wayIcons(e){
+  return e.map(function(x){return '<i class="fas '+(WAYICON[x.way]||'fa-link')+' text-[12px] text-[#64748B] mr-1.5" title="'+esc(x.way)+'"></i>';}).join('')+'<span class="text-[10px] text-[#94A3B8]">'+e.length+' 个';
+}
+function daysToEnd(d){
+  var a=new Date(d.replace(/-/g,'/')),b=new Date(TODAY.replace(/-/g,'/'));
+  return Math.round((a-b)/86400000);
+}
+
+function renderStats(){
+  var live=FIN.filter(function(x){return x.state==='已上架';}).length;
+  var orgs={};FIN.forEach(function(x){orgs[x.org]=1;});
+  var orgN=Object.keys(orgs).length;
+  var clicks=FIN.reduce(function(s,x){return s+x.clicks;},0);
+  var bad=FIN.filter(function(x){return x.fail>=10;}).length;
+  var soon=FIN.filter(function(x){var d=daysToEnd(x.end);return x.state==='已上架'&&d>=0&&d<=7;}).length;
+  var cards=[['已上架产品',live,'#15803D'],['合作机构',orgN,'#2563EB'],['本月入口点击',clicks,'#7C3AED'],['入口异常',bad,'#B91C1C'],['7 天内到期',soon,'#B45309']];
+  document.getElementById('stats').innerHTML=cards.map(function(x){
+    return '<div class="bg-white rounded-xl border border-gray-100 p-4"><div class="text-[11px] text-[#94A3B8]">'+x[0]+'</div><div class="text-[22px] font-bold mt-1" style="color:'+x[2]+'">'+x[1]+'</div></div>';
+  }).join('');
+}
+
+function render(){
+  var tb=document.getElementById('tb');
+  if(!curRows.length){
+    tb.innerHTML='<tr><td colspan="8" class="px-4 py-16 text-center text-[13px] text-[#94A3B8]"><i class="fas fa-inbox text-[26px] block mb-2 text-[#CBD5E1]"></i>暂无符合条件的产品<br><span class="text-[11px]">点右上角「新增产品」，配置机构与第三方申请入口</span></td></tr>';
+    document.getElementById('cnt').textContent='共 0 款';
+    return;
+  }
+  tb.innerHTML=curRows.map(function(p){
+    var bad=(p.fail>=10),soon=(p.state==='已上架'&&daysToEnd(p.end)>=0&&daysToEnd(p.end)<=7);
+    var ops='<span class="lk" onclick="openDetail(\''+p.id+'\')">详情</span>'
+      +' · <span class="lk-gray" onclick="openEdit(\''+p.id+'\')">编辑</span>';
+    if(p.state==='已上架'){ops+=' · <span class="lk-gray" onclick="openOff(\''+p.id+'\')">下架</span>';}
+    else{ops+=' · <span class="lk" onclick="doOn(\''+p.id+'\')">上架</span>';}
+    if(p.clicks===0){ops+=' · <span class="lk-gray" onclick="delP(\''+p.id+'\')">删除</span>';}
+    return '<tr class="hover:bg-gray-50/60'+(bad?' style="background:#FEF2F2"':'')+'">'
+      +'<td class="px-4 py-3"><span class="font-medium text-[#1F2430]">'+esc(p.name)+'</span>'
+        +(p.hot?' <span class="tag" style="background:linear-gradient(135deg,#F97316,#EF4444);color:#fff">HOT</span>':'')
+        +(bad?'<div class="text-[10px] mt-0.5" style="color:#B91C1C"><i class="fas fa-triangle-exclamation mr-1"></i>入口异常（连续 3 天失败 >10）</div>':'')
+        +(soon?'<div class="text-[10px] mt-0.5" style="color:#B45309"><i class="fas fa-clock mr-1"></i>'+daysToEnd(p.end)+' 天后到期</div>':'')+'</td>'
+      +'<td class="px-4 py-3 text-[12px]">'+esc(p.org)+'<div class="text-[10px] text-[#94A3B8]">'+esc(p.orgType)+'</div></td>'
+      +'<td class="px-4 py-3 text-center">'+tag(p.ptype,PTAGC[p.ptype])+'</td>'
+      +'<td class="px-4 py-3 text-[11px] leading-relaxed"><b style="color:#E63E20">'+esc(p.limit)+'</b><br><span class="text-[#64748B]">'+esc(p.rate)+'　'+esc(p.term||'—')+'</span></td>'
+      +'<td class="px-4 py-3 text-center">'+wayIcons(p.entries)+'</td>'
+      +'<td class="px-4 py-3 text-center">'+st(p.state)+'</td>'
+      +'<td class="px-4 py-3 text-center text-[12px]">'+p.clicks+'<div class="text-[10px] text-[#94A3B8]">失败 '+p.fail+'</div></td>'
+      +'<td class="px-4 py-3 text-center whitespace-nowrap">'+ops+'</td>'
+      +'</tr>';
+  }).join('');
+  document.getElementById('cnt').textContent='共 '+curRows.length+' 款';
+}
+
+function doSearch(){
+  var kw=(document.getElementById('f-kw').value||'').trim();
+  var org=document.getElementById('f-org').value;
+  var pt=document.getElementById('f-ptype').value;
+  var stt=document.getElementById('f-state').value;
+  curRows=FIN.filter(function(p){
+    if(kw&&(p.org+p.name).indexOf(kw)<0) return false;
+    if(org&&p.orgType!==org) return false;
+    if(pt&&p.ptype!==pt) return false;
+    if(stt&&p.state!==stt) return false;
+    return true;
+  });
+  render();
+}
+function resetSearch(){
+  document.getElementById('f-kw').value='';
+  document.getElementById('f-org').value='';
+  document.getElementById('f-ptype').value='';
+  document.getElementById('f-state').value='';
+  curRows=FIN.slice();render();
+}
+
+/* ===== 上架 / 下架 / 删除 ===== */
+function checkEntry(p){
+  if(!p.entries||!p.entries.length) return '至少配置 1 个申请入口';
+  for(var i=0;i<p.entries.length;i++){
+    var e=p.entries[i];
+    if(!e.url) return '入口「'+e.way+'」缺少地址';
+    if(e.way==='H5'&&!/^https?:\/\//.test(e.url)) return 'H5 入口需以 http(s):// 开头';
+    if(e.way==='电话'&&!/^[\d\-\s]{7,20}$/.test(e.url)) return '电话入口格式不正确';
+  }
+  return '';
+}
+function doOn(id){
+  var p=fOf(id);
+  var err=checkEntry(p);
+  if(err){toast('无法上架：'+err);return;}
+  p.state='已上架';
+  renderStats();render();
+  toast('已上架：'+p.name+'（端上 5 分钟内可见）');
+}
+function openOff(id){
+  var p=fOf(id);
+  var h='<div class="p-5"><h3 class="text-[15px] font-bold text-[#1F2430] mb-1">下架产品</h3>'
+    +'<p class="text-[12px] text-[#94A3B8] mb-3">'+esc(p.name)+'　'+esc(p.org)+'</p>'
+    +'<label class="fl">下架原因 *</label><select class="sel mb-4" id="off-reason"><option>入口失效</option><option>合作终止</option><option>信息有误</option><option>机构要求暂停</option><option>其他</option></select>'
+    +'<div class="rounded-xl border p-3 mb-4" style="border-color:#FECACA;background:#FEF2F2"><p class="text-[11px] text-[#64748B]">下架后：端上<b>立即隐藏</b>；<b>点击统计与抽检记录保留</b>；可随时重新上架（需重新校验入口）。<b>不删除数据</b>。</p></div>'
+    +'<div class="flex justify-end gap-2"><button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-danger" onclick="doOff(\''+id+'\')">确认下架</button></div></div>';
+  show('modal',h);
+}
+function doOff(id){
+  var p=fOf(id),r=document.getElementById('off-reason').value;
+  p.state='已下架';
+  closeAll();renderStats();render();
+  toast('已下架：'+p.name+'（原因：'+r+'）→ 端上已隐藏，数据保留');
+}
+function delP(id){
+  var p=fOf(id);
+  var h='<div class="p-5"><h3 class="text-[15px] font-bold text-[#1F2430] mb-2">删除产品</h3>'
+    +'<p class="text-[13px] text-[#64748B]">确认删除「<b>'+esc(p.name)+'</b>」？此操作将删除该数据，是否继续？</p>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">仅无点击记录的产品可删除；有记录请用「下架」保留统计。</p>'
+    +'<div class="flex justify-end gap-2 mt-5"><button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="doDelP(\''+id+'\')">删除</button></div></div>';
+  show('modal',h);
+}
+function doDelP(id){
+  FIN=FIN.filter(function(x){return x.id!==id;});
+  curRows=curRows.filter(function(x){return x.id!==id;});
+  closeAll();renderStats();render();toast('已删除（软删留痕）');
+}
+
+/* ===== 新增 / 编辑（含入口配置） ===== */
+var draftEntries=[];
+function openEdit(id){
+  var p=id?fOf(id):null;
+  curId=id||'';
+  draftEntries=p?JSON.parse(JSON.stringify(p.entries)):[{way:'H5',url:'',note:''}];
+  var orgs=['中国农业银行·诸暨支行','中国建设银行·大唐支行','诸暨农商银行','远东宏信租赁','海通恒信租赁','招商银行保理'];
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+(p?'编辑金融产品':'新增金融产品')+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">平台只配置<b>产品信息 + 第三方入口</b>；不收集申请、不审批、不放款</p></div>'
+    +'<button class="btn btn-ghost" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">'
+    +'<div class="blk"><div class="blk-t"><i class="fas fa-building-columns text-[#2563EB]"></i>① 机构与产品</div>'
+    +'<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl">金融机构 *</label><select class="sel" id="e-org">'+orgs.map(function(o){return '<option'+(p&&p.org===o?' selected':'')+'>'+o+'</option>';}).join('')+'</select></div>'
+    +'<div><label class="fl">机构类型 *</label><select class="sel" id="e-orgtype">'+['银行','担保','融资租赁','保理','其他'].map(function(t){return '<option'+(p&&p.orgType===t?' selected':'')+'>'+t+'</option>';}).join('')+'</select></div>'
+    +'<div><label class="fl">产品名称 *</label><input class="fi" id="e-name" value="'+(p?esc(p.name):'')+'" placeholder="如 经营贷 / 袜机融资租赁"></div>'
+    +'<div><label class="fl">产品类型 *</label><select class="sel" id="e-ptype">'+['企业贷款','融资租赁','应收账款融资','其他'].map(function(t){return '<option'+(p&&p.ptype===t?' selected':'')+'>'+t+'</option>';}).join('')+'</select></div>'
+    +'<div><label class="fl">额度范围 *</label><input class="fi" id="e-limit" value="'+(p?esc(p.limit):'')+'" placeholder="如 10 万-500 万"></div>'
+    +'<div><label class="fl">利率 / 费率 *</label><input class="fi" id="e-rate" value="'+(p?esc(p.rate):'')+'" placeholder="如 年化 3.85% 起（须与机构口径一致）"></div>'
+    +'<div><label class="fl">期限</label><input class="fi" id="e-term" value="'+(p?esc(p.term):'')+'" placeholder="如 1-5 年"></div>'
+    +'<div><label class="fl">适用对象</label><select class="sel" id="e-target">'+['企业','个体工商户','两者'].map(function(t){return '<option'+(p&&p.target===t?' selected':'')+'>'+t+'</option>';}).join('')+'</select></div>'
+    +'<div style="grid-column:span 2"><label class="fl">产品标签（最多 3 个，逗号分隔）</label><input class="fi" id="e-tags" value="'+(p?esc(p.tags.join('、')):'')+'" placeholder="如 无抵押、随借随还、循环额度"></div>'
+    +'<div><label class="fl">生效开始</label><input class="fi" id="e-start" type="date" value="'+(p?p.start:'2026-10-19')+'"></div>'
+    +'<div><label class="fl">生效结束</label><input class="fi" id="e-end" type="date" value="'+(p?p.end:'2027-10-18')+'"></div>'
+    +'<div><label class="fl">排序号（同类型内升序）</label><input class="fi" id="e-sort" type="number" value="'+(p?p.sort:70)+'"></div>'
+    +'<div><label class="fl">状态</label><select class="sel" id="e-state"><option'+(p&&p.state==='已上架'?' selected':'')+'>已上架</option><option'+(p&&p.state==='已下架'?' selected':'')+'>已下架</option><option'+(p&&p.state==='已过期'?' selected':'')+'>已过期</option></select></div>'
+    +'</div></div>'
+    +'<div class="blk"><div class="blk-t"><i class="fas fa-arrow-up-right-from-square text-[#FF4D2D]"></i>② 申请入口（第三方，至少 1 个）</div>'
+    +'<div id="entryBox" class="space-y-2"></div>'
+    +'<button class="btn btn-ghost mt-2" onclick="addEntry()"><i class="fas fa-plus text-[10px] mr-1"></i>添加入口</button>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-2"><i class="fas fa-circle-info mr-1"></i>H5 需 http(s) 开头；电话 7-20 位；二维码需上传图片；小程序填页面路径。<b>平台不代填任何申请表</b>。</p>'
+    +'</div>'
+    +'<div class="blk"><div class="blk-t"><i class="fas fa-shield-halved text-[#B45309]"></i>③ 免责声明（端上展示）</div>'
+    +'<textarea class="fi" id="e-decl" rows="2">'+(p?esc(p.decl):'本产品由金融机构提供，平台仅提供入口导航，不参与审批与放款。')+'</textarea></div>'
+    +'</div>';
+  h+='<div class="px-5 py-3 border-t border-gray-100 flex items-center justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveP(\''+(id||'')+'\')">保存</button></div>';
+  show('drawer',h);
+  renderEntries();
+}
+function renderEntries(){
+  var box=document.getElementById('entryBox');
+  box.innerHTML=draftEntries.map(function(e,i){
+    return '<div class="entryrow">'
+      +'<select class="sel" onchange="updEntry('+i+',\'way\',this.value)">'+['H5','小程序','二维码','电话','线下'].map(function(w){return '<option'+(e.way===w?' selected':'')+'>'+w+'</option>';}).join('')+'</select>'
+      +'<input class="fi" value="'+esc(e.url)+'" placeholder="链接 / 路径 / 号码 / 网点地址" oninput="updEntry('+i+',\'url\',this.value)">'
+      +'<input class="fi" value="'+esc(e.note||'')+'" placeholder="入口说明（端上展示）" oninput="updEntry('+i+',\'note\',this.value)">'
+      +'<button class="btn btn-ghost" style="padding:4px 6px" onclick="rmEntry('+i+')"><i class="fas fa-xmark text-[11px]"></i></button>'
+      +'</div>';
+  }).join('')||'<div class="text-[12px] text-[#94A3B8]">尚未配置入口 —— 上架前必须至少配置 1 个</div>';
+}
+function addEntry(){draftEntries.push({way:'H5',url:'',note:''});renderEntries();}
+function rmEntry(i){draftEntries.splice(i,1);renderEntries();}
+function updEntry(i,k,v){draftEntries[i][k]=v;}
+
+function saveP(id){
+  var name=document.getElementById('e-name').value.trim();
+  var limit=document.getElementById('e-limit').value.trim();
+  var rate=document.getElementById('e-rate').value.trim();
+  if(!name||!limit||!rate){toast('产品名称 / 额度范围 / 利率 为必填');return;}
+  if(!draftEntries.length){toast('至少配置 1 个申请入口');return;}
+  for(var i=0;i<draftEntries.length;i++){
+    var e=draftEntries[i];
+    if(!e.url){toast('入口「'+e.way+'」缺少地址');return;}
+    if(e.way==='H5'&&!/^https?:\/\//.test(e.url)){toast('H5 入口需以 http(s):// 开头');return;}
+    if(e.way==='电话'&&!/^[\d\-\s]{7,20}$/.test(e.url)){toast('电话入口格式不正确（7-20 位数字，可含区号）');return;}
+  }
+  var obj={
+    org:document.getElementById('e-org').value,orgType:document.getElementById('e-orgtype').value,
+    name:name,ptype:document.getElementById('e-ptype').value,limit:limit,rate:rate,
+    term:document.getElementById('e-term').value.trim(),target:document.getElementById('e-target').value,
+    tags:document.getElementById('e-tags').value.split(/[、,，]/).map(function(x){return x.trim();}).filter(Boolean).slice(0,3),
+    start:document.getElementById('e-start').value,end:document.getElementById('e-end').value,
+    sort:parseInt(document.getElementById('e-sort').value,10)||99,
+    state:document.getElementById('e-state').value,
+    entries:JSON.parse(JSON.stringify(draftEntries)),
+    decl:document.getElementById('e-decl').value.trim()
+  };
+  if(id){
+    var p=fOf(id);
+    for(var k in obj){p[k]=obj[k];}
+    toast('已保存：'+name+'（入口 '+p.entries.length+' 个；状态 '+p.state+'）');
+  }else{
+    var nid='JR-0'+String(FIN.length+1).padStart(2,'0');
+    obj.id=nid;obj.orgPhone='—';obj.lic='';obj.hot=false;obj.clicks=0;obj.fail=0;
+    obj.lastCheck='—';obj.checkRes='—';obj.checkNote='';obj.start=obj.start||TODAY;
+    FIN.unshift(obj);
+    toast('已新增产品：'+name+'（状态 '+obj.state+'；如未上架，端上不可见）');
+  }
+  curRows=FIN.slice();closeAll();renderStats();render();
+}
+
+/* ===== 详情 ===== */
+function openDetail(id){
+  var p=fOf(id);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+esc(p.name)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(p.id)+'　'+esc(p.org)+'　'+st(p.state)+'</p></div>'
+    +'<button class="btn btn-ghost" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">'
+    +'<div class="blk"><div class="blk-t"><i class="fas fa-circle-info text-[#2563EB]"></i>① 产品信息</div>'
+    +'<div class="grid grid-cols-2 gap-x-6">'
+    +'<div class="kv"><span class="k">金融机构</span><span>'+esc(p.org)+'</span></div>'
+    +'<div class="kv"><span class="k">机构类型</span><span>'+tag(p.orgType)+'</span></div>'
+    +'<div class="kv"><span class="k">产品类型</span><span>'+tag(p.ptype,PTAGC[p.ptype])+'</span></div>'
+    +'<div class="kv"><span class="k">许可证号</span><span>'+esc(p.lic||'—')+'</span></div>'
+    +'<div class="kv"><span class="k">额度范围</span><span><b style="color:#E63E20">'+esc(p.limit)+'</b></span></div>'
+    +'<div class="kv"><span class="k">利率 / 费率</span><span>'+esc(p.rate)+'</span></div>'
+    +'<div class="kv"><span class="k">期限</span><span>'+esc(p.term||'—')+'</span></div>'
+    +'<div class="kv"><span class="k">适用对象</span><span>'+esc(p.target||'—')+'</span></div>'
+    +'<div class="kv"><span class="k">标签</span><span>'+(p.tags.length?p.tags.map(function(t){return tag(t);}).join(' '):'—')+'</span></div>'
+    +'<div class="kv"><span class="k">生效期</span><span>'+esc(p.start)+' ~ '+esc(p.end)+'</span></div>'
+    +'<div class="kv"><span class="k">排序号</span><span>'+p.sort+'</span></div>'
+    +'<div class="kv"><span class="k">点击 / 失败</span><span>'+p.clicks+' / '+p.fail+'</span></div>'
+    +'</div></div>'
+    +'<div class="blk"><div class="blk-t"><i class="fas fa-arrow-up-right-from-square text-[#FF4D2D]"></i>② 第三方申请入口（'+p.entries.length+'）</div>'
+    +p.entries.map(function(e,i){
+      return '<div class="flex items-center justify-between py-2 border-b border-gray-50 last:border-0 text-[12px]">'
+        +'<div><i class="fas '+(WAYICON[e.way]||'fa-link')+' text-[11px] text-[#64748B] mr-1.5"></i><b>'+esc(e.way)+'</b>'
+        +'<span class="text-[11px] text-[#64748B]">　'+esc(e.url)+'</span>'
+        +(e.note?'<div class="text-[10px] text-[#94A3B8] mt-0.5">'+esc(e.note)+'</div>':'')+'</div>'
+        +'<span class="lk-gray" onclick="testEntry(\''+p.id+'\','+i+')">测试打开</span></div>';
+    }).join('')
+    +'<p class="text-[11px] text-[#94A3B8] mt-2"><i class="fas fa-circle-info mr-1"></i>端上点击后<b>直接唤起机构渠道</b>，平台不收集任何申请信息</p>'
+    +'</div>'
+    +'<div class="blk"><div class="blk-t"><i class="fas fa-chart-simple text-[#7C3AED]"></i>③ 近 7 天点击</div>'
+    +'<div id="trend" class="space-y-1.5"></div></div>'
+    +'<div class="blk"><div class="blk-t"><i class="fas fa-shield-halved text-[#B45309]"></i>④ 免责声明</div>'
+    +'<p class="text-[12px] text-[#64748B] leading-relaxed">'+esc(p.decl)+'</p></div>'
+    +'</div>';
+  h+='<div class="px-5 py-3 border-t border-gray-100 flex items-center justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">关闭</button>'
+    +'<button class="btn btn-primary" onclick="closeAll();openEdit(\''+p.id+'\')">编辑</button></div>';
+  show('drawer',h);
+  var days=[['10-13',12],['10-14',18],['10-15',22],['10-16',26],['10-17',31],['10-18',28],['10-19',(p.clicks%17)+6]];
+  var max=Math.max.apply(null,days.map(function(d){return d[1];}));
+  document.getElementById('trend').innerHTML=days.map(function(d){
+    return '<div class="flex items-center gap-2 text-[11px]"><span class="text-[#94A3B8]" style="width:38px">'+d[0]+'</span>'
+      +'<div class="bar" style="flex:1"><i style="width:'+Math.round(d[1]/max*100)+'%"></i></div>'
+      +'<span class="text-[#64748B]" style="width:34px;text-align:right">'+d[1]+'</span></div>';
+  }).join('');
+}
+
+/* 测试打开入口（原型演示，不真正跳转） */
+function testEntry(id,i){
+  var p=fOf(id),e=p.entries[i];
+  toast('测试打开入口：'+e.way+' → '+e.url);
+}
+
+/* ===== Tab2 统计与抽检 ===== */
+function renderRank(){
+  var arr=FIN.slice().sort(function(a,b){return b.clicks-a.clicks;}).slice(0,6);
+  var max=arr[0]?arr[0].clicks:1;
+  document.getElementById('rank').innerHTML=arr.map(function(p){
+    return '<div><div class="flex items-center justify-between text-[12px] mb-1"><span class="text-[#1F2430]">'+esc(p.name)+'<span class="text-[10px] text-[#94A3B8]">　'+esc(p.org)+'</span></span><span class="text-[#64748B]">'+p.clicks+'</span></div>'
+      +'<div class="bar"><i style="width:'+Math.round(p.clicks/max*100)+'%"></i></div></div>';
+  }).join('');
+  var cnt={};FIN.forEach(function(p){p.entries.forEach(function(e){cnt[e.way]=(cnt[e.way]||0)+1;});});
+  var total=0;for(var k in cnt)total+=cnt[k];
+  document.getElementById('ways').innerHTML=Object.keys(cnt).map(function(w){
+    return '<div><div class="flex items-center justify-between text-[12px] mb-1"><span><i class="fas '+(WAYICON[w]||'fa-link')+' text-[11px] text-[#64748B] mr-1.5"></i>'+esc(w)+'</span><span class="text-[#64748B]">'+cnt[w]+' 个入口</span></div>'
+      +'<div class="bar" style="background:#EEF2FF"><i style="width:'+Math.round(cnt[w]/total*100)+'%;background:linear-gradient(90deg,#818CF8,#4F46E5)"></i></div></div>';
+  }).join('');
+}
+function renderChecks(){
+  document.getElementById('tb2').innerHTML=CHECKS.map(function(c,i){
+    var p=fOf(c.pid);
+    if(!p) return '';
+    return '<tr class="hover:bg-gray-50/60">'
+      +'<td class="px-4 py-3 text-[12px]"><b>'+esc(p.name)+'</b></td>'
+      +'<td class="px-4 py-3 text-[12px]">'+esc(p.org)+'</td>'
+      +'<td class="px-4 py-3 text-center text-[11px]">'+p.entries.map(function(e){return esc(e.way);}).join(' / ')+'</td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(c.last)+'　'+esc(c.by)+'</td>'
+      +'<td class="px-4 py-3 text-center">'+(c.res==='可打开'?'<span class="st" style="background:#DCFCE7;color:#15803D">可打开</span>':'<span class="st" style="background:#FEE2E2;color:#B91C1C">不可打开</span>')+'</td>'
+      +'<td class="px-4 py-3 text-[11px] text-[#64748B]">'+esc(c.note)+'</td>'
+      +'<td class="px-4 py-3 text-center"><span class="lk" onclick="doCheck('+i+')">登记</span></td>'
+      +'</tr>';
+  }).join('');
+}
+function doCheck(i){
+  var c=CHECKS[i],p=fOf(c.pid);
+  var h='<div class="p-5"><h3 class="text-[15px] font-bold text-[#1F2430] mb-1">入口抽检登记</h3>'
+    +'<p class="text-[12px] text-[#94A3B8] mb-3">'+esc(p.name)+'　'+esc(p.org)+'</p>'
+    +'<label class="fl">抽检结果 *</label><select class="sel mb-3" id="ck-res"><option>可打开</option><option>不可打开</option></select>'
+    +'<label class="fl">备注</label><input class="fi mb-4" id="ck-note" placeholder="如：链接 502 / 电话无人接听 / 二维码失效">'
+    +'<div class="flex justify-end gap-2"><button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveCheck('+i+')">保存</button></div></div>';
+  show('modal',h);
+}
+function saveCheck(i){
+  var c=CHECKS[i],p=fOf(c.pid);
+  c.res=document.getElementById('ck-res').value;
+  c.note=document.getElementById('ck-note').value||'—';
+  c.last=TODAY;c.by='王倩';
+  p.lastCheck=TODAY;p.checkRes=c.res;p.checkNote=c.note;
+  closeAll();renderChecks();render();
+  toast('已登记：'+p.name+' → '+c.res+(c.res==='不可打开'?'（建议下架或换链）':''));
+}
+
+function switchTab(i,el){
+  document.getElementById('pane0').style.display=(i===0?'':'none');
+  document.getElementById('pane1').style.display=(i===1?'':'none');
+  var spans=document.getElementById('tabs').getElementsByTagName('span');
+  for(var k=0;k<spans.length;k++){spans[k].className=(k===i?'on':'');}
+  if(i===1){renderRank();renderChecks();}
+}
+
+function show(which,h){
+  document.getElementById(which).innerHTML=h;
+  document.getElementById('mask').classList.add('on');
+  document.getElementById(which).classList.add('on');
+}
+function closeAll(){
+  document.getElementById('mask').classList.remove('on');
+  document.getElementById('drawer').classList.remove('on');
+  document.getElementById('modal').classList.remove('on');
+}
+
+renderStats();render();
+</script>
+</body>
+</html>

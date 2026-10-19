@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>全部功能 - 袜掌柜商户版</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--bg:#F0F6FF}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+.card{transition:transform .16s ease}.card:active{transform:scale(.96)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,40,80,.06)}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:900;opacity:0;transition:.2s;max-width:80%;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<div class="relative px-4 pt-2 pb-5 overflow-hidden" style="background:linear-gradient(135deg,#2563EB 0%,#1D4ED8 55%,#0EA5E9 100%)">
+  <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-50" style="background:#60A5FA"></div>
+  <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+  </div>
+  <div class="relative flex items-center gap-3 mt-1">
+    <a href="workbench.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+    <div><span class="text-white font-extrabold text-[18px]">全部功能</span>
+    <p class="text-white/85 text-[10px] mt-0.5">商品 / 订单 / 营销 / 客户 / 服务 / 账号</p></div>
+  </div>
+</div>
+
+<div class="px-3 pt-4 pb-16" id="groups"></div>
+
+<div class="toast" id="toast"><span id="toastTxt">操作成功</span></div>
+<script>
+var toastTimer;function toast(m){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=m;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},1800)}
+var GROUPS=[
+ {title:'商品',items:[
+   {n:'发布商品',i:'fa-paper-plane',bg:'linear-gradient(135deg,#F59E0B,#D97706)',h:'product-publish.html'},
+   {n:'商品管理',i:'fa-bag-shopping',bg:'linear-gradient(135deg,#3B82F6,#2563EB)',h:'products.html'},
+   {n:'库存预警',i:'fa-boxes-stacked',bg:'linear-gradient(135deg,#0EA5E9,#0284C7)',h:''},
+   {n:'商品评价',i:'fa-star-half-stroke',bg:'linear-gradient(135deg,#FBBF24,#F59E0B)',h:''}
+ ]},
+ {title:'订单',items:[
+   {n:'订单管理',i:'fa-file-lines',bg:'linear-gradient(135deg,#10B981,#047857)',h:'orders.html'},
+   {n:'售后处理',i:'fa-rotate-left',bg:'linear-gradient(135deg,#F87171,#EF4444)',h:'orders.html'},
+   {n:'发货登记',i:'fa-truck-fast',bg:'linear-gradient(135deg,#6366F1,#4F46E5)',h:'shipping.html'},
+   {n:'采购询价',i:'fa-file-signature',bg:'linear-gradient(135deg,#0EA5E9,#0284C7)',h:'shanghu-inquiry.html'}
+ ]},
+ {title:'营销',items:[
+   {n:'优惠券',i:'fa-ticket',bg:'linear-gradient(135deg,#FBBF24,#F59E0B)',h:'coupon.html'},
+   {n:'限时秒杀',i:'fa-stopwatch',bg:'linear-gradient(135deg,#F87171,#EF4444)',h:'seckill.html'},
+   {n:'营销工具',i:'fa-bullhorn',bg:'linear-gradient(135deg,#8B5CF6,#7C3AED)',h:'activity.html'},
+   {n:'直播/短视频',i:'fa-video',bg:'linear-gradient(135deg,#EC4899,#DB2777)',h:''}
+ ]},
+ {title:'客户',items:[
+   {n:'消息',i:'fa-comments',bg:'linear-gradient(135deg,#3B82F6,#1D4ED8)',h:'messages.html'},
+   {n:'客户评价',i:'fa-star',bg:'linear-gradient(135deg,#FBBF24,#D97706)',h:''},
+   {n:'粉丝运营',i:'fa-user-group',bg:'linear-gradient(135deg,#EC4899,#BE185D)',h:''}
+ ]},
+ {title:'服务',items:[
+   {n:'人才招聘',i:'fa-user-tie',bg:'linear-gradient(135deg,#2563EB,#0EA5E9)',h:'shanghu-recruit.html'},
+   {n:'产业服务',i:'fa-industry',bg:'linear-gradient(135deg,#0EA5E9,#0369A1)',h:'industry-service.html'},
+   {n:'物业服务',i:'fa-building',bg:'linear-gradient(135deg,#6366F1,#4338CA)',h:'property.html'},
+   {n:'缴费',i:'fa-file-invoice-dollar',bg:'linear-gradient(135deg,#10B981,#047857)',h:'payment.html'}
+ ]},
+ {title:'账号',items:[
+   {n:'店铺信息',i:'fa-shop',bg:'linear-gradient(135deg,#3B82F6,#2563EB)',h:'store-info.html'},
+   {n:'我的实体商铺',i:'fa-warehouse',bg:'linear-gradient(135deg,#0EA5E9,#0369A1)',h:'my-shops.html'},
+   {n:'合同管理',i:'fa-file-contract',bg:'linear-gradient(135deg,#6366F1,#4F46E5)',h:'contract.html'},
+   {n:'资料与认证',i:'fa-id-card',bg:'linear-gradient(135deg,#34D399,#10B981)',h:'profile.html'}
+ ]}
+];
+document.getElementById('groups').innerHTML=GROUPS.map(function(g,gi){
+  var items=g.items.map(function(it){
+    var act=it.h?('href="'+it.h+'"'):'onclick="toast(\''+it.n+' · 外采能力（演示）\')"';
+    return '<a '+act+' class="card flex flex-col items-center gap-1.5">'
+      +'<div class="w-11 h-11 rounded-xl flex items-center justify-center text-white" style="background:'+it.bg+'"><i class="fas '+it.i+'"></i></div>'
+      +'<span class="text-[10px] text-gray-700">'+it.n+'</span></a>';
+  }).join('');
+  return '<div class="'+(gi>0?'mt-3':'')+'"><div class="flex items-center gap-1.5 mb-2 px-1"><div class="w-1 h-3.5 rounded-full" style="background:#2563EB"></div><span class="text-[12px] font-bold text-gray-800">'+g.title+'</span></div>'
+    +'<div class="bg-white rounded-2xl shadow-soft px-2 py-4 grid grid-cols-4 gap-y-4">'+items+'</div></div>';
+}).join('');
+</script>
+</body>
+</html>

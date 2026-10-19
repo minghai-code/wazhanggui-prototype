@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>人才招聘 - 岗位管理</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}.lk:hover{text-decoration:underline}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}.lk-gray:hover{color:#1F2430;text-decoration:underline}
+.st{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500;white-space:nowrap}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:60}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:880px;max-width:97vw;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:70;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);width:760px;max-width:95vw;max-height:86vh;overflow-y:auto;background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(15,23,42,.28);opacity:0;pointer-events:none;transition:.22s;z-index:70}
+.modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+.blk{border:1px solid #E2E8F0;border-radius:12px;padding:14px 16px}
+.blk-t{font-size:12.5px;font-weight:700;color:#1F2430;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.kv{display:flex;gap:8px;font-size:12px;line-height:1.9}
+.kv .k{width:118px;flex-shrink:0;color:#94A3B8}
+.fi{width:100%;padding:6px 10px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none;background:#fff}
+.fi:focus{border-color:#FF4D2D}
+.fl{display:block;font-size:11px;color:#94A3B8;margin-bottom:4px}
+.sel{width:100%;padding:6px 8px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none}
+button{cursor:pointer}
+textarea.fi{font-family:inherit;line-height:1.8;resize:vertical}
+.chk{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:#334155}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<div class="p-6">
+
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">人才招聘 · 岗位管理</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">13 产业链服务</span>
+        <span class="tag" style="background:#FEF3C7;color:#B45309">审核前置</span>
+        <span class="tag" style="background:#F1F5F9;color:#94A3B8">一条岗位 = 一条招聘</span>
+      </div>
+      <p class="text-[12px] text-gray-400 mt-1"><b>v1.0（2026-10-19 新建）</b>：本页是招聘信息主台账。<b>端上商家发布 → 待审核</b>；<b>运营代发免审</b>（直接「招聘中」并留痕）；只有<b>审核通过</b>才在端上展示。申请报考信息页 → <b>投递管理</b>；关闭 ≠ 删除（关闭保留投递记录，删除仅限已关闭且无投递）</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="toast('已导出岗位台账（含审核状态 / 投递数 / 招聘进度）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+      <button class="btn btn-primary" onclick="openEdit(null)"><i class="fas fa-plus mr-1"></i>新建岗位（运营代发）</button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-6 gap-3 mb-4" id="stats"></div>
+
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+    <div class="flex items-center gap-3 flex-wrap">
+      <span class="text-[12px] text-[#64748B]">发布时间</span>
+      <input id="f-d1" type="date" value="2026-09-01" class="px-2 py-1.5 text-[12px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+      <span class="text-[12px] text-[#CBD5E1]">~</span>
+      <input id="f-d2" type="date" value="2026-10-19" class="px-2 py-1.5 text-[12px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+      <select id="f-mode" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600" onchange="modeHint()">
+        <option value="">年度筛选：按年</option><option>按年</option><option>按月</option><option>按日期区间</option>
+      </select>
+      <span id="modeBox" class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>当前：日期区间</span>
+    </div>
+    <div class="flex items-center gap-3 flex-wrap mt-3">
+      <select id="f-cat" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600 w-64"><option value="">全部工种</option></select>
+      <input id="f-title" type="text" placeholder="岗位名称（模糊）" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none w-44">
+      <select id="f-unit" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600 w-56"><option value="">全部招聘单位</option></select>
+      <select id="f-state" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+        <option value="">全部状态</option><option>待审核</option><option>招聘中</option><option>已驳回</option><option>已关闭</option>
+      </select>
+      <button class="btn btn-primary" onclick="doSearch()">查询</button>
+      <button class="btn btn-ghost" onclick="resetSearch()">重置</button>
+      <span class="text-[11px] text-[#94A3B8] ml-auto"><i class="fas fa-circle-info mr-1"></i>薪资区间下限不得大于上限；联系方式默认脱敏</span>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-[13px] font-bold text-[#1F2430]">招聘岗位</span>
+        <span class="text-[12px] text-[#94A3B8]" id="cnt">共 0 条</span>
+        <span class="text-[11px] text-[#B45309] hidden" id="selTip"></span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="btn btn-ghost" onclick="batchDel()"><i class="fas fa-trash-can text-[10px] mr-1"></i>批量删除</button>
+        <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-clock-rotate-left mr-1"></i>待审核超 24h 红标</span>
+      </div>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-[13px]" style="min-width:1500px">
+        <thead>
+          <tr class="bg-gray-50 text-gray-500 text-[12px]">
+            <th class="px-3 py-3 text-left font-medium w-9"><input type="checkbox" onclick="toggleAll(this)"></th>
+            <th class="px-3 py-3 text-left font-medium">工种名称</th>
+            <th class="px-3 py-3 text-left font-medium">岗位名称</th>
+            <th class="px-3 py-3 text-left font-medium">招聘单位</th>
+            <th class="px-3 py-3 text-left font-medium">联系人 / 电话</th>
+            <th class="px-3 py-3 text-left font-medium">薪资范围</th>
+            <th class="px-3 py-3 text-center font-medium">人数</th>
+            <th class="px-3 py-3 text-center font-medium">状态</th>
+            <th class="px-3 py-3 text-center font-medium">发布方</th>
+            <th class="px-3 py-3 text-left font-medium">发布时间</th>
+            <th class="px-3 py-3 text-center font-medium">投递</th>
+            <th class="px-3 py-3 text-center font-medium">操作</th>
+          </tr>
+        </thead>
+        <tbody id="tb" class="divide-y divide-gray-50"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div id="mask" class="mask" onclick="closeAll()"></div>
+<div id="drawer" class="drawer"></div>
+<div id="modal" class="modal"></div>
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
+
+<script>
+/* ===== 工种字典（21 项，本期内置；与 PRD 附录 A 一致） ===== */
+var CATS=['袜子机械工种-机械缝头装配工','袜子机械工种-机械精装工(车床)','袜子机械工种-机械小装配工','袜子机械工种-机械大装配工',
+  '织袜车间-织袜行业工种-织袜档车工','织袜车间-织袜行业工种-质检','织袜车间-织袜行业工种-定型工','织袜车间-织袜行业工种-车间分包工','织袜车间-织袜行业工种-机修工',
+  '前纺-原料行业工种-投料工','前纺-原料行业工种-纺丝工','前纺-原料行业工种-辅助工','前纺-原料行业工种-组件工','前纺-原料行业工种-前纺保全工','前纺-原料行业工种-包装工','前纺-原料行业工种-卷绕工','前纺-原料行业工种-质检员',
+  '后纺-原料行业工种-加弹工','后纺-原料行业工种-后纺保全工','原料行业工种-电工','其他-其他'];
+
+var TODAY='2026-10-19';
+var JSTC={'待审核':'background:#FEF3C7;color:#B45309','招聘中':'background:#DCFCE7;color:#15803D','已驳回':'background:#FEE2E2;color:#B91C1C','已关闭':'background:#F1F5F9;color:#64748B'};
+var SRC={'商家端':'background:#DBEAFE;color:#2563EB','运营代发':'background:#EDE9FE;color:#6D28D9'};
+
+/* ===== 岗位数据（覆盖 4 状态） ===== */
+var JOBS=[
+  {id:'GW-2026-0231',cat:'织袜车间-织袜行业工种-织袜档车工',title:'挡车工（两班倒）',unit:'诸暨市金晟袜业有限公司',isM:true,
+   contact:'钱××',phone:'138****6688',addr:'大唐街道袜业城 2F-A08',count:12,pub:'2026-10-18',
+   salMin:6500,salMax:9000,welfare:'包住、五险、餐补、夜班补贴',exp:'1 年以上',
+   desc:'负责袜机（单/双针筒）看台、换纱、简单排故；两班倒，月休 4 天。',state:'待审核',src:'商家端',
+   submits:3,views:2,replies:1,ver:1,closeReason:'',
+   logs:[{t:'2026-10-18 09:20',by:'企业（钱××·买家端）',txt:'提交岗位，进入待审核（第 3 次提交）'},
+         {t:'2026-10-17 16:40',by:'审核员 何敏',txt:'驳回：薪资描述与实际不符（需写明计件/计时）'},
+         {t:'2026-10-16 10:15',by:'审核员 何敏',txt:'驳回：联系方式无效（多次拨打无人接听）'}]},
+  {id:'GW-2026-0230',cat:'织袜车间-织袜行业工种-机修工',title:'袜机机修工',unit:'浙江棉田纺织有限公司',isM:true,
+   contact:'陈志强',phone:'136****2208',addr:'大唐街道轻纺路 18 号',count:2,pub:'2026-10-17',
+   salMin:8000,salMax:12000,welfare:'五险一金、年终奖、技术津贴',exp:'3 年以上',
+   desc:'负责织袜机日常保养与故障维修，能独立判断机械与电气故障。',state:'招聘中',src:'商家端',
+   submits:5,views:4,replies:2,ver:1,closeReason:'',
+   logs:[{t:'2026-10-17 15:10',by:'审核员 何敏',txt:'审核通过 → 招聘中'},{t:'2026-10-17 09:05',by:'企业（陈志强）',txt:'提交岗位，进入待审核'}]},
+  {id:'GW-2026-0229',cat:'前纺-原料行业工种-纺丝工',title:'纺丝工（临时用工 3 个月）',unit:'大唐××针织厂',isM:false,
+   contact:'李××',phone:'139****1234',addr:'大唐街道××村 32 号',count:6,pub:'2026-10-16',
+   salMin:6000,salMax:7500,welfare:'包吃住、日结可选',exp:'不限',
+   desc:'前纺车间纺丝岗位，临时用工 3 个月，可接受新手（有人带）。',state:'已驳回',src:'商家端',
+   submits:1,views:0,replies:0,ver:1,closeReason:'',
+   logs:[{t:'2026-10-16 14:30',by:'审核员 周涛',txt:'驳回：非库中招聘单位，需补充营业执照或关联入驻商户'}]},
+  {id:'GW-2026-0228',cat:'织袜车间-织袜行业工种-定型工',title:'定型工',unit:'诸暨市恒信袜业有限公司',isM:true,
+   contact:'王××',phone:'137****9021',addr:'大唐街道袜业城 3F-B02',count:8,pub:'2026-10-15',
+   salMin:5500,salMax:7000,welfare:'包住、加班补贴',exp:'不限',
+   desc:'袜子定型机操作，站立作业，能适应高温环境。',state:'招聘中',src:'商家端',
+   submits:9,views:7,replies:4,ver:1,closeReason:'',
+   logs:[{t:'2026-10-15 11:20',by:'审核员 何敏',txt:'审核通过 → 招聘中'}]},
+  {id:'GW-2026-0227',cat:'织袜车间-织袜行业工种-质检',title:'成品检针质检员',unit:'诸暨市云岭针织科技有限公司',isM:true,
+   contact:'周××',phone:'135****3322',addr:'大唐街道科创园 3 号',count:3,pub:'2026-10-14',
+   salMin:5000,salMax:6500,welfare:'五险、双休、年度体检',exp:'1 年以上',
+   desc:'负责成品检针、外观抽检与记录；视力正常，能看懂工艺单。',state:'招聘中',src:'运营代发',
+   submits:4,views:4,replies:3,ver:1,closeReason:'',
+   logs:[{t:'2026-10-14 10:00',by:'运营 王倩',txt:'运营代发（免审）→ 招聘中；来源：企业电话委托'}]},
+  {id:'GW-2026-0226',cat:'前纺-原料行业工种-包装工',title:'包装工（计件）',unit:'诸暨市某贸易商行',isM:true,
+   contact:'钱某某',phone:'135****7712',addr:'大唐街道市场路 6 号',count:5,pub:'2026-10-12',
+   salMin:4500,salMax:6000,welfare:'计件多劳多得、包午餐',exp:'不限',
+   desc:'袜品装袋、贴标、装箱；计件工资，熟练后月入 6000+。',state:'已关闭',src:'商家端',
+   submits:6,views:6,replies:5,ver:1,closeReason:'招满',
+   logs:[{t:'2026-10-16 17:00',by:'企业（钱某某）',txt:'关闭岗位：招满'},
+         {t:'2026-10-12 09:30',by:'审核员 何敏',txt:'审核通过 → 招聘中'}]},
+  {id:'GW-2026-0225',cat:'后纺-原料行业工种-加弹工',title:'加弹工',unit:'诸暨市恒信袜业有限公司',isM:true,
+   contact:'王××',phone:'137****9021',addr:'大唐街道袜业城 3F-B02',count:4,pub:'2026-10-10',
+   salMin:6000,salMax:8000,welfare:'包住、夜班补贴',exp:'1 年以上',
+   desc:'加弹机操作与巡检，能处理断头、换丝。',state:'招聘中',src:'商家端',
+   submits:2,views:1,replies:0,ver:1,closeReason:'',
+   logs:[{t:'2026-10-10 14:00',by:'审核员 周涛',txt:'审核通过 → 招聘中'}]},
+  {id:'GW-2026-0224',cat:'织袜车间-织袜行业工种-车间分包工',title:'车间分包工',unit:'诸暨市金晟袜业有限公司',isM:true,
+   contact:'钱××',phone:'138****6688',addr:'大唐街道袜业城 2F-A08',count:2,pub:'2026-10-09',
+   salMin:5000,salMax:6500,welfare:'包住、五险',exp:'不限',
+   desc:'负责半成品分拣、配套、流转登记。',state:'招聘中',src:'商家端',
+   submits:3,views:3,replies:2,ver:1,closeReason:'',
+   logs:[{t:'2026-10-09 10:20',by:'审核员 何敏',txt:'审核通过 → 招聘中'}]},
+  {id:'GW-2026-0223',cat:'袜子机械工种-机械装配工',title:'机械装配工',unit:'诸暨市云岭针织科技有限公司',isM:true,
+   contact:'周××',phone:'135****3322',addr:'大唐街道科创园 3 号',count:2,pub:'2026-10-08',
+   salMin:7000,salMax:9500,welfare:'五险一金、技术培训',exp:'2 年以上',
+   desc:'袜机装配与调试，能看懂机械图纸。',state:'招聘中',src:'商家端',
+   submits:1,views:1,replies:1,ver:1,closeReason:'',
+   logs:[{t:'2026-10-08 16:10',by:'审核员 周涛',txt:'审核通过 → 招聘中'}]},
+  {id:'GW-2026-0222',cat:'其他-其他',title:'仓库管理员',unit:'诸暨市利群针纺有限公司',isM:true,
+   contact:'李海涛',phone:'139****6612',addr:'大唐街道袜业城 B3-12',count:1,pub:'2026-10-06',
+   salMin:4800,salMax:5500,welfare:'包午餐',exp:'1 年以上',
+   desc:'成品库出入库登记、盘点。',state:'已关闭',src:'运营代发',closeReason:'企业停用',
+   submits:1,views:1,replies:0,ver:1,
+   logs:[{t:'2026-10-15 09:00',by:'系统',txt:'关联商户已停用 → 岗位自动关闭（招聘主体失效）'}]},
+  {id:'GW-2026-0221',cat:'织袜车间-织袜行业工种-织袜档车工',title:'挡车工（白班）',unit:'浙江棉田纺织有限公司',isM:true,
+   contact:'陈志强',phone:'136****2208',addr:'大唐街道轻纺路 18 号',count:6,pub:'2026-10-05',
+   salMin:6000,salMax:8000,welfare:'包住、餐补',exp:'不限',
+   desc:'白班挡车，做六休一。',state:'招聘中',src:'商家端',
+   submits:7,views:6,replies:5,ver:1,closeReason:'',
+   logs:[{t:'2026-10-05 09:40',by:'审核员 何敏',txt:'审核通过 → 招聘中'}]},
+  {id:'GW-2026-0220',cat:'前纺-原料行业工种-投料工',title:'投料工',unit:'大唐××针织厂',isM:false,
+   contact:'李××',phone:'139****1234',addr:'大唐街道××村 32 号',count:3,pub:'2026-10-04',
+   salMin:5200,salMax:6500,welfare:'包吃住',exp:'不限',
+   desc:'原料投放与搬运，能吃苦。',state:'招聘中',src:'运营代发',
+   submits:2,views:2,replies:1,ver:1,closeReason:'',
+   logs:[{t:'2026-10-04 11:00',by:'运营 王倩',txt:'运营代发（免审）→ 招聘中'}]},
+  {id:'GW-2026-0219',cat:'织袜车间-织袜行业工种-机修工',title:'机修学徒',unit:'诸暨市恒信袜业有限公司',isM:true,
+   contact:'王××',phone:'137****9021',addr:'大唐街道袜业城 3F-B02',count:2,pub:'2026-10-03',
+   salMin:4000,salMax:5000,welfare:'师傅带教、包住',exp:'不限',
+   desc:'跟师傅学习袜机维修，能吃苦、愿意长期做。',state:'待审核',src:'商家端',
+   submits:1,views:0,replies:0,ver:1,closeReason:'',
+   logs:[{t:'2026-10-19 08:30',by:'企业（王××）',txt:'提交岗位，进入待审核（超 24h 未审，已红标）'}]},
+  {id:'GW-2026-0218',cat:'后纺-原料行业工种-后纺保全工',title:'后纺保全工',unit:'诸暨市金晟袜业有限公司',isM:true,
+   contact:'钱××',phone:'138****6688',addr:'大唐街道袜业城 2F-A08',count:1,pub:'2026-10-01',
+   salMin:7500,salMax:9000,welfare:'五险、年终奖',exp:'3 年以上',
+   desc:'后纺设备保全，熟悉加弹机/络筒机。',state:'待审核',src:'商家端',
+   submits:4,views:0,replies:0,ver:2,closeReason:'',
+   logs:[{t:'2026-10-18 15:00',by:'企业（钱××）',txt:'修改后重新提交（第 4 次），进入待审核'},
+         {t:'2026-10-17 10:20',by:'审核员 何敏',txt:'驳回：职位描述过于简单，需写明班制与待遇'}]}
+];
+
+var curRows=JOBS.slice(),tid,sel={};
+
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},3200);}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function st(s,c){return '<span class="st" style="'+(c||JSTC[s]||'background:#F1F5F9;color:#64748B')+'">'+esc(s)+'</span>';}
+function tag(t,c){return '<span class="tag" style="'+(c||'background:#F1F5F9;color:#64748B')+'">'+esc(t)+'</span>';}
+function jOf(id){return JOBS.filter(function(x){return x.id===id;})[0];}
+function sal(j){return (j.salMin||j.salMax)?(j.salMin+'-'+j.salMax+' 元'):'面议';}
+function shortCat(c){var a=c.split('-');return a[a.length-1];}
+function daysSince(d){var a=new Date(d.replace(/-/g,'/')),b=new Date(TODAY.replace(/-/g,'/'));return Math.round((b-a)/86400000);}
+
+function renderStats(){
+  var all=JOBS.length;
+  var live=JOBS.filter(function(x){return x.state==='招聘中';}).length;
+  var wait=JOBS.filter(function(x){return x.state==='待审核';}).length;
+  var rej=JOBS.filter(function(x){return x.state==='已驳回';}).length;
+  var cls=JOBS.filter(function(x){return x.state==='已关闭';}).length;
+  var mon=JOBS.filter(function(x){return x.pub.indexOf('2026-10')===0;}).length;
+  var cards=[['岗位总数',all,'#1F2430'],['招聘中',live,'#15803D'],['待审核',wait,'#B45309'],['已驳回',rej,'#B91C1C'],['已关闭',cls,'#64748B'],['本月新增',mon,'#2563EB']];
+  document.getElementById('stats').innerHTML=cards.map(function(x){
+    return '<div class="bg-white rounded-xl border border-gray-100 p-4"><div class="text-[11px] text-[#94A3B8]">'+x[0]+'</div><div class="text-[22px] font-bold mt-1" style="color:'+x[2]+'">'+x[1]+'</div></div>';
+  }).join('');
+}
+
+function render(){
+  var tb=document.getElementById('tb');
+  if(!curRows.length){
+    tb.innerHTML='<tr><td colspan="12" class="px-4 py-16 text-center text-[13px] text-[#94A3B8]"><i class="fas fa-inbox text-[26px] block mb-2 text-[#CBD5E1]"></i>暂无符合条件的岗位<br><span class="text-[11px]">换一组筛选条件，或点右上角「新建岗位」由运营代发</span></td></tr>';
+    document.getElementById('cnt').textContent='共 0 条';
+    return;
+  }
+  tb.innerHTML=curRows.map(function(j){
+    var over=(j.state==='待审核'&&daysSince(j.pub)>=1);
+    var ops='<span class="lk" onclick="openDetail(\''+j.id+'\')">详情</span>'
+      +' · <span class="lk-gray" onclick="openEdit(\''+j.id+'\')">编辑</span>'
+      +' · <span class="lk" onclick="toDelivery(\''+j.id+'\')">报名信息</span>';
+    if(j.state==='招聘中'){ops+=' · <span class="lk-gray" onclick="openClose(\''+j.id+'\')">关闭</span>';}
+    if(j.state==='已关闭'){ops+=' · <span class="lk" onclick="reopen(\''+j.id+'\')">重新上架</span>';}
+    if(j.state==='已关闭'&&j.submits===0){ops+=' · <span class="lk-gray" onclick="delJob(\''+j.id+'\')">删除</span>';}
+    return '<tr class="hover:bg-gray-50/60'+(over?' style="background:#FEF2F2"':'')+'">'
+      +'<td class="px-3 py-3"><input type="checkbox" '+(sel[j.id]?'checked':'')+' onclick="pick(\''+j.id+'\',this)"></td>'
+      +'<td class="px-3 py-3 text-[11px] text-[#64748B]" style="max-width:190px">'+esc(j.cat)+'</td>'
+      +'<td class="px-3 py-3"><span class="font-medium text-[#1F2430]">'+esc(j.title)+'</span>'
+        +(over?'<div class="text-[10px] mt-0.5" style="color:#B91C1C"><i class="fas fa-triangle-exclamation mr-1"></i>超 24h 未审'+(j.submits>1?'　第 '+j.submits+' 次提交':'')+'</div>':''
+          +(j.state==='已驳回'?'<div class="text-[10px] mt-0.5" style="color:#B91C1C">驳回：见详情审核记录</div>':''))+'</td>'
+      +'<td class="px-3 py-3 text-[12px]">'+esc(j.unit)+(j.isM?'<div class="text-[10px] text-[#15803D]"><i class="fas fa-link text-[8px] mr-1"></i>已关联入驻商户</div>':'<div class="text-[10px] text-[#B45309]">非库中单位</div>')+'</td>'
+      +'<td class="px-3 py-3 text-[12px]">'+esc(j.contact)+'<div class="text-[11px] text-[#94A3B8]">'+esc(j.phone)+'</div></td>'
+      +'<td class="px-3 py-3 text-[12px]">'+(j.salMin?('<b style="color:#E63E20">'+j.salMin+'</b> - <b style="color:#E63E20">'+j.salMax+'</b>')+'<div class="text-[10px] text-[#94A3B8]">元/月</div>':'<span class="text-[#94A3B8]">面议</span>')+'</td>'
+      +'<td class="px-3 py-3 text-center text-[12px]">'+j.count+'</td>'
+      +'<td class="px-3 py-3 text-center">'+st(j.state)+'</td>'
+      +'<td class="px-3 py-3 text-center">'+tag(j.src,SRC[j.src])+'</td>'
+      +'<td class="px-3 py-3 text-[12px] text-[#64748B]">'+esc(j.pub)+'</td>'
+      +'<td class="px-3 py-3 text-center">'+(j.submits?'<span class="lk" onclick="toDelivery(\''+j.id+'\')">'+j.submits+'</span>':'<span class="text-[#CBD5E1]">0</span>')+'</td>'
+      +'<td class="px-3 py-3 text-center whitespace-nowrap">'+ops+'</td>'
+      +'</tr>';
+  }).join('');
+  document.getElementById('cnt').textContent='共 '+curRows.length+' 条';
+}
+
+function modeHint(){
+  var m=document.getElementById('f-mode').value;
+  var box=document.getElementById('modeBox');
+  if(m==='按年'){box.innerHTML='<i class="fas fa-circle-info mr-1"></i>当前：按年（2026）';}
+  else if(m==='按月'){box.innerHTML='<i class="fas fa-circle-info mr-1"></i>当前：按月（2026-10）';}
+  else{box.innerHTML='<i class="fas fa-circle-info mr-1"></i>当前：日期区间';}
+  toast('年度筛选模式已切换：'+(m||'日期区间')+'（联动上方时间控件）');
+}
+
+function doSearch(){
+  var d1=document.getElementById('f-d1').value, d2=document.getElementById('f-d2').value;
+  var cat=document.getElementById('f-cat').value, title=(document.getElementById('f-title').value||'').trim();
+  var unit=document.getElementById('f-unit').value, stt=document.getElementById('f-state').value;
+  curRows=JOBS.filter(function(j){
+    if(d1&&j.pub<d1) return false;
+    if(d2&&j.pub>d2) return false;
+    if(cat&&j.cat!==cat) return false;
+    if(title&&j.title.indexOf(title)<0) return false;
+    if(unit&&j.unit!==unit) return false;
+    if(stt&&j.state!==stt) return false;
+    return true;
+  });
+  render();
+}
+function resetSearch(){
+  document.getElementById('f-d1').value='2026-09-01';
+  document.getElementById('f-d2').value='2026-10-19';
+  document.getElementById('f-mode').value='';
+  document.getElementById('f-cat').value='';
+  document.getElementById('f-title').value='';
+  document.getElementById('f-unit').value='';
+  document.getElementById('f-state').value='';
+  curRows=JOBS.slice();render();
+}
+
+/* ===== 选择与批量删除 ===== */
+function pick(id,el){if(el.checked){sel[id]=1;}else{delete sel[id];}selTip();}
+function toggleAll(el){
+  curRows.forEach(function(j){if(el.checked){sel[j.id]=1;}else{delete sel[j.id];}});
+  render();selTip();
+}
+function selTip(){
+  var n=Object.keys(sel).length;
+  var t=document.getElementById('selTip');
+  if(n){t.classList.remove('hidden');t.textContent='已选 '+n+' 条';}else{t.classList.add('hidden');}
+}
+function batchDel(){
+  var ids=Object.keys(sel);
+  if(!ids.length){toast('请先勾选要删除的岗位（仅「已关闭且无投递」可删）');return;}
+  var bad=ids.filter(function(id){var j=jOf(id);return !(j.state==='已关闭'&&j.submits===0);});
+  if(bad.length){toast('有 '+bad.length+' 条不可删除：未关闭或已有投递记录，只能关闭');return;}
+  var h='<div class="p-5"><h3 class="text-[15px] font-bold text-[#1F2430] mb-2">批量删除岗位</h3>'
+    +'<p class="text-[13px] text-[#64748B]">已选 '+ids.length+' 条，此操作将删除该数据，是否继续？<br><span class="text-[11px] text-[#94A3B8]">软删保留 180 天，可在操作日志回溯</span></p>'
+    +'<div class="flex justify-end gap-2 mt-5"><button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="doBatchDel()">删除</button></div></div>';
+  show('modal',h);
+}
+function doBatchDel(){
+  var ids=Object.keys(sel);
+  JOBS=JOBS.filter(function(j){return ids.indexOf(j.id)<0;});
+  curRows=curRows.filter(function(j){return ids.indexOf(j.id)<0;});
+  sel={};closeAll();renderStats();render();
+  toast('已删除 '+ids.length+' 条岗位（软删留痕）');
+}
+function delJob(id){
+  var j=jOf(id);
+  var h='<div class="p-5"><h3 class="text-[15px] font-bold text-[#1F2430] mb-2">删除岗位</h3>'
+    +'<p class="text-[13px] text-[#64748B]">确认删除「<b>'+esc(j.title)+'</b>」？此操作将删除该数据，是否继续？</p>'
+    +'<div class="flex justify-end gap-2 mt-5"><button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="doDelJob(\''+id+'\')">删除</button></div></div>';
+  show('modal',h);
+}
+function doDelJob(id){
+  JOBS=JOBS.filter(function(x){return x.id!==id;});
+  curRows=curRows.filter(function(x){return x.id!==id;});
+  closeAll();renderStats();render();toast('已删除岗位（软删留痕）');
+}
+
+/* ===== 关闭 / 重新上架 ===== */
+function openClose(id){
+  var j=jOf(id);
+  var h='<div class="p-5"><h3 class="text-[15px] font-bold text-[#1F2430] mb-1">关闭岗位</h3>'
+    +'<p class="text-[12px] text-[#94A3B8] mb-3">'+esc(j.title)+'　'+esc(j.unit)+'</p>'
+    +'<label class="fl">关闭原因 *</label><select class="sel mb-3" id="c-reason"><option>招满</option><option>停招（暂不需要）</option><option>信息有误</option><option>其他</option></select>'
+    +'<div class="rounded-xl border p-3 mb-4" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B]">关闭后：端上 <b>5 分钟内下架</b>；<b>已有投递记录保留</b>（求职者仍可看到自己的投递）；可随时「重新上架」（需再审）。</p></div>'
+    +'<div class="flex justify-end gap-2"><button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="doClose(\''+id+'\')">确认关闭</button></div></div>';
+  show('modal',h);
+}
+function doClose(id){
+  var j=jOf(id),r=document.getElementById('c-reason').value;
+  j.state='已关闭';j.closeReason=r;
+  j.logs.unshift({t:TODAY+' 10:30',by:'运营 王倩',txt:'关闭岗位：'+r});
+  closeAll();renderStats();render();
+  toast('已关闭：'+j.title+'（原因：'+r+'）→ 端上下架，投递记录保留');
+}
+function reopen(id){
+  var j=jOf(id);
+  j.state='待审核';j.ver=j.ver+1;
+  j.logs.unshift({t:TODAY+' 10:35',by:'运营 王倩',txt:'重新上架（第 '+j.ver+' 次），进入待审核'});
+  renderStats();render();
+  toast('已重新上架：'+j.title+' → 状态「待审核」，审核通过后端上恢复展示');
+}
+function toDelivery(id){
+  var j=jOf(id);
+  toast('跳转「投递管理」，筛选岗位='+j.title+'（共 '+j.submits+' 条投递）');
+}
+
+/* ===== 新建 / 编辑（15 字段） ===== */
+function openEdit(id){
+  var j=id?jOf(id):null;
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+(j?'编辑岗位':'新建岗位（运营代发）')+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">运营代发免审，保存即「招聘中」；编辑已发布岗位需重新审核</p></div>'
+    +'<button class="btn btn-ghost" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">'
+    +'<div class="blk"><div class="blk-t"><i class="fas fa-briefcase text-[#FF4D2D]"></i>岗位信息</div>'
+    +'<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl">工种名称 *（21 项字典，可搜索）</label><select class="sel" id="j-cat">'+CATS.map(function(c){return '<option'+(j&&j.cat===c?' selected':'')+'>'+c+'</option>';}).join('')+'</select></div>'
+    +'<div><label class="fl">岗位名称 *</label><input class="fi" id="j-title" value="'+(j?esc(j.title):'')+'" placeholder="如 挡车工（两班倒）"></div>'
+    +'<div><label class="fl">招聘单位来源 *</label><select class="sel" id="j-src" onchange="unitMode()"><option value="m"'+(j&&j.isM?' selected':'')+'>关联入驻商户</option><option value="raw"'+(j&&!j.isM?' selected':'')+'>非库中单位（自由填写）</option></select></div>'
+    +'<div><label class="fl" id="unitLbl">招聘单位</label>'
+      +'<select class="sel" id="j-unit-sel">'+['诸暨市金晟袜业有限公司','浙江棉田纺织有限公司','诸暨市恒信袜业有限公司','诸暨市云岭针织科技有限公司','诸暨市某贸易商行'].map(function(u){return '<option'+(j&&j.unit===u?' selected':'')+'>'+u+'</option>';}).join('')+'</select>'
+      +'<input class="fi hidden" id="j-unit-raw" value="'+(j&&!j.isM?esc(j.unit):'')+'" placeholder="如 大唐××针织厂">'
+    +'</div>'
+    +'<div><label class="fl">联系人 *</label><input class="fi" id="j-contact" value="'+(j?esc(j.contact):'')+'" placeholder="招聘负责人"></div>'
+    +'<div><label class="fl">联系方式 *</label><input class="fi" id="j-phone" value="'+(j?esc(j.phone):'')+'" placeholder="11 位手机号；端上展示脱敏"></div>'
+    +'<div style="grid-column:span 2"><label class="fl">工作地址</label><input class="fi" id="j-addr" value="'+(j?esc(j.addr):'')+'" placeholder="如 大唐街道袜业城 2F-A08"></div>'
+    +'<div><label class="fl">招聘人数 *</label><input class="fi" id="j-count" type="number" min="1" value="'+(j?j.count:'1')+'"></div>'
+    +'<div><label class="fl">发布时间 *</label><input class="fi" id="j-pub" type="date" value="'+(j?j.pub:'2026-10-19')+'"></div>'
+    +'<div><label class="fl">薪资下限（元/月，留空=面议）</label><input class="fi" id="j-min" type="number" value="'+(j&&j.salMin?j.salMin:'')+'" placeholder="如 6500"></div>'
+    +'<div><label class="fl">薪资上限（元/月）</label><input class="fi" id="j-max" type="number" value="'+(j&&j.salMax?j.salMax:'')+'" placeholder="如 9000"></div>'
+    +'<div><label class="fl">工作经验</label><select class="sel" id="j-exp">'+['不限','1 年以上','2 年以上','3 年以上','5 年以上'].map(function(e){return '<option'+(j&&j.exp===e?' selected':'')+'>'+e+'</option>';}).join('')+'</select></div>'
+    +'<div><label class="fl">招聘状态 *</label><select class="sel" id="j-state"><option'+(j&&j.state==='招聘中'?' selected':'')+'>'+(j?'招聘中':'招聘中（运营代发·免审）')+'</option><option'+(j&&j.state==='已关闭'?' selected':'')+'>已关闭</option><option'+(j&&j.state==='待审核'?' selected':'')+'>待审核</option></select></div>'
+    +'<div style="grid-column:span 2"><label class="fl">公司福利</label><input class="fi" id="j-welfare" value="'+(j?esc(j.welfare):'')+'" placeholder="包住、五险、餐补……"></div>'
+    +'<div style="grid-column:span 2"><label class="fl">职位描述</label><textarea class="fi" id="j-desc" rows="3" placeholder="写清班制、休息、具体工作内容（审核重点）">'+(j?esc(j.desc):'')+'</textarea></div>'
+    +'</div></div>';
+  if(!j){
+    h+='<div class="rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B]">运营代发：<b>保存即「招聘中」，无需审核</b>（会记录"运营代发"与操作人）。若要模拟商家发布走审核，可在「招聘审核」页查看待审核队列。</p></div>';
+  }
+  h+='</div>';
+  h+='<div class="px-5 py-3 border-t border-gray-100 flex items-center justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveJob(\''+(id||'')+'\')">保存</button></div>';
+  show('drawer',h);
+  unitMode();
+}
+function unitMode(){
+  var v=document.getElementById('j-src').value;
+  var sel=document.getElementById('j-unit-sel'), raw=document.getElementById('j-unit-raw');
+  if(v==='m'){sel.classList.remove('hidden');raw.classList.add('hidden');}
+  else{sel.classList.add('hidden');raw.classList.remove('hidden');}
+}
+function saveJob(id){
+  var cat=document.getElementById('j-cat').value;
+  var title=document.getElementById('j-title').value.trim();
+  var isM=document.getElementById('j-src').value==='m';
+  var unit=isM?document.getElementById('j-unit-sel').value:document.getElementById('j-unit-raw').value.trim();
+  var contact=document.getElementById('j-contact').value.trim();
+  var phone=document.getElementById('j-phone').value.trim();
+  var addr=document.getElementById('j-addr').value.trim();
+  var count=parseInt(document.getElementById('j-count').value,10);
+  var pub=document.getElementById('j-pub').value;
+  var mn=document.getElementById('j-min').value, mx=document.getElementById('j-max').value;
+  var welfare=document.getElementById('j-welfare').value.trim();
+  var exp=document.getElementById('j-exp').value;
+  var desc=document.getElementById('j-desc').value.trim();
+  var state=document.getElementById('j-state').value.replace('（运营代发·免审）','');
+  if(!title||!unit||!contact||!phone||!count){toast('工种 / 岗位名称 / 招聘单位 / 联系人 / 联系方式 / 人数 为必填');return;}
+  if(mn&&mx&&Number(mn)>Number(mx)){toast('薪资下限不能大于上限（'+mn+' > '+mx+'）');return;}
+  if(!/^1\d{10}$/.test(phone)){toast('联系方式需为 11 位手机号（原型可填脱敏值，实际保存前校验）');}
+  if(id){
+    var j=jOf(id);
+    j.cat=cat;j.title=title;j.isM=isM;j.unit=unit;j.contact=contact;j.phone=phone;j.addr=addr;j.count=count;j.pub=pub;
+    j.salMin=mn?Number(mn):0;j.salMax=mx?Number(mx):0;j.welfare=welfare;j.exp=exp;j.desc=desc;
+    if(j.state!==state){j.state=state;}
+    j.logs.unshift({t:TODAY+' 10:40',by:'运营 王倩',txt:'编辑岗位信息'+(j.src==='商家端'?'（商家岗位修改后需重新审核）':'')});
+    toast('已保存：'+title+(j.src==='商家端'?'（商家岗位修改后状态回「待审核」）':''));
+  }else{
+    var nid='GW-2026-0'+(232+JOBS.length);
+    JOBS.unshift({id:nid,cat:cat,title:title,isM:isM,unit:unit,contact:contact,phone:phone,addr:addr,count:count,pub:pub,
+      salMin:mn?Number(mn):0,salMax:mx?Number(mx):0,welfare:welfare,exp:exp,desc:desc,state:'招聘中',src:'运营代发',
+      submits:0,views:0,replies:0,ver:1,closeReason:'',
+      logs:[{t:TODAY+' 10:40',by:'运营 王倩',txt:'运营代发（免审）→ 招聘中'}]});
+    toast('已新建岗位：'+title+'（运营代发·免审，已直接上架「招聘中」）');
+  }
+  curRows=JOBS.slice();closeAll();renderStats();render();
+}
+
+/* ===== 详情 ===== */
+function openDetail(id){
+  var j=jOf(id);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+esc(j.title)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(j.id)+'　'+esc(j.cat)+'　'+st(j.state)+'</p></div>'
+    +'<button class="btn btn-ghost" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">'
+    +'<div class="blk"><div class="blk-t"><i class="fas fa-circle-info text-[#2563EB]"></i>① 基本信息</div>'
+    +'<div class="grid grid-cols-2 gap-x-6">'
+    +'<div class="kv"><span class="k">工种名称</span><span>'+esc(j.cat)+'</span></div>'
+    +'<div class="kv"><span class="k">岗位名称</span><span>'+esc(j.title)+'</span></div>'
+    +'<div class="kv"><span class="k">招聘单位</span><span>'+esc(j.unit)+(j.isM?' <span class="tag" style="background:#DCFCE7;color:#15803D">已关联商户</span>':' <span class="tag" style="background:#FEF3C7;color:#B45309">非库中</span>')+'</span></div>'
+    +'<div class="kv"><span class="k">招聘人数</span><span>'+j.count+' 人</span></div>'
+    +'<div class="kv"><span class="k">联系人</span><span>'+esc(j.contact)+'</span></div>'
+    +'<div class="kv"><span class="k">联系方式</span><span>'+esc(j.phone)+' <span class="lk-gray" onclick="toast(\'查看完整号码需留痕（查看人 / 时间）\')">查看完整</span></span></div>'
+    +'<div class="kv"><span class="k">薪资范围</span><span>'+(j.salMin?'<b style="color:#E63E20">'+j.salMin+' - '+j.salMax+'</b> 元/月':'面议')+'</span></div>'
+    +'<div class="kv"><span class="k">工作经验</span><span>'+esc(j.exp||'不限')+'</span></div>'
+    +'<div class="kv"><span class="k">工作地址</span><span>'+esc(j.addr||'—')+'</span></div>'
+    +'<div class="kv"><span class="k">发布时间</span><span>'+esc(j.pub)+'</span></div>'
+    +'<div class="kv"><span class="k">发布方</span><span>'+tag(j.src,SRC[j.src])+'</span></div>'
+    +'<div class="kv"><span class="k">关闭原因</span><span>'+(j.closeReason?esc(j.closeReason):'—')+'</span></div>'
+    +'</div></div>'
+    +'<div class="blk"><div class="blk-t"><i class="fas fa-align-left text-[#64748B]"></i>② 职位描述 / 福利</div>'
+    +'<div class="text-[12px] text-[#334155] leading-relaxed whitespace-pre-line">'+esc(j.desc||'（未填写）')+'</div>'
+    +'<div class="mt-3 text-[12px] text-[#64748B]"><b>公司福利：</b>'+esc(j.welfare||'—')+'</div></div>'
+    +'<div class="blk"><div class="blk-t"><i class="fas fa-shield-halved text-[#B45309]"></i>③ 审核记录（提交 '+j.submits+' 次 / 版本 v'+j.ver+'）</div>'
+    +(j.logs.length?j.logs.map(function(l){return '<div class="text-[12px] text-[#334155] py-1.5 border-b border-gray-50 last:border-0"><span class="text-[11px] text-[#94A3B8] mr-2">'+esc(l.t)+'</span>'+esc(l.by)+'：'+esc(l.txt)+'</div>';}).join(''):'<div class="text-[12px] text-[#94A3B8]">暂无记录</div>')
+    +'</div>'
+    +'<div class="blk"><div class="blk-t"><i class="fas fa-paper-plane text-[#7C3AED]"></i>④ 投递统计</div>'
+    +'<div class="grid grid-cols-3 gap-3">'
+    +'<div class="rounded-lg p-3" style="background:#F8FAFC"><div class="text-[11px] text-[#94A3B8]">投递</div><div class="text-[18px] font-bold" style="color:#1F2430">'+j.submits+'</div></div>'
+    +'<div class="rounded-lg p-3" style="background:#F8FAFC"><div class="text-[11px] text-[#94A3B8]">已查看</div><div class="text-[18px] font-bold" style="color:#2563EB">'+j.views+'</div></div>'
+    +'<div class="rounded-lg p-3" style="background:#F8FAFC"><div class="text-[11px] text-[#94A3B8]">已回复</div><div class="text-[18px] font-bold" style="color:#15803D">'+j.replies+'</div></div>'
+    +'</div>'
+    +'<button class="btn btn-ghost mt-3" onclick="toDelivery(\''+j.id+'\')"><i class="fas fa-list text-[10px] mr-1"></i>查看报名信息（投递管理）</button></div>'
+    +'</div>';
+  h+='<div class="px-5 py-3 border-t border-gray-100 flex items-center justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">关闭</button>'
+    +'<button class="btn btn-primary" onclick="closeAll();openEdit(\''+j.id+'\')">编辑</button></div>';
+  show('drawer',h);
+}
+
+function show(which,h){
+  document.getElementById(which).innerHTML=h;
+  document.getElementById('mask').classList.add('on');
+  document.getElementById(which).classList.add('on');
+}
+function closeAll(){
+  document.getElementById('mask').classList.remove('on');
+  document.getElementById('drawer').classList.remove('on');
+  document.getElementById('modal').classList.remove('on');
+}
+
+/* 初始化筛选下拉 */
+(function(){
+  var sc=document.getElementById('f-cat');
+  CATS.forEach(function(c){var o=document.createElement('option');o.textContent=c;o.value=c;sc.appendChild(o);});
+  var su=document.getElementById('f-unit');
+  var units=['诸暨市金晟袜业有限公司','浙江棉田纺织有限公司','诸暨市恒信袜业有限公司','诸暨市云岭针织科技有限公司','诸暨市某贸易商行','大唐××针织厂'];
+  units.forEach(function(u){var o=document.createElement('option');o.textContent=u;o.value=u;su.appendChild(o);});
+})();
+
+renderStats();render();
+</script>
+</body>
+</html>

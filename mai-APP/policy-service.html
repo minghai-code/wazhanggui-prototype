@@ -43,7 +43,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;margi
 <!-- 概览统计 -->
 <div class="px-3 -mt-3 relative z-10">
 <div class="bg-white rounded-2xl shadow-soft p-3.5 fade-up border border-white grid grid-cols-3 gap-2 text-center">
-<div class="border-r border-gray-100"><p class="text-[18px] font-black" style="color:#8B5CF6">6</p><p class="text-[9px] text-gray-400 mt-0.5">在申报政策</p></div>
+<div class="border-r border-gray-100"><p class="text-[18px] font-black" style="color:#8B5CF6">5</p><p class="text-[9px] text-gray-400 mt-0.5">在申报政策</p></div>
 <div class="border-r border-gray-100"><p class="text-[18px] font-black" style="color:#EF4444">3</p><p class="text-[9px] text-gray-400 mt-0.5">即将截止（T-7）</p></div>
 <div><p class="text-[18px] font-black" style="color:#F59E0B">￥6800<span class="text-[10px]">万</span></p><p class="text-[9px] text-gray-400 mt-0.5">补贴总额</p></div>
 </div>
@@ -204,18 +204,20 @@ var policies=[
 /* 后台补充字段：申报截止日期（用于端上倒计时）+ AI 图文解读（AI 生成 · 人工复核） */
 var POLICY_EXTRA={
  '大唐袜业产业转型升级专项资金':{dueDate:'2026-10-18',deadline:'2026年10月18日',ai:{summary:'面向规上袜业企业的智能化改造、品牌建设与研发创新专项扶持，重点支持数字化车间、自主品牌培育与绿色生产改造。',points:['规上袜业企业，上年度主营业务收入≥2000万元','具备独立研发或技术改造能力','近三年无严重失信记录'],faq:['Q：个体工商户能否申报？A：本期面向规上企业，个体及小微企业可关注「其他」类政策。','Q：补贴比例？A：按项目核定，一般不超过实际投入的20%。']}},
- '高新技术企业税收减免':{dueDate:'',deadline:'长期有效（随年度申报）',ai:{summary:'高新技术企业所得税减按15%征收，研发费用100%加计扣除，助力科技型企业降本增效。',points:['通过国家高新技术企业认定','拥有核心自主知识产权','研发费用占收入比例达标'],faq:['Q：何时办理？A：每年随企业所得税年度纳税申报办理。']}},
+ '高新技术企业税收减免':{mo:'sh',dueDate:'',deadline:'长期有效（随年度申报）',ai:{summary:'高新技术企业所得税减按15%征收，研发费用100%加计扣除，助力科技型企业降本增效。',points:['通过国家高新技术企业认定','拥有核心自主知识产权','研发费用占收入比例达标'],faq:['Q：何时办理？A：每年随企业所得税年度纳税申报办理。']}},
  '中小企业信贷支持':{dueDate:'2026-10-30',deadline:'2026年10月30日',ai:{summary:'面向有融资需求的科技型中小微企业提供低息信贷，由政府性融资担保机构提供担保。',points:['在诸暨注册经营的中小微企业','持续经营满2年以上','信用记录良好无不良贷款'],faq:['Q：额度多少？A：100–500万元，视经营与担保情况核定。']}},
  '技术研发补贴':{dueDate:'2026-10-16',deadline:'2026年10月16日',ai:{summary:'对袜业新材料 / 新工艺 / 新产品研发项目按实际投入给予最高100万元补贴。',points:['市级以上科技型中小企业认定','拥有研发团队及固定研发场所','项目研发投入不低于50万元'],faq:['Q：补贴比例？A：按核定研发投入比例补贴，单个项目最高100万元。']}},
  '人才引进安家补贴':{dueDate:'2026-10-25',deadline:'2026年10月25日',ai:{summary:'企业引进全日制硕士、博士及高层次人才可获安家补贴，硕士最高10万元、博士最高30万元。',points:['企业与人才签订3年以上劳动合同','人才在诸暨首次缴纳社保','人才在诸暨无自有住房'],faq:['Q：发放方式？A：分三年发放。']}},
  '数字化改造奖励':{dueDate:'2026-10-15',deadline:'2026年10月15日',ai:{summary:'制造业企业实施ERP / MES / 智能仓储等数字化改造，按项目实际投入的20%给予最高150万元奖励。',points:['规上制造业企业','数字化改造项目投资不低于150万元','项目已竣工并投入使用'],faq:['Q：投入如何认定？A：由第三方审计评估确认。']}}
 };
-policies.forEach(function(p,i){p.gid=i;var e=POLICY_EXTRA[p.title]||{};p.dueDate=e.dueDate||'';if(e.deadline)p.deadline=e.deadline;p.ai=e.ai||null;if(p.cat==='税收优惠')p.cat='其他';});
+policies.forEach(function(p,i){p.gid=i;var e=POLICY_EXTRA[p.title]||{};p.mo=e.mo||'all';p.dueDate=e.dueDate||'';if(e.deadline)p.deadline=e.deadline;p.ai=e.ai||null;if(p.cat==='税收优惠')p.cat='其他';});
 
 var currentCat='全部';
 
 function renderPolicies(cat){
  var list=cat==='全部'?policies:policies.filter(function(p){return p.cat===cat});
+ /* 投放端过滤：后台 mo='sh' 表示仅商户端，买家端不展示 */
+ list=list.filter(function(p){return p.mo!=='sh';});
  var html='';
  list.forEach(function(p,i){
   var stepsHtml=p.steps.map(function(s,idx){
