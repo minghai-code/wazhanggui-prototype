@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>活动报名 - 袜掌柜商户版</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--bg:#F5F7FF}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+.card{transition:transform .16s ease}.card:active{transform:scale(.99)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
+.inp{width:100%;background:#F8F9FB;border:1px solid #EEF0F4;border-radius:12px;padding:11px 13px;font-size:13px;color:#1F2430;outline:none}
+.inp:focus{border-color:#6366F1;background:#fff}
+.lbl{font-size:11px;color:#6b7080;font-weight:500;display:block;margin-bottom:6px}.lbl b{color:#EF4444}
+.num{font-variant-numeric:tabular-nums}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:900;opacity:0;pointer-events:none;transition:.2s;max-width:80%;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<div class="relative px-4 pt-2 pb-5 overflow-hidden" style="background:linear-gradient(135deg,#6366F1 0%,#4F46E5 45%,#4338CA 100%)">
+  <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-40" style="background:#818CF8"></div>
+  <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+  </div>
+  <div class="relative flex items-center gap-3 mt-1">
+    <a id="backLink" href="activity-list.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+    <div><p class="text-white font-extrabold text-[18px]">活动报名</p><p class="text-white/80 text-[10px] mt-0.5">提交后生成签到码</p></div>
+  </div>
+</div>
+
+<div class="px-3 pt-3 pb-24" id="formBox">
+  <div class="bg-white rounded-2xl shadow-soft p-3.5 mb-3">
+    <p class="text-[13px] font-bold text-gray-800" id="actName">—</p>
+    <p class="text-[10px] text-gray-400 mt-1" id="actMeta">—</p>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-soft p-3.5">
+    <p class="text-[12px] font-bold text-gray-800 mb-3">报名信息</p>
+    <div class="grid grid-cols-2 gap-2 mb-3">
+      <div><label class="lbl">姓名 <b>*</b></label><input id="fName" class="inp" value="李老板"></div>
+      <div><label class="lbl">手机号 <b>*</b></label><input id="fPhone" class="inp" maxlength="11" value="13800138000"></div>
+    </div>
+    <div class="mb-3"><label class="lbl">单位（商户）</label><input class="inp" value="大唐袜业旗舰店" readonly style="color:#9CA3AF"></div>
+    <div class="grid grid-cols-2 gap-2 mb-3">
+      <div><label class="lbl">岗位</label><input id="fPosition" class="inp" value="店主"></div>
+      <div><label class="lbl">同行员工数</label>
+        <select id="fComp" class="inp">
+          <option value="0">0 人</option><option value="1">1 人</option><option value="2">2 人</option>
+          <option value="3">3 人</option><option value="4">4 人</option><option value="5">5 人</option>
+          <option value="6">6 人</option><option value="7">7 人</option><option value="8">8 人</option>
+          <option value="9">9 人</option><option value="10">10 人</option>
+        </select>
+      </div>
+    </div>
+    <p class="text-[10px] text-gray-400 leading-relaxed"><i class="fas fa-circle-info mr-1"></i>同行人员按人数占用名额；报名手机号用于签到与通知，同一活动不可重复报名。</p>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-soft p-3.5 mt-3">
+    <p class="text-[12px] font-bold text-gray-800 mb-1.5">报名须知</p>
+    <div id="needKnow"></div>
+    <label class="flex items-start gap-2 mt-2.5">
+      <input type="checkbox" id="agree" class="w-4 h-4 mt-0.5 accent-indigo-600">
+      <span class="text-[10px] text-gray-500 leading-relaxed">我已阅读并同意上述须知，承诺按时参加；如无法参加将于报名截止前取消。</span>
+    </label>
+    <label class="flex items-start gap-2 mt-2">
+      <input type="checkbox" id="agreePrivacy" class="w-4 h-4 mt-0.5 accent-indigo-600">
+      <span class="text-[10px] text-gray-500 leading-relaxed">我已阅读并同意<a onclick="togglePrivacy()" class="text-indigo-600 font-bold">《个人信息使用说明》</a>，同意将姓名、手机号用于本次活动联络与签到核验。</span>
+    </label>
+    <div id="privacyBox" class="mt-2 p-2.5 rounded-lg text-[9px] text-gray-500 leading-relaxed" style="display:none;background:#F5F7FF">
+      <b class="text-gray-700">个人信息使用说明</b><br>
+      1. 收集范围：姓名、手机号、单位、岗位、同行人数。<br>
+      2. 使用目的：本次活动报名审核、现场签到核验与活动通知，不用于其他营销。<br>
+      3. 保存期限：活动结束后 90 日内删除，签到记录按平台留存要求脱敏保存。<br>
+      4. 共享范围：仅向本场活动主办方提供名单，不向第三方共享。<br>
+      5. 你的权利：可在「我的活动」取消报名，或联系主办方删除个人信息。
+    </div>
+  </div>
+
+  <button class="card w-full mt-4 py-3 rounded-2xl text-white text-[14px] font-bold" style="background:linear-gradient(135deg,#6366F1,#4F46E5)" onclick="submitSignup()">提交报名</button>
+</div>
+
+<!-- 成功 -->
+<div class="px-3 pt-4 pb-16" id="doneBox" style="display:none">
+  <div class="bg-white rounded-2xl shadow-soft p-4 text-center">
+    <div class="w-14 h-14 mx-auto rounded-full flex items-center justify-center" style="background:linear-gradient(135deg,#34D399,#10B981)"><i class="fas fa-check text-white text-xl"></i></div>
+    <p class="text-[15px] font-bold text-gray-800 mt-3" id="doneTitle">报名成功</p>
+    <p class="text-[11px] text-gray-500 mt-1" id="doneSub">已为你占位，请按时参加。</p>
+    <div class="mt-3 rounded-xl p-3" style="background:#F5F7FF">
+      <p class="text-[10px] text-gray-400">签到码</p>
+      <p class="text-[26px] font-extrabold num tracking-[6px] mt-1" style="color:#4F46E5" id="doneCode">------</p>
+      <p class="text-[9px] text-gray-400 mt-1">活动开始前 60 分钟生效</p>
+    </div>
+    <a href="my-activities.html" class="card block w-full mt-3 py-2.5 rounded-xl text-white text-[13px] font-bold" style="background:linear-gradient(135deg,#6366F1,#4F46E5)">查看我的活动</a>
+    <a href="activity-list.html" class="card block w-full mt-2 py-2.5 rounded-xl text-[13px] font-bold text-gray-600 bg-white border border-gray-200">返回活动列表</a>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span id="toastTxt">操作成功</span></div>
+
+<script>
+var ttm;function toast(m){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=m;t.classList.add('on');clearTimeout(ttm);ttm=setTimeout(function(){t.classList.remove('on')},1800)}
+function readLS(k){try{return JSON.parse(localStorage.getItem(k)||'[]')}catch(e){return []}}
+function q(k){var m=location.search.match(new RegExp('[?&]'+k+'=([^&]+)'));return m?decodeURIComponent(m[1]):''}
+function nowStr(){var d=new Date();function p(n){return n<10?'0'+n:''+n}return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes())}
+
+var ACTS=[
+ {id:'EVT20261024001',name:'秋冬新品选品沙龙',date:'2026-10-24',time:'15:00-17:00',place:'2F 共享空间',audit:true,state:'已满',quota:30,occupied:30,hasCheckin:true,needKnow:['报名需主办方审核，通过后凭短信与签到码入场','现场提供新品样袜与搭配手册']},
+ {id:'EVT20261026002',name:'秋季消防安全应急演练',date:'2026-10-26',time:'14:00-16:00',place:'A区1层中庭',audit:false,state:'报名中',quota:80,occupied:46,hasCheckin:true,needKnow:['请提前 15 分钟到场签到','穿平底鞋，勿穿高跟鞋','演练期间请听从现场指挥']},
+ {id:'EVT20261028003',name:'跨境电商选品与独立站运营培训',date:'2026-10-28',time:'09:30-11:30',place:'3F 多功能厅',audit:false,state:'报名中',quota:60,occupied:38,hasCheckin:true,needKnow:['建议携带笔记本电脑','培训资料现场发放','请提前 10 分钟签到入场']},
+ {id:'EVT20261103004',name:'袜业数字化改造政策宣讲会',date:'2026-11-03',time:'14:00-16:00',place:'会议中心 201',audit:false,state:'报名中',quota:100,occupied:72,hasCheckin:true,needKnow:['现场发放政策申报指南','可携带企业资质材料现场咨询']},
+ {id:'EVT20261115005',name:'大唐袜博会参展商说明会',date:'2026-11-15',time:'10:00-11:00',place:'会议中心 301',audit:false,state:'未开始',quota:120,occupied:0,hasCheckin:true,needKnow:['仅限已确认参展的商户','说明会不收取费用']},
+ {id:'EVT20260918006',name:'9月安全生产培训',date:'2026-09-18',time:'09:00-11:00',place:'3F 多功能厅',audit:false,state:'已结束',quota:60,occupied:58,hasCheckin:true,needKnow:['活动已结束']}
+];
+
+var actId=q('id');
+var act=ACTS.filter(function(x){return x.id===actId;})[0];
+if(!act){
+  document.getElementById('formBox').innerHTML='<div class="text-center py-16"><i class="fas fa-calendar-xmark text-gray-200 text-4xl"></i><p class="text-[12px] text-gray-400 mt-3">活动不存在或已下架</p><a href="activity-list.html" class="inline-block mt-3 text-[12px] font-bold text-indigo-600">返回活动列表</a></div>';
+}else{
+  document.getElementById('actName').textContent=act.name;
+  document.getElementById('actMeta').textContent=act.date+' '+act.time+' · '+act.place;
+  document.getElementById('backLink').href='activity-detail.html?id='+act.id;
+  document.getElementById('needKnow').innerHTML=act.needKnow.map(function(t){return '<p class="text-[10px] text-gray-500 leading-relaxed mt-1"><i class="fas fa-circle text-[5px] text-indigo-300 mr-1 align-middle"></i>'+t+'</p>';}).join('');
+}
+function togglePrivacy(){var b=document.getElementById('privacyBox');b.style.display=(b.style.display==='none'?'block':'none');}
+function todayStr(){var d=new Date();function p(n){return n<10?'0'+n:''+n}return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())}
+function submitSignup(){
+  if(!act)return;
+  if(act.state==='已结束'||act.state==='已取消'||act.state==='已下架'){toast('该活动已结束或已取消，无法报名');return}
+  if(act.state==='未开始'){toast('报名尚未开放');return}
+  if(act.state==='已满'){toast('名额已满，可关注后续场次');return}
+  var name=document.getElementById('fName').value.trim();
+  var phone=document.getElementById('fPhone').value.trim();
+  var pos=document.getElementById('fPosition').value.trim();
+  var comp=parseInt(document.getElementById('fComp').value,10)||0;
+  if(!name){toast('请填写姓名');return}
+  if(!/^1\d{10}$/.test(phone)){toast('请输入正确的手机号');return}
+  if(!document.getElementById('agree').checked){toast('请先阅读并同意报名须知');return}
+  if(!document.getElementById('agreePrivacy').checked){toast('请先阅读并同意《个人信息使用说明》');return}
+  var list=readLS('sh_act_signup');
+  var mine=list.filter(function(s){return s.actId===act.id&&s.phone===phone;});
+  var dup=mine.filter(function(s){return s.audit!=='已取消'&&s.audit!=='已驳回';})[0];
+  if(dup){toast('你已报名该活动，可在「我的活动」查看');return}
+  // 取消重报：每人每活动累计 ≤3 次
+  var cancelCnt=mine.filter(function(s){return s.audit==='已取消';}).length;
+  if(cancelCnt>=3){toast('该活动取消重报已达 3 次上限，请联系主办方');return}
+  // 同手机号同活动 24 小时内最多提交 3 次
+  var dayCnt=mine.filter(function(s){return (s.createdAt||'').slice(0,10)===todayStr();}).length;
+  if(dayCnt>=3){toast('同一手机号 24 小时内最多提交 3 次，请稍后再试');return}
+  // 名额按人数校验（1 + 同行）
+  var used=(act.occupied||0);
+  list.forEach(function(s){if(s.actId===act.id&&s.audit!=='已取消'&&s.audit!=='已驳回')used+=(s.companions||0)+1;});
+  if(used+comp+1>(act.quota||9999)){toast('余位不足，仅剩 '+Math.max(0,(act.quota||0)-used)+' 个名额');return}
+  var code=(!act.hasCheckin||act.audit)?'':String(Math.floor(100000+Math.random()*900000));
+  list.unshift({actId:act.id,name:name,phone:phone,unit:'大唐袜业旗舰店',position:pos||'—',companions:comp,audit:act.audit?'待审核':'已通过',checkin:'未签到',code:code,createdAt:nowStr(),consentAt:nowStr(),consent:'个人信息使用说明'});
+  try{localStorage.setItem('sh_act_signup',JSON.stringify(list.slice(0,50)))}catch(e){}
+  document.getElementById('formBox').style.display='none';
+  document.getElementById('doneBox').style.display='block';
+  document.getElementById('doneTitle').textContent=act.audit?'报名已提交，待审核':'报名成功';
+  document.getElementById('doneSub').textContent=act.audit?'主办方审核通过后将短信通知，可在「我的活动」查看状态。':'已为你占位，请按时参加。';
+  document.getElementById('doneCode').textContent=!act.hasCheckin?'本活动不设签到':(act.audit?'审核通过后生成':code);
+  document.getElementById('doneCode').style.letterSpacing=(act.audit||!act.hasCheckin)?'2px':'6px';
+  if(!act.hasCheckin)document.getElementById('doneCode').style.fontSize='15px';
+  window.scrollTo(0,0);
+}
+</script>
+</body>
+</html>

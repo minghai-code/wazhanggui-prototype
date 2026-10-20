@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>我的活动 - 袜掌柜商户版</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--bg:#F5F7FF}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+.card{transition:transform .16s ease}.card:active{transform:scale(.985)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
+.num{font-variant-numeric:tabular-nums}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:900;opacity:0;pointer-events:none;transition:.2s;max-width:80%;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:200;opacity:0;pointer-events:none;transition:.25s}
+.mask.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;width:393px;max-height:86vh;overflow-y:auto;background:#fff;border-radius:22px 22px 0 0;z-index:201;transform:translateY(100%);transition:transform .28s ease}
+.sheet.on{transform:translateY(0)}
+.qr{display:grid;grid-template-columns:repeat(21,1fr);width:150px;height:150px;background:#fff;padding:6px;border:1px solid #E5E7EB;border-radius:8px;margin:0 auto}
+.qr i{display:block;width:100%;padding-top:100%;background:#fff}
+.qr i.b{background:#111827}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<div class="relative px-4 pt-2 pb-5 overflow-hidden" style="background:linear-gradient(135deg,#6366F1 0%,#4F46E5 45%,#4338CA 100%)">
+  <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-40" style="background:#818CF8"></div>
+  <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+  </div>
+  <div class="relative flex items-center justify-between mt-1">
+    <a href="property.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+    <div class="text-center"><p class="text-white font-extrabold text-[18px]">我的活动</p><p class="text-white/75 text-[9px]">报名记录 · 签到码</p></div>
+    <a href="activity-list.html" class="text-white text-[12px] font-bold">去报名</a>
+  </div>
+</div>
+
+<div class="px-3 mt-3">
+  <div class="flex items-center gap-5 border-b border-gray-200" id="tabs">
+    <a onclick="setTab('todo',this)" class="font-bold pb-2 text-[14px]" style="color:#4F46E5;border-bottom:2px solid #4F46E5">待参加 <span class="num" id="nTodo">0</span></a>
+    <a onclick="setTab('done',this)" class="text-gray-500 pb-2 text-[14px]">已参加 <span class="num" id="nDone">0</span></a>
+    <a onclick="setTab('cancel',this)" class="text-gray-500 pb-2 text-[14px]">已取消 <span class="num" id="nCancel">0</span></a>
+  </div>
+</div>
+
+<div class="px-3 mt-2.5 pb-16">
+  <div class="space-y-2.5" id="list"></div>
+</div>
+
+<div class="mask" id="mask" onclick="closeSheet()"></div>
+<div class="sheet" id="sheet">
+  <div class="sticky top-0 bg-white px-4 pt-3 pb-2 border-b border-gray-50">
+    <div class="w-10 h-1 rounded-full bg-gray-200 mx-auto mb-2"></div>
+    <div class="flex items-center justify-between"><p class="text-[15px] font-extrabold text-gray-900">报名详情</p><a onclick="closeSheet()" class="text-gray-400 text-[12px]">关闭</a></div>
+  </div>
+  <div class="px-4 py-3 pb-8" id="sheetBody"></div>
+</div>
+
+<!-- 签到码放大 -->
+<div class="mask" id="qrMask" onclick="closeQr()"></div>
+<div class="sheet" id="qrSheet" style="max-height:70vh">
+  <div class="px-4 pt-3 pb-8 text-center">
+    <div class="w-10 h-1 rounded-full bg-gray-200 mx-auto mb-3"></div>
+    <p class="text-[15px] font-extrabold text-gray-900">签到码</p>
+    <p class="text-[10px] text-gray-400 mt-1" id="qrAct">—</p>
+    <div class="qr mt-3" id="qrBox"></div>
+    <p class="text-[30px] font-extrabold num tracking-[8px] mt-3" style="color:#4F46E5" id="qrCode">------</p>
+    <p class="text-[10px] text-gray-400 mt-2">请向工作人员出示，或口述 6 位码核销</p>
+    <a onclick="closeQr()" class="block w-full mt-3 py-2.5 rounded-xl text-[13px] font-bold text-gray-600 bg-white border border-gray-200">关闭</a>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span id="toastTxt">操作成功</span></div>
+
+<script>
+var ttm;function toast(m){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=m;t.classList.add('on');clearTimeout(ttm);ttm=setTimeout(function(){t.classList.remove('on')},1800)}
+function readLS(k){try{return JSON.parse(localStorage.getItem(k)||'[]')}catch(e){return []}}
+function writeLS(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+function q(k){var m=location.search.match(new RegExp('[?&]'+k+'=([^&]+)'));return m?decodeURIComponent(m[1]):''}
+function nowStr(){var d=new Date();function p(n){return n<10?'0'+n:''+n}return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes())}
+
+var ACTS=[
+ {id:'EVT20261024001',name:'秋冬新品选品沙龙',type:'沙龙',date:'2026-10-24',time:'15:00-17:00',place:'2F 共享空间',state:'已满',hasCheckin:true},
+ {id:'EVT20261026002',name:'秋季消防安全应急演练',type:'应急演练',date:'2026-10-26',time:'14:00-16:00',place:'A区1层中庭',state:'报名中',hasCheckin:true},
+ {id:'EVT20261028003',name:'跨境电商选品与独立站运营培训',type:'培训',date:'2026-10-28',time:'09:30-11:30',place:'3F 多功能厅',state:'报名中',hasCheckin:true},
+ {id:'EVT20261103004',name:'袜业数字化改造政策宣讲会',type:'会议',date:'2026-11-03',time:'14:00-16:00',place:'会议中心 201',state:'报名中',hasCheckin:true},
+ {id:'EVT20261115005',name:'大唐袜博会参展商说明会',type:'展会',date:'2026-11-15',time:'10:00-11:00',place:'会议中心 301',state:'未开始',hasCheckin:true},
+ {id:'EVT20260918006',name:'9月安全生产培训',type:'培训',date:'2026-09-18',time:'09:00-11:00',place:'3F 多功能厅',state:'已结束',hasCheckin:true},
+ {id:'EVT20261020007',name:'秋季新品走秀（商户专场）',type:'沙龙',date:'2026-10-20',time:'19:00-21:00',place:'A区1层中庭',state:'已取消',hasCheckin:true},
+ {id:'EVT20261019008',name:'袜机维保技术交流会',type:'会议',date:'2026-10-19',time:'14:00-16:00',place:'会议中心 201',state:'已下架',hasCheckin:false}
+];
+var SEED=[
+ {actId:'EVT20261103004',name:'李老板',phone:'13800138000',unit:'大唐袜业旗舰店',position:'店主',companions:1,audit:'已通过',checkin:'未签到',code:'728194',createdAt:'2026-10-19 10:20'},
+ {actId:'EVT20260918006',name:'李老板',phone:'13800138000',unit:'大唐袜业旗舰店',position:'店主',companions:0,audit:'已通过',checkin:'已签到',code:'310572',signTime:'2026-09-18 08:52',createdAt:'2026-09-02 09:10'},
+ {actId:'EVT20261024001',name:'李老板',phone:'13800138000',unit:'大唐袜业旗舰店',position:'店主',companions:0,audit:'已取消',checkin:'未签到',code:'',cancelReason:'临时有事',createdAt:'2026-10-18 15:00'},
+ {actId:'EVT20261020007',name:'李老板',phone:'13800138000',unit:'大唐袜业旗舰店',position:'店主',companions:0,audit:'已通过',checkin:'未签到',code:'512088',createdAt:'2026-10-19 16:40'}
+];
+(function seed(){
+  if(localStorage.getItem('sh_act_seeded_v2'))return;
+  var list=readLS('sh_act_signup');
+  SEED.forEach(function(s){
+    if(!list.some(function(x){return x.actId===s.actId&&x.phone===s.phone;}))list.push(s);
+  });
+  writeLS('sh_act_signup',list);localStorage.setItem('sh_act_seeded_v2','1');
+})();
+
+function actOf(id){return ACTS.filter(function(a){return a.id===id;})[0]||{};}
+function signups(){return readLS('sh_act_signup');}
+function bucket(s){
+  var a=actOf(s.actId);
+  if(s.audit==='已取消'||s.audit==='已驳回')return 'cancel';
+  if(a.state==='已取消')return 'cancel';   /* 活动取消：报名单保持原状态，仅留存展示 */
+  if(s.checkin==='已签到'||a.state==='已结束')return 'done';
+  return 'todo';
+}
+var tab=q('tab')||'todo';
+function setTab(t,el){
+  tab=t;
+  document.querySelectorAll('#tabs a').forEach(function(a){a.style.color='#6B7280';a.style.fontWeight='400';a.style.borderBottom='2px solid transparent';});
+  if(el){el.style.color='#4F46E5';el.style.fontWeight='700';el.style.borderBottom='2px solid #4F46E5';}
+  render();
+}
+function statCls(s){
+  if(s==='已通过')return 'bg-emerald-50 text-emerald-600';
+  if(s==='待审核')return 'bg-amber-50 text-amber-600';
+  return 'bg-gray-100 text-gray-500';
+}
+function render(){
+  var all=signups();
+  var todo=all.filter(function(s){return bucket(s)==='todo';});
+  var done=all.filter(function(s){return bucket(s)==='done';});
+  var cancel=all.filter(function(s){return bucket(s)==='cancel';});
+  document.getElementById('nTodo').textContent=todo.length;
+  document.getElementById('nDone').textContent=done.length;
+  document.getElementById('nCancel').textContent=cancel.length;
+  var arr=tab==='todo'?todo:tab==='done'?done:cancel;
+  document.getElementById('list').innerHTML=arr.length?arr.map(function(s,i){
+    var a=actOf(s.actId);
+    var tag=s.audit,tagCls=statCls(s.audit);
+    if(a.state==='已取消'){tag='活动已取消';tagCls='bg-rose-50 text-rose-500';}
+    else if(a.state==='已下架'){tag='已下架';tagCls='bg-gray-100 text-gray-500';}
+    var foot=a.state==='已取消'?'活动已取消，名单仅留存':(a.hasCheckin===false?'本活动不设签到':(s.checkin==='已签到'?'已签到 '+s.signTime:'未签到'));
+    return '<div class="card bg-white rounded-2xl shadow-soft px-3.5 py-3" onclick="openSheet('+i+','+'\''+tab+'\')">'
+      +'<div class="flex items-center justify-between gap-2"><p class="text-[13px] font-bold text-gray-800 truncate">'+(a.name||'活动')+'</p>'
+      +'<span class="'+tagCls+' text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0">'+tag+'</span></div>'
+      +'<p class="text-[10px] text-gray-400 mt-1.5"><i class="fas fa-clock text-[9px] mr-1"></i>'+(a.date||'')+' '+(a.time||'')+' · '+(a.place||'')+'</p>'
+      +'<div class="flex items-center justify-between mt-2 pt-2 border-t border-gray-50">'
+      +'<span class="text-[9px] text-gray-400">同行 '+s.companions+' 人 · '+foot+'</span>'
+      +'<span class="text-[10px] font-bold" style="color:#4F46E5">'+(tab==='todo'?'签到码 ›':'详情 ›')+'</span></div></div>';
+  }).join(''):'<div class="text-center py-14"><i class="fas fa-calendar-check text-gray-200 text-4xl"></i><p class="text-[12px] text-gray-400 mt-3">'+(tab==='todo'?'暂无待参加活动':tab==='done'?'暂无已参加记录':'暂无已取消记录')+'</p>'+(tab==='todo'?'<a href="activity-list.html" class="inline-block mt-3 text-[12px] font-bold text-indigo-600">去活动参与报名</a>':'')+'</div>';
+}
+function openSheet(i,t){
+  var arr=signups().filter(function(s){return bucket(s)===t;});
+  var s=arr[i];if(!s)return;
+  var a=actOf(s.actId);
+  var canCancel=(s.audit==='已通过'||s.audit==='待审核')&&s.checkin!=='已签到'&&(a.state==='报名中'||a.state==='未开始'||a.state==='已满');
+  var codeHtml='';
+  if(a.state==='已取消'){
+    codeHtml='<div class="mt-2 rounded-xl p-3" style="background:#FEF2F2"><p class="text-[10px] text-rose-600 leading-relaxed"><i class="fas fa-circle-info mr-1"></i>活动已由主办方取消，报名单仅留存；签到码与签到均已失效。</p></div>';
+  }else if(a.hasCheckin===false){
+    codeHtml='<div class="mt-2 rounded-xl p-3" style="background:#F1F3F6"><p class="text-[10px] text-gray-500 leading-relaxed"><i class="fas fa-circle-info mr-1"></i>本活动不设现场签到，凭报名信息入场。</p></div>';
+  }else if(s.audit==='已通过'&&s.code){
+    codeHtml='<div class="mt-2 rounded-xl p-3 text-center" style="background:#F5F7FF"><p class="text-[10px] text-gray-400">签到码</p><p class="text-[24px] font-extrabold num tracking-[6px] mt-1" style="color:#4F46E5">'+s.code+'</p>'
+      +'<button onclick="openQr(\''+s.code+'\',\''+(a.name||'').replace(/'/g,'')+'\')" class="mt-2 px-3 py-1.5 rounded-full text-white text-[11px] font-bold" style="background:linear-gradient(135deg,#6366F1,#4F46E5)">出示签到码</button></div>';
+  }else if(s.audit==='待审核'){
+    codeHtml='<div class="mt-2 rounded-xl p-3" style="background:#FFFBEB;border:1px solid #FDE68A"><p class="text-[10px] text-amber-700 leading-relaxed"><i class="fas fa-circle-info mr-1"></i>报名待主办方审核，通过后生成签到码并短信通知。</p></div>';
+  }else if(s.audit==='已取消'){
+    codeHtml='<div class="mt-2 rounded-xl p-3" style="background:#F1F3F6"><p class="text-[10px] text-gray-500">已取消报名'+(s.cancelReason?'：'+s.cancelReason:'')+'</p></div>';
+  }else if(s.audit==='已驳回'){
+    codeHtml='<div class="mt-2 rounded-xl p-3" style="background:#FEF2F2"><p class="text-[10px] text-rose-600">报名未通过'+(s.rejectReason?'：'+s.rejectReason:'')+'</p></div>';
+  }
+  var stTag=s.audit,stCls=statCls(s.audit);
+  if(a.state==='已取消'){stTag='活动已取消';stCls='bg-rose-50 text-rose-500';}
+  else if(a.state==='已下架'){stTag='已下架';stCls='bg-gray-100 text-gray-500';}
+  document.getElementById('sheetBody').innerHTML=
+    '<div class="flex items-center gap-2 mb-1.5"><span class="bg-indigo-50 text-indigo-600 text-[9px] font-bold px-1.5 py-0.5 rounded">'+(a.type||'活动')+'</span><span class="'+stCls+' text-[9px] font-bold px-1.5 py-0.5 rounded">'+stTag+'</span>'
+    +(s.checkin==='已签到'?'<span class="bg-emerald-50 text-emerald-600 text-[9px] font-bold px-1.5 py-0.5 rounded">已签到</span>':'<span class="bg-gray-100 text-gray-500 text-[9px] font-bold px-1.5 py-0.5 rounded">未签到</span>')+'</div>'
+    +'<p class="text-[15px] font-extrabold text-gray-900">'+(a.name||'活动')+'</p>'
+    +'<div class="mt-2 bg-gray-50 rounded-xl p-3 text-[11px]">'
+    +'<div class="flex justify-between py-1"><span class="text-gray-400">活动时间</span><span class="text-gray-700 num">'+(a.date||'')+' '+(a.time||'')+'</span></div>'
+    +'<div class="flex justify-between py-1"><span class="text-gray-400">活动地点</span><span class="text-gray-700">'+(a.place||'')+'</span></div>'
+    +'<div class="flex justify-between py-1"><span class="text-gray-400">报名人</span><span class="text-gray-700">'+s.name+' · '+s.phone+'</span></div>'
+    +'<div class="flex justify-between py-1"><span class="text-gray-400">单位 / 岗位</span><span class="text-gray-700">'+s.unit+' · '+s.position+'</span></div>'
+    +'<div class="flex justify-between py-1"><span class="text-gray-400">同行人数</span><span class="text-gray-700 num">'+s.companions+' 人</span></div>'
+    +'<div class="flex justify-between py-1"><span class="text-gray-400">报名时间</span><span class="text-gray-700 num">'+s.createdAt+'</span></div>'
+    +(s.signTime?'<div class="flex justify-between py-1"><span class="text-gray-400">签到时间</span><span class="text-emerald-600 num">'+s.signTime+'</span></div>':'')
+    +'</div>'
+    +codeHtml
+    +(a.state==='已下架'?'<p class="text-[9px] text-amber-600 mt-1.5">活动已下架，签到以主办方通知为准</p>':'')
+    +(canCancel&&a.state!=='已取消'&&a.state!=='已下架'?'<button onclick="cancelSignup(\''+s.actId+'\',\''+s.phone+'\')" class="w-full mt-3 py-2.5 rounded-xl text-[12px] font-bold text-gray-500 bg-white border border-gray-200">取消报名</button>':'')
+    +'<p class="text-[9px] text-gray-400 text-center mt-2">报名截止前可自行取消（每人每活动最多取消重报 3 次）；截止后请联系主办方</p>';
+  document.getElementById('mask').classList.add('on');
+  document.getElementById('sheet').classList.add('on');
+}
+function closeSheet(){document.getElementById('mask').classList.remove('on');document.getElementById('sheet').classList.remove('on');}
+function cancelSignup(actId,phone){
+  var booked=signups().filter(function(s){return s.actId===actId&&s.phone===phone;});
+  var cancelled=booked.filter(function(s){return s.audit==='已取消';}).length;
+  if(cancelled>=3){toast('该活动取消重报已达 3 次上限，请联系主办方');return;}
+  if(!confirm('确认取消该活动报名？取消后名额将释放（累计取消重报不超过 3 次）。'))return;
+  var list=signups();
+  list.forEach(function(s){if(s.actId===actId&&s.phone===phone){s.audit='已取消';s.cancelReason='商户自行取消';s.cancelledAt=nowStr();s.code='';}});
+  writeLS('sh_act_signup',list);
+  closeSheet();render();toast('已取消报名');
+}
+function openQr(code,name){
+  document.getElementById('qrAct').textContent=name;
+  document.getElementById('qrCode').textContent=code;
+  // 伪二维码（按码值确定性生成，仅演示）
+  var seed=0;for(var i=0;i<code.length;i++)seed=(seed*31+code.charCodeAt(i))%9973;
+  var h='';for(var j=0;j<441;j++){seed=(seed*1103515245+12345)%2147483648;h+='<i class="'+((seed>>8)&1?'b':'')+'"></i>';}
+  document.getElementById('qrBox').innerHTML=h;
+  document.getElementById('qrMask').classList.add('on');
+  document.getElementById('qrSheet').classList.add('on');
+}
+function closeQr(){document.getElementById('qrMask').classList.remove('on');document.getElementById('qrSheet').classList.remove('on');}
+
+// 初始高亮
+(function(){var map={todo:0,done:1,cancel:2};var el=document.querySelectorAll('#tabs a')[map[tab]||0];setTab(tab,el);})();
+</script>
+</body>
+</html>

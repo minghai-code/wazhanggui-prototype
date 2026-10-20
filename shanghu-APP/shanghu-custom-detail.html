@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>定制需求详情 - 袜掌柜商户版</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--bg:#F0F6FF}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+.grad-h{background:linear-gradient(135deg,#3B82F6 0%,#2563EB 50%,#1D4ED8 100%)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,40,80,.06)}
+.card{transition:transform .16s ease}.card:active{transform:scale(.99)}
+.inp{width:100%;background:#F8F9FB;border:1px solid #EEF0F4;border-radius:12px;padding:11px 13px;font-size:13px;color:#1F2430;outline:none}
+.inp:focus{border-color:#2563EB;background:#fff}
+.lbl{font-size:11px;color:#6b7080;font-weight:500;display:block;margin-bottom:6px}.lbl b{color:#EF4444}
+.num{font-variant-numeric:tabular-nums}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:900;opacity:0;pointer-events:none;transition:.2s;max-width:80%;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.ph{height:72px;border-radius:10px;background:linear-gradient(135deg,#E8F0FF,#F5F8FF);display:flex;align-items:center;justify-content:center;color:#9DB4D8;font-size:10px}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<!-- 顶部 -->
+<div class="grad-h px-3.5 pt-2 pb-5">
+  <div class="flex justify-between items-center text-white text-sm font-semibold" style="height:36px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+  </div>
+  <div class="flex items-center justify-between mt-1">
+    <a id="backLink" href="shanghu-custom.html" class="w-8 h-8 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+    <span class="text-white font-bold text-[17px]">需求详情</span>
+    <a href="shanghu-custom.html?tab=mine" class="text-white/90 text-[11px]">我的报价</a>
+  </div>
+</div>
+
+<div class="px-3 pt-3 pb-24" id="bodyBox"></div>
+<div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-3 py-2.5" style="z-index:100;width:393px;padding-bottom:18px" id="footBar"></div>
+
+<div class="toast" id="toast"><span id="toastTxt">操作成功</span></div>
+
+<script>
+var ttm;function toast(m){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=m;t.classList.add('on');clearTimeout(ttm);ttm=setTimeout(function(){t.classList.remove('on')},1800)}
+function readLS(k){try{return JSON.parse(localStorage.getItem(k)||'[]')}catch(e){return []}}
+function writeLS(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+function q(k){var m=location.search.match(new RegExp('[?&]'+k+'=([^&]+)'));return m?decodeURIComponent(m[1]):''}
+function nowStr(){var d=new Date();function p(n){return n<10?'0'+n:''+n}return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes())}
+
+var DEMANDS=[
+ {id:'CP20261024001',kind:'personal',type:'先样品后大货',title:'校服配套定制袜（含校徽）',buyer:'周**',qty:1000,unit:'双',maxPrice:'5.0',left:'剩 2 天',period:'30 天',
+  req:['花型：校徽刺绣（左袜口）','材质：精梳棉 80% + 氨纶 20%','版型：中筒，罗纹口','包装：独立 OPP 袋，100 双/箱'],
+  refs:['校徽矢量','配色参考','样袜实拍']},
+ {id:'CP20261024002',kind:'personal',type:'仅样品定制',title:'情侣款刺绣短袜 姓名定制',buyer:'吴**',qty:200,unit:'双',maxPrice:'8.0',left:'剩 3 天',period:'15 天',
+  req:['花型：情侣字母刺绣','材质：新疆棉','版型：船袜','包装：礼盒装'],
+  refs:['姓名样式','礼盒参考']},
+ {id:'CP20261024003',kind:'personal',type:'直接大货',title:'宠物主题潮袜 柯基图案',buyer:'郑**',qty:500,unit:'双',maxPrice:'4.2',left:'剩 1 天',period:'20 天',
+  req:['花型：柯基满印','材质：棉混纺','版型：中筒','包装：卡头袋'],
+  refs:['柯基图案']},
+ {id:'CP20261024004',kind:'personal',type:'仅样品定制',title:'汉服配套提花袜',buyer:'冯**',qty:300,unit:'双',maxPrice:'7.5',left:'剩 4 天',period:'25 天',
+  req:['花型：缠枝提花','材质：真丝混纺','版型：及膝','包装：丝绸袋'],
+  refs:['提花纹样','配色']},
+ {id:'CP20261024005',kind:'personal',type:'先样品后大货',title:'健身房定制毛巾底袜',buyer:'何**',qty:800,unit:'双',maxPrice:'6.0',left:'剩 8 小时',period:'22 天',
+  req:['花型：LOGO 提花','材质：棉 + 毛巾底','版型：中筒运动袜','包装：卡头袋'],
+  refs:['LOGO']},
+ {id:'CP20261024006',kind:'personal',type:'直接大货',title:'动漫IP联名长筒袜',buyer:'许**',qty:1200,unit:'双',maxPrice:'5.8',left:'剩 5 天',period:'30 天',
+  req:['花型：IP 满印（需授权）','材质：棉混纺','版型：长筒','包装：卡头袋'],
+  refs:['IP 图稿']},
+ {id:'CE20261024001',kind:'enterprise',type:'直接大货',title:'某科技企业年会礼盒袜 LOGO刺绣',buyer:'企业采购',qty:3000,unit:'双',maxPrice:'9.8',left:'剩 1 天',period:'35 天',
+  req:['花型：LOGO 刺绣','材质：精梳棉','版型：中筒','包装：年会礼盒 + 手提袋'],
+  refs:['LOGO','礼盒设计']},
+ {id:'CE20261024002',kind:'enterprise',type:'先样品后大货',title:'银行开户伴手礼袜（含包装）',buyer:'企业采购',qty:5000,unit:'双',maxPrice:'6.8',left:'剩 4 天',period:'40 天',
+  req:['花型：行徽提花','材质：精梳棉','版型：中筒','包装：牛皮纸礼盒'],
+  refs:['行徽','包装参考']},
+ {id:'CE20261024003',kind:'enterprise',type:'直接大货',title:'车企4S店交车伴手礼袜',buyer:'企业采购',qty:2000,unit:'双',maxPrice:'5.5',left:'剩 2 天',period:'30 天',
+  req:['花型：车标提花','材质：棉混纺','版型：中筒','包装：卡头袋'],
+  refs:['车标']},
+ {id:'CE20261024004',kind:'enterprise',type:'直接大货',title:'连锁酒店客房一次性拖鞋袜',buyer:'企业采购',qty:10000,unit:'双',maxPrice:'2.8',left:'剩 6 天',period:'45 天',
+  req:['花型：素色 + 酒店 LOGO','材质：涤棉','版型：船袜','包装：独立 OPP 袋'],
+  refs:['LOGO']},
+ {id:'CE20261024005',kind:'enterprise',type:'先样品后大货',title:'地产交付礼盒定制袜（精装）',buyer:'企业采购',qty:6000,unit:'双',maxPrice:'10.5',left:'剩 3 天',period:'38 天',
+  req:['花型：楼盘元素提花','材质：精梳棉','版型：中筒','包装：精装礼盒'],
+  refs:['楼盘素材','礼盒']}
+];
+
+var id=q('id');
+var d=DEMANDS.filter(function(x){return x.id===id;})[0];
+if(!d){
+  document.getElementById('bodyBox').innerHTML='<div class="text-center py-16"><i class="fas fa-shirt text-gray-200 text-4xl"></i><p class="text-[12px] text-gray-400 mt-3">需求不存在或已关闭</p><a href="shanghu-custom.html" class="inline-block mt-3 text-[12px] font-bold text-blue-600">返回定制需求池</a></div>';
+  document.getElementById('footBar').style.display='none';
+}else{
+  var mine=readLS('sh_custom_quotes').filter(function(x){return x.demandId===d.id;})[0];
+  var changes=mine?mine.changes:0;
+  var typeTip=d.type==='仅样品定制'?'本次仅提交样品报价，样品确认后线下沟通大货。'
+    :d.type==='直接大货'?'本次直接提交大货报价，不产生打样单。'
+    :'本次仅对样品报价；样品通过后由买家发起大货报价，后台生成两个订单。';
+
+  document.getElementById('bodyBox').innerHTML=
+    '<div class="bg-white rounded-2xl shadow-soft p-3.5">'
+    +'<div class="flex items-center gap-1.5"><span class="bg-indigo-50 text-indigo-600 text-[9px] font-bold px-1.5 py-0.5 rounded">'+d.type+'</span><span class="text-[9px] '+(d.left.indexOf('小时')>-1?'text-red-500 font-bold':'text-gray-400')+'">'+d.left+'</span></div>'
+    +'<p class="text-[15px] font-extrabold text-gray-900 mt-1.5 leading-snug">'+d.title+'</p>'
+    +'<div class="grid grid-cols-2 gap-y-2 text-[11px] mt-2.5">'
+    +'<div><span class="text-gray-400">采购数量</span><p class="text-gray-700 num mt-0.5">'+d.qty+' '+d.unit+'</p></div>'
+    +'<div><span class="text-gray-400">最高可接受</span><p class="text-red-500 font-bold num mt-0.5">¥'+d.maxPrice+'/'+d.unit+'</p></div>'
+    +'<div><span class="text-gray-400">要求交期</span><p class="text-gray-700 num mt-0.5">'+d.period+'</p></div>'
+    +'<div><span class="text-gray-400">发布方</span><p class="text-gray-700 mt-0.5">'+d.buyer+'</p></div>'
+    +'</div>'
+    +'<div class="mt-3 pt-2.5 border-t border-gray-50"><p class="text-[11px] font-bold text-gray-800 mb-1">定制要求</p>'
+    +d.req.map(function(r){return '<p class="text-[10px] text-gray-500 leading-relaxed mt-0.5"><i class="fas fa-circle text-[4px] text-blue-300 mr-1 align-middle"></i>'+r+'</p>';}).join('')
+    +'</div>'
+    +'<div class="mt-2.5"><p class="text-[11px] font-bold text-gray-800 mb-1.5">参考图</p><div class="grid grid-cols-3 gap-2">'
+    +d.refs.map(function(r){return '<div class="ph">'+r+'</div>';}).join('')+'</div></div>'
+    +'</div>'
+
+    +'<div class="bg-white rounded-2xl shadow-soft p-3.5 mt-3">'
+    +'<div class="flex items-center justify-between mb-1"><p class="text-[12px] font-bold text-gray-800">提交报价</p>'
+    +'<span class="text-[9px] '+(changes>=2?'text-red-500':'text-gray-400')+'">已改价 '+changes+'/2</span></div>'
+    +'<p class="text-[10px] text-amber-600 leading-relaxed mb-2"><i class="fas fa-circle-info mr-1"></i>'+typeTip+'</p>'
+    +'<div id="priceFields"></div>'
+    +'<div class="grid grid-cols-2 gap-2 mt-2">'
+    +'<div><label class="lbl">交期（天） <b>*</b></label><input id="fPeriod" type="number" class="inp" placeholder="如 25"></div>'
+    +'<div><label class="lbl">是否含运费</label><select id="fFreight" class="inp"><option>含运费</option><option>不含运费</option></select></div>'
+    +'</div>'
+    +'<div class="mt-2"><label class="lbl">备注</label><textarea id="fNote" class="inp" rows="2" placeholder="工艺说明、起订量、打样周期等（选填）"></textarea></div>'
+    +'</div>'
+
+    +'<div class="px-1 mt-2"><p class="text-[9px] text-gray-400 leading-relaxed"><i class="fas fa-circle-info mr-1"></i>截止前可改价，最多 2 次；未中标不会显示其他卖家报价。</p></div>';
+
+  // 按类型渲染价格字段
+  var pf=document.getElementById('priceFields');
+  if(d.type==='仅样品定制'){
+    pf.innerHTML='<div class="grid grid-cols-2 gap-2"><div><label class="lbl">样品单价（元/件） <b>*</b></label><input id="fSample" type="number" step="0.1" class="inp" placeholder="如 28"></div>'
+      +'<div><label class="lbl">样品数量（件） <b>*</b></label><input id="fSampleQty" type="number" class="inp" placeholder="如 2"></div></div>';
+  }else if(d.type==='直接大货'){
+    pf.innerHTML='<div class="grid grid-cols-2 gap-2"><div><label class="lbl">大货单价（元/'+d.unit+'） <b>*</b></label><input id="fBulk" type="number" step="0.1" class="inp" placeholder="如 4.2"></div>'
+      +'<div><label class="lbl">可供数量</label><input id="fBulkQty" type="number" class="inp" value="'+d.qty+'"></div></div>';
+  }else{
+    pf.innerHTML='<div class="grid grid-cols-2 gap-2"><div><label class="lbl">样品单价（元/件） <b>*</b></label><input id="fSample" type="number" step="0.1" class="inp" placeholder="如 28"></div>'
+      +'<div><label class="lbl">样品数量（件） <b>*</b></label><input id="fSampleQty" type="number" class="inp" placeholder="如 2"></div></div>'
+      +'<div class="mt-2"><label class="lbl">大货预估单价（元/'+d.unit+'）</label><input id="fBulk" type="number" step="0.1" class="inp" placeholder="样品通过后确认，可先填预估"></div>';
+  }
+
+  var foot='';
+  if(changes>=2){
+    foot='<div class="block w-full py-3 rounded-xl text-gray-400 text-[13px] font-bold text-center bg-gray-100">改价次数已用完（2/2）</div>';
+  }else{
+    foot='<a onclick="submitQuote()" class="block w-full py-3 rounded-xl text-white text-[14px] font-bold text-center" style="background:linear-gradient(135deg,#6366F1,#4F46E5)">'+(mine?'提交改价':'提交报价')+'</a>';
+  }
+  document.getElementById('footBar').innerHTML=foot;
+  document.getElementById('backLink').href='shanghu-custom.html?type='+d.kind;
+}
+
+function submitQuote(){
+  if(!d)return;
+  var period=document.getElementById('fPeriod').value.trim();
+  var freight=document.getElementById('fFreight').value;
+  var note=document.getElementById('fNote').value.trim();
+  var sEl=document.getElementById('fSample'),sqEl=document.getElementById('fSampleQty'),bEl=document.getElementById('fBulk'),bqEl=document.getElementById('fBulkQty');
+  if(!period){toast('请填写交期');return}
+  var detail='';
+  if(d.type==='仅样品定制'){
+    if(!sEl.value){toast('请填写样品单价');return}
+    if(!sqEl.value){toast('请填写样品数量');return}
+    detail='样品 ¥'+sEl.value+'/件 × '+sqEl.value+'件';
+  }else if(d.type==='直接大货'){
+    if(!bEl.value){toast('请填写大货单价');return}
+    detail='¥'+bEl.value+'/'+d.unit+' × '+(bqEl.value||d.qty)+d.unit;
+  }else{
+    if(!sEl.value){toast('请填写样品单价');return}
+    if(!sqEl.value){toast('请填写样品数量');return}
+    detail='样品 ¥'+sEl.value+'/件 × '+sqEl.value+'件'+(bEl.value?' · 大货预估 ¥'+bEl.value+'/'+d.unit:'');
+  }
+  detail+=' · 交期 '+period+' 天 · '+freight;
+  var list=readLS('sh_custom_quotes');
+  var idx=-1;
+  list.forEach(function(x,i){if(x.demandId===d.id)idx=i;});
+  if(idx>-1){
+    if(list[idx].changes>=2){toast('改价次数已用完（2/2）');return}
+    list[idx].detail=detail;list[idx].time=nowStr();list[idx].changes=(list[idx].changes||0)+1;list[idx].status='待确认';
+  }else{
+    list.unshift({demandId:d.id,title:d.title,type:d.type,detail:detail,status:'待确认',time:nowStr(),changes:0});
+  }
+  writeLS('sh_custom_quotes',list.slice(0,50));
+  toast(idx>-1?'改价已提交':'报价已提交');
+  setTimeout(function(){location.href='shanghu-custom.html?tab=mine';},700);
+}
+</script>
+</body>
+</html>

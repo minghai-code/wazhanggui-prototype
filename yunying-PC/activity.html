@@ -3,263 +3,299 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>活动运营 - 活动创建</title>
+<title>活动运营 - 活动列表</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
 *{box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#f1f5f9}
-::-webkit-scrollbar{width:6px;height:6px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
-.tab-active{color:#FF4D2D;border-bottom:2px solid #FF4D2D;font-weight:600}
-.status-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.st{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.btn-danger{background:#FEF2F2;color:#B91C1C;border:1px solid #FECACA}.btn-danger:hover{background:#FEE2E2}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}.lk:hover{text-decoration:underline}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}.lk-gray:hover{color:#1F2430;text-decoration:underline}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:60}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:780px;max-width:96vw;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:70;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);width:620px;max-width:95vw;max-height:86vh;overflow-y:auto;background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(15,23,42,.28);opacity:0;pointer-events:none;transition:.22s;z-index:70}
+.modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+.blk{border:1px solid #E2E8F0;border-radius:12px;padding:14px 16px}
+.blk-t{font-size:12.5px;font-weight:700;color:#1F2430;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.kv{display:flex;gap:8px;font-size:12px;line-height:1.9}
+.kv .k{width:106px;flex-shrink:0}
+.fi{width:100%;padding:6px 10px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none;background:#fff}
+.fi:focus{border-color:#FF4D2D}
+.fl{display:block;font-size:11px;color:#94A3B8;margin-bottom:4px}
+.sel{width:100%;padding:6px 8px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none}
+textarea.fi{font-family:inherit;line-height:1.8;resize:vertical}
+.pbar{height:5px;border-radius:3px;background:#EEF2F7;overflow:hidden;margin-top:4px}
+.pbar>i{display:block;height:100%;border-radius:3px;background:#FF4D2D}
+.pbar.full>i{background:#DC2626}
+#toast{position:fixed;left:50%;bottom:40px;transform:translateX(-50%);background:rgba(20,20,40,.9);color:#fff;font-size:12.5px;padding:9px 18px;border-radius:20px;z-index:99;opacity:0;transition:.25s;pointer-events:none;max-width:80vw}
 </style>
-<!-- Tailwind 静态样式：本地引用（不再依赖 cdn.tailwindcss.com）；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
 <link rel="stylesheet" href="tailwind.css">
 </head>
 <body>
-
 <div class="p-6">
-
-  <!-- 页面标题 -->
-  <div class="flex items-center justify-between mb-5">
+  <div class="flex items-center justify-between mb-4">
     <div>
-      <h1 class="text-[18px] font-bold text-gray-800">活动运营</h1>
-      <p class="text-[12px] text-gray-400 mt-0.5">活动全流程管理 · 创建 · 报名 · 签到 · 效果统计</p>
+      <h1 class="text-[18px] font-bold text-gray-800">商户活动运营</h1>
+      <p class="text-[12px] text-gray-400 mt-0.5">面向商户的活动 · 创建 · 审批 · 报名 · 签到 · 统计（商户端「物业服务 → 活动参与」展示）</p>
     </div>
-
-  </div>
-
-  <!-- Tab 导航 -->
-  <div class="flex items-center gap-6 mb-4 border-b border-gray-200">
-    <span class="tab-active py-2.5 text-[13px] cursor-pointer">活动创建</span>
-    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">报名管理</span>
-    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">签到管理</span>
-    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">效果统计</span>
-  </div>
-
-  <!-- 统计卡片 -->
-  <div class="grid grid-cols-4 gap-3 mb-5">
-    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
-      <p class="text-[11px] text-gray-400">进行中活动</p>
-      <p class="text-xl font-bold text-amber-500 mt-1">3</p>
-    </div>
-    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
-      <p class="text-[11px] text-gray-400">待开始</p>
-      <p class="text-xl font-bold text-blue-500 mt-1">5</p>
-    </div>
-    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
-      <p class="text-[11px] text-gray-400">报名中</p>
-      <p class="text-xl font-bold text-green-500 mt-1">7</p>
-    </div>
-    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
-      <p class="text-[11px] text-gray-400">已结束</p>
-      <p class="text-xl font-bold text-gray-500 mt-1">18</p>
+    <div class="flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="location.href='activity-approve.html'"><i class="fas fa-clipboard-check mr-1"></i>活动审批<span id="apDot" class="ml-1.5 text-[10px] text-white px-1.5 rounded-full" style="background:#E63E20">2</span></button>
+      <button class="btn btn-primary" onclick="location.href='activity-create.html'"><i class="fas fa-plus mr-1"></i>创建活动</button>
     </div>
   </div>
 
-  <!-- 筛选栏 -->
-  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
-    <div class="flex items-center gap-3 flex-wrap">
-      <div class="relative">
-        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
-        <input type="text" placeholder="活动编号 / 活动名称" class="w-56 pl-8 pr-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary focus:bg-white transition">
-      </div>
-      <select class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
-        <option value="">全部类型</option>
-        <option>展会</option>
-        <option>直采节</option>
-        <option>培训</option>
-        <option>沙龙</option>
-        <option>会议</option>
-      </select>
-      <select class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
-        <option value="">全部状态</option>
-        <option>报名中</option>
-        <option>待开始</option>
-        <option>进行中</option>
-        <option>已结束</option>
-      </select>
-      <input type="date" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
-      <span class="text-gray-300 text-xs">至</span>
-      <input type="date" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
-      <button class="px-4 py-1.5 text-[13px] text-white rounded-lg" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)">查询</button>
-      <button class="px-4 py-1.5 text-[13px] text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition">重置</button>
+  <div class="grid grid-cols-4 gap-3 mb-4" id="stats"></div>
+
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-3">
+    <div class="flex items-center gap-2 flex-wrap">
+      <input id="kw" class="fi" style="width:200px" placeholder="活动编号 / 名称" oninput="render()">
+      <select id="ft" class="sel" style="width:120px" onchange="render()"><option value="">全部类型</option></select>
+      <select id="fs" class="sel" style="width:120px" onchange="render()"><option value="">全部状态</option></select>
+      <select id="fo" class="sel" style="width:120px" onchange="render()"><option value="">全部主办方</option><option>平台</option><option>商户</option></select>
+      <button class="btn btn-primary" onclick="render()">查询</button>
+      <button class="btn btn-ghost" onclick="resetF()">重置</button>
     </div>
   </div>
 
-  <!-- 表格 -->
   <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
-    <div class="px-5 py-3 border-b border-gray-100 flex items-center gap-2 flex-wrap">
-      <button class="px-3 py-1.5 text-[12px] text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
-      <button class="px-3 py-1.5 text-[12px] text-white rounded-lg transition" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)"><i class="fas fa-plus text-[10px] mr-1"></i>创建活动</button>
+    <div class="px-4 py-2.5 border-b border-gray-100 flex items-center justify-between">
+      <span class="text-[12px] text-gray-400" id="cnt"></span>
+      <div class="flex gap-2">
+        <button class="btn btn-ghost" onclick="exportAll()"><i class="fas fa-download text-[10px] mr-1"></i>导出活动</button>
+      </div>
     </div>
     <table class="w-full text-[13px]">
       <thead>
         <tr class="bg-gray-50 text-gray-500 text-[12px]">
           <th class="px-4 py-3 text-left font-medium">活动编号</th>
           <th class="px-4 py-3 text-left font-medium">活动名称</th>
-          <th class="px-4 py-3 text-left font-medium">活动类型</th>
-          <th class="px-4 py-3 text-left font-medium">开始时间</th>
-          <th class="px-4 py-3 text-left font-medium">报名人数</th>
+          <th class="px-4 py-3 text-left font-medium">类型</th>
+          <th class="px-4 py-3 text-left font-medium">主办方</th>
+          <th class="px-4 py-3 text-left font-medium">报名时间</th>
+          <th class="px-4 py-3 text-left font-medium">活动时间</th>
+          <th class="px-4 py-3 text-left font-medium" style="width:130px">报名进度</th>
           <th class="px-4 py-3 text-left font-medium">状态</th>
-          <th class="px-4 py-3 text-center font-medium">操作</th>
+          <th class="px-4 py-3 text-center font-medium" style="width:190px">操作</th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-gray-50">
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 text-gray-600">EVT20260715001</td>
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#FF8A4C,#FF4D2D)"><i class="fas fa-store"></i></div>
-              <span class="font-medium text-gray-800">2026大唐袜业夏季直采节</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-gray-600">直采节</td>
-          <td class="px-4 py-3 text-gray-400">2026-07-15 09:00</td>
-          <td class="px-4 py-3 text-gray-600">156 / 200</td>
-          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">报名中</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-primary text-[12px] hover:underline mr-2">编辑</button>
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 text-gray-600">EVT20260714002</td>
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#38BDF8,#3B82F6)"><i class="fas fa-graduation-cap"></i></div>
-              <span class="font-medium text-gray-800">袜业电商运营实战培训</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-gray-600">培训</td>
-          <td class="px-4 py-3 text-gray-400">2026-07-14 14:00</td>
-          <td class="px-4 py-3 text-gray-600">48 / 50</td>
-          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">报名中</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-primary text-[12px] hover:underline mr-2">编辑</button>
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 text-gray-600">EVT20260712003</td>
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#A78BFA,#7C3AED)"><i class="fas fa-handshake"></i></div>
-              <span class="font-medium text-gray-800">袜业产业链对接沙龙</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-gray-600">沙龙</td>
-          <td class="px-4 py-3 text-gray-400">2026-07-12 10:00</td>
-          <td class="px-4 py-3 text-gray-600">32 / 40</td>
-          <td class="px-4 py-3"><span class="status-badge bg-amber-50 text-amber-600">进行中</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-primary text-[12px] hover:underline mr-2">签到</button>
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 text-gray-600">EVT20260718004</td>
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)"><i class="fas fa-chart-line"></i></div>
-              <span class="font-medium text-gray-800">2026袜业产业趋势发展论坛</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-gray-600">会议</td>
-          <td class="px-4 py-3 text-gray-400">2026-07-18 09:30</td>
-          <td class="px-4 py-3 text-gray-600">89 / 300</td>
-          <td class="px-4 py-3"><span class="status-badge bg-blue-50 text-blue-500">待开始</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-primary text-[12px] hover:underline mr-2">编辑</button>
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 text-gray-600">EVT20260711005</td>
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#2DD4BF,#14B8A6)"><i class="fas fa-microphone"></i></div>
-              <span class="font-medium text-gray-800">品牌出海跨境营销分享会</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-gray-600">沙龙</td>
-          <td class="px-4 py-3 text-gray-400">2026-07-11 14:00</td>
-          <td class="px-4 py-3 text-gray-600">28 / 30</td>
-          <td class="px-4 py-3"><span class="status-badge bg-amber-50 text-amber-600">进行中</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-primary text-[12px] hover:underline mr-2">签到</button>
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 text-gray-600">EVT20260705006</td>
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#34D399,#10B981)"><i class="fas fa-people-group"></i></div>
-              <span class="font-medium text-gray-800">夏季新品联合发布会</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-gray-600">展会</td>
-          <td class="px-4 py-3 text-gray-400">2026-07-05 09:00</td>
-          <td class="px-4 py-3 text-gray-600">210 / 250</td>
-          <td class="px-4 py-3"><span class="status-badge bg-gray-100 text-gray-500">已结束</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-primary text-[12px] hover:underline mr-2">统计</button>
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 text-gray-600">EVT20260628007</td>
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#FB7185,#EC4899)"><i class="fas fa-lightbulb"></i></div>
-              <span class="font-medium text-gray-800">AI赋能袜业设计工作坊</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-gray-600">培训</td>
-          <td class="px-4 py-3 text-gray-400">2026-06-28 13:30</td>
-          <td class="px-4 py-3 text-gray-600">45 / 50</td>
-          <td class="px-4 py-3"><span class="status-badge bg-gray-100 text-gray-500">已结束</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-primary text-[12px] hover:underline mr-2">统计</button>
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 text-gray-600">EVT20260720008</td>
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#9CA3AF,#6B7280)"><i class="fas fa-flag"></i></div>
-              <span class="font-medium text-gray-800">大唐袜业城招商推介会</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-gray-600">会议</td>
-          <td class="px-4 py-3 text-gray-400">2026-07-20 10:00</td>
-          <td class="px-4 py-3 text-gray-600">12 / 100</td>
-          <td class="px-4 py-3"><span class="status-badge bg-blue-50 text-blue-500">待开始</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-primary text-[12px] hover:underline mr-2">编辑</button>
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
-          </td>
-        </tr>
-      </tbody>
+      <tbody id="tb" class="divide-y divide-gray-50"></tbody>
     </table>
-    <!-- 分页 -->
-    <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
-      <span class="text-[12px] text-gray-400">共 33 条记录，第 1-8 条</span>
-      <div class="flex items-center gap-1">
-        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100"><i class="fas fa-chevron-left text-[10px]"></i></button>
-        <button class="w-7 h-7 flex items-center justify-center text-white text-[12px] rounded" style="background:#FF4D2D">1</button>
-        <button class="w-7 h-7 flex items-center justify-center text-gray-600 text-[12px] rounded hover:bg-gray-100">2</button>
-        <button class="w-7 h-7 flex items-center justify-center text-gray-600 text-[12px] rounded hover:bg-gray-100">3</button>
-        <button class="w-7 h-7 flex items-center justify-center text-gray-600 text-[12px] rounded hover:bg-gray-100">4</button>
-        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100"><i class="fas fa-chevron-right text-[10px]"></i></button>
-      </div>
-    </div>
   </div>
-
 </div>
 
+<div class="mask" id="mask" onclick="closeAll()"></div>
+<div class="drawer" id="drawer"></div>
+<div class="modal" id="modal"></div>
+<div id="toast"></div>
+
+<script>
+/* ============ 数据：活动（audit 审核态 / life 生命周期 / online 上下架 三层，status 为派生值） ============ */
+var ACT=[
+ {id:'EVT20261020001',name:'2026 大唐袜业秋冬直采节',type:'直采节',owner:'平台',merchant:'',icon:'fa-store',color:'#FF4D2D',
+  quota:300,hold:186,pending:8,passed:178,checked:0,canceled:6,rejected:3,pv:2840,
+  signStart:'2026-10-20',signEnd:'2026-11-05',start:'2026-11-08 09:00',end:'2026-11-10 17:00',
+  place:'大唐袜业城 1F 中庭',needAudit:false,life:'报名中',audit:'已通过',online:'上架'},
+ {id:'EVT20261018002',name:'袜业电商运营实战培训（第 3 期）',type:'培训',owner:'平台',merchant:'',icon:'fa-graduation-cap',color:'#2563EB',
+  quota:50,hold:48,pending:0,passed:48,checked:0,canceled:2,rejected:0,pv:960,
+  signStart:'2026-10-18',signEnd:'2026-10-25',start:'2026-10-28 14:00',end:'2026-10-28 17:00',
+  place:'袜业城 3F 培训室',needAudit:true,life:'报名中',audit:'已通过',online:'上架'},
+ {id:'EVT20261015003',name:'跨境出海选品沙龙',type:'沙龙',owner:'商户',merchant:'诸暨××袜业有限公司',icon:'fa-handshake',color:'#7C3AED',
+  quota:40,hold:0,pending:0,passed:0,checked:0,canceled:0,rejected:0,pv:0,
+  signStart:'2026-11-01',signEnd:'2026-11-10',start:'2026-11-12 14:00',end:'2026-11-12 17:00',
+  place:'诸暨××袜业 2F 展厅',needAudit:false,life:'未开始',audit:'待审批',online:'下架'},
+ {id:'EVT20261012004',name:'智能袜机操作实训（第三批）',type:'培训',owner:'商户',merchant:'浙江××智能装备有限公司',icon:'fa-gears',color:'#0EA5E9',
+  quota:30,hold:0,pending:0,passed:0,checked:0,canceled:0,rejected:0,pv:0,
+  signStart:'2026-10-15',signEnd:'2026-10-22',start:'2026-10-25 09:00',end:'2026-10-25 12:00',
+  place:'大唐袜业城 2F 实训区',needAudit:false,life:'未开始',audit:'已驳回',online:'下架',
+  rejectReason:'内容不合规：详情中出现"最先进""第一品牌"等绝对化用语，请修改后重新提交'},
+ {id:'EVT20261008005',name:'袜业城消防应急演练',type:'应急演练',owner:'平台',merchant:'',icon:'fa-fire-extinguisher',color:'#DC2626',
+  quota:500,hold:412,pending:0,passed:412,checked:356,canceled:18,rejected:0,pv:6820,
+  signStart:'2026-10-08',signEnd:'2026-10-18',start:'2026-10-18 14:00',end:'2026-10-20 17:00',
+  place:'大唐袜业城广场',needAudit:false,life:'进行中',audit:'已通过',online:'上架'},
+ {id:'EVT20260928006',name:'2026 袜业产业趋势发展论坛',type:'会议',owner:'平台',merchant:'',icon:'fa-chart-line',color:'#334155',
+  quota:300,hold:289,pending:0,passed:289,checked:241,canceled:11,rejected:0,pv:4120,
+  signStart:'2026-09-01',signEnd:'2026-09-25',start:'2026-09-28 09:00',end:'2026-09-28 17:00',
+  place:'诸暨市会展中心 A 厅',needAudit:true,life:'已结束',audit:'已通过',online:'上架'},
+ {id:'EVT20260920007',name:'商户数字化经营培训（第 2 期）',type:'培训',owner:'平台',merchant:'',icon:'fa-laptop',color:'#0891B2',
+  quota:60,hold:56,pending:0,passed:56,checked:48,canceled:4,rejected:0,pv:1980,
+  signStart:'2026-09-01',signEnd:'2026-09-18',start:'2026-09-20 09:00',end:'2026-09-20 16:00',
+  place:'袜业城 3F 培训室',needAudit:false,life:'已结束',audit:'已通过',online:'上架'},
+ {id:'EVT20261019008',name:'新商户入驻说明会',type:'会议',owner:'平台',merchant:'',icon:'fa-bullhorn',color:'#10B981',
+  quota:100,hold:0,pending:0,passed:0,checked:0,canceled:0,rejected:0,pv:120,
+  signStart:'2026-11-01',signEnd:'2026-11-05',start:'2026-11-06 10:00',end:'2026-11-06 12:00',
+  place:'袜业城 3F 会议厅',needAudit:false,life:'未开始',audit:'已通过',online:'上架'},
+ {id:'EVT20261010009',name:'品牌出海跨境营销分享会',type:'沙龙',owner:'平台',merchant:'',icon:'fa-microphone',color:'#64748B',
+  quota:30,hold:28,pending:0,passed:28,checked:0,canceled:28,rejected:0,pv:760,
+  signStart:'2026-10-10',signEnd:'2026-10-18',start:'2026-10-20 14:00',end:'2026-10-20 17:00',
+  place:'袜业城 3F 培训室',needAudit:false,life:'已取消',audit:'已通过',online:'下架',
+  cancelReason:'与政府招商活动时间冲突，整体取消'},
+ {id:'EVT20261005010',name:'冬季新品选品会',type:'展会',owner:'商户',merchant:'义乌××针织有限公司',icon:'fa-shirt',color:'#94A3B8',
+  quota:150,hold:64,pending:0,passed:64,checked:0,canceled:2,rejected:0,pv:540,
+  signStart:'2026-10-10',signEnd:'2026-10-30',start:'2026-11-02 09:00',end:'2026-11-02 17:00',
+  place:'义乌国际商贸城 5 区',needAudit:false,life:'报名中',audit:'已通过',online:'下架',
+  offlineReason:'商户合同已到期，系统自动下架'},
+ {id:'EVT20261020011',name:'（草稿）袜业青年设计师交流会',type:'沙龙',owner:'平台',merchant:'',icon:'fa-pen-ruler',color:'#94A3B8',
+  quota:60,hold:0,pending:0,passed:0,checked:0,canceled:0,rejected:0,pv:0,
+  signStart:'2026-11-10',signEnd:'2026-11-18',start:'2026-11-20 14:00',end:'2026-11-20 17:00',
+  place:'待定',needAudit:false,life:'未开始',audit:'草稿',online:'下架'}
+];
+
+var TODAY='2026-10-20';
+var TYPE_MAP={'展会':'#8B5CF6','直采节':'#FF4D2D','培训':'#2563EB','沙龙':'#7C3AED','会议':'#0891B2','应急演练':'#DC2626','其他':'#64748B'};
+var ST={'草稿':'background:#F1F5F9;color:#64748B','待审批':'background:#FEF3C7;color:#B45309','已驳回':'background:#FEE2E2;color:#B91C1C',
+ '未开始':'background:#E0E7FF;color:#4338CA','报名中':'background:#DCFCE7;color:#15803D','待开始':'background:#DBEAFE;color:#1D4ED8',
+ '进行中':'background:#FFEDD5;color:#C2410C','已结束':'background:#F1F5F9;color:#475569','已取消':'background:#FEE2E2;color:#991B1B','已下架':'background:#F3F4F6;color:#6B7280'};
+
+function derive(a){
+  if(a.audit==='草稿'){return '草稿';}
+  if(a.audit==='待审批'){return '待审批';}
+  if(a.audit==='已驳回'){return '已驳回';}
+  if(a.life==='已取消'){return '已取消';}
+  if(a.online==='下架'){return '已下架';}
+  return a.life;
+}
+function stTag(s){return '<span class="st" style="'+ST[s]+'">'+s+'</span>';}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function byId(id){return ACT.filter(function(a){return a.id===id;})[0];}
+function pct(a){return a.quota?Math.min(100,Math.round(a.hold/a.quota*100)):0;}
+
+/* ============ 统计 ============ */
+function renderStats(){
+  var run=0,ing=0,pend=0,end=0;
+  ACT.forEach(function(a){var s=derive(a);if(s==='报名中')run++;if(s==='进行中')ing++;if(s==='待审批')pend++;if(s==='已结束')end++;});
+  var d=[
+    ['进行中',ing,'#C2410C','fa-play'],
+    ['报名中',run,'#15803D','fa-user-plus'],
+    ['待审批',pend,'#B45309','fa-clipboard-check'],
+    ['已结束',end,'#475569','fa-flag-checkered']
+  ];
+  document.getElementById('stats').innerHTML=d.map(function(x){
+    return '<div class="bg-white rounded-xl border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400"><i class="fas '+x[3]+' mr-1"></i>'+x[0]+'</p><p class="text-xl font-bold mt-1" style="color:'+x[2]+'">'+x[1]+'</p></div>';
+  }).join('');
+}
+
+/* ============ 列表 ============ */
+function fillFilters(){
+  var ts={};ACT.forEach(function(a){ts[a.type]=1;});
+  var ss=['草稿','待审批','已驳回','未开始','报名中','待开始','进行中','已结束','已取消','已下架'];
+  document.getElementById('ft').innerHTML='<option value="">全部类型</option>'+Object.keys(ts).map(function(t){return '<option>'+t+'</option>';}).join('');
+  document.getElementById('fs').innerHTML='<option value="">全部状态</option>'+ss.map(function(s){return '<option>'+s+'</option>';}).join('');
+}
+function render(){
+  var kw=(document.getElementById('kw').value||'').trim();
+  var ft=document.getElementById('ft').value,fs=document.getElementById('fs').value,fo=document.getElementById('fo').value;
+  var rows=ACT.filter(function(a){
+    if(kw&&a.id.indexOf(kw)<0&&a.name.indexOf(kw)<0){return false;}
+    if(ft&&a.type!==ft){return false;}
+    if(fs&&derive(a)!==fs){return false;}
+    if(fo&&a.owner!==fo){return false;}
+    return true;
+  });
+  document.getElementById('cnt').textContent='共 '+rows.length+' 场活动';
+  if(!rows.length){
+    document.getElementById('tb').innerHTML='<tr><td colspan="9" class="px-4 py-12 text-center text-[12px] text-gray-400">没有符合条件的活动 —— 换个筛选条件，或先创建一场</td></tr>';
+    return;
+  }
+  document.getElementById('tb').innerHTML=rows.map(function(a){
+    var s=derive(a),p=pct(a);
+    return '<tr class="hover:bg-gray-50 transition">'
+      +'<td class="px-4 py-3 text-gray-500 text-[12px]">'+a.id+'</td>'
+      +'<td class="px-4 py-3"><div class="flex items-center gap-2"><div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px] flex-shrink-0" style="background:'+a.color+'"><i class="fas '+a.icon+'"></i></div>'
+      +'<div><span class="font-medium text-gray-800">'+esc(a.name)+'</span>'+(a.owner==='商户'?'<span class="st ml-1.5" style="background:#EDE9FE;color:#6D28D9">商户</span>':'')+'</div></div></td>'
+      +'<td class="px-4 py-3"><span class="text-[12px]" style="color:'+(TYPE_MAP[a.type]||'#64748B')+'">'+a.type+'</span></td>'
+      +'<td class="px-4 py-3 text-gray-600 text-[12px]">'+esc(a.owner==='商户'?a.merchant:'平台自办')+'</td>'
+      +'<td class="px-4 py-3 text-gray-400 text-[11px]">'+a.signStart+' ~ '+a.signEnd+'</td>'
+      +'<td class="px-4 py-3 text-gray-400 text-[11px]">'+a.start+'<br>'+a.end+'</td>'
+      +'<td class="px-4 py-3"><span class="text-[12px] '+(p>=100?'text-red-600 font-bold':'text-gray-600')+'">'+a.hold+' / '+a.quota+'</span><div class="pbar'+(p>=100?' full':'')+'"><i style="width:'+p+'%"></i></div>'
+      +((s==='进行中'||s==='已结束')?'<div class="text-[10px] text-gray-400 mt-0.5"><i class="fas fa-qrcode mr-0.5"></i>签到 '+a.checked+'/'+a.passed+'</div>':'')+'</td>'
+      +'<td class="px-4 py-3">'+stTag(s)+'</td>'
+      +'<td class="px-4 py-3 text-center">'+ops(a,s)+'</td></tr>';
+  }).join('');
+}
+function ops(a,s){
+  var o=[];
+  if(s==='草稿'){o.push('<span class="lk" onclick="location.href=\'activity-create.html?id='+a.id+'\'">编辑</span>');o.push('<span class="lk-gray" onclick="delAct(\''+a.id+'\')">删除</span>');}
+  else if(s==='待审批'){o.push('<span class="lk" onclick="location.href=\'activity-approve.html?id='+a.id+'\'">审批</span>');o.push('<span class="lk-gray" onclick="goDetail(\''+a.id+'\')">详情</span>');}
+  else if(s==='已驳回'){o.push('<span class="lk-gray" onclick="goDetail(\''+a.id+'\')">详情</span>');o.push('<span class="lk-gray" onclick="toast(\'已通知商户按驳回原因修改后重提\')">催改</span>');}
+  else {
+    o.push('<span class="lk" onclick="goDetail(\''+a.id+'\')">详情</span>');
+    if(s==='报名中'||s==='待开始'||s==='进行中'){o.push('<span class="lk" onclick="location.href=\'activity-signup.html?id='+a.id+'\'">报名</span>');}
+    if(s==='进行中'){o.push('<span class="lk" onclick="location.href=\'activity-checkin.html?id='+a.id+'\'">签到</span>');}
+    if(s==='已结束'){o.push('<span class="lk" onclick="location.href=\'activity-signup.html?id='+a.id+'\'">名单</span>');}
+    if(s==='未开始'||s==='报名中'||s==='待开始'){o.push('<span class="lk-gray" onclick="toggleOnline(\''+a.id+'\')">下架</span>');o.push('<span class="lk-gray" onclick="cancelAct(\''+a.id+'\')">取消</span>');}
+    if(s==='已下架'){o.push('<span class="lk-gray" onclick="toggleOnline(\''+a.id+'\')">上架</span>');}
+    if(s==='已结束'||s==='已取消'){o.push('<span class="lk-gray" onclick="copyAct(\''+a.id+'\')">复制</span>');}
+  }
+  return o.join(' · ');
+}
+
+/* ============ 操作 ============ */
+function toggleOnline(id){
+  var a=byId(id);
+  a.online=(a.online==='上架'?'下架':'上架');
+  if(a.online==='下架'){a.offlineReason='运营手工下架';}
+  renderStats();render();
+  toast('已'+(a.online==='上架'?'上架（商户端「活动参与」立即可见）':'下架（未报名商户不可见，已报名商户仍可见该条）'));
+}
+function cancelAct(id){
+  var a=byId(id);
+  show('modal','<div class="p-5"><h3 class="text-[15px] font-bold text-[#1F2430] mb-1">取消活动</h3>'
+    +'<p class="text-[12px] text-[#94A3B8] mb-3">'+esc(a.name)+'　已有 '+a.hold+' 人报名</p>'
+    +'<label class="fl">取消原因 *</label><select class="sel mb-3" id="cx-r"><option>场地冲突</option><option>天气原因</option><option>主办方原因</option><option>报名人数不足</option><option>其他</option></select>'
+    +'<label class="fl">说明 *</label><textarea class="fi mb-3" id="cx-n" rows="2" placeholder="如：与政府招商活动时间冲突"></textarea>'
+    +'<div class="rounded-xl border p-3 mb-4" style="border-color:#FECACA;background:#FEF2F2"><p class="text-[11px] text-[#64748B]">取消后：活动置「已取消」不可恢复（可复制新建）；<b>全部 '+a.hold+' 名已报名者将收到通知</b>；此操作需<b>主管权限</b>。</p></div>'
+    +'<div class="flex justify-end gap-2"><button class="btn btn-ghost" onclick="closeAll()">取消</button><button class="btn btn-danger" onclick="doCancel(\''+id+'\')">确认取消活动</button></div></div>');
+}
+function doCancel(id){
+  var n=(document.getElementById('cx-n').value||'').trim();
+  if(!n){toast('请填写取消说明');return;}
+  var a=byId(id);
+  a.life='已取消';a.online='下架';a.cancelReason=document.getElementById('cx-r').value+'：'+n;
+  closeAll();renderStats();render();
+  toast('活动已取消，'+a.hold+' 名报名者已收到通知');
+}
+function copyAct(id){
+  var a=byId(id);
+  var n=JSON.parse(JSON.stringify(a));
+  n.id='EVT'+TODAY.replace(/-/g,'')+String(ACT.length+1).padStart(3,'0');
+  n.name=a.name+'（副本）';n.audit='草稿';n.life='未开始';n.online='下架';
+  n.hold=0;n.pending=0;n.passed=0;n.checked=0;n.canceled=0;n.rejected=0;n.pv=0;
+  delete n.cancelReason;delete n.offlineReason;delete n.rejectReason;
+  ACT.unshift(n);
+  renderStats();render();
+  toast('已复制为新活动 '+n.id+'（草稿），可修改后发布');
+}
+function delAct(id){
+  var a=byId(id);
+  show('modal','<div class="p-5"><h3 class="text-[15px] font-bold mb-2">删除活动</h3><p class="text-[12px] text-[#64748B] mb-4">确认删除草稿「'+esc(a.name)+'」？删除后不可恢复。</p><div class="flex justify-end gap-2"><button class="btn btn-ghost" onclick="closeAll()">取消</button><button class="btn btn-danger" onclick="doDel(\''+id+'\')">确认删除</button></div></div>');
+}
+function doDel(id){
+  ACT=ACT.filter(function(a){return a.id!==id;});
+  closeAll();renderStats();render();toast('已删除');
+}
+function exportAll(){
+  show('modal','<div class="p-5"><h3 class="text-[15px] font-bold mb-2">导出活动清单</h3><p class="text-[12px] text-[#64748B] mb-3">导出当前筛选结果（'+ACT.length+' 场），含活动编号/名称/类型/主办方/时间/名额/状态。</p><div class="rounded-xl border p-3 mb-4" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B]">导出动作将记入操作日志（谁、何时、导出多少条）。</p></div><div class="flex justify-end gap-2"><button class="btn btn-ghost" onclick="closeAll()">取消</button><button class="btn btn-primary" onclick="closeAll();toast(\'已导出 '+ACT.length+' 条（含姓名与手机号的不在此表）\')">确认导出</button></div></div>');
+}
+
+/* ============ 详情跳转（二级页） ============ */
+function goDetail(id){location.href='activity-detail.html?id='+id;}
+
+/* ============ 基础 ============ */
+function show(which,h){document.getElementById(which).innerHTML=h;document.getElementById('mask').classList.add('on');document.getElementById(which).classList.add('on');}
+function closeAll(){document.getElementById('mask').classList.remove('on');document.getElementById('drawer').classList.remove('on');document.getElementById('modal').classList.remove('on');}
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},3200);}
+function resetF(){document.getElementById('kw').value='';document.getElementById('ft').value='';document.getElementById('fs').value='';document.getElementById('fo').value='';render();}
+
+fillFilters();renderStats();render();
+</script>
 </body>
 </html>

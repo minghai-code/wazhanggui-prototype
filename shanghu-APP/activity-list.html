@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>活动参与 - 袜掌柜商户版</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--bg:#F5F7FF}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+.card{transition:transform .16s ease}.card:active{transform:scale(.985)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
+.chip{font-size:11px;color:#6b7080;background:#fff;border:1px solid #eceef0;border-radius:999px;padding:5px 12px;white-space:nowrap;cursor:pointer}
+.chip.on{color:#fff;font-weight:700;background:#4F46E5;border-color:#4F46E5}
+.no-bar::-webkit-scrollbar{display:none}
+.num{font-variant-numeric:tabular-nums}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:900;opacity:0;pointer-events:none;transition:.2s}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<div class="relative px-4 pt-2 pb-5 overflow-hidden" style="background:linear-gradient(135deg,#6366F1 0%,#4F46E5 45%,#4338CA 100%)">
+  <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-40" style="background:#818CF8"></div>
+  <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+  </div>
+  <div class="relative flex items-center justify-between mt-1">
+    <a href="property.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+    <div class="text-center"><p class="text-white font-extrabold text-[18px]">活动参与</p><p class="text-white/75 text-[9px]">平台面向商户发布</p></div>
+    <a href="my-activities.html" class="text-white text-[12px] font-bold">我的活动</a>
+  </div>
+</div>
+
+<div class="px-3 mt-3">
+  <div class="flex gap-1.5 overflow-x-auto no-bar" id="chips"></div>
+</div>
+
+<div class="px-3 mt-2.5 pb-16">
+  <div class="space-y-2.5" id="list"></div>
+  <div class="bg-indigo-50/70 border border-indigo-100 rounded-2xl p-3.5 mt-3">
+    <p class="text-[10px] text-indigo-700 leading-relaxed"><i class="fas fa-circle-info mr-1"></i>活动由平台运营统一发布；报名成功后生成签到码，现场由工作人员扫码 / 输入码核销。</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span id="toastTxt">操作成功</span></div>
+
+<script>
+var ttm;function toast(m){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=m;t.classList.add('on');clearTimeout(ttm);ttm=setTimeout(function(){t.classList.remove('on')},1800)}
+function readLS(k){try{return JSON.parse(localStorage.getItem(k)||'[]')}catch(e){return []}}
+
+/* 后台 08 活动运营下发（上架可见） */
+var ACTS=[
+ {id:'EVT20261024001',name:'秋冬新品选品沙龙',type:'沙龙',org:'商户',date:'2026-10-24',md:'10-24',time:'15:00-17:00',place:'2F 共享空间',quota:30,occupied:30,state:'已满',notice:'主办方审核通过后短信通知。'},
+ {id:'EVT20261026002',name:'秋季消防安全应急演练',type:'应急演练',org:'平台',date:'2026-10-26',md:'10-26',time:'14:00-16:00',place:'A区1层中庭',quota:80,occupied:46,state:'报名中',notice:'请穿平底鞋，演练期间听从现场指挥。'},
+ {id:'EVT20261028003',name:'跨境电商选品与独立站运营培训',type:'培训',org:'平台',date:'2026-10-28',md:'10-28',time:'09:30-11:30',place:'3F 多功能厅',quota:60,occupied:38,state:'报名中',notice:'建议携带笔记本电脑。'},
+ {id:'EVT20261103004',name:'袜业数字化改造政策宣讲会',type:'会议',org:'平台',date:'2026-11-03',md:'11-03',time:'14:00-16:00',place:'会议中心 201',quota:100,occupied:72,state:'报名中',notice:'现场发放政策申报指南。'},
+ {id:'EVT20261115005',name:'大唐袜博会参展商说明会',type:'展会',org:'平台',date:'2026-11-15',md:'11-15',time:'10:00-11:00',place:'会议中心 301',quota:120,occupied:0,state:'未开始',notice:'报名 11 月 1 日开放。'},
+ {id:'EVT20260918006',name:'9月安全生产培训',type:'培训',org:'平台',date:'2026-09-18',md:'09-18',time:'09:00-11:00',place:'3F 多功能厅',quota:60,occupied:58,state:'已结束',notice:'活动已结束。'}
+];
+
+var FILTERS=['全部','报名中','未开始','已结束'];
+var filter='全部';
+function statCls(s){
+  if(s==='报名中')return 'bg-indigo-50 text-indigo-600';
+  if(s==='已满')return 'bg-rose-50 text-rose-500';
+  if(s==='未开始')return 'bg-gray-100 text-gray-500';
+  return 'bg-gray-100 text-gray-400';
+}
+function signed(actId){return readLS('sh_act_signup').filter(function(s){return s.actId===actId&&s.audit!=='已取消'&&s.audit!=='已驳回';})[0];}
+function chips(){
+  document.getElementById('chips').innerHTML=FILTERS.map(function(f){return '<a onclick="setF(\''+f+'\')" class="chip'+(f===filter?' on':'')+'">'+f+'</a>';}).join('');
+}
+function setF(f){filter=f;chips();render();}
+function render(){
+  var arr=ACTS.filter(function(a){
+    if(filter==='全部')return a.state!=='已结束'||true;
+    if(filter==='报名中')return a.state==='报名中'||a.state==='已满';
+    if(filter==='未开始')return a.state==='未开始';
+    return a.state==='已结束';
+  });
+  document.getElementById('list').innerHTML=arr.length?arr.map(function(a){
+    var pct=Math.round(a.occupied/a.quota*100);
+    var s=signed(a.id);
+    var tag=s?'已报名':(a.state==='报名中'?'可报名':a.state);
+    return '<a href="activity-detail.html?id='+a.id+'" class="card block bg-white rounded-2xl shadow-soft p-3.5">'
+      +'<div class="flex gap-3">'
+      +'<div class="w-12 rounded-xl flex-shrink-0 text-center py-2" style="background:#EEF2FF"><p class="text-[17px] font-extrabold num" style="color:#4F46E5">'+a.md.split('-')[1]+'</p><p class="text-[9px] text-indigo-400">'+a.md.split('-')[0]+'月</p></div>'
+      +'<div class="flex-1 min-w-0">'
+      +'<div class="flex items-center gap-1.5"><span class="bg-indigo-50 text-indigo-600 text-[8px] font-bold px-1.5 py-0.5 rounded">'+a.type+'</span><span class="text-[8px] text-gray-400">'+a.org+'</span>'
+      +'<span class="ml-auto '+statCls(a.state)+' text-[9px] font-bold px-1.5 py-0.5 rounded">'+a.state+'</span></div>'
+      +'<p class="text-[13px] font-bold text-gray-800 mt-1.5 leading-snug">'+a.name+'</p>'
+      +'<p class="text-[10px] text-gray-400 mt-1"><i class="fas fa-clock text-[9px] mr-1"></i>'+a.time+' · '+a.place+'</p>'
+      +'<div class="flex items-center gap-2 mt-2"><div class="flex-1 h-1.5 rounded-full bg-gray-100 overflow-hidden"><div style="width:'+pct+'%;height:100%;background:'+(pct>=100?'#EF4444':'#4F46E5')+'"></div></div>'
+      +'<span class="text-[9px] text-gray-400 num flex-shrink-0">'+a.occupied+'/'+a.quota+'</span></div>'
+      +'</div></div>'
+      +'<div class="flex items-center justify-between mt-2.5 pt-2.5 border-t border-gray-50"><span class="text-[10px] '+(s?'text-emerald-600':'text-gray-400')+'">'+(s?'已报名 · 查看详情与签到码':(a.state==='报名中'?'余位 '+(a.quota-a.occupied)+' 个':a.state==='已满'?'名额已满':'—'))+'</span>'
+      +'<span class="text-[10px] font-bold" style="color:#4F46E5">'+tag+' ›</span></div>'
+      +'</a>';
+  }).join(''):'<div class="text-center text-[12px] text-gray-400 py-12">暂无活动</div>';
+}
+chips();render();
+</script>
+</body>
+</html>

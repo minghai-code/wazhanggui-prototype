@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>活动运营 - 创建活动</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.st{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500;white-space:nowrap}
+.fi{width:100%;padding:7px 10px;border:1px solid #E2E8F0;border-radius:8px;font-size:12.5px;outline:none;background:#fff}
+.fi:focus{border-color:#FF4D2D;box-shadow:0 0 0 3px rgba(255,77,45,.08)}
+.fi[readonly]{background:#F8FAFC;color:#64748B}
+.fl{display:block;font-size:11.5px;color:#64748B;margin-bottom:5px;font-weight:500}
+.fl b{color:#DC2626}
+.sel{width:100%;padding:7px 8px;border:1px solid #E2E8F0;border-radius:8px;font-size:12.5px;outline:none;background:#fff}
+textarea.fi{font-family:inherit;line-height:1.85;resize:vertical}
+.step{border:1px solid #E2E8F0;border-radius:12px;background:#fff;padding:18px 20px;margin-bottom:14px}
+.step-h{display:flex;align-items:center;gap:9px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #F1F5F9}
+.step-n{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.step-t{font-size:13.5px;font-weight:700;color:#1F2430}
+.step-s{font-size:11px;color:#94A3B8;margin-left:auto}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.chk{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:#334155;cursor:pointer;padding:6px 10px;border:1px solid #E2E8F0;border-radius:8px;background:#fff}
+.chk input{accent-color:#FF4D2D}
+.hint{font-size:11px;color:#94A3B8;margin-top:4px}
+.warn{font-size:11px;color:#B45309;margin-top:4px;display:none}
+.up{border:2px dashed #E2E8F0;border-radius:10px;padding:16px;text-align:center;color:#94A3B8;cursor:pointer;background:#fff;font-size:12px}
+.up:hover{border-color:#FDB4A3;color:#E63E20}
+#toast{position:fixed;left:50%;bottom:76px;transform:translateX(-50%);background:rgba(20,20,40,.9);color:#fff;font-size:12.5px;padding:9px 18px;border-radius:20px;z-index:99;opacity:0;transition:.25s;pointer-events:none;max-width:80vw}
+.bar{position:sticky;bottom:0;background:#fff;border-top:1px solid #E2E8F0;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;margin:0 -24px -24px}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+<div class="p-6" style="max-width:1080px">
+  <div class="flex items-center justify-between mb-4">
+    <div class="flex items-center gap-3">
+      <button class="btn btn-ghost" onclick="location.href='activity.html'"><i class="fas fa-chevron-left"></i></button>
+      <div>
+        <h1 class="text-[18px] font-bold text-gray-800" id="pgTitle">创建活动</h1>
+        <p class="text-[12px] text-gray-400 mt-0.5" id="pgSub">面向商户的活动 · 平台自办提交后直接上架（免审核）</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2" id="topOps"></div>
+  </div>
+
+  <!-- 1 基本信息 -->
+  <div class="step">
+    <div class="step-h"><span class="step-n">1</span><span class="step-t">基本信息</span><span class="step-s">对外展示的内容</span></div>
+    <div class="grid2">
+      <div><label class="fl">活动名称 <b>*</b></label><input class="fi" id="f-name" placeholder="如：2026 大唐袜业秋冬直采节" maxlength="40"><div class="hint">不超过 40 字，不含绝对化用语（最/第一/唯一）</div></div>
+      <div><label class="fl">活动类型 <b>*</b></label><select class="sel" id="f-type"><option value="">请选择</option><option>展会</option><option>直采节</option><option>培训</option><option>沙龙</option><option>会议</option><option>应急演练</option><option>其他</option></select></div>
+      <div><label class="fl">主办方</label><input class="fi" id="f-owner" value="平台自办（市场运营中心）" readonly></div>
+      <div><label class="fl">主办方联系人 / 电话</label><div style="display:flex;gap:8px"><input class="fi" id="f-contact" placeholder="姓名" style="width:45%"><input class="fi" id="f-phone" placeholder="手机号" style="width:55%"></div></div>
+    </div>
+    <div class="grid2" style="margin-top:14px">
+      <div><label class="fl">封面图</label><div class="up" onclick="toast('演示环境：上传后自动裁剪 16:9')"><i class="fas fa-cloud-arrow-up mr-1"></i>点击上传（建议 750×422）</div></div>
+      <div><label class="fl">一句话简介 <b>*</b></label><textarea class="fi" id="f-brief" rows="3" placeholder="一句话说清这场活动能带给参与者什么" maxlength="60"></textarea><div class="hint">不超过 60 字，展示在列表与详情头部</div></div>
+    </div>
+    <div style="margin-top:14px"><label class="fl">活动详情</label><textarea class="fi" id="f-detail" rows="5" placeholder="议程 / 亮点 / 参与对象 / 报名须知…（支持换行）"></textarea></div>
+  </div>
+
+  <!-- 2 时间与地点 -->
+  <div class="step">
+    <div class="step-h"><span class="step-n">2</span><span class="step-t">时间与地点</span><span class="step-s">时间必须满足：报名开始 &lt; 报名截止 ≤ 活动开始 &lt; 活动结束</span></div>
+    <div class="grid2">
+      <div><label class="fl">报名开始 <b>*</b></label><input class="fi" id="f-ss" type="date"></div>
+      <div><label class="fl">报名截止 <b>*</b></label><input class="fi" id="f-se" type="date"></div>
+      <div><label class="fl">活动开始 <b>*</b></label><input class="fi" id="f-st" type="datetime-local"></div>
+      <div><label class="fl">活动结束 <b>*</b></label><input class="fi" id="f-en" type="datetime-local"></div>
+    </div>
+    <div class="warn" id="timeWarn"><i class="fas fa-triangle-exclamation mr-1"></i>时间不合法：报名截止须早于活动开始，活动结束须晚于活动开始</div>
+    <div class="grid3" style="margin-top:14px">
+      <div><label class="fl">地点类型 <b>*</b></label><select class="sel" id="f-ptype" onchange="placeType()"><option>市场资源</option><option>自定义地址</option><option>线上</option></select></div>
+      <div id="pRes"><label class="fl">选择资源</label><select class="sel" id="f-place"><option>大唐袜业城 1F 中庭</option><option>大唐袜业城广场</option><option>袜业城 3F 培训室</option><option>袜业城 3F 会议厅</option><option>大唐青少年宫</option></select></div>
+      <div id="pAddr" style="display:none"><label class="fl">详细地址</label><input class="fi" id="f-addr" placeholder="如：诸暨市大唐街道××路 1 号"></div>
+      <div id="pLink" style="display:none"><label class="fl">线上链接</label><input class="fi" id="f-link" placeholder="https://"></div>
+      <div><label class="fl">场地备注</label><input class="fi" id="f-pnote" placeholder="如：1F 中庭 + 直播间"></div>
+    </div>
+    <div class="warn" id="conflictWarn" style="color:#B45309"><i class="fas fa-circle-exclamation mr-1"></i>该资源在 11-08 09:00~17:00 已有活动「2026 袜业年会」（弱提示，不阻断）</div>
+  </div>
+
+  <!-- 3 报名设置 -->
+  <div class="step">
+    <div class="step-h"><span class="step-n">3</span><span class="step-t">报名设置</span><span class="step-s">名额与报名字段</span></div>
+    <div class="grid3">
+      <div><label class="fl">总名额 <b>*</b></label><input class="fi" id="f-quota" type="number" min="1" placeholder="如 300"><div class="hint">已报名人数不得超过该值</div></div>
+      <div><label class="fl">是否需要审核</label>
+        <select class="sel" id="f-audit"><option value="0">免审核（提交即通过）</option><option value="1">需要审核（运营/商户确认）</option></select>
+        <div class="hint">审核制下报名先占位，驳回才释放</div>
+      </div>
+      <div><label class="fl">同行人数上限</label><select class="sel" id="f-comp"><option value="0">不允许带人</option><option value="1">+1 人</option><option value="2">+2 人</option><option value="3">+3 人</option><option value="5">+5 人</option><option value="10">+10 人</option></select><div class="hint">同行人按人数占名额</div></div>
+    </div>
+    <div style="margin-top:14px">
+      <label class="fl">报名字段</label>
+      <div class="flex flex-wrap gap-2">
+        <label class="chk"><input type="checkbox" checked disabled>姓名（必填）</label>
+        <label class="chk"><input type="checkbox" checked disabled>手机号（必填）</label>
+        <label class="chk"><input type="checkbox" id="f-f1" checked>单位 / 企业</label>
+        <label class="chk"><input type="checkbox" id="f-f2">职务</label>
+        <label class="chk"><input type="checkbox" id="f-f3">备注 / 需求</label>
+      </div>
+      <div class="hint">勾选项为必填；姓名与手机号固定必填，不可取消</div>
+    </div>
+    <div style="margin-top:14px"><label class="fl">报名须知</label><textarea class="fi" id="f-notice" rows="3" placeholder="如：凭签到码入场，活动开始前 30 分钟开放签到；名额有限，报名后如无法参加请提前取消"></textarea></div>
+  </div>
+
+  <!-- 4 签到设置 -->
+  <div class="step">
+    <div class="step-h"><span class="step-n">4</span><span class="step-t">签到设置</span><span class="step-s">现场核销规则（展示位固定，无需选择）</span></div>
+    <div class="grid3">
+      <div><label class="fl">启用签到</label><select class="sel" id="f-ckon"><option value="1">启用</option><option value="0">不启用</option></select></div>
+      <div><label class="fl">签到方式</label><select class="sel" id="f-ckway"><option>扫码核销（工作人员扫码）</option><option>手工核销（输入 6 位码）</option><option>两者都支持</option></select></div>
+      <div><label class="fl">签到窗</label><div style="display:flex;align-items:center;gap:6px"><span class="text-[11px] text-gray-400">开始前</span><input class="fi" id="f-cb" type="number" value="60" style="width:70px"><span class="text-[11px] text-gray-400">分钟 ~ 结束后</span><input class="fi" id="f-ca" type="number" value="60" style="width:70px"><span class="text-[11px] text-gray-400">分钟</span></div></div>
+    </div>
+    <div style="margin-top:14px">
+      <label class="fl">展示位置（固定，无需选择）</label>
+      <div class="rounded-xl border p-3" style="border-color:#DBEAFE;background:#EFF6FF">
+        <p class="text-[12px] text-[#334155]"><i class="fas fa-location-dot mr-1" style="color:#2563EB"></i><b>商户端 → 物业服务 → 待办事项 → 活动参与</b></p>
+        <p class="text-[11px] text-[#64748B] mt-1">上架即在此处可见，<b>无其他投放位</b>；下架立即不可见（已报名商户仍可见该条）。</p>
+      </div>
+    </div>
+    <div class="rounded-xl border p-3" style="margin-top:14px;border-color:#DBEAFE;background:#EFF6FF">
+      <p class="text-[11px] text-[#64748B]"><b>提交后会发生什么</b>：平台活动直接进入「未开始 / 报名中」并上架；商户活动进入「待审批」由运营审核。<b>已上架活动在商户端「活动参与」立即可见</b>，报名实时扣减名额。</p>
+    </div>
+  </div>
+
+  <div class="bar">
+    <div class="text-[11px] text-gray-400" id="barTip">带 <span style="color:#DC2626">*</span> 为必填</div>
+    <div class="flex gap-2">
+      <button class="btn btn-ghost" onclick="location.href='activity.html'">取消</button>
+      <button class="btn btn-ghost" onclick="save('draft')">保存草稿</button>
+      <button class="btn btn-primary" onclick="save('publish')"><i class="fas fa-check mr-1"></i>提交并发布</button>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+var Q=new URLSearchParams(location.search);
+var EDIT=Q.get('id')||'';
+var isEdit=!!EDIT;
+
+/* 编辑模式：预填（演示用 mock，真实环境按 id 取数） */
+function prefill(){
+  if(!isEdit){return;}
+  document.getElementById('pgTitle').textContent='编辑活动';
+  document.getElementById('pgSub').textContent=EDIT+'　报名中 · 部分字段已锁定（名额只可增、时间改动需走改期）';
+  document.getElementById('topOps').innerHTML='<span class="st" style="background:#DCFCE7;color:#15803D">报名中</span>';
+  var v={
+    'f-name':'2026 大唐袜业秋冬直采节','f-type':'直采节','f-contact':'王倩','f-phone':'0575-8878 1001',
+    'f-brief':'300 家源头工厂直供，秋冬新款现场选品对接','f-detail':'• 11-08 09:00 开幕式\n• 11-08~11-10 全天选品对接\n• 11-09 14:00 跨境专场',
+    'f-ss':'2026-10-20','f-se':'2026-11-05','f-st':'2026-11-08T09:00','f-en':'2026-11-10T17:00',
+    'f-quota':300,'f-audit':'0','f-comp':'0',
+    'f-notice':'凭签到码入场；活动开始前 30 分钟开放签到。'
+  };
+  Object.keys(v).forEach(function(k){var e=document.getElementById(k);if(e){e.value=v[k];}});
+  document.getElementById('f-owner').value='平台自办（市场运营中心）';
+  document.querySelector('[onclick="save(\'draft\')"]').style.display='none';
+  document.querySelector('[onclick="save(\'publish\')"]').innerHTML='<i class="fas fa-check mr-1"></i>保存修改';
+}
+
+function placeType(){
+  var t=document.getElementById('f-ptype').value;
+  document.getElementById('pRes').style.display=(t==='市场资源'?'':'none');
+  document.getElementById('pAddr').style.display=(t==='自定义地址'?'':'none');
+  document.getElementById('pLink').style.display=(t==='线上'?'':'none');
+}
+function chkTime(){
+  var ss=document.getElementById('f-ss').value,se=document.getElementById('f-se').value;
+  var st=document.getElementById('f-st').value,en=document.getElementById('f-en').value;
+  var w=document.getElementById('timeWarn');
+  if(!ss||!se||!st||!en){w.style.display='none';return true;}
+  var a=new Date(ss+'T00:00'),b=new Date(se+'T23:59'),c=new Date(st),d=new Date(en);
+  var ok=(a<b)&&(b<=c)&&(c<d);
+  w.style.display=(ok?'none':'block');
+  return ok;
+}
+function chkQuota(){
+  var q=Number(document.getElementById('f-quota').value||0);
+  if(isEdit&&q<186){document.getElementById('f-quota').style.borderColor='#DC2626';return false;}
+  document.getElementById('f-quota').style.borderColor='#E2E8F0';return q>0;
+}
+document.getElementById('f-ss').addEventListener('change',chkTime);
+document.getElementById('f-se').addEventListener('change',chkTime);
+document.getElementById('f-st').addEventListener('change',chkTime);
+document.getElementById('f-en').addEventListener('change',chkTime);
+document.getElementById('f-quota').addEventListener('input',chkQuota);
+
+function save(mode){
+  var name=(document.getElementById('f-name').value||'').trim();
+  var type=document.getElementById('f-type').value;
+  var brief=(document.getElementById('f-brief').value||'').trim();
+  var quota=Number(document.getElementById('f-quota').value||0);
+  var ss=document.getElementById('f-ss').value,se=document.getElementById('f-se').value;
+  var st=document.getElementById('f-st').value,en=document.getElementById('f-en').value;
+
+  if(!name){toast('请填写活动名称');document.getElementById('f-name').focus();return;}
+  if(!type){toast('请选择活动类型');document.getElementById('f-type').focus();return;}
+  if(!brief){toast('请填写一句话简介');document.getElementById('f-brief').focus();return;}
+  if(!ss||!se||!st||!en){toast('请填写完整的报名与活动时间');return;}
+  if(!chkTime()){toast('时间不合法：报名截止须早于活动开始，结束须晚于开始');return;}
+  if(!quota||quota<1){toast('请填写有效名额');document.getElementById('f-quota').focus();return;}
+  if(isEdit&&quota<186){toast('名额不得小于已报名人数（当前 186）');return;}
+
+  /* 绝对化用语检查（合规） */
+  var bad=/(最先进|最好|第一品牌|唯一|国家级)/.exec(name+brief);
+  if(bad){toast('文案含绝对化用语「'+bad[1]+'」，请修改后再提交');return;}
+
+  if(mode==='draft'){
+    toast('已保存草稿（不生成报名入口，可随时继续编辑）');
+    setTimeout(function(){location.href='activity.html';},900);
+    return;
+  }
+  if(isEdit){
+    toast('修改已保存；如涉及时间调整，将通知全部已报名者');
+    setTimeout(function(){location.href='activity.html';},1000);
+    return;
+  }
+  toast('已发布：活动编号 EVT20261020'+(ACT_SEQ()),900);
+  setTimeout(function(){location.href='activity.html';},1100);
+}
+function ACT_SEQ(){return '012';}
+
+prefill();placeType();
+</script>
+</body>
+</html>

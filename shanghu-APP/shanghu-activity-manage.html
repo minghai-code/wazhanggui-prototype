@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>我的活动管理 - 袜掌柜商户版</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--bg:#F5F7FF}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+.card{transition:transform .16s ease}.card:active{transform:scale(.985)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
+.num{font-variant-numeric:tabular-nums}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:900;opacity:0;pointer-events:none;transition:.2s;max-width:80%;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:200;opacity:0;pointer-events:none;transition:.25s}
+.mask.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;width:393px;max-height:86vh;overflow-y:auto;background:#fff;border-radius:22px 22px 0 0;z-index:201;transform:translateY(100%);transition:transform .28s ease}
+.sheet.on{transform:translateY(0)}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<div class="relative px-4 pt-2 pb-5 overflow-hidden" style="background:linear-gradient(135deg,#6366F1 0%,#4F46E5 45%,#4338CA 100%)">
+  <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-40" style="background:#818CF8"></div>
+  <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+  </div>
+  <div class="relative flex items-center justify-between mt-1">
+    <a href="property.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+    <div class="text-center"><p class="text-white font-extrabold text-[18px]">我的活动</p><p class="text-white/75 text-[9px]">我主办的 · 报名与核销</p></div>
+    <a href="shanghu-activity-apply.html" class="text-white text-[12px] font-bold">发起</a>
+  </div>
+  <div class="relative mt-3 grid grid-cols-3 gap-2 text-center text-white">
+    <div class="rounded-xl py-2" style="background:rgba(255,255,255,.16)"><p class="text-[17px] font-black num" id="sAll">0</p><p class="text-[9px] text-white/70">活动总数</p></div>
+    <div class="rounded-xl py-2" style="background:rgba(255,255,255,.16)"><p class="text-[17px] font-black num" id="sRunning">0</p><p class="text-[9px] text-white/70">报名中</p></div>
+    <div class="rounded-xl py-2" style="background:rgba(255,255,255,.16)"><p class="text-[17px] font-black num" id="sWait">0</p><p class="text-[9px] text-white/70">待审批</p></div>
+  </div>
+</div>
+
+<div class="px-3 mt-3">
+  <div class="flex items-center gap-4 border-b border-gray-200 overflow-x-auto" id="tabs">
+    <a onclick="setTab('all',this)" class="font-bold pb-2 text-[13px] flex-shrink-0" style="color:#4F46E5;border-bottom:2px solid #4F46E5">全部</a>
+    <a onclick="setTab('draft',this)" class="text-gray-500 pb-2 text-[13px] flex-shrink-0">草稿</a>
+    <a onclick="setTab('wait',this)" class="text-gray-500 pb-2 text-[13px] flex-shrink-0">待审批</a>
+    <a onclick="setTab('running',this)" class="text-gray-500 pb-2 text-[13px] flex-shrink-0">报名中</a>
+    <a onclick="setTab('end',this)" class="text-gray-500 pb-2 text-[13px] flex-shrink-0">已结束</a>
+  </div>
+</div>
+
+<div class="px-3 mt-2.5 pb-16">
+  <div class="space-y-2.5" id="list"></div>
+</div>
+
+<div class="mask" id="mask" onclick="closeSheet()"></div>
+<div class="sheet" id="sheet">
+  <div class="sticky top-0 bg-white px-4 pt-3 pb-2 border-b border-gray-50">
+    <div class="w-10 h-1 rounded-full bg-gray-200 mx-auto mb-2"></div>
+    <div class="flex items-center justify-between"><p class="text-[15px] font-extrabold text-gray-900" id="sheetTitle">报名名单</p><a onclick="closeSheet()" class="text-gray-400 text-[12px]">关闭</a></div>
+  </div>
+  <div class="px-4 py-3 pb-8" id="sheetBody"></div>
+</div>
+
+<div class="toast" id="toast"><span id="toastTxt">操作成功</span></div>
+
+<script>
+var ttm;function toast(m){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=m;t.classList.add('on');clearTimeout(ttm);ttm=setTimeout(function(){t.classList.remove('on')},1800)}
+function readLS(k){try{return JSON.parse(localStorage.getItem(k)||'[]')}catch(e){return []}}
+function writeLS(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+function q(k){var m=location.search.match(new RegExp('[?&]'+k+'=([^&]+)'));return m?decodeURIComponent(m[1]):''}
+
+/* ===== 商户主办活动（后台 08 口径：草稿/待审批/已驳回/报名中/已结束/已取消/已下架） ===== */
+var SEED=[
+ {id:'EVT20261024001',name:'秋冬新品选品沙龙',type:'沙龙',start:'2026-10-24',end:'2026-10-24',signEnd:'2026-10-22',place:'2F 共享空间',quota:30,status:'报名中',audit:true,hasCheckin:true,occupied:27,version:1,
+  signups:[
+   {name:'王强',phone:'139****2233',unit:'大唐袜业',companions:0,audit:'已通过',checkin:'未签到',code:'728194',time:'10-18 09:20',src:'端上'},
+   {name:'李芳',phone:'138****6677',unit:'锦纶织造',companions:1,audit:'已通过',checkin:'已签到',code:'615207',signTime:'10-24 14:52',time:'10-18 10:05',src:'端上'},
+   {name:'张伟',phone:'137****9900',unit:'袜机维保',companions:0,audit:'待审核',checkin:'未签到',code:'',time:'10-19 11:30',src:'端上'},
+   {name:'赵敏',phone:'136****1122',unit:'大唐袜业城',companions:2,audit:'已通过',checkin:'未签到',code:'430881',time:'10-19 15:12',src:'现场'}
+  ]},
+ {id:'EVT20261103004',name:'袜业数字化改造政策宣讲会',type:'会议',start:'2026-11-03',end:'2026-11-03',signEnd:'2026-11-01',place:'会议中心 201',quota:100,status:'报名中',audit:false,hasCheckin:false,occupied:12,version:1,
+  signups:[
+   {name:'陈明',phone:'135****8899',unit:'诸暨袜业',companions:1,audit:'已通过',checkin:'未签到',code:'',time:'10-19 09:40',src:'端上'},
+   {name:'刘洋',phone:'131****5566',unit:'大唐街道',companions:0,audit:'已通过',checkin:'未签到',code:'',time:'10-20 08:15',src:'端上'}
+  ]},
+ {id:'EVT20261015009',name:'袜机维保技术交流会',type:'会议',start:'2026-10-15',end:'2026-10-15',signEnd:'2026-10-13',place:'会议中心 301',quota:40,status:'待审批',audit:false,hasCheckin:true,occupied:0,version:1,signups:[]},
+ {id:'EVT20261012011',name:'秋冬新品走秀（商户专场）',type:'沙龙',start:'2026-10-20',end:'2026-10-20',signEnd:'2026-10-18',place:'A区1层中庭',quota:60,status:'已驳回',audit:true,hasCheckin:true,occupied:0,version:1,rejectReason:'活动名称含「商户专场」易与平台活动混淆，且缺少场地安全预案，请修改后重新提交。',signups:[]},
+ {id:'EVT20261008012',name:'消防安全演练（本店）',type:'应急演练',start:'2026-10-08',end:'2026-10-08',signEnd:'2026-10-06',place:'A区1层中庭',quota:20,status:'已结束',audit:false,hasCheckin:true,occupied:18,version:1,
+  signups:[{name:'王强',phone:'139****2233',unit:'大唐袜业',companions:0,audit:'已通过',checkin:'已签到',code:'310572',signTime:'10-08 09:02',time:'10-05 10:00',src:'端上'}]},
+ {id:'EVT20261005013',name:'新品订货会',type:'展会',start:'2026-10-05',end:'2026-10-05',signEnd:'2026-10-03',place:'2F 共享空间',quota:50,status:'草稿',audit:false,hasCheckin:true,occupied:0,version:1,signups:[]}
+];
+(function seed(){
+  if(localStorage.getItem('sh_act_mine_seeded'))return;
+  var list=readLS('sh_act_mine');if(!list.length){writeLS('sh_act_mine',SEED);}
+  localStorage.setItem('sh_act_mine_seeded','1');
+})();
+
+function all(){return readLS('sh_act_mine');}
+function save(list){writeLS('sh_act_mine',list);}
+var tab=q('tab')||'all';
+function setTab(t,el){
+  tab=t;
+  document.querySelectorAll('#tabs a').forEach(function(a){a.style.color='#6B7280';a.style.fontWeight='400';a.style.borderBottom='2px solid transparent';});
+  if(el){el.style.color='#4F46E5';el.style.fontWeight='700';el.style.borderBottom='2px solid #4F46E5';}
+  render();
+}
+var ST={'草稿':'bg-gray-100 text-gray-500','待审批':'bg-amber-50 text-amber-600','已驳回':'bg-rose-50 text-rose-500','报名中':'bg-emerald-50 text-emerald-600','已结束':'bg-gray-100 text-gray-500','已取消':'bg-rose-50 text-rose-500','已下架':'bg-gray-100 text-gray-500'};
+function pass(s){return s.audit==='已通过';}
+function render(){
+  var list=all();
+  document.getElementById('sAll').textContent=list.length;
+  document.getElementById('sRunning').textContent=list.filter(function(x){return x.status==='报名中';}).length;
+  document.getElementById('sWait').textContent=list.filter(function(x){return x.status==='待审批';}).length;
+  var arr=list.filter(function(x){
+    if(tab==='all')return true;
+    if(tab==='draft')return x.status==='草稿'||x.status==='已驳回';
+    if(tab==='wait')return x.status==='待审批';
+    if(tab==='running')return x.status==='报名中';
+    return x.status==='已结束'||x.status==='已取消'||x.status==='已下架';
+  });
+  document.getElementById('list').innerHTML=arr.length?arr.map(function(a){
+    var ok=(a.signups||[]).filter(pass).length;
+    var total=(a.signups||[]).length;
+    var canEdit=a.status==='草稿'||a.status==='已驳回'||a.status==='待审批';
+    return '<div class="card bg-white rounded-2xl shadow-soft p-3.5">'
+      +'<div class="flex items-start justify-between gap-2"><div class="min-w-0">'
+      +'<div class="flex items-center gap-1.5"><span class="bg-indigo-50 text-indigo-600 text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0">'+a.type+'</span>'
+      +'<span class="'+(ST[a.status]||ST['草稿'])+' text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0">'+a.status+'</span></div>'
+      +'<p class="text-[13px] font-bold text-gray-800 mt-1.5 truncate">'+a.name+'</p>'
+      +'<p class="text-[10px] text-gray-400 mt-1 num"><i class="fas fa-clock text-[9px] mr-1"></i>'+a.start+' · '+a.place+'</p>'
+      +'<p class="text-[10px] text-gray-400 mt-0.5">名额 '+a.quota+' · 已占位 '+ok+' 人 · 报名单 '+total+' 条'+(a.hasCheckin===false?' · 不设签到':'')+'</p></div>'
+      +'<span class="text-[9px] text-gray-300 flex-shrink-0">v'+(a.version||1)+'</span></div>'
+      +(a.status==='已驳回'&&a.rejectReason?'<div class="mt-2 p-2 rounded-lg" style="background:#FEF2F2"><p class="text-[10px] text-rose-600 leading-relaxed"><b>驳回原因：</b>'+a.rejectReason+'</p></div>':'')
+      +(a.status==='待审批'?'<p class="text-[10px] text-amber-600 mt-2">平台形式审核中，通过后自动上架</p>':'')
+      +'<div class="flex items-center gap-1.5 mt-2.5 pt-2.5 border-t border-gray-50 flex-wrap">'
+      +(canEdit?'<a href="shanghu-activity-apply.html?id='+a.id+'" class="px-2.5 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 text-[10px] font-bold">'+(a.status==='已驳回'?'修改重提':'编辑')+'</a>':'')
+      +(a.status==='草稿'?'<a onclick="submitDraft(\''+a.id+'\')" class="px-2.5 py-1.5 rounded-lg text-white text-[10px] font-bold" style="background:linear-gradient(135deg,#6366F1,#4F46E5)">提交审批</a>':'')
+      +((a.signups||[]).length?'<a onclick="openSignups(\''+a.id+'\')" class="px-2.5 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-600 text-[10px] font-bold">查看名单</a>':'')
+      +(a.status==='报名中'&&a.hasCheckin!==false?'<a href="shanghu-activity-checkin.html?id='+a.id+'" class="px-2.5 py-1.5 rounded-lg bg-emerald-50 text-emerald-600 text-[10px] font-bold">现场核销</a>':'')
+      +(a.status==='报名中'?'<a onclick="cancelAct(\''+a.id+'\')" class="ml-auto text-[10px] text-gray-400">取消活动</a>':'')
+      +(a.status==='已结束'?'<a onclick="copyAct(\''+a.id+'\')" class="ml-auto text-[10px] text-indigo-500 font-bold">复制为新活动</a>':'')
+      +'</div></div>';
+  }).join(''):'<div class="text-center py-14"><i class="fas fa-calendar-plus text-gray-200 text-4xl"></i><p class="text-[12px] text-gray-400 mt-3">暂无活动</p><a href="shanghu-activity-apply.html" class="inline-block mt-3 text-[12px] font-bold text-indigo-600">发起一场活动</a></div>';
+}
+function submitDraft(id){
+  var list=all();
+  list.forEach(function(x){if(x.id===id){x.status='待审批';}});
+  save(list);render();toast('已提交审批');
+}
+function cancelAct(id){
+  if(!confirm('确认取消该活动？取消后将通知全部已报名者，名单仅留存。'))return;
+  var list=all();
+  list.forEach(function(x){if(x.id===id){x.status='已取消';}});
+  save(list);render();toast('活动已取消，已通知报名者');
+}
+function copyAct(id){
+  var src=all().filter(function(x){return x.id===id;})[0];if(!src)return;
+  var list=all();
+  var n=Object.assign({},src,{id:'EVT'+Date.now().toString().slice(-11),name:src.name+'（复制）',status:'草稿',occupied:0,signups:[],version:1});
+  list.unshift(n);save(list);render();toast('已复制为草稿，请修改时间后提交');
+}
+
+/* ===== 报名名单 ===== */
+var curAct=null;
+function openSignups(id){
+  var a=all().filter(function(x){return x.id===id;})[0];if(!a)return;
+  curAct=id;
+  document.getElementById('sheetTitle').textContent='报名名单 · '+a.name;
+  var rows=(a.signups||[]).map(function(s,i){
+    var st=s.audit==='已通过'?'bg-emerald-50 text-emerald-600':s.audit==='待审核'?'bg-amber-50 text-amber-600':'bg-rose-50 text-rose-500';
+    return '<div class="py-2.5 border-b border-gray-50">'
+      +'<div class="flex items-center justify-between gap-2"><p class="text-[12px] font-bold text-gray-800">'+s.name+' <span class="text-[10px] text-gray-400 font-normal num">'+s.phone+'</span></p>'
+      +'<span class="'+st+' text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0">'+s.audit+'</span></div>'
+      +'<p class="text-[9px] text-gray-400 mt-1">'+s.unit+' · 同行 '+s.companions+' 人 · '+(s.checkin==='已签到'?'已签到 '+s.signTime:'未签到')+' · 来源 '+(s.src||'端上')+'</p>'
+      +(s.audit==='待审核'?'<div class="flex gap-2 mt-1.5"><a onclick="auditOne('+i+',\'已通过\')" class="px-2 py-1 rounded-md bg-emerald-50 text-emerald-600 text-[10px] font-bold">通过</a><a onclick="auditOne('+i+',\'已驳回\')" class="px-2 py-1 rounded-md bg-rose-50 text-rose-500 text-[10px] font-bold">驳回</a></div>':'')
+      +'</div>';
+  }).join('');
+  var ok=(a.signups||[]).filter(pass).length;
+  document.getElementById('sheetBody').innerHTML=
+    '<div class="grid grid-cols-3 gap-2 text-center mb-3">'
+    +'<div class="rounded-xl py-2" style="background:#F5F7FF"><p class="text-[16px] font-black num" style="color:#4F46E5">'+(a.signups||[]).length+'</p><p class="text-[9px] text-gray-400">报名单</p></div>'
+    +'<div class="rounded-xl py-2" style="background:#ECFDF5"><p class="text-[16px] font-black num" style="color:#10B981">'+ok+'</p><p class="text-[9px] text-gray-400">已通过（占位）</p></div>'
+    +'<div class="rounded-xl py-2" style="background:#FEF3C7"><p class="text-[16px] font-black num" style="color:#D97706">'+Math.max(0,a.quota-ok)+'</p><p class="text-[9px] text-gray-400">剩余名额</p></div>'
+    +'</div>'
+    +'<p class="text-[9px] text-gray-400 mb-1.5">手机号对主办方脱敏展示；导出名单不含签到码（后台规则）。</p>'
+    +(rows||'<div class="text-center py-10 text-[11px] text-gray-400">暂无报名</div>')
+    +'<div class="flex gap-2 mt-3">'
+    +'<button onclick="exportList()" '+(a.signups&&a.signups.length?'':'disabled')+' class="flex-1 py-2.5 rounded-xl text-[12px] font-bold '+(a.signups&&a.signups.length?'text-gray-600 bg-white border border-gray-200':'text-gray-300 bg-gray-50')+'">导出名单</button>'
+    +'<button onclick="addSignup()" class="flex-1 py-2.5 rounded-xl text-white text-[12px] font-bold" style="background:linear-gradient(135deg,#6366F1,#4F46E5)">现场补录</button>'
+    +'</div>';
+  document.getElementById('mask').classList.add('on');
+  document.getElementById('sheet').classList.add('on');
+}
+function closeSheet(){document.getElementById('mask').classList.remove('on');document.getElementById('sheet').classList.remove('on');}
+function auditOne(i,st){
+  var list=all();
+  list.forEach(function(a){if(a.id===curAct)a.signups[i].audit=st;});
+  save(list);openSignups(curAct);toast('已'+st);
+}
+function exportList(){toast('名单已导出（不含签到码）');}
+function addSignup(){
+  var name=prompt('补录报名人姓名');if(!name)return;
+  var phone=prompt('手机号（11 位）');if(!phone||!/^1\d{10}$/.test(phone)){toast('手机号格式不正确');return;}
+  var list=all(),dup=false;
+  list.forEach(function(a){
+    if(a.id!==curAct)return;
+    if(a.signups.some(function(s){return s.phone.slice(-4)===phone.slice(-4)&&s.name===name;}))dup=true;
+    if(dup)return;
+    a.signups.push({name:name,phone:phone.slice(0,3)+'****'+phone.slice(-4),unit:'—',companions:0,audit:'已通过',checkin:'未签到',code:String(Math.floor(100000+Math.random()*900000)),time:'现场补录',src:'现场'});
+  });
+  if(dup){toast('该手机号已报名，请勿重复补录');return;}
+  save(list);openSignups(curAct);toast('已补录并直接置为已通过');
+}
+
+(function(){var map={all:0,draft:1,wait:2,running:3,end:4};var el=document.querySelectorAll('#tabs a')[map[tab]||0];setTab(tab,el);})();
+</script>
+</body>
+</html>

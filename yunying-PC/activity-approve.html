@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>活动运营 - 活动审批</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.btn-ok{background:#15803D;color:#fff}.btn-ok:hover{filter:brightness(1.08)}
+.btn-danger{background:#FEF2F2;color:#B91C1C;border:1px solid #FECACA}.btn-danger:hover{background:#FEE2E2}
+.st{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500;white-space:nowrap}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:60}
+.mask.on{opacity:1;pointer-events:auto}
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);width:600px;max-width:95vw;max-height:86vh;overflow-y:auto;background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(15,23,42,.28);opacity:0;pointer-events:none;transition:.22s;z-index:70}
+.modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+.blk{border:1px solid #E2E8F0;border-radius:12px;padding:14px 16px;background:#fff}
+.blk-t{font-size:12.5px;font-weight:700;color:#1F2430;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.kv{display:flex;gap:8px;font-size:12px;line-height:1.95}
+.kv .k{width:96px;flex-shrink:0;color:#94A3B8}
+.item{border:1px solid #E2E8F0;border-radius:10px;padding:11px 13px;cursor:pointer;background:#fff;transition:.15s;margin-bottom:8px}
+.item:hover{border-color:#FDB4A3}
+.item.on{border-color:#FF4D2D;background:#FFF7F4;box-shadow:0 0 0 3px rgba(255,77,45,.07)}
+.fi{width:100%;padding:7px 10px;border:1px solid #E2E8F0;border-radius:8px;font-size:12.5px;outline:none}
+.fl{display:block;font-size:11.5px;color:#64748B;margin-bottom:5px;font-weight:500}
+.sel{width:100%;padding:7px 8px;border:1px solid #E2E8F0;border-radius:8px;font-size:12.5px;outline:none}
+textarea.fi{font-family:inherit;line-height:1.8;resize:vertical}
+#toast{position:fixed;left:50%;bottom:40px;transform:translateX(-50%);background:rgba(20,20,40,.9);color:#fff;font-size:12.5px;padding:9px 18px;border-radius:20px;z-index:99;opacity:0;transition:.25s;pointer-events:none;max-width:80vw}
+.empty{text-align:center;padding:60px 20px;color:#94A3B8;font-size:12px}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+<div class="p-6">
+  <div class="flex items-center justify-between mb-4">
+    <div class="flex items-center gap-3">
+      <button class="btn btn-ghost" onclick="location.href='activity.html'"><i class="fas fa-chevron-left"></i></button>
+      <div>
+        <h1 class="text-[18px] font-bold text-gray-800">活动审批</h1>
+        <p class="text-[12px] text-gray-400 mt-0.5">商户提交的活动需审核通过后才在商户端「活动参与」可见；平台自办活动免审</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex gap-4" style="align-items:flex-start">
+    <!-- 左：队列 -->
+    <div style="width:340px;flex-shrink:0">
+      <div class="bg-white rounded-xl border border-gray-100 p-3">
+        <div class="flex gap-1 mb-3" id="tabs"></div>
+        <div id="list"></div>
+      </div>
+    </div>
+    <!-- 右：预览 -->
+    <div style="flex:1;min-width:0" id="preview"></div>
+  </div>
+</div>
+
+<div class="mask" id="mask" onclick="closeAll()"></div>
+<div class="modal" id="modal"></div>
+<div id="toast"></div>
+
+<script>
+var APPS=[
+ {id:'EVT20261015003',name:'跨境出海选品沙龙',type:'沙龙',merchant:'诸暨××袜业有限公司',contact:'李经理 139****1234',quota:40,audit:false,ver:1,
+  signStart:'2026-11-01',signEnd:'2026-11-10',start:'2026-11-12 14:00',end:'2026-11-12 17:00',
+  place:'诸暨××袜业 2F 展厅',brief:'面向袜业工厂的跨境选品与渠道对接沙龙',submitAt:'2026-10-15 10:20',state:'待审批',
+  detail:'• 14:00 跨境平台选品趋势（30min）\n• 14:30 工厂样品一对一对接\n• 16:00 物流与合规答疑\n\n参与对象：袜业工厂负责人、外贸业务员',
+  checks:[{ok:true,t:'时间合法（报名截止早于活动开始）'},{ok:true,t:'名额设置合理（40 人）'},{ok:true,t:'地点与联系人已填'},{ok:true,t:'无绝对化用语'}]},
+ {id:'EVT20261019012',name:'袜机维保技术开放日',type:'培训',merchant:'浙江××智能装备有限公司',contact:'张工 137****5566',quota:25,audit:false,ver:1,
+  signStart:'2026-10-25',signEnd:'2026-11-05',start:'2026-11-08 09:00',end:'2026-11-08 12:00',
+  place:'大唐袜业城 2F 实训区',brief:'免费为袜业工厂做设备巡检与维保培训',submitAt:'2026-10-19 16:40',state:'待审批',
+  detail:'现场演示断线检测、针筒保养、电控故障排查。每厂限 2 人。',
+  checks:[{ok:true,t:'时间合法'},{ok:false,t:'名额偏少（25 人），建议 30 人以上'},{ok:true,t:'地点与联系人已填'},{ok:true,t:'无绝对化用语'}]},
+ {id:'EVT20261012004',name:'智能袜机操作实训（第三批）',type:'培训',merchant:'浙江××智能装备有限公司',contact:'张工 137****5566',quota:30,audit:false,ver:2,
+  signStart:'2026-10-15',signEnd:'2026-10-22',start:'2026-10-25 09:00',end:'2026-10-25 12:00',
+  place:'大唐袜业城 2F 实训区',brief:'本地区最先进的袜机操作实训',submitAt:'2026-10-12 09:10',state:'已驳回',
+  detail:'讲解最新机型操作。',rejectReason:'内容不合规：简介含绝对化用语「最先进」，请删除后重新提交',
+  checks:[{ok:false,t:'简介含绝对化用语「最先进」'}]},
+ {id:'EVT20261005010',name:'冬季新品选品会',type:'展会',merchant:'义乌××针织有限公司',contact:'王经理 136****9900',quota:150,audit:false,ver:1,
+  signStart:'2026-10-10',signEnd:'2026-10-30',start:'2026-11-02 09:00',end:'2026-11-02 17:00',
+  place:'义乌国际商贸城 5 区',brief:'冬季保暖袜新品集中展示与订货',submitAt:'2026-10-05 08:50',state:'已通过',approveAt:'2026-10-05 09:30',
+  detail:'30 家工厂冬季新品陈列，采购商现场看样订货。',checks:[{ok:true,t:'全部检查通过'}]}
+];
+
+var tab='待审批',curId=null;
+
+function countOf(s){return APPS.filter(function(a){return a.state===s;}).length;}
+function renderTabs(){
+  var ts=['待审批','已通过','已驳回'];
+  document.getElementById('tabs').innerHTML=ts.map(function(t){
+    var on=(t===tab);
+    return '<button class="btn '+(on?'btn-primary':'btn-ghost')+'" style="flex:1;padding:5px 8px" onclick="switchTab(\''+t+'\')">'+t+' <span style="opacity:.75">'+countOf(t)+'</span></button>';
+  }).join('');
+}
+function switchTab(t){tab=t;renderTabs();renderList();var f=APPS.filter(function(a){return a.state===tab;})[0];if(f){select(f.id);}else{curId=null;renderPreview();}}
+function renderList(){
+  var rows=APPS.filter(function(a){return a.state===tab;});
+  if(!rows.length){document.getElementById('list').innerHTML='<div class="empty"><i class="fas fa-inbox text-2xl mb-2 block" style="opacity:.4"></i>暂无'+tab+'活动</div>';return;}
+  document.getElementById('list').innerHTML=rows.map(function(a){
+    return '<div class="item'+(a.id===curId?' on':'')+'" onclick="select(\''+a.id+'\')">'
+      +'<div class="flex items-center justify-between mb-1"><span class="text-[13px] font-semibold text-gray-800">'+esc(a.name)+'</span></div>'
+      +'<div class="text-[11px] text-gray-400">'+a.merchant+'</div>'
+      +'<div class="flex items-center gap-3 text-[11px] text-gray-400 mt-1.5"><span><i class="fas fa-calendar mr-1"></i>'+a.start.slice(0,10)+'</span><span><i class="fas fa-user-group mr-1"></i>'+a.quota+' 人</span></div>'
+      +(a.state==='已驳回'?'<div class="text-[11px] mt-1.5" style="color:#B91C1C">已驳回，等待商户修改</div>':'')
+      +'<div class="text-[10px] text-gray-300 mt-1.5">提交 '+a.submitAt+'　v'+a.ver+'</div>'
+      +'</div>';
+  }).join('');
+}
+function select(id){curId=id;renderList();renderPreview();}
+
+function renderPreview(){
+  var a=APPS.filter(function(x){return x.id===curId;})[0];
+  var box=document.getElementById('preview');
+  if(!a){box.innerHTML='<div class="bg-white rounded-xl border border-gray-100"><div class="empty"><i class="fas fa-hand-pointer text-2xl mb-2 block" style="opacity:.4"></i>选择左侧活动查看详情</div></div>';return;}
+  var bad=a.checks.filter(function(c){return !c.ok;});
+  var h='<div class="bg-white rounded-xl border border-gray-100 p-5 mb-3">'
+    +'<div class="flex items-start justify-between">'
+    +'<div><h2 class="text-[16px] font-bold text-gray-800">'+esc(a.name)+'</h2>'
+    +'<p class="text-[11px] text-gray-400 mt-1">'+a.id+'　'+a.merchant+'　'+a.contact+'</p></div>'
+    +'<span class="st" style="'+(a.state==='待审批'?'background:#FEF3C7;color:#B45309':a.state==='已通过'?'background:#DCFCE7;color:#15803D':'background:#FEE2E2;color:#B91C1C')+'">'+a.state+'</span></div>'
+    +'<div class="grid grid-cols-2 gap-4 mt-4">'
+    +'<div class="kv"><span class="k">活动类型</span><span>'+a.type+'</span></div>'
+    +'<div class="kv"><span class="k">名额</span><span>'+a.quota+' 人（免审核）</span></div>'
+    +'<div class="kv"><span class="k">报名时间</span><span>'+a.signStart+' ~ '+a.signEnd+'</span></div>'
+    +'<div class="kv"><span class="k">活动时间</span><span>'+a.start+' ~ '+a.end+'</span></div>'
+    +'<div class="kv"><span class="k">活动地点</span><span>'+esc(a.place)+'</span></div>'
+    +'<div class="kv"><span class="k">提交时间</span><span>'+a.submitAt+'（v'+a.ver+'）</span></div>'
+    +'</div></div>';
+
+  h+='<div class="blk mb-3"><div class="blk-t"><i class="fas fa-spell-check text-[#2563EB]"></i>系统预检（人工可覆盖）</div>';
+  a.checks.forEach(function(c){
+    h+='<div class="flex items-start gap-2 text-[12px] py-1"><i class="fas '+(c.ok?'fa-circle-check text-[#15803D]':'fa-circle-exclamation text-[#B45309]')+' mt-0.5"></i><span class="'+(c.ok?'text-gray-600':'text-amber-700')+'">'+esc(c.t)+'</span></div>';
+  });
+  h+='</div>';
+
+  h+='<div class="blk mb-3"><div class="blk-t"><i class="fas fa-align-left text-[#7C3AED]"></i>活动内容</div>'
+    +'<p class="text-[12.5px] font-medium text-gray-700 mb-2">'+esc(a.brief)+'</p>'
+    +'<div class="text-[12px] text-gray-600" style="white-space:pre-wrap;line-height:1.9">'+esc(a.detail)+'</div></div>';
+
+  if(a.state==='已驳回'){
+    h+='<div class="blk mb-3" style="border-color:#FECACA;background:#FEF2F2"><div class="blk-t" style="color:#B91C1C"><i class="fas fa-circle-xmark"></i>驳回原因</div><p class="text-[12px] text-[#B91C1C]">'+esc(a.rejectReason)+'</p><p class="text-[11px] text-[#94A3B8] mt-2">商户修改后重新提交，编号不变，版本 +1</p></div>';
+  }
+  if(a.state==='已通过'){
+    h+='<div class="blk mb-3" style="border-color:#BBF7D0;background:#F0FDF4"><div class="blk-t" style="color:#15803D"><i class="fas fa-circle-check"></i>已通过</div><p class="text-[12px] text-[#15803D]">审批通过于 '+a.approveAt+'，活动已上架</p></div>';
+  }
+
+  h+='<div class="flex justify-end gap-2 mt-4">';
+  if(a.state==='待审批'){
+    h+='<button class="btn btn-danger" onclick="openReject(\''+a.id+'\')"><i class="fas fa-xmark mr-1"></i>驳回</button>'
+      +'<button class="btn btn-ok" onclick="approve(\''+a.id+'\')"><i class="fas fa-check mr-1"></i>通过并上架</button>';
+  }else{
+    h+='<button class="btn btn-ghost" onclick="location.href=\'activity-detail.html?id='+a.id+'\'">查看活动详情</button>';
+  }
+  h+='</div>';
+  box.innerHTML=h;
+}
+
+function approve(id){
+  var a=APPS.filter(function(x){return x.id===id;})[0];
+  a.state='已通过';a.approveAt='2026-10-20 10:30';
+  tab='待审批';renderTabs();renderList();renderPreview();
+  toast('已通过：「'+a.name+'」已上架，商户端「活动参与」立即可见，并通知商户');
+}
+function openReject(id){
+  var a=APPS.filter(function(x){return x.id===id;})[0];
+  show('modal','<div class="p-5"><h3 class="text-[15px] font-bold mb-1">驳回活动</h3>'
+    +'<p class="text-[12px] text-[#94A3B8] mb-3">'+esc(a.name)+'　'+a.merchant+'</p>'
+    +'<label class="fl">驳回原因 *</label><select class="sel mb-3" id="rj-r">'
+    +'<option>内容不合规（绝对化用语 / 虚假宣传）</option><option>信息不完整（缺地点 / 联系人 / 详情）</option><option>时间地点冲突</option><option>名额设置不合理</option><option>资质不符（非本市场商户）</option><option>其他</option></select>'
+    +'<label class="fl">具体说明 *</label><textarea class="fi mb-3" id="rj-n" rows="3" placeholder="写清哪里不对、怎么改，商户会看到">'+(a.detail&&/最/.test(a.brief)?'简介含绝对化用语「最先进」，请删除后重新提交':'')+'</textarea>'
+    +'<div class="rounded-xl border p-3 mb-4" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B]">驳回后：商户端显示原因，可修改后重提（编号不变、版本 +1）；<b>商户端「活动参与」不可见</b>。</p></div>'
+    +'<div class="flex justify-end gap-2"><button class="btn btn-ghost" onclick="closeAll()">取消</button><button class="btn btn-danger" onclick="doReject(\''+id+'\')">确认驳回</button></div></div>');
+}
+function doReject(id){
+  var n=(document.getElementById('rj-n').value||'').trim();
+  if(!n){toast('请填写具体说明，商户需要知道怎么改');return;}
+  var a=APPS.filter(function(x){return x.id===id;})[0];
+  a.state='已驳回';a.rejectReason=document.getElementById('rj-r').value+'：'+n;
+  closeAll();tab='待审批';renderTabs();renderList();renderPreview();
+  toast('已驳回并通知商户（'+a.merchant+'）');
+}
+
+function show(w,h){document.getElementById(w).innerHTML=h;document.getElementById('mask').classList.add('on');document.getElementById(w).classList.add('on');}
+function closeAll(){document.getElementById('mask').classList.remove('on');document.getElementById('modal').classList.remove('on');}
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},3200);}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+
+renderTabs();renderList();
+var q=new URLSearchParams(location.search).get('id');
+select(q||(APPS.filter(function(a){return a.state==='待审批';})[0]||{}).id);
+</script>
+</body>
+</html>

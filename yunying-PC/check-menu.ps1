@@ -96,6 +96,13 @@ foreach ($line in ($content -split "`r?`n")) {
     }
 }
 
+# --- 二级页声明（节点内 refs: ['x.html'] 视为已被引用，不算孤儿） --------------
+foreach ($m in [regex]::Matches($content, "refs\s*:\s*\[([^\]]*)\]")) {
+    foreach ($p in [regex]::Matches($m.Groups[1].Value, "'([^']+)'")) {
+        $referenced[$p.Groups[1].Value] = $true
+    }
+}
+
 # --- 核心文件存在性 ---------------------------------------------------------
 foreach ($f in $coreFiles) {
     if (-not (Test-Path (Join-Path $dir $f))) {

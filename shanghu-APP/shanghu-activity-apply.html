@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>发起活动 - 袜掌柜商户版</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--bg:#F5F7FF}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+.card{transition:transform .16s ease}.card:active{transform:scale(.99)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
+.inp{width:100%;background:#F8F9FB;border:1px solid #EEF0F4;border-radius:12px;padding:11px 13px;font-size:13px;color:#1F2430;outline:none}
+.inp:focus{border-color:#6366F1;background:#fff}
+.lbl{font-size:11px;color:#6b7080;font-weight:500;display:block;margin-bottom:6px}.lbl b{color:#EF4444}
+.num{font-variant-numeric:tabular-nums}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:900;opacity:0;pointer-events:none;transition:.2s;max-width:80%;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.tag-opt{display:inline-block;padding:6px 10px;border-radius:999px;font-size:11px;background:#F3F4F6;color:#6B7280;border:1px solid transparent}
+.tag-opt.on{background:#EEF2FF;color:#4F46E5;border-color:#C7D2FE;font-weight:700}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<div class="relative px-4 pt-2 pb-5 overflow-hidden" style="background:linear-gradient(135deg,#6366F1 0%,#4F46E5 45%,#4338CA 100%)">
+  <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-40" style="background:#818CF8"></div>
+  <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+  </div>
+  <div class="relative flex items-center gap-3 mt-1">
+    <a href="shanghu-activity-manage.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+    <div><p class="text-white font-extrabold text-[18px]">发起活动</p><p class="text-white/80 text-[10px] mt-0.5">提交后由平台审批，通过后上架</p></div>
+  </div>
+</div>
+
+<div class="px-3 pt-3 pb-28" id="formBox">
+  <div class="bg-white rounded-2xl shadow-soft p-3.5">
+    <p class="text-[12px] font-bold text-gray-800 mb-3">活动信息</p>
+    <div class="mb-3"><label class="lbl">活动名称 <b>*</b></label><input id="fName" class="inp" maxlength="40" placeholder="如：秋冬新品选品沙龙"></div>
+    <div class="mb-3"><label class="lbl">活动类型 <b>*</b></label>
+      <div class="flex flex-wrap gap-1.5" id="typeBox"></div>
+    </div>
+    <div class="mb-3"><label class="lbl">活动简介</label><textarea id="fIntro" class="inp" rows="3" maxlength="200" placeholder="活动内容、面向对象、亮点（200 字内）" style="resize:none"></textarea></div>
+    <div class="grid grid-cols-2 gap-2 mb-3">
+      <div><label class="lbl">开始时间 <b>*</b></label><input id="fStart" type="date" class="inp num"></div>
+      <div><label class="lbl">结束时间 <b>*</b></label><input id="fEnd" type="date" class="inp num"></div>
+    </div>
+    <div class="grid grid-cols-2 gap-2 mb-3">
+      <div><label class="lbl">报名截止 <b>*</b></label><input id="fSignEnd" type="date" class="inp num"></div>
+      <div><label class="lbl">活动地点 <b>*</b></label><input id="fPlace" class="inp" placeholder="如：2F 共享空间"></div>
+    </div>
+    <div class="grid grid-cols-2 gap-2">
+      <div><label class="lbl">名额（人）<b>*</b></label><input id="fQuota" type="number" min="1" class="inp num" placeholder="如 50"></div>
+      <div><label class="lbl">费用</label><input id="fFee" class="inp" placeholder="免费 / 元/人"></div>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-soft p-3.5 mt-3">
+    <p class="text-[12px] font-bold text-gray-800 mb-3">报名与签到</p>
+    <div class="flex items-center justify-between py-1.5">
+      <div><p class="text-[12px] text-gray-700">报名需审核</p><p class="text-[9px] text-gray-400">开启后由你审核报名，通过才占名额</p></div>
+      <input type="checkbox" id="fAudit" class="w-4 h-4 accent-indigo-600">
+    </div>
+    <div class="flex items-center justify-between py-1.5 border-t border-gray-50 mt-1 pt-2">
+      <div><p class="text-[12px] text-gray-700">启用现场签到</p><p class="text-[9px] text-gray-400">关闭后不生成签到码、名单止于已通过</p></div>
+      <input type="checkbox" id="fCheckin" class="w-4 h-4 accent-indigo-600" checked>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-soft p-3.5 mt-3">
+    <p class="text-[12px] font-bold text-gray-800 mb-3">主办方信息</p>
+    <div class="mb-3"><label class="lbl">主办商户</label><input class="inp" value="大唐袜业旗舰店" readonly style="color:#9CA3AF"></div>
+    <div class="grid grid-cols-2 gap-2">
+      <div><label class="lbl">联系人 <b>*</b></label><input id="fContact" class="inp" value="李老板"></div>
+      <div><label class="lbl">联系电话 <b>*</b></label><input id="fPhone" class="inp num" maxlength="11" value="13800138000"></div>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-soft p-3.5 mt-3">
+    <label class="flex items-start gap-2">
+      <input type="checkbox" id="agree" class="w-4 h-4 mt-0.5 accent-indigo-600">
+      <span class="text-[10px] text-gray-500 leading-relaxed">我承诺活动内容真实合规，不涉及促销、金融集资与公众文旅活动；活动内容与履约责任由本商户承担，并同意平台做形式审核与抽查下架。</span>
+    </label>
+  </div>
+
+  <div class="flex gap-2 mt-4">
+    <button onclick="saveDraft()" class="flex-1 py-3 rounded-2xl text-[14px] font-bold text-gray-600 bg-white border border-gray-200">存草稿</button>
+    <button onclick="submitAct()" class="flex-1 py-3 rounded-2xl text-white text-[14px] font-bold" style="background:linear-gradient(135deg,#6366F1,#4F46E5)">提交审批</button>
+  </div>
+  <p class="text-[9px] text-gray-400 text-center mt-2">提交后状态为「待审批」，审批通过自动上架到活动参与</p>
+</div>
+
+<!-- 成功 -->
+<div class="px-3 pt-4 pb-16" id="doneBox" style="display:none">
+  <div class="bg-white rounded-2xl shadow-soft p-4 text-center">
+    <div class="w-14 h-14 mx-auto rounded-full flex items-center justify-center" style="background:linear-gradient(135deg,#34D399,#10B981)"><i class="fas fa-check text-white text-xl"></i></div>
+    <p class="text-[15px] font-bold text-gray-800 mt-3" id="doneTitle">已提交审批</p>
+    <p class="text-[11px] text-gray-500 mt-1" id="doneSub">平台将做形式审核，通过后自动上架；可在「我的活动」查看进度。</p>
+    <div class="mt-3 rounded-xl p-3 text-left" style="background:#F5F7FF">
+      <div class="flex justify-between py-0.5 text-[11px]"><span class="text-gray-400">活动编号</span><span class="text-gray-700 num" id="doneNo">—</span></div>
+      <div class="flex justify-between py-0.5 text-[11px]"><span class="text-gray-400">当前状态</span><span class="text-amber-600 font-bold" id="doneState">待审批</span></div>
+    </div>
+    <a href="shanghu-activity-manage.html" class="card block w-full mt-3 py-2.5 rounded-xl text-white text-[13px] font-bold" style="background:linear-gradient(135deg,#6366F1,#4F46E5)">查看我的活动</a>
+    <a href="property.html" class="card block w-full mt-2 py-2.5 rounded-xl text-[13px] font-bold text-gray-600 bg-white border border-gray-200">返回物业服务</a>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span id="toastTxt">操作成功</span></div>
+
+<script>
+var ttm;function toast(m){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=m;t.classList.add('on');clearTimeout(ttm);ttm=setTimeout(function(){t.classList.remove('on')},1800)}
+function readLS(k){try{return JSON.parse(localStorage.getItem(k)||'[]')}catch(e){return []}}
+function writeLS(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+function q(k){var m=location.search.match(new RegExp('[?&]'+k+'=([^&]+)'));return m?decodeURIComponent(m[1]):''}
+function p2(n){return n<10?'0'+n:''+n}
+function today(){var d=new Date();return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate())}
+
+/* 商户发起仅 3 项（后台 08 FR-03：店铺活动 / 培训 / 沙龙，无文旅） */
+var TYPES=['店铺活动','培训','沙龙'];
+var curType='店铺活动';
+document.getElementById('typeBox').innerHTML=TYPES.map(function(t,i){return '<span class="tag-opt '+(i===0?'on':'')+'" data-t="'+t+'" onclick="pickType(this)">'+t+'</span>';}).join('');
+function pickType(el){
+  document.querySelectorAll('#typeBox .tag-opt').forEach(function(x){x.classList.remove('on');});
+  el.classList.add('on');curType=el.getAttribute('data-t');
+}
+
+/* 驳回重提：带 ?id= 预填并保留原编号，版本 +1 */
+var editId=q('id');
+var editRec=null;
+if(editId){
+  editRec=readLS('sh_act_mine').filter(function(x){return x.id===editId;})[0]||null;
+  if(editRec){
+    document.getElementById('fName').value=editRec.name||'';
+    document.getElementById('fIntro').value=editRec.intro||'';
+    document.getElementById('fStart').value=editRec.start||'';
+    document.getElementById('fEnd').value=editRec.end||'';
+    document.getElementById('fSignEnd').value=editRec.signEnd||'';
+    document.getElementById('fPlace').value=editRec.place||'';
+    document.getElementById('fQuota').value=editRec.quota||'';
+    document.getElementById('fFee').value=editRec.fee||'';
+    document.getElementById('fAudit').checked=!!editRec.audit;
+    document.getElementById('fCheckin').checked=editRec.hasCheckin!==false;
+    document.getElementById('fContact').value=editRec.contact||'';
+    document.getElementById('fPhone').value=editRec.phone||'';
+    curType=editRec.type||'店铺活动';
+    document.querySelectorAll('#typeBox .tag-opt').forEach(function(x){x.classList.toggle('on',x.getAttribute('data-t')===curType);});
+  }
+}
+
+function collect(){
+  return {
+    name:(document.getElementById('fName').value||'').trim(),
+    type:curType,
+    intro:(document.getElementById('fIntro').value||'').trim(),
+    start:document.getElementById('fStart').value,
+    end:document.getElementById('fEnd').value,
+    signEnd:document.getElementById('fSignEnd').value,
+    place:(document.getElementById('fPlace').value||'').trim(),
+    quota:parseInt(document.getElementById('fQuota').value,10)||0,
+    fee:(document.getElementById('fFee').value||'免费').trim(),
+    audit:document.getElementById('fAudit').checked,
+    hasCheckin:document.getElementById('fCheckin').checked,
+    contact:(document.getElementById('fContact').value||'').trim(),
+    phone:(document.getElementById('fPhone').value||'').trim(),
+    org:'大唐袜业旗舰店'
+  };
+}
+function validate(d,needAgree){
+  if(!d.name){toast('请填写活动名称');return false}
+  if(!d.start||!d.end){toast('请选择活动起止时间');return false}
+  if(d.end<d.start){toast('结束时间不能早于开始时间');return false}
+  if(!d.signEnd){toast('请选择报名截止日期');return false}
+  if(d.signEnd>d.start){toast('报名截止不能晚于活动开始');return false}
+  if(!d.place){toast('请填写活动地点');return false}
+  if(!d.quota||d.quota<1){toast('请填写有效名额');return false}
+  if(!d.contact){toast('请填写联系人');return false}
+  if(!/^1\d{10}$/.test(d.phone)){toast('请输入正确的联系电话');return false}
+  if(needAgree&&!document.getElementById('agree').checked){toast('请先阅读并同意活动承诺');return false}
+  return true;
+}
+function persist(d,status){
+  var list=readLS('sh_act_mine');
+  var rec;
+  if(editRec){
+    var idx=list.findIndex(function(x){return x.id===editRec.id;});
+    rec=Object.assign({},editRec,d,{status:status,version:(editRec.version||1)+(status==='待审批'?1:0),updatedAt:today()});
+    if(idx>=0)list[idx]=rec;else list.unshift(rec);
+  }else{
+    var d0=new Date();
+    rec=Object.assign({},d,{id:'EVT'+d0.getFullYear()+p2(d0.getMonth()+1)+p2(d0.getDate())+String(Math.floor(Math.random()*900)+100),
+      status:status,version:1,occupied:0,createdAt:today(),updatedAt:today(),signups:[],rejectReason:''});
+    list.unshift(rec);
+  }
+  writeLS('sh_act_mine',list);
+  return rec;
+}
+function saveDraft(){
+  var d=collect();
+  if(!d.name){toast('请先填写活动名称');return}
+  var rec=persist(d,'草稿');
+  toast('已保存草稿：'+rec.name);
+  setTimeout(function(){location.href='shanghu-activity-manage.html?tab=draft';},700);
+}
+function submitAct(){
+  var d=collect();
+  if(!validate(d,true))return;
+  var rec=persist(d,'待审批');
+  document.getElementById('formBox').style.display='none';
+  document.getElementById('doneBox').style.display='block';
+  document.getElementById('doneNo').textContent=rec.id;
+  document.getElementById('doneState').textContent=rec.status;
+  document.getElementById('doneSub').textContent=editRec?'已重新提交（保留编号，版本 v'+rec.version+'），等待平台审批。':'平台将做形式审核，通过后自动上架；可在「我的活动」查看进度。';
+  window.scrollTo(0,0);
+}
+</script>
+</body>
+</html>

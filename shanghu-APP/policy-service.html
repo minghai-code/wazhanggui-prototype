@@ -288,20 +288,41 @@ function dueBadge(p){
 var APPLY_STATE={};
 var APPLY_STYLE={'已提交':['#EAF2FF','#2563EB'],'退回补正':['#FEE2E2','#EF4444'],'受理中':['#FEF3C7','#D97706'],'已兑现':['#D1FAE5','#059669'],'未通过':['#F1F3F6','#6b7280']};
 var APPLY_FLOW=['已提交','受理中','退回补正','已兑现','未通过'];
+/* 申报主体：仅「已绑定商户主体」的账号可提交（后台 13 v1.5 / M06 FR-21）。商户端演示默认未认证，可切换 */
+var QUALI_BOUND=false;
+var APPLY_NO={};
+function applyNo(gid){
+ if(!APPLY_NO[gid])APPLY_NO[gid]='SB'+new Date().getFullYear()+('00'+gid).slice(-3);
+ return APPLY_NO[gid];
+}
+function bindQuali(){QUALI_BOUND=true;renderApplyBoxes();toast('已完成企业主体认证（演示），可在线申报');}
+function unbindQuali(){QUALI_BOUND=false;renderApplyBoxes();toast('已切换为未认证主体（演示）');}
 function renderApplyBoxes(){policies.forEach(function(p){renderApplyBox(p.gid);});}
 function renderApplyBox(gid){
  var box=document.getElementById('applyBox-'+gid);if(!box)return;
  var p=policies[gid],st=APPLY_STATE[gid];
+ if(!QUALI_BOUND&&!st){
+  box.innerHTML='<div class="rounded-xl border p-3 mt-1" style="border-color:#FDE68A;background:#FFFBEB">'
+   +'<p class="text-[11px] font-bold text-gray-800"><i class="fas fa-building-columns mr-1" style="color:#D97706"></i>需企业资质</p>'
+   +'<p class="text-[10px] text-gray-500 mt-1 leading-relaxed">政策申报须以<b>企业主体</b>提交。当前账号未绑定商户主体，请先完成企业资质认证。</p>'
+   +'<div class="flex gap-2 mt-2"><a href="shanghu-verify.html" class="flex-1 py-2 rounded-lg text-[11px] font-bold text-white text-center" style="background:linear-gradient(135deg,#8B5CF6,#7C3AED)">去企业认证</a>'
+   +'<button onclick="bindQuali()" class="flex-1 py-2 rounded-lg text-[11px] font-bold text-gray-500 bg-white border border-gray-200">（演示）已完成认证</button></div></div>';
+  return;
+ }
  if(!st){
-  box.innerHTML='<button class="w-full py-2.5 rounded-xl text-[12px] font-bold text-white flex items-center justify-center gap-1.5" style="background:linear-gradient(135deg,#8B5CF6,#7C3AED)" onclick="submitApply('+gid+')"><i class="fas fa-paper-plane text-[10px]"></i>在线申报</button>';
+  box.innerHTML='<button class="w-full py-2.5 rounded-xl text-[12px] font-bold text-white flex items-center justify-center gap-1.5" style="background:linear-gradient(135deg,#8B5CF6,#7C3AED)" onclick="submitApply('+gid+')"><i class="fas fa-paper-plane text-[10px]"></i>在线申报</button>'
+   +'<p class="text-[9px] text-gray-400 mt-1.5 text-center"><i class="fas fa-circle-check mr-1" style="color:#10B981"></i>企业主体已认证 · 可在线申报 <a onclick="unbindQuali()" class="text-gray-300 ml-1">（演示）切回未认证</a></p>';
   return;
  }
  var s=APPLY_STYLE[st.status]||APPLY_STYLE['已提交'];
  var note='';
- if(st.status==='退回补正')note='<p class="text-[10px] text-red-600 mt-1.5 leading-relaxed"><b>退回原因：</b>'+st.note+'</p>';
- else if(st.status==='已兑现')note='<p class="text-[10px] mt-1.5 leading-relaxed" style="color:#047857"><b>兑现说明：</b>'+st.note+'</p>';
- else if(st.status==='未通过')note='<p class="text-[10px] text-gray-500 mt-1.5 leading-relaxed"><b>未通过原因：</b>'+st.note+'</p>';
- else note='<p class="text-[10px] text-gray-400 mt-1.5 leading-relaxed">申报单号 SB20261013'+(100+gid)+' · 提交时间 '+(st.time||'2026-10-13 09:41')+'</p>';
+ if(st.status==='退回补正')note='<p class="text-[10px] text-red-600 mt-1.5 leading-relaxed"><b>退回原因：</b>'+st.note+'</p>'
+  +'<p class="text-[10px] text-gray-400 mt-1">申报单号 '+applyNo(gid)+'（补正沿用原单号，截止日不变）</p>';
+ else if(st.status==='已兑现')note='<p class="text-[10px] mt-1.5 leading-relaxed" style="color:#047857"><b>兑现说明：</b>'+st.note+'</p>'
+  +'<p class="text-[10px] text-gray-400 mt-1">申报单号 '+applyNo(gid)+'</p>';
+ else if(st.status==='未通过')note='<p class="text-[10px] text-gray-500 mt-1.5 leading-relaxed"><b>未通过原因：</b>'+st.note+'</p>'
+  +'<p class="text-[10px] text-gray-400 mt-1">申报单号 '+applyNo(gid)+'</p>';
+ else note='<p class="text-[10px] text-gray-400 mt-1.5 leading-relaxed">申报单号 '+applyNo(gid)+' · 提交时间 '+(st.time||'2026-10-13 09:41')+'</p>';
  box.innerHTML='<div class="rounded-xl border border-purple-100 p-3" style="background:#FAFAFF">'
   +'<div class="flex items-center justify-between"><span class="text-[11px] font-bold text-gray-800"><i class="fas fa-file-signature mr-1" style="color:#7C3AED"></i>我的申报</span><span class="text-[10px] px-2 py-0.5 rounded-full font-bold" style="background:'+s[0]+';color:'+s[1]+'">'+st.status+'</span></div>'
   +note
@@ -317,7 +338,7 @@ function submitApply(gid){
  // 申请记录：端上提交 → 服务记录页汇总，状态由后台回写
  try{
   var p=policies[gid];
-  var rec={id:'a'+Date.now(),type:'政策申报',icon:'fa-file-signature',cls:'bg-emerald-50 text-emerald-600',title:(p&&p.title)||'政策申报',no:'SB'+new Date().getFullYear()+('00'+gid).slice(-3),agency:(p&&p.dept)||'申报受理机构',time:'2026-10-13 09:41',status:'已提交',next:'查看进度',link:'policy-service.html',desc:'申报已提交，等待后台受理（约 3 个工作日）。'};
+  var rec={id:'a'+Date.now(),type:'政策申报',icon:'fa-file-signature',cls:'bg-emerald-50 text-emerald-600',title:(p&&p.title)||'政策申报',no:applyNo(gid),agency:(p&&p.dept)||'申报受理机构',time:'2026-10-13 09:41',status:'已提交',next:'查看进度',link:'policy-service.html',desc:'申报已提交，等待后台受理（约 3 个工作日）。'};
   var a=JSON.parse(localStorage.getItem('sh_svc_rec')||'[]');a.unshift(rec);localStorage.setItem('sh_svc_rec',JSON.stringify(a.slice(0,20)));
  }catch(e){}
 }
@@ -330,7 +351,7 @@ function resubmitApply(gid){
   var a=JSON.parse(localStorage.getItem('sh_svc_rec')||'[]'),hit=false;
   a.forEach(function(x){if(x.type==='政策申报'&&x.title===p.title){x.status='已提交';x.desc='补正材料已重新提交，等待受理。';hit=true;}});
   if(!hit){
-   a.unshift({id:'a'+Date.now(),type:'政策申报',icon:'fa-file-signature',cls:'bg-emerald-50 text-emerald-600',title:p.title,no:'SB'+new Date().getFullYear()+('00'+gid).slice(-3),agency:p.dept,time:'2026-10-13 09:41',status:'已提交',next:'查看进度',link:'policy-service.html',desc:'补正材料已重新提交，等待受理。'});
+   a.unshift({id:'a'+Date.now(),type:'政策申报',icon:'fa-file-signature',cls:'bg-emerald-50 text-emerald-600',title:p.title,no:applyNo(gid),agency:p.dept,time:'2026-10-13 09:41',status:'已提交',next:'查看进度',link:'policy-service.html',desc:'补正材料已重新提交，等待受理（沿用原单号）。'});
   }
   localStorage.setItem('sh_svc_rec',JSON.stringify(a.slice(0,20)));
  }catch(e){}

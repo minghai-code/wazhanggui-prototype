@@ -3,258 +3,330 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>活动运营 - 签到管理</title>
+<title>商户活动运营 - 签到管理</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
 *{box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#f1f5f9}
-::-webkit-scrollbar{width:6px;height:6px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
-.tab-active{color:#FF4D2D;border-bottom:2px solid #FF4D2D;font-weight:600}
-.status-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.st{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500;white-space:nowrap}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}.lk:hover{text-decoration:underline}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}.lk-gray:hover{color:#1F2430;text-decoration:underline}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:60}
+.mask.on{opacity:1;pointer-events:auto}
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);width:560px;max-width:95vw;max-height:86vh;overflow-y:auto;background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(15,23,42,.28);opacity:0;pointer-events:none;transition:.22s;z-index:70}
+.modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+.kv{display:flex;gap:8px;font-size:12px;line-height:1.95}
+.kv .k{width:96px;flex-shrink:0;color:#94A3B8}
+.fi{width:100%;padding:7px 10px;border:1px solid #E2E8F0;border-radius:8px;font-size:12.5px;outline:none;background:#fff}
+.fi:focus{border-color:#FF4D2D}
+.fl{display:block;font-size:11.5px;color:#64748B;margin-bottom:5px;font-weight:500}
+.sel{width:100%;padding:7px 8px;border:1px solid #E2E8F0;border-radius:8px;font-size:12.5px;outline:none;background:#fff}
+.filters{display:grid;grid-template-columns:1.7fr .9fr .9fr 1.5fr 1.2fr auto;gap:10px;align-items:end}
+.scan{background:linear-gradient(135deg,#1F2430,#334155);border-radius:14px;padding:16px 18px;color:#fff}
+.scan input{width:100%;padding:12px 14px;border-radius:10px;border:none;font-size:20px;letter-spacing:6px;text-align:center;font-weight:700;outline:none;font-family:ui-monospace,monospace}
+.scan input::placeholder{letter-spacing:1px;font-size:13px;font-weight:400;color:#94A3B8}
+.scan input:disabled{background:#475569;color:#94A3B8}
+.picker{position:relative}
+.picker .pk-arrow{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:10px;color:#94A3B8;pointer-events:none}
+.pk-panel{position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid #E2E8F0;border-radius:10px;box-shadow:0 12px 28px rgba(15,23,42,.14);max-height:230px;overflow-y:auto;z-index:40;display:none}
+.pk-panel.on{display:block}
+.pk-item{padding:8px 12px;font-size:12.5px;cursor:pointer;color:#334155;display:flex;align-items:center;gap:6px}
+.pk-item:hover,.pk-item.hl{background:#FFF1EC;color:#E63E20}
+.pk-item .sub{font-size:10.5px;color:#94A3B8;margin-left:auto}
+.pk-empty{padding:12px;font-size:12px;color:#94A3B8;text-align:center}
+#toast{position:fixed;left:50%;bottom:40px;transform:translateX(-50%);background:rgba(20,20,40,.9);color:#fff;font-size:12.5px;padding:9px 18px;border-radius:20px;z-index:99;opacity:0;transition:.25s;pointer-events:none;max-width:80vw}
+.res{margin-top:10px;border-radius:10px;padding:10px 12px;font-size:12.5px;display:none}
 </style>
-<!-- Tailwind 静态样式：本地引用（不再依赖 cdn.tailwindcss.com）；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
 <link rel="stylesheet" href="tailwind.css">
 </head>
 <body>
-
-<div class="p-6">
-
-  <!-- 页面标题 -->
-  <div class="flex items-center justify-between mb-5">
-    <div>
-      <h1 class="text-[18px] font-bold text-gray-800">活动运营</h1>
-      <p class="text-[12px] text-gray-400 mt-0.5">活动创建 · 报名管理 · 签到管理 · 效果统计</p>
-    </div>
-
-  </div>
-
-  <!-- Tab 导航 -->
-  <div class="flex items-center gap-6 mb-4 border-b border-gray-200">
-    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">活动创建</span>
-    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">报名管理</span>
-    <span class="tab-active py-2.5 text-[13px] cursor-pointer">签到管理</span>
-    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">效果统计</span>
-  </div>
-
-  <!-- 统计卡片 -->
-  <div class="grid grid-cols-4 gap-3 mb-5">
-    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
-      <p class="text-[11px] text-gray-400">应签到</p>
-      <p class="text-xl font-bold text-gray-600 mt-1">168</p>
-    </div>
-    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
-      <p class="text-[11px] text-gray-400">已签到</p>
-      <p class="text-xl font-bold text-green-500 mt-1">152</p>
-    </div>
-    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
-      <p class="text-[11px] text-gray-400">签到率</p>
-      <p class="text-xl font-bold text-primary mt-1">90.5%</p>
-    </div>
-    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
-      <p class="text-[11px] text-gray-400">未签到</p>
-      <p class="text-xl font-bold text-gray-400 mt-1">16</p>
-    </div>
-  </div>
-
-  <!-- 筛选栏 -->
-  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
-    <div class="flex items-center gap-3 flex-wrap">
-      <div class="relative">
-        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
-        <input type="text" placeholder="签到人 / 企业名称" class="w-56 pl-8 pr-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary focus:bg-white transition">
+<div class="p-6" style="max-width:1260px">
+  <div class="flex items-center justify-between mb-4">
+    <div class="flex items-center gap-3">
+      <button class="btn btn-ghost" onclick="location.href='activity.html'"><i class="fas fa-chevron-left"></i></button>
+      <div>
+        <p class="text-[11px] text-gray-400 mb-0.5">商户活动运营 / 签到管理 / <span id="crumbAct" class="text-gray-600 font-medium">全部活动</span></p>
+        <h1 class="text-[18px] font-bold text-gray-800">签到管理</h1>
+        <p class="text-[12px] text-gray-400 mt-0.5">跨活动查询签到记录 · 扫码/输码核销 · 手工补签 · 爽约结算</p>
       </div>
-      <select class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
-        <option value="">全部活动</option>
-        <option>2026大唐袜业直采节</option>
-        <option>袜品设计大赛</option>
-        <option>电商直播培训</option>
-        <option>品牌运营沙龙</option>
-      </select>
-      <select class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
-        <option value="">全部状态</option>
-        <option>已签到</option>
-        <option>未签到</option>
-        <option>迟到</option>
-      </select>
-      <select class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
-        <option value="">全部签到方式</option>
-        <option>扫码</option>
-        <option>手动</option>
-      </select>
-      <button class="px-4 py-1.5 text-[13px] text-white rounded-lg" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)">查询</button>
-      <button class="px-4 py-1.5 text-[13px] text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition">重置</button>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="location.href='activity-signup.html'+(curAct?'?id='+curAct:'')"><i class="fas fa-list mr-1"></i>报名名单</button>
+      <button class="btn btn-ghost" onclick="exportCk()"><i class="fas fa-download mr-1"></i>导出签到表</button>
     </div>
   </div>
 
-  <!-- 表格 -->
+  <!-- 筛选区 -->
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-3">
+    <div class="filters">
+      <div>
+        <label class="fl">活动名称 <span class="text-[10px] text-gray-300">可搜索</span></label>
+        <div class="picker">
+          <input id="actInput" class="fi" placeholder="全部活动（输入关键词筛选）" autocomplete="off" onfocus="openPick()" oninput="filterPick()">
+          <i class="fas fa-chevron-down pk-arrow"></i>
+          <div class="pk-panel" id="pkPanel"></div>
+        </div>
+      </div>
+      <div><label class="fl">签到状态</label><select id="fs" class="sel" onchange="renderAll()"><option value="">全部</option><option>未签到</option><option>已签到</option><option>爽约</option></select></div>
+      <div><label class="fl">签到方式</label><select id="fw" class="sel" onchange="renderAll()"><option value="">全部</option><option>扫码</option><option>手工</option></select></div>
+      <div><label class="fl">签到时间</label><div style="display:flex;align-items:center;gap:4px"><input id="d1" type="date" class="fi" style="padding:6px" onchange="renderAll()"><span class="text-[11px] text-gray-300">至</span><input id="d2" type="date" class="fi" style="padding:6px" onchange="renderAll()"></div></div>
+      <div><label class="fl">关键词</label><input id="kw" class="fi" placeholder="姓名 / 手机 / 商户 / 签到码" oninput="renderAll()"></div>
+      <div class="flex gap-2"><button class="btn btn-primary" onclick="renderAll()">查询</button><button class="btn btn-ghost" onclick="resetF()">重置</button></div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-3 gap-3 mb-3">
+    <div class="col-span-2 scan">
+      <div class="flex items-center justify-between mb-2.5">
+        <span class="text-[12px] font-semibold opacity-90"><i class="fas fa-qrcode mr-1"></i>核销台<span id="scanAct" class="opacity-60 font-normal ml-2"></span></span>
+        <span class="text-[10.5px] opacity-60" id="demoTip">演示码：100001 / 100003 / 100004</span>
+      </div>
+      <div style="display:flex;gap:8px">
+        <input id="code" maxlength="6" placeholder="扫描二维码 或 输入 6 位签到码" onkeydown="if(event.key==='Enter')doCheck()">
+        <button class="btn btn-primary" style="padding:12px 22px;font-size:14px;flex-shrink:0" onclick="doCheck()">核销</button>
+      </div>
+      <div class="res" id="res"></div>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-100 p-4">
+      <p class="text-[11.5px] text-gray-400 mb-2" id="progTitle">签到进度</p>
+      <div id="progressBox"></div>
+    </div>
+  </div>
+
   <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
-    <div class="px-5 py-3 border-b border-gray-100 flex items-center gap-2 flex-wrap">
-      <button class="px-3 py-1.5 text-[12px] text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
-      <button class="px-3 py-1.5 text-[12px] text-white rounded-lg transition" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)"><i class="fas fa-qrcode text-[10px] mr-1"></i>生成签到码</button>
+    <div class="px-4 py-2.5 border-b border-gray-100 flex items-center justify-between">
+      <span class="text-[12px] text-gray-400" id="cnt"></span>
+      <span class="text-[11px] text-gray-400">默认按签到 / 提交时间倒序</span>
     </div>
     <table class="w-full text-[13px]">
-      <thead>
-        <tr class="bg-gray-50 text-gray-500 text-[12px]">
-          <th class="px-4 py-3 text-left font-medium">活动名称</th>
-          <th class="px-4 py-3 text-left font-medium">签到人/企业</th>
-          <th class="px-4 py-3 text-left font-medium">联系方式</th>
-          <th class="px-4 py-3 text-left font-medium">签到方式</th>
-          <th class="px-4 py-3 text-left font-medium">签到时间</th>
-          <th class="px-4 py-3 text-left font-medium">状态</th>
-          <th class="px-4 py-3 text-center font-medium">操作</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-gray-50">
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#FF8A4C,#FF4D2D)"><i class="fas fa-store"></i></div>
-              <span class="font-medium text-gray-800">2026大唐袜业直采节</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-gray-600">王暖足 · 暖足坊袜业</td>
-          <td class="px-4 py-3 text-gray-600">139****6288</td>
-          <td class="px-4 py-3"><span class="status-badge bg-blue-50 text-blue-500"><i class="fas fa-qrcode text-[10px]"></i>扫码</span></td>
-          <td class="px-4 py-3 text-gray-400">2026-07-10 09:02</td>
-          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">已签到</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#FF8A4C,#FF4D2D)"><i class="fas fa-store"></i></div>
-              <span class="font-medium text-gray-800">2026大唐袜业直采节</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-gray-600">李绿源 · 绿源纤维科技</td>
-          <td class="px-4 py-3 text-gray-600">138****3366</td>
-          <td class="px-4 py-3"><span class="status-badge bg-blue-50 text-blue-500"><i class="fas fa-qrcode text-[10px]"></i>扫码</span></td>
-          <td class="px-4 py-3 text-gray-400">2026-07-10 09:05</td>
-          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">已签到</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#A78BFA,#7C3AED)"><i class="fas fa-palette"></i></div>
-              <span class="font-medium text-gray-800">袜品设计大赛</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-gray-600">张花间 · 花间舞袜业</td>
-          <td class="px-4 py-3 text-gray-600">137****8899</td>
-          <td class="px-4 py-3"><span class="status-badge bg-blue-50 text-blue-500"><i class="fas fa-qrcode text-[10px]"></i>扫码</span></td>
-          <td class="px-4 py-3 text-gray-400">2026-07-08 14:15</td>
-          <td class="px-4 py-3"><span class="status-badge bg-amber-50 text-amber-600">迟到</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#38BDF8,#3B82F6)"><i class="fas fa-video"></i></div>
-              <span class="font-medium text-gray-800">电商直播培训</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-gray-600">陈极速 · 极速运动袜业</td>
-          <td class="px-4 py-3 text-gray-600">136****1122</td>
-          <td class="px-4 py-3"><span class="status-badge bg-gray-100 text-gray-500"><i class="fas fa-hand-pointer text-[10px]"></i>手动</span></td>
-          <td class="px-4 py-3 text-gray-400">2026-07-05 10:00</td>
-          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">已签到</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#38BDF8,#3B82F6)"><i class="fas fa-video"></i></div>
-              <span class="font-medium text-gray-800">电商直播培训</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-gray-600">赵智造 · 智造袜机设备</td>
-          <td class="px-4 py-3 text-gray-600">135****5577</td>
-          <td class="px-4 py-3 text-gray-400">—</td>
-          <td class="px-4 py-3 text-gray-400">—</td>
-          <td class="px-4 py-3"><span class="status-badge bg-gray-100 text-gray-500">未签到</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-primary text-[12px] hover:underline mr-2">手动签到</button>
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)"><i class="fas fa-comments"></i></div>
-              <span class="font-medium text-gray-800">品牌运营沙龙</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-gray-600">孙棉田 · 棉田纱线厂</td>
-          <td class="px-4 py-3 text-gray-600">134****4433</td>
-          <td class="px-4 py-3"><span class="status-badge bg-blue-50 text-blue-500"><i class="fas fa-qrcode text-[10px]"></i>扫码</span></td>
-          <td class="px-4 py-3 text-gray-400">2026-07-03 14:00</td>
-          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">已签到</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#FF8A4C,#FF4D2D)"><i class="fas fa-store"></i></div>
-              <span class="font-medium text-gray-800">2026大唐袜业直采节</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-gray-600">李大唐 · 大唐袜业旗舰</td>
-          <td class="px-4 py-3 text-gray-600">133****8800</td>
-          <td class="px-4 py-3"><span class="status-badge bg-blue-50 text-blue-500"><i class="fas fa-qrcode text-[10px]"></i>扫码</span></td>
-          <td class="px-4 py-3 text-gray-400">2026-07-10 09:01</td>
-          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">已签到</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#A78BFA,#7C3AED)"><i class="fas fa-palette"></i></div>
-              <span class="font-medium text-gray-800">袜品设计大赛</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-gray-600">周商贸 · 某商贸公司</td>
-          <td class="px-4 py-3 text-gray-600">132****2200</td>
-          <td class="px-4 py-3 text-gray-400">—</td>
-          <td class="px-4 py-3 text-gray-400">—</td>
-          <td class="px-4 py-3"><span class="status-badge bg-gray-100 text-gray-500">未签到</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-primary text-[12px] hover:underline mr-2">手动签到</button>
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
-          </td>
-        </tr>
-      </tbody>
+      <thead><tr class="bg-gray-50 text-gray-500 text-[12px]">
+        <th class="px-3 py-3 text-left font-medium">活动名称</th>
+        <th class="px-3 py-3 text-left font-medium">姓名</th>
+        <th class="px-3 py-3 text-left font-medium">商户 / 岗位</th>
+        <th class="px-3 py-3 text-left font-medium">手机号</th>
+        <th class="px-3 py-3 text-center font-medium">同行</th>
+        <th class="px-3 py-3 text-left font-medium">签到码</th>
+        <th class="px-3 py-3 text-left font-medium">签到时间</th>
+        <th class="px-3 py-3 text-left font-medium">方式</th>
+        <th class="px-3 py-3 text-left font-medium">状态</th>
+        <th class="px-3 py-3 text-center font-medium" style="width:160px">操作</th>
+      </tr></thead>
+      <tbody id="tb" class="divide-y divide-gray-50"></tbody>
     </table>
-    <!-- 分页 -->
-    <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
-      <span class="text-[12px] text-gray-400">共 168 条记录，第 1-8 条</span>
-      <div class="flex items-center gap-1">
-        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100"><i class="fas fa-chevron-left text-[10px]"></i></button>
-        <button class="w-7 h-7 flex items-center justify-center text-white text-[12px] rounded" style="background:#FF4D2D">1</button>
-        <button class="w-7 h-7 flex items-center justify-center text-gray-600 text-[12px] rounded hover:bg-gray-100">2</button>
-        <button class="w-7 h-7 flex items-center justify-center text-gray-600 text-[12px] rounded hover:bg-gray-100">3</button>
-        <button class="w-7 h-7 flex items-center justify-center text-gray-600 text-[12px] rounded hover:bg-gray-100">4</button>
-        <button class="w-7 h-7 flex items-center justify-center text-gray-600 text-[12px] rounded hover:bg-gray-100">5</button>
-        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100"><i class="fas fa-chevron-right text-[10px]"></i></button>
-      </div>
-    </div>
   </div>
-
 </div>
 
+<div class="mask" id="mask" onclick="closeAll()"></div>
+<div class="modal" id="modal"></div>
+<div id="toast"></div>
+
+<script>
+var ACTS=[
+ {id:'EVT20261008005',name:'袜业城消防应急演练',quota:500,start:'2026-10-18 14:00',end:'2026-10-20 17:00',win:'open',winTip:'签到窗开放中（活动结束前 60 分钟）'},
+ {id:'EVT20261020001',name:'2026 大唐袜业秋冬直采节',quota:300,start:'2026-11-08 09:00',end:'2026-11-10 17:00',win:'before',winTip:'签到未开始，11-08 08:00 开放'},
+ {id:'EVT20261018002',name:'袜业电商运营实战培训（第 3 期）',quota:50,start:'2026-10-28 14:00',end:'2026-10-28 17:00',win:'before',winTip:'签到未开始，10-28 13:00 开放'},
+ {id:'EVT20260928006',name:'2026 袜业产业趋势发展论坛',quota:300,start:'2026-09-28 09:00',end:'2026-09-28 17:00',win:'closed',winTip:'活动已结束，签到窗已关闭'}
+];
+
+function mk(id,actId,name,org,title,phone,comp,code,ck,ckAt,way){return {id:id,actId:actId,name:name,org:org,title:title,phone:phone,comp:comp,code:code,ck:ck,ckAt:ckAt||'',way:way||''};}
+var SIGN=[
+ mk('BM202610190020','EVT20261008005','何××','诸暨××针织','员工','13800138000',2,'100001','已签到','2026-10-19 18:42','扫码'),
+ mk('BM202610190021','EVT20261008005','吕××','义乌××袜业','采购','13900139000',1,'100002','已签到','2026-10-19 19:05','扫码'),
+ mk('BM202610190022','EVT20261008005','施××','诸暨××服饰','无','13700137000',0,'100003','未签到','',''),
+ mk('BM202610190023','EVT20261008005','张××','大唐××工贸','经理','13600136000',3,'100004','未签到','',''),
+ mk('BM202610190024','EVT20261008005','孔××','绍兴××针织','业务','13500135000',0,'100005','未签到','',''),
+ mk('BM202610200001','EVT20261020001','钱××','浙江××袜业股份','采购经理','13812346688',1,'200001','未签到','',''),
+ mk('BM202610200002','EVT20261020001','孙××','诸暨××针织','总经理','13901234567',0,'200002','未签到','',''),
+ mk('BM202610200005','EVT20261020001','吴××','诸暨××服饰','采购','13512348888',0,'200003','未签到','',''),
+ mk('BM202610190006','EVT20261020001','郑××','浙江××进出口','业务经理','13456781234',1,'200004','未签到','',''),
+ mk('BM202610190008','EVT20261020001','冯××','诸暨××袜厂','老板','13245678901',0,'200005','未签到','',''),
+ mk('BM202610180018','EVT20261018002','尤××','义乌××针织','店长','13210987654',0,'300001','未签到','',''),
+ mk('BM202610180019','EVT20261018002','许××','大唐××服饰','运营','13109876543',0,'300002','未签到','',''),
+ mk('BM202609250025','EVT20260928006','褚××','浦江××针织','经理','13877776666',0,'400001','已签到','2026-09-28 09:12','扫码'),
+ mk('BM202609250026','EVT20260928006','卫××','嵊州××服饰','总监','13966665555',1,'400002','爽约','',''),
+ mk('BM202609250027','EVT20260928006','孙××','东阳××纺织','采购','13755553333',0,'400003','已签到','2026-09-28 09:40','手工')
+];
+
+var CK={'已签到':'background:#DBEAFE;color:#1D4ED8','未签到':'background:#F1F5F9;color:#64748B','爽约':'background:#FEE2E2;color:#991B1B'};
+var curAct='';
+var fStat='';
+
+function actName(id){var a=ACTS.filter(function(x){return x.id===id;})[0];return a?a.name:id;}
+function act(){return ACTS.filter(function(a){return a.id===curAct;})[0];}
+function mask(p){return p?p.replace(/^(\d{3})\d{4}(\d{4})$/,'$1****$2'):'';}
+function rows(){return SIGN.filter(function(s){return !curAct||s.actId===curAct;});}
+
+/* ============ 可搜索活动下拉 ============ */
+function openPick(){document.getElementById('pkPanel').classList.add('on');filterPick();}
+function closePick(){document.getElementById('pkPanel').classList.remove('on');}
+function filterPick(){
+  var kw=(document.getElementById('actInput').value||'').trim();
+  var list=ACTS.filter(function(a){return !kw||a.name.indexOf(kw)>=0||a.id.indexOf(kw)>=0;});
+  var h='<div class="pk-item'+(curAct===''?' hl':'')+'" onclick="pickAct(\'\')"><i class="fas fa-layer-group text-[10px] text-gray-400"></i>全部活动<span class="sub">'+SIGN.length+' 人</span></div>';
+  h+=list.map(function(a){
+    var n=SIGN.filter(function(s){return s.actId===a.id;}).length;
+    return '<div class="pk-item'+(curAct===a.id?' hl':'')+'" onclick="pickAct(\''+a.id+'\')"><i class="fas fa-circle text-[5px] text-[#FF4D2D]"></i>'+esc(a.name)+'<span class="sub">'+n+' 人 · '+(a.win==='open'?'核销中':a.win==='before'?'未开始':'已关闭')+'</span></div>';
+  }).join('');
+  if(!list.length){h+='<div class="pk-empty">没有匹配的活动</div>';}
+  document.getElementById('pkPanel').innerHTML=h;
+}
+function pickAct(id){
+  curAct=id;
+  document.getElementById('actInput').value=id?actName(id):'';
+  closePick();renderAll();
+}
+document.addEventListener('click',function(e){
+  var p=document.getElementById('pkPanel');
+  if(!p.contains(e.target)&&e.target.id!=='actInput'){closePick();}
+});
+
+/* ============ 核销台状态 ============ */
+function renderScan(){
+  var a=act();
+  var codeEl=document.getElementById('code');
+  var btn=document.querySelector('[onclick="doCheck()"]');
+  document.getElementById('crumbAct').textContent=a?a.name:'全部活动';
+  document.getElementById('scanAct').textContent=a?'（'+a.name+'）':'';
+  if(!a){
+    codeEl.disabled=true;btn.disabled=true;
+    codeEl.placeholder='请先在筛选区选择一场活动，再核销';
+    document.getElementById('demoTip').textContent='未选活动';
+    return;
+  }
+  var ok=(a.win==='open');
+  codeEl.disabled=!ok;btn.disabled=!ok;
+  codeEl.placeholder=ok?'扫描二维码 或 输入 6 位签到码':(a.win==='closed'?'活动已结束，签到窗已关闭':'当前活动不在签到时间窗内');
+  document.getElementById('demoTip').textContent=ok?('演示码：'+SIGN.filter(function(s){return s.actId===a.id&&s.ck!=='已签到';}).slice(0,3).map(function(s){return s.code;}).join(' / ')):'—';
+}
+
+function renderProgress(){
+  var rs=rows();
+  var total=rs.length,checked=rs.filter(function(s){return s.ck==='已签到';}).length;
+  var miss=rs.filter(function(s){return s.ck==='爽约';}).length;
+  var p=total?Math.round(checked/total*100):0;
+  document.getElementById('progTitle').textContent=curAct?'签到进度（本场）':'签到进度（全部活动）';
+  document.getElementById('progressBox').innerHTML=
+    '<p class="text-[26px] font-bold" style="color:#1D4ED8">'+checked+' <span class="text-[13px] font-normal text-gray-400">/ '+total+'</span></p>'
+    +'<div style="height:7px;border-radius:4px;background:#EEF2F7;overflow:hidden;margin:8px 0"><i style="display:block;height:100%;width:'+p+'%;background:#1D4ED8;border-radius:4px"></i></div>'
+    +'<p class="text-[11px] text-gray-400">签到率 <b style="color:#1D4ED8">'+p+'%</b>　未签到 '+(total-checked-miss)+'　爽约 '+miss+'</p>';
+}
+
+/* ============ 列表 ============ */
+function renderList(){
+  var kw=(document.getElementById('kw').value||'').trim();
+  var fw=document.getElementById('fw').value;
+  var d1=document.getElementById('d1').value,d2=document.getElementById('d2').value;
+  var rs=rows().filter(function(s){
+    if(fStat&&s.ck!==fStat){return false;}
+    if(fw&&s.way!==fw){return false;}
+    if(d1&&(!s.ckAt||s.ckAt.slice(0,10)<d1)){return false;}
+    if(d2&&(!s.ckAt||s.ckAt.slice(0,10)>d2)){return false;}
+    if(kw&&s.name.indexOf(kw)<0&&s.phone.indexOf(kw)<0&&(s.org||'').indexOf(kw)<0&&s.code.indexOf(kw)<0){return false;}
+    return true;
+  }).sort(function(a,b){return (b.ckAt||b.code)<(a.ckAt||a.code)?1:-1;});
+  document.getElementById('cnt').textContent='共 '+rs.length+' 人';
+  if(!rs.length){
+    document.getElementById('tb').innerHTML='<tr><td colspan="10" class="px-4 py-12 text-center text-[12px] text-gray-400">没有符合条件的签到记录</td></tr>';
+    return;
+  }
+  document.getElementById('tb').innerHTML=rs.map(function(s){
+    return '<tr class="hover:bg-gray-50">'
+      +'<td class="px-3 py-2.5"><span class="text-[12px] text-gray-700" title="'+esc(actName(s.actId))+'">'+esc(actName(s.actId))+'</span><div class="text-[10px] text-gray-300">'+s.actId+'</div></td>'
+      +'<td class="px-3 py-2.5 font-medium text-gray-800">'+esc(s.name)+'</td>'
+      +'<td class="px-3 py-2.5 text-gray-600 text-[12px]">'+esc(s.org)+'<span class="text-gray-400"> · '+esc(s.title||'')+'</span></td>'
+      +'<td class="px-3 py-2.5 text-gray-600">'+mask(s.phone)+'</td>'
+      +'<td class="px-3 py-2.5 text-center text-gray-600">'+(s.comp?'+'+s.comp:'—')+'</td>'
+      +'<td class="px-3 py-2.5"><span style="font-family:ui-monospace,monospace;letter-spacing:1px;color:#334155">'+s.code+'</span></td>'
+      +'<td class="px-3 py-2.5 text-gray-500 text-[11.5px]">'+(s.ckAt||'—')+'</td>'
+      +'<td class="px-3 py-2.5">'+(s.way?'<span class="st" style="'+(s.way==='手工'?'background:#FEF3C7;color:#B45309':'background:#DBEAFE;color:#1D4ED8')+'">'+s.way+'</span>':'<span class="text-gray-300">—</span>')+'</td>'
+      +'<td class="px-3 py-2.5"><span class="st" style="'+CK[s.ck]+'">'+s.ck+'</span></td>'
+      +'<td class="px-3 py-2.5 text-center">'+ops(s)+'</td></tr>';
+  }).join('');
+}
+function ops(s){
+  if(s.ck==='未签到'){
+    return '<span class="lk" onclick="manual(\''+s.id+'\')">手工核销</span> · <span class="lk-gray" onclick="markMiss(\''+s.id+'\')">标记爽约</span>';
+  }
+  if(s.ck==='已签到'){return '<span class="lk-gray" onclick="undo(\''+s.id+'\')">撤销核销</span>';}
+  return '<span class="lk-gray" onclick="reCk(\''+s.id+'\')">改回未签到</span>';
+}
+
+/* ============ 核销 ============ */
+function doCheck(){
+  var a=act();
+  if(!a){showRes('fail','请先选择活动','核销必须指定一场活动');return;}
+  if(a.win!=='open'){showRes('fail',a.win==='closed'?'签到窗已关闭':'签到未开始',a.winTip);return;}
+  var v=(document.getElementById('code').value||'').trim();
+  if(!/^\d{6}$/.test(v)){showRes('fail','签到码格式不对','请输入 6 位数字码');return;}
+  var s=SIGN.filter(function(x){return x.code===v;})[0];
+  if(!s){showRes('fail','无效签到码','该码不存在，请核对后重试');return;}
+  if(s.actId!==curAct){showRes('fail','活动不匹配','该码属于「'+actName(s.actId)+'」，请切换活动');return;}
+  if(s.ck==='已签到'){showRes('warn','已签到','「'+s.name+'」已于 '+s.ckAt+' 签到，不重复记录');return;}
+  s.ck='已签到';s.ckAt='2026-10-20 20:15';s.way='扫码';
+  document.getElementById('code').value='';
+  showRes('ok','签到成功',s.name+'　'+(s.org||'')+(s.comp?'（同行 +'+s.comp+'）':''));
+  renderAll();
+}
+function showRes(type,title,desc){
+  var el=document.getElementById('res');
+  var map={ok:['#F0FDF4','#BBF7D0','#15803D','fa-circle-check'],warn:['#FFFBEB','#FDE68A','#B45309','fa-circle-exclamation'],fail:['#FEF2F2','#FECACA','#B91C1C','fa-circle-xmark']};
+  var m=map[type];
+  el.style.display='block';el.style.background=m[0];el.style.border='1px solid '+m[1];el.style.color=m[2];
+  el.innerHTML='<i class="fas '+m[3]+' mr-1.5"></i><b>'+title+'</b>　'+desc;
+  setTimeout(function(){el.style.display='none';},6000);
+}
+function manual(id){
+  var s=byId(id);
+  show('modal','<div class="p-5"><h3 class="text-[15px] font-bold mb-2">手工核销</h3>'
+    +'<div class="kv"><span class="k">活动</span><span>'+esc(actName(s.actId))+'</span></div>'
+    +'<div class="kv"><span class="k">姓名</span><span>'+esc(s.name)+'</span></div>'
+    +'<div class="kv"><span class="k">商户</span><span>'+esc(s.org)+'</span></div>'
+    +'<div class="kv"><span class="k">签到码</span><span style="font-family:monospace;letter-spacing:1px">'+s.code+'</span></div>'
+    +'<div class="rounded-xl border p-3 mt-3 mb-4" style="border-color:#DBEAFE;background:#EFF6FF"><p class="text-[11px] text-[#64748B]">适用于签到码无法出示（手机没电 / 不会操作）；<b>核销记录标注「手工」</b>。</p></div>'
+    +'<div class="flex justify-end gap-2"><button class="btn btn-ghost" onclick="closeAll()">取消</button><button class="btn btn-primary" onclick="doManual(\''+id+'\')">确认核销</button></div></div>');
+}
+function doManual(id){var s=byId(id);s.ck='已签到';s.ckAt='2026-10-20 20:18';s.way='手工';closeAll();renderAll();toast('已手工核销：'+s.name);}
+function undo(id){
+  var s=byId(id);
+  show('modal','<div class="p-5"><h3 class="text-[15px] font-bold mb-2">撤销核销</h3><p class="text-[12px] text-[#64748B] mb-3">'+esc(s.name)+'　'+esc(s.org)+'　签到于 '+s.ckAt+'</p>'
+    +'<label class="fl">撤销原因 *</label><select class="sel mb-4" id="un"><option>误核销（非本人）</option><option>签到码被他人使用</option><option>报名人要求撤销</option><option>其他</option></select>'
+    +'<div class="rounded-xl border p-3 mb-4" style="border-color:#FECACA;background:#FEF2F2"><p class="text-[11px] text-[#64748B]">撤销后回到「未签到」，<b>操作记入日志</b>。</p></div>'
+    +'<div class="flex justify-end gap-2"><button class="btn btn-ghost" onclick="closeAll()">取消</button><button class="btn btn-danger" style="background:#FEF2F2;color:#B91C1C;border:1px solid #FECACA" onclick="doUndo(\''+id+'\')">确认撤销</button></div></div>');
+}
+function doUndo(id){var s=byId(id);s.ck='未签到';s.ckAt='';s.way='';closeAll();renderAll();toast('已撤销核销，回到未签到');}
+function markMiss(id){var s=byId(id);s.ck='爽约';s.ckAt='';s.way='';renderAll();toast('已标记爽约：'+s.name);}
+function reCk(id){var s=byId(id);s.ck='未签到';s.ckAt='';s.way='';renderAll();toast('已改回未签到');}
+function exportCk(){
+  if(!rows().length){toast('当前筛选无数据，无法导出');return;}
+  toast('已导出签到表（'+rows().length+' 人，含活动名称/签到时间/方式；<b>不含签到码</b>防冒用），日志已记录'.replace(/<[^>]+>/g,''));
+}
+
+function byId(id){return SIGN.filter(function(s){return s.id===id;})[0];}
+function resetF(){
+  curAct='';document.getElementById('actInput').value='';
+  document.getElementById('fs').value='';document.getElementById('fw').value='';
+  document.getElementById('d1').value='';document.getElementById('d2').value='';
+  document.getElementById('kw').value='';
+  renderAll();
+}
+function renderAll(){
+  fStat=document.getElementById('fs').value;
+  renderScan();renderProgress();renderList();
+}
+function show(w,h){document.getElementById(w).innerHTML=h;document.getElementById('mask').classList.add('on');document.getElementById(w).classList.add('on');}
+function closeAll(){document.getElementById('mask').classList.remove('on');document.getElementById('modal').classList.remove('on');}
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},3200);}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+
+var qid=new URLSearchParams(location.search).get('id');
+if(qid&&ACTS.some(function(a){return a.id===qid;})){curAct=qid;document.getElementById('actInput').value=actName(qid);}
+renderAll();
+</script>
 </body>
 </html>

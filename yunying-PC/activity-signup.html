@@ -3,266 +3,454 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>活动运营 - 报名管理</title>
+<title>商户活动运营 - 报名管理</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
 *{box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#f1f5f9}
-::-webkit-scrollbar{width:6px;height:6px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
-.tab-active{color:#FF4D2D;border-bottom:2px solid #FF4D2D;font-weight:600}
-.status-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.btn-danger{background:#FEF2F2;color:#B91C1C;border:1px solid #FECACA}
+.st{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500;white-space:nowrap}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}.lk:hover{text-decoration:underline}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}.lk-gray:hover{color:#1F2430;text-decoration:underline}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:60}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:720px;max-width:96vw;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:70;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);width:600px;max-width:95vw;max-height:86vh;overflow-y:auto;background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(15,23,42,.28);opacity:0;pointer-events:none;transition:.22s;z-index:70}
+.modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+.blk{border:1px solid #E2E8F0;border-radius:12px;padding:14px 16px}
+.blk-t{font-size:12.5px;font-weight:700;color:#1F2430;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.kv{display:flex;gap:8px;font-size:12px;line-height:1.95}
+.kv .k{width:96px;flex-shrink:0;color:#94A3B8}
+.fi{width:100%;padding:7px 10px;border:1px solid #E2E8F0;border-radius:8px;font-size:12.5px;outline:none;background:#fff}
+.fi:focus{border-color:#FF4D2D}
+.fl{display:block;font-size:11.5px;color:#64748B;margin-bottom:5px;font-weight:500}
+.sel{width:100%;padding:7px 8px;border:1px solid #E2E8F0;border-radius:8px;font-size:12.5px;outline:none;background:#fff}
+textarea.fi{font-family:inherit;line-height:1.8;resize:vertical}
+.filters{display:grid;grid-template-columns:1.6fr 1.2fr .9fr .9fr .8fr 1.5fr auto;gap:10px;align-items:end}
+.sum{display:flex;align-items:center;gap:16px;padding:12px 16px;border-radius:12px;background:#fff;border:1px solid #E2E8F0;flex-wrap:wrap}
+.sum-i{text-align:center;min-width:62px}
+.sum-i p:first-child{font-size:10.5px;color:#94A3B8}
+.sum-i p:last-child{font-size:16px;font-weight:700;margin-top:2px}
+/* 可搜索下拉 */
+.picker{position:relative}
+.picker .pk-arrow{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:10px;color:#94A3B8;pointer-events:none}
+.pk-panel{position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid #E2E8F0;border-radius:10px;box-shadow:0 12px 28px rgba(15,23,42,.14);max-height:230px;overflow-y:auto;z-index:40;display:none}
+.pk-panel.on{display:block}
+.pk-item{padding:8px 12px;font-size:12.5px;cursor:pointer;color:#334155;display:flex;align-items:center;gap:6px}
+.pk-item:hover,.pk-item.hl{background:#FFF1EC;color:#E63E20}
+.pk-item .sub{font-size:10.5px;color:#94A3B8;margin-left:auto}
+.pk-empty{padding:12px;font-size:12px;color:#94A3B8;text-align:center}
+#toast{position:fixed;left:50%;bottom:40px;transform:translateX(-50%);background:rgba(20,20,40,.9);color:#fff;font-size:12.5px;padding:9px 18px;border-radius:20px;z-index:99;opacity:0;transition:.25s;pointer-events:none;max-width:80vw}
 </style>
-<!-- Tailwind 静态样式：本地引用（不再依赖 cdn.tailwindcss.com）；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
 <link rel="stylesheet" href="tailwind.css">
 </head>
 <body>
-
 <div class="p-6">
-
-  <!-- 页面标题 -->
-  <div class="flex items-center justify-between mb-5">
-    <div>
-      <h1 class="text-[18px] font-bold text-gray-800">活动运营</h1>
-      <p class="text-[12px] text-gray-400 mt-0.5">活动创建 · 报名管理 · 签到管理 · 效果统计</p>
-    </div>
-
-  </div>
-
-  <!-- Tab 导航 -->
-  <div class="flex items-center gap-6 mb-4 border-b border-gray-200">
-    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">活动创建</span>
-    <span class="tab-active py-2.5 text-[13px] cursor-pointer">报名管理</span>
-    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">签到管理</span>
-    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600">效果统计</span>
-  </div>
-
-  <!-- 统计卡片 -->
-  <div class="grid grid-cols-4 gap-3 mb-5">
-    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
-      <p class="text-[11px] text-gray-400">总报名数</p>
-      <p class="text-xl font-bold text-primary mt-1">186</p>
-    </div>
-    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
-      <p class="text-[11px] text-gray-400">待审核</p>
-      <p class="text-xl font-bold text-amber-500 mt-1">9</p>
-    </div>
-    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
-      <p class="text-[11px] text-gray-400">已通过</p>
-      <p class="text-xl font-bold text-green-500 mt-1">168</p>
-    </div>
-    <div class="bg-white rounded-lg border border-gray-100 p-3.5">
-      <p class="text-[11px] text-gray-400">已拒绝</p>
-      <p class="text-xl font-bold text-red-500 mt-1">9</p>
-    </div>
-  </div>
-
-  <!-- 筛选栏 -->
-  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
-    <div class="flex items-center gap-3 flex-wrap">
-      <div class="relative">
-        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
-        <input type="text" placeholder="报名编号 / 报名人 / 企业" class="w-56 pl-8 pr-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary focus:bg-white transition">
+  <div class="flex items-center justify-between mb-4">
+    <div class="flex items-center gap-3">
+      <button class="btn btn-ghost" onclick="location.href='activity.html'"><i class="fas fa-chevron-left"></i></button>
+      <div>
+        <p class="text-[11px] text-gray-400 mb-0.5">商户活动运营 / 报名管理 / <span id="crumbAct" class="text-gray-600 font-medium">全部活动</span></p>
+        <h1 class="text-[18px] font-bold text-gray-800">报名管理</h1>
+        <p class="text-[12px] text-gray-400 mt-0.5">跨活动查询报名单 · 审核 · 补录 · 导出（手机号默认脱敏）</p>
       </div>
-      <select class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
-        <option value="">全部活动</option>
-        <option>2026大唐袜业直采节</option>
-        <option>袜品设计大赛</option>
-        <option>电商直播培训</option>
-        <option>品牌运营沙龙</option>
-      </select>
-      <select class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
-        <option value="">全部状态</option>
-        <option>待审核</option>
-        <option>已通过</option>
-        <option>已拒绝</option>
-        <option>已取消</option>
-      </select>
-      <input type="date" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
-      <span class="text-gray-300 text-xs">至</span>
-      <input type="date" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
-      <button class="px-4 py-1.5 text-[13px] text-white rounded-lg" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)">查询</button>
-      <button class="px-4 py-1.5 text-[13px] text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition">重置</button>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="openImport()"><i class="fas fa-file-import mr-1"></i>批量导入</button>
+      <button class="btn btn-ghost" onclick="openAdd()"><i class="fas fa-user-plus mr-1"></i>现场补录</button>
+      <button class="btn btn-ghost" onclick="exportList()"><i class="fas fa-download mr-1"></i>导出名单</button>
     </div>
   </div>
 
-  <!-- 表格 -->
+  <!-- 筛选区 -->
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-3">
+    <div class="filters">
+      <div>
+        <label class="fl">活动名称 <span class="text-[10px] text-gray-300">可搜索</span></label>
+        <div class="picker">
+          <input id="actInput" class="fi" placeholder="全部活动（输入关键词筛选）" autocomplete="off" onfocus="openPick()" oninput="filterPick()">
+          <i class="fas fa-chevron-down pk-arrow"></i>
+          <div class="pk-panel" id="pkPanel"></div>
+        </div>
+      </div>
+      <div><label class="fl">关键词</label><input id="kw" class="fi" placeholder="姓名 / 手机 / 商户" oninput="render()"></div>
+      <div><label class="fl">审核状态</label><select id="fa" class="sel" onchange="render()"><option value="">全部</option><option>待审核</option><option>已通过</option><option>已驳回</option><option>已取消</option></select></div>
+      <div><label class="fl">签到状态</label><select id="fc" class="sel" onchange="render()"><option value="">全部</option><option>未签到</option><option>已签到</option><option>爽约</option></select></div>
+      <div><label class="fl">来源</label><select id="fs" class="sel" onchange="render()"><option value="">全部</option><option>商户端</option><option>现场</option><option>导入</option></select></div>
+      <div><label class="fl">提交时间</label><div style="display:flex;align-items:center;gap:4px"><input id="d1" type="date" class="fi" style="padding:6px" onchange="render()"><span class="text-[11px] text-gray-300">至</span><input id="d2" type="date" class="fi" style="padding:6px" onchange="render()"></div></div>
+      <div class="flex gap-2"><button class="btn btn-primary" onclick="render()">查询</button><button class="btn btn-ghost" onclick="resetF()">重置</button></div>
+    </div>
+  </div>
+
+  <!-- 摘要 -->
+  <div class="mb-3" id="summary"></div>
+
+  <!-- 批量 -->
+  <div id="bulkBar" class="mb-3" style="display:none">
+    <div class="flex items-center gap-2 px-4 py-2.5 rounded-xl" style="background:#FFF7F4;border:1px solid #FFD4C5">
+      <span class="text-[12px] text-gray-600">已选 <b id="selCnt">0</b> 条</span>
+      <button class="btn" style="background:#15803D;color:#fff" onclick="bulk('pass')">批量通过</button>
+      <button class="btn btn-danger" onclick="bulk('reject')">批量驳回</button>
+      <button class="btn btn-ghost" onclick="clearSel()">取消选择</button>
+      <span class="text-[11px] text-gray-400 ml-2">仅「待审核」记录参与批量处理</span>
+    </div>
+  </div>
+
   <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
-    <div class="px-5 py-3 border-b border-gray-100 flex items-center gap-2 flex-wrap">
-      <button class="px-3 py-1.5 text-[12px] text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
-      <button class="px-3 py-1.5 text-[12px] text-white rounded-lg transition" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)"><i class="fas fa-file-export text-[10px] mr-1"></i>导出名单</button>
+    <div class="px-4 py-2.5 border-b border-gray-100 flex items-center justify-between">
+      <span class="text-[12px] text-gray-400" id="cnt"></span>
+      <span class="text-[11px] text-gray-400">默认按提交时间倒序</span>
     </div>
     <table class="w-full text-[13px]">
       <thead>
         <tr class="bg-gray-50 text-gray-500 text-[12px]">
-          <th class="px-4 py-3 text-left font-medium">报名编号</th>
-          <th class="px-4 py-3 text-left font-medium">活动名称</th>
-          <th class="px-4 py-3 text-left font-medium">报名人/企业</th>
-          <th class="px-4 py-3 text-left font-medium">联系方式</th>
-          <th class="px-4 py-3 text-left font-medium">报名时间</th>
-          <th class="px-4 py-3 text-left font-medium">人数</th>
-          <th class="px-4 py-3 text-left font-medium">状态</th>
-          <th class="px-4 py-3 text-center font-medium">操作</th>
+          <th class="px-3 py-3 text-left" style="width:36px"><input type="checkbox" onchange="toggleAll(this)"></th>
+          <th class="px-3 py-3 text-left font-medium">报名编号</th>
+          <th class="px-3 py-3 text-left font-medium">活动名称</th>
+          <th class="px-3 py-3 text-left font-medium">姓名</th>
+          <th class="px-3 py-3 text-left font-medium">手机号</th>
+          <th class="px-3 py-3 text-left font-medium">商户 / 岗位</th>
+          <th class="px-3 py-3 text-center font-medium">同行</th>
+          <th class="px-3 py-3 text-left font-medium">来源</th>
+          <th class="px-3 py-3 text-left font-medium">审核</th>
+          <th class="px-3 py-3 text-left font-medium">签到</th>
+          <th class="px-3 py-3 text-left font-medium">提交时间</th>
+          <th class="px-3 py-3 text-center font-medium" style="width:150px">操作</th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-gray-50">
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 text-gray-600">EG20260712001</td>
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#FF8A4C,#FF4D2D)"><i class="fas fa-store"></i></div>
-              <span class="font-medium text-gray-800">2026大唐袜业直采节</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-gray-600">王暖足 · 暖足坊袜业</td>
-          <td class="px-4 py-3 text-gray-600">139****6288</td>
-          <td class="px-4 py-3 text-gray-400">2026-07-12 08:30</td>
-          <td class="px-4 py-3 text-gray-600">3人</td>
-          <td class="px-4 py-3"><span class="status-badge bg-amber-50 text-amber-600">待审核</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-primary text-[12px] hover:underline mr-2">审核</button>
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 text-gray-600">EG20260712002</td>
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#FF8A4C,#FF4D2D)"><i class="fas fa-store"></i></div>
-              <span class="font-medium text-gray-800">2026大唐袜业直采节</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-gray-600">李绿源 · 绿源纤维科技</td>
-          <td class="px-4 py-3 text-gray-600">138****3366</td>
-          <td class="px-4 py-3 text-gray-400">2026-07-12 09:15</td>
-          <td class="px-4 py-3 text-gray-600">2人</td>
-          <td class="px-4 py-3"><span class="status-badge bg-amber-50 text-amber-600">待审核</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-primary text-[12px] hover:underline mr-2">审核</button>
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 text-gray-600">EG20260711003</td>
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#A78BFA,#7C3AED)"><i class="fas fa-palette"></i></div>
-              <span class="font-medium text-gray-800">袜品设计大赛</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-gray-600">张花间 · 花间舞袜业</td>
-          <td class="px-4 py-3 text-gray-600">137****8899</td>
-          <td class="px-4 py-3 text-gray-400">2026-07-11 14:00</td>
-          <td class="px-4 py-3 text-gray-600">1人</td>
-          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">已通过</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 text-gray-600">EG20260710004</td>
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#38BDF8,#3B82F6)"><i class="fas fa-video"></i></div>
-              <span class="font-medium text-gray-800">电商直播培训</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-gray-600">陈极速 · 极速运动袜业</td>
-          <td class="px-4 py-3 text-gray-600">136****1122</td>
-          <td class="px-4 py-3 text-gray-400">2026-07-10 10:20</td>
-          <td class="px-4 py-3 text-gray-600">5人</td>
-          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">已通过</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 text-gray-600">EG20260709005</td>
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#38BDF8,#3B82F6)"><i class="fas fa-video"></i></div>
-              <span class="font-medium text-gray-800">电商直播培训</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-gray-600">赵智造 · 智造袜机设备</td>
-          <td class="px-4 py-3 text-gray-600">135****5577</td>
-          <td class="px-4 py-3 text-gray-400">2026-07-09 11:00</td>
-          <td class="px-4 py-3 text-gray-600">2人</td>
-          <td class="px-4 py-3"><span class="status-badge bg-red-50 text-red-500">已拒绝</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 text-gray-600">EG20260708006</td>
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)"><i class="fas fa-comments"></i></div>
-              <span class="font-medium text-gray-800">品牌运营沙龙</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-gray-600">孙棉田 · 棉田纱线厂</td>
-          <td class="px-4 py-3 text-gray-600">134****4433</td>
-          <td class="px-4 py-3 text-gray-400">2026-07-08 15:30</td>
-          <td class="px-4 py-3 text-gray-600">1人</td>
-          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">已通过</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 text-gray-600">EG20260707007</td>
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#FF8A4C,#FF4D2D)"><i class="fas fa-store"></i></div>
-              <span class="font-medium text-gray-800">2026大唐袜业直采节</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-gray-600">李大唐 · 大唐袜业旗舰</td>
-          <td class="px-4 py-3 text-gray-600">133****8800</td>
-          <td class="px-4 py-3 text-gray-400">2026-07-07 09:00</td>
-          <td class="px-4 py-3 text-gray-600">8人</td>
-          <td class="px-4 py-3"><span class="status-badge bg-gray-100 text-gray-500">已取消</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 text-gray-600">EG20260706008</td>
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:linear-gradient(135deg,#A78BFA,#7C3AED)"><i class="fas fa-palette"></i></div>
-              <span class="font-medium text-gray-800">袜品设计大赛</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-gray-600">周商贸 · 某商贸公司</td>
-          <td class="px-4 py-3 text-gray-600">132****2200</td>
-          <td class="px-4 py-3 text-gray-400">2026-07-06 13:45</td>
-          <td class="px-4 py-3 text-gray-600">1人</td>
-          <td class="px-4 py-3"><span class="status-badge bg-green-50 text-green-600">已通过</span></td>
-          <td class="px-4 py-3 text-center">
-            <button class="text-gray-400 text-[12px] hover:text-gray-600">详情</button>
-          </td>
-        </tr>
-      </tbody>
+      <tbody id="tb" class="divide-y divide-gray-50"></tbody>
     </table>
-    <!-- 分页 -->
-    <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
-      <span class="text-[12px] text-gray-400">共 186 条记录，第 1-8 条</span>
-      <div class="flex items-center gap-1">
-        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100"><i class="fas fa-chevron-left text-[10px]"></i></button>
-        <button class="w-7 h-7 flex items-center justify-center text-white text-[12px] rounded" style="background:#FF4D2D">1</button>
-        <button class="w-7 h-7 flex items-center justify-center text-gray-600 text-[12px] rounded hover:bg-gray-100">2</button>
-        <button class="w-7 h-7 flex items-center justify-center text-gray-600 text-[12px] rounded hover:bg-gray-100">3</button>
-        <button class="w-7 h-7 flex items-center justify-center text-gray-600 text-[12px] rounded hover:bg-gray-100">4</button>
-        <button class="w-7 h-7 flex items-center justify-center text-gray-600 text-[12px] rounded hover:bg-gray-100">5</button>
-        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100"><i class="fas fa-chevron-right text-[10px]"></i></button>
-      </div>
-    </div>
   </div>
-
 </div>
 
+<div class="mask" id="mask" onclick="closeAll()"></div>
+<div class="drawer" id="drawer"></div>
+<div class="modal" id="modal"></div>
+<div id="toast"></div>
+
+<script>
+var ACTS=[
+ {id:'EVT20261020001',name:'2026 大唐袜业秋冬直采节',quota:300,needAudit:false,life:'报名中'},
+ {id:'EVT20261018002',name:'袜业电商运营实战培训（第 3 期）',quota:50,needAudit:true,life:'报名中'},
+ {id:'EVT20261008005',name:'袜业城消防应急演练',quota:500,needAudit:false,life:'进行中'},
+ {id:'EVT20260928006',name:'2026 袜业产业趋势发展论坛',quota:300,needAudit:true,life:'已结束'},
+ {id:'EVT20261010009',name:'品牌出海跨境营销分享会',quota:30,needAudit:false,life:'已取消'}
+];
+
+function mk(id,actId,name,phone,org,title,comp,src,audit,ck,at){return {id:id,actId:actId,name:name,phone:phone,org:org,title:title,comp:comp,src:src,audit:audit,ck:ck,at:at};}
+var SIGN=[
+ mk('BM202610200001','EVT20261020001','钱××','13812346688','浙江××袜业股份','采购经理',1,'商户端','已通过','未签到','2026-10-20 09:12'),
+ mk('BM202610200002','EVT20261020001','孙××','13901234567','诸暨××针织','总经理',0,'商户端','已通过','未签到','2026-10-20 09:40'),
+ mk('BM202610200003','EVT20261020001','李××','13701239876','义乌××袜业','外贸主管',2,'商户端','待审核','—','2026-10-20 10:05'),
+ mk('BM202610200004','EVT20261020001','周××','13698765432','大唐××纺织','厂长',0,'商户端','待审核','—','2026-10-20 10:22'),
+ mk('BM202610190005','EVT20261020001','吴××','13512348888','诸暨××服饰','采购',0,'商户端','已通过','未签到','2026-10-19 16:30'),
+ mk('BM202610190006','EVT20261020001','郑××','13456781234','浙江××进出口','业务经理',1,'商户端','已通过','未签到','2026-10-19 15:08'),
+ mk('BM202610190007','EVT20261020001','王××','13356789012','绍兴××针织','无',0,'商户端','已取消','—','2026-10-19 11:20'),
+ mk('BM202610190008','EVT20261020001','冯××','13245678901','诸暨××袜厂','老板',0,'商户端','已通过','未签到','2026-10-19 10:02'),
+ mk('BM202610180009','EVT20261020001','陈××','13134567890','东阳××纺织','采购总监',2,'商户端','已通过','未签到','2026-10-18 17:45'),
+ mk('BM202610180010','EVT20261020001','褚××','13023456789','浦江××针织','业务',0,'商户端','待审核','—','2026-10-18 16:12'),
+ mk('BM202610180011','EVT20261020001','卫××','13887654321','嵊州××服饰','经理',0,'商户端','已驳回','—','2026-10-18 14:50'),
+ mk('BM202610180012','EVT20261020001','蒋××','13976543210','新昌××袜业','采购',1,'商户端','已通过','未签到','2026-10-18 11:30'),
+ mk('BM202610180013','EVT20261020001','沈××','13765432109','诸暨××电商','运营',0,'现场','已通过','已签到','2026-10-18 10:10'),
+ mk('BM202610170014','EVT20261020001','韩××','13654321098','大唐××工贸','总经理',0,'现场','已通过','已签到','2026-10-17 15:20'),
+ mk('BM202610170015','EVT20261020001','杨××','13543210987','义乌××针织','无',0,'商户端','已取消','—','2026-10-17 09:35'),
+ mk('BM202610170016','EVT20261020001','朱××','13432109876','诸暨××袜业','业务员',0,'商户端','已通过','未签到','2026-10-17 08:50'),
+ mk('BM202610180017','EVT20261018002','秦××','13321098765','诸暨××袜业','运营',0,'商户端','待审核','—','2026-10-18 09:00'),
+ mk('BM202610180018','EVT20261018002','尤××','13210987654','义乌××针织','店长',0,'商户端','已通过','未签到','2026-10-18 10:15'),
+ mk('BM202610180019','EVT20261018002','许××','13109876543','大唐××服饰','运营',0,'商户端','已通过','未签到','2026-10-18 14:20'),
+ mk('BM202610190020','EVT20261008005','何××','13800138000','诸暨××针织','员工',2,'商户端','已通过','已签到','2026-10-19 19:10'),
+ mk('BM202610190021','EVT20261008005','吕××','13900139000','义乌××袜业','采购',1,'商户端','已通过','已签到','2026-10-19 19:22'),
+ mk('BM202610190022','EVT20261008005','施××','13700137000','诸暨××服饰','无',0,'商户端','已通过','未签到','2026-10-19 20:05'),
+ mk('BM202610190023','EVT20261008005','张××','13600136000','大唐××工贸','经理',3,'现场','已通过','已签到','2026-10-19 20:40'),
+ mk('BM202610190024','EVT20261008005','孔××','13500135000','绍兴××针织','业务',0,'商户端','已取消','—','2026-10-19 21:00'),
+ mk('BM202609250025','EVT20260928006','褚××','13877776666','浦江××针织','经理',0,'商户端','已通过','已签到','2026-09-25 14:10'),
+ mk('BM202609250026','EVT20260928006','卫××','13966665555','嵊州××服饰','总监',1,'商户端','已通过','爽约','2026-09-25 15:20'),
+ mk('BM202610150027','EVT20261010009','秦××','13755554444','诸暨××袜业','运营',0,'商户端','已取消','—','2026-10-15 11:00')
+];
+
+var AUDIT_ST={'待审核':'background:#FEF3C7;color:#B45309','已通过':'background:#DCFCE7;color:#15803D','已驳回':'background:#FEE2E2;color:#B91C1C','已取消':'background:#F1F5F9;color:#64748B'};
+var CK_ST={'已签到':'background:#DBEAFE;color:#1D4ED8','未签到':'background:#F1F5F9;color:#64748B','爽约':'background:#FEE2E2;color:#991B1B','—':'background:#F8FAFC;color:#CBD5E1'};
+
+var curAct='';
+var sel={};
+
+function actName(id){var a=ACTS.filter(function(x){return x.id===id;})[0];return a?a.name:id;}
+function rows(){return SIGN.filter(function(s){return !curAct||s.actId===curAct;});}
+function mask(p){return p?p.replace(/^(\d{3})\d{4}(\d{4})$/,'$1****$2'):'';}
+
+/* ============ 可搜索活动下拉 ============ */
+function openPick(){
+  document.getElementById('pkPanel').classList.add('on');
+  filterPick();
+}
+function closePick(){document.getElementById('pkPanel').classList.remove('on');}
+function filterPick(){
+  var kw=(document.getElementById('actInput').value||'').trim();
+  var list=ACTS.filter(function(a){return !kw||a.name.indexOf(kw)>=0||a.id.indexOf(kw)>=0;});
+  var h='<div class="pk-item'+(curAct===''?' hl':'')+'" onclick="pickAct(\'\')"><i class="fas fa-layer-group text-[10px] text-gray-400"></i>全部活动<span class="sub">'+SIGN.length+' 条</span></div>';
+  h+=list.map(function(a){
+    var n=SIGN.filter(function(s){return s.actId===a.id;}).length;
+    return '<div class="pk-item'+(curAct===a.id?' hl':'')+'" onclick="pickAct(\''+a.id+'\')"><i class="fas fa-circle text-[5px] text-[#FF4D2D]"></i>'+esc(a.name)+'<span class="sub">'+n+' 条</span></div>';
+  }).join('');
+  if(!list.length){h+='<div class="pk-empty">没有匹配的活动</div>';}
+  document.getElementById('pkPanel').innerHTML=h;
+}
+function pickAct(id){
+  curAct=id;
+  document.getElementById('actInput').value=id?actName(id):'';
+  document.getElementById('actInput').placeholder='全部活动（输入关键词筛选）';
+  closePick();sel={};renderAll();
+}
+document.addEventListener('click',function(e){
+  var p=document.getElementById('pkPanel');
+  if(!p.contains(e.target)&&e.target.id!=='actInput'){closePick();}
+});
+
+/* ============ 摘要 ============ */
+function renderSummary(){
+  var rs=rows();
+  var pending=rs.filter(function(s){return s.audit==='待审核';}).length;
+  var passed=rs.filter(function(s){return s.audit==='已通过';}).length;
+  var checked=rs.filter(function(s){return s.ck==='已签到';}).length;
+  var canceled=rs.filter(function(s){return s.audit==='已取消';}).length;
+  var rejected=rs.filter(function(s){return s.audit==='已驳回';}).length;
+  var miss=rs.filter(function(s){return s.ck==='爽约';}).length;
+  var hold=pending+passed;
+  var people=0;
+  rs.forEach(function(s){if(s.audit==='待审核'||s.audit==='已通过'){people+=1+(s.comp||0);}});
+  document.getElementById('crumbAct').textContent=curAct?actName(curAct):'全部活动';
+  var d=[['报名单数',rs.length,'#334155'],['占位人数',people,'#E63E20'],
+         ['待审核',pending,'#B45309'],['已通过',passed,'#15803D'],
+         ['已签到',checked,'#1D4ED8'],['已取消',canceled,'#94A3B8'],['已驳回',rejected,'#B91C1C'],['爽约',miss,'#991B1B']];
+  var cancelTip='';
+  if(curAct){
+    var ca=ACTS.filter(function(a){return a.id===curAct;})[0];
+    if(ca&&ca.life==='已取消'){cancelTip='<div class="text-[11px] px-3 py-2 rounded-lg mb-2" style="background:#FEF2F2;border:1px solid #FECACA;color:#B91C1C"><i class="fas fa-ban mr-1"></i>该活动已取消，名单仅留痕，<b>不计入报名率/签到率等聚合指标</b></div>';}
+  }
+  document.getElementById('summary').innerHTML=cancelTip+'<div class="sum">'+d.map(function(x){
+    return '<div class="sum-i"><p>'+x[0]+'</p><p style="color:'+x[2]+'">'+x[1]+'</p></div>';
+  }).join('')+'<span class="ml-auto text-[11px] text-gray-400">占位人数 = 报名单数 ×（1+同行）；已取消/已驳回不占名额</span></div>';
+}
+
+/* ============ 列表 ============ */
+function render(){
+  var kw=(document.getElementById('kw').value||'').trim();
+  var fa=document.getElementById('fa').value,fc=document.getElementById('fc').value,fs=document.getElementById('fs').value;
+  var d1=document.getElementById('d1').value,d2=document.getElementById('d2').value;
+  var rs=rows().filter(function(s){
+    if(fa&&s.audit!==fa){return false;}
+    if(fc&&s.ck!==fc){return false;}
+    if(fs&&s.src!==fs){return false;}
+    if(d1&&s.at.slice(0,10)<d1){return false;}
+    if(d2&&s.at.slice(0,10)>d2){return false;}
+    if(kw&&s.name.indexOf(kw)<0&&s.phone.indexOf(kw)<0&&(s.org||'').indexOf(kw)<0){return false;}
+    return true;
+  }).sort(function(a,b){return a.at<b.at?1:-1;});
+  document.getElementById('cnt').textContent='共 '+rs.length+' 条报名';
+  if(!rs.length){
+    document.getElementById('tb').innerHTML='<tr><td colspan="12" class="px-4 py-12 text-center text-[12px] text-gray-400">没有符合条件的报名记录 —— 换个筛选条件试试</td></tr>';
+    return;
+  }
+  document.getElementById('tb').innerHTML=rs.map(function(s){
+    return '<tr class="hover:bg-gray-50">'
+      +'<td class="px-3 py-2.5"><input type="checkbox" '+(sel[s.id]?'checked':'')+' onchange="toggleOne(\''+s.id+'\',this)"></td>'
+      +'<td class="px-3 py-2.5 text-gray-500 text-[11px]">'+s.id+'</td>'
+      +'<td class="px-3 py-2.5"><span class="text-[12px] text-gray-700" title="'+esc(actName(s.actId))+'">'+esc(actName(s.actId))+'</span><div class="text-[10px] text-gray-300">'+s.actId+'</div></td>'
+      +'<td class="px-3 py-2.5 font-medium text-gray-800">'+esc(s.name)+'</td>'
+      +'<td class="px-3 py-2.5 text-gray-600">'+mask(s.phone)+'</td>'
+      +'<td class="px-3 py-2.5 text-gray-600 text-[12px]">'+esc(s.org||'—')+(s.title&&s.title!=='无'?'<span class="text-gray-400"> · '+esc(s.title)+'</span>':'')+'</td>'
+      +'<td class="px-3 py-2.5 text-center text-gray-600">'+(s.comp?'+'+s.comp:'—')+'</td>'
+      +'<td class="px-3 py-2.5"><span class="st" style="'+(s.src==='现场'?'background:#EDE9FE;color:#6D28D9':'background:#F1F5F9;color:#64748B')+'">'+s.src+'</span></td>'
+      +'<td class="px-3 py-2.5"><span class="st" style="'+AUDIT_ST[s.audit]+'">'+s.audit+'</span></td>'
+      +'<td class="px-3 py-2.5"><span class="st" style="'+CK_ST[s.ck]+'">'+s.ck+'</span></td>'
+      +'<td class="px-3 py-2.5 text-gray-400 text-[11px]">'+s.at+'</td>'
+      +'<td class="px-3 py-2.5 text-center">'+ops(s)+'</td></tr>';
+  }).join('');
+}
+function ops(s){
+  var o=['<span class="lk-gray" onclick="viewSign(\''+s.id+'\')">详情</span>'];
+  if(s.audit==='待审核'){o.push('<span class="lk" onclick="pass(\''+s.id+'\')">通过</span>');o.push('<span class="lk-gray" onclick="reject(\''+s.id+'\')">驳回</span>');}
+  if(s.audit==='已通过'&&s.ck==='未签到'){o.push('<span class="lk" onclick="markCk(\''+s.id+'\')">标记签到</span>');}
+  if(s.audit==='已通过'||s.audit==='待审核'){o.push('<span class="lk-gray" onclick="cancelOne(\''+s.id+'\')">取消</span>');}
+  return o.join(' · ');
+}
+
+function pass(id){var s=byId(id);s.audit='已通过';s.ck='未签到';renderAll();toast('已通过：'+s.name+'（已通知报名商户）');}
+function reject(id){
+  var s=byId(id);
+  show('modal','<div class="p-5"><h3 class="text-[15px] font-bold mb-1">驳回报名</h3><p class="text-[12px] text-[#94A3B8] mb-3">'+esc(s.name)+'　'+esc(s.org)+'　'+esc(actName(s.actId))+'</p>'
+    +'<label class="fl">驳回原因 *</label><select class="sel mb-3" id="rk"><option>不符合参与对象</option><option>信息填写不实</option><option>重复报名</option><option>名额已满</option><option>其他</option></select>'
+    +'<label class="fl">说明</label><textarea class="fi mb-4" id="rn" rows="2" placeholder="报名人会看到这条原因"></textarea>'
+    +'<div class="flex justify-end gap-2"><button class="btn btn-ghost" onclick="closeAll()">取消</button><button class="btn btn-danger" onclick="doReject(\''+id+'\')">确认驳回</button></div></div>');
+}
+function doReject(id){var s=byId(id);s.audit='已驳回';s.ck='—';closeAll();renderAll();toast('已驳回并通知报名商户（名额已释放）');}
+function cancelOne(id){
+  var s=byId(id);
+  show('modal','<div class="p-5"><h3 class="text-[15px] font-bold mb-2">取消报名</h3><p class="text-[12px] text-[#64748B] mb-3">'+esc(s.name)+'　'+esc(s.org)+'　'+esc(actName(s.actId))+'</p>'
+    +'<label class="fl">取消原因 *</label><select class="sel mb-4" id="cc"><option>报名人电话申请取消</option><option>信息有误需重报</option><option>不符合参与条件</option><option>其他</option></select>'
+    +'<div class="rounded-xl border p-3 mb-4" style="border-color:#DBEAFE;background:#EFF6FF"><p class="text-[11px] text-[#64748B]">取消后<b>名额立即释放</b>；已签到者需先在签到页撤销核销。</p></div>'
+    +'<div class="flex justify-end gap-2"><button class="btn btn-ghost" onclick="closeAll()">取消</button><button class="btn btn-danger" onclick="doCancelOne(\''+id+'\')">确认取消</button></div></div>');
+}
+function doCancelOne(id){var s=byId(id);s.audit='已取消';s.ck='—';closeAll();renderAll();toast('已取消，名额已释放');}
+function markCk(id){var s=byId(id);s.ck='已签到';renderAll();toast('已手工标记签到：'+s.name);}
+
+function toggleOne(id,el){if(el.checked){sel[id]=1;}else{delete sel[id];}refreshBulk();}
+function toggleAll(el){
+  if(el.checked){rows().forEach(function(s){if(s.audit==='待审核'){sel[s.id]=1;}});}else{sel={};}
+  render();refreshBulk();
+}
+function clearSel(){sel={};render();refreshBulk();}
+function refreshBulk(){
+  var n=Object.keys(sel).length;
+  document.getElementById('bulkBar').style.display=(n?'block':'none');
+  document.getElementById('selCnt').textContent=n;
+}
+function bulk(kind){
+  var ids=Object.keys(sel);
+  if(!ids.length){toast('请先选择');return;}
+  var n=0;
+  ids.forEach(function(id){var s=byId(id);if(s.audit!=='待审核'){return;}n++;
+    if(kind==='pass'){s.audit='已通过';s.ck='未签到';}else{s.audit='已驳回';s.ck='—';}});
+  toast('已批量'+(kind==='pass'?'通过':'驳回')+' '+n+' 条'+(kind==='pass'?'（已通知报名商户）':'（原因统一为「不符合参与对象」）'));
+  sel={};renderAll();refreshBulk();
+}
+
+/* ============ 批量导入（v1.5 / FR-26） ============ */
+function openImport(){
+  var opts=ACTS.map(function(a){return '<option value="'+a.id+'"'+(a.id===curAct?' selected':'')+'>'+esc(a.name)+'</option>';}).join('');
+  show('modal','<div class="p-5"><h3 class="text-[15px] font-bold mb-1">批量导入报名</h3>'
+    +'<p class="text-[12px] text-[#94A3B8] mb-3">适用于线下收集的名单（Excel 复制粘贴即可），导入后状态为「已通过」</p>'
+    +'<label class="fl">导入到哪场活动 *</label><select class="sel mb-3" id="im-act">'+opts+'</select>'
+    +'<div class="rounded-xl border p-3 mb-3" style="border-color:#DBEAFE;background:#EFF6FF">'
+    +'<p class="text-[11px] text-[#64748B]">每行一条，逗号或制表符分隔：<b>姓名,手机号,商户,岗位,同行人数</b>　'
+    +'<span class="lk" onclick="toast(\'已下载模板 CSV（5 列）\')">下载模板</span></p></div>'
+    +'<label class="fl">粘贴名单 *</label>'
+    +'<textarea class="fi mb-3" id="im-txt" rows="7" placeholder="张三,13812346688,浙江××袜业,采购经理,1&#10;李四,13901234567,诸暨××针织,总经理,0"></textarea>'
+    +'<div id="im-res"></div>'
+    +'<div class="flex justify-end gap-2 mt-4"><button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="doImport()">开始导入</button></div></div>');
+}
+function doImport(){
+  var actId=document.getElementById('im-act').value;
+  var txt=(document.getElementById('im-txt').value||'').trim();
+  if(!txt){toast('请先粘贴名单');return;}
+  var lines=txt.split(/\r?\n/).filter(function(l){return l.trim();});
+  var ok=0,bad=[];
+  lines.forEach(function(line,i){
+    var p=line.split(/[,\t]/).map(function(s){return (s||'').trim();});
+    var name=p[0],phone=p[1],org=p[2]||'',title=p[3]||'',comp=Number(p[4]||0);
+    if(!name||!/^1\d{10}$/.test(phone)){bad.push({r:i+1,t:line.slice(0,30),w:'姓名或手机号格式不对'});return;}
+    if(SIGN.some(function(s){return s.actId===actId&&s.phone===phone;})){bad.push({r:i+1,t:name+' '+mask(phone),w:'该手机号在本活动已报名'});return;}
+    SIGN.unshift(mk('BM202610200'+String(SIGN.length+1).padStart(3,'0'),actId,name,phone,org,title,comp,'导入','已通过','未签到','2026-10-20 12:00'));
+    ok++;
+  });
+  var h='<div class="rounded-xl border p-3" style="border-color:'+(bad.length?'#FDE68A':'#BBF7D0')+';background:'+(bad.length?'#FFFBEB':'#F0FDF4')+'">'
+    +'<p class="text-[12px] font-medium" style="color:'+(bad.length?'#B45309':'#15803D')+'">导入完成：成功 '+ok+' 条，失败 '+bad.length+' 条</p>';
+  if(bad.length){
+    h+='<div class="mt-2" style="max-height:110px;overflow-y:auto">'+bad.map(function(b){
+      return '<div class="text-[11px] text-[#B45309]">第 '+b.r+' 行（'+esc(b.t)+'）：'+b.w+'</div>';
+    }).join('')+'</div>';
+  }
+  h+='</div>';
+  document.getElementById('im-res').innerHTML=h;
+  renderAll();
+  if(ok){toast('已导入 '+ok+' 条'+(bad.length?'，'+bad.length+' 条失败需修正':'')+'（来源标记「导入」）');}
+}
+
+function openAdd(){
+  show('modal','<div class="p-5"><h3 class="text-[15px] font-bold mb-1">现场补录</h3><p class="text-[12px] text-[#94A3B8] mb-3">未在商户端报名的到场人员，补录后<b>直接置已签到</b></p>'
+    +'<label class="fl">所属活动 *</label><select class="sel mb-3" id="ad-act">'+ACTS.map(function(a){return '<option value="'+a.id+'"'+(a.id===curAct?' selected':'')+'>'+esc(a.name)+'</option>';}).join('')+'</select>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">'
+    +'<div><label class="fl">姓名 *</label><input class="fi" id="ad-n"></div>'
+    +'<div><label class="fl">手机号 *</label><input class="fi" id="ad-p"></div>'
+    +'<div><label class="fl">商户</label><input class="fi" id="ad-o" placeholder="商户名称"></div>'
+    +'<div><label class="fl">同行人数</label><select class="sel" id="ad-c"><option value="0">0</option><option>1</option><option>2</option><option>3</option></select></div>'
+    +'</div>'
+    +'<div class="rounded-xl border p-3 mt-3 mb-4" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B]">来源标记「现场」，计入该场报名与签到；<b>超出名额时需二次确认</b>。</p></div>'
+    +'<div class="flex justify-end gap-2"><button class="btn btn-ghost" onclick="closeAll()">取消</button><button class="btn btn-primary" onclick="doAdd()">补录并签到</button></div></div>');
+}
+function doAdd(){
+  var n=(document.getElementById('ad-n').value||'').trim();
+  var p=(document.getElementById('ad-p').value||'').trim();
+  var actId=document.getElementById('ad-act').value;
+  if(!n||!/^1\d{10}$/.test(p)){toast('请填写姓名与 11 位手机号');return;}
+  if(SIGN.some(function(s){return s.actId===actId&&s.phone===p;})){toast('该手机号在本活动已报名，请核对后再补录');return;}
+  var act=ACTS.filter(function(a){return a.id===actId;})[0];
+  var hold=SIGN.filter(function(s){return s.actId===actId&&(s.audit==='已通过'||s.audit==='待审核');}).length;
+  if(hold>=act.quota&&!window._overOk){window._overOk=true;toast('已超名额（'+hold+'/'+act.quota+'），请再次点击确认补录');return;}
+  window._overOk=false;
+  SIGN.unshift(mk('BM202610200'+String(SIGN.length+1).padStart(3,'0'),actId,n,p,(document.getElementById('ad-o').value||'').trim(),'',Number(document.getElementById('ad-c').value||0),'现场','已通过','已签到','2026-10-20 11:20'));
+  closeAll();renderAll();
+  toast('已补录并签到：'+n+'（'+act.name+'）');
+}
+
+function viewSign(id){
+  var s=byId(id);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">报名详情</h3><p class="text-[11px] text-[#94A3B8] mt-1">'+s.id+'</p></div>'
+    +'<button class="btn btn-ghost" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div class="blk"><div class="blk-t"><i class="fas fa-calendar-check text-[#FF4D2D]"></i>所属活动</div>'
+    +'<div class="kv"><span class="k">活动名称</span><span>'+esc(actName(s.actId))+'</span></div>'
+    +'<div class="kv"><span class="k">活动编号</span><span>'+s.actId+'</span></div></div>'
+    +'<div class="blk"><div class="blk-t"><i class="fas fa-user text-[#2563EB]"></i>报名人</div>'
+    +'<div class="kv"><span class="k">姓名</span><span>'+esc(s.name)+'</span></div>'
+    +'<div class="kv"><span class="k">手机号</span><span id="phoneBox">'+mask(s.phone)+' <span class="lk ml-2" onclick="revealPhone(\''+s.id+'\')">查看完整</span></span></div>'
+    +'<div class="kv"><span class="k">商户 / 岗位</span><span>'+esc(s.org||'—')+'　'+esc(s.title||'')+'</span></div>'
+    +'<div class="kv"><span class="k">同行人数</span><span>'+(s.comp?'+'+s.comp+' 人':'无')+'</span></div>'
+    +'<div class="kv"><span class="k">来源</span><span>'+s.src+'</span></div></div>'
+    +'<div class="blk"><div class="blk-t"><i class="fas fa-circle-check text-[#15803D]"></i>状态</div>'
+    +'<div class="kv"><span class="k">审核状态</span><span><span class="st" style="'+AUDIT_ST[s.audit]+'">'+s.audit+'</span></span></div>'
+    +'<div class="kv"><span class="k">签到状态</span><span><span class="st" style="'+CK_ST[s.ck]+'">'+s.ck+'</span></span></div>'
+    +'<div class="kv"><span class="k">提交时间</span><span>'+s.at+'</span></div></div>'
+    +'</div>';
+  h+='<div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2"><button class="btn btn-ghost" onclick="closeAll()">关闭</button></div>';
+  show('drawer',h);
+}
+function revealPhone(id){
+  var s=byId(id);
+  show('modal','<div class="p-5"><h3 class="text-[15px] font-bold mb-1">查看完整手机号</h3><p class="text-[12px] text-[#94A3B8] mb-3">'+esc(s.name)+'　'+esc(s.org)+'</p>'
+    +'<label class="fl">查看原因 *</label><select class="sel mb-3" id="rv-r"><option>现场签到核对</option><option>活动变更需电话通知</option><option>报名人要求回电</option><option>其他</option></select>'
+    +'<div class="rounded-xl border p-3 mb-4" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B]">本次查看将<b>记入操作日志</b>（谁、何时、看了谁、原因）。</p></div>'
+    +'<div class="flex justify-end gap-2"><button class="btn btn-ghost" onclick="closeAll()">取消</button><button class="btn btn-primary" onclick="doReveal(\''+id+'\')">确认查看</button></div></div>');
+}
+function doReveal(id){closeAll();setTimeout(function(){viewSign(id);},120);toast('已显示完整号码；本次查看已留痕');}
+
+function exportList(){
+  var n=rows().length;
+  if(!n){toast('当前筛选无数据，无法导出');return;}
+  show('modal','<div class="p-5"><h3 class="text-[15px] font-bold mb-1">导出报名名单</h3><p class="text-[12px] text-[#94A3B8] mb-3">'+(curAct?esc(actName(curAct)):'全部活动')+'　共 '+n+' 条</p>'
+    +'<div class="rounded-xl border p-3 mb-4" style="border-color:#DBEAFE;background:#EFF6FF"><p class="text-[11px] text-[#64748B]">导出为 <b>脱敏 Excel</b>（手机号中间四位打码），含活动名称列；<b>导出动作记入操作日志</b>。</p></div>'
+    +'<div class="flex justify-end gap-2"><button class="btn btn-ghost" onclick="closeAll()">取消</button><button class="btn btn-primary" onclick="doExport('+n+')">确认导出</button></div></div>');
+}
+function doExport(n){closeAll();toast('已导出 '+n+' 条（脱敏，含活动名称），日志已记录');}
+
+function byId(id){return SIGN.filter(function(s){return s.id===id;})[0];}
+function resetF(){
+  curAct='';document.getElementById('actInput').value='';
+  document.getElementById('kw').value='';
+  document.getElementById('fa').value='';document.getElementById('fc').value='';document.getElementById('fs').value='';
+  document.getElementById('d1').value='';document.getElementById('d2').value='';
+  sel={};renderAll();refreshBulk();
+}
+function renderAll(){renderSummary();render();}
+function show(w,h){document.getElementById(w).innerHTML=h;document.getElementById('mask').classList.add('on');document.getElementById(w).classList.add('on');}
+function closeAll(){document.getElementById('mask').classList.remove('on');document.getElementById('drawer').classList.remove('on');document.getElementById('modal').classList.remove('on');}
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},3200);}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+
+/* 从详情页带入 ?id= */
+var qid=new URLSearchParams(location.search).get('id');
+if(qid&&ACTS.some(function(a){return a.id===qid;})){
+  curAct=qid;document.getElementById('actInput').value=actName(qid);
+}
+renderAll();
+</script>
 </body>
 </html>

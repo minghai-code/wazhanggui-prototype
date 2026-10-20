@@ -296,18 +296,33 @@ function dueBadge(p){
 /* ===== 申报状态（回写后台：已提交 / 退回补正 / 受理中 / 已兑现 / 未通过） ===== */
 var APPLY_STATE={};
 var APPLY_STYLE={'已提交':['#EAF2FF','#2563EB'],'退回补正':['#FEE2E2','#EF4444'],'受理中':['#FEF3C7','#D97706'],'已兑现':['#D1FAE5','#059669'],'未通过':['#F1F3F6','#6b7280']};
+/* 政策申报主体：仅「已绑定商户主体」的账号可提交（M06 FR-21 / Q-05）。默认未绑定，用于演示两种态 */
+var QUALI_BOUND=false;
+function bindQuali(){QUALI_BOUND=true;renderApplyBoxes();toast('已绑定商户主体（演示），可在线申报');}
 var APPLY_FLOW=['已提交','受理中','退回补正','已兑现','未通过'];
 function renderApplyBoxes(){policies.forEach(function(p){renderApplyBox(p.gid);});}
 function renderApplyBox(gid){
  var box=document.getElementById('applyBox-'+gid);if(!box)return;
  var p=policies[gid],st=APPLY_STATE[gid];
  if(!st){
+  if(!QUALI_BOUND){
+   box.innerHTML='<div class="rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFBEB">'
+    +'<p class="text-[11px] font-bold text-gray-800"><i class="fas fa-building-columns mr-1" style="color:#D97706"></i>需企业资质</p>'
+    +'<p class="text-[10px] text-gray-500 mt-1 leading-relaxed">政策申报须以<b>企业主体</b>提交。当前账号未绑定商户主体，请先完成企业认证，或到「袜掌柜商户端」申报。</p>'
+    +'<div class="flex gap-2 mt-2">'
+    +'<button class="flex-1 py-2 rounded-lg text-[11px] font-bold text-white" style="background:linear-gradient(135deg,#8B5CF6,#7C3AED)" onclick="toast(\'前往企业认证（需营业执照、法人信息）\')">去认证</button>'
+    +'<button class="flex-1 py-2 rounded-lg text-[11px] font-bold text-gray-600 bg-white border border-gray-200" onclick="toast(\'请打开「袜掌柜商户端」提交申报\')">去商户端</button>'
+    +'</div>'
+    +'<p class="text-[9px] text-gray-400 mt-2">（演示）<span class="text-primary font-medium" onclick="bindQuali()">已完成企业认证，切换为可申报</span></p>'
+    +'</div>';
+   return;
+  }
   box.innerHTML='<button class="w-full py-2.5 rounded-xl text-[12px] font-bold text-white flex items-center justify-center gap-1.5" style="background:linear-gradient(135deg,#8B5CF6,#7C3AED)" onclick="submitApply('+gid+')"><i class="fas fa-paper-plane text-[10px]"></i>在线申报</button>';
   return;
  }
  var s=APPLY_STYLE[st.status]||APPLY_STYLE['已提交'];
  var note='';
- if(st.status==='退回补正')note='<p class="text-[10px] text-red-600 mt-1.5 leading-relaxed"><b>退回原因：</b>'+st.note+'</p>';
+ if(st.status==='退回补正')note='<p class="text-[10px] text-red-600 mt-1.5 leading-relaxed"><b>退回原因：</b>'+st.note+'</p><p class="text-[10px] text-gray-400 mt-1">申报单号 SB20261013'+(100+gid)+'（补正沿用原单号，截止日不变）</p>';
  else if(st.status==='已兑现')note='<p class="text-[10px] mt-1.5 leading-relaxed" style="color:#047857"><b>兑现说明：</b>'+st.note+'</p>';
  else if(st.status==='未通过')note='<p class="text-[10px] text-gray-500 mt-1.5 leading-relaxed"><b>未通过原因：</b>'+st.note+'</p>';
  else note='<p class="text-[10px] text-gray-400 mt-1.5 leading-relaxed">申报单号 SB20261013'+(100+gid)+' · 提交时间 '+(st.time||'2026-10-13 09:41')+'</p>';

@@ -98,7 +98,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </div>
 
 <!-- 待办事项 -->
-<div class="px-3 mt-4 mb-28">
+<div class="px-3 mt-4 mb-4">
 <div class="flex items-center gap-1.5 mb-2.5"><i class="fas fa-list-check text-primary text-sm"></i><span class="font-bold text-[14px] text-gray-800">待办事项</span></div>
 <div class="bg-white rounded-2xl shadow-soft overflow-hidden">
 <a href="payment.html" class="flex items-center px-3.5 py-3 border-b border-gray-50">
@@ -124,6 +124,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </div>
 </div>
 
+<!-- 活动参与（独立板块，位置在待办事项卡片下方；不属于待办） -->
+<div class="px-3 mt-4 mb-28">
+  <div class="flex items-center justify-between mb-2.5">
+    <div class="flex items-center gap-1.5"><i class="fas fa-calendar-day text-indigo-500 text-sm"></i><span class="font-bold text-[14px] text-gray-800">活动参与</span><span class="text-[10px] text-gray-400">平台面向商户发布</span></div>
+    <a href="activity-list.html" class="text-[11px] text-gray-400">全部 <i class="fas fa-chevron-right text-[9px]"></i></a>
+  </div>
+  <div class="space-y-2.5" id="actList"></div>
+  <a href="my-activities.html" class="flex items-center justify-center gap-1.5 mt-2.5 py-2.5 bg-white rounded-xl shadow-soft text-[11px] text-indigo-600 font-bold">
+    <i class="fas fa-ticket"></i>我的活动 · 报名记录与签到码
+  </a>
+  <a href="shanghu-activity-manage.html" class="flex items-center justify-center gap-1.5 mt-2 py-2.5 bg-white rounded-xl shadow-soft text-[11px] text-emerald-600 font-bold">
+    <i class="fas fa-calendar-plus"></i>我主办的活动 · 发起 / 名单 / 核销
+  </a>
+</div>
+
 <script>
 function toast(msg){
   var t=document.createElement('div');
@@ -131,6 +146,28 @@ function toast(msg){
   t.textContent=msg;document.body.appendChild(t);
   setTimeout(function(){t.remove()},1500);
 }
+
+/* 活动参与（后台 08 活动运营下发，上架可见；独立板块，与待办无关） */
+var HOME_ACTS=[
+ {id:'EVT20261026002',name:'秋季消防安全应急演练',time:'10-26 14:00-16:00',place:'A区1层中庭',d:'26',m:'10',quota:80,occupied:46},
+ {id:'EVT20261028003',name:'跨境电商选品与独立站运营培训',time:'10-28 09:30-11:30',place:'3F 多功能厅',d:'28',m:'10',quota:60,occupied:38},
+ {id:'EVT20261103004',name:'袜业数字化改造政策宣讲会',time:'11-03 14:00-16:00',place:'会议中心 201',d:'03',m:'11',quota:100,occupied:72}
+];
+(function(){
+  var sups=[];try{sups=JSON.parse(localStorage.getItem('sh_act_signup')||'[]')}catch(e){}
+  function signed(id){return sups.filter(function(s){return s.actId===id&&s.audit!=='已取消'&&s.audit!=='已驳回';})[0];}
+  var box=document.getElementById('actList');if(!box)return;
+  box.innerHTML=HOME_ACTS.map(function(a){
+    var s=signed(a.id),left=a.quota-a.occupied;
+    return '<a href="activity-detail.html?id='+a.id+'" class="card flex items-center gap-3 bg-white rounded-xl shadow-soft p-3">'
+      +'<div class="w-11 rounded-lg text-center py-1.5 flex-shrink-0" style="background:#EEF2FF"><p class="text-[16px] font-extrabold num" style="color:#4F46E5">'+a.d+'</p><p class="text-[8px] text-indigo-400">'+a.m+'月</p></div>'
+      +'<div class="flex-1 min-w-0"><p class="text-[12px] font-bold text-gray-800 truncate">'+a.name+'</p>'
+      +'<p class="text-[9px] text-gray-400 mt-0.5">'+a.time+' · '+a.place+'</p>'
+      +'<p class="text-[9px] mt-0.5 '+(s?'text-emerald-600':'text-gray-400')+'">'+(s?'已报名 · 查看签到码':'余位 '+left+' / '+a.quota)+'</p></div>'
+      +'<span class="text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0 '+(s?'bg-emerald-50 text-emerald-600':'bg-indigo-50 text-indigo-600')+'">'+(s?'已报名':'可报名')+'</span>'
+      +'</a>';
+  }).join('');
+})();
 </script>
 
 <!-- 底部Tab栏（5Tab，物业服务高亮） -->

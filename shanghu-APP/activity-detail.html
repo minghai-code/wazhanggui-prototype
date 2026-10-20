@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>活动详情 - 袜掌柜商户版</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--bg:#F5F7FF}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+.card{transition:transform .16s ease}.card:active{transform:scale(.99)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
+.num{font-variant-numeric:tabular-nums}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<div class="relative px-4 pt-2 pb-6 overflow-hidden" style="background:linear-gradient(135deg,#6366F1 0%,#4F46E5 45%,#4338CA 100%)">
+  <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-40" style="background:#818CF8"></div>
+  <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+  </div>
+  <div class="relative flex items-center justify-between mt-1">
+    <a href="activity-list.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+    <span class="text-white font-extrabold text-[18px]">活动详情</span>
+    <a href="my-activities.html" class="text-white/90 text-[11px]">我的活动</a>
+  </div>
+  <div class="relative mt-3" id="headBox"></div>
+</div>
+
+<div class="px-3 pt-3 pb-28" id="bodyBox"></div>
+
+<div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-3 py-2.5" style="z-index:100;width:393px;padding-bottom:18px" id="footBar"></div>
+
+<script>
+function readLS(k){try{return JSON.parse(localStorage.getItem(k)||'[]')}catch(e){return []}}
+function q(k){var m=location.search.match(new RegExp('[?&]'+k+'=([^&]+)'));return m?decodeURIComponent(m[1]):''}
+
+var ACTS=[
+ {id:'EVT20261024001',name:'秋冬新品选品沙龙',type:'沙龙',org:'商户',date:'2026-10-24',time:'15:00-17:00',place:'2F 共享空间',quota:30,occupied:30,state:'已满',audit:true,signRange:'10-18 至 10-22',notice:'主办方审核通过后短信通知。',intro:'由入驻商户「大唐袜业旗舰店」主办，面向秋冬新品采购与搭配交流，限额 30 人。',needKnow:['报名需主办方审核，通过后凭短信与签到码入场','现场提供新品样袜与搭配手册','名额有限，满员即关闭报名']},
+ {id:'EVT20261026002',name:'秋季消防安全应急演练',type:'应急演练',org:'平台',date:'2026-10-26',time:'14:00-16:00',place:'A区1层中庭',quota:80,occupied:46,state:'报名中',audit:false,signRange:'10-20 至 10-24',notice:'请穿平底鞋，演练期间听从现场指挥。',intro:'市场管理部组织的年度消防演练，包含疏散、灭火器实操与应急逃生体验，约 2 小时。',needKnow:['请提前 15 分钟到场签到','穿平底鞋，勿穿高跟鞋','演练期间请听从现场指挥，勿随意走动']},
+ {id:'EVT20261028003',name:'跨境电商选品与独立站运营培训',type:'培训',org:'平台',date:'2026-10-28',time:'09:30-11:30',place:'3F 多功能厅',quota:60,occupied:38,state:'报名中',audit:false,signRange:'10-20 至 10-26',notice:'建议携带笔记本电脑。',intro:'邀请跨境运营服务商讲解选品逻辑、独立站搭建与海外流量获取，含现场答疑。',needKnow:['建议携带笔记本电脑','培训资料现场发放','请提前 10 分钟签到入场']},
+ {id:'EVT20261103004',name:'袜业数字化改造政策宣讲会',type:'会议',org:'平台',date:'2026-11-03',time:'14:00-16:00',place:'会议中心 201',quota:100,occupied:72,state:'报名中',audit:false,signRange:'10-20 至 11-01',notice:'现场发放政策申报指南。',intro:'经信局与平台联合宣讲数字化改造补贴政策、申报条件与材料清单。',needKnow:['现场发放政策申报指南','可携带企业资质材料现场咨询','请提前 10 分钟签到']},
+ {id:'EVT20261115005',name:'大唐袜博会参展商说明会',type:'展会',org:'平台',date:'2026-11-15',time:'10:00-11:00',place:'会议中心 301',quota:120,occupied:0,state:'未开始',audit:false,signRange:'11-01 至 11-10',notice:'报名 11 月 1 日开放。',intro:'面向已报名参展商，说明展位安排、布展要求与现场流程。',needKnow:['报名 11 月 1 日开放','仅限已确认参展的商户','说明会不收取费用']},
+ {id:'EVT20260918006',name:'9月安全生产培训',type:'培训',org:'平台',date:'2026-09-18',time:'09:00-11:00',place:'3F 多功能厅',quota:60,occupied:58,state:'已结束',audit:false,signRange:'09-01 至 09-15',notice:'活动已结束。',intro:'安全生产月专题培训，已完成。',needKnow:['活动已结束']}
+];
+
+var id=q('id');
+var a=ACTS.filter(function(x){return x.id===id;})[0];
+if(!a){
+  document.getElementById('headBox').innerHTML='<p class="text-white/80 text-[13px]">活动不存在或已下架</p>';
+  document.getElementById('bodyBox').innerHTML='<div class="text-center py-16"><i class="fas fa-calendar-xmark text-gray-200 text-4xl"></i><p class="text-[12px] text-gray-400 mt-3">未找到该活动</p><a href="activity-list.html" class="inline-block mt-3 text-[12px] font-bold text-indigo-600">返回活动列表</a></div>';
+  document.getElementById('footBar').style.display='none';
+}else{
+  var pct=Math.round(a.occupied/a.quota*100);
+  var s=readLS('sh_act_signup').filter(function(x){return x.actId===a.id&&x.audit!=='已取消'&&x.audit!=='已驳回';})[0];
+  document.getElementById('headBox').innerHTML=
+    '<div class="flex items-center gap-1.5"><span class="bg-white/20 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">'+a.type+'</span><span class="text-white/70 text-[9px]">主办方：'+a.org+'</span></div>'
+    +'<p class="text-white font-extrabold text-[18px] mt-1.5 leading-snug">'+a.name+'</p>'
+    +'<p class="text-white/80 text-[10px] mt-1 num">'+a.id+'</p>';
+
+  var stCls=a.state==='报名中'?'bg-indigo-50 text-indigo-600':a.state==='已满'?'bg-rose-50 text-rose-500':'bg-gray-100 text-gray-500';
+  document.getElementById('bodyBox').innerHTML=
+    '<div class="bg-white rounded-2xl shadow-soft p-3.5">'
+    +'<div class="flex items-center justify-between mb-2"><span class="text-[12px] font-bold text-gray-800">活动信息</span><span class="'+stCls+' text-[9px] font-bold px-1.5 py-0.5 rounded">'+a.state+'</span></div>'
+    +'<div class="space-y-2 text-[11px]">'
+    +'<div class="flex justify-between"><span class="text-gray-400">活动时间</span><span class="text-gray-700 num">'+a.date+' '+a.time+'</span></div>'
+    +'<div class="flex justify-between"><span class="text-gray-400">活动地点</span><span class="text-gray-700">'+a.place+'</span></div>'
+    +'<div class="flex justify-between"><span class="text-gray-400">报名时间</span><span class="text-gray-700 num">'+a.signRange+'</span></div>'
+    +'<div class="flex justify-between"><span class="text-gray-400">报名方式</span><span class="text-gray-700">'+(a.audit?'需主办方审核':'提交即通过')+'</span></div>'
+    +'</div>'
+    +'<div class="flex items-center gap-2 mt-2.5"><div class="flex-1 h-1.5 rounded-full bg-gray-100 overflow-hidden"><div style="width:'+pct+'%;height:100%;background:'+(pct>=100?'#EF4444':'#4F46E5')+'"></div></div><span class="text-[9px] text-gray-400 num">已报 '+a.occupied+' / '+a.quota+'</span></div>'
+    +'<p class="text-[9px] text-gray-400 mt-1">余位 '+(a.quota-a.occupied)+' 个'+(a.quota-a.occupied? '':'（已满）')+'</p>'
+    +'</div>'
+
+    +'<div class="bg-white rounded-2xl shadow-soft p-3.5 mt-3"><p class="text-[12px] font-bold text-gray-800 mb-1.5">活动介绍</p><p class="text-[11px] text-gray-600 leading-relaxed">'+a.intro+'</p></div>'
+
+    +'<div class="bg-white rounded-2xl shadow-soft p-3.5 mt-3"><p class="text-[12px] font-bold text-gray-800 mb-1.5">报名须知</p>'
+    +a.needKnow.map(function(t){return '<p class="text-[10px] text-gray-500 leading-relaxed mt-1"><i class="fas fa-circle text-[5px] text-indigo-300 mr-1 align-middle"></i>'+t+'</p>';}).join('')
+    +'<p class="text-[10px] text-amber-600 leading-relaxed mt-2"><i class="fas fa-circle-info mr-1"></i>'+a.notice+'</p>'
+    +'</div>'
+
+    +(a.hasCheckin===false
+      ?'<div class="bg-white rounded-2xl shadow-soft p-3.5 mt-3"><p class="text-[12px] font-bold text-gray-800 mb-1.5">签到</p><p class="text-[10px] text-gray-500 leading-relaxed">本活动不设现场签到，凭报名信息入场，报名后不生成签到码。</p></div>'
+      :'<div class="bg-white rounded-2xl shadow-soft p-3.5 mt-3"><p class="text-[12px] font-bold text-gray-800 mb-1.5">签到</p><p class="text-[10px] text-gray-500 leading-relaxed">报名成功后生成 6 位签到码，活动开始前 60 分钟至结束后 60 分钟内有效，现场由工作人员扫码或输码核销。</p></div>');
+
+  // 报名按钮五态
+  var btn='';
+  if(s){
+    btn='<a href="my-activities.html" class="block w-full py-3 rounded-xl text-white text-[14px] font-bold text-center" style="background:linear-gradient(135deg,#10B981,#059669)">已报名 · 查看签到码</a>';
+  }else if(a.state==='报名中'&&a.occupied<a.quota){
+    btn='<a href="activity-signup.html?id='+a.id+'" class="block w-full py-3 rounded-xl text-white text-[14px] font-bold text-center" style="background:linear-gradient(135deg,#6366F1,#4F46E5)">立即报名</a>';
+  }else if(a.state==='已满'){
+    btn='<div class="block w-full py-3 rounded-xl text-gray-400 text-[14px] font-bold text-center bg-gray-100">名额已满</div>';
+  }else if(a.state==='未开始'){
+    btn='<div class="block w-full py-3 rounded-xl text-gray-400 text-[14px] font-bold text-center bg-gray-100">报名未开始（'+a.signRange.split(' 至 ')[0]+' 开放）</div>';
+  }else if(a.state==='已结束'){
+    btn='<div class="block w-full py-3 rounded-xl text-gray-400 text-[14px] font-bold text-center bg-gray-100">活动已结束</div>';
+  }else if(a.state==='已取消'){
+    btn='<div class="block w-full py-3 rounded-xl text-rose-400 text-[14px] font-bold text-center" style="background:#FEF2F2">活动已取消</div>';
+  }else if(a.state==='已下架'){
+    btn='<div class="block w-full py-3 rounded-xl text-gray-400 text-[14px] font-bold text-center bg-gray-100">活动已下架</div>';
+  }else{
+    btn='<div class="block w-full py-3 rounded-xl text-gray-400 text-[14px] font-bold text-center bg-gray-100">报名已截止</div>';
+  }
+  document.getElementById('footBar').innerHTML=btn;
+}
+</script>
+</body>
+</html>

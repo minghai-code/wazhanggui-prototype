@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>商户活动运营 - 活动详情</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.st{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500;white-space:nowrap}
+.blk{background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:16px 18px;margin-bottom:14px}
+.blk-t{font-size:12.5px;font-weight:700;color:#1F2430;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.blk-t .r{margin-left:auto;font-weight:400;font-size:11px;color:#94A3B8}
+.kv{display:flex;gap:8px;font-size:12.5px;line-height:2}
+.kv .k{width:96px;flex-shrink:0;color:#94A3B8}
+.tl{position:relative;padding-left:16px;border-left:2px solid #E2E8F0;margin-left:4px}
+.tli{position:relative;padding:5px 0 5px 10px;font-size:12px;color:#334155}
+.tli:before{content:'';position:absolute;left:-5px;top:11px;width:7px;height:7px;border-radius:50%;background:#FF4D2D}
+.funnel{display:flex;flex-direction:column;gap:0}
+.fstep{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;background:#F8FAFC;border:1px solid #EEF2F7}
+.fstep .fl{width:74px;flex-shrink:0;font-size:11.5px;color:#64748B}
+.fstep .fv{font-size:17px;font-weight:700;color:#1F2430}
+.fstep .fs{margin-left:auto;font-size:11px;color:#94A3B8;text-align:right}
+.farrow{text-align:center;font-size:10.5px;color:#94A3B8;padding:3px 0}
+.bar{display:flex;align-items:flex-end;gap:6px;height:88px;padding-top:6px}
+.bar>div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:3px}
+.bar i{display:block;width:100%;max-width:24px;border-radius:3px 3px 0 0;background:linear-gradient(180deg,#FF8A4C,#FF4D2D)}
+.cover{width:96px;height:60px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;flex-shrink:0}
+.crumb{font-size:11.5px;color:#94A3B8;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.crumb a{color:#64748B;text-decoration:none;cursor:pointer}
+.crumb a:hover{color:#E63E20}
+.note{font-size:11px;padding:8px 10px;border-radius:8px;line-height:1.7}
+.empty{background:#fff;border:1px solid #E2E8F0;border-radius:12px;text-align:center;padding:70px 20px;color:#94A3B8;font-size:12.5px}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+<div class="p-6" style="max-width:1120px" id="root"></div>
+
+<script>
+/* ============ 活动数据（与 activity.html 同一批；status 为派生后的展示态） ============ */
+var ACTS=[
+ {id:'EVT20261020001',name:'2026 大唐袜业秋冬直采节',type:'直采节',owner:'平台',merchant:'',icon:'fa-store',color:'#FF4D2D',status:'报名中',
+  quota:300,pending:8,passed:178,checked:0,canceled:6,rejected:3,pv:2840,
+  signStart:'2026-10-20',signEnd:'2026-11-05',start:'2026-11-08 09:00',end:'2026-11-10 17:00',
+  place:'大唐袜业城 1F 中庭',needAudit:false,ckWindow:'开始前 60 分钟 ~ 结束后 60 分钟',
+  brief:'300 家源头工厂直供，秋冬新款现场选品对接',
+  detail:'• 11-08 09:00 开幕式暨新品发布\n• 11-08 ~ 11-10 全天选品对接（1F 中庭 A/B/C 三区）\n• 11-09 14:00 跨境专场：平台选品规则与合规要点\n\n参与对象：袜业采购商、电商卖家、外贸公司',
+  notice:'凭签到码入场；活动开始前 30 分钟开放签到。名额有限，报名后如无法参加请提前取消。'},
+ {id:'EVT20261018002',name:'袜业电商运营实战培训（第 3 期）',type:'培训',owner:'平台',merchant:'',icon:'fa-graduation-cap',color:'#2563EB',status:'报名中',
+  quota:50,pending:0,passed:48,checked:0,canceled:2,rejected:0,pv:960,
+  signStart:'2026-10-18',signEnd:'2026-10-25',start:'2026-10-28 14:00',end:'2026-10-28 17:00',
+  place:'袜业城 3F 培训室',needAudit:true,ckWindow:'开始前 60 分钟 ~ 结束后 60 分钟',
+  brief:'从选品到投流，3 小时讲透袜业电商起店路径',
+  detail:'• 14:00 袜业类目选品与定价\n• 15:00 短视频与直播起号\n• 16:00 投流预算与 ROI 复盘',
+  notice:'需审核通过后方可参加；请携带营业执照复印件。'},
+ {id:'EVT20261015003',name:'跨境出海选品沙龙',type:'沙龙',owner:'商户',merchant:'诸暨××袜业有限公司',icon:'fa-handshake',color:'#7C3AED',status:'待审批',
+  quota:40,pending:0,passed:0,checked:0,canceled:0,rejected:0,pv:0,
+  signStart:'2026-11-01',signEnd:'2026-11-10',start:'2026-11-12 14:00',end:'2026-11-12 17:00',
+  place:'诸暨××袜业 2F 展厅',needAudit:false,ckWindow:'开始前 60 分钟 ~ 结束后 60 分钟',
+  brief:'面向袜业工厂的跨境选品与渠道对接沙龙',
+  detail:'• 14:00 跨境平台选品趋势\n• 14:30 工厂样品一对一对接\n• 16:00 物流与合规答疑',
+  notice:'报名后请凭签到码入场。',pendingNote:'等待运营审批，通过后才会在商户端「活动参与」可见。'},
+ {id:'EVT20261012004',name:'智能袜机操作实训（第三批）',type:'培训',owner:'商户',merchant:'浙江××智能装备有限公司',icon:'fa-gears',color:'#0EA5E9',status:'已驳回',
+  quota:30,pending:0,passed:0,checked:0,canceled:0,rejected:0,pv:0,
+  signStart:'2026-10-15',signEnd:'2026-10-22',start:'2026-10-25 09:00',end:'2026-10-25 12:00',
+  place:'大唐袜业城 2F 实训区',needAudit:false,ckWindow:'开始前 60 分钟 ~ 结束后 60 分钟',
+  brief:'本地区最先进的袜机操作实训',
+  detail:'讲解最新机型操作。',notice:'—',
+  rejectReason:'内容不合规：简介含绝对化用语「最先进」，请删除后重新提交'},
+ {id:'EVT20261008005',name:'袜业城消防应急演练',type:'应急演练',owner:'平台',merchant:'',icon:'fa-fire-extinguisher',color:'#DC2626',status:'进行中',
+  quota:500,pending:0,passed:412,checked:356,canceled:18,rejected:0,pv:6820,
+  signStart:'2026-10-08',signEnd:'2026-10-18',start:'2026-10-18 14:00',end:'2026-10-20 17:00',
+  place:'大唐袜业城广场',needAudit:false,ckWindow:'开始前 60 分钟 ~ 结束后 60 分钟',
+  brief:'全员参与消防疏散与初期火灾扑救实操',
+  detail:'• 疏散演练（各楼层按指引撤离至广场）\n• 灭火器与消火栓实操\n• 商户安全责任书签署',
+  notice:'请穿平底鞋；演练期间请听从现场指挥。'},
+ {id:'EVT20260928006',name:'2026 袜业产业趋势发展论坛',type:'会议',owner:'平台',merchant:'',icon:'fa-chart-line',color:'#334155',status:'已结束',
+  quota:300,pending:0,passed:289,checked:241,canceled:11,rejected:0,pv:4120,
+  signStart:'2026-09-01',signEnd:'2026-09-25',start:'2026-09-28 09:00',end:'2026-09-28 17:00',
+  place:'诸暨市会展中心 A 厅',needAudit:true,ckWindow:'开始前 60 分钟 ~ 结束后 60 分钟',
+  brief:'行业趋势、技术路线、订单形势三场主题演讲',
+  detail:'• 09:00 行业趋势\n• 10:30 技术路线\n• 14:00 订单与外贸形势',
+  notice:'需审核通过；凭签到码入场。'},
+ {id:'EVT20260920007',name:'商户数字化经营培训（第 2 期）',type:'培训',owner:'平台',merchant:'',icon:'fa-laptop',color:'#0891B2',status:'已结束',
+  quota:60,pending:0,passed:56,checked:48,canceled:4,rejected:0,pv:1980,
+  signStart:'2026-09-01',signEnd:'2026-09-18',start:'2026-09-20 09:00',end:'2026-09-20 16:00',
+  place:'袜业城 3F 培训室',needAudit:false,ckWindow:'开始前 60 分钟 ~ 结束后 60 分钟',
+  brief:'台账、进销存、线上店铺一体化实操',
+  detail:'• 09:00 数字化台账\n• 10:30 进销存与库存周转\n• 14:00 线上店铺运营',
+  notice:'请自带笔记本电脑。'},
+ {id:'EVT20261019008',name:'新商户入驻说明会',type:'会议',owner:'平台',merchant:'',icon:'fa-bullhorn',color:'#10B981',status:'未开始',
+  quota:100,pending:0,passed:0,checked:0,canceled:0,rejected:0,pv:120,
+  signStart:'2026-11-01',signEnd:'2026-11-05',start:'2026-11-06 10:00',end:'2026-11-06 12:00',
+  place:'袜业城 3F 会议厅',needAudit:false,ckWindow:'开始前 60 分钟 ~ 结束后 60 分钟',
+  brief:'新入驻商户必听：合同、缴费、开店、竞拍四件事',
+  detail:'• 10:00 合同与缴费\n• 10:40 线上开店\n• 11:20 档口竞拍规则',
+  notice:'建议商户负责人参加。'},
+ {id:'EVT20261010009',name:'品牌出海跨境营销分享会',type:'沙龙',owner:'平台',merchant:'',icon:'fa-microphone',color:'#64748B',status:'已取消',
+  quota:30,pending:0,passed:28,checked:0,canceled:28,rejected:0,pv:760,
+  signStart:'2026-10-10',signEnd:'2026-10-18',start:'2026-10-20 14:00',end:'2026-10-20 17:00',
+  place:'袜业城 3F 培训室',needAudit:false,ckWindow:'开始前 60 分钟 ~ 结束后 60 分钟',
+  brief:'跨境平台规则与独立站运营经验分享',
+  detail:'议程已取消。',notice:'—',
+  cancelReason:'与政府招商活动时间冲突，整体取消（已通知 28 名已报名商户）'},
+ {id:'EVT20261005010',name:'冬季新品选品会',type:'展会',owner:'商户',merchant:'义乌××针织有限公司',icon:'fa-shirt',color:'#94A3B8',status:'已下架',
+  quota:150,pending:0,passed:64,checked:0,canceled:2,rejected:0,pv:540,
+  signStart:'2026-10-10',signEnd:'2026-10-30',start:'2026-11-02 09:00',end:'2026-11-02 17:00',
+  place:'义乌国际商贸城 5 区',needAudit:false,ckWindow:'开始前 60 分钟 ~ 结束后 60 分钟',
+  brief:'冬季保暖袜新品集中展示与订货',
+  detail:'30 家工厂冬季新品陈列，采购商现场看样订货。',notice:'—',
+  offlineReason:'商户合同已到期，系统自动下架（已报名商户仍可见该条）'},
+ {id:'EVT20261020011',name:'（草稿）袜业青年设计师交流会',type:'沙龙',owner:'平台',merchant:'',icon:'fa-pen-ruler',color:'#94A3B8',status:'草稿',
+  quota:60,pending:0,passed:0,checked:0,canceled:0,rejected:0,pv:0,
+  signStart:'2026-11-10',signEnd:'2026-11-18',start:'2026-11-20 14:00',end:'2026-11-20 17:00',
+  place:'待定',needAudit:false,ckWindow:'开始前 60 分钟 ~ 结束后 60 分钟',
+  brief:'设计师与工厂的面对面交流',detail:'待补充。',notice:'—'}
+];
+
+/* ============ 报名单（演示切片：每场活动展示最近 5 条；全量在 activity-signup.html） ============ */
+var SIGN=[
+ {actId:'EVT20261020001',name:'钱××',org:'浙江××袜业股份',comp:1,src:'商户端',audit:'已通过',ck:'未签到',at:'2026-10-20 09:12'},
+ {actId:'EVT20261020001',name:'孙××',org:'诸暨××针织',comp:0,src:'商户端',audit:'已通过',ck:'未签到',at:'2026-10-20 09:40'},
+ {actId:'EVT20261020001',name:'李××',org:'义乌××袜业',comp:2,src:'商户端',audit:'待审核',ck:'—',at:'2026-10-20 10:05'},
+ {actId:'EVT20261020001',name:'周××',org:'大唐××纺织',comp:0,src:'商户端',audit:'待审核',ck:'—',at:'2026-10-20 10:22'},
+ {actId:'EVT20261020001',name:'吴××',org:'诸暨××服饰',comp:0,src:'商户端',audit:'已通过',ck:'未签到',at:'2026-10-19 16:30'},
+ {actId:'EVT20261020001',name:'郑××',org:'浙江××进出口',comp:1,src:'商户端',audit:'已通过',ck:'未签到',at:'2026-10-19 15:08'},
+ {actId:'EVT20261008005',name:'何××',org:'诸暨××针织',comp:2,src:'商户端',audit:'已通过',ck:'已签到',at:'2026-10-19 18:42',ckAt:'10-19 18:42',way:'扫码'},
+ {actId:'EVT20261008005',name:'吕××',org:'义乌××袜业',comp:1,src:'商户端',audit:'已通过',ck:'已签到',at:'2026-10-19 19:05',ckAt:'10-19 19:05',way:'扫码'},
+ {actId:'EVT20261008005',name:'施××',org:'诸暨××服饰',comp:0,src:'商户端',audit:'已通过',ck:'未签到',at:'2026-10-19 20:05'},
+ {actId:'EVT20261008005',name:'张××',org:'大唐××工贸',comp:3,src:'现场',audit:'已通过',ck:'已签到',at:'2026-10-19 20:40',ckAt:'10-20 20:18',way:'手工'},
+ {actId:'EVT20261008005',name:'孔××',org:'绍兴××针织',comp:0,src:'商户端',audit:'已取消',ck:'—',at:'2026-10-19 21:00'},
+ {actId:'EVT20260928006',name:'褚××',org:'浦江××针织',comp:0,src:'商户端',audit:'已通过',ck:'已签到',at:'2026-09-25 14:10',ckAt:'09-28 09:12',way:'扫码'},
+ {actId:'EVT20260928006',name:'卫××',org:'嵊州××服饰',comp:1,src:'商户端',audit:'已通过',ck:'爽约',at:'2026-09-25 15:20'}
+];
+
+var ST={'草稿':'background:#F1F5F9;color:#64748B','待审批':'background:#FEF3C7;color:#B45309','已驳回':'background:#FEE2E2;color:#B91C1C',
+ '未开始':'background:#E0E7FF;color:#4338CA','报名中':'background:#DCFCE7;color:#15803D','待开始':'background:#DBEAFE;color:#1D4ED8',
+ '进行中':'background:#FFEDD5;color:#C2410C','已结束':'background:#F1F5F9;color:#475569','已取消':'background:#FEE2E2;color:#991B1B','已下架':'background:#F3F4F6;color:#6B7280'};
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function p2(n){return (n<10?'0':'')+n;}
+function fmtDate(d){return d.slice(5).replace('-','/');}
+function days(signStart,signEnd){
+
+  var a=new Date(signStart+'T00:00:00'),b=new Date(signEnd+'T00:00:00');
+  var n=Math.min(7,Math.max(1,Math.round((b-a)/86400000)+1));
+  var out=[];
+  for(var i=0;i<n;i++){var d=new Date(a.getTime()+i*86400000);out.push(p2(d.getMonth()+1)+'/'+p2(d.getDate()));}
+  return out;
+}
+/* 演示用趋势：按报名期天数生成，峰值落在前半段 */
+function trend(a){
+  var n=Math.min(7,Math.max(1,Math.round((new Date(a.signEnd)-new Date(a.signStart))/86400000)+1));
+  var total=a.pending+a.passed;
+  var w=[],s=0;
+  for(var i=0;i<n;i++){var v=Math.max(1,Math.round(Math.sin((i+1)/(n+1)*Math.PI)*10)+1);w.push(v);s+=v;}
+  var out=w.map(function(x){return Math.round(total*x/s);});
+  return out;
+}
+
+function render(){
+  var q=new URLSearchParams(location.search).get('id');
+  var a=q?ACTS.filter(function(x){return x.id===q;})[0]:null;
+  var root=document.getElementById('root');
+
+  /* 无 id 或 id 不存在：明确提示，绝不回退到其他活动 */
+  if(!q||!a){
+    root.innerHTML='<div class="crumb"><a onclick="location.href=\'activity.html\'">商户活动运营</a><i class="fas fa-chevron-right text-[8px]"></i><span>活动详情</span></div>'
+      +'<div class="empty"><i class="fas fa-circle-question text-3xl mb-3 block" style="opacity:.35"></i>'
+      +'<p class="text-[13px] text-gray-600 font-medium">未指定活动或活动不存在</p>'
+      +'<p class="mt-1">活动详情需从「活动列表」进入，请选择一场活动后再查看。</p>'
+      +'<button class="btn btn-primary mt-4" onclick="location.href=\'activity.html\'">返回活动列表</button></div>';
+    return;
+  }
+
+  var s=a.status;
+  var hold=a.pending+a.passed;
+  var isBefore=s==='未开始';
+  var isSigning=s==='报名中';
+  var isRunning=s==='进行中';
+  var isEnd=s==='已结束';
+  var isCanceled=s==='已取消';
+  var isPending=s==='待审批';
+  var isRejected=s==='已驳回';
+  var isDraft=s==='草稿';
+  var isOffline=s==='已下架';
+  var canEdit=(isDraft||isBefore||isSigning||isPending);
+  var hasStat=!isDraft&&!isPending&&!isRejected;
+
+  /* 签到率：只有活动开始后才计算 */
+  var signRate='—';
+  if((isRunning||isEnd)&&a.passed){signRate=(a.checked/a.passed*100).toFixed(1)+'%';}
+  var notChecked=isRunning?(a.passed-a.checked):0;
+  var miss=isEnd?(a.passed-a.checked):0;
+
+  var h='<div class="crumb"><a onclick="location.href=\'activity.html\'">商户活动运营</a>'
+    +'<i class="fas fa-chevron-right text-[8px]"></i><span>活动详情</span></div>';
+
+  /* 头部 */
+  h+='<div class="bg-white rounded-xl border border-gray-100 p-4 mb-3 flex items-start gap-3">'
+    +'<div class="cover" style="background:'+a.color+'"><i class="fas '+a.icon+'"></i></div>'
+    +'<div style="flex:1;min-width:0">'
+    +'<div class="flex items-center gap-2"><h1 class="text-[17px] font-bold text-gray-800">'+esc(a.name)+'</h1><span class="st" style="'+ST[s]+'">'+s+'</span></div>'
+    +'<p class="text-[11.5px] text-gray-400 mt-1">'+a.id+'　'+a.type+'　'+(a.owner==='商户'?esc(a.merchant):'平台自办')+'</p>'
+    +'</div>'
+    +'<div class="flex gap-2" style="flex-shrink:0">'
+    +(isPending?'<button class="btn btn-primary" onclick="location.href=\'activity-approve.html?id='+a.id+'\'"><i class="fas fa-clipboard-check mr-1"></i>去审批</button>':'')
+    +((isSigning||isRunning||isEnd)?'<button class="btn btn-ghost" onclick="location.href=\'activity-signup.html?id='+a.id+'\'"><i class="fas fa-list mr-1"></i>报名管理</button>':'')
+    +(isRunning?'<button class="btn btn-primary" onclick="location.href=\'activity-checkin.html?id='+a.id+'\'"><i class="fas fa-qrcode mr-1"></i>签到台</button>':'')
+    +(canEdit?'<button class="btn btn-ghost" onclick="location.href=\'activity-create.html?id='+a.id+'\'"><i class="fas fa-pen mr-1"></i>编辑</button>':'')
+    +'<button class="btn btn-ghost" onclick="location.href=\'activity.html\'">返回列表</button>'
+    +'</div></div>';
+
+  /* 状态提示条（只在与常规流程不同时出现） */
+  if(isPending){h+='<div class="note mb-3" style="background:#FFFBEB;border:1px solid #FDE68A;color:#B45309"><i class="fas fa-clock mr-1"></i>该活动待运营审批，<b>审批通过前商户端不可见、不可报名</b>。</div>';}
+  if(isRejected){h+='<div class="note mb-3" style="background:#FEF2F2;border:1px solid #FECACA;color:#B91C1C"><i class="fas fa-circle-xmark mr-1"></i><b>已驳回</b>：'+esc(a.rejectReason)+'<br>商户修改后重新提交，编号不变、版本 +1。</div>';}
+  if(isCanceled){h+='<div class="note mb-3" style="background:#FEF2F2;border:1px solid #FECACA;color:#B91C1C"><i class="fas fa-ban mr-1"></i>'+esc(a.cancelReason)+'</div>';}
+  if(isOffline){h+='<div class="note mb-3" style="background:#FFFBEB;border:1px solid #FDE68A;color:#B45309"><i class="fas fa-eye-slash mr-1"></i>'+esc(a.offlineReason)+'</div>';}
+  if(isDraft){h+='<div class="note mb-3" style="background:#F8FAFC;border:1px solid #E2E8F0;color:#64748B"><i class="fas fa-pen-to-square mr-1"></i>草稿状态：尚未发布，无报名与统计。</div>';}
+
+  /* 指标卡：按状态给不同四张，避免"未开始却显示签到率 0%"这类误读 */
+  var cards=[];
+  if(isBefore||isSigning||isDraft){
+    cards=[['详情曝光',hasStat?(a.pv+' PV'):'—','#7C3AED'],
+           ['已占位',hasStat?hold:'—','#E63E20'],
+           ['余量',hasStat?Math.max(0,a.quota-hold):'—','#15803D'],
+           ['报名进度',hasStat?(a.quota?Math.round(hold/a.quota*100)+'%':'—'):'—','#0891B2']];
+  }else if(isRunning||isEnd){
+    cards=[['应到（已通过）',a.passed,'#15803D'],
+           ['已签到',a.checked,'#1D4ED8'],
+           ['签到率',signRate,'#0891B2'],
+           [isEnd?'爽约':'未签到',isEnd?miss:notChecked,isEnd?'#991B1B':'#B45309']];
+  }else{
+    cards=[['报名人数',hold,'#E63E20'],['已取消',a.canceled,'#94A3B8'],['已驳回',a.rejected,'#B91C1C'],['详情曝光',a.pv+' PV','#7C3AED']];
+  }
+  h+='<div class="grid grid-cols-4 gap-3 mb-3">'+cards.map(function(c){
+    return '<div class="bg-white rounded-xl border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">'+c[0]+'</p><p class="text-[19px] font-bold mt-1" style="color:'+c[2]+'">'+c[1]+'</p></div>';
+  }).join('')+'</div>';
+
+  h+='<div class="grid grid-cols-3 gap-4">';
+  h+='<div class="col-span-2">';
+
+  /* 基本信息 */
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-circle-info text-[#2563EB]"></i>基本信息</div>'
+    +'<div class="grid grid-cols-2">'
+    +'<div class="kv"><span class="k">活动类型</span><span>'+a.type+'</span></div>'
+    +'<div class="kv"><span class="k">主办方</span><span>'+(a.owner==='商户'?esc(a.merchant):'平台自办')+'</span></div>'
+    +'<div class="kv"><span class="k">报名时间</span><span>'+a.signStart+' ~ '+a.signEnd+'</span></div>'
+    +'<div class="kv"><span class="k">活动时间</span><span>'+a.start+' ~ '+a.end+'</span></div>'
+    +'<div class="kv"><span class="k">活动地点</span><span>'+esc(a.place)+'</span></div>'
+    +'<div class="kv"><span class="k">名额</span><span>'+a.quota+'（已占位 '+hold+'，余 '+Math.max(0,a.quota-hold)+'）</span></div>'
+    +'<div class="kv"><span class="k">报名审核</span><span>'+(a.needAudit?'需要审核':'免审核（提交即通过）')+'</span></div>'
+    +'<div class="kv"><span class="k">签到窗</span><span>'+a.ckWindow+'</span></div>'
+    +'</div></div>';
+
+  /* 报名漏斗：口径一次说清（占位 / 不占位分开） */
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-filter text-[#E63E20]"></i>报名漏斗<span class="r">已占位 = 待审核 + 已通过</span></div>';
+  h+='<div class="funnel">'
+    +'<div class="fstep"><span class="fl">详情曝光</span><span class="fv">'+a.pv+'</span><span class="fs">PV</span></div>'
+    +'<div class="farrow">↓ 报名转化率 '+(a.pv?(hold/a.pv*100).toFixed(1):'0.0')+'%</div>'
+    +'<div class="fstep"><span class="fl">已占位</span><span class="fv" style="color:#E63E20">'+hold+'</span><span class="fs">待审核 '+a.pending+'　已通过 '+a.passed+'</span></div>';
+  if(isRunning||isEnd){
+    h+='<div class="farrow">↓ 签到率 '+(isEnd?signRate+'（已结算）':signRate+'（进行中）')+'</div>'
+      +'<div class="fstep"><span class="fl">已签到</span><span class="fv" style="color:#1D4ED8">'+a.checked+'</span><span class="fs">'+(isEnd?'爽约 '+miss+'（已结算）':'未签到 '+notChecked)+'</span></div>';
+  }
+  h+='</div>'
+    +'<div class="text-[11px] text-[#94A3B8] mt-2.5">'
+    +'<i class="fas fa-circle-info mr-1"></i>已取消 <b class="text-gray-600">'+a.canceled+'</b> 条、已驳回 <b class="text-gray-600">'+a.rejected+'</b> 条<b>不占名额</b>，故不计入已占位；'
+    +(isEnd?'爽约已在活动结束后 24h 结算，可手工修正。':'活动未开始时不计签到率与爽约。')
+    +'</div></div>';
+
+  /* 报名与签到记录（最近 5 条摘要 + 全量入口，解决"独立菜单不知道看哪一场"） */
+  var rs=SIGN.filter(function(x){return x.actId===a.id;});
+  var rsSign=rs.slice(0,5);
+  var rsCk=rs.filter(function(x){return x.ck==='已签到';}).slice(0,5);
+  var AUD={'待审核':'background:#FEF3C7;color:#B45309','已通过':'background:#DCFCE7;color:#15803D','已驳回':'background:#FEE2E2;color:#B91C1C','已取消':'background:#F1F5F9;color:#64748B'};
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-clipboard-user text-[#15803D]"></i>报名与签到记录<span class="r">各自仅显示最近 5 条</span></div>';
+  /* 报名 */
+  h+='<div class="text-[11.5px] text-[#64748B] mb-1.5"><b>报名</b>　已占位 '+hold+' 条（待审核 '+a.pending+' / 已通过 '+a.passed+'）</div>';
+  if(!rsSign.length){
+    h+='<div class="text-[11.5px] text-[#94A3B8] py-3">'+(isDraft||isPending||isBefore?'活动未上架或未开始报名，暂无记录':'暂无报名记录')+'</div>';
+  }else{
+    h+='<table class="w-full text-[12px]"><thead><tr class="text-[10.5px] text-gray-400"><th class="text-left py-1 font-normal">姓名</th><th class="text-left py-1 font-normal">商户</th><th class="text-center py-1 font-normal">同行</th><th class="text-left py-1 font-normal">来源</th><th class="text-left py-1 font-normal">审核</th><th class="text-right py-1 font-normal">提交时间</th></tr></thead><tbody>';
+    rsSign.forEach(function(x){
+      h+='<tr class="border-t border-gray-50"><td class="py-1.5 font-medium text-gray-700">'+esc(x.name)+'</td>'
+        +'<td class="py-1.5 text-gray-600">'+esc(x.org)+'</td>'
+        +'<td class="py-1.5 text-center text-gray-500">'+(x.comp?'+'+x.comp:'—')+'</td>'
+        +'<td class="py-1.5"><span class="st" style="'+(x.src==='现场'?'background:#EDE9FE;color:#6D28D9':'background:#F1F5F9;color:#64748B')+'">'+x.src+'</span></td>'
+        +'<td class="py-1.5"><span class="st" style="'+AUD[x.audit]+'">'+x.audit+'</span></td>'
+        +'<td class="py-1.5 text-right text-gray-400 text-[11px]">'+x.at+'</td></tr>';
+    });
+    h+='</tbody></table>';
+  }
+  /* 签到 */
+  h+='<div class="text-[11.5px] text-[#64748B] mt-3 mb-1.5"><b>签到</b>　已签到 '+a.checked+' 人'+(isRunning?'（进行中，未签到 '+notChecked+'）':isEnd?'（爽约 '+miss+'）':'')+'</div>';
+  if(!rsCk.length){
+    h+='<div class="text-[11.5px] text-[#94A3B8] py-3">'+(isRunning||isEnd?'暂无签到记录':'活动开始后才产生签到记录')+'</div>';
+  }else{
+    h+='<table class="w-full text-[12px]"><thead><tr class="text-[10.5px] text-gray-400"><th class="text-left py-1 font-normal">姓名</th><th class="text-left py-1 font-normal">商户</th><th class="text-left py-1 font-normal">签到时间</th><th class="text-left py-1 font-normal">方式</th></tr></thead><tbody>';
+    rsCk.forEach(function(x){
+      h+='<tr class="border-t border-gray-50"><td class="py-1.5 font-medium text-gray-700">'+esc(x.name)+'</td>'
+        +'<td class="py-1.5 text-gray-600">'+esc(x.org)+'</td>'
+        +'<td class="py-1.5 text-gray-500">'+x.ckAt+'</td>'
+        +'<td class="py-1.5"><span class="st" style="'+(x.way==='手工'?'background:#FEF3C7;color:#B45309':'background:#DBEAFE;color:#1D4ED8')+'">'+x.way+'</span></td></tr>';
+    });
+    h+='</tbody></table>';
+  }
+  /* 全量入口 */
+  h+='<div class="flex gap-2 mt-3 pt-3 border-t border-gray-50">'
+    +'<button class="btn btn-ghost" onclick="location.href=\'activity-signup.html?id='+a.id+'\'">查看全部报名（'+hold+'）<i class="fas fa-chevron-right text-[9px] ml-1"></i></button>'
+    +(isRunning||isEnd?'<button class="btn btn-ghost" onclick="location.href=\'activity-checkin.html?id='+a.id+'\'">进入签到台（'+a.checked+'/'+a.passed+'）<i class="fas fa-chevron-right text-[9px] ml-1"></i></button>':'')
+    +'</div></div>';
+
+  /* 趋势 */
+  var tr=trend(a),labels=days(a.signStart,a.signEnd),mx=Math.max.apply(null,tr)||1;
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-chart-column text-[#FF4D2D]"></i>报名趋势<span class="r">'+a.signStart+' 起，按日</span></div>'
+    +'<div class="bar">'+tr.map(function(v,i){
+        return '<div><span class="text-[10px] text-gray-400">'+v+'</span><i style="height:'+Math.max(3,v/mx*70)+'px"></i><span class="text-[10px] text-gray-300">'+(labels[i]||'')+'</span></div>';
+      }).join('')+'</div></div>';
+
+  /* 正文 + 须知（让详情页"看得到商户端看到的东西"） */
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-align-left text-[#7C3AED]"></i>活动详情（对外展示）</div>'
+    +'<p class="text-[12.5px] font-medium text-gray-700 mb-2">'+esc(a.brief)+'</p>'
+    +'<div class="text-[12px] text-gray-600" style="white-space:pre-wrap;line-height:1.95">'+esc(a.detail)+'</div>'
+    +'<div class="mt-3 pt-3 border-t border-gray-50"><p class="text-[11px] text-gray-400 mb-1">报名须知</p><p class="text-[12px] text-gray-600" style="white-space:pre-wrap">'+esc(a.notice)+'</p></div>'
+    +'</div>';
+  h+='</div>';
+
+  /* 右栏 */
+  h+='<div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-route text-[#0891B2]"></i>当前阶段</div>'
+    +'<div class="kv"><span class="k">状态</span><span><span class="st" style="'+ST[s]+'">'+s+'</span></span></div>'
+    +'<div class="kv"><span class="k">下一步</span><span>'+nextStep(s,a)+'</span></div>'
+    +'<div class="kv"><span class="k">展示位置</span><span>商户端 · 物业服务 → 活动参与</span></div>'
+    +'<div class="kv"><span class="k">买家端</span><span class="text-gray-400">不展示（文旅归 14）</span></div></div>';
+
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-clock-rotate-left text-[#7C3AED]"></i>操作日志</div>'
+    +'<div class="tl">'+logs(a).map(function(l){
+        return '<div class="tli"><div class="text-[10.5px] text-gray-400">'+l.t+'</div><div>'+esc(l.txt)+'</div></div>';
+      }).join('')+'</div></div>';
+  h+='</div></div>';
+
+  root.innerHTML=h;
+}
+
+function nextStep(s,a){
+  var m={'草稿':'编辑完成后提交发布','待审批':'运营审批（通过后商户端可见）','已驳回':'商户修改后重提',
+    '未开始':'等到 '+a.signStart+' 开放报名','报名中':a.signEnd+' 截止报名','待开始':'等到 '+a.start+' 开始活动',
+    '进行中':'现场核销签到','已结束':'已结束（统计固化，可复制新建）','已取消':'已取消（可复制新建）','已下架':'运营上架后恢复可见'};
+  return m[s]||'—';
+}
+function logs(a){
+  var s=a.status,out=[];
+  if(s!=='草稿'){out.push({t:a.signStart+' 00:00',txt:'活动发布并上架'});}
+  if(s==='报名中'||s==='待开始'||s==='进行中'||s==='已结束'){
+    out.push({t:a.signStart+' 09:00',txt:'报名开始，商户端「活动参与」可见'});
+  }
+  if(s==='进行中'||s==='已结束'){out.push({t:a.start+' 00:00',txt:'活动开始，签到窗开放'});}
+  if(s==='已结束'){
+    out.push({t:a.end+' 00:00',txt:'活动结束，签到窗关闭'});
+    out.push({t:'结束 +24h',txt:'爽约结算：未签到 '+(a.passed-a.checked)+' 人置「爽约」'});
+  }
+  if(s==='已取消'){out.push({t:'—',txt:'运营取消活动，已通知 '+a.passed+' 名已报名商户'});}
+  if(s==='已驳回'){out.push({t:'—',txt:'运营驳回：'+a.rejectReason});}
+  if(s==='已下架'){out.push({t:'—',txt:'系统下架：'+a.offlineReason});}
+  if(!out.length){out.push({t:'—',txt:'暂无操作记录'});}
+  return out;
+}
+
+render();
+</script>
+</body>
+</html>
