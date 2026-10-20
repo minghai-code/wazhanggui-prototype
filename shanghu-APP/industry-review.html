@@ -6,7 +6,7 @@
 <title>服务评价 - 袜掌柜商户版</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
-:root{--bg:#F0F9FF}
+:root{--bg:#FFFBEB}
 *{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
 .card{transition:transform .16s ease}.card:active{transform:scale(.985)}
@@ -31,17 +31,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
   </div>
   <div class="relative flex items-center gap-3 mt-1">
     <a href="industry-service.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
-    <div><span class="text-white font-extrabold text-[18px]">服务评价</span>
-    <p class="text-white/85 text-[10px] mt-0.5">评价回传后台，计入服务商满意度评分</p></div>
+    <div><span class="text-white font-extrabold text-[18px]" id="hTitle">服务评价</span>
+    <p class="text-white/85 text-[10px] mt-0.5" id="hSub">对接完成 / 服务办结后评价，回传后台计分</p></div>
+  </div>
+</div>
+
+<!-- 待评价列表 -->
+<div class="px-3 pt-4 pb-16" id="listBox">
+  <div class="flex items-center justify-between mb-2 px-1">
+    <p class="text-[12px] font-bold text-gray-800">待评价</p>
+    <span class="text-[10px] text-gray-400" id="pendCount">0 项</span>
+  </div>
+  <div class="space-y-2.5" id="pendList"></div>
+  <div class="bg-amber-50 border border-amber-100 rounded-2xl p-3.5 mt-3">
+    <p class="text-[10px] text-amber-700 leading-relaxed"><i class="fas fa-circle-info mr-1"></i>评价对象为<b>已成交的对接单</b>或<b>已办结的委托/申报</b>；评价写入服务商与成果提供方评分（后台 FR-08），不可修改。</p>
   </div>
 </div>
 
 <!-- 评价表单 -->
-<div class="px-3 pt-4 pb-16" id="formBox">
+<div class="px-3 pt-4 pb-16" id="formBox" style="display:none">
   <div class="bg-white rounded-2xl shadow-soft p-3.5">
     <div class="flex items-center gap-2.5 pb-3 border-b border-gray-50">
-      <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white flex-shrink-0" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)"><i class="fas fa-vial-circle-check"></i></div>
-      <div class="min-w-0"><p class="text-[13px] font-bold text-gray-800">精梳棉男袜质量检测</p><p class="text-[10px] text-gray-400">服务商：大唐检测认证中心 · IS20260710-01</p></div>
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white flex-shrink-0" id="fIcon" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)"><i class="fas fa-vial-circle-check"></i></div>
+      <div class="min-w-0"><p class="text-[13px] font-bold text-gray-800" id="fTitle">—</p><p class="text-[10px] text-gray-400" id="fAgency">—</p></div>
     </div>
 
     <p class="text-[12px] font-bold text-gray-800 mt-3 mb-2 text-center">您对本次服务的满意度</p>
@@ -61,40 +73,144 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
       <span class="tag-opt" onclick="this.classList.toggle('on')">响应快</span>
       <span class="tag-opt" onclick="this.classList.toggle('on')">服务好</span>
       <span class="tag-opt" onclick="this.classList.toggle('on')">价格合理</span>
-      <span class="tag-opt" onclick="this.classList.toggle('on')">报告规范</span>
+      <span class="tag-opt" onclick="this.classList.toggle('on')">结果达标</span>
     </div>
 
     <p class="text-[12px] font-bold text-gray-800 mt-3 mb-2">文字评价</p>
-    <textarea class="inp" rows="3" placeholder="分享您的服务体验（选填）"></textarea>
+    <textarea id="revText" class="inp" rows="3" placeholder="分享您的服务体验（选填）"></textarea>
   </div>
   <button class="card w-full mt-4 py-3 rounded-2xl text-white text-[14px] font-bold" style="background:linear-gradient(135deg,#F59E0B,#D97706)" onclick="submitReview()">提交评价</button>
+  <a onclick="showList()" class="card block w-full mt-2 py-2.5 rounded-xl text-[12px] font-bold text-gray-500 bg-white border border-gray-200 text-center">返回待评价</a>
 </div>
 
 <!-- 提交成功 -->
 <div class="px-3 pt-4 pb-16" id="doneBox" style="display:none">
   <div class="bg-white rounded-2xl shadow-soft p-4 text-center">
     <div class="w-14 h-14 mx-auto rounded-full flex items-center justify-center" style="background:linear-gradient(135deg,#34D399,#10B981)"><i class="fas fa-check text-white text-xl"></i></div>
-    <p class="text-[15px] font-bold text-gray-800 mt-3">评价已提交</p>
-    <p class="text-[11px] text-gray-500 mt-1">感谢您的反馈，评价已回传平台，计入服务商满意度评分。</p>
-    <a href="industry-service.html" class="card block w-full mt-3 py-2.5 rounded-xl text-white text-[13px] font-bold" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)">返回产业服务</a>
+    <p class="text-[15px] font-bold text-gray-800 mt-3" id="doneTitle">评价已提交</p>
+    <p class="text-[11px] text-gray-500 mt-1" id="doneSub">感谢您的反馈，评价已回传平台，计入服务商满意度评分。</p>
+    <a onclick="showList()" class="card block w-full mt-3 py-2.5 rounded-xl text-white text-[13px] font-bold" style="background:linear-gradient(135deg,#F59E0B,#D97706)">返回待评价</a>
+    <a href="industry-service.html" class="card block w-full mt-2 py-2.5 rounded-xl text-[13px] font-bold text-gray-600 bg-white border border-gray-200">返回产业链服务</a>
   </div>
 </div>
 
 <div class="toast" id="toast"><span id="toastTxt">操作成功</span></div>
 <script>
-var toastTimer,score=0;
+var toastTimer,score=0,curItem=null;
 function toast(m){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=m;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},1800)}
+function svcNow(){var d=new Date();function p(n){return n<10?'0'+n:''+n}return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes())}
+function readLS(k){try{return JSON.parse(localStorage.getItem(k)||'[]')}catch(e){return []}}
+function getQ(k){var m=location.search.match(new RegExp('[?&]'+k+'=([^&]+)'));return m?decodeURIComponent(m[1]):''}
+
+/* 待评价种子：政策兑现 / 技术对接 / 中介委托（后台 FR-08 完成后推送评价邀请） */
+var SEED=[
+ {id:'a1',type:'政策兑现',icon:'fa-file-signature',cls:'bg-emerald-50 text-emerald-600',title:'袜业产业扶持资金申报',no:'SB20260705-03',agency:'诸暨市经信局',time:'2026-07-08 拨付'},
+ {id:'t1',type:'技术对接',icon:'fa-flask',cls:'bg-sky-50 text-sky-600',title:'智能温控纤维材料',no:'DJ20261015003',agency:'纺织科学研究所',time:'2026-10-16 14:00'},
+ {id:'m1',type:'中介服务',icon:'fa-briefcase',cls:'bg-orange-50 text-orange-600',title:'代理记账服务',no:'ZJ20260703-01',agency:'诸暨诚信财税咨询',time:'2026-07-20 09:00'}
+];
+
+function reviewMap(){
+  var m={};readLS('sh_svc_review').forEach(function(r){m[r.no]=r;});
+  return m;
+}
+function pendingList(){
+  var done=reviewMap();
+  var arr=SEED.slice();
+  var map={'政策申报':'政策兑现','技术需求':'技术对接','中介服务':'中介服务'};
+  readLS('sh_svc_rec').forEach(function(r){
+    if(r.status!=='已兑现'&&r.status!=='已匹配'&&r.status!=='已完成')return;
+    if(arr.some(function(x){return x.no===r.no}))return;
+    arr.push({id:r.id,type:map[r.type]||r.type,icon:r.icon||'fa-circle-check',cls:r.cls||'bg-emerald-50 text-emerald-600',title:r.title,no:r.no,agency:r.agency,time:r.time});
+  });
+  return arr.filter(function(x){return !done[x.no];});
+}
+function renderList(){
+  var arr=pendingList();
+  document.getElementById('pendCount').textContent=arr.length+' 项';
+  document.getElementById('pendList').innerHTML=arr.length?arr.map(function(x){
+    return '<div class="card bg-white rounded-2xl shadow-soft px-3.5 py-3" onclick="openForm(\''+encodeURIComponent(x.no)+'\')">'
+      +'<div class="flex items-center justify-between gap-2"><div class="flex items-center gap-2 min-w-0"><span class="'+x.cls+' text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0">'+x.type+'</span><p class="text-[13px] font-bold text-gray-800 truncate">'+x.title+'</p></div>'
+      +'<span class="bg-amber-50 text-amber-600 text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0">待评价</span></div>'
+      +'<p class="text-[10px] text-gray-400 mt-1.5"><i class="fas '+x.icon+' text-[9px] mr-1"></i>'+x.agency+'</p>'
+      +'<div class="flex items-center justify-between mt-1.5"><span class="text-[9px] text-gray-400 num">'+x.no+' · '+x.time+'</span>'
+      +'<span class="text-[10px] font-bold" style="color:#D97706">去评价 ›</span></div></div>';
+  }).join(''):'<div class="text-center py-12"><i class="fas fa-star text-gray-200 text-4xl"></i><p class="text-[12px] text-gray-400 mt-3">暂无可评价的服务</p><p class="text-[10px] text-gray-400 mt-1">对接成交或服务办结后会推送评价邀请</p></div>';
+}
+function showList(){
+  document.getElementById('formBox').style.display='none';
+  document.getElementById('doneBox').style.display='none';
+  document.getElementById('listBox').style.display='block';
+  document.getElementById('hTitle').textContent='服务评价';
+  document.getElementById('hSub').textContent='对接完成 / 服务办结后评价，回传后台计分';
+  renderList();window.scrollTo(0,0);
+}
+function openForm(noEnc){
+  var no=decodeURIComponent(noEnc);
+  var item=pendingList().filter(function(x){return x.no===no;})[0];
+  if(!item){
+    var rv=reviewMap()[no];
+    if(rv){showDone('该服务已评价',rv.score+' 星 · '+(rv.text||'无文字评价'));return;}
+  }
+  if(!item)return;
+  curItem=item;score=0;
+  document.querySelectorAll('#stars .star').forEach(function(s){s.classList.remove('on');});
+  document.getElementById('starTxt').textContent='点击星星打分';
+  document.querySelectorAll('.tag-opt').forEach(function(t){t.classList.remove('on');});
+  document.getElementById('revText').value='';
+  document.getElementById('fTitle').textContent=item.title;
+  document.getElementById('fAgency').textContent='服务商：'+item.agency+' · '+item.no;
+  document.getElementById('listBox').style.display='none';
+  document.getElementById('doneBox').style.display='none';
+  document.getElementById('formBox').style.display='block';
+  document.getElementById('hTitle').textContent='评价';
+  document.getElementById('hSub').textContent=item.type;
+  window.scrollTo(0,0);
+}
 function setStar(n){
   score=n;
   document.querySelectorAll('#stars .star').forEach(function(s,i){s.classList.toggle('on',i<n);});
   document.getElementById('starTxt').textContent=['','很不满意','不满意','一般','满意','非常满意'][n]+'（'+n+' 分）';
 }
 function submitReview(){
+  if(!curItem){toast('请选择待评价服务');return}
   if(!score){toast('请先打分');return}
+  var tags=[];
+  document.querySelectorAll('.tag-opt.on').forEach(function(t){tags.push(t.textContent);});
+  var txt=document.getElementById('revText').value.trim();
+  var rec={no:curItem.no,title:curItem.title,agency:curItem.agency,type:curItem.type,score:score,tags:tags,text:txt,time:svcNow()};
+  try{
+    var a=readLS('sh_svc_review');a.unshift(rec);localStorage.setItem('sh_svc_review',JSON.stringify(a.slice(0,50)));
+    // 回写服务记录：标记已评价
+    var rs=readLS('sh_svc_rec');var hit=false;
+    rs.forEach(function(x){if(x.no===curItem.no){x.rated=true;x.rating=score;hit=true;}});
+    if(hit)localStorage.setItem('sh_svc_rec',JSON.stringify(rs));
+  }catch(e){}
+  showDone('评价已提交','已回传后台，计入「'+curItem.agency+'」满意度评分。');
+}
+function showDone(t,s){
+  document.getElementById('listBox').style.display='none';
   document.getElementById('formBox').style.display='none';
   document.getElementById('doneBox').style.display='block';
+  document.getElementById('doneTitle').textContent=t;
+  document.getElementById('doneSub').textContent=s;
+  document.getElementById('hTitle').textContent='服务评价';
+  document.getElementById('hSub').textContent='评价回传后台，计入服务商满意度评分';
   window.scrollTo(0,0);
 }
+
+/* 支持从服务记录带参直达：?no=&title=&agency=&type= */
+(function(){
+  var no=getQ('no');
+  if(!no){showList();return;}
+  var exist=pendingList().filter(function(x){return x.no===no;})[0];
+  if(exist){openForm(encodeURIComponent(no));return;}
+  var rv=reviewMap()[no];
+  if(rv){showDone('该服务已评价',rv.score+' 星 · '+(rv.text||'无文字评价'));return;}
+  // 不在待评价列表（如已完成但未同步）：用参数构造一条
+  var t=getQ('title'),a=getQ('agency'),tp=getQ('type');
+  if(t){SEED.push({id:'q'+no,type:tp||'服务',icon:'fa-circle-check',cls:'bg-emerald-50 text-emerald-600',title:t,no:no,agency:a||'服务商',time:svcNow()});openForm(encodeURIComponent(no));}
+  else showList();
+})();
 </script>
 </body>
 </html>

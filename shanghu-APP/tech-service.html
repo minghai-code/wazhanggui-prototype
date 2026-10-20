@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>技术共享 - 袜掌柜商户版</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--bg:#FFF7F4;--blue:#3B82F6;--blue-d:#2563EB}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden;color:#1F2430}
+::-webkit-scrollbar{width:2px;height:2px}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
+.card{transition:transform .16s ease}.card:active{transform:scale(.965)}
+.fade-up{animation:fadeUp .4s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.sec-title{font-size:16px;font-weight:800;letter-spacing:.3px;color:#1F2430}
+/* 顶部Tab */
+.tabbar{position:sticky;top:0;z-index:60;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid #f3f0ec}
+.tabs{display:flex;padding:10px 12px 0;gap:6px}
+.tab{flex:1;text-align:center;padding:9px 0;border-radius:12px;font-size:13px;color:#7a7f8a;font-weight:500;transition:.2s;cursor:pointer}
+.tab.on{color:#fff;font-weight:700;background:linear-gradient(135deg,#3B82F6,#2563EB);box-shadow:0 4px 12px rgba(37,99,235,.28)}
+.tabbar .counttip{font-size:10px;margin-left:3px;padding:1px 5px;border-radius:8px;background:#EAF2FF;color:#2563EB}
+.tabbar .tab.on .counttip{background:rgba(255,255,255,.25);color:#fff}
+/* 成果/需求卡片 */
+.dcard{background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(20,20,40,.05);padding:12px;margin-bottom:10px;transition:transform .16s ease}
+.dcard:active{transform:scale(.968)}
+.pill{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:600;padding:2px 7px;border-radius:8px}
+.pill-ready{background:#E8F8EF;color:#10B981}
+.pill-talk{background:#FEF3C7;color:#D97706}
+.pill-done{background:#F1F3F6;color:#6b7280}
+.pill-open{background:#EAF2FF;color:#2563EB}
+.field-tag{font-size:9px;font-weight:600;padding:2px 7px;border-radius:8px;white-space:nowrap}
+.ft-new{background:#EFF6FF;color:#2563EB}
+.ft-craft{background:#FCE7F3;color:#DB2777}
+.ft-smart{background:#EDE9FE;color:#7C3AED}
+.ft-func{background:#D1FAE5;color:#059669}
+.act-btn{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:#fff;padding:6px 13px;border-radius:999px;background:linear-gradient(135deg,#3B82F6,#2563EB);box-shadow:0 4px 10px rgba(37,99,235,.28);transition:.16s}
+.act-btn:active{transform:scale(.94)}
+.expert-btn{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:#2563EB;padding:5px 11px;border-radius:999px;background:#EAF2FF;transition:.16s}
+.expert-btn:active{transform:scale(.94)}
+.quote-btn{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:#fff;padding:6px 13px;border-radius:999px;background:linear-gradient(135deg,#FF6B35,#FF4D2D);box-shadow:0 4px 10px rgba(255,77,45,.28);transition:.16s}
+.quote-btn:active{transform:scale(.94)}
+.info-lbl{font-size:11px;color:#9aa0ac;background:rgba(248,249,250,.9);border-radius:8px;padding:4px 8px;white-space:nowrap}
+/* 流程步骤 */
+.step-dot{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;font-weight:700;flex-shrink:0}
+/* 悬浮发布按钮 */
+.fab{position:fixed;right:14px;bottom:84px;display:inline-flex;align-items:center;gap:6px;height:46px;padding:0 18px;border-radius:999px;background:linear-gradient(135deg,#3B82F6,#2563EB);color:#fff;font-size:13px;font-weight:700;box-shadow:0 8px 22px rgba(37,99,235,.42);z-index:120;cursor:pointer;transition:.18s}
+.fab:active{transform:scale(.92)}
+.fab::after{content:"";position:absolute;inset:-5px;border-radius:999px;border:2px solid rgba(59,130,246,.35);animation:pulse 2s infinite}
+@keyframes pulse{0%{transform:scale(.9);opacity:.8}70%{transform:scale(1.18);opacity:0}100%{opacity:0}}
+/* 弹层与底部表单 */
+.overlay{position:fixed;inset:0;background:rgba(15,18,26,.5);z-index:300;opacity:0;pointer-events:none;transition:.25s;backdrop-filter:blur(2px)}
+.overlay.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;bottom:0;left:0;width:393px;background:#fff;border-radius:22px 22px 0 0;z-index:301;transform:translateY(100%);transition:transform .3s cubic-bezier(.22,.61,.36,1);max-height:88vh;overflow-y:auto;box-shadow:0 -8px 30px rgba(0,0,0,.18)}
+.sheet.on{transform:translateY(0)}
+.sheet-mask{position:fixed;inset:0;background:rgba(15,18,26,.5);z-index:300;opacity:0;pointer-events:none;transition:.25s;backdrop-filter:blur(2px)}
+.sheet-mask.on{opacity:1;pointer-events:auto}
+.ov{position:fixed;left:0;top:0;width:393px;height:100%;background:#FFF7F4;z-index:500;overflow-y:auto;display:none;-webkit-overflow-scrolling:touch}
+.ov.on{display:block}
+.ov-head{position:sticky;top:0;z-index:5;padding:10px 14px 12px;background:linear-gradient(135deg,#3B82F6,#2563EB);color:#fff;display:flex;align-items:center;gap:10px}
+.ov-back{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0}
+.h-scroll{display:flex;gap:6px;overflow-x:auto;padding-bottom:3px}
+.h-scroll::-webkit-scrollbar{display:none}
+.inp{width:100%;background:rgba(248,249,250,.8);border:1px solid rgba(240,240,240,.8);border-radius:12px;padding:11px 13px;font-size:13px;color:#1F2430;outline:none;transition:border-color .16s ease,background .16s ease}
+.inp::placeholder{color:#C0C0C0}
+.inp:focus{border-color:#3B82F6;background:#fff}
+.lbl{font-size:11px;color:#6b7080;font-weight:500;display:block;margin-bottom:6px}
+.lbl b{color:#FF4D2D}
+.tag-opt{font-size:11px;color:#6b7080;background:#fff;border:1px solid #eceef0;border-radius:10px;padding:6px 12px;cursor:pointer;transition:.15s;font-weight:500}
+.tag-opt.on{border-color:#3B82F6;color:#2563EB;background:#EAF2FF;font-weight:600}
+/* toast */
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:400;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.25);min-width:130px;justify-content:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+</style>
+<!-- Tailwind 静态样式：本地引用（不再依赖 cdn.tailwindcss.com）；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<!-- ===== 顶部：蓝色渐变 ===== -->
+<div class="relative px-4 pt-2 pb-5 overflow-hidden" style="background:linear-gradient(135deg,#3B82F6 0%,#2563EB 40%,#1D4ED8 100%)">
+  <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-45" style="background:#60A5FA"></div>
+  <div class="absolute -top-6 right-[-30px] w-48 h-48 rounded-full blur-3xl opacity-35" style="background:#3B82F6"></div>
+  <div class="absolute -bottom-10 left-12 w-44 h-44 rounded-full blur-3xl opacity-30" style="background:#2563EB"></div>
+
+  <!-- iOS状态栏 -->
+  <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+  </div>
+
+  <!-- 返回 + 标题 -->
+  <div class="relative flex items-center gap-3 mt-1">
+    <a href="industry-service.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white flex-shrink-0"><i class="fas fa-chevron-left text-sm"></i></a>
+    <div>
+      <span class="text-white font-extrabold text-[20px] tracking-wide block" style="text-shadow:0 2px 10px rgba(0,0,0,.18)">技术共享</span>
+      <p class="text-white/80 text-[11px] mt-0.5"><i class="fas fa-flask text-[9px] mr-1"></i>汇聚行业成果 · 对接技术需求 · 促进成果转化</p>
+    </div>
+  </div>
+</div>
+
+<!-- 概览统计 -->
+<div class="px-3 -mt-3 relative z-10">
+  <div class="bg-white rounded-2xl shadow-soft p-3.5 fade-up border border-white grid grid-cols-3 gap-2 text-center">
+    <div class="border-r border-gray-100"><p class="text-[18px] font-black" style="color:#3B82F6">86</p><p class="text-[9px] text-gray-400 mt-0.5">技术成果</p></div>
+    <div class="border-r border-gray-100"><p class="text-[18px] font-black" style="color:#10B981">24</p><p class="text-[9px] text-gray-400 mt-0.5">合作机构</p></div>
+    <div><p class="text-[18px] font-black" style="color:#F59E0B">156</p><p class="text-[9px] text-gray-400 mt-0.5">成功转化</p></div>
+  </div>
+</div>
+
+<!-- ===== 顶部双Tab ===== -->
+<div class="tabbar mt-3">
+  <div class="tabs">
+    <div class="tab on" id="tabAchieve" onclick="switchTab('achieve')"><i class="fas fa-microscope mr-1"></i>技术成果</div>
+    <div class="tab" id="tabDemand" onclick="switchTab('demand')"><i class="fas fa-bullhorn mr-1"></i>技术需求<span class="counttip">3</span></div>
+  </div>
+</div>
+
+<!-- ===== Tab1 技术成果 ===== -->
+<div id="viewAchieve" class="px-3 pt-3 pb-4">
+  <div class="flex items-center justify-between mb-2.5">
+    <div class="flex items-center gap-1.5"><div class="w-1.5 h-3.5 rounded-full" style="background:#2563EB"></div><span class="sec-title">行业先进技术成果</span></div>
+    <span class="text-[11px] text-gray-400" id="achvCount"></span>
+  </div>
+  <div id="achvList"></div>
+</div>
+
+<!-- ===== Tab2 技术需求 ===== -->
+<div id="viewDemand" class="px-3 pt-3 pb-4" style="display:none">
+  <div class="flex items-center justify-between mb-2.5">
+    <div class="flex items-center gap-1.5"><div class="w-1.5 h-3.5 rounded-full" style="background:#2563EB"></div><span class="sec-title">企业技术需求发布</span></div>
+    <span class="text-[11px] text-gray-400" id="demandCount"></span>
+  </div>
+  <div id="demandList"></div>
+</div>
+
+<!-- ===== 技术专家（公共区） ===== -->
+<div class="px-3 mt-2 mb-4">
+  <div class="flex items-center justify-between mb-2.5">
+    <div class="flex items-center gap-1.5"><div class="w-1.5 h-3.5 rounded-full" style="background:#7C3AED"></div><span class="sec-title">技术专家</span></div>
+    <span class="text-[11px] text-gray-400">后台专家库</span>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-soft p-3 divide-y divide-gray-50 fade-up">
+    <!-- 专家1 -->
+    <div class="flex items-center gap-2.5 pb-2.5">
+      <div class="w-11 h-11 rounded-full flex items-center justify-center text-white text-[14px] font-bold flex-shrink-0" style="background:linear-gradient(135deg,#3B82F6,#6366F1)">张</div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-1.5">
+          <p class="text-[13px] font-bold text-gray-900">张明远</p>
+          <span class="text-[9px] font-semibold px-1.5 py-0.5 rounded" style="background:#EAF2FF;color:#2563EB">教授/博导</span>
+          <span class="w-1.5 h-1.5 rounded-full" style="background:#10B981" title="在线"></span>
+        </div>
+        <p class="text-[10px] text-gray-500 mt-0.5"><i class="fas fa-microscope mr-0.5 text-gray-300"></i>功能性纤维材料 · 浙江理工大学</p>
+      </div>
+      <span class="expert-btn" onclick="toast('正在为您连接张明远教授','fa-comment-dots')"><i class="fas fa-comment-dots text-[10px]"></i>在线咨询</span>
+    </div>
+    <!-- 专家2 -->
+    <div class="flex items-center gap-2.5 py-2.5">
+      <div class="w-11 h-11 rounded-full flex items-center justify-center text-white text-[14px] font-bold flex-shrink-0" style="background:linear-gradient(135deg,#7C3AED,#9333EA)">李</div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-1.5">
+          <p class="text-[13px] font-bold text-gray-900">李素华</p>
+          <span class="text-[9px] font-semibold px-1.5 py-0.5 rounded" style="background:#EDE9FE;color:#7C3AED">研究员</span>
+          <span class="w-1.5 h-1.5 rounded-full" style="background:#10B981"></span>
+        </div>
+        <p class="text-[10px] text-gray-500 mt-0.5"><i class="fas fa-microscope mr-0.5 text-gray-300"></i>智能纺织工艺 · 东华大学</p>
+      </div>
+      <span class="expert-btn" onclick="toast('正在为您连接李素华研究员','fa-comment-dots')"><i class="fas fa-comment-dots text-[10px]"></i>在线咨询</span>
+    </div>
+    <!-- 专家3 -->
+    <div class="flex items-center gap-2.5 pt-2.5">
+      <div class="w-11 h-11 rounded-full flex items-center justify-center text-white text-[14px] font-bold flex-shrink-0" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)">王</div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-1.5">
+          <p class="text-[13px] font-bold text-gray-900">王建国</p>
+          <span class="text-[9px] font-semibold px-1.5 py-0.5 rounded" style="background:#DBEAFE;color:#0284C7">高级工程师</span>
+          <span class="w-1.5 h-1.5 rounded-full" style="background:#9ca3af"></span>
+        </div>
+        <p class="text-[10px] text-gray-500 mt-0.5"><i class="fas fa-microscope mr-0.5 text-gray-300"></i>袜业智能制造 · 纺织科学研究所</p>
+      </div>
+      <span class="expert-btn" onclick="toast('专家离线，已发送留言通知','fa-envelope')"><i class="fas fa-comment-dots text-[10px]"></i>在线咨询</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 我的对接 / 我的需求 入口 ===== -->
+<div class="px-3 mt-2 mb-4">
+  <div class="card bg-white rounded-2xl shadow-soft p-3 flex items-center gap-3" onclick="openMyTech()">
+    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white flex-shrink-0" style="background:linear-gradient(135deg,#10B981,#059669)"><i class="fas fa-handshake text-sm"></i></div>
+    <div class="flex-1 min-w-0">
+      <p class="text-[13px] font-bold text-gray-800">我的对接</p>
+      <p class="text-[10px] text-gray-400 mt-0.5" id="myTechSummary">加载中…</p>
+    </div>
+    <span class="text-[9px] px-2 py-0.5 rounded-full font-bold flex-shrink-0" id="myTechNotice" style="background:#FEF3C7;color:#D97706">待反馈</span>
+    <i class="fas fa-chevron-right text-gray-300 text-[10px] flex-shrink-0"></i>
+  </div>
+</div>
+
+<!-- ===== 对接流程（公共区） ===== -->
+<div class="px-3 mb-28">
+  <div class="flex items-center gap-1.5 mb-2.5"><div class="w-1.5 h-3.5 rounded-full" style="background:#2563EB"></div><span class="sec-title">技术对接流程</span></div>
+  <div class="bg-white rounded-2xl shadow-soft p-4 fade-up">
+    <div class="flex items-start justify-between">
+      <div class="flex flex-col items-center" style="width:60px">
+        <div class="step-dot" style="background:linear-gradient(135deg,#3B82F6,#2563EB)"><i class="fas fa-search text-[13px]"></i></div>
+        <p class="text-[10px] font-semibold text-gray-700 mt-1.5 text-center leading-tight">浏览成果<br>发布需求</p>
+      </div>
+      <div class="flex-1 mt-[18px] mx-1"><div class="h-[2px] rounded" style="background:linear-gradient(90deg,#3B82F6,#60A5FA)"></div><i class="fas fa-chevron-right text-[8px] text-gray-300 -mt-[3px] block text-right"></i></div>
+      <div class="flex flex-col items-center" style="width:60px">
+        <div class="step-dot" style="background:linear-gradient(135deg,#6366F1,#7C3AED)"><i class="fas fa-comments text-[13px]"></i></div>
+        <p class="text-[10px] font-semibold text-gray-700 mt-1.5 text-center leading-tight">发起对接<br>揭示联系方式</p>
+      </div>
+      <div class="flex-1 mt-[18px] mx-1"><div class="h-[2px] rounded" style="background:linear-gradient(90deg,#7C3AED,#A78BFA)"></div><i class="fas fa-chevron-right text-[8px] text-gray-300 -mt-[3px] block text-right"></i></div>
+      <div class="flex flex-col items-center" style="width:60px">
+        <div class="step-dot" style="background:linear-gradient(135deg,#8B5CF6,#A78BFA)"><i class="fas fa-file-signature text-[13px]"></i></div>
+        <p class="text-[10px] font-semibold text-gray-700 mt-1.5 text-center leading-tight">线下自行<br>联系对方</p>
+      </div>
+      <div class="flex-1 mt-[18px] mx-1"><div class="h-[2px] rounded" style="background:linear-gradient(90deg,#A78BFA,#34D399)"></div><i class="fas fa-chevron-right text-[8px] text-gray-300 -mt-[3px] block text-right"></i></div>
+      <div class="flex flex-col items-center" style="width:60px">
+        <div class="step-dot" style="background:linear-gradient(135deg,#10B981,#059669)"><i class="fas fa-rocket text-[13px]"></i></div>
+        <p class="text-[10px] font-semibold text-gray-700 mt-1.5 text-center leading-tight">反馈结果<br>成交/未成交</p>
+      </div>
+    </div>
+    <p class="text-[10px] text-gray-400 text-center mt-3 pt-3 border-t border-gray-50"><i class="fas fa-circle-info mr-1" style="color:#3B82F6"></i>平台仅提供信息对接与留痕，具体合作由双方线下协商</p>
+  </div>
+</div>
+
+<!-- 悬浮发布按钮（仅Tab2显示） -->
+<div class="fab" id="fabPublish" style="display:none" onclick="openSheet()">
+  <i class="fas fa-plus text-[12px]"></i><span>发布技术需求</span>
+</div>
+
+
+
+<!-- 遮罩 -->
+<div class="overlay" id="overlay" onclick="closeSheet()"></div>
+
+<!-- 底部表单：发布技术需求 -->
+<div class="sheet" id="sheet">
+  <div class="sticky top-0 bg-white px-4 pt-4 pb-3 border-b border-gray-100 rounded-t-[22px]">
+    <div class="w-9 h-1 rounded-full bg-gray-200 mx-auto mb-3"></div>
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="w-7 h-7 rounded-xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#3B82F6,#2563EB)"><i class="fas fa-bullhorn text-xs"></i></div>
+        <p class="text-[14px] font-bold text-gray-800">发布技术需求</p>
+      </div>
+      <i class="fas fa-xmark text-gray-400 text-lg card" onclick="closeSheet()"></i>
+    </div>
+  </div>
+
+  <div class="px-4 py-4">
+    <div class="mb-3">
+      <label class="lbl">需求名称 <b>*</b></label>
+      <input type="text" class="inp" id="fName" placeholder="如：抗菌防臭袜品技术">
+    </div>
+
+    <div class="mb-3">
+      <label class="lbl">技术领域 <b>*</b></label>
+      <div class="flex flex-wrap gap-1.5" id="fieldBox">
+        <span class="tag-opt on" data-f="新材料">新材料</span>
+        <span class="tag-opt" data-f="新工艺">新工艺</span>
+        <span class="tag-opt" data-f="智能制造">智能制造</span>
+        <span class="tag-opt" data-f="功能性">功能性</span>
+        <span class="tag-opt" data-f="检测认证">检测认证</span>
+        <span class="tag-opt" data-f="环保可降解">环保可降解</span>
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label class="lbl">需求描述 <b>*</b></label>
+      <textarea class="inp" id="fDesc" rows="3" placeholder="请描述技术目标、性能指标、应用场景等…" style="resize:none"></textarea>
+    </div>
+
+    <div class="mb-3">
+      <label class="lbl">预算范围 <b>*</b></label>
+      <select class="inp" style="appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%2210%22 viewBox=%220 0 10 10%22%3E%3Cpath fill=%22%23999%22 d=%22M2 4l3 3 3-3z%22/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 12px center;padding-right:30px">
+        <option>¥1万以下</option><option>¥1-5万</option><option selected>¥5-10万</option><option>¥10-20万</option><option>¥20万以上</option><option>面议</option>
+      </select>
+    </div>
+
+    <div class="grid grid-cols-2 gap-2 mb-4">
+      <div>
+        <label class="lbl">联系人 <b>*</b></label>
+        <input type="text" class="inp" id="fContact" placeholder="您的姓名">
+      </div>
+      <div>
+        <label class="lbl">联系电话 <b>*</b></label>
+        <input type="tel" class="inp" id="fPhone" placeholder="手机号码">
+      </div>
+    </div>
+
+    <button class="w-full py-3 rounded-full text-white text-[15px] font-bold" style="background:linear-gradient(135deg,#3B82F6,#2563EB);box-shadow:0 8px 18px rgba(37,99,235,.3)" onclick="submitDemand()">
+      <i class="fas fa-paper-plane text-xs mr-1"></i>立即发布
+    </button>
+    <p class="text-center text-[10px] text-gray-400 mt-2"><i class="fas fa-bolt mr-1" style="color:#F59E0B"></i>提交后立即发布，平台对不实信息做抽查下架</p>
+  </div>
+</div>
+
+<!-- ===== 我的对接 / 我的需求 ===== -->
+<div class="ov" id="myTechOv">
+  <div class="ov-head">
+    <div class="ov-back" onclick="closeMyTech()"><i class="fas fa-chevron-left text-sm"></i></div>
+    <div class="flex-1"><p class="text-[16px] font-extrabold">我的对接</p><p class="text-[10px] text-white/80 mt-0.5" id="myTechHeadSub">对接与需求记录</p></div>
+  </div>
+  <div class="px-3 pt-3"><div class="h-scroll" id="myTechTabs"></div></div>
+  <div class="px-3 mt-3 pb-8" id="myTechBody"></div>
+</div>
+
+<!-- ===== 对接详情 / 评价 ===== -->
+<div class="ov" id="dealDetailOv">
+  <div class="ov-head">
+    <div class="ov-back" onclick="closeDealDetail()"><i class="fas fa-chevron-left text-sm"></i></div>
+    <div class="flex-1"><p class="text-[16px] font-extrabold">对接详情</p><p class="text-[10px] text-white/80 mt-0.5" id="ddSub"></p></div>
+  </div>
+  <div class="px-3 mt-3 pb-8" id="ddBody"></div>
+</div>
+
+<!-- ===== 发起对接 ===== -->
+<div class="sheet-mask" id="dealMask" onclick="closeDealForm()"></div>
+<div class="sheet" id="dealSheet">
+  <div id="dealSheetBody"></div>
+</div>
+
+<!-- ===== 反馈结果 ===== -->
+<div class="sheet-mask" id="fbMask" onclick="closeFb()"></div>
+<div class="sheet" id="fbSheet">
+  <div id="fbSheetBody"></div>
+</div>
+
+<!-- toast -->
+<div class="toast" id="toast"><i class="fas fa-circle-check text-[#4ADE80]"></i><span id="toastTxt">操作成功</span></div>
+
+<script>
+var tabMap={achieve:['tabAchieve','viewAchieve'],demand:['tabDemand','viewDemand']};
+function switchTab(k){
+  Object.keys(tabMap).forEach(function(t){
+    var o=tabMap[t];
+    document.getElementById(o[0]).className='tab'+(t===k?' on':'');
+    document.getElementById(o[1]).style.display=(t===k?'':'none');
+  });
+  // 悬浮发布按钮仅在"技术需求"Tab显示
+  document.getElementById('fabPublish').style.display=(k==='demand'?'inline-flex':'none');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+var toastTimer;
+function toast(msg,icon){
+  var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;
+  t.querySelector('i').className='fas '+(icon||'fa-circle-check')+' text-[#4ADE80]';
+  t.classList.add('on');
+  clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},1800);
+}
+
+/* ===== 后台数据（技术成果 / 技术需求 / 对接记录；端上只读展示，对接状态由后台回写） ===== */
+var DEAL_STYLE={待对接:['#EAF2FF','#2563EB','fa-hourglass-half'],对接中:['#FEF3C7','#D97706','fa-comments'],已匹配:['#E8F8EF','#10B981','fa-circle-check'],已关闭:['#F1F3F6','#6b7280','fa-flag']};
+function dealPill(s){var d=DEAL_STYLE[s]||DEAL_STYLE['待对接'];return '<span class="pill" style="background:'+d[0]+';color:'+d[1]+'"><i class="fas '+d[2]+'"></i>'+s+'</span>';}
+
+var TECH_ACHV=[
+  {title:'纳米银离子抗菌纤维技术',from:'浙江理工大学',fromType:'高校',update:'3天前更新',initial:'浙',g1:'#3B82F6',g2:'#6366F1',
+   desc:'采用纳米银离子复合纺丝工艺，赋予袜品持久抗菌除臭功能，洗涤50次抑菌率仍达99%，适用于运动袜与商务袜。',
+   fields:[{t:'新材料',cls:'ft-new'},{t:'功能性',cls:'ft-func'}],maturity:'中试',deal:'待对接',views:328,consults:12},
+  {title:'3D无缝成型织造工艺',from:'东华大学',fromType:'高校',update:'5天前更新',initial:'东',g1:'#7C3AED',g2:'#9333EA',
+   desc:'基于全成型电脑横机一次织造成型，无骨缝拼接，贴合足型，减少摩擦，提升穿着舒适度与生产效率。',
+   fields:[{t:'新工艺',cls:'ft-craft'},{t:'智能制造',cls:'ft-smart'}],maturity:'量产',deal:'对接中',views:276,consults:8},
+  {title:'智能温控纤维材料',from:'纺织科学研究所',fromType:'研究所',update:'1周前更新',initial:'纺',g1:'#0EA5E9',g2:'#0284C7',
+   desc:'相变储能微胶囊纤维，随体温自动调节温度，冬季保暖夏季清凉，为户外与功能性袜品提供温控解决方案。',
+   fields:[{t:'新材料',cls:'ft-new'},{t:'功能性',cls:'ft-func'}],maturity:'实验室',deal:'待对接',views:412,consults:15},
+  {title:'仿生导湿排汗织造技术',from:'江南大学',fromType:'高校',update:'2周前更新',initial:'江',g1:'#10B981',g2:'#059669',
+   desc:'模仿植物毛细结构的多层导湿织造，实现汗液单向导排、快干不返潮，已成功应用于多家品牌运动袜。',
+   fields:[{t:'新工艺',cls:'ft-craft'},{t:'功能性',cls:'ft-func'}],maturity:'量产',deal:'已匹配',views:508,consults:23}
+];
+var TECH_DEMAND=[
+  {title:'抗菌防臭袜品技术',from:'杭州酷袜商贸',fromType:'企业认证',update:'2小时前',initial:'杭',g1:'#3B82F6',g2:'#6366F1',
+   desc:'寻求长效抗菌防臭解决方案，棉混纺材质，洗涤30次抑菌率≥95%，可应用于商务与运动系列。',
+   fields:[{t:'新材料'}],budget:'¥5-10万',deal:'对接中',views:156,quotes:4,mo:'all'},
+  {title:'运动压缩袜编织工艺',from:'广东劲步体育',fromType:'企业认证',update:'1天前',initial:'广',g1:'#F59E0B',g2:'#D97706',
+   desc:'需梯度压缩编织工艺，足弓支撑加压，提升运动表现与恢复，兼容200针精梳棉。',
+   fields:[{t:'新工艺'}],budget:'¥8-15万',deal:'待对接',views:98,quotes:0,mo:'all'},
+  {title:'环保可降解袜料研发',from:'上海织语电商',fromType:'企业认证',update:'2天前',initial:'上',g1:'#10B981',g2:'#059669',
+   desc:'研发PLA/PBAT基可降解袜用纱线，保持穿着强度，废弃后180天内降解率≥60%。',
+   fields:[{t:'新材料'}],budget:'¥10-20万',deal:'对接中',views:203,quotes:6,mo:'sh'}
+];
+/* ===== 联系方式（后台下发，发起对接后揭示） ===== */
+var ACHV_CONTACT={
+  '纳米银离子抗菌纤维技术':{contact:'张明远',phone:'13800001111'},
+  '3D无缝成型织造工艺':{contact:'李素华',phone:'13900002222'},
+  '智能温控纤维材料':{contact:'王建国',phone:'13700003333'},
+  '仿生导湿排汗织造技术':{contact:'陈教授',phone:'13600004444'}
+};
+var DEMAND_CONTACT={
+  '抗菌防臭袜品技术':{contact:'周经理',phone:'13511112222'},
+  '运动压缩袜编织工艺':{contact:'吴经理',phone:'13522223333'},
+  '环保可降解袜料研发':{contact:'郑经理',phone:'13533334444'}
+};
+TECH_ACHV.forEach(function(a){var c=ACHV_CONTACT[a.title]||{};a.contact=c.contact||'';a.phone=c.phone||'';});
+TECH_DEMAND.forEach(function(d){var c=DEMAND_CONTACT[d.title]||{};d.contact=c.contact||'';d.phone=c.phone||'';});
+
+/* ===== 对接单（自助：待反馈 / 已成交 / 未成交 / 已关闭） ===== */
+var MY_STATUS={
+  '待反馈':['#FEF3C7','#D97706','fa-hourglass-half'],
+  '已成交':['#D8F3E6','#059669','fa-circle-check'],
+  '未成交':['#FEE2E2','#EF4444','fa-circle-xmark'],
+  '已关闭':['#F1F3F6','#6b7280','fa-flag']
+};
+function myPill(s){var d=MY_STATUS[s]||MY_STATUS['待反馈'];return '<span class="pill" style="background:'+d[0]+';color:'+d[1]+'"><i class="fas '+d[2]+'"></i>'+s+'</span>';}
+
+var MY_DEALS=[
+  {dealId:'DJ20261018002',target:'3D无缝成型织造工艺',targetType:'成果',org:'东华大学',contact:'李素华',phone:'13900002222',
+   role:'需求方',name:'李明',unit:'诸暨市××袜业有限公司',myPhone:'13812346688',ask:'希望引入无缝成型工艺，用于运动袜产线',
+   createdAt:'2026-10-18 14:30',status:'待反馈'},
+  {dealId:'DJ20261015003',target:'智能温控纤维材料',targetType:'成果',org:'纺织科学研究所',contact:'王建国',phone:'13700003333',
+   role:'需求方',name:'李明',unit:'诸暨市××袜业有限公司',myPhone:'13812346688',ask:'评估温控纤维在户外袜的应用',
+   createdAt:'2026-10-15 10:05',status:'已成交',amount:'8 万元',rated:false},
+  {dealId:'DJ20261010004',target:'仿生导湿排汗织造技术',targetType:'成果',org:'江南大学',contact:'陈教授',phone:'13600004444',
+   role:'需求方',name:'李明',unit:'诸暨市××袜业有限公司',myPhone:'13812346688',ask:'导湿排汗工艺合作',
+   createdAt:'2026-10-10 09:20',status:'未成交',reason:'成本过高',note:'对方报价超出年度预算'}
+];
+
+/* ===== 我的需求（我发布的）+ 对方对我发起的对接 ===== */
+var MY_DEMANDS=[
+  {demId:'XQ20261019001',title:'抗菌防臭袜品技术',industry:'新材料',budget:'¥5-10万',
+   desc:'寻求长效抗菌防臭解决方案，棉混纺材质，洗涤30次抑菌率≥95%。',
+   createdAt:'2026-10-19 10:20',src:'商户端',
+   deals:[
+     {dealId:'DJ20261019005',role:'成果方',name:'张明远',unit:'浙江理工大学',phone:'13800001111',
+      ask:'我方有纳米银离子抗菌纤维技术，希望对接产业化',createdAt:'2026-10-19 11:05',status:'待反馈'}
+   ]}
+];
+
+var DEAL_TRIES={};
+var RATE_TAGS=['响应及时','专业对口','沟通顺畅','方案可行','价格合理'];
+var rateVal=5,rateTags=[],ddDealId='',curMyTab='deals';
+var dealCtx={},fbCtx={};
+
+function nowStr(){var d=new Date(),p=function(n){return n<10?'0'+n:''+n};return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());}
+function genId(prefix,arr){var d=new Date(),p=function(n){return n<10?'0'+n:''+n};return prefix+d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+('00'+(arr.length+1)).slice(-3);}
+function demandStatus(m){
+  var ds=m.deals||[];
+  if(ds.some(function(d){return d.status==='已成交';}))return ['#D8F3E6','#059669','fa-circle-check','已匹配'];
+  if(ds.some(function(d){return d.status==='待反馈';}))return ['#FEF3C7','#D97706','fa-comments','对接中'];
+  return ['#EAF2FF','#2563EB','fa-hourglass-half','待对接'];
+}
+function pendingCount(){
+  var n=MY_DEALS.filter(function(d){return d.status==='待反馈';}).length;
+  MY_DEMANDS.forEach(function(m){(m.deals||[]).forEach(function(d){if(d.status==='待反馈')n++;});});
+  return n;
+}
+
+/* ===== 我的对接 / 我的需求 ===== */
+function renderMyTechEntry(){
+  var pending=pendingCount();
+  var done=MY_DEALS.filter(function(d){return d.status==='已成交';}).length;
+  var el=document.getElementById('myTechSummary');
+  if(el)el.textContent='待反馈 '+pending+' · 已成交 '+done+' · 我的需求 '+MY_DEMANDS.length;
+  var n=document.getElementById('myTechNotice');
+  if(n){if(pending){n.style.display='';n.textContent=pending+' 条待反馈';}else{n.style.display='none';}}
+}
+function openMyTech(){curMyTab='deals';renderMyTech();document.getElementById('myTechOv').classList.add('on');}
+function closeMyTech(){document.getElementById('myTechOv').classList.remove('on');}
+function switchMyTab(t){curMyTab=t;renderMyTech();}
+function renderMyTech(){
+  var tabs=[{k:'deals',t:'我的对接',n:MY_DEALS.length},{k:'demands',t:'我的需求',n:MY_DEMANDS.length}];
+  document.getElementById('myTechTabs').innerHTML=tabs.map(function(x){
+    return '<span class="tag-opt '+(curMyTab===x.k?'on':'')+'" onclick="switchMyTab(\''+x.k+'\')">'+x.t+' ('+x.n+')</span>';
+  }).join('');
+  var pending=pendingCount();
+  document.getElementById('myTechHeadSub').textContent=pending?('有 '+pending+' 条对接待反馈，请及时反馈结果'):'对接与需求记录';
+  var h='';
+  if(curMyTab==='deals'){
+    if(!MY_DEALS.length){h='<div class="text-center py-12"><i class="fas fa-handshake text-gray-200 text-4xl"></i><p class="text-[12px] text-gray-400 mt-3">暂无对接，可在成果/需求处「发起对接」</p></div>';}
+    MY_DEALS.forEach(function(d,i){
+      var st=MY_STATUS[d.status]||MY_STATUS['待反馈'];
+      var tip=d.status==='待反馈'?'去反馈':(d.status==='已成交'&&!d.rated?'去评价':'查看详情');
+      h+='<div class="bg-white rounded-2xl shadow-soft p-3 mb-2.5 fade-up" style="animation-delay:'+(i*0.04)+'s" onclick="openDealDetail(\''+d.dealId+'\')">';
+      h+='<div class="flex items-start justify-between gap-2"><div class="min-w-0"><p class="text-[13px] font-bold text-gray-800 truncate">'+d.target+'</p>';
+      h+='<p class="text-[10px] text-gray-400 mt-0.5">'+d.org+' · '+d.role+'</p></div>';
+      h+='<span class="pill flex-shrink-0" style="background:'+st[0]+';color:'+st[1]+'"><i class="fas '+st[2]+'"></i>'+d.status+'</span></div>';
+      h+='<p class="text-[9px] text-gray-400 mt-2">对接单号 '+d.dealId+' · '+d.createdAt+'</p>';
+      if(d.status==='已成交')h+='<p class="text-[10px] mt-1" style="color:#059669">成交金额：'+d.amount+'</p>';
+      if(d.status==='未成交')h+='<p class="text-[10px] mt-1" style="color:#EF4444">未成交原因：'+d.reason+'</p>';
+      h+='<div class="flex items-center justify-between mt-2 pt-2 border-t border-gray-50">';
+      h+='<span class="text-[9px] text-gray-400 truncate"><i class="fas fa-phone mr-1"></i>'+d.contact+' '+d.phone+'</span>';
+      h+='<span class="text-[10px] font-bold flex-shrink-0" style="color:#2563EB">'+tip+' ›</span></div></div>';
+    });
+  }else{
+    if(!MY_DEMANDS.length){h='<div class="text-center py-12"><i class="fas fa-bullhorn text-gray-200 text-4xl"></i><p class="text-[12px] text-gray-400 mt-3">暂无发布的需求</p></div>';}
+    MY_DEMANDS.forEach(function(m,i){
+      var st=demandStatus(m),ds=m.deals||[];
+      h+='<div class="bg-white rounded-2xl shadow-soft p-3 mb-2.5 fade-up" style="animation-delay:'+(i*0.04)+'s">';
+      h+='<div class="flex items-start justify-between gap-2"><div class="min-w-0"><p class="text-[13px] font-bold text-gray-800 truncate">'+m.title+'</p>';
+      h+='<p class="text-[10px] text-gray-400 mt-0.5">需求单号 '+m.demId+' · '+m.createdAt+'</p></div>';
+      h+='<span class="pill flex-shrink-0" style="background:'+st[0]+';color:'+st[1]+'"><i class="fas '+st[2]+'"></i>'+st[3]+'</span></div>';
+      h+='<div class="flex gap-1.5 mt-2 flex-wrap"><span class="info-lbl">'+m.industry+'</span><span class="info-lbl">预算 '+m.budget+'</span><span class="info-lbl">对接 '+ds.length+' 次</span><span class="info-lbl">来源 '+m.src+'</span></div>';
+      if(ds.length){
+        h+='<div class="mt-2 pt-2 border-t border-gray-50"><p class="text-[10px] text-gray-400 mb-1.5">对接方</p>';
+        ds.forEach(function(d){
+          var s2=MY_STATUS[d.status]||MY_STATUS['待反馈'];
+          h+='<div class="flex items-center justify-between py-1.5">';
+          h+='<div class="min-w-0 pr-2"><p class="text-[11px] text-gray-700 truncate">'+d.unit+' · '+d.role+'</p><p class="text-[9px] text-gray-400 truncate">'+d.ask+'</p></div>';
+          if(d.status==='待反馈'){
+            h+='<button onclick="openFeedback(\'demand\',\''+m.demId+'\',\''+d.dealId+'\')" class="text-[10px] font-bold text-white px-2.5 py-1 rounded-full flex-shrink-0" style="background:linear-gradient(135deg,#3B82F6,#2563EB)">反馈</button>';
+          }else{
+            h+='<span class="pill flex-shrink-0" style="background:'+s2[0]+';color:'+s2[1]+'">'+d.status+'</span>';
+          }
+          h+='</div>';
+        });
+        h+='</div>';
+      }else{
+        h+='<p class="text-[10px] text-gray-400 mt-2">暂无对接方，需求已发布并展示给技术方</p>';
+      }
+      h+='</div>';
+    });
+  }
+  document.getElementById('myTechBody').innerHTML=h;
+}
+
+/* ===== 发起对接（留信息 → 立即揭示对方联系方式） ===== */
+function openDealForm(type,title,org,contact,phone){
+  dealCtx={type:type,title:title,org:org,contact:contact||'',phone:phone||'',role:type==='成果'?'需求方':'成果方'};
+  document.getElementById('dealSheetBody').innerHTML=dealFormHtml();
+  document.getElementById('dealMask').classList.add('on');
+  document.getElementById('dealSheet').classList.add('on');
+  document.getElementById('dealSheet').scrollTop=0;
+}
+function closeDealForm(){
+  document.getElementById('dealMask').classList.remove('on');
+  document.getElementById('dealSheet').classList.remove('on');
+}
+function pickRole(el){
+  document.querySelectorAll('#dealSheetBody .tag-opt[data-role]').forEach(function(x){x.classList.remove('on');});
+  el.classList.add('on');dealCtx.role=el.getAttribute('data-role');
+}
+function dealFormHtml(){
+  var c=dealCtx;
+  return '<div class="sheet-handle"></div>'
+   +'<div class="flex items-center justify-between px-4 pb-2"><span class="text-[16px] font-extrabold text-gray-800">发起对接</span><i class="fas fa-xmark text-gray-400 text-lg" onclick="closeDealForm()"></i></div>'
+   +'<div class="px-4 pb-6">'
+   +'<div class="rounded-xl p-2.5 mb-3" style="background:#EFF6FF"><p class="text-[11px] font-bold text-blue-700">'+c.type+'：'+c.title+'</p><p class="text-[10px] text-blue-500 mt-0.5">'+c.org+'</p></div>'
+   +'<p class="lbl">我的身份 <b>*</b></p>'
+   +'<div class="flex gap-1.5 mb-3">'
+   +'<span class="tag-opt '+(c.role==='需求方'?'on':'')+'" data-role="需求方" onclick="pickRole(this)">需求方</span>'
+   +'<span class="tag-opt '+(c.role==='成果方'?'on':'')+'" data-role="成果方" onclick="pickRole(this)">成果方</span>'
+   +'</div>'
+   +'<div class="mb-3"><label class="lbl">姓名 <b>*</b></label><input id="dfName" class="inp" placeholder="您的姓名" value="李明"></div>'
+   +'<div class="mb-3"><label class="lbl">单位 <b>*</b></label><input id="dfUnit" class="inp" placeholder="企业 / 机构名称" value="诸暨市××袜业有限公司"></div>'
+   +'<div class="mb-3"><label class="lbl">电话 <b>*</b></label><input id="dfPhone" class="inp" maxlength="11" placeholder="11 位手机号" value="13812346688"></div>'
+   +'<div class="mb-3"><label class="lbl">诉求 <b>*</b></label><textarea id="dfAsk" class="inp" rows="3" placeholder="简要说明合作诉求 / 可提供的能力" style="resize:none"></textarea></div>'
+   +'<button class="w-full py-3 rounded-full text-white text-[15px] font-bold" style="background:linear-gradient(135deg,#3B82F6,#2563EB)" onclick="submitDealForm()"><i class="fas fa-paper-plane mr-1"></i>提交并查看对方联系方式</button>'
+   +'<p class="text-center text-[9px] text-gray-400 mt-2">提交后立即揭示对方联系方式；请线下自行联系，谈完回「我的对接」反馈结果</p>'
+   +'</div>';
+}
+function submitDealForm(){
+  var name=document.getElementById('dfName').value.trim();
+  var unit=document.getElementById('dfUnit').value.trim();
+  var phone=document.getElementById('dfPhone').value.trim();
+  var ask=document.getElementById('dfAsk').value.trim();
+  if(!name){toast('请填写姓名','fa-circle-exclamation');return;}
+  if(!unit){toast('请填写单位','fa-circle-exclamation');return;}
+  if(!/^1\d{10}$/.test(phone)){toast('请输入 11 位手机号','fa-circle-exclamation');return;}
+  if(!ask){toast('请填写诉求','fa-circle-exclamation');return;}
+  var tries=DEAL_TRIES[dealCtx.title]||0;
+  if(tries>=3){toast('同一内容 24 小时内最多发起 3 次，如需协助请联系市场服务中心 0575-8878 1001','fa-circle-exclamation');return;}
+  DEAL_TRIES[dealCtx.title]=tries+1;
+  var deal={dealId:genId('DJ',MY_DEALS),target:dealCtx.title,targetType:dealCtx.type,org:dealCtx.org,contact:dealCtx.contact,phone:dealCtx.phone,
+    role:dealCtx.role,name:name,unit:unit,myPhone:phone,ask:ask,createdAt:nowStr(),status:'待反馈'};
+  MY_DEALS.unshift(deal);
+  renderMyTechEntry();
+  document.getElementById('dealSheetBody').innerHTML=dealSuccessHtml(deal);
+  document.getElementById('dealSheet').scrollTop=0;
+}
+function dealSuccessHtml(d){
+  return '<div class="sheet-handle"></div>'
+   +'<div class="px-4 pb-6 text-center">'
+   +'<div class="w-14 h-14 mx-auto rounded-full flex items-center justify-center text-white" style="background:linear-gradient(135deg,#34D399,#10B981)"><i class="fas fa-check text-xl"></i></div>'
+   +'<p class="text-[16px] font-bold text-gray-800 mt-3">对接申请已提交</p>'
+   +'<p class="text-[10px] text-gray-400 mt-1">对接单号 '+d.dealId+'</p>'
+   +'<div class="rounded-2xl border border-blue-100 p-3 mt-3 text-left" style="background:#F5F9FF">'
+   +'<p class="text-[11px] font-bold text-blue-700 mb-1.5"><i class="fas fa-address-card mr-1"></i>对方联系方式（已揭示）</p>'
+   +'<p class="text-[12px] text-gray-700 font-medium">'+d.org+'</p>'
+   +'<p class="text-[11px] text-gray-600 mt-1">联系人：'+d.contact+'</p>'
+   +'<p class="text-[11px] text-gray-600">电话：<b style="color:#2563EB">'+d.phone+'</b></p>'
+   +'<div class="flex gap-2 mt-2">'
+   +'<button onclick="copyText(\''+d.phone+'\')" class="flex-1 py-1.5 rounded-lg text-[10px] font-bold" style="background:#EFF6FF;color:#2563EB"><i class="fas fa-copy mr-0.5"></i>复制号码</button>'
+   +'<button onclick="callPhone(\''+d.phone+'\')" class="flex-1 py-1.5 rounded-lg text-[10px] font-bold text-white" style="background:linear-gradient(135deg,#3B82F6,#2563EB)"><i class="fas fa-phone mr-0.5"></i>拨打电话</button>'
+   +'</div></div>'
+   +'<p class="text-[10px] text-gray-400 mt-2 leading-relaxed">请线下自行联系；谈完回「我的对接」反馈结果（已成交 / 未成交）</p>'
+   +'<button onclick="closeDealForm();openMyTech()" class="w-full mt-3 py-2.5 rounded-xl text-white text-[12px] font-bold" style="background:linear-gradient(135deg,#3B82F6,#2563EB)">去「我的对接」</button>'
+   +'<button onclick="closeDealForm()" class="w-full mt-2 py-2.5 rounded-xl text-[12px] font-bold text-gray-500 bg-gray-100">知道了</button>'
+   +'</div>';
+}
+function copyText(t){try{navigator.clipboard.writeText(t);}catch(e){}toast('已复制 '+t,'fa-copy');}
+function callPhone(p){toast('正在拨打 '+p,'fa-phone');}
+
+/* ===== 反馈结果 ===== */
+function openFeedback(kind,demId,dealId){
+  fbCtx={kind:kind,demId:demId,dealId:dealId};
+  document.getElementById('fbSheetBody').innerHTML=fbFormHtml();
+  document.getElementById('fbMask').classList.add('on');
+  document.getElementById('fbSheet').classList.add('on');
+  document.getElementById('fbSheet').scrollTop=0;
+}
+function closeFb(){
+  document.getElementById('fbMask').classList.remove('on');
+  document.getElementById('fbSheet').classList.remove('on');
+}
+function pickResult(el){
+  document.querySelectorAll('#fbSheetBody .tag-opt[data-r]').forEach(function(x){x.classList.remove('on');});
+  el.classList.add('on');
+  var v=el.getAttribute('data-r');
+  document.getElementById('fbAmountBox').style.display=(v==='已成交')?'':'none';
+  document.getElementById('fbReasonBox').style.display=(v==='未成交')?'':'none';
+}
+function fbFormHtml(){
+  var reasons=['技术不匹配','成本过高','周期不满足','对方无意向','企业放弃','其他'];
+  return '<div class="sheet-handle"></div>'
+   +'<div class="flex items-center justify-between px-4 pb-2"><span class="text-[16px] font-extrabold text-gray-800">反馈结果</span><i class="fas fa-xmark text-gray-400 text-lg" onclick="closeFb()"></i></div>'
+   +'<div class="px-4 pb-6">'
+   +'<p class="lbl">对接结果 <b>*</b></p>'
+   +'<div class="flex gap-1.5 mb-3">'
+   +'<span class="tag-opt on" data-r="已成交" onclick="pickResult(this)">已成交</span>'
+   +'<span class="tag-opt" data-r="未成交" onclick="pickResult(this)">未成交</span>'
+   +'</div>'
+   +'<div id="fbAmountBox" class="mb-3"><label class="lbl">成交金额 <b>*</b></label><div class="flex items-center gap-2"><input id="fbAmount" type="number" class="inp" placeholder="如 8"><span class="text-[11px] text-gray-400">万元</span></div></div>'
+   +'<div id="fbReasonBox" class="mb-3" style="display:none"><label class="lbl">未成交原因 <b>*</b></label><select id="fbReason" class="inp">'+reasons.map(function(r){return '<option>'+r+'</option>';}).join('')+'</select></div>'
+   +'<div class="mb-3"><label class="lbl">说明</label><textarea id="fbNote" class="inp" rows="2" placeholder="补充说明（选填）" style="resize:none"></textarea></div>'
+   +'<button class="w-full py-3 rounded-full text-white text-[15px] font-bold" style="background:linear-gradient(135deg,#3B82F6,#2563EB)" onclick="submitFeedback()">提交反馈</button>'
+   +'<p class="text-center text-[9px] text-gray-400 mt-2">反馈结果将回写后台，用于统计成交金额与对接成功率</p>'
+   +'</div>';
+}
+function findDeal(){
+  var obj=null;
+  if(fbCtx.kind==='my'){
+    MY_DEALS.forEach(function(d){if(d.dealId===fbCtx.dealId)obj=d;});
+  }else{
+    MY_DEMANDS.forEach(function(m){
+      if(m.demId===fbCtx.demId)(m.deals||[]).forEach(function(d){if(d.dealId===fbCtx.dealId)obj=d;});
+    });
+  }
+  return obj;
+}
+function submitFeedback(){
+  var obj=findDeal();if(!obj){toast('未找到对接记录');return;}
+  var el=document.querySelector('#fbSheetBody .tag-opt[data-r].on');
+  var result=el?el.getAttribute('data-r'):'已成交';
+  var note=(document.getElementById('fbNote').value||'').trim();
+  if(result==='已成交'){
+    var amt=(document.getElementById('fbAmount').value||'').trim();
+    if(!amt||isNaN(amt)){toast('请填写成交金额');return;}
+    obj.status='已成交';obj.amount=amt+' 万元';obj.note=note;obj.rated=false;
+  }else{
+    obj.status='未成交';obj.reason=document.getElementById('fbReason').value;obj.note=note;
+  }
+  closeFb();renderMyTech();renderMyTechEntry();
+  toast('反馈已提交，感谢配合');
+}
+
+/* ===== 对接详情 / 评价 ===== */
+function openDealDetail(dealId){
+  var d=null;MY_DEALS.forEach(function(x){if(x.dealId===dealId)d=x;});
+  if(!d)return;
+  ddDealId=dealId;
+  var st=MY_STATUS[d.status]||MY_STATUS['待反馈'];
+  document.getElementById('ddSub').textContent=d.dealId;
+  var h='<div class="bg-white rounded-2xl shadow-soft p-3.5 fade-up">';
+  h+='<div class="flex items-start justify-between gap-2"><p class="text-[14px] font-bold text-gray-800">'+d.target+'</p><span class="pill flex-shrink-0" style="background:'+st[0]+';color:'+st[1]+'"><i class="fas '+st[2]+'"></i>'+d.status+'</span></div>';
+  h+='<p class="text-[10px] text-gray-400 mt-1">'+d.createdAt+' · '+d.targetType+'</p>';
+  h+='<div class="mt-3 space-y-1.5 text-[11px] text-gray-600">';
+  h+='<p>对方机构：<b class="text-gray-700">'+d.org+'</b></p>';
+  h+='<p>联系人：'+d.contact+'　电话：<b style="color:#2563EB">'+d.phone+'</b></p>';
+  h+='<p>我的身份：'+d.role+'　单位：'+d.unit+'</p>';
+  h+='<p>诉求：'+d.ask+'</p></div>';
+  h+='<div class="flex gap-2 mt-2"><button onclick="copyText(\''+d.phone+'\')" class="flex-1 py-1.5 rounded-lg text-[10px] font-bold" style="background:#EFF6FF;color:#2563EB"><i class="fas fa-copy mr-0.5"></i>复制号码</button><button onclick="callPhone(\''+d.phone+'\')" class="flex-1 py-1.5 rounded-lg text-[10px] font-bold text-white" style="background:linear-gradient(135deg,#3B82F6,#2563EB)"><i class="fas fa-phone mr-0.5"></i>拨打电话</button></div>';
+  if(d.status==='待反馈'){
+    h+='<button onclick="closeDealDetail();openFeedback(\'my\',\'\',\''+d.dealId+'\')" class="w-full mt-3 py-2.5 rounded-xl text-white text-[12px] font-bold" style="background:linear-gradient(135deg,#3B82F6,#2563EB)">反馈结果</button>';
+  }else if(d.status==='已成交'){
+    h+='<div class="mt-3 rounded-xl p-2.5" style="background:#ECFDF5"><p class="text-[11px] font-bold" style="color:#047857">成交金额：'+d.amount+'</p>'+(d.note?'<p class="text-[10px] text-gray-500 mt-1">'+d.note+'</p>':'')+'</div>';
+    h+=d.rated?'<p class="text-[10px] text-gray-400 mt-2"><i class="fas fa-circle-check mr-1" style="color:#10B981"></i>已评价，感谢反馈</p>':rateHtml(d.dealId);
+  }else if(d.status==='未成交'){
+    h+='<div class="mt-3 rounded-xl p-2.5" style="background:#FEF2F2"><p class="text-[11px] font-bold" style="color:#B91C1C">未成交原因：'+d.reason+'</p>'+(d.note?'<p class="text-[10px] text-gray-500 mt-1">'+d.note+'</p>':'')+'</div>';
+  }
+  h+='</div>';
+  document.getElementById('ddBody').innerHTML=h;
+  document.getElementById('dealDetailOv').classList.add('on');
+}
+function closeDealDetail(){document.getElementById('dealDetailOv').classList.remove('on');}
+function rateHtml(dealId){
+  var stars='';
+  for(var i=1;i<=5;i++)stars+='<i class="fas fa-star text-[20px] cursor-pointer" style="color:'+(i<=rateVal?'#FBBF24':'#E5E7EB')+'" onclick="setRate('+i+')"></i>';
+  return '<div class="mt-3 pt-3 border-t border-gray-50"><p class="text-[12px] font-bold text-gray-800 mb-2">评价本次对接</p>'
+   +'<div class="flex gap-2 mb-2">'+stars+'</div>'
+   +'<div class="flex flex-wrap gap-1.5 mb-2">'+RATE_TAGS.map(function(t){return '<span class="tag-opt'+(rateTags.indexOf(t)>-1?' on':'')+'" onclick="toggleRateTag(this,\''+t+'\')">'+t+'</span>';}).join('')+'</div>'
+   +'<textarea id="rateText" class="inp" rows="2" placeholder="说说本次对接体验（选填）" style="resize:none"></textarea>'
+   +'<button onclick="submitRate(\''+dealId+'\')" class="w-full mt-2 py-2.5 rounded-xl text-white text-[12px] font-bold" style="background:linear-gradient(135deg,#F59E0B,#D97706)">提交评价</button></div>';
+}
+function setRate(n){rateVal=n;openDealDetail(ddDealId);}
+function toggleRateTag(el,t){
+  var i=rateTags.indexOf(t);
+  if(i>-1)rateTags.splice(i,1);else rateTags.push(t);
+  openDealDetail(ddDealId);
+}
+function submitRate(dealId){
+  var d=null;MY_DEALS.forEach(function(x){if(x.dealId===dealId)d=x;});
+  if(!d)return;
+  var txt=document.getElementById('rateText');
+  d.rated=true;d.rating=rateVal;d.rateTags=rateTags.slice();d.rateText=txt?txt.value.trim():'';
+  // 与统一评价中心同源：写入 sh_svc_review，待评价清单同步消失
+  try{
+    var a=JSON.parse(localStorage.getItem('sh_svc_review')||'[]');
+    a.unshift({no:dealId,title:d.target,agency:d.org,type:'技术对接',score:d.rating,tags:d.rateTags,text:d.rateText,time:nowStr()});
+    localStorage.setItem('sh_svc_review',JSON.stringify(a.slice(0,50)));
+  }catch(e){}
+  rateVal=5;rateTags=[];
+  closeDealDetail();renderMyTech();renderMyTechEntry();
+  toast('评价已提交，感谢反馈');
+}
+
+function renderAchv(){
+  var box=document.getElementById('achvList');if(!box)return;
+  document.getElementById('achvCount').textContent='共 '+TECH_ACHV.length+' 项';
+  var h='';
+  TECH_ACHV.forEach(function(a,i){
+    h+='<div class="dcard fade-up" style="animation-delay:'+(i*0.05)+'s">';
+    h+='<div class="flex items-center justify-between">';
+    h+='<div class="flex items-center gap-1.5"><div class="w-7 h-7 rounded-full flex items-center justify-center text-white text-[11px] font-bold" style="background:linear-gradient(135deg,'+a.g1+','+a.g2+')">'+a.initial+'</div>';
+    h+='<div><p class="text-[12px] font-bold text-gray-800 leading-none">'+a.from+'</p><p class="text-[9px] text-gray-400 mt-0.5">'+a.fromType+' · '+a.update+'</p></div></div>';
+    h+=dealPill(a.deal);
+    h+='</div>';
+    h+='<p class="text-[14px] font-semibold text-gray-900 mt-2.5">'+a.title+'</p>';
+    h+='<p class="text-[11px] text-gray-500 mt-1 leading-relaxed">'+a.desc+'</p>';
+    h+='<div class="flex gap-1.5 mt-2 flex-wrap">'+a.fields.map(function(f){return '<span class="field-tag '+(f.cls||'')+'"'+(f.cls?'':' style="background:#F3F4F6;color:#6b7280"')+'>'+f.t+'</span>';}).join('')+'<span class="field-tag" style="background:#F3F4F6;color:#6b7280">成熟度：'+a.maturity+'</span></div>';
+    h+='<div class="flex items-center justify-between mt-3 pt-2.5 border-t border-gray-50">';
+    h+='<span class="text-[10px] text-gray-400"><i class="fas fa-eye mr-0.5"></i>'+a.views+'人浏览 · '+a.consults+'人咨询</span>';
+    if(a.deal==='已匹配'){h+='<span class="act-btn" style="background:#e5e7eb;color:#9ca3af;box-shadow:none" onclick="toast(\'该成果已匹配成功，可咨询相似技术\',\'fa-circle-info\')"><i class="fas fa-handshake text-[11px]"></i>已匹配</span>';}
+    else{h+='<span class="act-btn" onclick="openDealForm(\'成果\',\''+a.title+'\',\''+a.from+'\',\''+(a.contact||'')+'\',\''+(a.phone||'')+'\')"><i class="fas fa-handshake text-[11px]"></i>发起对接</span>';}
+    h+='</div></div>';
+  });
+  box.innerHTML=h;
+}
+function renderDemand(){
+  var box=document.getElementById('demandList');if(!box)return;
+  /* 投放端过滤：后台 mo='sh' 表示仅商户端，买家端不展示 */
+  var list=TECH_DEMAND.filter(function(d){return d.mo!=='sh';});
+  document.getElementById('demandCount').textContent='共 '+list.length+' 条';
+  var h='';
+  list.forEach(function(d,i){
+    h+='<div class="dcard fade-up" style="animation-delay:'+(i*0.05)+'s">';
+    h+='<div class="flex items-center justify-between">';
+    h+='<div class="flex items-center gap-1.5"><div class="w-7 h-7 rounded-full flex items-center justify-center text-white text-[11px] font-bold" style="background:linear-gradient(135deg,'+d.g1+','+d.g2+')">'+d.initial+'</div>';
+    h+='<div><p class="text-[12px] font-bold text-gray-800 leading-none">'+d.from+'</p><p class="text-[9px] text-gray-400 mt-0.5">'+d.fromType+' · '+d.update+(d.src?' · 来源：'+d.src:'')+'</p></div></div>';
+    h+=dealPill(d.deal);
+    h+='</div>';
+    h+='<p class="text-[14px] font-semibold text-gray-900 mt-2.5">'+d.title+'</p>';
+    h+='<p class="text-[11px] text-gray-500 mt-1 leading-relaxed">'+d.desc+'</p>';
+    h+='<div class="flex gap-1.5 mt-2.5 flex-wrap">'+d.fields.map(function(f){return '<span class="info-lbl"><i class="fas fa-tag mr-1 text-gray-300"></i>'+f.t+'</span>';}).join('');
+    h+='<span class="info-lbl"><i class="fas fa-coins mr-1" style="color:#FF4D2D"></i>预算 '+d.budget+'</span></div>';
+    h+='<div class="flex items-center justify-between mt-3 pt-2.5 border-t border-gray-50">';
+    h+='<span class="text-[10px] text-gray-400"><i class="fas fa-eye mr-0.5"></i>'+d.views+'人浏览</span>';
+    h+='<span class="act-btn" onclick="openDealForm(\'需求\',\''+d.title+'\',\''+d.from+'\',\''+(d.contact||'')+'\',\''+(d.phone||'')+'\')"><i class="fas fa-handshake text-[11px]"></i>发起对接</span>';
+    h+='</div></div>';
+  });
+  box.innerHTML=h;
+}
+renderAchv();
+renderDemand();
+renderMyTechEntry();
+/* 从服务记录「查看对接」直达我的对接 */
+(function(){var m=location.search.match(/[?&]open=([^&]+)/);if(m&&decodeURIComponent(m[1])==='my'){openMyTech();}})();
+
+/* 领域标签多选 */
+var fieldEls=document.querySelectorAll('#fieldBox .tag-opt');
+fieldEls.forEach(function(el){el.addEventListener('click',function(){el.classList.toggle('on')})});
+
+/* 底部表单 */
+function openSheet(){
+  document.getElementById('overlay').classList.add('on');
+  document.getElementById('sheet').classList.add('on');
+  document.body.style.overflow='hidden';
+}
+function closeSheet(){
+  document.getElementById('overlay').classList.remove('on');
+  document.getElementById('sheet').classList.remove('on');
+  document.body.style.overflow='';
+}
+function submitDemand(){
+  var n=document.getElementById('fName').value.trim();
+  var d=document.getElementById('fDesc').value.trim();
+  var c=document.getElementById('fContact').value.trim();
+  var p=document.getElementById('fPhone').value.trim();
+  if(!n){toast('请填写需求名称','fa-circle-exclamation');return}
+  if(!d){toast('请填写需求描述','fa-circle-exclamation');return}
+  if(!c||!p){toast('请填写联系人与电话','fa-circle-exclamation');return}
+  if(!/^1\d{10}$/.test(p)){toast('请输入正确的手机号','fa-circle-exclamation');return}
+  var budgetEl=document.querySelector('#sheet select');
+  var budget=budgetEl?budgetEl.value:'面议';
+  var inds=[];
+  document.querySelectorAll('#fieldBox .tag-opt.on').forEach(function(x){inds.push(x.textContent)});
+  var demId=genId('XQ',MY_DEMANDS);
+  closeSheet();
+  TECH_DEMAND.unshift({demId:demId,title:n,from:'我（当前账号）',fromType:'已实名',update:'刚刚',initial:'我',g1:'#FF6B35',g2:'#FF4D2D',desc:d,fields:inds.map(function(t){return {t:t};}),budget:budget,deal:'待对接',views:0,quotes:0,src:'商户端',mo:'all'});
+  MY_DEMANDS.unshift({demId:demId,title:n,industry:inds.join('/')||'其他',budget:budget,desc:d,createdAt:nowStr(),src:'商户端',deals:[]});
+  renderDemand();renderMyTechEntry();
+  // 申请记录：需求发布 → 服务记录页汇总（状态由对接单推导）
+  try{
+    var rec={id:'a'+Date.now(),type:'技术需求',icon:'fa-lightbulb',cls:'bg-sky-50 text-sky-600',title:n,no:demId,agency:'平台供需对接',time:nowStr(),status:'待对接',next:'查看对接',link:'tech-service.html',desc:d};
+    var a=JSON.parse(localStorage.getItem('sh_svc_rec')||'[]');a.unshift(rec);localStorage.setItem('sh_svc_rec',JSON.stringify(a.slice(0,20)));
+  }catch(e){}
+  setTimeout(function(){toast('需求已发布（'+demId+'），可在「我的对接」查看','fa-paper-plane')},280);
+}
+</script>
+</body>
+</html>

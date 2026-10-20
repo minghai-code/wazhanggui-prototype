@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>服务记录 - 袜掌柜商户版</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--bg:#F5F7FF}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden;color:#1F2430}
+.card{transition:transform .16s ease}.card:active{transform:scale(.985)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
+.chip{font-size:11px;color:#6b7080;background:#fff;border:1px solid #eceef0;border-radius:999px;padding:5px 12px;white-space:nowrap;cursor:pointer}
+.chip.on{color:#fff;font-weight:700;background:#4F46E5;border-color:#4F46E5}
+.no-bar::-webkit-scrollbar{display:none}
+.num{font-variant-numeric:tabular-nums}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:999;opacity:0;pointer-events:none;transition:.2s;text-align:center;max-width:80%}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:200;opacity:0;pointer-events:none;transition:.25s}
+.mask.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;width:393px;max-height:84vh;overflow-y:auto;background:#fff;border-radius:22px 22px 0 0;z-index:201;transform:translateY(100%);transition:transform .28s ease}
+.sheet.on{transform:translateY(0)}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<div class="relative px-4 pt-2 pb-5 overflow-hidden" style="background:linear-gradient(135deg,#6366F1 0%,#4F46E5 45%,#4338CA 100%)">
+  <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-40" style="background:#818CF8"></div>
+  <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+  </div>
+  <div class="relative flex items-center gap-2.5 mt-1">
+    <a href="industry-service.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+    <span class="text-white font-extrabold text-[20px]" style="text-shadow:0 2px 10px rgba(0,0,0,.18)">服务记录</span>
+  </div>
+  <p class="text-white/70 text-[11px] mt-2 relative">申请类可查进度，咨询类仅留痕</p>
+</div>
+
+<!-- 概览 -->
+<div class="px-3 -mt-3 relative z-10">
+  <div class="bg-white rounded-2xl shadow-soft px-3 py-3 flex items-center justify-around">
+    <div class="text-center"><p class="text-[17px] font-extrabold num" style="color:#F59E0B" id="sDoing">0</p><p class="text-[9px] text-gray-400 mt-0.5">进行中</p></div>
+    <div class="w-px h-8 bg-gray-100"></div>
+    <div class="text-center"><p class="text-[17px] font-extrabold num" style="color:#EF4444" id="sFix">0</p><p class="text-[9px] text-gray-400 mt-0.5">待补正</p></div>
+    <div class="w-px h-8 bg-gray-100"></div>
+    <div class="text-center"><p class="text-[17px] font-extrabold num" style="color:#10B981" id="sDone">0</p><p class="text-[9px] text-gray-400 mt-0.5">已完成</p></div>
+    <div class="w-px h-8 bg-gray-100"></div>
+    <div class="text-center"><p class="text-[17px] font-extrabold num" style="color:#4F46E5" id="sConsult">0</p><p class="text-[9px] text-gray-400 mt-0.5">咨询记录</p></div>
+  </div>
+</div>
+
+<!-- 主分类：申请记录 / 咨询记录 -->
+<div class="px-3 mt-3">
+  <div class="flex items-center gap-4 border-b border-gray-200" id="kindTabs">
+    <a onclick="setKind('apply',this)" class="font-bold pb-2 text-[14px]" style="color:#4F46E5;border-bottom:2px solid #4F46E5">申请记录</a>
+    <a onclick="setKind('consult',this)" class="text-gray-500 pb-2 text-[14px]">咨询记录</a>
+  </div>
+</div>
+
+<!-- 类型筛选 -->
+<div class="px-3 mt-2.5">
+  <div class="flex gap-1.5 overflow-x-auto no-bar" id="chips"></div>
+</div>
+
+<!-- 列表 -->
+<div class="px-3 mt-2.5 pb-16">
+  <div class="space-y-2.5" id="list"></div>
+  <div class="bg-indigo-50/70 border border-indigo-100 rounded-2xl p-3.5 mt-3">
+    <p class="text-[10px] text-indigo-700 leading-relaxed"><i class="fas fa-circle-info mr-1"></i><b>申请记录</b>：政策申报、技术需求，状态由后台回写，可查进度与下一步。</p>
+    <p class="text-[10px] text-indigo-700 leading-relaxed mt-1"><b>咨询记录</b>：知识产权、中介服务（含认证检测），平台只提供电话 / 外链入口，<b>不代办、不产生工单、不跟踪进度</b>。</p>
+    <p class="text-[10px] text-indigo-500 leading-relaxed mt-1">金融服务仅入口导航、不留存记录；外贸服务为内容跳转；人才招聘记录在「人才招聘」页内查看。</p>
+  </div>
+</div>
+
+<!-- 详情弹层 -->
+<div class="mask" id="mask" onclick="closeSheet()"></div>
+<div class="sheet" id="sheet">
+  <div class="sticky top-0 bg-white px-4 pt-3 pb-2 border-b border-gray-50">
+    <div class="w-10 h-1 rounded-full bg-gray-200 mx-auto mb-2"></div>
+    <div class="flex items-center justify-between">
+      <p class="text-[15px] font-extrabold text-gray-900" id="sheetTitle">记录详情</p>
+      <a onclick="closeSheet()" class="text-gray-400 text-[12px]">关闭</a>
+    </div>
+  </div>
+  <div class="px-4 py-3 pb-8" id="sheetBody"></div>
+</div>
+
+<div class="toast" id="toast"><span id="toastTxt">操作成功</span></div>
+
+<script>
+var ttm;function toast(m){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=m;t.classList.add('on');clearTimeout(ttm);ttm=setTimeout(function(){t.classList.remove('on')},1800)}
+
+/* ===== 申请记录（有在线提交 + 后台状态回写）===== */
+var APPLY_SEED=[
+ {id:'a1',type:'政策申报',icon:'fa-file-signature',cls:'bg-emerald-50 text-emerald-600',title:'袜业产业扶持资金申报',no:'SB20260705-03',agency:'诸暨市经信局',time:'2026-07-05 10:12',status:'已兑现',next:'去评价',link:'industry-review.html',desc:'已兑现 ¥200,000，2026-07-08 拨付至企业对公账户。'},
+ {id:'a2',type:'政策申报',icon:'fa-file-circle-exclamation',cls:'bg-rose-50 text-rose-600',title:'2026 数字化改造补贴申报',no:'SB20260712-04',agency:'诸暨市经信局',time:'2026-07-12 16:40',status:'退回补正',next:'去补正',link:'policy-service.html',desc:'退回原因：请补充设备验收报告。'},
+ {id:'a3',type:'技术需求',icon:'fa-lightbulb',cls:'bg-sky-50 text-sky-600',title:'抗菌防臭袜工艺技术需求',no:'TD20260712-02',agency:'平台供需对接',time:'2026-07-12 09:15',status:'对接中',next:'查看对接',link:'tech-service.html?open=my',desc:'寻求长效抗菌防臭方案，已对接 2 家技术方，尚未反馈结果。'}
+];
+
+/* ===== 咨询记录（仅留痕：时间 + 入口 + 方式，无状态流转）===== */
+var CONSULT_SEED=[
+ {id:'c1',type:'知识产权',icon:'fa-magnifying-glass-chart',cls:'bg-pink-50 text-pink-600',title:'国家知识产权局专利检索',agency:'国家知识产权局',mode:'外链跳转',time:'2026-10-12 15:20',link:'ip-service.html'},
+ {id:'c2',type:'知识产权',icon:'fa-registered',cls:'bg-pink-50 text-pink-600',title:'商标近似查询（官方）',agency:'国家知识产权局商标局',mode:'外链跳转',time:'2026-10-10 09:41',link:'ip-service.html'},
+ {id:'c3',type:'中介服务',icon:'fa-vial-circle-check',cls:'bg-cyan-50 text-cyan-600',title:'浙江纺织检测中心',agency:'认证检测',mode:'电话咨询',time:'2026-07-10 09:20',link:'agency-service.html'},
+ {id:'c4',type:'中介服务',icon:'fa-briefcase',cls:'bg-orange-50 text-orange-600',title:'诸暨诚信财税咨询',agency:'财务服务',mode:'电话咨询',time:'2026-07-03 09:40',link:'agency-service.html'}
+];
+
+function readLS(k){try{return JSON.parse(localStorage.getItem(k)||'[]')}catch(e){return []}}
+var APPLY=readLS('sh_svc_rec').concat(APPLY_SEED);
+var CONSULT=readLS('sh_svc_consult').concat(CONSULT_SEED);
+
+var kind='apply';
+var KIND_CFG={
+ apply:{label:'申请记录',types:['全部','政策申报','技术需求']},
+ consult:{label:'咨询记录',types:['全部','知识产权','中介服务']}
+};
+var filter='全部';
+
+function statusCls(s){
+  if(s==='已完成'||s==='已兑现'||s==='已匹配')return 'bg-emerald-100 text-emerald-600';
+  if(s==='退回补正')return 'bg-rose-100 text-rose-600';
+  if(s==='受理中'||s==='对接中')return 'bg-amber-100 text-amber-600';
+  if(s==='未通过'||s==='已关闭')return 'bg-gray-100 text-gray-500';
+  return 'bg-indigo-100 text-indigo-600';
+}
+function isDoing(s){return s==='已提交'||s==='受理中'||s==='待对接'||s==='对接中';}
+function currentList(){return kind==='apply'?APPLY:CONSULT;}
+function setKind(k,el){
+  kind=k;filter='全部';
+  document.querySelectorAll('#kindTabs a').forEach(function(a){a.style.color='#6B7280';a.style.fontWeight='400';a.style.borderBottom='2px solid transparent';});
+  el.style.color='#4F46E5';el.style.fontWeight='700';el.style.borderBottom='2px solid #4F46E5';
+  renderChips();render();
+}
+function renderChips(){
+  var arr=KIND_CFG[kind].types;
+  document.getElementById('chips').innerHTML=arr.map(function(t){return '<a onclick="setF(\''+t+'\')" class="chip'+(t===filter?' on':'')+'">'+t+'</a>';}).join('');
+}
+function setF(t){filter=t;renderChips();render();}
+function render(){
+  document.getElementById('sDoing').textContent=APPLY.filter(function(r){return isDoing(r.status)}).length;
+  document.getElementById('sFix').textContent=APPLY.filter(function(r){return r.status==='退回补正'}).length;
+  document.getElementById('sDone').textContent=APPLY.filter(function(r){return r.status==='已完成'||r.status==='已兑现'||r.status==='已匹配'}).length;
+  document.getElementById('sConsult').textContent=CONSULT.length;
+
+  var arr=currentList().filter(function(r){return filter==='全部'||r.type===filter;});
+  if(kind==='consult'){
+    document.getElementById('list').innerHTML=arr.length?arr.map(function(r){
+      return '<div class="card bg-white rounded-2xl shadow-soft px-3.5 py-3" onclick="openConsult(\''+r.id+'\')">'
+        +'<div class="flex items-center justify-between gap-2"><div class="flex items-center gap-2 min-w-0"><span class="'+r.cls+' text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0">'+r.type+'</span><p class="text-[13px] font-bold text-gray-800 truncate">'+r.title+'</p></div>'
+        +'<span class="bg-gray-100 text-gray-500 text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0">留痕</span></div>'
+        +'<p class="text-[10px] text-gray-400 mt-1.5"><i class="fas '+r.icon+' text-[9px] mr-1"></i>'+r.agency+' · '+r.mode+'</p>'
+        +'<div class="flex items-center justify-between mt-1.5"><span class="text-[9px] text-gray-400 num">'+r.time+'</span>'
+        +'<span class="text-[10px] font-bold" style="color:#4F46E5">再次咨询 ›</span></div>'
+        +'</div>';
+    }).join(''):'<div class="text-center text-[12px] text-gray-400 py-12">暂无咨询记录</div>';
+    return;
+  }
+  document.getElementById('list').innerHTML=arr.length?arr.map(function(r){
+    return '<div class="card bg-white rounded-2xl shadow-soft px-3.5 py-3" onclick="openApply(\''+r.id+'\')">'
+      +'<div class="flex items-center justify-between gap-2"><div class="flex items-center gap-2 min-w-0"><span class="'+r.cls+' text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0">'+r.type+'</span><p class="text-[13px] font-bold text-gray-800 truncate">'+r.title+'</p></div>'
+      +'<span class="'+statusCls(r.status)+' text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0">'+r.status+'</span></div>'
+      +'<p class="text-[10px] text-gray-400 mt-1.5"><i class="fas '+r.icon+' text-[9px] mr-1"></i>'+r.agency+'</p>'
+      +'<div class="flex items-center justify-between mt-1.5"><span class="text-[9px] text-gray-400 num">'+r.no+' · '+r.time+'</span>'
+      +'<span class="text-[10px] font-bold" style="color:#4F46E5">'+r.next+' ›</span></div>'
+      +'</div>';
+  }).join(''):'<div class="text-center text-[12px] text-gray-400 py-12">该分类暂无申请记录</div>';
+}
+
+function openSheet(){document.getElementById('mask').classList.add('on');document.getElementById('sheet').classList.add('on');}
+function closeSheet(){document.getElementById('mask').classList.remove('on');document.getElementById('sheet').classList.remove('on');}
+
+function flowOf(r){
+  if(r.type==='政策申报'){
+    if(r.status==='退回补正')return ['已提交','受理中','退回补正'];
+    if(r.status==='已兑现')return ['已提交','受理中','已兑现'];
+    if(r.status==='未通过')return ['已提交','受理中','未通过'];
+    return ['已提交','受理中'];
+  }
+  if(r.type==='技术需求'){
+    if(r.status==='已关闭')return ['待对接','对接中','已关闭'];
+    if(r.status==='已匹配')return ['待对接','对接中','已匹配'];
+    return ['待对接','对接中'];
+  }
+  return ['已提交'];
+}
+/* 每个状态必须有可执行操作，或明确"流程已结束" */
+function actionHtml(r){
+  if(r.status==='退回补正'){
+    return '<a href="'+r.link+'" class="block w-full py-3 mt-2 rounded-xl text-white text-[13px] font-bold text-center" style="background:linear-gradient(135deg,#EF4444,#DC2626)">去补正并重新提交</a>'
+      +'<p class="text-[9px] text-gray-400 text-center mt-2">补正入口：政策详情 →「我的申报」→ 补充材料并重新提交</p>';
+  }
+  if(r.status==='已兑现'||r.status==='已匹配'||r.status==='已完成'){
+    var rv=null;
+    readLS('sh_svc_review').forEach(function(x){if(x.no===r.no||x.title===r.title)rv=x;});
+    if(rv){
+      return '<div class="mt-2 rounded-xl p-3" style="background:#ECFDF5;border:1px solid #A7F3D0"><p class="text-[11px] font-bold text-emerald-700"><i class="fas fa-circle-check mr-1"></i>已评价 · '+rv.score+' 星</p><p class="text-[10px] text-emerald-600 mt-1 leading-relaxed">'+(rv.text||'无文字评价')+'</p></div>';
+    }
+    var evl='industry-review.html?no='+encodeURIComponent(r.no)+'&title='+encodeURIComponent(r.title)+'&agency='+encodeURIComponent(r.agency)+'&type='+encodeURIComponent(r.type);
+    return '<a href="'+evl+'" class="block w-full py-3 mt-2 rounded-xl text-white text-[13px] font-bold text-center" style="background:linear-gradient(135deg,#10B981,#059669)">去评价</a>'
+      +'<p class="text-[9px] text-gray-400 text-center mt-2">评价写入服务商 / 成果提供方评分（后台 FR-08），提交后不可修改</p>';
+  }
+  if(r.status==='未通过'||r.status==='已关闭'){
+    var relabel=r.type==='政策申报'?'重新申报':'重新发布需求';
+    var relink=r.type==='政策申报'?'policy-service.html':'tech-service.html';
+    return '<div class="mt-2 rounded-xl p-3" style="background:#F1F3F6"><p class="text-[10px] text-gray-500 leading-relaxed"><i class="fas fa-flag mr-1"></i>本次流程已结束，无待办操作；如需继续可'+relabel+'。</p></div>'
+      +'<a href="'+relink+'" class="block w-full py-2.5 mt-2 rounded-xl text-[12px] font-bold text-gray-600 bg-white border border-gray-200 text-center">'+relabel+'</a>';
+  }
+  return '<a href="'+r.link+'" class="block w-full py-3 mt-2 rounded-xl text-white text-[13px] font-bold text-center" style="background:linear-gradient(135deg,#6366F1,#4F46E5)">'+r.next+'</a>'
+    +'<p class="text-[9px] text-gray-400 text-center mt-2">状态由后台（13 产业链服务）回写</p>';
+}
+function openApply(id){
+  var r=APPLY.filter(function(x){return x.id===id})[0];if(!r)return;
+  var flow=flowOf(r);
+  var cur=flow.indexOf(r.status);
+  if(cur<0)cur=flow.length-1;
+  var tl=flow.map(function(f,i){
+    var done=i<=cur;
+    return '<div class="relative pl-4 pb-3" style="border-left:2px solid '+(done?'#C7D2FE':'#F1F3F6')+'">'
+      +'<span class="absolute rounded-full" style="left:-5px;top:4px;width:8px;height:8px;background:'+(done?'#4F46E5':'#E5E7EB')+'"></span>'
+      +'<p class="text-[11px] font-medium '+(done?'text-gray-800':'text-gray-400')+'">'+f+'</p>'
+      +(i===cur?'<p class="text-[9px] text-gray-400 mt-0.5">'+r.time+'</p>':'')
+      +'</div>';
+  }).join('');
+  document.getElementById('sheetTitle').textContent='申请记录';
+  document.getElementById('sheetBody').innerHTML=
+    '<div class="flex items-center gap-2 mb-2"><span class="'+r.cls+' text-[9px] font-bold px-1.5 py-0.5 rounded">'+r.type+'</span><span class="'+statusCls(r.status)+' text-[9px] font-bold px-1.5 py-0.5 rounded">'+r.status+'</span></div>'
+    +'<p class="text-[15px] font-extrabold text-gray-900">'+r.title+'</p>'
+    +'<p class="text-[10px] text-gray-400 mt-1">'+r.agency+'</p>'
+    +'<div class="mt-2 bg-gray-50 rounded-xl p-3 text-[11px]">'
+    +'<div class="flex justify-between py-1"><span class="text-gray-400">单号</span><span class="text-gray-700 num">'+r.no+'</span></div>'
+    +'<div class="flex justify-between py-1"><span class="text-gray-400">提交时间</span><span class="text-gray-700 num">'+r.time+'</span></div>'
+    +'<div class="flex justify-between py-1"><span class="text-gray-400">当前状态</span><span class="font-bold text-gray-800">'+r.status+'</span></div>'
+    +'</div>'
+    +'<p class="text-[11px] text-gray-600 leading-relaxed mt-2">'+r.desc+'</p>'
+    +'<p class="text-[12px] font-bold text-gray-800 mt-3 mb-1.5">进度</p>'+tl
+    +'<p class="text-[12px] font-bold text-gray-800 mt-1 mb-1">可执行操作</p>'
+    +actionHtml(r);
+  openSheet();
+}
+
+function openConsult(id){
+  var r=CONSULT.filter(function(x){return x.id===id})[0];if(!r)return;
+  document.getElementById('sheetTitle').textContent='咨询记录';
+  document.getElementById('sheetBody').innerHTML=
+    '<div class="flex items-center gap-2 mb-2"><span class="'+r.cls+' text-[9px] font-bold px-1.5 py-0.5 rounded">'+r.type+'</span><span class="bg-gray-100 text-gray-500 text-[9px] font-bold px-1.5 py-0.5 rounded">仅留痕</span></div>'
+    +'<p class="text-[15px] font-extrabold text-gray-900">'+r.title+'</p>'
+    +'<p class="text-[10px] text-gray-400 mt-1">'+r.agency+'</p>'
+    +'<div class="mt-2 bg-gray-50 rounded-xl p-3 text-[11px]">'
+    +'<div class="flex justify-between py-1"><span class="text-gray-400">咨询方式</span><span class="text-gray-700">'+r.mode+'</span></div>'
+    +'<div class="flex justify-between py-1"><span class="text-gray-400">操作时间</span><span class="text-gray-700 num">'+r.time+'</span></div>'
+    +'<div class="flex justify-between py-1"><span class="text-gray-400">记录性质</span><span class="text-gray-700">端上操作留痕</span></div>'
+    +'</div>'
+    +'<div class="mt-2 rounded-xl p-3" style="background:#FFFBEB;border:1px solid #FDE68A"><p class="text-[10px] text-amber-700 leading-relaxed"><i class="fas fa-circle-info mr-1"></i>平台仅提供联系入口，<b>不代办、不产生工单、不跟踪办理进度</b>；实际服务由服务商与您线下完成。</p></div>'
+    +'<a href="'+r.link+'" class="block w-full py-3 mt-3 rounded-xl text-white text-[13px] font-bold text-center" style="background:linear-gradient(135deg,#6366F1,#4F46E5)">再次咨询</a>';
+  openSheet();
+}
+
+renderChips();render();
+</script>
+</body>
+</html>
