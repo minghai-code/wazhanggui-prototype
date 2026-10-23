@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>08-02 活动创建 / 编辑 · 运营端页面说明 · 页面 PRD</title><style>
+:root{--fg:#1F2430;--muted:#64748B;--line:#E9EDF3}
+*{box-sizing:border-box}
+body{margin:0;padding:26px 32px 90px;background:#fff;color:var(--fg);
+ font:14px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif}
+h1{font-size:20px;margin:0 0 6px}
+h2{font-size:17px;margin:34px 0 12px;padding-top:12px;border-top:1px solid var(--line)}
+h3{font-size:15px;margin:22px 0 10px}
+h4{font-size:14px;margin:18px 0 8px;color:#334155}
+p{margin:8px 0}
+table{border-collapse:collapse;width:100%;margin:10px 0 16px;font-size:12.5px}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:#F8FAFC;font-weight:700}
+tr:nth-child(even) td{background:#FCFDFE}
+code{background:#F1F5F9;padding:1px 5px;border-radius:4px;font-size:12px;
+ font-family:ui-monospace,Menlo,Consolas,monospace;color:#B91C1C}
+pre.code{background:#0F172A;color:#E2E8F0;padding:14px 16px;border-radius:10px;overflow:auto;font-size:12px}
+pre.code code{background:none;color:inherit;padding:0}
+blockquote{margin:10px 0;padding:10px 14px;background:#EFF6FF;border-left:3px solid #60A5FA;
+ border-radius:0 8px 8px 0;color:#334155;font-size:13px}
+ul,ol{margin:8px 0;padding-left:22px}
+li{margin:3px 0}
+hr{border:0;border-top:1px dashed var(--line);margin:22px 0}
+a{color:#2563EB;text-decoration:none}
+.meta{font-size:12px;color:var(--muted);margin:0 0 20px}
+</style></head><body>
+<div class="meta">由 <code>yunying-PC/prd/08-商户活动运营/02-活动创建.md</code> 生成，勿手改；改文档请改 md 后重跑 build-prd。</div>
+<h1>08-02 活动创建 / 编辑 · 运营端页面说明</h1>
+<blockquote>端：运营端 PC　｜　模块：08 商户活动运营　｜　页面：<code>activity-create.html</code> 页面版本：v1.0（2026-10-22）　｜　业务分册：<code>开发PRD/运营管理端分册PRD/08-活动运营.md</code> <strong>v1.6</strong> <strong>模块通用说明</strong>（权限 / 状态机 / 口径 / 端间落点总表 / 跨端字段差异）见同目录 <strong><code>01-活动列表.md</code> §0</strong>，本文件不重复。</blockquote>
+<hr>
+<h2 id="p1">1. 活动创建 / 编辑 <code>activity-create.html</code></h2>
+<h3>1.1 页面说明</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>页面目标</td><td>四段式录入一场活动：基本信息 → 时间与地点 → 报名设置 → 签到设置</td></tr><tr><td>使用角色</td><td>运营（平台活动）、商户（申请，仅 3 类）</td></tr><tr><td>入口</td><td>活动列表「创建活动」；或行内「编辑」带 <code>?id=</code></td></tr><tr><td>前置</td><td>已登录；商户仅能编辑自己的待审批前活动</td></tr><tr><td>后置</td><td>平台活动直接进入「未开始/报名中」并上架；商户活动进入「待审批」</td></tr></tbody></table>
+<h3>1.2 本页端间关系</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>本页数据来源</td><td>运营手工录入；地点可从 02 市场资源只读选择</td></tr><tr><td>本页操作的跨端影响</td><td>发布/提交后：商户端「活动参与」可见（平台活动立即；商户活动待批后才可见）</td></tr><tr><td>依赖的其他端页面</td><td><code>shanghu-APP/shanghu-activity-apply.html</code>（商户申请同一套字段，类型限 3 项）</td></tr><tr><td>不涉及的端</td><td>买家端</td></tr><tr><td>一致性要求</td><td>发布后 ≤5s 商户端可见；编辑时间后通知全部已报名者</td></tr></tbody></table>
+<h3>1.3 页面结构</h3>
+<table><thead><tr><th>区块</th><th>内容</th></tr></thead><tbody><tr><td>顶部</td><td>返回按钮 + 标题（创建活动 / 编辑活动）+ 副标题（平台自办免审核）+ 右上操作区</td></tr><tr><td><strong>第 1 段 基本信息</strong></td><td>名称 / 类型 / 主办方（只读）/ 联系人·电话 / 封面 / 一句话简介 / 活动详情</td></tr><tr><td><strong>第 2 段 时间与地点</strong></td><td>报名开始 / 报名截止 / 活动开始 / 活动结束 + <strong>时间警告条（红）</strong> + 地点类型 + 资源·地址·链接 + 场地备注 + <strong>资源冲突弱提示（橙）</strong></td></tr><tr><td><strong>第 3 段 报名设置</strong></td><td>总名额 / 是否审核 / 同行上限 / 报名字段（5 个勾选，姓名手机固定）/ 报名须知</td></tr><tr><td><strong>第 4 段 签到设置</strong></td><td>启用签到 / 签到方式 / 签到窗（前 N 分钟 ~ 后 N 分钟）+ <strong>展示位置说明（固定）</strong> + 提交后会发生什么</td></tr><tr><td>底部</td><td>取消 / 保存草稿 / 提交并发布</td></tr></tbody></table>
+<h3>1.4 列表、筛选与排序</h3>
+<p>不适用（表单页）。</p>
+<h3>1.5 字段规格</h3>
+<p><strong>第 1 段 基本信息</strong></p>
+<table><thead><tr><th>字段</th><th>标识</th><th>必填</th><th>默认</th><th>校验</th><th>说明</th></tr></thead><tbody><tr><td>活动名称</td><td><code>f-name</code></td><td>是</td><td>—</td><td>≤40 字；<strong>禁绝对化用语</strong>（最/第一/唯一）</td><td>提示文案见 A-09/A-16</td></tr><tr><td>活动类型</td><td><code>f-type</code></td><td>是</td><td>请选择</td><td>7 选 1：展会 / 直采节 / 培训 / 沙龙 / 会议 / 应急演练 / 其他</td><td>商户仅 3 项</td></tr><tr><td>主办方</td><td><code>f-owner</code></td><td>—</td><td>平台自办（市场运营中心）</td><td><strong>只读</strong></td><td>商户活动显示商户名</td></tr><tr><td>主办方联系人 / 电话</td><td><code>f-contact</code> / <code>f-phone</code></td><td>否</td><td>—</td><td>电话若填需 11 位</td><td>—</td></tr><tr><td>封面图</td><td><code>f-cover</code></td><td>否</td><td>—</td><td>建议 750×422</td><td>原型点击仅提示（A-08）</td></tr><tr><td>一句话简介</td><td><code>f-brief</code></td><td>是</td><td>—</td><td>≤60 字</td><td>展示在列表与详情头部</td></tr><tr><td>活动详情</td><td><code>f-detail</code></td><td>否</td><td>—</td><td>支持换行</td><td>议程 / 亮点 / 参与对象</td></tr></tbody></table>
+<p><strong>第 2 段 时间与地点</strong></p>
+<table><thead><tr><th>字段</th><th>标识</th><th>必填</th><th>校验</th><th>说明</th></tr></thead><tbody><tr><td>报名开始</td><td><code>f-ss</code></td><td>是</td><td>date</td><td>—</td></tr><tr><td>报名截止</td><td><code>f-se</code></td><td>是</td><td>date，<strong>signEnd ≥ signStart 且 ≤ start</strong></td><td>—</td></tr><tr><td>活动开始</td><td><code>f-st</code></td><td>是</td><td>datetime-local</td><td>—</td></tr><tr><td>活动结束</td><td><code>f-en</code></td><td>是</td><td>datetime-local，<strong>&gt; start</strong></td><td>—</td></tr><tr><td>地点类型</td><td><code>f-ptype</code></td><td>是</td><td>市场资源 / 自定义地址 / 线上</td><td>切换下方字段显隐</td></tr><tr><td>选择资源</td><td><code>f-place</code></td><td>条件</td><td>地点类型=市场资源时必填</td><td>从 02 只读选</td></tr><tr><td>详细地址</td><td><code>f-addr</code></td><td>条件</td><td>=自定义地址时必填</td><td>—</td></tr><tr><td>线上链接</td><td><code>f-link</code></td><td>条件</td><td>=线上时必填</td><td>—</td></tr><tr><td>场地备注</td><td><code>f-pnote</code></td><td>否</td><td>—</td><td>如「1F 中庭 + 直播间」</td></tr></tbody></table>
+<p><strong>第 3 段 报名设置</strong></p>
+<table><thead><tr><th>字段</th><th>标识</th><th>必填</th><th>默认</th><th>校验</th><th>说明</th></tr></thead><tbody><tr><td>总名额</td><td><code>f-quota</code></td><td>是</td><td>—</td><td>≥1；<strong>不得小于已报名人数</strong></td><td>提示 A-14/A-15</td></tr><tr><td>是否需要审核</td><td><code>f-audit</code></td><td>—</td><td>免审核</td><td>免审核 / 需要审核</td><td>审核制下先占位、驳回释放</td></tr><tr><td>同行人数上限</td><td><code>f-comp</code></td><td>—</td><td>不允许带人</td><td>0 / 1 / 2 / 3 / 5 / 10</td><td>同行按人数占名额</td></tr><tr><td>报名字段</td><td><code>f-f1~f-f3</code></td><td>—</td><td>单位勾选</td><td>姓名、手机号<strong>固定必填不可取消</strong>；单位 / 职务 / 备注可选</td><td>勾选即必填</td></tr><tr><td>报名须知</td><td><code>f-notice</code></td><td>否</td><td>—</td><td>—</td><td>与商户端所见一致</td></tr></tbody></table>
+<p><strong>第 4 段 签到设置</strong></p>
+<table><thead><tr><th>字段</th><th>标识</th><th>必填</th><th>默认</th><th>说明</th></tr></thead><tbody><tr><td>启用签到</td><td><code>f-ckon</code></td><td>—</td><td>启用</td><td>不启用则不生成签到码</td></tr><tr><td>签到方式</td><td><code>f-ckway</code></td><td>—</td><td>扫码核销</td><td>扫码 / 手工 / 两者</td></tr><tr><td>签到窗</td><td><code>f-cb</code> / <code>f-ca</code></td><td>—</td><td>前 60 / 后 60 分钟</td><td>窗口外核销拒绝</td></tr><tr><td>展示位置</td><td>—</td><td>—</td><td><strong>固定</strong></td><td>商户端 → 物业服务 → 待办事项 → 活动参与；<strong>无其他投放位</strong></td></tr></tbody></table>
+<h3>1.6 交互规则</h3>
+<table><thead><tr><th>元素</th><th>显示条件</th><th>可点条件</th><th>点击后</th><th>禁止表现</th></tr></thead><tbody><tr><td>封面图</td><td>始终</td><td>始终</td><td>提示「演示环境：上传后自动裁剪 16:9」</td><td>—</td></tr><tr><td>地点类型切换</td><td>始终</td><td>始终</td><td>显示对应字段（资源 / 地址 / 链接），隐藏其余</td><td>—</td></tr><tr><td>时间填写</td><td>始终</td><td>始终</td><td>校验不通过 → <strong>红色时间警告条显示</strong>，禁用提交</td><td>—</td></tr><tr><td>选择资源</td><td>地点类型=市场资源</td><td>始终</td><td>若该时段已有活动 → <strong>橙色弱提示</strong>（不阻断）</td><td>—</td></tr><tr><td>保存草稿</td><td>始终</td><td>始终</td><td>保存为草稿，不生成报名入口</td><td>—</td></tr><tr><td>提交并发布</td><td>始终</td><td>校验通过</td><td>平台活动直接上架；商户活动提交审批</td><td>校验不过 → 拦截</td></tr><tr><td>取消</td><td>始终</td><td>始终</td><td>返回列表（未保存丢失需确认）</td><td>—</td></tr></tbody></table>
+<blockquote><strong>编辑态差异</strong>：报名已开始的活动，<strong>时间 / 名额 / 地点</strong>字段禁用（避免通知全体报名者），见 A-20。</blockquote>
+<h3>1.7 业务规则与计算口径</h3>
+<table><thead><tr><th>编号</th><th>规则</th><th>触发</th><th>处理</th><th>影响端</th></tr></thead><tbody><tr><td>R-08</td><td>时间链校验</td><td>输入变化</td><td><code>signStart &lt; signEnd ≤ start &lt; end</code></td><td>无</td></tr><tr><td>R-09</td><td>名额不得小于已报名</td><td>保存</td><td><code>quota ≥ hold</code></td><td>商户端余量</td></tr><tr><td>R-10</td><td>绝对化用语拦截</td><td>名称输入</td><td>命中「最/第一/唯一」→ 拦截</td><td>无</td></tr><tr><td>R-11</td><td>资源冲突只提示不阻断</td><td>选资源</td><td>同时段已有活动 → 橙色提示</td><td>无</td></tr><tr><td>R-12</td><td>平台 vs 商户分野</td><td>提交</td><td>平台=直接发布；商户=待审批</td><td>商户端可见性</td></tr><tr><td>R-13</td><td>草稿不生成报名入口</td><td>保存草稿</td><td>商户端不可见</td><td>商户端</td></tr><tr><td>R-14</td><td>报名中禁改关键字段</td><td>编辑态</td><td>时间/名额/地点禁用</td><td>商户端</td></tr><tr><td>R-15</td><td>重复提交</td><td>保存/发布</td><td>按钮 loading 锁 1.5s</td><td>无</td></tr></tbody></table>
+<h3>1.8 异常与边界</h3>
+<table><thead><tr><th>类型</th><th>场景</th><th>系统行为</th><th>提示文案</th></tr></thead><tbody><tr><td>数据</td><td>名称含绝对化用语</td><td>拦截</td><td>【已实现】「文案含绝对化用语「{词}」」</td></tr><tr><td>数据</td><td>时间倒挂</td><td>警告条 + 禁提交</td><td>【已实现】「时间不合法：报名截止须早于活动开始，结束须晚于开始」</td></tr><tr><td>数据</td><td>名额小于已报名</td><td>拦截</td><td>【已实现】「名额不得小于已报名人数（当前 {n}）」</td></tr><tr><td>权限</td><td>商户编辑已提交活动</td><td>按钮隐藏</td><td>—</td></tr><tr><td>并发</td><td>两人同时编辑同一活动</td><td>后提交冲突</td><td>【待实现】原型无并发校验</td></tr><tr><td>网络</td><td>保存失败</td><td>保留填写内容</td><td>【待实现】原型无失败处理</td></tr></tbody></table>
+<h4>1.8.1 本页提示语清单（来源：分册 §8.6，编号可回溯）</h4>
+<table><thead><tr><th>编号</th><th>场景</th><th>提示文案</th><th>形式</th><th>状态</th></tr></thead><tbody><tr><td>A-08</td><td>封面占位提示</td><td>演示环境：上传后自动裁剪 16:9</td><td>Toast</td><td>✅</td></tr><tr><td>A-09</td><td>名称未填</td><td>请填写活动名称</td><td>行内</td><td>✅</td></tr><tr><td>A-10</td><td>类型未选</td><td>请选择活动类型</td><td>行内</td><td>✅</td></tr><tr><td>A-11</td><td>简介未填</td><td>请填写一句话简介</td><td>行内</td><td>✅</td></tr><tr><td>A-12</td><td>时间未填全</td><td>请填写完整的报名与活动时间</td><td>行内</td><td>✅</td></tr><tr><td>A-13</td><td>时间倒挂</td><td>时间不合法：报名截止须早于活动开始，结束须晚于开始</td><td>Toast / 警告条</td><td>✅</td></tr><tr><td>A-14</td><td>名额无效</td><td>请填写有效名额</td><td>行内</td><td>✅</td></tr><tr><td>A-15</td><td>名额小于已报名</td><td>名额不得小于已报名人数（当前 {n}）</td><td>Toast</td><td>✅</td></tr><tr><td>A-16</td><td>含绝对化用语</td><td>文案含绝对化用语「{词}」</td><td>Toast</td><td>✅</td></tr><tr><td>A-17</td><td>保存草稿</td><td>已保存草稿（不生成报名入口，可随时继续编辑）</td><td>Toast</td><td>✅</td></tr><tr><td>A-18</td><td>编辑保存</td><td>修改已保存；如涉及时间调整，将通知全部已报名者</td><td>Toast</td><td>✅</td></tr><tr><td>A-19</td><td>发布成功</td><td>已发布：活动编号 {编号}</td><td>Toast</td><td>✅</td></tr><tr><td>A-20</td><td>报名中改关键字段</td><td>报名已开始，时间 / 名额 / 地点不可修改（避免通知全体报名者）</td><td>行内+禁用</td><td>⬜</td></tr></tbody></table>
+<h3>1.9 通知与消息</h3>
+<table><thead><tr><th>事件</th><th>接收人</th><th>渠道</th><th>抑制条件</th></tr></thead><tbody><tr><td>商户活动提交</td><td>运营专员</td><td>站内 + 待办角标</td><td>—</td></tr><tr><td>活动发布</td><td>面向商户</td><td>站内</td><td>草稿不发</td></tr></tbody></table>
+<h3>1.10 验收标准</h3>
+<table><thead><tr><th>编号</th><th>前置</th><th>操作</th><th>预期</th><th>级别</th></tr></thead><tbody><tr><td>AC-07</td><td>创建平台活动</td><td>填完发布</td><td>直接上架，列表可见，商户端「活动参与」出现</td><td>P0</td></tr><tr><td>AC-08</td><td>报名截止晚于活动开始</td><td>提交</td><td>红色警告条 + 拦截</td><td>P0</td></tr><tr><td>AC-09</td><td>名额填 100，已报名 186</td><td>保存</td><td>提示「名额不得小于已报名人数（当前 186）」</td><td>P0</td></tr><tr><td>AC-10</td><td>名称写「大唐第一家」</td><td>提交</td><td>拦截并指出绝对化用语</td><td>P1</td></tr><tr><td>AC-11</td><td>编辑报名中的活动</td><td>查看字段</td><td>时间/名额/地点禁用</td><td>P1</td></tr><tr><td>AC-12</td><td>保存草稿</td><td>看商户端</td><td>活动参与列表<strong>看不到</strong>该活动</td><td>P1</td></tr></tbody></table>
+</body></html>

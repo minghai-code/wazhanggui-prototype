@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>04-07 租金催缴 · 运营端页面说明 · 页面 PRD</title><style>
+:root{--fg:#1F2430;--muted:#64748B;--line:#E9EDF3}
+*{box-sizing:border-box}
+body{margin:0;padding:26px 32px 90px;background:#fff;color:var(--fg);
+ font:14px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif}
+h1{font-size:20px;margin:0 0 6px}
+h2{font-size:17px;margin:34px 0 12px;padding-top:12px;border-top:1px solid var(--line)}
+h3{font-size:15px;margin:22px 0 10px}
+h4{font-size:14px;margin:18px 0 8px;color:#334155}
+p{margin:8px 0}
+table{border-collapse:collapse;width:100%;margin:10px 0 16px;font-size:12.5px}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:#F8FAFC;font-weight:700}
+tr:nth-child(even) td{background:#FCFDFE}
+code{background:#F1F5F9;padding:1px 5px;border-radius:4px;font-size:12px;
+ font-family:ui-monospace,Menlo,Consolas,monospace;color:#B91C1C}
+pre.code{background:#0F172A;color:#E2E8F0;padding:14px 16px;border-radius:10px;overflow:auto;font-size:12px}
+pre.code code{background:none;color:inherit;padding:0}
+blockquote{margin:10px 0;padding:10px 14px;background:#EFF6FF;border-left:3px solid #60A5FA;
+ border-radius:0 8px 8px 0;color:#334155;font-size:13px}
+ul,ol{margin:8px 0;padding-left:22px}
+li{margin:3px 0}
+hr{border:0;border-top:1px dashed var(--line);margin:22px 0}
+a{color:#2563EB;text-decoration:none}
+.meta{font-size:12px;color:var(--muted);margin:0 0 20px}
+</style></head><body>
+<div class="meta">由 <code>yunying-PC/prd/04-商户管理/07-租金催缴.md</code> 生成，勿手改；改文档请改 md 后重跑 build-prd。</div>
+<h1>04-07 租金催缴 · 运营端页面说明</h1>
+<blockquote>端：运营端 PC　｜　模块：04 实体商户管理　｜　页面：<code>merchant-dunning.html</code> 页面版本：v1.0（2026-10-22）　｜　业务分册：<code>开发PRD/运营管理端分册PRD/04-商户管理.md</code> <strong>v2.9</strong> <strong>模块通用说明</strong>见同目录 <strong><code>01-线下自动建档与同步.md</code> §0</strong>，本文件不重复。 注：页面 <code>&lt;title&gt;</code> 仍写「合同管理 - 租金催缴（自动）」，属 <strong>v2.4 从 05 迁入</strong>的历史文案，菜单已归 04。</blockquote>
+<hr>
+<h2 id="p1">1. 租金催缴 <code>merchant-dunning.html</code></h2>
+<h3>1.1 页面说明</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>页面目标</td><td>每年 8 月 15 日起自动催缴第二年租金；<strong>已缴的不再打扰</strong></td></tr><tr><td>使用角色</td><td>商户管理专员（日常）、运营主管（规则配置审批）</td></tr><tr><td>入口</td><td>菜单 → 商户管理 → 租金催缴</td></tr><tr><td>前置</td><td>05 合同有应收计划；财务提供累计已缴名单</td></tr><tr><td>后置</td><td>通知已发；缴纳状态更新；下次扫描自动跳过已缴</td></tr></tbody></table>
+<h3>1.2 本页端间关系</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>本页数据来源</td><td>05 合同应收计划（金额）+ 财务线下台账（累计已缴）+ 人工登记</td></tr><tr><td>本页操作的跨端影响</td><td>发送 → 商户端站内 + 微信（含短信可选）；暂停 → 该户不再收通知</td></tr><tr><td>依赖的其他端页面</td><td><code>shanghu-APP/payment.html</code>（账单展示）</td></tr><tr><td>不涉及的端</td><td>买家端</td></tr><tr><td>一致性要求</td><td><strong>发送前三重校验</strong>：已缴名单 + 合同状态 + 暂停标记</td></tr></tbody></table>
+<h3>1.3 页面结构</h3>
+<table><thead><tr><th>区块</th><th>内容</th></tr></thead><tbody><tr><td>顶部</td><td>标题「租金催缴（自动）」+ 导出 + 缴纳名单导入 + 手动触发扫描 + 规则配置</td></tr><tr><td><strong>统计卡</strong></td><td>应催商户数（2026）/ 应收总额 · 已缴 / 已缴清 / 催缴中（未缴 · 部分缴）/ 今日实发通知</td></tr><tr><td>筛选区</td><td>关键词 + 租赁年度 + 缴纳状态 + 通知次数 + 查询 + 重置</td></tr><tr><td>催缴台账</td><td><strong>8 列</strong></td></tr><tr><td><strong>缴纳名单导入</strong></td><td>模板下载 + 上传 Excel + 预校验结果表（<strong>4 列</strong>）+ 批次记录表（<strong>8 列</strong>）</td></tr><tr><td>规则抽屉</td><td>催缴期 / 频率 / 时段 / 逾期升级 / 渠道 / 文案</td></tr></tbody></table>
+<h3>1.4 列表、筛选与排序</h3>
+<table><thead><tr><th>项目</th><th>规则</th></tr></thead><tbody><tr><td>默认排序</td><td>未缴金额降序</td></tr><tr><td>分页</td><td>不分页（原型单页）</td></tr><tr><td>筛选组合</td><td>条件之间 <strong>且</strong></td></tr><tr><td>缴纳状态</td><td>未缴 / 部分缴 / 已缴清</td></tr><tr><td>空结果</td><td>「本轮无可催缴商户」</td></tr></tbody></table>
+<h3>1.5 字段规格</h3>
+<p><strong>催缴台账（8 列）</strong></p>
+<table><thead><tr><th>列</th><th>字段</th><th>说明</th></tr></thead><tbody><tr><td>租赁年度</td><td><code>year</code></td><td>如 2026</td></tr><tr><td>商户 / 档口</td><td><code>merchant</code> / <code>unit</code></td><td>—</td></tr><tr><td>合同号</td><td><code>contractNo</code></td><td>来自 05</td></tr><tr><td>应收 / 已缴 / 未缴</td><td><code>due</code> / <code>paid</code> / <code>unpaid</code></td><td>金额，元</td></tr><tr><td>通知次数（站内 · 微信）</td><td><code>noticeCount</code></td><td>分渠道计数</td></tr><tr><td>最近通知</td><td><code>lastNoticeAt</code></td><td>—</td></tr><tr><td>缴纳状态</td><td><code>payState</code></td><td>未缴 / 部分缴 / 已缴清</td></tr><tr><td>操作</td><td>—</td><td>登记缴纳 / 补发 / 暂停 / 恢复 / 详情</td></tr></tbody></table>
+<p><strong>导入预校验（4 列）</strong>：商户 / 档口 · 合同号 · 本次累计已缴 · 处理结果（命中 / 未缴足 / 未匹配）</p>
+<p><strong>导入批次（8 列）</strong>：导入时间 · 文件名 · 行数 · 命中 · 未缴足 · 未匹配 · 操作人 · 操作（撤销）</p>
+<h3>1.6 交互规则</h3>
+<table><thead><tr><th>元素</th><th>显示条件</th><th>可点条件</th><th>点击后</th><th>禁止表现</th></tr></thead><tbody><tr><td>手动触发扫描</td><td>始终</td><td>专员</td><td>逐户三重校验 → 实发</td><td>已缴清户 → M-17</td></tr><tr><td>登记缴纳</td><td>未缴 / 部分缴</td><td>专员</td><td>填本次实缴金额 → 更新状态</td><td>—</td></tr><tr><td>导入已缴名单</td><td>始终</td><td>专员</td><td>上传 → 预校验 → 确认 → 已缴户置已缴清</td><td>未匹配行进清单</td></tr><tr><td>人工补发</td><td>未缴 / 部分缴</td><td>专员</td><td>补发通知（计入次数）</td><td>已缴清 → M-17</td></tr><tr><td>暂停该户</td><td>未缴 / 部分缴</td><td>专员</td><td>停发通知（记原因）</td><td>—</td></tr><tr><td>恢复催缴</td><td>已暂停</td><td>专员</td><td>恢复发送</td><td>—</td></tr><tr><td>规则配置</td><td>始终</td><td>主管</td><td>催缴期 / 频率 / 时段 / 渠道 / 文案</td><td>开始日为空 → M-21</td></tr><tr><td>撤销批次</td><td>有批次</td><td>专员</td><td>撤销该次导入（状态回滚）</td><td>—</td></tr></tbody></table>
+<h3>1.7 业务规则与计算口径</h3>
+<table><thead><tr><th>编号</th><th>规则</th><th>触发</th><th>处理</th><th>影响端</th></tr></thead><tbody><tr><td>R-34</td><td>每年 8/15 起催缴次年租金</td><td>定时</td><td>规则可配</td><td>商户端</td></tr><tr><td>R-35</td><td><strong>发送前三重校验</strong></td><td>发送</td><td>① 已缴名单 + 人工核销 ② 合同状态（终止/到期不发）③ 暂停标记</td><td>商户端</td></tr><tr><td>R-36</td><td>已缴清不再通知</td><td>校验</td><td>直接跳过，不计次数</td><td>商户端</td></tr><tr><td>R-37</td><td>未缴足按差额更新</td><td>导入</td><td>更新已缴金额与状态</td><td>商户端</td></tr><tr><td>R-38</td><td>未匹配行进清单</td><td>导入</td><td>不自动置已缴清，人工核对</td><td>—</td></tr><tr><td>R-39</td><td>渠道 = 站内 + 微信（短信可选）</td><td>发送</td><td>短信需独立服务，2026-10-09 暂缓</td><td>商户端</td></tr></tbody></table>
+<h3>1.8 异常与边界</h3>
+<table><thead><tr><th>类型</th><th>场景</th><th>系统行为</th><th>提示文案</th></tr></thead><tbody><tr><td>数据</td><td>补发已缴清商户</td><td>拦截</td><td>【已实现】「该商户已缴清：系统已停止催缴（无需补发）」</td></tr><tr><td>数据</td><td>催缴开始日为空</td><td>拦截</td><td>【已实现】「请填写催缴开始日」</td></tr><tr><td>数据</td><td>导入有未匹配行</td><td>单独列出待人工核对</td><td>【已实现】「已导入累计已缴名单：…」</td></tr><tr><td>依赖</td><td>微信未绑定</td><td>只发站内</td><td>—</td></tr><tr><td>数据</td><td>合同已终止/到期</td><td>跳过不发送</td><td>—</td></tr></tbody></table>
+<h4>1.8.1 本页提示语清单（来源：分册 §8.10，编号可回溯）</h4>
+<table><thead><tr><th>编号</th><th>场景</th><th>提示文案</th><th>形式</th><th>状态</th></tr></thead><tbody><tr><td>M-13</td><td>导出催缴台账</td><td>已导出催缴台账（含通知次数、渠道、缴纳状态；商户与档口维度）</td><td>Toast</td><td>✅</td></tr><tr><td>M-14</td><td>登记缴纳</td><td>已登记「{合同号}」租金缴纳</td><td>Toast</td><td>✅</td></tr><tr><td>M-15</td><td>导入已缴名单</td><td>已导入累计已缴名单：命中 {a} 户置「已缴清」、{b} 户未缴足更新金额、{c} 行未匹配 → 已缴商户下一轮不再收到催缴通知</td><td>Toast</td><td>✅</td></tr><tr><td>M-16</td><td>手动触发扫描</td><td>已手动触发一轮催缴扫描：{年度} 租赁年度命中 {n} 户（未缴 {a} / 部分缴 {b} / 已缴清 {c}）→ 发送前依次校验 ① 累计已缴名单 + 人工核销状态 ② 合同状态 ③ 暂停标记 → 实发 {m} 条</td><td>Toast</td><td>✅</td></tr><tr><td>M-17</td><td>补发已缴清商户</td><td>该商户已缴清：系统已停止催缴（无需补发）</td><td>Toast</td><td>✅</td></tr><tr><td>M-18</td><td>人工补发</td><td>已人工补发催缴通知：{商户名}</td><td>Toast</td><td>✅</td></tr><tr><td>M-19</td><td>暂停该户</td><td>已暂停该户催缴：{商户名}</td><td>Toast</td><td>✅</td></tr><tr><td>M-20</td><td>恢复该户</td><td>已恢复催缴：{商户名}</td><td>Toast</td><td>✅</td></tr><tr><td>M-21</td><td>开始日为空</td><td>请填写催缴开始日</td><td>行内</td><td>✅</td></tr><tr><td>M-22</td><td>规则保存</td><td>催缴规则已保存：每年 {月} 月 {日} 日起…</td><td>Toast</td><td>✅</td></tr></tbody></table>
+<h3>1.9 通知与消息</h3>
+<table><thead><tr><th>事件</th><th>接收人</th><th>渠道</th><th>抑制条件</th></tr></thead><tbody><tr><td>催缴通知</td><td>欠缴商户</td><td>站内 + 微信（短信可选）</td><td><strong>已缴清 / 合同终止 / 到期 / 已暂停 → 不发</strong></td></tr><tr><td>逾期升级</td><td>欠缴商户 + 主管</td><td>站内</td><td>按规则频次</td></tr><tr><td>导入完成</td><td>操作人</td><td>站内</td><td>—</td></tr></tbody></table>
+<h3>1.10 验收标准</h3>
+<table><thead><tr><th>编号</th><th>前置</th><th>操作</th><th>预期</th><th>级别</th></tr></thead><tbody><tr><td>AC-30</td><td>某户已在导入名单中</td><td>手动触发扫描</td><td>该户<strong>不发送</strong>，实发数不含它</td><td>P0</td></tr><tr><td>AC-31</td><td>合同已终止</td><td>触发扫描</td><td>该户不发送</td><td>P0</td></tr><tr><td>AC-32</td><td>已暂停该户</td><td>触发扫描</td><td>该户跳过</td><td>P0</td></tr><tr><td>AC-33</td><td>导入含未匹配行</td><td>确认导入</td><td>未匹配行进清单，不置已缴清</td><td>P0</td></tr><tr><td>AC-34</td><td>已缴清商户</td><td>点人工补发</td><td>拦截并提示无需补发</td><td>P1</td></tr><tr><td>AC-35</td><td>导入 9 户命中</td><td>查看台账</td><td>9 户置已缴清，下一轮不再收到通知</td><td>P1</td></tr></tbody></table>
+</body></html>

@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数据底座 - 数据资产统计概览</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,#2E6BE6,#1D4ED8);color:#fff}.btn-primary:hover{filter:brightness(1.06)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.seg{display:inline-flex;background:#EEF2F7;border-radius:9px;padding:2px}
+.seg button{border:none;background:transparent;padding:6px 14px;border-radius:7px;font-size:12px;color:#64748B;cursor:pointer;font-family:inherit}
+.seg button.on{background:#fff;color:#1D4ED8;font-weight:600;box-shadow:0 1px 3px rgba(15,23,42,.12)}
+.kpi{background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:14px 16px}
+.kpi p:first-child{font-size:11.5px;color:#94A3B8;display:flex;align-items:center;gap:5px}
+.kpi .v{font-size:23px;font-weight:700;margin-top:6px;letter-spacing:-.5px}
+.kpi .s{font-size:11px;color:#94A3B8;margin-top:3px}
+.dcard{background:#fff;border:1px solid #E2E8F0;border-radius:14px;padding:15px 18px;cursor:pointer;transition:.18s;position:relative;overflow:hidden;display:flex;flex-direction:column;min-height:132px}
+.dcard:hover{border-color:#BFD3F5;box-shadow:0 8px 24px rgba(29,78,216,.10);transform:translateY(-2px)}
+.dcard .ic{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px}
+/* 趋势图：Y 轴 + 网格 + 柱 + X 轴 */
+.chart{display:flex;gap:8px}
+.chart .yaxis{width:52px;flex-shrink:0;display:flex;flex-direction:column;justify-content:space-between;height:118px;font-size:10px;color:#94A3B8;text-align:right;line-height:1}
+.chart .plot{flex:1;position:relative;min-width:0}
+.chart .plotbox{position:relative;height:118px}
+.chart .gl{position:absolute;left:0;right:0;border-top:1px dashed #EEF2F7}
+.chart .bars{display:flex;align-items:flex-end;gap:3px;height:100%;position:relative;z-index:2}
+.chart .bars>div{flex:1 1 0;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;align-items:center}
+.chart .bars i{display:block;width:100%;max-width:36px;border-radius:2px 2px 0 0;background:linear-gradient(180deg,#6B9BF0,#2E6BE6);min-height:2px}
+.chart .bars i:hover{filter:brightness(1.12)}
+.chart .xaxis{display:flex;gap:3px;padding-top:6px}
+.chart .xaxis span{flex:1 1 0;min-width:0;font-size:10px;color:#94A3B8;text-align:center;white-space:nowrap;overflow:hidden}
+.tag{display:inline-flex;align-items:center;gap:3px;font-size:10.5px;padding:1.5px 6px;border-radius:4px;font-weight:500;white-space:nowrap}
+.up{color:#15803D;font-size:11.5px;font-weight:600}
+.down{color:#DC2626;font-size:11.5px;font-weight:600}
+.flat{color:#94A3B8;font-size:11.5px}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:60}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:900px;max-width:96vw;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.14);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:70;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);width:720px;max-width:95vw;max-height:86vh;overflow-y:auto;background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(15,23,42,.28);opacity:0;pointer-events:none;transition:.22s;z-index:70}
+.modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+.bar{display:flex;align-items:flex-end;gap:3px;height:84px;padding-top:6px;width:100%}
+.bar>div{flex:1 1 0;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:3px}
+.bar i{display:block;width:100%;max-width:34px;border-radius:3px 3px 0 0;background:linear-gradient(180deg,#6B9BF0,#2E6BE6)}
+.searchBox{position:relative;width:260px}
+.searchBox input{width:100%;padding:7px 10px 7px 30px;border:1px solid #E2E8F0;border-radius:8px;font-size:12.5px;outline:none}
+.searchBox input:focus{border-color:#2E6BE6}
+.searchBox i{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:11px;color:#94A3B8}
+.sres{position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid #E2E8F0;border-radius:10px;box-shadow:0 12px 28px rgba(15,23,42,.14);max-height:260px;overflow-y:auto;z-index:40;display:none}
+.sres.on{display:block}
+.sres div{padding:8px 12px;font-size:12px;cursor:pointer;color:#334155}
+.sres div:hover{background:#F0F5FF;color:#1D4ED8}
+.sres .sub{color:#94A3B8;font-size:10.5px;margin-left:6px}
+.row{border-bottom:1px solid #F1F5F9}
+.row:hover{background:#FAFBFD}
+#toast{position:fixed;left:50%;bottom:36px;transform:translateX(-50%);background:rgba(20,20,40,.9);color:#fff;font-size:12.5px;padding:9px 18px;border-radius:20px;z-index:99;opacity:0;transition:.25s;pointer-events:none;max-width:80vw}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+<div class="p-6" style="width:100%">
+
+  <!-- ① 顶部 -->
+  <div class="flex items-start justify-between mb-4">
+    <div>
+      <h1 class="text-[18px] font-bold text-gray-800">数据资产统计概览</h1>
+      <p class="text-[12px] text-gray-400 mt-0.5">
+        全系统落库数据资产的总量、新增与异常 ·
+        <span class="text-gray-500">数据截至 <b id="asOf">2026-10-22 02:00</b></span>
+        <span id="lagTip" class="tag ml-1" style="background:#FEF3C7;color:#B45309;display:none">数据滞后</span>
+      </p>
+    </div>
+    <div class="flex items-center gap-2">
+      <div class="searchBox">
+        <i class="fas fa-search"></i>
+        <input id="q" placeholder="搜索资产 / 业务模块" autocomplete="off" onfocus="showSearch()" oninput="showSearch()">
+        <div class="sres" id="sres"></div>
+      </div>
+      <button class="btn btn-ghost" onclick="exportAll()"><i class="fas fa-download mr-1"></i>导出</button>
+    </div>
+  </div>
+
+  <!-- 统计期 -->
+  <div class="mb-4">
+    <div class="flex items-center gap-3">
+      <div class="seg" id="seg">
+        <button class="on" onclick="setPeriod(0)">今日</button>
+        <button onclick="setPeriod(1)">本周</button>
+        <button onclick="setPeriod(2)">本月</button>
+        <button onclick="setPeriod(3)">本年</button>
+        <button onclick="openCustom()" id="segCustom">自定义</button>
+      </div>
+      <div id="customInline" class="flex items-center gap-2" style="display:none">
+        <input type="date" id="cs" class="fi" style="width:144px;padding:6px 8px">
+        <span class="text-[11px] text-gray-400">至</span>
+        <input type="date" id="ce" class="fi" style="width:144px;padding:6px 8px">
+        <button class="btn btn-primary" onclick="applyCustom()">应用</button>
+        <button class="btn btn-ghost" onclick="cancelCustom()">取消</button>
+        <span class="text-[10.5px] text-gray-400">最长 366 天</span>
+      </div>
+      <span class="lk text-[11.5px] ml-auto" style="color:#2E6BE6" onclick="showRule()">口径说明</span>
+    </div>
+    <div class="text-[11.5px] leading-[19px] mt-1.5">
+      <p class="text-gray-600" id="periodCur">—</p>
+      <p class="text-gray-400" id="periodPrev">—</p>
+    </div>
+  </div>
+
+  <!-- ② KPI -->
+  <div class="grid grid-cols-6 gap-3 mb-4" id="kpis"></div>
+
+  <!-- ③ 趋势 -->
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+    <div class="flex items-center justify-between mb-3">
+      <div class="text-[12.5px] font-bold text-[#1F2430]"><i class="fas fa-chart-column mr-1.5" style="color:#2E6BE6"></i><span id="trendTitle">新增趋势</span></div>
+      <div class="text-[11px] text-gray-400" id="trendTip"></div>
+    </div>
+    <div class="chart" id="chart"></div>
+  </div>
+
+  <!-- ④ 9 域卡片 -->
+  <div class="grid grid-cols-3 gap-3 mb-4" id="cards"></div>
+
+  <!-- ⑤ 榜单 + 异常 -->
+  <div class="grid grid-cols-2 gap-3 mb-3">
+    <div class="bg-white rounded-xl border border-gray-100 p-4">
+      <div class="text-[12.5px] font-bold text-[#1F2430] mb-2.5"><i class="fas fa-arrow-trend-up mr-1.5" style="color:#15803D"></i>增长 Top5<span class="text-[10.5px] font-normal text-gray-400 ml-1.5" id="topIncTip">按新增</span></div>
+      <div id="topInc"></div>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-100 p-4">
+      <div class="text-[12.5px] font-bold text-[#1F2430] mb-2.5"><i class="fas fa-database mr-1.5" style="color:#7C3AED"></i>体量 Top5<span class="text-[10.5px] font-normal text-gray-400 ml-1.5">按记录总量</span></div>
+      <div id="topSize"></div>
+    </div>
+  </div>
+
+  <!-- 异常 + 未接入 -->
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-3">
+    <div class="flex items-center justify-between mb-2">
+      <div class="text-[12.5px] font-bold text-[#1F2430]"><i class="fas fa-triangle-exclamation mr-1.5" style="color:#B45309"></i>异常提示<span id="alertCnt" class="ml-1.5 text-[11px] font-normal text-[#B45309]"></span></div>
+      <span class="text-[11px] text-gray-400">超 7 天未更新 / 环比跌幅 &gt; 30% / 采集失败</span>
+    </div>
+    <div id="alerts"></div>
+  </div>
+
+</div>
+
+<div class="mask" id="mask" onclick="closeAll()"></div>
+<div class="drawer" id="drawer"></div>
+<div class="modal" id="modal"></div>
+<div id="toast"></div>
+
+<script>
+/* ================= 数据：9 个一级域 ================= */
+var DOMAINS=[
+ {n:'会员与商户',icon:'fa-store',color:'#2563EB',desc:'商户主档·资质·信用·线上入驻·店铺'},
+ {n:'资源与物业',icon:'fa-building',color:'#0891B2',desc:'场所楼栋·档口·竞拍·平面图·巡检整改'},
+ {n:'合同与缴费',icon:'fa-file-signature',color:'#7C3AED',desc:'合同·签署·应收·核销·催缴·终止'},
+ {n:'电商与交易',icon:'fa-cart-shopping',color:'#DB2777',desc:'商品·询价报价·订单·热搜榜单'},
+ {n:'产业链服务',icon:'fa-handshake',color:'#EA580C',desc:'政策·技术·对接·中介·招聘·金融'},
+ {n:'文商旅',icon:'fa-ticket',color:'#0D9488',desc:'研学基地线路·袜博会·展位·参观'},
+ {n:'活动与内容',icon:'fa-calendar-check',color:'#CA8A04',desc:'活动报名签到·资讯·公告·Banner'},
+ {n:'设备与物联',icon:'fa-microchip',color:'#64748B',desc:'设备台账·在线状态·告警'},
+ {n:'运营与系统',icon:'fa-server',color:'#475569',desc:'数据源·采集任务·数据集·AI 平台'}
+];
+
+/* ================= 资产：d=域索引  t=总量  i=[今日,本周,本月,本年]新增  r=对应环比%  ================= */
+var A=[
+ /* 0 会员与商户 */
+ {n:'商户主档',d:0,sub:'实体商户档案',t:12840,i:[12,86,412,1840],r:[8.2,12.4,12.6,18.3],lv:'A',link:'merchant-profile.html',up:'10-22 02:00'},
+ {n:'商户-档口关联',d:0,sub:'实体商户档案',t:11860,i:[6,41,196,860],r:[4.1,6.2,7.4,11.2],lv:'A',link:'merchant-profile.html',up:'10-22 02:00'},
+ {n:'历史租赁信息',d:0,sub:'实体商户档案',t:9420,i:[3,18,92,410],r:[-2.4,-1.8,2.1,6.4],lv:'A',link:'merchant-profile.html',up:'10-22 02:00'},
+ {n:'自动建档任务',d:0,sub:'建档',t:386,i:[1,7,32,142],r:[0,3.2,5.6,9.1],lv:'A',link:'merchant-auto.html',up:'10-22 02:00'},
+ {n:'物业模块权限',d:0,sub:'权限',t:8420,i:[4,26,118,486],r:[2.1,4.4,6.8,10.2],lv:'A',link:'merchant-profile.html',up:'10-22 02:00'},
+ {n:'档口使用人关联',d:0,sub:'权限',t:4180,i:[2,14,62,268],r:[1.8,3.1,4.2,7.6],lv:'A',link:'merchant-profile.html',up:'10-22 02:00'},
+ {n:'资质证书台账',d:0,sub:'资质',t:3260,i:[3,19,88,352],r:[5.4,7.2,9.1,14.6],lv:'A',link:'merchant-qual.html',up:'10-22 02:00'},
+ {n:'资料变更申请单',d:0,sub:'变更',t:742,i:[2,11,48,196],r:[3.2,5.6,8.4,12.8],lv:'A',link:'merchant-change.html',up:'10-22 02:00'},
+ {n:'信用评级记录',d:0,sub:'信用',t:2180,i:[0,2,14,86],r:[-1.2,0,4.8,8.2],lv:'A',link:'merchant-rating.html',up:'10-22 02:00'},
+ {n:'清退存档台账',d:0,sub:'清退',t:186,i:[0,0,3,18],r:[0,0,-12.5,-4.2],lv:'A',link:'merchant-exit.html',up:'10-22 02:00'},
+ {n:'线上开店申请单',d:0,sub:'线上商户',t:628,i:[3,16,74,286],r:[6.8,9.2,11.4,16.2],lv:'A',link:'mall-merchant-apply.html',up:'10-22 02:00'},
+ {n:'线上商户档案',d:0,sub:'线上商户',t:486,i:[2,12,56,214],r:[4.2,6.8,9.6,13.4],lv:'A',link:'mall-merchant-list.html',up:'10-22 02:00'},
+ {n:'店铺档案',d:0,sub:'店铺',t:512,i:[2,13,58,226],r:[5.1,7.4,10.2,15.1],lv:'A',link:'mall-shop-list.html',up:'10-22 02:00'},
+
+ /* 1 资源与物业 */
+ {n:'场所',d:1,sub:'空间骨架',t:3,i:[0,0,0,0],r:[0,0,0,0],lv:'A',link:'resource-building.html',up:'10-22 02:00'},
+ {n:'楼栋',d:1,sub:'空间骨架',t:12,i:[0,0,0,0],r:[0,0,0,0],lv:'A',link:'resource-building.html',up:'10-22 02:00'},
+ {n:'楼层',d:1,sub:'空间骨架',t:38,i:[0,0,0,0],r:[0,0,0,0],lv:'A',link:'resource-building.html',up:'10-22 02:00'},
+ {n:'资源单元（档口/店面/办公室）',d:1,sub:'资源台账',t:2864,i:[0,2,8,26],r:[0,0,2.4,4.8],lv:'A',link:'resource-unit.html',up:'10-22 02:00'},
+ {n:'合同-档口关联',d:1,sub:'资源台账',t:2640,i:[1,5,22,74],r:[2.2,3.1,4.6,7.2],lv:'A',link:'resource-unit.html',up:'10-22 02:00'},
+ {n:'历届租户',d:1,sub:'资源台账',t:5180,i:[2,9,38,152],r:[1.4,2.2,3.8,6.1],lv:'A',link:'resource-unit.html',up:'10-22 02:00'},
+ {n:'竞拍信息登记',d:1,sub:'竞拍',t:842,i:[0,4,18,76],r:[0,6.2,8.4,11.6],lv:'A',link:'resource-unit.html',up:'10-22 02:00'},
+ {n:'楼层平面图（含版本）',d:1,sub:'平面图',t:126,i:[0,2,6,28],r:[0,8.1,10.2,14.4],lv:'A',link:'resource-floorplan.html',up:'10-22 02:00'},
+ {n:'点位标注',d:1,sub:'平面图',t:1840,i:[0,14,62,246],r:[0,4.2,6.8,9.4],lv:'A',link:'resource-floorplan.html',up:'10-22 02:00'},
+ {n:'合同同步日志',d:1,sub:'同步',t:18620,i:[4,28,124,498],r:[2.6,3.8,5.2,8.1],lv:'A',link:'resource-unit.html',up:'10-22 02:00'},
+ {n:'合同匹配异常清单',d:1,sub:'同步',t:246,i:[1,6,24,92],r:[-4.2,-2.8,1.2,3.6],lv:'A',link:'resource-unit.html',up:'10-22 02:00'},
+ {n:'空置期记录',d:1,sub:'空置',t:468,i:[0,3,12,48],r:[0,2.1,4.2,6.8],lv:'A',link:'resource-dashboard.html',up:'10-22 02:00'},
+ {n:'巡检计划',d:1,sub:'巡检',t:64,i:[0,0,2,8],r:[0,0,0,6.2],lv:'A',link:'inspection.html',up:'10-22 02:00'},
+ {n:'巡检任务',d:1,sub:'巡检',t:6820,i:[24,142,586,2410],r:[6.2,8.4,10.6,16.8],lv:'A',link:'inspection.html',up:'10-22 02:00'},
+ {n:'问题上报单',d:1,sub:'巡检',t:1240,i:[6,32,142,568],r:[4.8,6.2,8.1,12.4],lv:'A',link:'inspection-report.html',up:'10-22 02:00'},
+ {n:'整改派发单',d:1,sub:'整改',t:986,i:[4,24,108,442],r:[3.6,5.1,7.2,10.8],lv:'A',link:'inspection-assign.html',up:'10-22 02:00'},
+ {n:'整改复核记录',d:1,sub:'整改',t:942,i:[4,22,102,418],r:[3.2,4.8,6.8,10.2],lv:'A',link:'inspection-review.html',up:'10-22 02:00'},
+
+ /* 2 合同与缴费 */
+ {n:'合同模板',d:2,sub:'模板',t:24,i:[0,0,1,4],r:[0,0,0,3.2],lv:'A',link:'contract-template.html',up:'10-22 02:00'},
+ {n:'合同主数据',d:2,sub:'合同',t:9640,i:[6,38,186,764],r:[3.1,5.4,7.2,11.6],lv:'A',link:'contract-list.html',up:'10-22 02:00'},
+ {n:'合同变更单',d:2,sub:'合同',t:628,i:[1,8,36,148],r:[2.4,4.2,6.1,9.8],lv:'A',link:'contract-change.html',up:'10-22 02:00'},
+ {n:'竞拍结果登记',d:2,sub:'签署',t:842,i:[0,4,18,76],r:[0,6.2,8.4,11.6],lv:'A',link:'contract-apply.html',up:'10-22 02:00'},
+ {n:'签署单',d:2,sub:'签署',t:9260,i:[5,32,164,682],r:[2.8,4.6,6.4,10.2],lv:'A',link:'contract-apply.html',up:'10-22 02:00'},
+ {n:'盖章件归档',d:2,sub:'签署',t:8840,i:[4,28,142,596],r:[2.2,4.1,5.8,9.4],lv:'A',link:'contract-apply.html',up:'10-22 02:00'},
+ {n:'短信发送记录',d:2,sub:'签署',t:28460,i:[18,106,428,1742],r:[4.2,6.1,8.2,12.6],lv:'A',link:'contract-apply.html',up:'10-22 02:00'},
+ {n:'应收计划（分期）',d:2,sub:'应收',t:38260,i:[16,98,402,1620],r:[3.8,5.6,7.4,11.2],lv:'A',link:'contract-list.html',up:'10-22 02:00'},
+ {n:'人工核销登记',d:2,sub:'应收',t:21640,i:[8,48,196,786],r:[2.6,4.2,6.1,9.6],lv:'A',link:'merchant-dunning.html',up:'10-22 02:00'},
+ {n:'催缴执行记录',d:2,sub:'催缴',t:14820,i:[12,72,286,1148],r:[5.1,7.2,9.4,13.8],lv:'A',link:'merchant-dunning.html',up:'10-22 02:00'},
+ {n:'缴纳名单导入批次',d:2,sub:'催缴',t:186,i:[1,4,16,62],r:[0,2.4,4.1,7.2],lv:'A',link:'merchant-dunning.html',up:'10-22 02:00'},
+ {n:'合同终止记录',d:2,sub:'终止',t:486,i:[0,3,14,56],r:[0,-6.2,-3.8,2.1],lv:'A',link:'contract-list.html',up:'10-22 02:00'},
+
+ /* 3 电商与交易 */
+ {n:'商品（含 SKU）',d:3,sub:'商品',t:8640,i:[12,76,326,1284],r:[6.2,8.4,10.2,15.6],lv:'A',link:'mall-ops.html',up:'10-22 02:00'},
+ {n:'商家视频',d:3,sub:'商品',t:1284,i:[2,14,62,248],r:[3.2,5.1,7.2,10.4],lv:'B',link:'',up:'10-22 02:00'},
+ {n:'普通订单',d:3,sub:'订单',t:24680,i:[42,268,1086,4286],r:[8.4,10.6,12.8,18.2],lv:'B',link:'',up:'10-22 02:00'},
+ {n:'采购需求单',d:3,sub:'询价',t:1642,i:[4,22,96,382],r:[5.6,7.2,9.1,13.4],lv:'A',link:'mall-inquiry.html',up:'10-22 02:00'},
+ {n:'卖家报价',d:3,sub:'询价',t:6284,i:[16,98,412,1624],r:[6.8,9.2,11.4,16.8],lv:'A',link:'mall-inquiry.html',up:'10-22 02:00'},
+ {n:'询价订单',d:3,sub:'询价',t:842,i:[3,16,72,286],r:[4.2,6.1,8.2,12.1],lv:'A',link:'mall-order-inquiry.html',up:'10-22 02:00'},
+ {n:'成交快照',d:3,sub:'询价',t:842,i:[3,16,72,286],r:[4.2,6.1,8.2,12.1],lv:'A',link:'mall-order-inquiry.html',up:'10-22 02:00'},
+ {n:'热搜词',d:3,sub:'流量',t:486,i:[0,2,8,26],r:[0,1.2,2.4,4.1],lv:'A',link:'trend-data.html',up:'10-22 02:00'},
+ {n:'趋势榜单',d:3,sub:'流量',t:126,i:[0,0,1,4],r:[0,0,0,2.1],lv:'A',link:'trend-ranking.html',up:'10-22 02:00'},
+
+ /* 4 产业链服务 */
+ {n:'政策',d:4,sub:'政策',t:642,i:[1,6,26,102],r:[2.4,4.1,6.2,9.8],lv:'A',link:'chain-policy.html',up:'10-22 02:00'},
+ {n:'政策 AI 解读',d:4,sub:'政策',t:586,i:[1,5,22,86],r:[2.1,3.6,5.4,8.4],lv:'A',link:'chain-policy.html',up:'10-22 02:00'},
+ {n:'政策申报单',d:4,sub:'政策',t:1246,i:[4,22,96,382],r:[5.2,7.1,9.2,13.6],lv:'A',link:'chain-policy.html',up:'10-22 02:00'},
+ {n:'技术需求',d:4,sub:'技术',t:386,i:[1,6,26,102],r:[3.1,4.8,6.8,10.2],lv:'A',link:'chain-tech-demand.html',up:'10-22 02:00'},
+ {n:'技术成果',d:4,sub:'技术',t:428,i:[1,7,30,118],r:[4.2,6.1,8.2,11.8],lv:'A',link:'chain-tech-achv.html',up:'10-22 02:00'},
+ {n:'对接申请',d:4,sub:'撮合',t:862,i:[4,18,76,298],r:[6.8,9.2,11.6,16.4],lv:'A',link:'chain-tech-demand.html',up:'10-22 02:00'},
+ {n:'评价',d:4,sub:'撮合',t:486,i:[2,9,38,148],r:[4.1,5.8,7.6,10.8],lv:'A',link:'chain-tech-demand.html',up:'10-22 02:00'},
+ {n:'服务商台账',d:4,sub:'中介',t:186,i:[0,1,4,12],r:[0,0,2.1,4.2],lv:'A',link:'chain-agency.html',up:'10-22 02:00'},
+ {n:'服务项目',d:4,sub:'中介',t:628,i:[0,3,12,46],r:[0,2.4,4.1,6.8],lv:'A',link:'chain-agency.html',up:'10-22 02:00'},
+ {n:'委托/成交登记',d:4,sub:'中介',t:246,i:[1,4,16,62],r:[2.1,3.8,5.6,8.2],lv:'A',link:'chain-agency.html',up:'10-22 02:00'},
+ {n:'知产服务配置',d:4,sub:'知产',t:42,i:[0,0,1,2],r:[0,0,0,1.2],lv:'A',link:'chain-ip.html',up:'10-22 02:00'},
+ {n:'招聘企业',d:4,sub:'招聘',t:462,i:[2,9,38,152],r:[4.2,6.1,8.4,12.6],lv:'A',link:'chain-recruit-company.html',up:'10-22 02:00'},
+ {n:'招聘岗位',d:4,sub:'招聘',t:1286,i:[6,32,142,562],r:[6.1,8.2,10.4,15.2],lv:'A',link:'chain-recruit-job.html',up:'10-22 02:00'},
+ {n:'简历',d:4,sub:'招聘',t:4860,i:[18,106,428,1726],r:[7.2,9.6,12.1,17.4],lv:'A',link:'chain-recruit-resume.html',up:'10-22 02:00'},
+ {n:'投递记录',d:4,sub:'招聘',t:6820,i:[24,142,586,2418],r:[8.1,10.2,13.4,18.6],lv:'A',link:'chain-recruit-delivery.html',up:'10-22 02:00'},
+ {n:'岗位审核记录',d:4,sub:'招聘',t:1184,i:[5,28,124,498],r:[5.4,7.2,9.6,13.8],lv:'A',link:'chain-recruit-audit.html',up:'10-22 02:00'},
+ {n:'金融机构',d:4,sub:'金融',t:18,i:[0,0,0,1],r:[0,0,0,0],lv:'A',link:'chain-finance.html',up:'10-22 02:00'},
+ {n:'金融产品',d:4,sub:'金融',t:86,i:[0,1,2,6],r:[0,0,1.2,2.8],lv:'A',link:'chain-finance.html',up:'10-22 02:00'},
+ {n:'入口点击记录',d:4,sub:'金融',t:12480,i:[28,168,682,2684],r:[6.4,8.2,10.8,15.4],lv:'A',link:'chain-finance.html',up:'10-22 02:00'},
+
+ /* 5 文商旅 */
+ {n:'研学基地',d:5,sub:'研学',t:18,i:[0,0,0,1],r:[0,0,0,0],lv:'A',link:'study-base.html',up:'10-22 02:00'},
+ {n:'研学路线',d:5,sub:'研学',t:64,i:[0,1,2,6],r:[0,0,1.4,3.2],lv:'A',link:'study-route.html',up:'10-22 02:00'},
+ {n:'研学场次',d:5,sub:'研学',t:286,i:[1,4,16,62],r:[2.1,3.6,5.2,8.4],lv:'A',link:'study-route.html',up:'10-22 02:00'},
+ {n:'研学报名单',d:5,sub:'研学',t:1842,i:[6,32,142,568],r:[5.1,7.2,9.4,13.6],lv:'A',link:'study-approve.html',up:'10-22 02:00'},
+ {n:'责任书模板',d:5,sub:'研学',t:12,i:[0,0,0,1],r:[0,0,0,0],lv:'A',link:'study-letter.html',up:'10-22 02:00'},
+ {n:'签署存证',d:5,sub:'研学',t:1628,i:[5,28,126,502],r:[4.8,6.8,8.6,12.4],lv:'A',link:'study-group.html',up:'10-22 02:00'},
+ {n:'研学签到记录',d:5,sub:'研学',t:1426,i:[4,24,108,432],r:[4.2,6.1,8.2,11.8],lv:'A',link:'study-group.html',up:'10-22 02:00'},
+ {n:'研学评价',d:5,sub:'研学',t:862,i:[2,12,52,208],r:[3.6,5.2,7.4,10.6],lv:'A',link:'study-route.html',up:'10-22 02:00'},
+ {n:'展会（届次）',d:5,sub:'袜博会',t:6,i:[0,0,0,1],r:[0,0,0,0],lv:'A',link:'expo-list.html',up:'10-22 02:00'},
+ {n:'展位类型与价格',d:5,sub:'袜博会',t:24,i:[0,0,1,2],r:[0,0,0,2.1],lv:'A',link:'expo-list.html',up:'10-22 02:00'},
+ {n:'展位',d:5,sub:'袜博会',t:1286,i:[0,2,8,26],r:[0,1.2,2.4,4.6],lv:'A',link:'expo-booth.html',up:'10-22 02:00'},
+ {n:'展位申请单',d:5,sub:'袜博会',t:428,i:[1,4,16,62],r:[2.4,4.1,5.8,8.6],lv:'A',link:'expo-booth.html',up:'10-22 02:00'},
+ {n:'参观登记单',d:5,sub:'袜博会',t:6840,i:[12,86,342,1362],r:[6.1,8.4,10.6,15.2],lv:'A',link:'expo-visitor.html',up:'10-22 02:00'},
+ {n:'核销记录',d:5,sub:'袜博会',t:5286,i:[8,62,248,986],r:[5.4,7.2,9.4,13.8],lv:'A',link:'expo-checkin.html',up:'10-22 02:00'},
+ {n:'展商与企业资料',d:5,sub:'袜博会',t:382,i:[0,2,8,26],r:[0,1.4,2.8,4.8],lv:'A',link:'expo-exhibitor.html',up:'10-22 02:00'},
+ {n:'日程议程 + 嘉宾库',d:5,sub:'袜博会',t:186,i:[0,1,4,12],r:[0,0,2.1,4.2],lv:'A',link:'expo-schedule-manage.html',up:'10-22 02:00'},
+ {n:'官方资料',d:5,sub:'袜博会',t:96,i:[0,0,1,4],r:[0,0,1.2,2.4],lv:'A',link:'expo-material.html',up:'10-22 02:00'},
+ {n:'往届存档',d:5,sub:'袜博会',t:4,i:[0,0,0,1],r:[0,0,0,0],lv:'A',link:'expo-archive.html',up:'10-22 02:00'},
+
+ /* 6 活动与内容 */
+ {n:'活动主数据',d:6,sub:'活动',t:286,i:[1,2,6,24],r:[2.1,3.4,5.2,8.1],lv:'A',link:'activity.html',up:'10-22 02:00'},
+ {n:'活动报名单',d:6,sub:'活动',t:4860,i:[8,42,168,642],r:[6.2,8.4,10.6,14.8],lv:'A',link:'activity-signup.html',up:'10-22 02:00'},
+ {n:'报名导入批次',d:6,sub:'活动',t:42,i:[0,1,2,6],r:[0,0,1.2,2.4],lv:'A',link:'activity-signup.html',up:'10-22 02:00'},
+ {n:'签到记录',d:6,sub:'活动',t:3862,i:[5,32,126,486],r:[5.1,7.2,9.2,13.4],lv:'A',link:'activity-checkin.html',up:'10-22 02:00'},
+ {n:'活动操作日志',d:6,sub:'活动',t:8640,i:[18,96,382,1486],r:[4.8,6.4,8.2,12.6],lv:'A',link:'activity-detail.html',up:'10-22 02:00'},
+ {n:'资讯文章',d:6,sub:'内容',t:1246,i:[3,14,58,226],r:[3.2,4.8,6.4,9.8],lv:'A',link:'content.html',up:'10-22 02:00'},
+ {n:'公告通知',d:6,sub:'内容',t:486,i:[1,5,22,86],r:[2.1,3.6,5.2,8.4],lv:'A',link:'content-notice.html',up:'10-22 02:00'},
+ {n:'Banner',d:6,sub:'内容',t:86,i:[0,1,2,8],r:[0,0,1.4,3.2],lv:'A',link:'content-banner.html',up:'10-22 02:00'},
+ {n:'投放位占用',d:6,sub:'内容',t:246,i:[0,2,8,26],r:[0,1.2,2.4,4.2],lv:'A',link:'content-banner.html',up:'10-22 02:00'},
+ {n:'产业指数',d:6,sub:'内容',t:62,i:[0,0,1,4],r:[0,0,0,2.1],lv:'A',link:'content-index.html',up:'10-22 02:00'},
+ {n:'消息推送记录',d:6,sub:'推送',t:18640,i:[24,142,586,2418],r:[5.6,7.4,9.6,14.2],lv:'A',link:'content-push.html',up:'10-22 02:00'},
+
+ /* 7 设备与物联（C 级为主） */
+ {n:'物联设备台账',d:7,sub:'设备',t:0,i:[0,0,0,0],r:[0,0,0,0],lv:'C',link:'',up:'',note:'03 模块开发中'},
+ {n:'设备在线状态',d:7,sub:'设备',t:0,i:[0,0,0,0],r:[0,0,0,0],lv:'C',link:'',up:'',note:'03 模块开发中'},
+ {n:'告警记录',d:7,sub:'告警',t:0,i:[0,0,0,0],r:[0,0,0,0],lv:'C',link:'',up:'',note:'03 模块开发中'},
+
+ /* 8 运营与系统 */
+ {n:'数据源接入档案',d:8,sub:'数据底座',t:36,i:[0,1,2,6],r:[0,0,1.2,2.4],lv:'A',link:'data-source.html',up:'10-22 02:00'},
+ {n:'采集任务',d:8,sub:'数据底座',t:128,i:[0,2,6,18],r:[0,1.4,2.6,4.8],lv:'A',link:'data-industry.html',up:'10-22 02:00'},
+ {n:'接入网关通道',d:8,sub:'数据底座',t:24,i:[0,0,1,2],r:[0,0,0,1.2],lv:'A',link:'data-monitor.html',up:'10-22 02:00'},
+ {n:'主题域与资产目录',d:8,sub:'数据底座',t:118,i:[0,2,6,22],r:[0,1.6,2.8,5.1],lv:'B',link:'',up:'10-22 02:00'},
+ {n:'主数据（企业/产品/原料/设备）',d:8,sub:'数据底座',t:0,i:[0,0,0,0],r:[0,0,0,0],lv:'C',link:'',up:'',note:'数据治理开发中'},
+ {n:'数据集',d:8,sub:'数据底座',t:0,i:[0,0,0,0],r:[0,0,0,0],lv:'C',link:'',up:'',note:'入湖分层开发中'},
+ {n:'质量工单',d:8,sub:'数据底座',t:0,i:[0,0,0,0],r:[0,0,0,0],lv:'C',link:'',up:'',note:'数据治理开发中'},
+ {n:'AI 工具档案',d:8,sub:'AI 工具',t:24,i:[0,0,1,2],r:[0,0,0,1.4],lv:'A',link:'ai-ops.html',up:'10-22 02:00'},
+ {n:'AI 服务商档案',d:8,sub:'AI 工具',t:8,i:[0,0,0,1],r:[0,0,0,0],lv:'A',link:'ai-provider.html',up:'10-22 02:00'},
+ {n:'模型供应商与模型清单',d:8,sub:'AI 平台',t:0,i:[0,0,0,0],r:[0,0,0,0],lv:'C',link:'',up:'',note:'17 平台开发中'},
+ {n:'知识库与文档',d:8,sub:'AI 平台',t:0,i:[0,0,0,0],r:[0,0,0,0],lv:'C',link:'',up:'',note:'17 平台开发中'},
+ {n:'应用（Agent/Workflow）',d:8,sub:'AI 平台',t:0,i:[0,0,0,0],r:[0,0,0,0],lv:'C',link:'',up:'',note:'17 平台开发中'},
+ {n:'运行日志与调用记录',d:8,sub:'AI 平台',t:0,i:[0,0,0,0],r:[0,0,0,0],lv:'C',link:'',up:'',note:'17 平台开发中'},
+ {n:'待办与告警工单',d:8,sub:'工作台',t:428,i:[2,12,48,186],r:[2.6,4.1,5.8,8.4],lv:'B',link:'',up:'10-22 02:00'}
+];
+
+/* 「更新」量：按新增量推导（演示：1.4~2.9 倍，低频新增资产更新更频繁） */
+A.forEach(function(a,i){a.u=a.i.map(function(v){return Math.round(v*(1.4+(i%4)*0.5));});});
+
+/* 异常（演示：3 久未更新 + 1 环比暴跌 + 1 采集失败） */
+var ALERTS=[
+ {n:'物联设备台账',d:7,type:'采集失败',txt:'采集任务返回 401，连续 2 次失败',t:'10-21 02:00',lv:'P0'},
+ {n:'商户-档口关联',d:0,type:'久未更新',txt:'已 8 天未更新（正常应每日更新）',t:'10-14 02:00',lv:'P1'},
+ {n:'租户历史归档',d:0,type:'环比暴跌',txt:'较上期 -42%（原因：到期批量归档）',t:'10-20 02:00',lv:'P1'},
+ {n:'合同终止记录',d:2,type:'环比暴跌',txt:'较上期 -31%（原因：本月无提前终止）',t:'10-20 02:00',lv:'P2'},
+ {n:'景区客流采集',d:5,type:'久未更新',txt:'已 12 天未更新（依赖 03 设备接入）',t:'10-10 02:00',lv:'P2'}
+];
+
+/* 演示基准时刻（真实环境取服务器当前时间） */
+var PERIODS=[
+ {label:'今日',cur:'2026-10-22 00:00 ~ 2026-10-22 14:30',prev:'2026-10-21 00:00 ~ 2026-10-21 14:30',prevName:'昨日同期',prog:'进行中 · 14.5 / 24 小时'},
+ {label:'本周',cur:'2026-10-19 00:00 ~ 2026-10-22 14:30',prev:'2026-10-12 00:00 ~ 2026-10-15 14:30',prevName:'上周同期',prog:'进行中 · 第 4 / 7 天'},
+ {label:'本月',cur:'2026-10-01 00:00 ~ 2026-10-22 14:30',prev:'2026-09-01 00:00 ~ 2026-09-22 14:30',prevName:'上月同期',prog:'进行中 · 第 22 / 31 天'},
+ {label:'本年',cur:'2026-01-01 00:00 ~ 2026-10-22 14:30',prev:'2025-01-01 00:00 ~ 2025-10-22 14:30',prevName:'去年同期',prog:'进行中 · 第 10 / 12 月'}
+];
+var P=2; // 默认本月
+
+function fmt(n){return (n||0).toLocaleString('zh-CN');}
+function p2(n){return (n<10?'0':'')+n;}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+var CUSTOM=null; // 自定义统计期 {start,end,days,label,cur,prev,prevName,prog}
+function curP(){return P===-1?CUSTOM:PERIODS[P];}
+function incOf(a){return P===-1?Math.max(0,Math.round(a.i[2]/22*CUSTOM.days)):a.i[P];}
+function ratioOf(a){return P===-1?a.r[2]:a.r[P];}
+function updOf(a){return P===-1?Math.max(0,Math.round(a.u[2]/22*CUSTOM.days)):a.u[P];}
+function ratioHtml(v){
+  if(!v){return '<span class="flat">—</span>';}
+  return v>0?'<span class="up">↑'+v.toFixed(1)+'%</span>':'<span class="down">↓'+Math.abs(v).toFixed(1)+'%</span>';
+}
+function liveAssets(){return A.filter(function(a){return a.lv!=='C';});}
+function domainAgg(d){
+  var list=liveAssets().filter(function(a){return a.d===d;});
+  var total=0,inc=0,wsum=0,wt=0;
+  list.forEach(function(a){total+=a.t;inc+=incOf(a);var w=incOf(a)||1;wsum+=ratioOf(a)*w;wt+=w;});
+  return {total:total,inc:inc,ratio:wt?wsum/wt:0,cnt:list.length};
+}
+
+/* ================= KPI ================= */
+function renderKpis(){
+  var list=liveAssets();
+  var PL=curP().label,PN=curP().prevName;
+  var total=0,inc=0,upd=0,wsum=0,wt=0;
+  list.forEach(function(a){total+=a.t;inc+=incOf(a);upd+=updOf(a);var w=incOf(a)||1;wsum+=ratioOf(a)*w;wt+=w;});
+  var ratio=wt?wsum/wt:0;
+  var k=[
+    ['资产对象',list.length+' 个','覆盖 9 个一级域','fa-cubes','#2E6BE6'],
+    ['记录总量',fmt(total),'不含已作废 / 已删除','fa-database','#1F2430'],
+    [PL+'新增',fmt(inc),'自然新增（不含导入/迁移）','fa-plus','#15803D'],
+    [PL+'更新',fmt(upd),'期内有过实质变更','fa-pen','#0891B2'],
+    ['环比',(ratio>=0?'+':'')+ratio.toFixed(1)+'%','较'+PN+'（'+curP().prev+'）','fa-arrow-trend-up',ratio>=0?'#15803D':'#DC2626'],
+    ['异常资产',ALERTS.length+' 个','见下方异常提示','fa-triangle-exclamation','#B45309']
+  ];
+  document.getElementById('kpis').innerHTML=k.map(function(x){
+    return '<div class="kpi"><p><i class="fas '+x[3]+'" style="color:'+x[4]+'"></i>'+x[0]+'</p>'
+      +'<div class="v" style="color:'+x[4]+'">'+x[1]+'</div><div class="s">'+x[2]+'</div></div>';
+  }).join('');
+}
+
+/* ================= 趋势 ================= */
+function niceMax(v){
+  if(!v){return 1;}
+  var p=Math.pow(10,Math.floor(Math.log10(v)));
+  var n=v/p;
+  var m=n<=1?1:(n<=2?2:(n<=2.5?2.5:(n<=5?5:10)));
+  return m*p;
+}
+function trendSeries(){
+  var total=0;liveAssets().forEach(function(a){total+=incOf(a);});
+  var labels=[],show={},gran='';
+  if(P===-1){
+    var dd=CUSTOM.days;
+    if(dd<=2){
+      gran='按小时（每 2 小时）';
+      for(var a=0;a<12;a++){labels.push(p2(a*2)+':00');show[a]=(a%3===0);}
+    }else if(dd<=45){
+      gran='按天';
+      var d0=new Date(CUSTOM.start+'T00:00:00');
+      for(var b=0;b<dd;b++){
+        var dt=new Date(d0.getTime()+b*86400000);
+        labels.push((dt.getMonth()+1)+'/'+dt.getDate());
+        show[b]=(b===0||(b+1)%5===0||b===dd-1);
+      }
+    }else{
+      gran='按月';
+      var ns=new Date(CUSTOM.start+'T00:00:00'),ne=new Date(CUSTOM.end+'T00:00:00');
+      var span=(ne.getFullYear()-ns.getFullYear())*12+(ne.getMonth()-ns.getMonth());
+      for(var c=0;c<=span;c++){labels.push(((ns.getMonth()+c)%12+1)+'月');show[c]=true;}
+    }
+  }else if(P===0){
+    gran='按小时（每 2 小时）';
+    for(var i=0;i<12;i++){labels.push(p2(i*2)+':00');show[i]=(i%3===0);}
+  }else if(P===1){
+    gran='按天';
+    labels=['周一','周二','周三','周四','周五','周六','周日'];
+    labels.forEach(function(_,i){show[i]=true;});
+  }else if(P===2){
+    gran='按天';var last=22;
+    for(var i=1;i<=last;i++){labels.push(i+'日');show[i-1]=(i===1||i%5===0||i===last);}
+  }else{
+    gran='按月';
+    for(var i=1;i<=10;i++){labels.push(i+'月');show[i-1]=true;}
+  }
+  var n=labels.length,vals=[],sum=0;
+  for(var i=0;i<n;i++){var s=0.55+Math.abs(Math.sin((i+1)*0.9))*0.9;vals.push(s);sum+=s;}
+  vals=vals.map(function(v){return Math.round(total*v/sum);});
+  return {labels:labels,vals:vals,show:show,total:total,gran:gran};
+}
+function renderTrend(){
+  var d=trendSeries();
+  var mx=Math.max.apply(null,d.vals)||1;
+  var top=niceMax(mx);
+  var ticks=[top,top*0.75,top*0.5,top*0.25,0];
+  var fv=function(v){return v>=10000?(v/10000).toFixed(1)+'万':fmt(v);};
+
+  var h='<div class="yaxis">'+ticks.map(function(t){return '<span>'+fv(t)+'</span>';}).join('')+'</div>';
+  h+='<div class="plot"><div class="plotbox">';
+  h+='<div class="gl" style="top:0"></div><div class="gl" style="top:25%"></div><div class="gl" style="top:50%"></div><div class="gl" style="top:75%"></div><div class="gl" style="top:100%"></div>';
+  h+='<div class="bars">'+d.vals.map(function(v,i){
+    var hp=top?Math.max(2,v/top*118):2;
+    return '<div title="'+d.labels[i]+'：'+fmt(v)+' 条"><i style="height:'+hp+'px"></i></div>';
+  }).join('')+'</div></div>';
+  h+='<div class="xaxis">'+d.labels.map(function(l,i){return '<span>'+(d.show[i]?l:'')+'</span>';}).join('')+'</div>';
+  h+='</div>';
+  document.getElementById('chart').innerHTML=h;
+  var PL=curP().label;
+  document.getElementById('trendTitle').textContent=PL+'新增趋势';
+  document.getElementById('trendTip').textContent=PL+' · '+d.gran+' · 合计 '+fmt(d.total)+' 条 · 峰值 '+fmt(mx)+' 条';
+}
+function ratioOfText(v){return v?(v>0?'+'+v.toFixed(1)+'%':'-'+Math.abs(v).toFixed(1)+'%'):'无对比';}
+
+/* ================= 9 卡 ================= */
+function renderCards(){
+  var PL=curP().label,PN=curP().prevName;
+  document.getElementById('cards').innerHTML=DOMAINS.map(function(d,i){
+    var g=domainAgg(i);
+    var isC=g.cnt===0;
+    var upd=0;
+    liveAssets().filter(function(a){return a.d===i;}).forEach(function(a){upd+=updOf(a);});
+    return '<div class="dcard'+(isC?' opacity-70':'')+'" onclick="'+(isC?'toast(\'该域暂无已接入资产\')':'openDomain('+i+')')+'">'
+      +'<div class="flex items-start gap-2.5 mb-1">'
+      +'<div class="ic" style="background:'+d.color+'"><i class="fas '+d.icon+'"></i></div>'
+      +'<div style="min-width:0;flex:1"><p class="text-[13.5px] font-bold text-[#1F2430]">'+d.n+'</p>'
+      +'<p class="text-[10.5px] text-gray-400 truncate">'+d.desc+'</p></div>'
+      +'<span class="tag" style="background:#F4F7FC;color:#64748B">'+g.cnt+' 个资产</span></div>'
+      +'<div style="margin-top:auto">'
+      +'<p class="text-[26px] font-bold" style="color:#1F2430;letter-spacing:-.6px;line-height:1.1">'+(isC?'—':fmt(g.total))+'</p>'
+      +'<div class="flex items-center gap-3 mt-1.5 text-[11px]">'
+      +(isC?'<span class="flat">暂无接入</span>'
+        :'<span class="text-gray-500">'+PL+'新增 <b style="color:#15803D">'+fmt(g.inc)+'</b></span>'
+        +'<span class="text-gray-500">更新 <b style="color:#0891B2">'+fmt(upd)+'</b></span>'
+        +'<span title="较'+PN+' '+ratioOfText(g.ratio)+'">'+ratioHtml(g.ratio)+'</span>')
+      +'</div></div></div>';
+  }).join('');
+}
+
+/* ================= 榜单 ================= */
+function renderTops(){
+  var list=liveAssets().slice();
+  document.getElementById('topIncTip').textContent='按'+curP().label+'新增';
+  var inc=list.slice().sort(function(a,b){return incOf(b)-incOf(a);}).slice(0,5);
+  var size=list.slice().sort(function(a,b){return b.t-a.t;}).slice(0,5);
+  document.getElementById('topInc').innerHTML=inc.map(function(a,i){
+    return '<div class="flex items-center gap-2 py-1.5 border-b border-gray-50"><span class="text-[10px] w-4 text-gray-300">'+(i+1)+'</span>'
+      +'<span class="text-[12px] text-gray-700 flex-1 truncate">'+esc(a.n)+'</span>'
+      +'<span class="text-[12px] font-semibold" style="color:#15803D">+'+fmt(incOf(a))+'</span>'
+      +'<span class="text-[10px] text-gray-400 w-12 text-right">'+a.i[0]+'/日</span></div>';
+  }).join('');
+  document.getElementById('topSize').innerHTML=size.map(function(a,i){
+    return '<div class="flex items-center gap-2 py-1.5 border-b border-gray-50"><span class="text-[10px] w-4 text-gray-300">'+(i+1)+'</span>'
+      +'<span class="text-[12px] text-gray-700 flex-1 truncate">'+esc(a.n)+'</span>'
+      +'<span class="text-[12px] font-semibold" style="color:#7C3AED">'+fmt(a.t)+'</span></div>';
+  }).join('');
+}
+
+/* ================= 异常 / 未接入 ================= */
+function renderAlerts(){
+  document.getElementById('alertCnt').textContent='（'+ALERTS.length+' 项待处理）';
+  document.getElementById('alerts').innerHTML=ALERTS.map(function(x,i){
+    var c=x.lv==='P0'?'#B91C1C':(x.lv==='P1'?'#B45309':'#64748B');
+    var bg=x.lv==='P0'?'#FEF2F2':(x.lv==='P1'?'#FFFBEB':'#F8FAFC');
+    return '<div class="flex items-center gap-2 px-3 py-2 rounded-lg mb-1.5" style="background:'+bg+'">'
+      +'<span class="tag" style="background:#fff;color:'+c+';border:1px solid '+c+'33">'+x.lv+'</span>'
+      +'<span class="text-[12px] font-medium" style="color:'+c+'">'+x.type+'</span>'
+      +'<span class="text-[12px] text-gray-600 flex-1">'+esc(x.n)+'　<span class="text-gray-400">'+esc(x.txt)+'</span></span>'
+      +'<span class="text-[10.5px] text-gray-400">'+x.t+'</span>'
+      +'<span class="lk text-[11.5px]" onclick="openDomain('+x.d+')" style="color:#2E6BE6">定位 ›</span></div>';
+  }).join('');
+}
+
+
+/* ================= 搜索 ================= */
+function showSearch(){
+  var kw=(document.getElementById('q').value||'').trim();
+  var box=document.getElementById('sres');
+  if(!kw){box.classList.remove('on');return;}
+  var list=liveAssets().filter(function(a){return a.n.indexOf(kw)>=0||a.sub.indexOf(kw)>=0||DOMAINS[a.d].n.indexOf(kw)>=0;}).slice(0,10);
+  if(!list.length){box.innerHTML='<div style="color:#94A3B8">未找到资产，试试资产名或业务模块名</div>';}
+  else{box.innerHTML=list.map(function(a){
+    return '<div onclick="openDomain('+a.d+',\''+esc(a.n)+'\')"><b>'+esc(a.n)+'</b><span class="sub">'+DOMAINS[a.d].n+' · '+a.sub+'</span></div>';
+  }).join('');}
+  box.classList.add('on');
+}
+document.addEventListener('click',function(e){
+  var b=document.getElementById('sres');
+  if(!b.contains(e.target)&&e.target.id!=='q'){b.classList.remove('on');}
+});
+
+/* ================= 域抽屉 ================= */
+function openDomain(di,hl){
+  var d=DOMAINS[di];
+  var list=liveAssets().filter(function(a){return a.d===di;});
+  var g=domainAgg(di);
+  var subs={};
+  list.forEach(function(a){(subs[a.sub]=subs[a.sub]||[]).push(a);});
+  var h='<div class="flex items-start justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div class="flex items-start gap-3"><div class="ic" style="width:38px;height:38px;border-radius:11px;background:'+d.color+';color:#fff;display:flex;align-items:center;justify-content:center"><i class="fas '+d.icon+'"></i></div>'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+d.n+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-0.5">'+g.cnt+' 个资产　记录总量 '+fmt(g.total)+'　'+curP().label+'新增 '+fmt(g.inc)+'　'+ratioHtml(g.ratio)+'</p></div></div>'
+    +'<button class="btn btn-ghost" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-3">';
+  Object.keys(subs).forEach(function(s){
+    h+='<div class="text-[11px] font-semibold text-[#64748B] mt-2 mb-1.5 px-1">'+esc(s)+'</div>';
+    subs[s].forEach(function(a){
+      var isHL=(hl&&a.n===hl);
+      var canJump=(a.lv==='A'&&a.link);
+      h+='<div class="row flex items-center gap-2 px-2 py-2.5 rounded-lg'+(isHL?'" style="background:#EFF6FF"':'')+'">'
+        +'<div class="flex-1" style="min-width:0"><span class="text-[12.5px] font-medium text-[#1F2430]">'+esc(a.n)+'</span>'
+        +(a.lv==='B'?'<span class="tag ml-1.5" style="background:#F1F5F9;color:#94A3B8">明细页开发中</span>':'')
+        +'</div>'
+        +'<div class="text-right" style="width:96px"><span class="text-[12.5px] font-semibold text-[#1F2430]">'+fmt(a.t)+'</span>'
+        +'<div class="text-[10px] text-gray-400">总量</div></div>'
+        +'<div class="text-right" style="width:92px"><span class="text-[12.5px] font-semibold" style="color:#15803D">+'+fmt(incOf(a))+'</span>'
+        +'<div class="text-[10px]">'+ratioHtml(ratioOf(a))+'</div></div>'
+        +'<div class="text-right text-[10.5px] text-gray-400" style="width:78px">'+esc(a.up||'—')+'</div>'
+        +'<div style="width:74px;text-align:right">'+(canJump?'<span class="lk text-[11.5px]" onclick="gotoPage(\''+a.link+'\',\''+esc(a.n)+'\')" style="color:#2E6BE6">明细 ›</span>':'<span class="text-[11px] text-gray-300">—</span>')+'</div>'
+        +'</div>';
+    });
+  });
+  h+='</div>';
+  h+='<div class="px-5 py-3 border-t border-gray-100 flex justify-between items-center">'
+    +'<span class="text-[11px] text-gray-400">数据截至 2026-10-22 02:00　口径：不含已作废/已删除</span>'
+    +'<div class="flex gap-2"><button class="btn btn-ghost" onclick="exportDomain('+di+')">导出本域</button>'
+    +'<button class="btn btn-ghost" onclick="closeAll()">关闭</button></div></div>';
+  show('drawer',h);
+  if(hl){setTimeout(function(){var el=document.querySelector('#drawer .row[style*="EFF6FF"]');if(el){el.scrollIntoView({block:'center'});}},120);}
+}
+function gotoPage(link,name){
+  toast('跳转业务明细：'+name+'（'+link+'，已带统计期参数）');
+  window.open(link,'_blank');
+}
+
+/* ================= 操作 ================= */
+function applyPeriodLabel(i){
+  var pd=(i===-1?CUSTOM:PERIODS[i]);
+  if(!pd){return;}
+  document.getElementById('periodCur').textContent=pd.label+'：'+pd.cur+'　（'+pd.prog+'）';
+  document.getElementById('periodPrev').textContent='对比：'+pd.prev+'　（'+pd.prevName+'）';
+}
+
+/* ============ 自定义统计期 ============ */
+/* 自定义：行内展开，不弹窗 */
+function openCustom(){
+  var el=document.getElementById('customInline');
+  var cs=document.getElementById('cs'),ce=document.getElementById('ce');
+  if(!cs.value){cs.value=CUSTOM?CUSTOM.start:'2026-10-01';}
+  if(!ce.value){ce.value=CUSTOM?CUSTOM.end:'2026-10-22';}
+  var open=(el.style.display!=='flex');
+  el.style.display=(open?'flex':'none');
+  if(open){cs.focus();}
+}
+function cancelCustom(){
+  document.getElementById('customInline').style.display='none';
+}
+function applyCustom(){
+  var s=document.getElementById('cs').value,e=document.getElementById('ce').value;
+  if(!s||!e){toast('请选择起止日期');return;}
+  var d1=new Date(s+'T00:00:00'),d2=new Date(e+'T00:00:00');
+  if(d2<d1){toast('结束日期不能早于开始日期');return;}
+  var days=Math.round((d2-d1)/86400000)+1;
+  if(days>366){toast('区间最长 366 天');return;}
+  var ps=new Date(d1.getTime()-days*86400000),pe=new Date(d1.getTime()-86400000);
+  var fd=function(d){return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate());};
+  var fs=function(d){return (d.getMonth()+1)+'/'+d.getDate();};
+  CUSTOM={
+    start:s,end:e,days:days,
+    label:fs(d1)+'-'+fs(d2),
+    cur:s+' 00:00 ~ '+e+' 23:59',
+    prev:fd(ps)+' ~ '+fd(pe),
+    prevName:'上期（等长前一段）',
+    prog:'已选 '+days+' 天'
+  };
+  P=-1;
+  var bs=document.getElementById('seg').children;
+  for(var k=0;k<bs.length;k++){bs[k].className=(k===4?'on':'');}
+  applyPeriodLabel(-1);
+  renderAll();
+  toast('已切换为自定义区间：'+CUSTOM.cur);
+}
+function setPeriod(i){
+  P=i;
+  var bs=document.getElementById('seg').children;
+  for(var k=0;k<bs.length;k++){bs[k].className=(k===i?'on':'');}
+  applyPeriodLabel(i);
+  renderAll();
+}
+function exportAll(){
+  var n=liveAssets().length;
+  if(!n){toast('当前无数据，无法导出');return;}
+  toast('已导出 '+n+' 个资产的统计（'+curP().label+'，不含明细数据），已记录导出日志');
+}
+function exportDomain(di){
+  var n=liveAssets().filter(function(a){return a.d===di;}).length;
+  toast('已导出「'+DOMAINS[di].n+'」'+n+' 个资产统计');
+}
+
+/* ================= 基础 ================= */
+function show(w,h){document.getElementById(w).innerHTML=h;document.getElementById('mask').classList.add('on');document.getElementById(w).classList.add('on');}
+function closeAll(){
+  document.getElementById('mask').classList.remove('on');
+  document.getElementById('drawer').classList.remove('on');
+  document.getElementById('modal').classList.remove('on');
+}
+
+/* 口径说明 */
+function showRule(){
+  var rows=PERIODS.map(function(p){
+    return '<tr class="border-t border-gray-100"><td class="py-2 pr-3 font-semibold text-[12px] text-gray-700 whitespace-nowrap">'+p.label+'</td>'
+      +'<td class="py-2 pr-3 text-[11.5px] text-gray-600 whitespace-nowrap">'+p.cur+'</td>'
+      +'<td class="py-2 pr-3 text-[11.5px] text-gray-600 whitespace-nowrap">'+p.prev+'</td>'
+      +'<td class="py-2 text-[11px] text-gray-400 whitespace-nowrap">'+p.prog+'</td></tr>';
+  }).join('');
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<h3 class="text-[15px] font-bold text-[#1F2430]">统计口径说明</h3>'
+    +'<button class="btn btn-ghost" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="px-5 py-4">'
+    +'<p class="text-[12px] text-gray-600 mb-3">统计期是<b>未走完的周期</b>，截止到当前时刻；<b>环比一律与「上期同期」对比</b>，不与上期整期对比（否则未完成的周期永远是负增长）。</p>'
+    +'<table class="w-full text-[12px] mb-4"><thead><tr class="text-[11px] text-gray-400"><th class="text-left font-normal pb-1.5">档位</th><th class="text-left font-normal pb-1.5">统计范围</th><th class="text-left font-normal pb-1.5">环比对比期</th><th class="text-left font-normal pb-1.5">进度</th></tr></thead><tbody>'+rows+'</tbody></table>'
+    +'<div class="text-[11.5px] text-gray-600 leading-6">'
+    +'<p class="font-semibold text-gray-700 mb-1">指标定义</p>'
+    +'<p>· <b>新增</b>：期内新建的业务记录（排除导入 / 迁移 / 初始化批次），页面按档位命名（今日新增 / 本周新增 / 本月新增 / 本年新增）</p>'
+    +'<p>· <b>更新</b>：期内有实质变更的记录数（updated_at），单列，不并入新增</p>'
+    +'<p>· <b>记录总量</b>：当前有效记录数，不含已作废 / 已删除</p>'
+    +'<p>· <b>环比</b>：当期新增 ÷ 上期同期新增 − 1；上期为 0 时显示「—」</p>'
+    +'</div>'
+    +'<div class="mt-4 rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B]"><b>边界规则</b>：① 上期无对应日（如 3-31 对比 2 月）取上期最后一天；② 闰年 2-29 对比去年取 2-28；③ 导入量单独统计，不上面、不参与环比；<b>④ 自定义区间</b>：环比与「等长前一段」对比（如 10-01~10-10 对比 09-21~09-30），最长 366 天。</p></div>'
+    +'</div>';
+  h+='<div class="px-5 py-3 border-t border-gray-100 flex justify-end"><button class="btn btn-primary" onclick="closeAll()">知道了</button></div>';
+  show('modal',h);
+}
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},3400);}
+function renderAll(){renderKpis();renderTrend();renderCards();renderTops();renderAlerts();}
+
+applyPeriodLabel(P);
+renderAll();
+</script>
+</body>
+</html>

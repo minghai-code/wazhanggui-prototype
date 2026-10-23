@@ -44,6 +44,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .blk{border:1px solid #F1F5F9;border-radius:12px;padding:14px 16px}
 .blk-t{font-size:13px;font-weight:700;color:#1F2430;display:flex;align-items:center;gap:6px;margin-bottom:8px}
 .blk-t::before{content:'';width:3px;height:12px;border-radius:2px;background:#FF4D2D}
+.mpop{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);width:470px;max-width:92vw;background:#fff;border-radius:16px;box-shadow:0 24px 64px rgba(15,23,42,.22);z-index:60;opacity:0;pointer-events:none;transition:.2s}
+.mpop.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+.mask.top{z-index:55}
 </style>
 <!-- Tailwind 静态样式：本地引用（不再依赖 cdn.tailwindcss.com）；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
 <link rel="stylesheet" href="tailwind.css">
@@ -135,7 +138,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
       <div class="overflow-x-auto">
         <table class="w-full tb">
           <thead><tr>
-            <th>档口编号</th><th>楼栋/楼层</th><th>类型</th><th>面积(㎡)</th><th>状态</th>
+            <th>档口编号</th><th>楼栋/楼层</th><th>类型</th><th>等级</th><th>面积(㎡)</th><th>计租</th><th>状态</th>
             <th>当前租户</th><th>租期起止</th><th>平面图</th><th>操作</th>
           </tr></thead>
           <tbody id="unitBody"></tbody>
@@ -178,6 +181,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
   <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3" id="d-foot"></div>
 </div>
 
+<!-- 通用小弹窗（处理异常 / 标记状态） -->
+<div class="mask top" id="mmask" onclick="closeM()"></div>
+<div class="mpop" id="mpop">
+  <div class="px-5 py-4 border-b border-gray-100">
+    <h3 class="text-[15px] font-bold text-[#1F2430]" id="m-title">操作</h3>
+    <p class="text-[11px] text-[#94A3B8] mt-1" id="m-sub"></p>
+  </div>
+  <div class="px-5 py-4" id="m-body"></div>
+  <div class="px-5 py-3.5 border-t border-gray-100 bg-gray-50 flex justify-end gap-2" id="m-foot"></div>
+</div>
+
 <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[60]"></div>
 
 <script>
@@ -207,11 +221,11 @@ var units=[
   {no:'1F-B08',b:'A',floor:'1F',type:'档口',area:36,status:'空闲',plan:true,tenant:null,
    hist:[{name:'袜都商贸',start:'2020-01-01',end:'2025-12-31',contract:'HT-2020-0201',reason:'违约终止'}]},
   {no:'1F-C02',b:'A',floor:'1F',type:'档口',area:30,status:'停用',plan:true,tenant:null,hist:[]},
-  {no:'2F-A05',b:'A',floor:'2F',type:'商铺',area:68,status:'在租',plan:true,
+  {no:'2F-A05',b:'A',floor:'2F',type:'店面',area:68,status:'在租',plan:true,
    tenant:{name:'丹吉娅',idno:'330681********4400',phone:'139****1122',start:'2024-01-01',end:'2026-12-31',contract:'HT-2024-0101',biz:'品牌袜品'},hist:[]},
-  {no:'2F-B01',b:'A',floor:'2F',type:'商铺',area:72,status:'在租',plan:true,
+  {no:'2F-B01',b:'A',floor:'2F',type:'店面',area:72,status:'在租',plan:true,
    tenant:{name:'步人袜业',idno:'330681********6677',phone:'137****5566',start:'2023-05-01',end:'2026-04-30',contract:'HT-2023-0501',biz:'智能袜机'},hist:[]},
-  {no:'3F-C02',b:'A',floor:'3F',type:'商铺',area:120,status:'在租',plan:false,
+  {no:'3F-C02',b:'A',floor:'3F',type:'店面',area:120,status:'在租',plan:false,
    tenant:{name:'袜业商会服务点',idno:'330681********0000',phone:'0575-****1234',start:'2022-01-01',end:'2026-12-31',contract:'HT-2022-0001',biz:'行业服务'},hist:[]},
   {no:'1F-Y01',b:'B',floor:'1F',type:'档口',area:48,status:'在租',plan:true,
    tenant:{name:'锦纶原料行',idno:'330681********1357',phone:'136****8080',start:'2024-03-01',end:'2027-02-28',contract:'HT-2024-0301',biz:'锦纶/氨纶'},hist:[]},
@@ -257,7 +271,8 @@ function renderUnits(){
     if(fb && u.b!==fb) return false;
     if(ff && u.floor!==ff) return false;
     if(ft && u.type!==ft) return false;
-    if(flv && (u.lv||'')!==flv) return false;
+    if(flv && u.type!=='档口') return false;
+    if(flv && (u.lv||'普通摊')!==flv) return false;
     if(fs && u.status!==fs) return false;
     if(fh==='1' && !u.tenant) return false;
     if(fh==='0' && u.tenant) return false;
@@ -265,14 +280,16 @@ function renderUnits(){
   });
   document.getElementById('uCount').textContent='共 '+list.length+' 条';
   var h='';
-  if(!list.length){ h='<tr><td colspan="9" class="text-center text-[#94A3B8] py-10">无匹配档口，请调整筛选条件</td></tr>'; }
+  if(!list.length){ h='<tr><td colspan="11" class="text-center text-[#94A3B8] py-10">无匹配档口，请调整筛选条件</td></tr>'; }
   list.forEach(function(u){
     var t=u.tenant;
     h+='<tr>'
      +'<td><span class="tag" style="background:#FFF1ED;color:#FF4D2D">'+esc(u.no)+'</span></td>'
      +'<td>'+esc(u.b)+' 栋 · '+esc(u.floor)+'</td>'
      +'<td>'+esc(u.type)+'</td>'
+     +'<td>'+(u.type==='档口'?'<span class="tag" style="background:'+(u.lv==='精品摊'?'#FEF3C7;color:#B45309':'#F1F5F9;color:#64748B')+'">'+esc(u.lv||'普通摊')+'</span>':'<span class="text-[#94A3B8]">—</span>')+'</td>'
      +'<td>'+u.area+'</td>'
+     +'<td class="text-[12px] text-[#64748B]">'+(u.type==='档口'||u.type==='店面'?'按面积 ¥38/㎡·月':'—')+'</td>'
      +'<td>'+stTag(u.status)+'</td>'
      +'<td>'+(t?'<span class="font-medium">'+esc(t.name)+'</span>':'<span class="text-[#94A3B8]">—</span>')+'</td>'
      +'<td class="text-[12px] text-[#64748B]">'+(t?esc(t.start)+' ~ '+esc(t.end):'—')+'</td>'
@@ -296,8 +313,8 @@ function renderErrors(){
      +'<td>'+esc(e.tenant)+'</td>'
      +'<td class="text-[12px] text-[#64748B]">'+esc(e.period)+'</td>'
      +'<td class="text-[12px] text-[#64748B]">'+esc(e.time)+'</td>'
-     +'<td><span class="tag" style="background:#FEF3C7;color:#D97706">'+esc(e.status)+'</span></td>'
-     +'<td><span class="lk" onclick="handleErr('+i+')">处理</span> · <span class="lk" onclick="rerun('+i+')">重新匹配</span></td>'
+     +'<td><span class="tag" style="background:'+(e.status==='已处理'?'#DCFCE7;color:#15803D':'#FEF3C7;color:#D97706')+'" title="'+esc(e.note||'')+'">'+esc(e.status)+'</span></td>'
+     +'<td>'+(e.status==='待处理'?'<span class="lk" onclick="handleErr('+i+')">处理</span> · ':'')+'<span class="lk" onclick="rerun('+i+')">重新匹配</span></td>'
      +'</tr>';
   });
   document.getElementById('errBody').innerHTML=h;
@@ -310,18 +327,72 @@ function switchTab(t){
   document.getElementById('pane-e').classList.toggle('hidden',t!=='e');
 }
 function resetFilter(){ ['q','fpl','fb','ff','ft','flv','fs','fh'].forEach(function(id){document.getElementById(id).value='';}); renderUnits(); }
+/* ===== v1.2 修 A-5：装修中入口 + 原因必填；在租档口可标记，租户保留 ===== */
+var curMark=null;
+function openM(title,sub,body,foot){
+  document.getElementById('m-title').textContent=title;
+  document.getElementById('m-sub').textContent=sub||'';
+  document.getElementById('m-body').innerHTML=body;
+  document.getElementById('m-foot').innerHTML=foot;
+  document.getElementById('mmask').classList.add('on');
+  document.getElementById('mpop').classList.add('on');
+}
+function closeM(){
+  document.getElementById('mmask').classList.remove('on');
+  document.getElementById('mpop').classList.remove('on');
+}
 function markUnit(no){
   var u=units.filter(function(x){return x.no===no;})[0];
-  if(u.status==='在租'){ toast('「在租」由合同数据判定，不可手工修改；如需标记装修/停用，请先终止或暂停合同'); return; }
-  u.status=(u.status==='停用')?'空闲':'停用';
-  toast(u.status==='停用'?'已标记「停用」（不计入出租率）':'已恢复为「空闲」');
-  stat(); renderUnits();
+  curMark=u.no;
+  var hasT=!!u.tenant;
+  var body=''
+   +'<div class="kv"><span class="k">当前状态</span><span class="v">'+stTag(u.status)+'</span></div>'
+   +'<div class="kv"><span class="k">当前租户</span><span class="v">'+(hasT?esc(u.tenant.name)+'（'+esc(u.tenant.contract)+'）':'—')+'</span></div>'
+   +'<div class="mt-3"><label class="fl"><i>*</i>标记为</label><select class="fi" id="m-target">'
+   +(u.status==='装修中'||u.status==='停用'
+      ? '<option value="恢复">恢复为「'+(hasT?'在租':'空闲')+'」</option><option value="装修中">装修中</option><option value="停用">停用</option>'
+      : '<option value="装修中">装修中</option><option value="停用">停用</option>')
+   +'</select></div>'
+   +'<div class="mt-3"><label class="fl"><i>*</i>原因</label><textarea class="fi" id="m-reason" rows="2" placeholder="如：铺面改造，预计 11 月底恢复"></textarea></div>'
+   +'<div class="mt-3 text-[11px] leading-relaxed" style="color:#94A3B8"><i class="fas fa-circle-info mr-1"></i>装修 / 停用<b>不改变合同关系</b>'+(hasT?'，该档口仍有生效合同，恢复后回到「在租」':'，恢复后回到「空闲」')+'；「在租 / 空闲」由合同判定，不能直接改。</div>';
+  openM('标记资源状态 · '+u.no, hasT?'在租档口可标记装修/停用，租户保留':'', body,
+    '<button class="btn btn-ghost" onclick="closeM()">取消</button><button class="btn btn-primary" onclick="saveMark()">确定</button>');
 }
+function saveMark(){
+  var u=units.filter(function(x){return x.no===curMark;})[0];
+  var t=document.getElementById('m-target').value;
+  var r=document.getElementById('m-reason').value.trim();
+  if(!r){ toast('请填写原因'); return; }
+  if(t==='恢复'){ u.status=u.tenant?'在租':'空闲'; u.markReason=''; }
+  else { u.status=t; u.markReason=r; }
+  closeM(); stat(); renderUnits();
+  toast(t==='恢复'?'已恢复为「'+u.status+'」':'已标记「'+t+'」（原因：'+r+'）');
+}
+/* ===== v1.2 修 A-4：处理异常需填「处理方式 + 说明」并留痕 ===== */
+var curErr=-1;
 function handleErr(i){
-  var e=errors[i];
+  var e=errors[i]; curErr=i;
+  var body=''
+   +'<div class="kv"><span class="k">异常类型</span><span class="v">'+esc(e.type)+'</span></div>'
+   +'<div class="kv"><span class="k">合同号</span><span class="v">'+esc(e.contract)+'</span></div>'
+   +'<div class="kv"><span class="k">档口编号</span><span class="v">'+esc(e.code)+'</span></div>'
+   +'<div class="mt-3"><label class="fl"><i>*</i>处理方式</label><select class="fi" id="m-way">'
+   +'<option>已在合同侧修正编号</option><option>已补录该档口</option><option>确认无需处理</option></select></div>'
+   +'<div class="mt-3"><label class="fl"><i>*</i>处理说明</label><textarea class="fi" id="m-note" rows="2" placeholder="如：合同编号误填为 1F-A33，已在 05 改为 1F-A03"></textarea></div>'
+   +'<div class="mt-3 text-[11px] leading-relaxed" style="color:#94A3B8"><i class="fas fa-circle-info mr-1"></i>处理只标记状态，<b>不改合同与档口数据</b>；选「已补录该档口」后请到「新增档口」补录，再回来点「重新匹配」。</div>';
+  openM('处理匹配异常', e.code+' · '+e.contract, body,
+    '<button class="btn btn-ghost" onclick="closeM()">取消</button><button class="btn btn-primary" onclick="saveErr()">确定</button>');
+}
+function saveErr(){
+  var e=errors[curErr];
+  var note=document.getElementById('m-note').value.trim();
+  if(!note){ toast('请填写处理说明'); return; }
   e.status='已处理';
-  toast('已标记「'+e.type+'」处理完成：'+e.code+'（'+e.contract+'）');
-  stat(); renderErrors();
+  e.way=document.getElementById('m-way').value;
+  e.note=note;
+  e.handledAt='2026-09-24 '+nowHM();
+  closeM(); stat(); renderErrors();
+  toast('已处理：'+e.code+'（'+e.way+'）');
 }
 function rerun(i){
   var e=errors[i];
@@ -441,6 +512,7 @@ function openNew(){
 function saveNew(){
   var no=val('n_no').toUpperCase(),a=val('n_a');
   if(!no||!a){ toast('档口编号与面积为必填'); return; }
+  if(!/^[A-Z0-9]{2,6}-[A-Z]\d{2}$/.test(no)){ toast('编号格式应为 楼层-区位-序号，如 1F-A08'); return; }
   if(units.filter(function(x){return x.no===no;}).length){ toast('档口编号已存在，编号必须唯一'); return; }
   units.unshift({no:no,pl:val('n_pl'),b:val('n_b'),floor:val('n_f'),type:val('n_t'),lv:(val('n_t')==='档口'?(val('n_lv')||'普通摊'):''),bill:val('n_bill'),price:val('n_price'),area:parseInt(a,10)||0,status:'空闲',plan:false,tenant:null,hist:[]});
   closeD(); toast('已新增档口 '+no); stat(); renderUnits();
@@ -469,5 +541,6 @@ function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style
 })();
 stat(); renderUnits(); renderErrors();
 </script>
+<script src="../shared/page-prd.js"></script>
 </body>
 </html>

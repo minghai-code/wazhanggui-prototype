@@ -18,7 +18,7 @@
  * 【顺序】数组顺序 = 侧边栏展示顺序，调整顺序即移动数组元素，勿复制粘贴
  * ========================================================================== */
 
-window.MENU_VERSION = '2026.10.20-06';
+window.MENU_VERSION = '2026.10.22-05';
 window.MENU_UPDATED = '2026-10-14';
 
 window.MENU_DATA = [
@@ -272,7 +272,8 @@ window.MENU_DATA = [
       { type: 'item', name: '数据源图谱', page: null, status: 'dev', points: ['数据源分布', '权属与更新频率', '敏感等级'] },
       { type: 'item', name: '数据分级分类', page: null, status: 'dev', points: ['公开/共享/敏感/核心四级标注', '分级管理策略配置'] },
       { type: 'item', name: '场景需求映射', page: null, status: 'dev', points: ['业务场景数据需求清单', '数据集-服务-场景映射'] },
-      { type: 'item', name: '数据资产目录规划', page: null, status: 'dev', points: [] }
+      { type: 'item', name: '数据资产目录规划', page: null, status: 'dev', points: [] },
+      { type: 'item', name: '数据资产统计概览', page: 'data-asset-overview.html', status: 'done', points: ['统计期切换（今日/本周/本月/本年）· 数据截至时间 · 资产搜索 · 导出', '全域 KPI 六项（资产对象/记录总量/本期新增/环比/活跃/异常）', '9 个一级域卡片（3×3）：总量 · 本期新增 · 环比 · 7 天迷你趋势 · 资产数', '域下钻抽屉：二级域 → 资产行（总量/新增/环比/更新时间/跳明细）', '榜单：增长 Top5 · 体量 Top5', '异常提示：久未更新 / 环比跌 >30% / 采集失败（带原因）', '未接入清单：C 级与开发中资产，不计入统计，显示原因'] }
     ]},
     { type: 'group', name: '数据标准', items: [
       { type: 'item', name: '数据元标准管理', page: null, status: 'dev', points: ['数据元定义', '统一编码规则', '数据字典与元数据管理', '血缘自动解析'] },

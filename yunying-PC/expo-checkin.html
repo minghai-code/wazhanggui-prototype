@@ -160,7 +160,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
           <td class="font-medium">V2026180009</td><td>吴采购</td><td>南京袜业有限公司</td>
           <td><span class="tag" style="background:#FFF1ED;color:#FF4D2D">采购商</span></td><td>10.18 / 10.19</td>
           <td>2026-09-04 16:44</td><td class="text-[#94A3B8]">未核销</td><td>—</td><td>—</td>
-          <td><span class="lk" onclick="openD()">详情</span> · <span class="lk" onclick="toast('已手工补签')">补签</span></td>
+          <td><span class="lk" onclick="openD()">详情</span> · <span class="lk" onclick="signIn(this)">补签</span></td>
         </tr>
         <tr>
           <td class="font-medium">V2026180010</td><td>郑电商</td><td>厦门跨境电商有限公司</td>
@@ -221,10 +221,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 
 <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[60]"></div>
 <script>
+/* 手工补签：核销幂等（E-34）——已核销则提示首次核销时间，不产生第二条记录 */
+function signIn(el){
+  var tr=el.closest('tr');
+  if(!tr){toast('已手工补签');return;}
+  var tds=tr.querySelectorAll('td');
+  var ck=((tds[6]&&tds[6].textContent)||'').trim();
+  if(ck&&!/^(未核销|—|-)$/.test(ck)){
+    toast('该观众已于 '+ck+' 核销，不可重复');
+    return;
+  }
+  toast('已手工补签（核销方式：手工补录）');
+}
 function openD(){document.getElementById('mask').classList.add('on');document.getElementById('drawer').classList.add('on');}
 function closeD(){document.getElementById('mask').classList.remove('on');document.getElementById('drawer').classList.remove('on');}
 var tid;
 function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},2200);}
 </script>
+<script src="../shared/op-guard.js"></script>
+<script src="../shared/page-prd.js"></script>
 </body>
 </html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>05-02 合同台账与签署留档 · 运营端页面说明 · 页面 PRD</title><style>
+:root{--fg:#1F2430;--muted:#64748B;--line:#E9EDF3}
+*{box-sizing:border-box}
+body{margin:0;padding:26px 32px 90px;background:#fff;color:var(--fg);
+ font:14px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif}
+h1{font-size:20px;margin:0 0 6px}
+h2{font-size:17px;margin:34px 0 12px;padding-top:12px;border-top:1px solid var(--line)}
+h3{font-size:15px;margin:22px 0 10px}
+h4{font-size:14px;margin:18px 0 8px;color:#334155}
+p{margin:8px 0}
+table{border-collapse:collapse;width:100%;margin:10px 0 16px;font-size:12.5px}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:#F8FAFC;font-weight:700}
+tr:nth-child(even) td{background:#FCFDFE}
+code{background:#F1F5F9;padding:1px 5px;border-radius:4px;font-size:12px;
+ font-family:ui-monospace,Menlo,Consolas,monospace;color:#B91C1C}
+pre.code{background:#0F172A;color:#E2E8F0;padding:14px 16px;border-radius:10px;overflow:auto;font-size:12px}
+pre.code code{background:none;color:inherit;padding:0}
+blockquote{margin:10px 0;padding:10px 14px;background:#EFF6FF;border-left:3px solid #60A5FA;
+ border-radius:0 8px 8px 0;color:#334155;font-size:13px}
+ul,ol{margin:8px 0;padding-left:22px}
+li{margin:3px 0}
+hr{border:0;border-top:1px dashed var(--line);margin:22px 0}
+a{color:#2563EB;text-decoration:none}
+.meta{font-size:12px;color:var(--muted);margin:0 0 20px}
+</style></head><body>
+<div class="meta">由 <code>yunying-PC/prd/05-合同管理/02-合同台账与签署留档.md</code> 生成，勿手改；改文档请改 md 后重跑 build-prd。</div>
+<h1>05-02 合同台账与签署留档 · 运营端页面说明</h1>
+<blockquote>端：运营端 PC　｜　模块：05 合同管理　｜　页面：<code>contract-list.html</code>（<strong>本模块最核心页</strong>） 页面版本：v1.0（2026-10-22）　｜　业务分册：<code>开发PRD/运营管理端分册PRD/05-合同管理.md</code> <strong>v2.1</strong> <strong>模块通用说明</strong>见同目录 <strong><code>01-合同模板管理.md</code> §0</strong>，本文件不重复。</blockquote>
+<hr>
+<h2 id="p1">1. 合同台账与签署留档 <code>contract-list.html</code></h2>
+<h3>1.1 页面说明</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>页面目标</td><td>全量合同台账 + 签署流程与用印归档；<strong>档口「在租」状态的唯一数据源</strong></td></tr><tr><td>使用角色</td><td>合同管理专员（主）、运营主管、物业（本楼栋只读）、财务（只读）</td></tr><tr><td>入口</td><td>菜单 → 合同管理 → 合同台账与签署留档</td></tr><tr><td>前置</td><td>已有合同（发起链路见 P4，存量见本页录入）</td></tr><tr><td>后置</td><td>生效 → 推送 02（档口在租）+ 04（自动建档）+ 生成应收计划</td></tr></tbody></table>
+<h3>1.2 本页端间关系</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>本页数据来源</td><td>P4 发起链路产生的合同 + 存量合同录入 / 导入</td></tr><tr><td>本页操作的跨端影响</td><td>生效 → 商户端 <code>contract.html</code> 可查；档口映射 → 02 在租；建档 → 04；应收 → 06</td></tr><tr><td>依赖的其他端页面</td><td><code>shanghu-APP/contract.html</code>（<strong>现为写死，需改读本页</strong>）、<code>02/resource-unit.html</code>（档口）</td></tr><tr><td>不涉及的端</td><td>买家端</td></tr><tr><td>一致性要求</td><td>按<strong>档口编号</strong>推送，失败回流 02 异常清单；<strong>到期 ≠ 终止</strong></td></tr></tbody></table>
+<h3>1.3 页面结构</h3>
+<table><thead><tr><th>区块</th><th>内容</th></tr></thead><tbody><tr><td>顶部</td><td>标题「合同台账与签署留档」+ 导出 + 录入合同 + 批量导入 + 手动同步</td></tr><tr><td><strong>统计卡</strong></td><td>合同总数 / 生效中 / 待映射 / 90 天内到期 / 已终止（提前终止·人工）/ 待签署</td></tr><tr><td>筛选区</td><td>关键词 + 状态 + 到期范围 + 签署状态 + 资源类型 + 查询 + 重置</td></tr><tr><td>合同台账</td><td><strong>11 列</strong> + 分页</td></tr><tr><td>详情抽屉</td><td>签署流程与用印归档 + 应收计划表（<strong>5 列</strong>）+ 档口映射 + 留痕</td></tr><tr><td>导入结果</td><td>错误清单表（<strong>2 列</strong>：行号 / 错误原因）</td></tr></tbody></table>
+<h3>1.4 列表、筛选与排序</h3>
+<table><thead><tr><th>项目</th><th>规则</th></tr></thead><tbody><tr><td>默认排序</td><td>合同号倒序</td></tr><tr><td>分页</td><td>页码</td></tr><tr><td>筛选组合</td><td>条件之间 <strong>且</strong></td></tr><tr><td>到期范围</td><td>30 / 60 / 90 天内 / 已到期</td></tr><tr><td>签署状态</td><td>待发起 / 待商户签字 / 待签署审核 / 已存档</td></tr><tr><td>空结果</td><td>「没有符合条件的合同」</td></tr><tr><td>导出</td><td>身份证、权证号<strong>已脱敏</strong></td></tr></tbody></table>
+<h3>1.5 字段规格</h3>
+<p><strong>合同台账（11 列）</strong></p>
+<table><thead><tr><th>列</th><th>字段</th><th>说明</th></tr></thead><tbody><tr><td>合同号 / 卷号</td><td><code>no</code> / <code>vol</code></td><td>—</td></tr><tr><td><strong>摊位号 → 档口编号</strong></td><td><code>stallNo</code> / <code>unitNo</code></td><td>映射成功才推 02；失败进异常清单</td></tr><tr><td>承租人</td><td><code>tenant</code></td><td>企业主体显示企业名称 + 联系人</td></tr><tr><td>面积</td><td><code>area</code></td><td>㎡</td></tr><tr><td>租期</td><td><code>start</code>~<code>end</code></td><td>T-90/60/30 标色</td></tr><tr><td>年租金 / 总租金</td><td><code>annualRent</code> / <code>totalRent</code></td><td><strong>年口径</strong></td></tr><tr><td>摊位等级</td><td><code>level</code></td><td>精品摊（5 年 / 保证金 2 万）/ 普通摊（3 年 / 1 万）</td></tr><tr><td>应收计划</td><td><code>plan</code></td><td>摘要，详情看 5 列表</td></tr><tr><td><strong>签署状态（v1.2）</strong></td><td><code>signState</code></td><td>待发起 / 待商户签字 / 待签署审核 / 已存档 + 盖章子标记</td></tr><tr><td>状态</td><td><code>state</code></td><td>见 §0.5 九态</td></tr><tr><td>操作</td><td>—</td><td>详情 / 映射 / 终止 / 签署 / 录入 / 导入</td></tr></tbody></table>
+<p><strong>应收计划（5 列）</strong>：期次 · 所属租赁年度 · 应收金额 · 应收时点 · 状态</p>
+<p><strong>导入错误（2 列）</strong>：行号 · 错误原因</p>
+<h3>1.6 交互规则</h3>
+<table><thead><tr><th>元素</th><th>显示条件</th><th>可点条件</th><th>点击后</th><th>禁止表现</th></tr></thead><tbody><tr><td>详情</td><td>始终</td><td>始终</td><td>抽屉（签署流程 + 应收计划 + 留痕）</td><td>—</td></tr><tr><td>档口映射</td><td>待映射 / 映射失败</td><td>专员/物业</td><td>选档口编号 → 推送 02</td><td>映射失败保留原值</td></tr><tr><td><strong>终止</strong></td><td>状态=生效中</td><td>专员发起 + <strong>必须勾选主管确认</strong></td><td>置已终止 → 02 档口回空闲 → 04 回退 → 回收权限</td><td>未勾 → K-19</td></tr><tr><td>签署</td><td>待发起 / 待商户签字</td><td>专员</td><td>打开签署流程（P4）</td><td>—</td></tr><tr><td>录入合同</td><td>始终</td><td>专员</td><td>存量录入（企业主体四连校验）</td><td>缺必填 → K-22~K-26</td></tr><tr><td>批量导入</td><td>始终</td><td>专员</td><td>校验全部通过才入库</td><td>有错 → 错误清单</td></tr></tbody></table>
+<h3>1.7 业务规则与计算口径</h3>
+<table><thead><tr><th>编号</th><th>规则</th><th>触发</th><th>处理</th><th>影响端</th></tr></thead><tbody><tr><td>R-06</td><td>按<strong>档口编号</strong>推送 02</td><td>生效/变更</td><td>匹配失败进 02 异常清单，不静默</td><td>02</td></tr><tr><td>R-07</td><td>合同生效即档口在租</td><td>生效</td><td>02 该档口「当前租户」= 承租人</td><td>02</td></tr><tr><td>R-08</td><td>合同生效触发 04 建档</td><td>已存档</td><td>消费「已存档」事件</td><td>04</td></tr><tr><td>R-09</td><td><strong>终止需主管确认</strong></td><td>终止</td><td>必须勾选，记录确认人</td><td>02/04</td></tr><tr><td>R-10</td><td>到期 ≠ 终止</td><td>租期结束</td><td>自动置已到期，档口回「空闲（待竞拍）」，<strong>无审批无原因</strong></td><td>02/04</td></tr><tr><td>R-11</td><td>签署匹配键 = 手机号</td><td>发送</td><td>与竞拍登记不一致 → 专员改绑</td><td>商户端</td></tr><tr><td>R-12</td><td>盖章件不影响生效</td><td>归档</td><td>仅 <code>待回传/已回传</code> 子标记</td><td>—</td></tr><tr><td>R-13</td><td>签约年限 / 保证金随等级</td><td>录入</td><td>精品 5 年 / 2 万；普通 3 年 / 1 万</td><td>—</td></tr></tbody></table>
+<h3>1.8 异常与边界</h3>
+<table><thead><tr><th>类型</th><th>场景</th><th>系统行为</th><th>提示文案</th></tr></thead><tbody><tr><td>数据</td><td>身份证位数不足</td><td>拦截，提示补录</td><td>【已实现】「请填写完整身份证号（18 位）」</td></tr><tr><td>数据</td><td>补录后重匹配</td><td>触发 02 精确匹配</td><td>【已实现】「已补录身份证号：已触发 02 重匹配…」</td></tr><tr><td>数据</td><td>摊位号映射失败</td><td>进异常清单</td><td>【已实现】「映射成功：…」反向确认</td></tr><tr><td>数据</td><td>终止未勾确认</td><td>拦截</td><td>【已实现】「终止为重大动作，请先勾选「已获运营主管确认」」</td></tr><tr><td>数据</td><td>录入缺必填</td><td>拦截</td><td>【已实现】合同号 / 摊位号 / 承租方名称 为必填</td></tr><tr><td>依赖</td><td>02 同步部分失败</td><td>保留成功项，异常项列表</td><td>【已实现】「同步完成：…异常 3 条…」</td></tr></tbody></table>
+<h4>1.8.1 本页提示语清单（来源：分册 §8.8，编号可回溯）</h4>
+<table><thead><tr><th>编号</th><th>场景</th><th>提示文案</th><th>形式</th><th>状态</th></tr></thead><tbody><tr><td>K-11</td><td>导出台账</td><td>已导出合同台账（身份证、权证号已脱敏）</td><td>Toast</td><td>✅</td></tr><tr><td>K-12</td><td>点匹配异常</td><td>跳转 02 市场资源管理 · 合同匹配异常清单</td><td>Toast</td><td>✅</td></tr><tr><td>K-13</td><td>手动同步</td><td>正在按「档口编号」推送合同变更至 02 市场资源管理…</td><td>Toast</td><td>✅</td></tr><tr><td>K-14</td><td>同步完成</td><td>同步完成：推送 {n} 条，匹配成功 {a} 条，异常 {b} 条（缺少映射/档口不存在/租期重叠，见 02 异常清单）</td><td>Toast</td><td>✅</td></tr><tr><td>K-15</td><td>身份证不足 18 位</td><td>请填写完整身份证号（18 位）</td><td>行内</td><td>✅</td></tr><tr><td>K-16</td><td>补录身份证</td><td>已补录身份证号：已触发 02 重匹配（升级为精确匹配）并回写 04 商户档案去重校验</td><td>Toast</td><td>✅</td></tr><tr><td>K-17</td><td>登记保证金</td><td>已登记保证金 {金额}</td><td>Toast</td><td>✅</td></tr><tr><td>K-18</td><td>摊位号映射</td><td>映射成功：{摊位号} → {档口编号}</td><td>Toast</td><td>✅</td></tr><tr><td>K-19</td><td>终止未勾确认</td><td>终止为重大动作，请先勾选「已获运营主管确认」</td><td>行内</td><td>✅</td></tr><tr><td>K-20</td><td>终止成功</td><td>已终止：{合同号}</td><td>Toast</td><td>✅</td></tr><tr><td>K-21</td><td>查看签署流程</td><td>请在详情「④ 合同生成与签署留档」查看流程、短信记录与盖章件（v1.5：后台主动发起 + 合同专员审核签字生效）</td><td>Toast</td><td>✅</td></tr><tr><td>K-22</td><td>录入缺必填</td><td>合同号 / 摊位号 / 承租方名称 为必填</td><td>行内</td><td>✅</td></tr><tr><td>K-23</td><td>缺企业名称</td><td>企业主体：企业名称（营业执照全称）为必填</td><td>行内</td><td>✅</td></tr><tr><td>K-24</td><td>缺信用代码</td><td>企业主体：统一社会信用代码为必填（18 位）</td><td>行内</td><td>✅</td></tr><tr><td>K-25</td><td>缺法定代表人</td><td>企业主体：法定代表人 / 联系人为必填（合同内体现联系人）</td><td>行内</td><td>✅</td></tr><tr><td>K-26</td><td>电话不合法</td><td>联系电话必填，且为 11 位手机号（合同签署匹配键）</td><td>行内</td><td>✅</td></tr><tr><td>K-27</td><td>保存存量合同</td><td>已保存存量合同</td><td>Toast</td><td>✅</td></tr><tr><td>K-49</td><td>无权限</td><td>无权限，请联系管理员</td><td>Toast</td><td>✅</td></tr><tr><td>K-50</td><td>并发冲突</td><td>该记录已被他人修改，请刷新后重试</td><td>Toast</td><td>✅</td></tr></tbody></table>
+<h3>1.9 通知与消息</h3>
+<table><thead><tr><th>事件</th><th>接收人</th><th>渠道</th><th>抑制条件</th></tr></thead><tbody><tr><td>合同生效</td><td>商户本人</td><td>站内 + 微信（含下载入口）</td><td>一次</td></tr><tr><td>T-90 / 60 / 30 到期</td><td>商户本人 + 合同专员</td><td>站内 + 微信</td><td>每档一次</td></tr><tr><td>合同终止</td><td>商户本人 + 被关联使用人</td><td>站内 + 微信（含原因）</td><td>一次</td></tr></tbody></table>
+<h3>1.10 验收标准</h3>
+<table><thead><tr><th>编号</th><th>前置</th><th>操作</th><th>预期</th><th>级别</th></tr></thead><tbody><tr><td>AC-05</td><td>合同待映射</td><td>映射摊位号 → 档口</td><td>映射成功，02 该档口显示在租</td><td>P0</td></tr><tr><td>AC-06</td><td>生效中合同</td><td>点终止未勾确认</td><td>拦截并提示先勾选主管确认</td><td>P0</td></tr><tr><td>AC-07</td><td>已勾确认</td><td>点终止</td><td>合同已终止，02 档口回空闲，04 权限回收</td><td>P0</td></tr><tr><td>AC-08</td><td>合同正常到期</td><td>等待到期</td><td>自动置「已到期」，<strong>不进清退台账</strong>（04 P6）</td><td>P0</td></tr><tr><td>AC-09</td><td>批量导入含错行</td><td>提交</td><td>整批不入库，错误清单列出原因</td><td>P1</td></tr><tr><td>AC-10</td><td>同一摊位号映射两个档口</td><td>保存</td><td>拦截或标记冲突</td><td>P1</td></tr></tbody></table>
+</body></html>

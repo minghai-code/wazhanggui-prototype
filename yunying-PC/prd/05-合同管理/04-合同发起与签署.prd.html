@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>05-04 合同发起与签署 · 运营端页面说明 · 页面 PRD</title><style>
+:root{--fg:#1F2430;--muted:#64748B;--line:#E9EDF3}
+*{box-sizing:border-box}
+body{margin:0;padding:26px 32px 90px;background:#fff;color:var(--fg);
+ font:14px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif}
+h1{font-size:20px;margin:0 0 6px}
+h2{font-size:17px;margin:34px 0 12px;padding-top:12px;border-top:1px solid var(--line)}
+h3{font-size:15px;margin:22px 0 10px}
+h4{font-size:14px;margin:18px 0 8px;color:#334155}
+p{margin:8px 0}
+table{border-collapse:collapse;width:100%;margin:10px 0 16px;font-size:12.5px}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:#F8FAFC;font-weight:700}
+tr:nth-child(even) td{background:#FCFDFE}
+code{background:#F1F5F9;padding:1px 5px;border-radius:4px;font-size:12px;
+ font-family:ui-monospace,Menlo,Consolas,monospace;color:#B91C1C}
+pre.code{background:#0F172A;color:#E2E8F0;padding:14px 16px;border-radius:10px;overflow:auto;font-size:12px}
+pre.code code{background:none;color:inherit;padding:0}
+blockquote{margin:10px 0;padding:10px 14px;background:#EFF6FF;border-left:3px solid #60A5FA;
+ border-radius:0 8px 8px 0;color:#334155;font-size:13px}
+ul,ol{margin:8px 0;padding-left:22px}
+li{margin:3px 0}
+hr{border:0;border-top:1px dashed var(--line);margin:22px 0}
+a{color:#2563EB;text-decoration:none}
+.meta{font-size:12px;color:var(--muted);margin:0 0 20px}
+</style></head><body>
+<div class="meta">由 <code>yunying-PC/prd/05-合同管理/04-合同发起与签署.md</code> 生成，勿手改；改文档请改 md 后重跑 build-prd。</div>
+<h1>05-04 合同发起与签署 · 运营端页面说明</h1>
+<blockquote>端：运营端 PC　｜　模块：05 合同管理　｜　页面：<code>contract-apply.html</code> 页面版本：v1.0（2026-10-22）　｜　业务分册：<code>开发PRD/运营管理端分册PRD/05-合同管理.md</code> <strong>v2.1</strong> <strong>模块通用说明</strong>见同目录 <strong><code>01-合同模板管理.md</code> §0</strong>，本文件不重复。</blockquote>
+<hr>
+<h2 id="p1">1. 合同发起与签署 <code>contract-apply.html</code></h2>
+<h3>1.1 页面说明</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>页面目标</td><td>从竞拍结果<strong>主动发起</strong>合同 → 短信通知 → 商户手写签名 → 专员审核签字 → 盖章归档</td></tr><tr><td>使用角色</td><td>合同管理专员（全流程一条龙）</td></tr><tr><td>入口</td><td>菜单 → 合同管理 → 合同发起与签署；也从 P2 台账「签署」按钮进入</td></tr><tr><td>前置</td><td>浙交会竞拍结果已录入（手工或批量导入）</td></tr><tr><td>后置</td><td>生效 → 02 在租 + 04 建档 + 06 应收计划</td></tr></tbody></table>
+<blockquote><strong>v1.4 关键口径</strong>：合同由<strong>合同专员主动发起</strong>（<strong>不是商户申请</strong>）；「生成并发送」是<strong>同一动作</strong>，完成后直接进入「待商户签字」。</blockquote>
+<h3>1.2 本页端间关系</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>本页数据来源</td><td>竞拍结果（浙交会，人工录入 / 批量导入）</td></tr><tr><td>本页操作的跨端影响</td><td>发送 → 商户收到短信 → <strong>同号注册</strong>后「合同管理」出现待签合同 → 手写签名后回流待审核</td></tr><tr><td>依赖的其他端页面</td><td><code>shanghu-APP/contract.html</code>（<strong>待签合同 + 手写签名入口缺，需新增</strong>）</td></tr><tr><td>不涉及的端</td><td>买家端（只做账号注册，<strong>不承载签署</strong>）</td></tr><tr><td>一致性要求</td><td>手机号 = 签署匹配键，须与竞拍登记一致；不一致 → 专员改绑</td></tr></tbody></table>
+<h3>1.3 页面结构</h3>
+<table><thead><tr><th>区块</th><th>内容</th></tr></thead><tbody><tr><td>顶部</td><td>标题「合同发起与签署」+ 导出台账 + 同步商户端</td></tr><tr><td><strong>统计卡</strong></td><td>待发起合同（竞拍结果）/ 待商户签字 / 待签署审核 / 短信已送达（累计）/ 盖章件待回传</td></tr><tr><td><strong>Tab1 竞拍结果与发起</strong></td><td>竞拍结果表（<strong>8 列</strong>）+ 新建 / 批量导入</td></tr><tr><td><strong>Tab2 签署与盖章</strong></td><td>签署单表（<strong>9 列</strong>）+ 6 个操作</td></tr><tr><td><strong>Tab3 短信发送记录</strong></td><td>短信记录表（<strong>7 列</strong>）+ 重发</td></tr></tbody></table>
+<h3>1.4 列表、筛选与排序</h3>
+<table><thead><tr><th>Tab</th><th>筛选</th><th>排序</th></tr></thead><tbody><tr><td>Tab1</td><td>关键词 / 资源类型 / 发起状态</td><td>录入时间倒序</td></tr><tr><td>Tab2</td><td>关键词 / 签署状态 / 处理人 / <strong>仅超时</strong></td><td>停留时长降序</td></tr><tr><td>Tab3</td><td>合同号 / 手机号 / 发送结果</td><td>发送时间倒序</td></tr></tbody></table>
+<p>空结果分别提示「暂无竞拍结果」「暂无签署单」「暂无短信记录」。</p>
+<h3>1.5 字段规格</h3>
+<p><strong>Tab1 竞拍结果（8 列）</strong>：资源/类型 · 承租方（主体/联系人/电话）· 租期/年租金 · 成交价 · 企业类型 · 录入来源 · 发起状态 · 操作</p>
+<p><strong>Tab2 签署单（9 列）</strong>：合同号 · 承租人/资源 · 租期 · 年租金 · 签署状态 · 处理人 · 短信 · <strong>停留时长</strong> · 操作</p>
+<p><strong>Tab3 短信记录（7 列）</strong>：合同号 · 接收手机号 · 短信内容（模板占位）· 发送时间 · 重试 · 结果 · 操作</p>
+<p><strong>签署状态（5 态）</strong>：待发起 → 待商户签字 → 待签署审核 → 已存档·生效中 / 已撤回（盖章件：待回传 / 已回传）</p>
+<h3>1.6 交互规则</h3>
+<table><thead><tr><th>元素</th><th>所在 Tab</th><th>可点条件</th><th>点击后</th><th>禁止表现</th></tr></thead><tbody><tr><td>新建竞拍结果</td><td>1</td><td>专员</td><td>弹窗（资源编号 / 承租方 / 主体类型 / 电话）</td><td>缺必填 → K-35</td></tr><tr><td>批量导入</td><td>1</td><td>专员</td><td>上传 → 校验 → 全部通过才入库</td><td>有错 → 失败清单</td></tr><tr><td><strong>重新发起并发送</strong></td><td>1</td><td>状态=待发起</td><td>选模板 + 变量填充 + 编辑 → 生成并发送（同一动作）</td><td>手机号不符 → K-36</td></tr><tr><td>重发短信</td><td>2/3</td><td>待商户签字</td><td>只催办，内容与版本不变</td><td>—</td></tr><tr><td><strong>改绑手机号</strong></td><td>2</td><td>待商户签字</td><td>校验 11 位 → 改绑 + 重发</td><td>格式错 → K-41</td></tr><tr><td><strong>撤回</strong></td><td>2</td><td>待商户签字</td><td>原因必填 → 退回「待发起」，v+1、合同号不变</td><td>空原因 → K-43</td></tr><tr><td>审核签字</td><td>2</td><td>待签署审核</td><td>核对签名 → 通过 = <strong>合同生效</strong></td><td>—</td></tr><tr><td>上传盖章件</td><td>2</td><td>已存档</td><td>上传扫描件（不影响生效）</td><td>—</td></tr><tr><td>查看来源</td><td>3</td><td>有合同号</td><td>跳 Tab2 定位签署单</td><td>—</td></tr></tbody></table>
+<h3>1.7 业务规则与计算口径</h3>
+<table><thead><tr><th>编号</th><th>规则</th><th>触发</th><th>处理</th><th>影响端</th></tr></thead><tbody><tr><td>R-21</td><td>生成 + 发送是同一动作</td><td>发起</td><td>无独立「待生成」态</td><td>商户端</td></tr><tr><td>R-22</td><td>短信失败重试 3 次</td><td>发送</td><td>仍失败提醒专员</td><td>—</td></tr><tr><td>R-23</td><td>手机号 = 签署匹配键</td><td>发起/改绑</td><td>必须与竞拍登记一致</td><td>商户端</td></tr><tr><td>R-24</td><td>撤回 → 退回待发起</td><td>撤回</td><td><strong>合同号不变</strong>，v+1，留痕「已撤回·待重新发起」</td><td>—</td></tr><tr><td>R-25</td><td>审核通过即生效</td><td>审核</td><td>触发 02/04/06</td><td>三处</td></tr><tr><td>R-26</td><td>盖章件只影响归档</td><td>上传</td><td>不影响生效状态</td><td>—</td></tr><tr><td>R-27</td><td>停留时长超阈提醒</td><td>定时</td><td>待商户签字超 N 天提醒专员</td><td>—</td></tr></tbody></table>
+<h3>1.8 异常与边界</h3>
+<table><thead><tr><th>类型</th><th>场景</th><th>系统行为</th><th>提示文案</th></tr></thead><tbody><tr><td>数据</td><td>竞拍结果缺必填</td><td>拦截</td><td>【已实现】「资源编号与承租方名称为必填项」</td></tr><tr><td>数据</td><td>手机号非 11 位</td><td>拦截</td><td>【已实现】「手机号格式不正确（应为 11 位数字，与竞拍登记一致）」</td></tr><tr><td>数据</td><td>改绑手机号格式错</td><td>拦截</td><td>【已实现】「手机号格式不正确（11 位数字）」</td></tr><tr><td>数据</td><td>撤回未填原因</td><td>拦截</td><td>【已实现】「撤回原因必填（用于留痕与追溯）」</td></tr><tr><td>依赖</td><td>商户未注册</td><td>待签合同不可达（端上提示后由专员改绑手机号）</td><td>—</td></tr></tbody></table>
+<h4>1.8.1 本页提示语清单（来源：分册 §8.8，编号可回溯）</h4>
+<table><thead><tr><th>编号</th><th>场景</th><th>提示文案</th><th>形式</th><th>状态</th></tr></thead><tbody><tr><td>K-32</td><td>导出台账</td><td>已导出合同发起台账（含竞拍结果、短信记录、签署状态）</td><td>Toast</td><td>✅</td></tr><tr><td>K-33</td><td>同步商户端</td><td>已同步商户端：待签字 / 已生效状态已刷新（原型演示）</td><td>Toast</td><td>✅</td></tr><tr><td>K-34</td><td>定位签署单</td><td>已定位到签署单 {合同号}</td><td>Toast</td><td>✅</td></tr><tr><td>K-35</td><td>竞拍结果缺必填</td><td>资源编号与承租方名称为必填项</td><td>行内</td><td>✅</td></tr><tr><td>K-36</td><td>手机号与竞拍不符</td><td>手机号格式不正确（应为 11 位数字，与竞拍登记一致）</td><td>行内</td><td>✅</td></tr><tr><td>K-37</td><td>保存竞拍结果</td><td>已保存竞拍结果：{…}</td><td>Toast</td><td>✅</td></tr><tr><td>K-38</td><td>批量导入</td><td>导入完成：成功 {a} 条 / 失败 {b} 条（全部通过校验，已进入「待发起」）</td><td>Toast</td><td>✅</td></tr><tr><td>K-39</td><td>发起并发送</td><td>已发送：{合同号}</td><td>Toast</td><td>✅</td></tr><tr><td>K-40</td><td>重发短信</td><td>已重发签署短信（{手机号}）</td><td>Toast</td><td>✅</td></tr><tr><td>K-41</td><td>改绑格式错</td><td>手机号格式不正确（11 位数字）</td><td>行内</td><td>✅</td></tr><tr><td>K-42</td><td>改绑成功</td><td>已改绑并重发短信（{手机号}）</td><td>Toast</td><td>✅</td></tr><tr><td>K-43</td><td>撤回未填原因</td><td>撤回原因必填（用于留痕与追溯）</td><td>行内</td><td>✅</td></tr><tr><td>K-44</td><td>撤回成功</td><td>已撤回 {合同号}</td><td>Toast</td><td>✅</td></tr><tr><td>K-45</td><td>撤回后回 Tab1</td><td>已切到 Tab1「竞拍结果与发起」：找到该竞拍结果（状态「待发起」）→ 点「重新发起并发送」编辑后再发送</td><td>Toast</td><td>✅</td></tr><tr><td>K-46</td><td>审核签字通过</td><td>审核通过：{合同号}</td><td>Toast</td><td>✅</td></tr><tr><td>K-47</td><td>审核驳回</td><td>已驳回并退回 {合同号}</td><td>Toast</td><td>✅</td></tr><tr><td>K-48</td><td>上传盖章件</td><td>盖章件已回传：{合同号}</td><td>Toast</td><td>✅</td></tr><tr><td>K-49</td><td>无权限</td><td>无权限，请联系管理员</td><td>Toast</td><td>✅</td></tr><tr><td>K-50</td><td>并发冲突</td><td>该记录已被他人修改，请刷新后重试</td><td>Toast</td><td>✅</td></tr></tbody></table>
+<h3>1.9 通知与消息</h3>
+<table><thead><tr><th>事件</th><th>接收人</th><th>渠道</th><th>抑制条件</th></tr></thead><tbody><tr><td>合同生成并发送</td><td>竞拍人（按竞拍登记手机号）</td><td><strong>短信</strong>（模板可配）</td><td>失败重试 3 次</td></tr><tr><td>催办重发</td><td>同上</td><td>短信（内容与版本不变）</td><td>每 24h 最多 1 次</td></tr><tr><td>待商户签字超时</td><td>合同管理专员</td><td>站内</td><td>每合同一次</td></tr><tr><td>审核通过（生效）</td><td>商户本人</td><td>站内 + 微信</td><td>一次</td></tr></tbody></table>
+<h3>1.10 验收标准</h3>
+<table><thead><tr><th>编号</th><th>前置</th><th>操作</th><th>预期</th><th>级别</th></tr></thead><tbody><tr><td>AC-16</td><td>竞拍结果待发起</td><td>点重新发起并发送</td><td>合同进入待商户签字，短信已发</td><td>P0</td></tr><tr><td>AC-17</td><td>手机号与竞拍登记不一致</td><td>发起</td><td>拦截或提示改绑</td><td>P0</td></tr><tr><td>AC-18</td><td>待商户签字</td><td>点撤回并填原因</td><td>退回待发起，合同号不变，v+1</td><td>P0</td></tr><tr><td>AC-19</td><td>商户已签字</td><td>专员点审核通过</td><td>合同生效，02 在租、04 建档、06 应收生成</td><td>P0</td></tr><tr><td>AC-20</td><td>合同已存档</td><td>上传盖章件</td><td>子标记变「已回传」，生效状态不变</td><td>P1</td></tr><tr><td>AC-21</td><td>批量导入含错行</td><td>提交</td><td>整批不入库，列出失败原因</td><td>P1</td></tr></tbody></table>
+</body></html>

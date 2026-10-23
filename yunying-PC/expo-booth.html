@@ -109,6 +109,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
     <div class="px-5 py-3 border-b border-gray-100 flex items-center gap-2 flex-wrap">
       <button class="btn btn-ghost" onclick="toast('导出')"><i class="fas fa-download mr-1"></i>导出</button>
       <button class="btn btn-primary" onclick="toast('已批量通过 3 条展位申请')"><i class="fas fa-check-double mr-1"></i>批量通过</button>
+      <button class="btn btn-ghost" onclick="scanOverdue()"><i class="fas fa-clock-rotate-left mr-1"></i>检测逾期未缴</button>
     </div>
     <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
       <div class="section-label mb-0">待审批申请（36）</div>
@@ -200,6 +201,36 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[60]"></div>
 
 <script>
+/* 演示开关：?noBooth=1 → 模拟"展商未选展位号"，用于验证 E-15 拦截 */
+var NO_BOOTH=/[?&]noBooth=1/.test(location.search);
+/* 终审通过：必须先确认展位号（E-15） */
+function doPass(){
+  var body=document.getElementById('d-body');
+  var txt=(body?body.textContent:'')||'';
+  var m=/展位号（展商自选）\s*([^\s]*)/.exec(txt);
+  var no=m?m[1]:'';
+  if(!no||/^(未选|待分配|—|-)$/.test(no)){
+    toast('请先确认展位号（买家端自选，随申请单携带）');
+    return;
+  }
+  closeD();toast('审核通过，已通知展商缴费（展位 '+no+' 已锁定待缴费）');
+}
+/* 驳回：原因必填 */
+function doReject(){
+  var ta=document.querySelector('#d-body textarea');
+  var why=((ta&&ta.value)||'').trim();
+  if(!why){toast('驳回原因必填');if(ta){ta.style.borderColor='#DC2626';ta.focus();}return;}
+  closeD();toast('已驳回，原因已通知展商');
+}
+/* 逾期未缴扫描：审核通过 7 个自然日未缴费 → 自动取消并释放展位（E-16） */
+function scanOverdue(){
+  var n=0;
+  document.querySelectorAll('#page-body tr, .tb tr').forEach(function(tr){
+    if(/已通过 · 待缴费/.test(tr.textContent)) n++;
+  });
+  if(!n){toast('当前无逾期未缴申请');return;}
+  toast('检测到 '+n+' 条逾期未缴（>7 天），已自动取消并释放展位，通知展商与候补队列');
+}
 var AUDIT=`
   <div class="ftitle">企业信息</div>
   <div class="bg-gray-50 rounded-xl px-4 py-2">
@@ -236,8 +267,8 @@ var AUDIT=`
 function openD(k){
   if(k==='audit'){
     document.getElementById('d-title').textContent='展位申请审核';
-    document.getElementById('d-body').innerHTML=AUDIT;
-    document.getElementById('d-foot').innerHTML='<button class="btn btn-ghost py-2.5" onclick="toast(\'已转候补\')">转候补</button><button class="btn btn-danger py-2.5" style="background:#fff;color:#DC2626;border:1px solid #FECACA" onclick="toast(\'已驳回，原因已通知展商\')">驳回</button><button class="btn btn-primary py-2.5 px-6" onclick="closeD();toast(\'审核通过，已通知展商缴费\')">通过</button>';
+    document.getElementById('d-body').innerHTML=NO_BOOTH?AUDIT.replace('A01-A02','未选'):AUDIT;
+    document.getElementById('d-foot').innerHTML='<button class="btn btn-ghost py-2.5" onclick="toast(\'已转候补\')">转候补</button><button class="btn btn-danger py-2.5" style="background:#fff;color:#DC2626;border:1px solid #FECACA" onclick="doReject()">驳回</button><button class="btn btn-primary py-2.5 px-6" onclick="doPass()">通过</button>';
   }
   document.getElementById('mask').classList.add('on');
   document.getElementById('drawer').classList.add('on');
@@ -249,5 +280,7 @@ function closeD(){
 var tid;
 function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},2200);}
 </script>
+<script src="../shared/op-guard.js"></script>
+<script src="../shared/page-prd.js"></script>
 </body>
 </html>

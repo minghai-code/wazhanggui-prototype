@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>04 实体商户管理 · 运营端页面说明（首篇） · 页面 PRD</title><style>
+:root{--fg:#1F2430;--muted:#64748B;--line:#E9EDF3}
+*{box-sizing:border-box}
+body{margin:0;padding:26px 32px 90px;background:#fff;color:var(--fg);
+ font:14px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif}
+h1{font-size:20px;margin:0 0 6px}
+h2{font-size:17px;margin:34px 0 12px;padding-top:12px;border-top:1px solid var(--line)}
+h3{font-size:15px;margin:22px 0 10px}
+h4{font-size:14px;margin:18px 0 8px;color:#334155}
+p{margin:8px 0}
+table{border-collapse:collapse;width:100%;margin:10px 0 16px;font-size:12.5px}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:#F8FAFC;font-weight:700}
+tr:nth-child(even) td{background:#FCFDFE}
+code{background:#F1F5F9;padding:1px 5px;border-radius:4px;font-size:12px;
+ font-family:ui-monospace,Menlo,Consolas,monospace;color:#B91C1C}
+pre.code{background:#0F172A;color:#E2E8F0;padding:14px 16px;border-radius:10px;overflow:auto;font-size:12px}
+pre.code code{background:none;color:inherit;padding:0}
+blockquote{margin:10px 0;padding:10px 14px;background:#EFF6FF;border-left:3px solid #60A5FA;
+ border-radius:0 8px 8px 0;color:#334155;font-size:13px}
+ul,ol{margin:8px 0;padding-left:22px}
+li{margin:3px 0}
+hr{border:0;border-top:1px dashed var(--line);margin:22px 0}
+a{color:#2563EB;text-decoration:none}
+.meta{font-size:12px;color:var(--muted);margin:0 0 20px}
+</style></head><body>
+<div class="meta">由 <code>yunying-PC/prd/04-商户管理/01-线下自动建档与同步.md</code> 生成，勿手改；改文档请改 md 后重跑 build-prd。</div>
+<h1>04 实体商户管理 · 运营端页面说明（首篇）</h1>
+<blockquote>端：运营端 PC（<code>yunying-PC</code>）　｜　模块：04 实体商户管理（菜单名「商户管理」） <strong>本文件 = 模块通用说明（§0）+ 第 1 页</strong>，同目录其余文件只写本页 页面版本：v1.0（2026-10-22）　｜　业务分册：<code>开发PRD/运营管理端分册PRD/04-商户管理.md</code> <strong>v2.9</strong> 同目录：<code>02-资料变更审核.md</code>、<code>03-商户档案.md</code>、<code>04-信用评级.md</code>、<code>05-资质与到期管理.md</code>、<code>06-清退商户.md</code>、<code>07-租金催缴.md</code></blockquote>
+<hr>
+<h2 id="p0">0. 模块通用说明（本模块其他页面不再重复）</h2>
+<h3>0.1 这个模块解决什么问题</h3>
+<p>合同签完、档口租出去了，但<strong>系统里没有"商户"这个东西</strong>——谁在租、能不能用物业模块、欠不欠租、信用多少，分散在 02 档口、05 合同、06 缴费里，对不上号。 本模块把「纸质合同上的承租方」变成<strong>可管理、可授权、可评价的商户档案</strong>，并承接资质、变更、信用、催缴、清退。</p>
+<p>不做：每个租户靠人工在 Excel 里维护；档口换了租户系统不知道；物业人员不知道该给谁开权限。</p>
+<h3>0.2 角色与权限矩阵</h3>
+<table><thead><tr><th>功能</th><th>商户管理专员</th><th>运营主管</th><th>运营专员</th><th>财务</th><th>商户本人</th><th>无权限表现</th></tr></thead><tbody><tr><td>初审</td><td>✅</td><td>✅</td><td>❌</td><td>❌</td><td>❌</td><td>按钮隐藏</td></tr><tr><td>复审 / 通过 / 驳回</td><td>❌（初审复审分离时）</td><td>✅</td><td>❌</td><td>❌</td><td>❌</td><td>按钮隐藏</td></tr><tr><td>自动建档同步 / 异常处理</td><td>✅</td><td>✅</td><td>❌</td><td>❌</td><td>❌</td><td>按钮隐藏</td></tr><tr><td>档案查看</td><td>✅</td><td>✅</td><td>✅</td><td>✅（财务口径）</td><td>仅本人</td><td>列表不返回</td></tr><tr><td>档案编辑</td><td>✅（受限字段）</td><td>✅</td><td>❌</td><td>❌</td><td>❌</td><td>字段置灰</td></tr><tr><td><strong>查看完整身份证</strong></td><td>✅（留痕）</td><td>✅（留痕）</td><td>❌</td><td>❌</td><td>仅本人</td><td>按钮隐藏</td></tr><tr><td>画像标签维护</td><td>✅</td><td>✅</td><td>✅</td><td>❌</td><td>❌</td><td>按钮隐藏</td></tr><tr><td>资料变更审核</td><td>✅</td><td>✅</td><td>❌</td><td>❌</td><td>提交</td><td>—</td></tr><tr><td>资质与到期管理</td><td>✅</td><td>✅（终审）</td><td>❌</td><td>❌</td><td>提交</td><td>—</td></tr><tr><td>信用规则配置</td><td>✅</td><td>✅</td><td>❌</td><td>❌</td><td>❌</td><td>按钮隐藏</td></tr><tr><td><strong>信用人工调整</strong></td><td>❌</td><td>✅</td><td>❌</td><td>❌</td><td>❌</td><td>按钮隐藏</td></tr><tr><td><strong>暂停 / 冻结</strong></td><td>❌</td><td>✅</td><td>❌</td><td>❌</td><td>❌</td><td>按钮隐藏</td></tr><tr><td>清退</td><td>发起</td><td>✅ 审批</td><td>❌</td><td>❌</td><td>❌</td><td>—</td></tr><tr><td>导出</td><td>✅（脱敏）</td><td>✅（可申请未脱敏）</td><td>❌</td><td>✅（脱敏）</td><td>❌</td><td>按钮隐藏</td></tr></tbody></table>
+<blockquote><strong>数据权限</strong>：身份证默认脱敏 <code>3306********<strong>1234</code>，查看完整需留痕；</strong>档口关联只读**，主权在 02。</blockquote>
+<h3>0.3 菜单与端间落点表</h3>
+<table><thead><tr><th>#</th><th>页面</th><th>运营端文件</th><th>买家端</th><th>商户端</th><th>数据方向</th></tr></thead><tbody><tr><td>P1</td><td>线下自动建档与同步</td><td><code>merchant-auto.html</code></td><td>—</td><td>—</td><td>后台内部（消费 05「已存档」事件 + 02 在租档口）</td></tr><tr><td>P2</td><td>资料变更审核</td><td><code>merchant-change.html</code></td><td>❌</td><td><code>mine.html</code> 商户资料入口（提交变更）</td><td>商户端 → 本端（审批）→ 回写主档</td></tr><tr><td>P3</td><td>商户档案</td><td><code>merchant-profile.html</code></td><td>⚠️ <code>shop-detail.html</code> 商位信息（编号口径待统一）</td><td><code>mine.html</code> / <code>property.html</code> / <code>contract.html</code> / <code>payment.html</code>（<strong>现为写死档口号</strong>）</td><td>本端为写入方；两端只读</td></tr><tr><td>P4</td><td>信用评级</td><td><code>merchant-rating.html</code></td><td>⚠️ 店铺/商品页「实力商家」标识（❌ 未接）</td><td>商户端等级标识（❌ 缺）</td><td>本端 → 两端</td></tr><tr><td>P5</td><td>资质与到期管理</td><td><code>merchant-qual.html</code></td><td>❌</td><td><code>shanghu-verify.html</code>（提交/重传）</td><td>双向：商户提交 → 本端复核</td></tr><tr><td>P6</td><td>清退商户</td><td><code>merchant-exit.html</code></td><td>—</td><td><code>property.html</code> 物业权限<strong>自动回收</strong></td><td>05 合同终止 → 本端存档；本端 → 商户端（回收权限）</td></tr><tr><td>P7</td><td>租金催缴</td><td><code>merchant-dunning.html</code></td><td>—</td><td><code>payment.html</code>（账单） + 站内/微信通知</td><td>本端 → 商户端（通知）</td></tr></tbody></table>
+<blockquote><strong>关键口径（v2.0）</strong>：注册<strong>不再提交入驻申请</strong>、<strong>不产生档案</strong>；<strong>档案的唯一入口 = 05 合同「已存档」事件</strong>（+ 每日兜底）。原「入驻申请审核」页已下线。 商户端多处<strong>硬编码档口号</strong>（<code>mine.html:40</code>、<code>property.html:42/48</code>、<code>contract.html:74/76</code>、<code>payment.html:65</code>、<code>repair.html:62</code>）需改为读本模块关联，属端上待办。</blockquote>
+<p><strong>运营端内边界</strong>：02 档口（本端只读）｜05 合同（本端只读，不新建合同表）｜10 商城（店铺归商城，本端只提供商户主体）｜10a 询价（入驻通过默认开通，资质过期冻结）｜06/07（缴费与物业回流用于信用与标签）。</p>
+<h3>0.4 核心数据对象</h3>
+<table><thead><tr><th>对象</th><th>说明</th><th>关键字段</th><th>谁产生</th><th>谁消费</th></tr></thead><tbody><tr><td><strong>商户主档 Merchant</strong></td><td>一个承租主体</td><td>商户编号 / 名称 / 主体类型 / 商户类型 / 身份证 / 关联档口 / 授权员工 / 信用等级 / 状态</td><td>自动建档、手工补档</td><td>全模块 + 两端</td></tr><tr><td><strong>建档任务 AutoProvisionJob</strong></td><td>每日同步作业</td><td>批次 / 拉取数 / 新增 / 合并 / 异常数</td><td>系统（05 事件 / 定时）</td><td>P1</td></tr><tr><td><strong>变更申请 ChangeRequest</strong></td><td>商户提交的资料修改</td><td>变更编号 / 类型 / 前后值 / 状态</td><td>商户端</td><td>P2</td></tr><tr><td><strong>资质 Qual</strong></td><td>证书与有效期</td><td>类型 / 编号 / 有效期 / 附件 / 状态</td><td>商户端提交、运营审核</td><td>P5、10a 询价</td></tr><tr><td><strong>催缴记录 Dunning</strong></td><td>一合同一轮催缴</td><td>年度 / 应收 / 已缴 / 未缴 / 通知次数</td><td>系统 + 财务登记</td><td>P7</td></tr><tr><td><strong>清退存档 ExitArchive</strong></td><td>提前终止的只读台账</td><td>清退单号 / 终止类型 / 生效日 / 原因</td><td>05 合同终止</td><td>P6</td></tr></tbody></table>
+<h3>0.5 状态机</h3>
+<p><strong>① 商户主档（5 态，类型不是状态）</strong></p>
+<table><thead><tr><th>状态</th><th>含义</th><th>驱动</th></tr></thead><tbody><tr><td>待判定</td><td>已自动建档，线上开通未定</td><td>系统</td></tr><tr><td>正常经营</td><td>线上已通过或线下在租</td><td>审核通过 / 合同在租</td></tr><tr><td>暂停</td><td>资质过期 / 欠费 / 违规，<strong>保留档案限动作</strong></td><td>运营（规则自动）</td></tr><tr><td>冻结</td><td>严重违规，<strong>关闭线上权限</strong></td><td>主管审批</td></tr><tr><td>已清退</td><td>终态，权限全部回收</td><td>主管审批</td></tr></tbody></table>
+<p><strong>商户类型（属性）</strong>：仅线上 / 线上兼档口 / 仅线下档口（未上线） → 自动建档先产生「仅线下档口（未上线）」；合同终止且线上仍在营 → 回退「仅线上」；类型变化一律留痕。</p>
+<p><strong>② 自动建档任务（4 态）</strong>：待执行 / 执行中 / 成功 / 部分异常</p>
+<pre class="code"><code data-lang="mermaid">stateDiagram-v2
+    [*] --&gt; 待执行: 每日 02:00 定时 或 点「立即同步」
+    待执行 --&gt; 执行中: 读 02 在租档口 + 05 已存档事件
+    执行中 --&gt; 成功: 全部建档成功
+    执行中 --&gt; 部分异常: 出现未匹配/停用/缺身份证/身份冲突
+    部分异常 --&gt; 执行中: 人工处理后重跑单条</code></pre>
+<p><strong>③ 变更申请（3 态）</strong>：待审核 → 已通过 / 已驳回（原因必填）</p>
+<p><strong>禁止路径</strong></p>
+<table><thead><tr><th>场景</th><th>系统行为</th><th>提示文案</th><th>日志</th></tr></thead><tbody><tr><td>同（姓名+身份证）同档口重复建档</td><td>幂等跳过</td><td>—</td><td>是</td></tr><tr><td>02 租户换人</td><td>新户新建档，<strong>老户档案保留不删</strong></td><td>—</td><td>是</td></tr><tr><td>编辑身份证</td><td>字段只读</td><td>见 §0.6 说明</td><td>—</td></tr><tr><td>非主管做信用调整 / 暂停冻结</td><td>按钮隐藏</td><td>—</td><td>否</td></tr><tr><td>未脱敏导出未经审批</td><td>拦截</td><td>M-47</td><td>是</td></tr></tbody></table>
+<h3>0.6 名词与口径</h3>
+<table><thead><tr><th>名词</th><th>定义</th><th>备注</th></tr></thead><tbody><tr><td><strong>建档匹配键</strong></td><td>姓名 + 身份证（首选）；只有姓名 + 摊位号时降级建档并标「身份待补全」</td><td>同名冲突进人工确认清单</td></tr><tr><td>摊位号 ↔ 档口编号</td><td>合同「资产名称」（如 <code>A9-10</code>）映射到 02 档口编号</td><td>映射缺失 → 异常清单</td></tr><tr><td><strong>信用总分</strong></td><td>交易 45% + 评价 25% + 缴费 20% + 违规扣分</td><td>权重可配置、版本化、<strong>不回溯历史</strong></td></tr><tr><td>数据缺失</td><td>该项无数据源（如缴费），<strong>不算 0 分</strong>，单独标记、不参与等级判定</td><td>当前缴费无源</td></tr><tr><td>自动暂停阈值</td><td>资质过期 / 欠费 &gt; 30 天 / 违规 ≥ 3 / 投诉未处理 ≥ 2</td><td>暂停后 7 天整改期</td></tr><tr><td>催缴起算</td><td>每年 8 月 15 日起催缴第二年租金</td><td>规则可配</td></tr><tr><td>已缴判定</td><td>以「累计已缴名单导入」+ 人工登记为准，发送前比对</td><td>已缴不再收到通知</td></tr><tr><td>身份证脱敏</td><td>保留前 4 后 4，中间打码</td><td>查看完整需二次校验 + 留痕</td></tr></tbody></table>
+<h3>0.6.1 跨端字段差异（只列不一致的）</h3>
+<table><thead><tr><th>概念</th><th>运营端</th><th>端上现状</th><th>目标口径</th></tr></thead><tbody><tr><td>档口编号</td><td><code>merchant → units[]</code>（来自 02）</td><td><code>mine.html</code> 等 5 处<strong>写死 <code>1F-A08</code></strong></td><td>读本模块关联，仅「线上兼档口」显示档口区块</td></tr><tr><td>商户类型</td><td>三值枚举</td><td>无标识</td><td>端上展示「线上兼档口 / 仅线上」</td></tr><tr><td>信用等级</td><td>评级结果</td><td>无</td><td>端上展示等级；买家端「实力商家」由等级 + 标签驱动</td></tr><tr><td>报价权限</td><td>入驻通过默认开通、到期冻结</td><td>端上视为"需先认证"</td><td>改为默认可用，过期才提示</td></tr></tbody></table>
+<h3>0.7 本期不做</h3>
+<p>线上店铺管理（归 10 商城）｜保证金处理（线下必缴已收）｜06 缴费管理（缴费在本模块人工登记）｜人脸识别｜批量打标签｜短信渠道催缴（可选，独立短信服务）</p>
+<hr>
+<h2 id="p1">1. 线下自动建档与同步 <code>merchant-auto.html</code></h2>
+<h3>1.1 页面说明</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>页面目标</td><td>让专员看见"系统把线下租户变成商户"的过程与问题：谁被建了档、谁没建上、为什么</td></tr><tr><td>使用角色</td><td>商户管理专员（主）、运营主管</td></tr><tr><td>入口</td><td>菜单 → 商户管理 → 线下自动建档与同步</td></tr><tr><td>前置</td><td>05 有「已存档」合同；02 有在租档口</td></tr><tr><td>后置</td><td>生成/合并商户档案；异常进清单待处理</td></tr></tbody></table>
+<h3>1.2 本页端间关系</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>本页数据来源</td><td>05 合同「已存档」事件 + 02 在租档口（每日兜底）</td></tr><tr><td>本页操作的跨端影响</td><td>建档成功 → 商户端获得物业模块权限（合同期内）</td></tr><tr><td>依赖的其他端页面</td><td>无直接页面；影响商户端 <code>property.html</code> 可用性</td></tr><tr><td>不涉及的端</td><td>买家端</td></tr><tr><td>一致性要求</td><td>幂等：同（姓名+身份证）同档口只建一次</td></tr></tbody></table>
+<h3>1.3 页面结构</h3>
+<table><thead><tr><th>区块</th><th>内容</th></tr></thead><tbody><tr><td>顶部</td><td>标题「线下自动建档与同步」+ 导出</td></tr><tr><td>同步任务卡片</td><td>上次/下次同步时间、数据源（02）、拉取条数、新增建档、异常数、耗时 + <strong>「立即同步」</strong></td></tr><tr><td><strong>统计卡</strong></td><td><strong>无</strong>（本页以任务卡片承载指标，非指标卡）</td></tr><tr><td>筛选区</td><td>同步批次日期 + 来源档口（楼栋/楼层）+ 建档结果 + 异常类型 + 查询 + 重置</td></tr><tr><td>建档结果表</td><td><strong>9 列</strong></td></tr><tr><td>异常清单表</td><td><strong>5 列</strong></td></tr></tbody></table>
+<h3>1.4 列表、筛选与排序</h3>
+<table><thead><tr><th>项目</th><th>规则</th></tr></thead><tbody><tr><td>默认排序</td><td>同步时间倒序</td></tr><tr><td>分页</td><td>不限（演示为单页）</td></tr><tr><td>筛选组合</td><td>条件之间 <strong>且</strong></td></tr><tr><td>建档结果筛选</td><td>成功·新建 / 成功·合并 / 异常</td></tr><tr><td>异常类型</td><td>未匹配档口 / 停用档口 / 缺身份证 / 身份冲突</td></tr><tr><td>空结果</td><td>见 M-06 / M-07</td></tr></tbody></table>
+<h3>1.5 字段规格</h3>
+<p><strong>建档结果表（9 列）</strong>：租户姓名 · 身份证号（脱敏）· 档口编号 · 位置 · 租期 · 合同号 · 建档结果 · 商户编号 · 操作</p>
+<p><strong>异常清单表（5 列）</strong>：异常类型 · 原始信息 · 处理建议 · 处理状态 · 操作</p>
+<table><thead><tr><th>异常类型</th><th>典型原因</th><th>处理建议</th></tr></thead><tbody><tr><td>未匹配档口</td><td>合同「资产名称」不在 02</td><td>物业补录档口后重跑</td></tr><tr><td>停用档口</td><td>档口状态为停用</td><td>核查是否误停用</td></tr><tr><td>缺身份证</td><td>线下合同只有姓名</td><td>降级建档 + 标「身份待补全」，后续补全自动去重</td></tr><tr><td>身份冲突</td><td>同名多摊且均无身份证</td><td>人工线下核对后合并</td></tr></tbody></table>
+<h3>1.6 交互规则</h3>
+<table><thead><tr><th>元素</th><th>显示条件</th><th>可点条件</th><th>点击后</th><th>禁止表现</th></tr></thead><tbody><tr><td>立即同步</td><td>始终</td><td>专员/主管</td><td>消费 05 事件 + 拉取 02 → 刷新任务卡</td><td>执行中按钮 loading</td></tr><tr><td>查看档案</td><td>建档成功</td><td>专员</td><td>跳 P3 档案详情</td><td>—</td></tr><tr><td>处理异常</td><td>异常行</td><td>专员</td><td>弹窗选处理方式</td><td>未选 → M-04</td></tr><tr><td>忽略</td><td>异常行</td><td>专员</td><td>必填备注后忽略</td><td>空备注 → M-05</td></tr><tr><td>重跑单条</td><td>异常行</td><td>专员</td><td>重新执行该条</td><td>—</td></tr><tr><td>转人工建档</td><td>异常行</td><td>专员</td><td>手工补档（走 P3 补档）</td><td>必填原因</td></tr></tbody></table>
+<h3>1.7 业务规则与计算口径</h3>
+<table><thead><tr><th>编号</th><th>规则</th><th>触发</th><th>处理</th><th>影响端</th></tr></thead><tbody><tr><td>R-01</td><td>幂等建档</td><td>同步</td><td>同（姓名+身份证）同档口只建一次</td><td>—</td></tr><tr><td>R-02</td><td>换人不删档</td><td>02 租户换人</td><td>新户新建，老户保留</td><td>商户端</td></tr><tr><td>R-03</td><td>降级建档</td><td>缺身份证</td><td>照建 + 标「身份待补全」</td><td>—</td></tr><tr><td>R-04</td><td>首次只建在租</td><td>首次全量</td><td>历届租户不建档</td><td>—</td></tr><tr><td>R-05</td><td>建档即开物业权限</td><td>建档成功</td><td>权限随合同期</td><td>商户端</td></tr><tr><td>R-06</td><td>异常不阻塞其余条目</td><td>部分异常</td><td>成功的照常入库</td><td>—</td></tr></tbody></table>
+<h3>1.8 异常与边界</h3>
+<table><thead><tr><th>类型</th><th>场景</th><th>系统行为</th><th>提示文案</th></tr></thead><tbody><tr><td>数据</td><td>建档结果无记录</td><td>空态</td><td>【已实现】「暂无匹配记录」</td></tr><tr><td>数据</td><td>异常清单为空</td><td>空态</td><td>【已实现】「暂无异常，建档链路运行正常」</td></tr><tr><td>数据</td><td>未选处理方式</td><td>拦截</td><td>【已实现】「请选择处理方式」</td></tr><tr><td>数据</td><td>忽略未填备注</td><td>拦截</td><td>【已实现】「选择「忽略」时备注必填」</td></tr><tr><td>依赖</td><td>05/02 不可用</td><td>任务失败，保留上次结果</td><td><strong>【待实现】M-47/M-48</strong></td></tr></tbody></table>
+<h4>1.8.1 本页提示语清单（来源：分册 §8.10，编号可回溯）</h4>
+<table><thead><tr><th>编号</th><th>场景</th><th>提示文案</th><th>形式</th><th>状态</th></tr></thead><tbody><tr><td>M-01</td><td>导出同步日志</td><td>已导出本次同步日志（CSV，身份证脱敏）</td><td>Toast</td><td>✅</td></tr><tr><td>M-02</td><td>点立即同步</td><td>正在消费 05 合同「已存档」事件 + 拉取 02 在租档口数据…</td><td>Toast</td><td>✅</td></tr><tr><td>M-03</td><td>同步完成</td><td>同步完成：拉取 {n} 条，新增建档 {a}，合并 {b}，异常 {c}</td><td>Toast</td><td>✅</td></tr><tr><td>M-04</td><td>未选处理方式</td><td>请选择处理方式</td><td>Toast</td><td>✅</td></tr><tr><td>M-05</td><td>忽略未填备注</td><td>选择「忽略」时备注必填</td><td>Toast</td><td>✅</td></tr><tr><td>M-06</td><td>列表无数据</td><td>暂无匹配记录</td><td>空态</td><td>✅</td></tr><tr><td>M-07</td><td>异常清单为空</td><td>暂无异常，建档链路运行正常</td><td>空态</td><td>✅</td></tr><tr><td>M-47</td><td>无权限操作</td><td>无权限，请联系管理员</td><td>Toast</td><td>✅</td></tr><tr><td>M-48</td><td>并发冲突</td><td>该记录已被他人修改，请刷新后重试</td><td>Toast</td><td>✅</td></tr></tbody></table>
+<blockquote>M-47 / M-48 由 <code>shared/op-guard.js</code> 统一实现（右上角角色切换 + <code>?conflict=1</code> 演示冲突），页面仅一行 script 引用。</blockquote>
+<h3>1.9 通知与消息</h3>
+<table><thead><tr><th>事件</th><th>接收人</th><th>渠道</th><th>抑制条件</th></tr></thead><tbody><tr><td>同步出现异常</td><td>商户管理专员</td><td>站内 + 待办</td><td>同批次只发一次</td></tr><tr><td>建档成功</td><td>商户（本人）</td><td>站内</td><td>已有账号才发</td></tr></tbody></table>
+<h3>1.10 验收标准</h3>
+<table><thead><tr><th>编号</th><th>前置</th><th>操作</th><th>预期</th><th>级别</th></tr></thead><tbody><tr><td>AC-01</td><td>05 合同已存档、02 档口在租</td><td>点立即同步</td><td>生成商户档案，商户类型=仅线下档口（未上线）</td><td>P0</td></tr><tr><td>AC-02</td><td>同一租户重复同步</td><td>再点同步</td><td>不重复建档（幂等）</td><td>P0</td></tr><tr><td>AC-03</td><td>合同只有姓名无身份证</td><td>同步</td><td>降级建档并标「身份待补全」</td><td>P0</td></tr><tr><td>AC-04</td><td>合同资产名称不在 02</td><td>同步</td><td>进异常清单，类型=未匹配档口</td><td>P1</td></tr><tr><td>AC-05</td><td>异常行点忽略</td><td>不填备注</td><td>拦截提示备注必填</td><td>P1</td></tr></tbody></table>
+</body></html>

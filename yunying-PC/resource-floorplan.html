@@ -310,6 +310,9 @@ function undo(){
 }
 function onUpload(inp){
   if(!inp.files.length) return;
+  var file=inp.files[0];
+  if(!/^image\//.test(file.type) && !/\.(png|jpe?g|svg)$/i.test(file.name)){ toast('仅支持 PNG / JPG / SVG'); inp.value=''; return; }
+  if(file.size>10*1024*1024){ toast('图片不能超过 10MB，建议先压缩'); inp.value=''; return; }
   var m=META[key()]||{};
   m.status='草稿'; m.ver='v'+((parseInt((m.ver||'v0').replace('v',''),10)||0)+1);
   m.time='2026-09-24 '+nowHM(); m.by='张伟';
@@ -321,6 +324,7 @@ function onUpload(inp){
 function publish(){
   var m=META[key()]||{status:'未上传'};
   if(m.status==='未上传'){ toast('请先上传该楼层平面图'); return; }
+  if(!pts().length){ toast('请先标注至少 1 个点位再发布'); return; }
   if(m.status==='已发布'){ m.status='草稿';
     VERLOG.forEach(function(v){ if(v.floor===curB+' 栋 '+curF && v.status==='已发布') v.status='草稿'; });
     toast('已下线：买家端「市场导览」恢复上一版本'); renderAll(); return;
@@ -344,5 +348,6 @@ function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style
 })();
 renderTabs();
 </script>
+<script src="../shared/page-prd.js"></script>
 </body>
 </html>
