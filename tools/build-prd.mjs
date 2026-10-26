@@ -113,6 +113,11 @@ li{margin:3px 0}
 hr{border:0;border-top:1px dashed var(--line);margin:22px 0}
 a{color:#2563EB;text-decoration:none}
 .meta{font-size:12px;color:var(--muted);margin:0 0 20px}
+.vtitle{font-size:18px;font-weight:800;margin:0 0 4px}
+details.fam{margin:12px 0 20px;border:1px solid var(--line);border-radius:10px;background:#F8FAFC;padding:0 14px}
+details.fam summary{cursor:pointer;padding:10px 0;font-size:13px;font-weight:700;color:#334155}
+details.fam[open]{padding-bottom:10px}
+.vnav{display:flex;justify-content:space-between;margin-top:34px;padding-top:14px;border-top:1px dashed var(--line);font-size:13px}
 `;
 
 const render = (mdFile, md) => {
@@ -149,12 +154,71 @@ else {
 
 if (!targets.length) { console.error('未找到 md（--root 是否指向代码根目录？）'); process.exit(1); }
 
-let n = 0;
+/* ---------- 移动端功能族：按 `## N. 页面名 `file.html`` 切出单页视图 ----------
+ * 源文档一功能族一篇；抽屉只加载本页视图（_views/族-pN.prd.html）。
+ * 视图 = 页头 + 可折叠的 §0 族通用说明 + 本页 10 节 + 上/下一页。
+ */
+function writeViews(mdFile, md) {
+  const L = md.split(/\r?\n/);
+  const heads = [];
+  L.forEach((line, idx) => {
+    const m = line.match(/^##\s+(\d+)\.\s+(.+?)\s*`([^`]+\.html)`\s*$/);
+    if (m) heads.push({ idx, num: m[1], title: m[2].trim(), file: m[3] });
+  });
+  if (!heads.length) return 0;
+
+  const prdDir = path.dirname(mdFile);
+  const outDir = path.join(prdDir, '_views');
+  fs.mkdirSync(outDir, { recursive: true });
+
+  const base = path.basename(mdFile, '.md');
+  const h1 = (md.match(/^#\s+(.*)$/m) || [])[1] || base;
+  const zeroMd = L.slice(0, heads[0].idx).join('\n').replace(/^#\s+.*$/m, '');
+  const zeroHtml = md2html(zeroMd);
+
+  const appIdx = L.findIndex((l) => /^##\s+附录/.test(l));
+
+  let k = 0;
+  heads.forEach((h, i) => {
+    const end = i + 1 < heads.length ? heads[i + 1].idx : (appIdx > h.idx ? appIdx : L.length);
+    const body = L.slice(h.idx, end).join('\n');
+    const prev = heads[i - 1], next = heads[i + 1];
+    const nav = '<div class="vnav">'
+      + (prev ? `<a href="${base}-p${prev.num}.prd.html">&larr; ${esc(prev.title)}</a>` : '<span></span>')
+      + (next ? `<a href="${base}-p${next.num}.prd.html">${esc(next.title)} &rarr;</a>` : '<span></span>')
+      + '</div>';
+
+    const html = `<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${esc(h.title)} · 页面说明</title><style>${CSS}</style></head><body>
+<div class="meta">由 <code>${esc(path.relative(ROOT, mdFile).replace(/\\/g, '/'))}</code> 的 §${h.num} 生成，勿手改；改文档请改 md 后重跑 build-prd --views。</div>
+<div class="vtitle">${esc(h1)} · ${esc(h.title)} <code>${esc(h.file)}</code></div>
+<details class="fam"><summary>所属功能族通用说明（§0）</summary>${zeroHtml}</details>
+${md2html(body)}
+${nav}
+</body></html>`;
+    fs.writeFileSync(path.join(outDir, `${base}-p${h.num}.prd.html`), html, 'utf8');
+    k++;
+  });
+  return k;
+}
+
+const VIEWS = argv.includes('--views');
+let n = 0, v = 0;
 for (const mdFile of targets) {
   if (!fs.existsSync(mdFile)) { console.error('不存在：' + mdFile); continue; }
+  const md = fs.readFileSync(mdFile, 'utf8');
   const outFile = mdFile.replace(/\.md$/, '.prd.html');
-  fs.writeFileSync(outFile, render(mdFile, fs.readFileSync(mdFile, 'utf8')), 'utf8');
+  fs.writeFileSync(outFile, render(mdFile, md), 'utf8');
   console.log('OK  ' + path.relative(ROOT, outFile).replace(/\\/g, '/'));
   n++;
+  if (VIEWS) {
+    const c = writeViews(mdFile, md);
+    if (c) {
+      v += c;
+      console.log('    views  ' + c + ' 个 → ' + path.relative(ROOT, path.join(path.dirname(mdFile), '_views')).replace(/\\/g, '/'));
+    }
+  }
 }
-console.log(`\n生成完成：${n} 个 prd.html`);
+console.log(`\n生成完成：${n} 个 prd.html${VIEWS ? `，${v} 个单页视图` : ''}`);

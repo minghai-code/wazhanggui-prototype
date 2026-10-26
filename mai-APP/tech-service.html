@@ -603,6 +603,21 @@ function dealSuccessHtml(d){
 }
 function copyText(t){try{navigator.clipboard.writeText(t);}catch(e){}toast('已复制 '+t,'fa-copy');}
 function callPhone(p){toast('正在拨打 '+p,'fa-phone');}
+/* 二次确认弹窗（M06-Q30 成交金额提交后不可自行修改） */
+function askConfirm(o){
+  var d=document.createElement('div');
+  d.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(17,24,39,.45);padding:0 32px';
+  d.innerHTML='<div style="width:100%;background:#fff;border-radius:16px;padding:20px 18px;box-shadow:0 12px 40px rgba(0,0,0,.18)">'
+    +'<p style="font-size:14px;font-weight:700;color:#1F2937;text-align:center">'+o.title+'</p>'
+    +'<p style="font-size:11px;color:#6B7280;line-height:1.85;margin-top:8px;text-align:center">'+o.body+'</p>'
+    +'<div style="display:flex;gap:10px;margin-top:16px">'
+    +'<button id="__cfmNo" style="flex:1;padding:10px 0;border-radius:10px;background:#F3F4F6;color:#6B7280;font-size:12px;font-weight:700">'+(o.cancel||'再想想')+'</button>'
+    +'<button id="__cfmOk" style="flex:1;padding:10px 0;border-radius:10px;color:#fff;font-size:12px;font-weight:700;background:'+(o.color||'#2563EB')+'">'+(o.ok||'确定')+'</button>'
+    +'</div></div>';
+  document.body.appendChild(d);
+  d.querySelector('#__cfmNo').onclick=function(){d.remove();};
+  d.querySelector('#__cfmOk').onclick=function(){d.remove();if(o.onOk)o.onOk();};
+}
 
 /* ===== 反馈结果 ===== */
 function openFeedback(kind,demId,dealId){
@@ -659,10 +674,19 @@ function submitFeedback(){
   if(result==='已成交'){
     var amt=(document.getElementById('fbAmount').value||'').trim();
     if(!amt||isNaN(amt)){toast('请填写成交金额');return;}
-    obj.status='已成交';obj.amount=amt+' 万元';obj.note=note;obj.rated=false;
-  }else{
-    obj.status='未成交';obj.reason=document.getElementById('fbReason').value;obj.note=note;
+    askConfirm({
+      title:'确认成交金额',
+      body:'成交金额 <b>'+amt+' 万元</b>。<br>提交后<b>不可自行修改</b>（平台可复核修正），并计入技术交易统计。',
+      ok:'确认提交',
+      onOk:function(){
+        obj.status='已成交';obj.amount=amt+' 万元';obj.note=note;obj.rated=false;
+        closeFb();renderMyTech();renderMyTechEntry();
+        toast('反馈已提交，感谢配合');
+      }
+    });
+    return;
   }
+  obj.status='未成交';obj.reason=document.getElementById('fbReason').value;obj.note=note;
   closeFb();renderMyTech();renderMyTechEntry();
   toast('反馈已提交，感谢配合');
 }

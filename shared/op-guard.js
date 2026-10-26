@@ -46,7 +46,15 @@
     'expo-schedule-manage.html': [{ re: /发布|保存|删除|添加|通知/, perm: 'write' }],
     'expo-checkin.html':         [{ re: /补签|补录|撤销|标记|导出/, perm: 'write' }],
     'expo-material.html':        [{ re: /上传|上架|下架|审核|删除/, perm: 'write' }],
-    'expo-archive.html':         [{ re: /生成|导出|复制|编辑/, perm: 'audit' }]
+    'expo-archive.html':         [{ re: /生成|导出|复制|编辑/, perm: 'audit' }],
+
+    'mall-inquiry.html':        [{ re: /下架|导出/, perm: 'audit' }],
+    'mall-order-inquiry.html':  [{ re: /取消|备注/, perm: 'audit' }],
+    'mall-custom-demand.html': [{ re: /下架|强制关闭/, perm: 'audit' }],
+    'mall-order-group.html':   [{ re: /异常标记|取消订单/, perm: 'audit' }],
+    'mall-order-sample.html':  [{ re: /导出/, perm: 'write' }],
+    'mall-order-custom.html':  [{ re: /创建|导出/, perm: 'write' }],
+    'mall-recommend.html':     [{ re: /新增|编辑|删除|上架|下架|保存|预览/, perm: 'write' }]
   };
 
   var CONF = /[?&]conflict=1/.test(location.search);

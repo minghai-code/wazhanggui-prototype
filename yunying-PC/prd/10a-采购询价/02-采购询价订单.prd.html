@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>10a-02 采购询价订单 · 运营端页面说明 · 页面 PRD</title><style>
+:root{--fg:#1F2430;--muted:#64748B;--line:#E9EDF3}
+*{box-sizing:border-box}
+body{margin:0;padding:26px 32px 90px;background:#fff;color:var(--fg);
+ font:14px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif}
+h1{font-size:20px;margin:0 0 6px}
+h2{font-size:17px;margin:34px 0 12px;padding-top:12px;border-top:1px solid var(--line)}
+h3{font-size:15px;margin:22px 0 10px}
+h4{font-size:14px;margin:18px 0 8px;color:#334155}
+p{margin:8px 0}
+table{border-collapse:collapse;width:100%;margin:10px 0 16px;font-size:12.5px}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:#F8FAFC;font-weight:700}
+tr:nth-child(even) td{background:#FCFDFE}
+code{background:#F1F5F9;padding:1px 5px;border-radius:4px;font-size:12px;
+ font-family:ui-monospace,Menlo,Consolas,monospace;color:#B91C1C}
+pre.code{background:#0F172A;color:#E2E8F0;padding:14px 16px;border-radius:10px;overflow:auto;font-size:12px}
+pre.code code{background:none;color:inherit;padding:0}
+blockquote{margin:10px 0;padding:10px 14px;background:#EFF6FF;border-left:3px solid #60A5FA;
+ border-radius:0 8px 8px 0;color:#334155;font-size:13px}
+ul,ol{margin:8px 0;padding-left:22px}
+li{margin:3px 0}
+hr{border:0;border-top:1px dashed var(--line);margin:22px 0}
+a{color:#2563EB;text-decoration:none}
+.meta{font-size:12px;color:var(--muted);margin:0 0 20px}
+.vtitle{font-size:18px;font-weight:800;margin:0 0 4px}
+details.fam{margin:12px 0 20px;border:1px solid var(--line);border-radius:10px;background:#F8FAFC;padding:0 14px}
+details.fam summary{cursor:pointer;padding:10px 0;font-size:13px;font-weight:700;color:#334155}
+details.fam[open]{padding-bottom:10px}
+.vnav{display:flex;justify-content:space-between;margin-top:34px;padding-top:14px;border-top:1px dashed var(--line);font-size:13px}
+</style></head><body>
+<div class="meta">由 <code>yunying-PC/prd/10a-采购询价/02-采购询价订单.md</code> 生成，勿手改；改文档请改 md 后重跑 build-prd。</div>
+<h1>10a-02 采购询价订单 · 运营端页面说明</h1>
+<blockquote>端：运营端 PC　｜　模块：10 商城运营 → 采购询价　｜　页面：<code>mall-order-inquiry.html</code>（订单类型 <code>inquiry</code>） 页面版本：v1.0（2026-10-26）　｜　业务分册：<code>开发PRD/运营管理端分册PRD/10a-采购询价管理.md</code> <strong>v1.2</strong> <strong>模块通用说明</strong>见同目录 <strong><code>01-采购询价需求管理.md</code> §0</strong>，本文件不重复。</blockquote>
+<hr>
+<h2 id="p1">1. 采购询价订单 <code>mall-order-inquiry.html</code></h2>
+<h3>1.1 页面说明</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>页面目标</td><td>专项管理询价产生的订单（<strong>不进外采"全部订单"列表</strong>），字段对齐普通订单 + 需求溯源</td></tr><tr><td>使用角色</td><td>运营专员 / 主管（备注、取消）、财务（只读金额）</td></tr><tr><td>入口</td><td>菜单 → 商城运营 → 订单管理 → 采购询价订单</td></tr><tr><td>前置</td><td>买家在端上选标成交</td></tr><tr><td>后置</td><td>支付 / 物流 / 售后由外采 igshop 承载</td></tr></tbody></table>
+<blockquote><strong>本页是三兄弟的第一张</strong>（询价 <code>inquiry</code>），后两张见 <code>10b-商城运营/02-拼单集采订单.md</code>、<code>03-样品打样订单.md</code>、<code>04-定制订单.md</code>，共用同一套"基础信息块 + 溯源块"结构。</blockquote>
+<h3>1.2 本页端间关系</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>本页数据来源</td><td>选标成交后生成（需求快照 + 中标报价）</td></tr><tr><td>本页操作的跨端影响</td><td>取消订单 → 买家端订单状态变更 + 退款（外采规则）</td></tr><tr><td>依赖的其他端页面</td><td>买家端 <code>order-detail-inquiry.html</code>（询价订单详情）</td></tr><tr><td>不涉及的端</td><td>商户端发货（走外采订单能力）</td></tr><tr><td>一致性要求</td><td>商品明细 = <strong>需求快照</strong>，不随需求后续改动变化</td></tr></tbody></table>
+<h3>1.3 页面结构</h3>
+<table><thead><tr><th>区块</th><th>内容</th></tr></thead><tbody><tr><td>顶部</td><td>标题 + 订单类型标识</td></tr><tr><td>状态 Tab</td><td>全部 / 待付款 / 待发货 / 已发货 / 已完成 / 已取消（对齐外采口径，去掉"无效/已删除"）</td></tr><tr><td><strong>统计卡（6）</strong></td><td>订单总数 / 待付款 / 待发货 / 已完成 / 近 30 日成交金额 / <strong>选标→支付转化率</strong></td></tr><tr><td>筛选区</td><td>订单号·交易单号 + 关联需求编号 + 买家会员 + 卖家店铺 + 支付状态 + 发货状态 + 时间区间</td></tr><tr><td>列表</td><td><strong>10 列</strong></td></tr><tr><td>详情抽屉</td><td>基础信息 / <strong>需求溯源</strong> / <strong>报价版本记录</strong> / 履约信息 / 操作日志</td></tr><tr><td>操作</td><td>详情 / 备注 / <strong>取消</strong>（仅待付款，二次确认）/ 导出（主管）</td></tr></tbody></table>
+<h3>1.4 列表、筛选与排序</h3>
+<table><thead><tr><th>项目</th><th>规则</th></tr></thead><tbody><tr><td>默认排序</td><td>下单时间倒序</td></tr><tr><td>分页</td><td>不分页（原型单页演示）</td></tr><tr><td>筛选组合</td><td>条件之间 <strong>且</strong></td></tr><tr><td>状态 Tab</td><td>与订单状态联动</td></tr><tr><td>空结果</td><td>「暂无符合条件的订单」</td></tr></tbody></table>
+<blockquote><strong>与分册的偏差</strong>：分册 §8.3 列了 13 列（含"支付状态""发货状态""下单时间"分开），原型把 <strong>支付/发货</strong> 合并为一列、省去"下单时间"→ 实际 <strong>10 列</strong>。以原型为准。</blockquote>
+<h3>1.5 字段规格</h3>
+<table><thead><tr><th>列</th><th>字段</th><th>说明</th></tr></thead><tbody><tr><td>订单号</td><td><code>order</code></td><td>—</td></tr><tr><td>关联需求</td><td><code>demandNo</code></td><td>可跳 P1 需求详情</td></tr><tr><td>需求标题</td><td><code>demandTitle</code></td><td>代替商品列，带「询价」角标</td></tr><tr><td>买家会员</td><td><code>buyer</code></td><td>脱敏</td></tr><tr><td>卖家店铺</td><td><code>shop</code></td><td>—</td></tr><tr><td>数量/单价</td><td><code>qty</code> / <code>price</code></td><td>成交单价</td></tr><tr><td>订单金额</td><td><code>amount</code></td><td>—</td></tr><tr><td>支付/发货</td><td><code>pay</code> / <code>ship</code></td><td>合并双标签</td></tr><tr><td>订单状态</td><td><code>status</code></td><td>外采主状态</td></tr><tr><td>操作</td><td>—</td><td>详情</td></tr></tbody></table>
+<p><strong>详情抽屉 5 段</strong></p>
+<table><thead><tr><th>段</th><th>内容</th></tr></thead><tbody><tr><td>① 基础信息（对齐普通订单）</td><td>订单号 / 交易单号 / 下单时间 / 买家会员 / 联系人 / 收货地址 / 支付方式 / 支付状态</td></tr><tr><td>② <strong>需求溯源（个性化）</strong></td><td>原始需求编号+标题 → 中标报价（单价 / 数量 / 交期承诺 / 样品支持 / 是否含运费）</td></tr><tr><td>③ <strong>报价版本记录</strong></td><td>改价时间线（含"已改价 N/2"）</td></tr><tr><td>④ 履约信息</td><td>发货状态 / 物流单号 / 售后状态（注明复用外采）</td></tr><tr><td>⑤ 操作日志</td><td>创建 / 支付 / 发货 / 收货 / 取消时间线</td></tr></tbody></table>
+<h3>1.6 交互规则</h3>
+<table><thead><tr><th>元素</th><th>显示条件</th><th>可点条件</th><th>点击后</th><th>禁止表现</th></tr></thead><tbody><tr><td>详情</td><td>始终</td><td>始终</td><td>抽屉（5 段）</td><td>—</td></tr><tr><td>跳关联需求</td><td>有需求号</td><td>始终</td><td>跳 P1 并定位</td><td>—</td></tr><tr><td>备注</td><td>始终</td><td>专员/主管</td><td>追加运营备注</td><td>—</td></tr><tr><td><strong>取消订单</strong></td><td>状态=待付款</td><td>专员/主管</td><td>二次确认弹窗 → 已取消</td><td>非待付款 → 无按钮</td></tr><tr><td>导出</td><td>始终</td><td><strong>仅主管</strong></td><td>Excel</td><td>专员 → 按钮隐藏</td></tr></tbody></table>
+<h3>1.7 业务规则与计算口径</h3>
+<table><thead><tr><th>编号</th><th>规则</th><th>触发</th><th>处理</th><th>影响端</th></tr></thead><tbody><tr><td>R-07</td><td>不进外采"全部订单"</td><td>任何时候</td><td>仅本页可见</td><td>—</td></tr><tr><td>R-08</td><td>商品明细 = 需求快照</td><td>生成</td><td>不随需求改动</td><td>—</td></tr><tr><td>R-09</td><td>取消仅限待付款</td><td>取消</td><td>已支付只能走售后</td><td>端上</td></tr><tr><td>R-10</td><td>选标 24h 未付自动作废</td><td>定时</td><td>订单取消 + 需求关闭（不回滚）</td><td>两端</td></tr><tr><td>R-11</td><td>选标→支付转化率</td><td>渲染</td><td>已支付 ÷ 已选标订单数</td><td>—</td></tr><tr><td>R-12</td><td>财务只读</td><td>财务角色</td><td>无备注/取消</td><td>—</td></tr></tbody></table>
+<h3>1.8 异常与边界</h3>
+<table><thead><tr><th>类型</th><th>场景</th><th>系统行为</th><th>提示文案</th></tr></thead><tbody><tr><td>数据</td><td>非待付款点取消</td><td>按钮不出现</td><td>—</td></tr><tr><td>数据</td><td>取消未填原因</td><td><strong>未校验</strong>（直接取消）</td><td>【待实现】Q-11</td></tr><tr><td>数据</td><td>无匹配结果</td><td>空态</td><td>【已实现】暂无符合条件的订单</td></tr><tr><td>依赖</td><td>外采发货延迟</td><td>物流状态只读</td><td>—</td></tr></tbody></table>
+<h4>1.8.1 本页提示语清单（来源：分册 §8.4，编号可回溯）</h4>
+<table><thead><tr><th>编号</th><th>场景</th><th>提示文案</th><th>形式</th><th>状态</th></tr></thead><tbody><tr><td>Q-07</td><td>导出</td><td>已导出当前筛选结果（运营主管权限）</td><td>Toast</td><td>✅</td></tr><tr><td>Q-08</td><td>取消订单</td><td>已取消订单：{订单号}</td><td>Toast</td><td>✅</td></tr><tr><td>Q-09</td><td>运营备注</td><td>已添加运营备注</td><td>Toast</td><td>✅</td></tr><tr><td>Q-10</td><td>列表空态</td><td>暂无符合条件的订单</td><td>空态</td><td>✅</td></tr><tr><td>Q-11</td><td>取消未填原因</td><td>建议：取消原因必填（将触发退款）</td><td>行内</td><td>⬜ 原型直接取消</td></tr><tr><td>Q-12</td><td>无权限</td><td>无权限，请联系管理员</td><td>Toast</td><td>✅</td></tr><tr><td>Q-13</td><td>并发冲突</td><td>该记录已被他人修改，请刷新后重试</td><td>Toast</td><td>✅</td></tr></tbody></table>
+<h3>1.9 通知与消息</h3>
+<table><thead><tr><th>事件</th><th>接收人</th><th>渠道</th><th>抑制条件</th></tr></thead><tbody><tr><td>订单生成（待付款）</td><td>买家 + 中标卖家</td><td>站内 + 推送</td><td>一次</td></tr><tr><td>24h 未付作废</td><td>买家 + 卖家</td><td>站内 + 短信</td><td>一次</td></tr><tr><td>运营取消订单</td><td>买家 + 卖家</td><td>站内</td><td>一次</td></tr></tbody></table>
+<h3>1.10 验收标准</h3>
+<table><thead><tr><th>编号</th><th>前置</th><th>操作</th><th>预期</th><th>级别</th></tr></thead><tbody><tr><td>AC-07</td><td>待付款订单</td><td>点取消并确认</td><td>状态已取消，日志新增一条</td><td>P0</td></tr><tr><td>AC-08</td><td>已发货订单</td><td>查看抽屉底部</td><td><strong>无取消按钮</strong></td><td>P0</td></tr><tr><td>AC-09</td><td>任意订单</td><td>点关联需求号</td><td>跳 P1 需求详情并定位</td><td>P0</td></tr><tr><td>AC-10</td><td>任意订单</td><td>打开详情</td><td>第 ② 段显示需求编号、中标报价、交期承诺</td><td>P0</td></tr><tr><td>AC-11</td><td>有改价的报价</td><td>查看第 ③ 段</td><td>显示改价时间线，含"已改价 N/2"</td><td>P1</td></tr><tr><td>AC-12</td><td>财务角色</td><td>查看抽屉底部</td><td>无备注/取消按钮</td><td>P1</td></tr></tbody></table>
+</body></html>

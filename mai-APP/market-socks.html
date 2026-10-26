@@ -178,12 +178,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <div class="px-3 mt-4">
   <div class="bg-white/70 backdrop-blur-xl rounded-3xl shadow-soft border border-white px-2">
     <div class="flex gap-3 py-2.5 overflow-x-auto no-bar items-center">
-      <span class="text-[13px] font-bold whitespace-nowrap pb-0.5" style="color:#FF4D2D;border-bottom:2px solid #FF4D2D">全部</span>
-      <span class="text-[13px] text-gray-500 whitespace-nowrap">男袜</span>
-      <span class="text-[13px] text-gray-500 whitespace-nowrap">女袜</span>
-      <span class="text-[13px] text-gray-500 whitespace-nowrap">童袜</span>
-      <span class="text-[13px] text-gray-500 whitespace-nowrap">运动袜</span>
-      <span class="text-[13px] text-gray-500 whitespace-nowrap">功能袜</span>
+      <span class="cat-tab text-[13px] font-bold whitespace-nowrap pb-0.5" style="color:#FF4D2D;border-bottom:2px solid #FF4D2D" onclick="switchCat(this)">全部</span>
+      <span class="cat-tab text-[13px] text-gray-500 whitespace-nowrap" onclick="switchCat(this)">男袜</span>
+      <span class="cat-tab text-[13px] text-gray-500 whitespace-nowrap" onclick="switchCat(this)">女袜</span>
+      <span class="cat-tab text-[13px] text-gray-500 whitespace-nowrap" onclick="switchCat(this)">童袜</span>
+      <span class="cat-tab text-[13px] text-gray-500 whitespace-nowrap" onclick="switchCat(this)">运动袜</span>
+      <span class="cat-tab text-[13px] text-gray-500 whitespace-nowrap" onclick="switchCat(this)">功能袜</span>
       <button onclick="openFilterPanel()" class="flex items-center gap-1 ml-auto px-2.5 py-1 rounded-full text-[11px] font-medium text-white grad-h shadow-card whitespace-nowrap">
         <i class="fas fa-sliders text-[9px]"></i>筛选
       </button>
@@ -430,9 +430,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </a>
 </div>
 
-<!-- 实力商家橱窗 -->
-<div class="px-3 mt-4">
+<!-- 实力商家橱窗（10b 推荐位下发：按位次+生效期；无推荐位整块隐藏） -->
+<div class="px-3 mt-4" id="strongShopBox">
 <div class="flex items-center gap-1.5 mb-2.5"><div class="w-1 h-3.5 rounded-full" style="background:#14B8A6"></div><span class="sec-title">实力商家</span></div>
+<div id="strongShopList"></div>
+<!-- 静态示例（由 renderStrongShops 覆盖；无推荐位时整块含标题一起隐藏） -->
+<div id="strongShopFallback">
 
 <div class="bg-white rounded-2xl shadow-soft p-3 mb-2.5">
 <div class="flex items-center gap-2 mb-2.5">
@@ -465,6 +468,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <img src="images/sock_06.jpg" class="w-[60px] h-[60px] rounded-lg object-cover flex-shrink-0">
 <img src="images/sock_07.jpg" class="w-[60px] h-[60px] rounded-lg object-cover flex-shrink-0">
 <img src="images/sock_08.jpg" class="w-[60px] h-[60px] rounded-lg object-cover flex-shrink-0">
+</div>
 </div>
 </div>
 </div>
@@ -535,6 +539,16 @@ function switchView(v){
   if(v==='online'){on.style.display='';off.style.setProperty('display','none','important');vtOn.className='vt on';vtOff.className='vt off'}
   else{on.style.setProperty('display','none','important');off.style.display='';vtOn.className='vt off';vtOff.className='vt on'}
   window.scrollTo(0,0);
+}
+function switchCat(el){
+  document.querySelectorAll('.cat-tab').forEach(function(t){
+    t.className='cat-tab text-[13px] text-gray-500 whitespace-nowrap';
+    t.style.color='';t.style.borderBottom='';
+  });
+  el.className='cat-tab text-[13px] font-bold whitespace-nowrap pb-0.5';
+  el.style.color='#FF4D2D';el.style.borderBottom='2px solid #FF4D2D';
+  var name=el.textContent.trim();
+  toast(name==='全部'?'已显示全部品类':'已筛选：'+name);
 }
 (function initView(){
   var v='online';
@@ -734,6 +748,30 @@ function confirmFilter(){
 var MS_BANNERS=[
   {img:'images/scene_05.jpg',grad:'linear-gradient(135deg,rgba(27,58,91,.88),rgba(44,90,142,.6))',title:'加入大唐袜业',sub:'共享产业源头优势 · 精准流量入口<br>全链服务生态 · 政策红利加持',cta:'立即申请入驻',link:'merchant-join.html',slot:'市场页-入驻'}
 ];
+/* 10b FR-30：线下市场「实力商家」橱窗 = 推荐位下发（位次 + 生效期）；无推荐位整块隐藏 */
+var RECOMMEND=[
+  {name:'大唐自有品牌旗舰店',booth:'1F-A08',cat:'男袜',score:4.9,years:3,badge:'实力',imgs:['sock_01','sock_02','sock_03','sock_04'],color:'from-blue-500 to-blue-700'},
+  {name:'暖足坊袜业',booth:'1F-B12',cat:'女袜',score:4.8,years:2,badge:'源头工厂',imgs:['sock_05','sock_06','sock_07','sock_08'],color:'from-pink-500 to-rose-600'}
+];
+function renderStrongShops(){
+  var box=document.getElementById('strongShopBox'),list=document.getElementById('strongShopList'),fallback=document.getElementById('strongShopFallback');
+  if(fallback)fallback.style.display='none';
+  var data=new URLSearchParams(location.search).get('norecommend')==='1'?[]:RECOMMEND;
+  if(!data.length){if(box)box.style.display='none';return;}
+  if(!list)return;
+  list.innerHTML=data.map(function(s){
+    return '<div class="bg-white rounded-2xl shadow-soft p-3 mb-2.5">'
+      +'<div class="flex items-center gap-2 mb-2.5">'
+      +'<div class="w-10 h-10 rounded-xl bg-gradient-to-br '+s.color+' flex items-center justify-center"><i class="fas fa-socks text-white text-sm"></i></div>'
+      +'<div class="flex-1"><div class="flex items-center gap-1.5"><p class="text-[12px] font-bold text-gray-800">'+s.name+'</p>'
+      +'<span class="bg-orange-50 text-primary text-[8px] px-1 py-0.5 rounded">'+s.badge+'</span></div>'
+      +'<p class="text-[9px] text-gray-400">'+s.booth+' · '+s.cat+' · '+s.score+'分 · '+s.years+'年店</p></div>'
+      +'<a href="shop-detail.html" class="text-[10px] text-primary font-medium">进店 <i class="fas fa-chevron-right text-[7px]"></i></a></div>'
+      +'<div class="flex gap-1.5 overflow-x-auto no-bar">'
+      +s.imgs.map(function(n){return '<img src="images/'+n+'.jpg" class="w-[60px] h-[60px] rounded-lg object-cover flex-shrink-0">';}).join('')
+      +'</div></div>';
+  }).join('');
+}
 function renderMsBanner(el){
   if(!el)return;var h='';
   MS_BANNERS.forEach(function(b){
@@ -750,6 +788,10 @@ function renderMsBanner(el){
 }
 renderMsBanner(document.getElementById('msBanner_online'));
 renderMsBanner(document.getElementById('msBanner_offline'));
+renderStrongShops();
+/* 从「筛选结果」页点「重新筛选」回来时自动打开筛选面板 */
+try{if(new URLSearchParams(location.search).get('filter')==='1')openFilterPanel();}catch(e){}
 </script>
+<script src="../shared/page-prd.js?v=20261023f"></script>
 </body>
 </html>

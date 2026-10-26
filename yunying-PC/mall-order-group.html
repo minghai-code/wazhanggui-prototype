@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>商城运营 - 拼单集采订单</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.tab-active{color:#FF4D2D;border-bottom:2px solid #FF4D2D;font-weight:600}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:40}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:780px;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:50;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.ftitle{font-size:13px;font-weight:700;color:#1F2430;margin:18px 0 10px;display:flex;align-items:center;gap:6px}
+.ftitle::before{content:'';width:3px;height:13px;border-radius:2px;background:#FF4D2D}
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.5);opacity:0;pointer-events:none;transition:.2s;z-index:60;display:flex;align-items:center;justify-content:center}
+.modal.on{opacity:1;pointer-events:auto}
+.kv{display:flex;gap:8px;font-size:12.5px;line-height:1.9}
+.kv .k{color:#94A3B8;width:100px;flex-shrink:0}
+.kv .v{color:#1F2430;flex:1}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+<div class="p-6">
+
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">拼单集采订单</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">10 商城运营</span>
+        <span class="tag" style="background:#ECFDF5;color:#047857">订单类型：group</span>
+      </div>
+      <p class="text-[12px] text-[#94A3B8] mt-1">商城运营 / 订单管理 · 拼单集采订单　·　字段对齐普通订单 + <b>拼单溯源</b>；支付/物流/售后复用外采系统（决策 Q1）</p>
+    </div>
+    <span class="text-[11px] text-[#94A3B8] bg-white border border-gray-100 rounded-lg px-3 py-1.5"><i class="fas fa-user-shield mr-1" style="color:#FF4D2D"></i>当前角色：商城运营专员</span>
+  </div>
+
+  <!-- 状态 Tab（对齐外采主状态机） -->
+  <div class="flex items-center gap-5 mb-4 border-b border-gray-200" id="tabs">
+    <span class="tab-active py-2.5 text-[13px] cursor-pointer" data-s="all">全部</span>
+    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600" data-s="待付款">待付款</span>
+    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600" data-s="待发货">待发货</span>
+    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600" data-s="已发货">已发货</span>
+    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600" data-s="已完成">已完成</span>
+    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600" data-s="已取消">已取消</span>
+  </div>
+
+  <div class="grid grid-cols-5 gap-3 mb-5">
+    <div class="stat-card bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">订单总数</p><p class="text-xl font-bold mt-1" style="color:#2563EB">128</p><p class="text-[10px] text-[#94A3B8] mt-0.5">全部拼单订单</p></div>
+    <div class="stat-card bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">进行中</p><p class="text-xl font-bold mt-1" style="color:#B45309">24</p><p class="text-[10px] text-[#94A3B8] mt-0.5">待付款</p></div>
+    <div class="stat-card bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">已成团待发货</p><p class="text-xl font-bold mt-1" style="color:#15803D">36</p><p class="text-[10px] text-[#94A3B8] mt-0.5">按档位结算</p></div>
+    <div class="stat-card bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">已失效（退款中）</p><p class="text-xl font-bold mt-1" style="color:#B91C1C">3</p><p class="text-[10px] text-[#94A3B8] mt-0.5">未成团自动全退</p></div>
+    <div class="stat-card bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">本月成交额</p><p class="text-xl font-bold mt-1" style="color:#1F2430">¥42.8万</p><p class="text-[10px] text-[#94A3B8] mt-0.5">含档位优惠</p></div>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+    <div class="flex items-center gap-3 flex-wrap">
+      <div class="relative">
+        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+        <input id="kw" type="text" placeholder="订单号 / 拼单号 / 商品" class="w-60 pl-8 pr-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary">
+      </div>
+      <input id="fStarter" type="text" placeholder="拼单发起人" class="w-36 px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none">
+      <button class="btn btn-primary" onclick="render()"><i class="fas fa-filter mr-1"></i>查询</button>
+      <button class="btn btn-ghost" onclick="resetF()">重置</button>
+      <span class="ml-auto text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>拼单由买家发起（本期无平台自营）；后台只读 + 异常处置</span>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="toast('已导出拼单集采订单台账（含拼单号、参团人数、档位单价）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+      <span class="text-[12px] text-[#94A3B8]" id="cnt">共 0 条</span>
+      <span class="ml-auto text-[11px] text-[#94A3B8]">成团后为每个参团人各生成一笔订单</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-[13px]" style="min-width:1340px">
+        <thead>
+          <tr class="bg-gray-50 text-gray-500 text-[12px]">
+            <th class="px-4 py-3 text-left font-medium">订单号</th>
+            <th class="px-4 py-3 text-left font-medium">拼单号</th>
+            <th class="px-4 py-3 text-left font-medium">发起人</th>
+            <th class="px-4 py-3 text-left font-medium">参团人</th>
+            <th class="px-4 py-3 text-left font-medium">商品</th>
+            <th class="px-4 py-3 text-right font-medium">数量</th>
+            <th class="px-4 py-3 text-right font-medium">单价（档位）</th>
+            <th class="px-4 py-3 text-right font-medium">金额</th>
+            <th class="px-4 py-3 text-left font-medium">成团时间</th>
+            <th class="px-4 py-3 text-left font-medium">订单状态</th>
+            <th class="px-4 py-3 text-center font-medium">操作</th>
+          </tr>
+        </thead>
+        <tbody id="tb" class="divide-y divide-gray-50"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div id="mask" class="mask" onclick="closeAll()"></div>
+<div id="drawer" class="drawer">
+  <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+    <div><h3 class="text-[15px] font-bold text-[#1F2430]" id="dTitle">订单详情</h3><p class="text-[11px] text-[#94A3B8] mt-0.5" id="dSub"></p></div>
+    <button onclick="closeAll()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-xmark text-lg"></i></button>
+  </div>
+  <div class="flex-1 overflow-y-auto px-6 py-5" id="dBody"></div>
+  <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex items-center gap-3" id="dFoot"></div>
+</div>
+
+<div id="modal" class="modal"></div>
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
+
+<script>
+/* 拼单集采订单（mock；字段见分册 §8.3） */
+var O = [
+  { no:'GB20261026001', gid:'GB-A1026-07', starter:'李**', members:5, goods:'精梳棉中筒袜 · 纯色基础款', qty:400, price:'3.20', amount:'1,280.00',
+    tier:'500 双档（已达 400/500）', doneAt:'2026-10-25 18:20', state:'待发货',
+    parts:[{n:'李**（发起）',q:200,a:'¥640.00'},{n:'王**',q:80,a:'¥256.00'},{n:'张**',q:60,a:'¥192.00'},{n:'陈**',q:40,a:'¥128.00'},{n:'刘**',q:20,a:'¥64.00'}],
+    log:['2026-10-22 09:10 买家发起拼单（500 双档 / 单价 ¥3.20）','2026-10-23 11:40 参团 3 人，累计 280 双','2026-10-25 18:20 达 400 双，跨 300 双档成团（按 ¥3.20 结算）','2026-10-25 18:21 生成 5 笔订单'] },
+  { no:'GB20261026002', gid:'GB-A1026-07', starter:'李**', members:5, goods:'精梳棉中筒袜 · 纯色基础款', qty:80, price:'3.20', amount:'256.00',
+    tier:'500 双档（已达 400/500）', doneAt:'2026-10-25 18:20', state:'已完成',
+    parts:[{n:'李**（发起）',q:200,a:'¥640.00'},{n:'王**',q:80,a:'¥256.00'},{n:'张**',q:60,a:'¥192.00'},{n:'陈**',q:40,a:'¥128.00'},{n:'刘**',q:20,a:'¥64.00'}],
+    log:['2026-10-25 18:21 由拼单 GB-A1026-07 成团生成','2026-10-26 10:05 买家确认收货，订单完成'] },
+  { no:'GB20261024007', gid:'GB-A1024-03', starter:'赵**', members:3, goods:'运动毛巾底袜 · 加厚耐磨', qty:360, price:'4.50', amount:'1,620.00',
+    tier:'300 双档（已达 360/300）', doneAt:'2026-10-24 20:15', state:'已发货',
+    parts:[{n:'赵**（发起）',q:180,a:'¥810.00'},{n:'孙**',q:120,a:'¥540.00'},{n:'钱**',q:60,a:'¥270.00'}],
+    log:['2026-10-21 14:00 买家发起拼单（300 双档 / 单价 ¥4.50）','2026-10-24 20:15 达 360 双成团','2026-10-25 09:30 卖家发货'] },
+  { no:'GB20261023002', gid:'GB-A1023-11', starter:'周**', members:2, goods:'儿童卡通短袜 · 春夏薄款', qty:150, price:'2.80', amount:'420.00',
+    tier:'未达起拼档（150/200）', doneAt:'—', state:'已取消',
+    parts:[{n:'周**（发起）',q:100,a:'¥280.00'},{n:'吴**',q:50,a:'¥140.00'}],
+    log:['2026-10-20 10:00 买家发起拼单（起拼档 200 双）','2026-10-23 10:00 到期未达起拼档 → 活动已失效','2026-10-23 10:05 全额退款 ¥420.00（2 人）'] },
+  { no:'GB20261022015', gid:'GB-A1022-05', starter:'郑**', members:8, goods:'商务西装袜 · 纯棉抗菌', qty:1200, price:'5.60', amount:'6,720.00',
+    tier:'1000 双档（已达 1200/1000）', doneAt:'2026-10-22 16:40', state:'待付款',
+    parts:[{n:'郑**（发起）',q:300,a:'¥1,680.00'},{n:'冯**',q:200,a:'¥1,120.00'},{n:'何**',q:180,a:'¥1,008.00'},{n:'许**',q:160,a:'¥896.00'},{n:'邓**',q:140,a:'¥784.00'},{n:'曹**',q:100,a:'¥560.00'},{n:'彭**',q:80,a:'¥448.00'},{n:'苏**',q:40,a:'¥224.00'}],
+    log:['2026-10-19 09:00 买家发起拼单（1000 双档 / 单价 ¥5.60）','2026-10-22 16:40 达 1200 双成团','2026-10-22 16:41 生成 8 笔订单（部分待付款）'] }
+];
+
+var cur=null, rows=O.slice(), tab='all';
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function stBadge(s){
+  var map={'待付款':'background:#FEF3C7;color:#B45309','待发货':'background:#DBEAFE;color:#1D4ED8','已发货':'background:#E0F2FE;color:#0369A1','已完成':'background:#DCFCE7;color:#15803D','已取消':'background:#F1F5F9;color:#64748B'};
+  return '<span class="tag" style="'+(map[s]||'background:#F1F5F9;color:#64748B')+'">'+s+'</span>';
+}
+
+document.querySelectorAll('#tabs span').forEach(function(el){
+  el.onclick=function(){
+    document.querySelectorAll('#tabs span').forEach(function(x){x.className='text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600';});
+    el.className='tab-active py-2.5 text-[13px] cursor-pointer';
+    tab=el.getAttribute('data-s');render();
+  };
+});
+
+function render(){
+  var kw=(document.getElementById('kw').value||'').trim();
+  var st=(document.getElementById('fStarter').value||'').trim();
+  rows=O.filter(function(o){
+    if(tab!=='all'&&o.state!==tab)return false;
+    if(kw&&o.no.indexOf(kw)<0&&o.gid.indexOf(kw)<0&&o.goods.indexOf(kw)<0)return false;
+    if(st&&o.starter.indexOf(st)<0)return false;
+    return true;
+  });
+  var h='';
+  rows.forEach(function(o){
+    h+='<tr>'
+      +'<td class="px-4 py-3 font-medium" style="color:#1F2430">'+esc(o.no)+'</td>'
+      +'<td class="px-4 py-3"><span class="lk" onclick="toast(\'跳转拼单活动 '+esc(o.gid)+'（端上发起，后台只读）\')">'+esc(o.gid)+'</span></td>'
+      +'<td class="px-4 py-3">'+esc(o.starter)+'</td>'
+      +'<td class="px-4 py-3">'+o.members+' 人</td>'
+      +'<td class="px-4 py-3"><div class="text-[#1F2430]">'+esc(o.goods)+'</div><div class="text-[11px] text-[#94A3B8]">'+esc(o.tier)+'</div></td>'
+      +'<td class="px-4 py-3 text-right">'+o.qty+' 双</td>'
+      +'<td class="px-4 py-3 text-right">¥'+esc(o.price)+'</td>'
+      +'<td class="px-4 py-3 text-right font-medium">¥'+esc(o.amount)+'</td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(o.doneAt)+'</td>'
+      +'<td class="px-4 py-3">'+stBadge(o.state)+'</td>'
+      +'<td class="px-4 py-3 text-center whitespace-nowrap"><span class="lk" onclick="openD(\''+o.no+'\')">详情</span></td>'
+      +'</tr>';
+  });
+  if(!rows.length) h='<tr><td colspan="11" class="px-4 py-16 text-center text-gray-300"><i class="fas fa-inbox text-3xl block mb-2"></i><span class="text-[12px]">暂无匹配的拼单订单</span></td></tr>';
+  document.getElementById('tb').innerHTML=h;
+  document.getElementById('cnt').textContent='共 '+rows.length+' 条';
+}
+
+function resetF(){document.getElementById('kw').value='';document.getElementById('fStarter').value='';tab='all';
+  document.querySelectorAll('#tabs span').forEach(function(x,i){x.className=i===0?'tab-active py-2.5 text-[13px] cursor-pointer':'text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600';});
+  render();toast('已重置筛选条件');}
+
+function openD(no){
+  var o=O.filter(function(x){return x.no===no;})[0]; if(!o)return; cur=o;
+  document.getElementById('dTitle').textContent='拼单集采订单详情';
+  document.getElementById('dSub').textContent=o.no+' · '+o.gid;
+  var h='';
+  h+='<div class="ftitle" style="margin-top:0">基础信息（对齐普通订单字段）</div><div class="grid grid-cols-2 gap-x-6">'
+    +'<div class="kv"><span class="k">订单号</span><span class="v">'+esc(o.no)+'</span></div>'
+    +'<div class="kv"><span class="k">订单类型</span><span class="v"><span class="tag" style="background:#ECFDF5;color:#047857">group</span></span></div>'
+    +'<div class="kv"><span class="k">商品</span><span class="v">'+esc(o.goods)+'</span></div>'
+    +'<div class="kv"><span class="k">数量</span><span class="v">'+o.qty+' 双</span></div>'
+    +'<div class="kv"><span class="k">单价（档位）</span><span class="v">¥'+esc(o.price)+'</span></div>'
+    +'<div class="kv"><span class="k">订单金额</span><span class="v" style="color:#E63E20;font-weight:700">¥'+esc(o.amount)+'</span></div>'
+    +'<div class="kv"><span class="k">订单状态</span><span class="v">'+stBadge(o.state)+'</span></div>'
+    +'<div class="kv"><span class="k">成团时间</span><span class="v">'+esc(o.doneAt)+'</span></div>'
+    +'</div>';
+
+  h+='<div class="ftitle">拼单溯源（拼单订单个性化字段）</div>'
+    +'<div class="rounded-xl p-4 mb-2" style="background:#F0FDF4;border:1px solid #BBF7D0">'
+    +'<div class="grid grid-cols-2 gap-x-6">'
+    +'<div class="kv"><span class="k">拼单号</span><span class="v"><span class="lk" onclick="toast(\'跳转拼单活动 '+esc(o.gid)+'\')">'+esc(o.gid)+'</span></span></div>'
+    +'<div class="kv"><span class="k">发起人</span><span class="v">'+esc(o.starter)+'</span></div>'
+    +'<div class="kv"><span class="k">参团人数</span><span class="v">'+o.members+' 人</span></div>'
+    +'<div class="kv"><span class="k">档位</span><span class="v">'+esc(o.tier)+'</span></div>'
+    +'</div></div>';
+
+  h+='<div class="ftitle">参团人明细（各人数量与实付）</div>'
+    +'<table class="w-full text-[12.5px]"><thead><tr class="text-[11px] text-gray-400">'
+    +'<th class="text-left py-1.5 font-medium">参团人</th><th class="text-right font-medium">数量</th><th class="text-right font-medium">实付</th><th class="text-right font-medium">占比</th></tr></thead><tbody>';
+  o.parts.forEach(function(p){
+    var pct=(parseInt(p.q,10)/o.qty*100).toFixed(1);
+    h+='<tr class="border-t border-gray-50"><td class="py-2">'+esc(p.n)+'</td><td class="py-2 text-right">'+p.q+' 双</td><td class="py-2 text-right">'+esc(p.a)+'</td><td class="py-2 text-right text-[#94A3B8]">'+pct+'%</td></tr>';
+  });
+  h+='</tbody></table>';
+
+  h+='<div class="ftitle">履约信息（复用外采系统）</div>'
+    +'<div class="rounded-lg p-3 bg-gray-50 text-[12px] text-gray-600">支付 / 物流 / 售后均由外采 igshop 承载，后台只读展示；拼单场景由外采按“一次成团生成多笔订单”处理。</div>';
+
+  h+='<div class="ftitle">操作日志</div><div class="border-l-2 border-gray-100 pl-3 space-y-1.5">';
+  o.log.forEach(function(l){h+='<p class="text-[12px] text-gray-500">'+esc(l)+'</p>';});
+  h+='</div>';
+
+  document.getElementById('dBody').innerHTML=h;
+  var foot='<button class="btn btn-ghost" onclick="closeAll()">关闭</button>'
+    +'<button class="btn btn-ghost" onclick="markAbn()"><i class="fas fa-flag mr-1"></i>异常标记</button>';
+  if(o.state!=='已完成'&&o.state!=='已取消') foot+='<button class="btn" style="background:#FEF2F2;color:#B91C1C;border:1px solid #FECACA" onclick="askCancel(\''+o.no+'\')">取消订单（主管）</button>';
+  document.getElementById('dFoot').innerHTML=foot;
+  document.getElementById('mask').classList.add('on');
+  document.getElementById('drawer').classList.add('on');
+}
+
+function markAbn(){
+  showModal('异常标记','标记后会进入异常清单，供运营跟进。',
+    '<label class="block text-[11px] text-[#94A3B8] mb-1">备注 *</label>'
+    +'<textarea id="abnNote" rows="3" class="w-full px-3 py-2 text-[13px] bg-gray-50 border border-gray-200 rounded-lg outline-none" placeholder="如：参团人付款后卖家未发货"></textarea>',
+    '确认标记', function(){
+      var n=(document.getElementById('abnNote').value||'').trim();
+      if(!n){toast('备注必填');return false;}
+      closeModal();toast('已标记异常：'+n);
+    });
+}
+
+function askCancel(no){
+  showModal('取消订单（主管）','取消将触发退款流程（按外采规则）。',
+    '<label class="block text-[11px] text-[#94A3B8] mb-1">取消原因 *</label>'
+    +'<textarea id="ccNote" rows="3" class="w-full px-3 py-2 text-[13px] bg-gray-50 border border-gray-200 rounded-lg outline-none" placeholder="如：卖家逾期未发货、参团人集体申请取消"></textarea>',
+    '确认取消', function(){
+      var n=(document.getElementById('ccNote').value||'').trim();
+      if(!n){toast('取消原因必填（将触发退款流程）');return false;}
+      var o=O.filter(function(x){return x.no===no;})[0];
+      o.state='已取消';o.log.push('2026-10-26 主管取消（原因='+n+'）');
+      closeModal();render();openD(no);
+      toast('已取消订单 '+no+'，退款按外采规则处理');
+    });
+}
+
+function showModal(title,desc,body,okText,onOk){
+  document.getElementById('modal').innerHTML='<div class="bg-white rounded-2xl p-5" style="width:520px;max-width:94vw">'
+    +'<h3 class="text-[15px] font-bold text-[#1F2430]">'+title+'</h3>'
+    +'<p class="text-[12px] text-[#64748B] mt-1 mb-3">'+desc+'</p>'+body
+    +'<div class="flex justify-end gap-2 mt-4"><button class="btn btn-ghost" onclick="closeModal()">取消</button>'
+    +'<button class="btn btn-primary" id="mOk">'+okText+'</button></div></div>';
+  document.getElementById('mOk').onclick=function(){ if(onOk()!==false) closeModal(); };
+  document.getElementById('modal').classList.add('on');
+}
+function closeModal(){document.getElementById('modal').classList.remove('on');}
+function closeAll(){document.getElementById('mask').classList.remove('on');document.getElementById('drawer').classList.remove('on');closeModal();}
+
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},2800);}
+
+/* 从 P1 / P4 跳入时定位 */
+(function(){
+  var f=new URLSearchParams(location.search).get('focus');
+  if(f&&O.some(function(x){return x.no===f;})){toast('已定位到订单 '+f);setTimeout(function(){openD(f);},400);}
+})();
+render();
+</script>
+<script src="../shared/op-guard.js"></script>
+<script src="../shared/page-prd.js"></script>
+</body>
+</html>

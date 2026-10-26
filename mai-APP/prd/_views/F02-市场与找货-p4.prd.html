@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI 找货 · 页面说明</title><style>
+:root{--fg:#1F2430;--muted:#64748B;--line:#E9EDF3}
+*{box-sizing:border-box}
+body{margin:0;padding:26px 32px 90px;background:#fff;color:var(--fg);
+ font:14px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif}
+h1{font-size:20px;margin:0 0 6px}
+h2{font-size:17px;margin:34px 0 12px;padding-top:12px;border-top:1px solid var(--line)}
+h3{font-size:15px;margin:22px 0 10px}
+h4{font-size:14px;margin:18px 0 8px;color:#334155}
+p{margin:8px 0}
+table{border-collapse:collapse;width:100%;margin:10px 0 16px;font-size:12.5px}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:#F8FAFC;font-weight:700}
+tr:nth-child(even) td{background:#FCFDFE}
+code{background:#F1F5F9;padding:1px 5px;border-radius:4px;font-size:12px;
+ font-family:ui-monospace,Menlo,Consolas,monospace;color:#B91C1C}
+pre.code{background:#0F172A;color:#E2E8F0;padding:14px 16px;border-radius:10px;overflow:auto;font-size:12px}
+pre.code code{background:none;color:inherit;padding:0}
+blockquote{margin:10px 0;padding:10px 14px;background:#EFF6FF;border-left:3px solid #60A5FA;
+ border-radius:0 8px 8px 0;color:#334155;font-size:13px}
+ul,ol{margin:8px 0;padding-left:22px}
+li{margin:3px 0}
+hr{border:0;border-top:1px dashed var(--line);margin:22px 0}
+a{color:#2563EB;text-decoration:none}
+.meta{font-size:12px;color:var(--muted);margin:0 0 20px}
+.vtitle{font-size:18px;font-weight:800;margin:0 0 4px}
+details.fam{margin:12px 0 20px;border:1px solid var(--line);border-radius:10px;background:#F8FAFC;padding:0 14px}
+details.fam summary{cursor:pointer;padding:10px 0;font-size:13px;font-weight:700;color:#334155}
+details.fam[open]{padding-bottom:10px}
+.vnav{display:flex;justify-content:space-between;margin-top:34px;padding-top:14px;border-top:1px dashed var(--line);font-size:13px}
+</style></head><body>
+<div class="meta">由 <code>mai-APP/prd/F02-市场与找货.md</code> 的 §4 生成，勿手改；改文档请改 md 后重跑 build-prd --views。</div>
+<div class="vtitle">F02 市场与找货 · 买家端页面说明（功能族） · AI 找货 <code>ai-search.html</code></div>
+<details class="fam"><summary>所属功能族通用说明（§0）</summary><blockquote>端：买家端 App（<code>mai-APP</code>）｜功能族：<strong>市场与找货</strong>｜覆盖 <strong>6 页</strong> 状态：<strong>🟡 未完成</strong>——还剩 1 个 B 类入口无说明：店铺详情（本族 §7 待补）；<code>mine.html</code> 为框架出口，见 README 版本：<strong>v1.0（2026-10-23 首次建立）</strong>｜依据：<code>开发PRD/原型页面产品逻辑说明撰写标准.md</code> <strong>v1.2.1</strong> 分册溯源：<code>开发PRD/买家端app分册PRD/M04-袜子市场与找货.md</code> <strong>尚未创建</strong>；本族提示语暂用 <code>F02-Qnn</code> 临时编号，M04 建册时回收为 <code>M04-Qnn</code>（附录 A） 同族单页视图：<code>prd/_views/F02-市场与找货-p1 ~ p6</code></blockquote>
+<h2 id="p0">0. 族通用说明（本族其他页面不再重复）</h2>
+<h3>0.1 这个族解决什么问题</h3>
+<p>买家从「想进货」到「看到具体商品」的最短路径：逛市场 → 筛/搜 → 看详情 → 加进货单或下单/拼单。</p>
+<p>不做会怎样：买家只能在首页推荐里点，找不到品类、找不到同款、看到价格不知道能不能拼单，最后转去 1688。</p>
+<h3>0.2 角色与权限</h3>
+<table><thead><tr><th>角色</th><th>能看</th><th>能操作</th><th>越权表现</th></tr></thead><tbody><tr><td>游客（未登录）</td><td>市场/列表/详情全部可浏览</td><td>浏览、搜索、筛选、看评价</td><td>收藏/加进货单/询价/下单 → 原型<strong>不拦</strong>（缺口，附录 A-3）</td></tr><tr><td>登录买家</td><td>同上</td><td>全部</td><td>—</td></tr><tr><td>会员 / 认证买家</td><td>同上</td><td>同上（会员价未接入，本期无差异）</td><td>—</td></tr><tr><td>商户账号（同一账号体系）</td><td>同上</td><td>同上（买家视角不区分身份）</td><td>—</td></tr></tbody></table>
+<blockquote><strong>本期原型无登录墙</strong>：所有写操作（收藏、加进货单、立即下单、发起拼单、询价）均可直接点。这是<strong>有意简化</strong>，不是遗漏；接口期统一在提交时校验登录态。</blockquote>
+<h3>0.2b 入口矩阵</h3>
+<table><thead><tr><th>入口页</th><th>入口位置</th><th>目标页</th><th>参数</th><th>备注</th></tr></thead><tbody><tr><td><code>home.html</code></td><td>首页「袜子市场」金刚区</td><td><code>market-socks.html</code></td><td>—</td><td>主入口</td></tr><tr><td><code>home.html</code></td><td>首页「AI 找货」</td><td><code>ai-search.html</code></td><td>—</td><td>对话式找货</td></tr><tr><td><code>home.html</code></td><td>首页「拍照搜索」</td><td><code>photo-search.html</code></td><td>—</td><td>识图找同款</td></tr><tr><td><code>home.html</code></td><td>首页「热门榜单」「品牌馆」</td><td><code>ranking-*.html</code> / <code>brand-detail.html</code></td><td>—</td><td>归 F03</td></tr><tr><td><code>search.html</code></td><td>顶部搜索框</td><td><code>product-filter.html</code></td><td>—</td><td>搜索即筛选结果</td></tr><tr><td><code>market-socks.html</code></td><td>顶部搜索按钮 / 玻璃搜索条</td><td><code>search.html</code> / <code>photo-search.html</code></td><td>—</td><td>搜索框 <code>readonly</code>，点相机进拍照</td></tr><tr><td><code>market-socks.html</code></td><td>「筛选」按钮</td><td>筛选面板（页内）</td><td>—</td><td>右侧抽屉</td></tr><tr><td><code>market-socks.html</code></td><td>筛选面板「确定 (12件)」</td><td><code>product-filter.html</code></td><td>—</td><td>结果页</td></tr><tr><td><code>market-socks.html</code></td><td>商品卡 / 热销卡 / 尾货卡</td><td><code>product-detail.html</code></td><td><code>?mode=clearance</code>（尾货）</td><td>清仓模式</td></tr><tr><td><code>market-socks.html</code></td><td>「查看导航 ›」</td><td><code>market-map.html</code></td><td>—</td><td>楼层导览</td></tr><tr><td><code>product-filter.html</code></td><td>商品卡</td><td><code>product-detail.html</code></td><td>—</td><td>—</td></tr><tr><td><code>product-filter.html</code></td><td>「重新筛选」</td><td><code>market-socks.html</code></td><td><code>?filter=1</code></td><td>回市场并自动打开筛选面板</td></tr><tr><td><code>ai-search.html</code></td><td>推荐商品卡</td><td><code>product-detail.html</code></td><td>—</td><td>—</td></tr><tr><td><code>photo-search.html</code></td><td>相似商品卡 / 建议词</td><td><code>product-detail.html</code> / <code>search.html</code></td><td>—</td><td>建议词进搜索</td></tr><tr><td><code>market-map.html</code></td><td>地图铺位 / 热门商铺</td><td>商铺弹层</td><td>—</td><td>页内</td></tr><tr><td><code>market-map.html</code></td><td>商铺弹层「进入商铺」</td><td><code>shop-detail.html</code></td><td>—</td><td>空闲铺位拦截</td></tr><tr><td><code>product-detail.html</code></td><td>店铺卡</td><td><code>shop-detail.html</code></td><td>—</td><td>—</td></tr><tr><td><code>product-detail.html</code></td><td>「一键询价」</td><td>客服聊天（页内）</td><td>—</td><td>不跳询价单</td></tr></tbody></table>
+<h3>0.3 端间落点</h3>
+<table><thead><tr><th>维度</th><th>运营管理端</th><th>商户端</th><th>买家端（本族）</th></tr></thead><tbody><tr><td>商品 / 品牌</td><td>商城运营维护商品、品牌馆、上架/下架</td><td>商户维护本店商品</td><td>只读展示，下架不展示</td></tr><tr><td>市场 / 铺位</td><td>维护楼栋、楼层、铺位、商铺归属</td><td>—</td><td>地图与铺位只读</td></tr><tr><td>阶梯价 / 起批量</td><td>商品设置</td><td>商品设置</td><td>按数量取档，端上算价</td></tr><tr><td>拼单</td><td>活动配置（归 F04）</td><td>参与</td><td>详情页发起拼单入口</td></tr><tr><td>清仓</td><td>商品标记清仓</td><td>设置</td><td><code>?mode=clearance</code> 隐藏拼单、价格折半（演示）</td></tr></tbody></table>
+<blockquote><strong>一致性要求</strong>：端上不存商品主数据；价格、起批量、库存、阶梯价一律以后台下发为准。原型里写死的商品数据只作展示。</blockquote>
+<h3>0.3b 可见性</h3>
+<table><thead><tr><th>页面</th><th>游客</th><th>登录</th><th>未登录表现</th></tr></thead><tbody><tr><td>市场 / 列表 / 详情 / 地图</td><td>可见</td><td>可见</td><td>与本族一致，无遮罩</td></tr><tr><td>收藏、加进货单、下单、拼单、询价</td><td>可点</td><td>可点</td><td><strong>不拦</strong>（附录 A-3）</td></tr></tbody></table>
+<h3>0.4 核心数据对象</h3>
+<table><thead><tr><th>对象</th><th>关键字段</th><th>谁产生</th><th>谁消费</th></tr></thead><tbody><tr><td>商品 <code>item</code></td><td><code>itemId</code>、标题、主图、单价、起批量、库存、已售、评分、标签、店铺、阶梯价、是否支持拼单</td><td>运营端 / 商户端</td><td>本族全部页面</td></tr><tr><td>阶梯价 <code>tier</code></td><td><code>min</code>（起量）、<code>price</code>（单价）</td><td>运营端 / 商户端</td><td>详情页、规格弹层</td></tr><tr><td>商铺 <code>shop</code></td><td><code>code</code>、名称、楼层、区域、主营、评分、累计单量、营业状态</td><td>运营端</td><td>市场导览</td></tr><tr><td>筛选条件 <code>filter</code></td><td>品类、价格区间、品牌、材质、工艺、最低销量、最低评分、排序</td><td>买家（端上）</td><td>结果页</td></tr><tr><td>拼单下限</td><td>团长与参团人下单均 ≥ <strong>起批量 × 20%</strong>（本商品 100 → 20），与所选档位无关（M01 BR-2a）</td><td>端上计算</td><td>详情页拼单</td></tr></tbody></table>
+<h3>0.5 状态机</h3>
+<table><thead><tr><th>对象</th><th>状态</th><th>转换</th><th>禁止路径</th></tr></thead><tbody><tr><td>商品</td><td>上架 / 下架</td><td>运营端上下架</td><td>下架后买家端<strong>不可见</strong>（不置灰、不留占位）</td></tr><tr><td>商品</td><td>普通 / 清仓</td><td>运营端标记</td><td>清仓不可发起拼单；清仓不参与阶梯价</td></tr><tr><td>商品</td><td>支持拼单 / 不支持拼单</td><td>商品开关</td><td>不支持时<strong>隐藏</strong>发起拼单按钮与弹层按钮，不置灰</td></tr><tr><td>商铺</td><td>营业中 / 空闲招商</td><td>运营端维护</td><td>空闲铺位不展示评分与单量，进入商铺被拦截</td></tr></tbody></table>
+<h3>0.6 名词与口径</h3>
+<table><thead><tr><th>名词</th><th>口径</th></tr></thead><tbody><tr><td>起批量</td><td>商品最小下单量；加进货单/立即下单不得低于此值</td></tr><tr><td>阶梯价</td><td>按<strong>下单数量</strong>落档取单价；档位从低到高，取满足条件的最高档</td></tr><tr><td>拼单数量</td><td>拼单模式下 ≥ <strong>起批量 20%</strong>；支付后团开始，<strong>累计达任一档才成团</strong>（10b FR-22 / M01 BR-3）</td></tr><tr><td>数量步进</td><td>步进 10 双；手输非 10 倍数时向上取整并提示</td></tr><tr><td>已售</td><td>展示单位「万 / 千」，后台给整数，端上格式化（<code>2.3万</code>、<code>8.7千</code>）</td></tr><tr><td>相似度</td><td>拍照识别结果按 <code>0-100%</code> 展示，仅作参考，不参与排序计算</td></tr><tr><td>清仓价</td><td>演示为原价 50%；真实口径以后台清仓价字段为准（接口期）</td></tr></tbody></table>
+<h3>0.6.1 跨端字段差异</h3>
+<table><thead><tr><th>端</th><th>字段</th><th>差异</th></tr></thead><tbody><tr><td>运营端</td><td><code>status</code>（上架/下架）</td><td>枚举</td></tr><tr><td>买家端</td><td>无状态字段</td><td>只渲染上架商品，不展示状态文案</td></tr><tr><td>运营端</td><td><code>boothNo</code> 铺位号</td><td>单值</td></tr><tr><td>买家端</td><td><code>code</code> + <code>location</code></td><td>拆成「A01」与「A区01号」两个展示位</td></tr></tbody></table>
+<h3>0.7 本期不做</h3>
+<table><thead><tr><th>编号</th><th>不做</th><th>依据</th></tr></thead><tbody><tr><td>ND-1</td><td>端上商品对比、同款比价</td><td>未在架构内</td></tr><tr><td>ND-2</td><td>收藏夹同步（收藏只在本机 toast）</td><td>归 F12 我的</td></tr><tr><td>ND-3</td><td>真实 AI 识图 / AI 对话</td><td>原型静态，接口期</td></tr><tr><td>ND-4</td><td>市场地图 3D / 室内导航</td><td>只做二维示意</td></tr><tr><td>ND-5</td><td>价格谈判、议价</td><td>走询价（F08）</td></tr></tbody></table>
+<h3>0.7b 导航与返回栈</h3>
+<table><thead><tr><th>页面</th><th>返回落点</th><th>说明</th></tr></thead><tbody><tr><td><code>market-socks.html</code></td><td><code>home.html</code></td><td>左上返回</td></tr><tr><td><code>product-filter.html</code></td><td><code>market-socks.html</code></td><td>左上返回 + 底部「返回市场」双出口</td></tr><tr><td><code>product-detail.html</code></td><td>上一页（列表/市场/AI/拍照）</td><td>浏览器返回；页内无返回按钮</td></tr><tr><td><code>photo-search.html</code> / <code>ai-search.html</code></td><td><code>home.html</code></td><td>左上返回</td></tr><tr><td><code>market-map.html</code></td><td><code>market-socks.html</code></td><td>左上返回</td></tr><tr><td>详情页弹层（规格/分享/客服）</td><td>收起面板，不退出页面</td><td>遮罩点击仅关弹层</td></tr></tbody></table>
+<h3>0.8 本族提示语总表（7 类）</h3>
+<blockquote><strong>2026-10-23 编号回收</strong>：<code>M04</code> 分册已建立，本表 33 条平移为 <code>M04-Q01~Q33</code>（文案不变）；新增条目标 <code>M04-Q57~Q62</code>，见分册 §8.2。本表不再新增 <code>F02-Qnn</code>。</blockquote>
+<blockquote>依据 <code>产品设计PRD撰写标准.md</code> 第 ⑧ 步。<code>✅</code> = 原型可 grep；<code>⬜</code> = 待实现（接口期或下批），<strong>不得在页面说明里写成已实现</strong>。 编号 <code>F02-Qnn</code> 为临时号，M04 建册时改为 <code>M04-Qnn</code>。</blockquote>
+<table><thead><tr><th>编号</th><th>页面</th><th>类别</th><th>场景</th><th>提示文案</th><th>形式</th><th>阻断</th><th>状态</th></tr></thead><tbody><tr><td>F02-Q01</td><td>列表</td><td>①校验</td><td>空结果时点清空（已无条件）</td><td>没有可清空的筛选条件</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>F02-Q02</td><td>列表</td><td>②成功</td><td>清空全部</td><td>已清空筛选条件</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>F02-Q03</td><td>列表</td><td>②成功</td><td>删除单条条件</td><td>已移除筛选条件</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>F02-Q04</td><td>列表</td><td>②成功</td><td>切换排序</td><td>已按「{排序名}」排序</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>F02-Q05</td><td>列表</td><td>⑥空态</td><td>筛选无结果</td><td>没有符合条件的商品</td><td>页面空态 + 按钮</td><td>否</td><td>✅</td></tr><tr><td>F02-Q06</td><td>列表</td><td>⑤降级</td><td>商品加载失败</td><td>商品加载失败，请下拉刷新重试</td><td>页面状态 + 重试</td><td>是</td><td>⬜</td></tr><tr><td>F02-Q07</td><td>列表</td><td>⑦结果</td><td>分页加载到底</td><td>已经到底了，共 {n} 件</td><td>列表尾部</td><td>否</td><td>⬜</td></tr><tr><td>F02-Q08</td><td>详情</td><td>①校验</td><td>加购数量低于起批量</td><td>该商品最少 {n} 双，已自动调整为 {n} 双</td><td>Toast</td><td>是</td><td>✅</td></tr><tr><td>F02-Q09</td><td>详情</td><td>①校验</td><td>数量非 10 倍数</td><td>数量需为 10 的整数倍，已调整为 {n} 双</td><td>Toast</td><td>是</td><td>✅</td></tr><tr><td>F02-Q10</td><td>详情</td><td>②成功</td><td>收藏</td><td>已添加到收藏</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>F02-Q11</td><td>详情</td><td>②成功</td><td>取消收藏</td><td>已取消收藏</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>F02-Q12</td><td>详情</td><td>②成功</td><td>加入进货单</td><td>已加入进货单</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>F02-Q13</td><td>详情</td><td>②成功</td><td>复制商品链接</td><td>链接已复制到剪贴板</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>F02-Q14</td><td>详情</td><td>②成功</td><td>分享渠道</td><td>调起微信分享</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>F02-Q15</td><td>详情</td><td>③确认</td><td>清仓商品点拼单</td><td>➖ 入口直接隐藏，无需提示</td><td>—</td><td>—</td><td>➖</td></tr><tr><td>F02-Q16</td><td>详情</td><td>④拦截</td><td>不支持拼单商品</td><td>该商品不支持拼单，可直接下单</td><td>Toast</td><td>是</td><td>⬜</td></tr><tr><td>F02-Q17</td><td>详情</td><td>④拦截</td><td>库存不足</td><td>库存仅剩 {n} 双，请调整数量</td><td>行内</td><td>是</td><td>⬜</td></tr><tr><td>F02-Q18</td><td>详情</td><td>⑤降级</td><td>详情加载失败</td><td>商品信息加载失败，请返回重试</td><td>页面状态</td><td>是</td><td>⬜</td></tr><tr><td>F02-Q19</td><td>详情</td><td>⑥空态</td><td>无评价</td><td>暂无评价，成为第一个评价的人</td><td>区块空态</td><td>否</td><td>⬜</td></tr><tr><td>F02-Q20</td><td>拍照</td><td>①校验</td><td>未识别到商品</td><td>未识别到商品，请对准商品重新拍摄</td><td>取景区提示</td><td>是</td><td>⬜</td></tr><tr><td>F02-Q21</td><td>拍照</td><td>⑤降级</td><td>识别失败</td><td>识别失败，请重试或改用手动搜索</td><td>弹窗</td><td>是</td><td>⬜</td></tr><tr><td>F02-Q22</td><td>拍照</td><td>⑥空态</td><td>无相似商品</td><td>暂未找到相似商品，换个角度再拍</td><td>区块空态</td><td>否</td><td>⬜</td></tr><tr><td>F02-Q23</td><td>AI</td><td>①校验</td><td>输入为空点发送</td><td>请先描述你想要的袜子</td><td>Toast</td><td>是</td><td>⬜</td></tr><tr><td>F02-Q24</td><td>AI</td><td>⑤降级</td><td>响应超时</td><td>AI 响应超时，请重试</td><td>气泡 + 重试</td><td>否</td><td>⬜</td></tr><tr><td>F02-Q25</td><td>市场</td><td>②成功</td><td>切换品类</td><td>已筛选：{品类}</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>F02-Q26</td><td>市场</td><td>②成功</td><td>重置筛选</td><td>筛选条件已重置</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>F02-Q27</td><td>市场</td><td>⑥空态</td><td>分类下无商品</td><td>该品类暂无商品，看看其他品类</td><td>区块空态 + 按钮</td><td>否</td><td>⬜</td></tr><tr><td>F02-Q28</td><td>市场</td><td>⑤降级</td><td>首屏加载失败</td><td>页面加载失败，请下拉刷新</td><td>页面状态</td><td>是</td><td>⬜</td></tr><tr><td>F02-Q29</td><td>导览</td><td>①校验</td><td>搜不到铺位</td><td>未找到匹配商铺</td><td>搜索框下方</td><td>否</td><td>✅</td></tr><tr><td>F02-Q30</td><td>导览</td><td>②成功</td><td>品类筛选</td><td>筛选：{品类}</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>F02-Q31</td><td>导览</td><td>②成功</td><td>查看全部铺位</td><td>已显示全部商铺</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>F02-Q32</td><td>导览</td><td>④拦截</td><td>空闲铺位进入商铺</td><td>该商铺空闲招商中，暂未营业，可联系市场管理 0575-8870 2000</td><td>Toast</td><td>是</td><td>✅</td></tr><tr><td>F02-Q33</td><td>导览</td><td>⑤降级</td><td>地图加载失败</td><td>楼层图加载失败，请刷新重试</td><td>页面状态</td><td>是</td><td>⬜</td></tr></tbody></table>
+<p><strong>按页自检</strong></p>
+<table><thead><tr><th>页面</th><th>校验</th><th>成功</th><th>确认</th><th>拦截</th><th>降级</th><th>空态</th><th>结论</th></tr></thead><tbody><tr><td>商品列表</td><td>Q01</td><td>Q02/03/04</td><td>—</td><td>—</td><td>Q06</td><td>Q05</td><td>✅ 三类齐（确认不适用）</td></tr><tr><td>商品详情</td><td>Q08/09</td><td>Q10-14</td><td>Q15</td><td>Q16/17</td><td>Q18</td><td>Q19</td><td>✅ 三类齐</td></tr><tr><td>拍照找货</td><td>Q20</td><td>—</td><td>—</td><td>—</td><td>Q21</td><td>Q22</td><td>纯静态，待实现</td></tr><tr><td>AI 找货</td><td>Q23</td><td>—</td><td>—</td><td>—</td><td>Q24</td><td>—</td><td>纯静态，待实现</td></tr><tr><td>袜子市场</td><td>—</td><td>Q25/26</td><td>—</td><td>—</td><td>Q28</td><td>Q27</td><td>内容页</td></tr><tr><td>市场导览</td><td>Q29</td><td>Q30/31</td><td>—</td><td>Q32</td><td>Q33</td><td>—</td><td>✅ 三类齐</td></tr></tbody></table>
+<hr></details>
+<h2 id="p4">4. AI 找货 <code>ai-search.html</code></h2>
+<h3>4.1 页面说明</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>目标</td><td>用自然语言描述需求，AI 给推荐商品</td></tr><tr><td>角色</td><td>全部</td></tr><tr><td>入口</td><td>首页「AI 找货」、市场页服务入口</td></tr><tr><td>前置</td><td>无（静态对话演示）</td></tr><tr><td>后置</td><td>进商品详情</td></tr></tbody></table>
+<h3>4.2 本页端间关系</h3>
+<table><thead><tr><th>维度</th><th>说明</th></tr></thead><tbody><tr><td>数据来源</td><td>AI 服务（接口期）+ 商品库</td></tr><tr><td>操作波及</td><td>无写操作</td></tr><tr><td>依赖的其他端页面</td><td>运营端商品库</td></tr><tr><td>一致性要求</td><td>推荐排序口径（性价比 / 价格 / 材质）需可解释</td></tr></tbody></table>
+<h3>4.3 页面结构</h3>
+<table><thead><tr><th>区块</th><th>内容</th></tr></thead><tbody><tr><td>顶部</td><td>返回、标题「AI找货」、在线状态点</td></tr><tr><td>对话区</td><td>AI 欢迎气泡、4 个快捷问题、用户气泡、AI 回复 + 2 张商品卡 + 追问气泡、正在输入</td></tr><tr><td>底部输入栏</td><td>语音、输入框、相机、发送</td></tr><tr><td>底部 Tab</td><td>4 Tab（首页高亮，进货单角标 3）</td></tr></tbody></table>
+<h3>4.4 列表、筛选与排序</h3>
+<table><thead><tr><th>项</th><th>规则</th></tr></thead><tbody><tr><td>排序</td><td>按「性价比」推荐（文案声明）</td></tr><tr><td>分页</td><td>无；对话内滚动</td></tr><tr><td>空态</td><td>无（待实现）</td></tr></tbody></table>
+<h3>4.5 字段规格</h3>
+<table><thead><tr><th>字段</th><th>标识</th><th>类型</th><th>必填</th><th>默认</th><th>校验</th><th>提示文案</th></tr></thead><tbody><tr><td>用户输入</td><td><code>query</code></td><td>string</td><td>是</td><td>—</td><td>非空；≤200 字</td><td>【待实现 F02-Q23】</td></tr><tr><td>推荐商品</td><td><code>items</code></td><td>array</td><td>否</td><td>2 条</td><td>图、标题、价、划线价、起批量、卖点标签、店铺</td><td>—</td></tr><tr><td>快捷问题</td><td><code>quickAsk</code></td><td>array</td><td>否</td><td>4 条</td><td>点击即发送</td><td>—</td></tr></tbody></table>
+<h3>4.6 交互规则</h3>
+<table><thead><tr><th>元素</th><th>显示条件</th><th>可点条件</th><th>点击后</th><th>禁止表现</th></tr></thead><tbody><tr><td>返回</td><td>始终</td><td>始终</td><td><code>home.html</code></td><td>—</td></tr><tr><td>快捷问题</td><td>始终</td><td>始终</td><td><strong><code>href="#"</code> 无响应</strong>（⚠️）</td><td>点了没反应</td></tr><tr><td>输入框</td><td>始终</td><td>始终</td><td>可输入</td><td>—</td></tr><tr><td>发送</td><td>始终</td><td>始终</td><td><strong>无 JS 绑定</strong>（⚠️）</td><td>点了没反应</td></tr><tr><td>语音 / 相机</td><td>始终</td><td>始终</td><td><code>href="#"</code></td><td>—</td></tr><tr><td>商品卡</td><td>始终</td><td>始终</td><td><code>product-detail.html</code></td><td>—</td></tr></tbody></table>
+<p><strong>返回</strong>：左上返回首页；输入栏固定在 Tab 上方（<code>bottom:65px</code>）。</p>
+<h3>4.7 业务规则与口径</h3>
+<table><thead><tr><th>编号</th><th>规则</th><th>处理</th></tr></thead><tbody><tr><td>R-14</td><td>发送后先出「正在输入」再出结果</td><td>接口期做</td></tr><tr><td>R-15</td><td>推荐结果可追问细化（价格/材质）</td><td>接口期</td></tr><tr><td>R-16</td><td>不承诺库存与交期</td><td>文案回避</td></tr></tbody></table>
+<h3>4.8 异常与边界</h3>
+<table><thead><tr><th>场景</th><th>处理</th><th>提示文案</th></tr></thead><tbody><tr><td>空输入点发送</td><td>阻止发送 + 提示</td><td>【待实现 F02-Q23】</td></tr><tr><td>AI 超时</td><td>气泡内提示 + 重试</td><td>【待实现 F02-Q24】</td></tr><tr><td>无推荐结果</td><td>建议换关键词</td><td>【待实现】</td></tr><tr><td>断网</td><td>输入框置灰 + 提示</td><td>【待实现】</td></tr></tbody></table>
+<h3>4.9 通知与消息</h3>
+<p>不适用。</p>
+<h3>4.10 验收标准（393×852）</h3>
+<table><thead><tr><th>#</th><th>前置</th><th>操作</th><th>预期</th><th>优先级</th></tr></thead><tbody><tr><td>AC-24</td><td>默认</td><td>打开</td><td>欢迎语 + 4 快捷问题 + 2 张推荐卡</td><td>P0</td></tr><tr><td>AC-25</td><td>默认</td><td>输入并点发送</td><td>⚠️ 当前无响应（待实现）</td><td>P1</td></tr><tr><td>AC-26</td><td>默认</td><td>点推荐卡</td><td>进详情</td><td>P0</td></tr><tr><td>AC-27</td><td>默认</td><td>点返回</td><td>回首页</td><td>P0</td></tr></tbody></table>
+<blockquote>⚠️ 本页无 JS：快捷问题、发送、语音、相机均为 <code>#</code> 占位（附录 A-5）。</blockquote>
+<hr>
+<div class="vnav"><a href="F02-市场与找货-p3.prd.html">&larr; 拍照找货</a><a href="F02-市场与找货-p5.prd.html">袜子市场 &rarr;</a></div>
+</body></html>

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>F11 袜博会 · 买家端页面说明（功能族） · 页面 PRD</title><style>
+:root{--fg:#1F2430;--muted:#64748B;--line:#E9EDF3}
+*{box-sizing:border-box}
+body{margin:0;padding:26px 32px 90px;background:#fff;color:var(--fg);
+ font:14px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif}
+h1{font-size:20px;margin:0 0 6px}
+h2{font-size:17px;margin:34px 0 12px;padding-top:12px;border-top:1px solid var(--line)}
+h3{font-size:15px;margin:22px 0 10px}
+h4{font-size:14px;margin:18px 0 8px;color:#334155}
+p{margin:8px 0}
+table{border-collapse:collapse;width:100%;margin:10px 0 16px;font-size:12.5px}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:#F8FAFC;font-weight:700}
+tr:nth-child(even) td{background:#FCFDFE}
+code{background:#F1F5F9;padding:1px 5px;border-radius:4px;font-size:12px;
+ font-family:ui-monospace,Menlo,Consolas,monospace;color:#B91C1C}
+pre.code{background:#0F172A;color:#E2E8F0;padding:14px 16px;border-radius:10px;overflow:auto;font-size:12px}
+pre.code code{background:none;color:inherit;padding:0}
+blockquote{margin:10px 0;padding:10px 14px;background:#EFF6FF;border-left:3px solid #60A5FA;
+ border-radius:0 8px 8px 0;color:#334155;font-size:13px}
+ul,ol{margin:8px 0;padding-left:22px}
+li{margin:3px 0}
+hr{border:0;border-top:1px dashed var(--line);margin:22px 0}
+a{color:#2563EB;text-decoration:none}
+.meta{font-size:12px;color:var(--muted);margin:0 0 20px}
+.vtitle{font-size:18px;font-weight:800;margin:0 0 4px}
+details.fam{margin:12px 0 20px;border:1px solid var(--line);border-radius:10px;background:#F8FAFC;padding:0 14px}
+details.fam summary{cursor:pointer;padding:10px 0;font-size:13px;font-weight:700;color:#334155}
+details.fam[open]{padding-bottom:10px}
+.vnav{display:flex;justify-content:space-between;margin-top:34px;padding-top:14px;border-top:1px dashed var(--line);font-size:13px}
+</style></head><body>
+<div class="meta">由 <code>mai-APP/prd/F11-袜博会.md</code> 生成，勿手改；改文档请改 md 后重跑 build-prd。</div>
+<h1>F11 袜博会 · 买家端页面说明（功能族）</h1>
+<blockquote>端：买家端 App（<code>mai-APP</code>）　｜　功能族：<strong>F11 袜博会</strong>（7 页） 族版本：v1.0（2026-10-23）　｜　业务分册：<code>开发PRD/运营管理端分册PRD/14b-袜博会管理.md</code> <strong>v1.3</strong> 本文件是族通用说明（§0）+ 7 个页面的<strong>唯一源</strong>；<code>_views/</code> 下的单页视图由 <code>tools/build-prd.mjs --views</code> 生成，勿手改。 页面顺序：展会首页 → 介绍 → 日程 → 日程详情 → 参观登记 → 资料下载 → 展位申请。</blockquote>
+<hr>
+<h2 id="p0">0. 族通用说明（本族各页面共用）</h2>
+<h3>0.1 这族解决什么问题</h3>
+<p>第 18 届袜博会的移动端入口：看展会信息与日程、在线参观登记领入场码、现场扫码核销、按登记/核销状态解锁资料、展商在线自选展位并提交申请。</p>
+<p>不做会怎样：观众靠纸质名单核对入场，资料人人可下载，展位靠邮件+手绘平面图分配，到场率无法统计。</p>
+<h3>0.2 入口矩阵</h3>
+<table><thead><tr><th>#</th><th>入口</th><th>所在页面</th><th>目标页</th><th>参数</th><th>备注</th></tr></thead><tbody><tr><td>E1</td><td>首页宫格「袜博会」</td><td><code>home.html</code></td><td><code>expo.html</code></td><td>—</td><td>主入口</td></tr><tr><td>E2</td><td>快捷入口·展会介绍</td><td><code>expo.html</code></td><td><code>expo-info.html</code></td><td>—</td><td>—</td></tr><tr><td>E3</td><td>快捷入口·展位申请</td><td><code>expo.html</code></td><td><code>expo-booth-apply.html</code></td><td>—</td><td>展商</td></tr><tr><td>E4</td><td>快捷入口/顶部按钮·参观登记</td><td><code>expo.html</code></td><td><code>expo-visitor-apply.html</code></td><td>—</td><td>观众</td></tr><tr><td>E5</td><td>快捷入口·展会日程</td><td><code>expo.html</code></td><td><code>expo-schedule.html</code></td><td>—</td><td>—</td></tr><tr><td>E6</td><td>快捷入口·资料下载</td><td><code>expo.html</code></td><td><code>expo-materials.html</code></td><td>—</td><td>受策略控制</td></tr><tr><td>E7</td><td>日程条目 / 「完整日程」</td><td><code>expo.html</code></td><td><code>expo-session-detail.html</code> / <code>expo-schedule.html</code></td><td><code>?id=S2026-x-xxx</code></td><td>—</td></tr><tr><td>E8</td><td>日程卡片</td><td><code>expo-schedule.html</code></td><td><code>expo-session-detail.html</code></td><td><code>?id=</code></td><td>—</td></tr><tr><td>E9</td><td>资料锁定「去登记」</td><td><code>expo-materials.html</code></td><td><code>expo-visitor-apply.html</code></td><td>—</td><td>—</td></tr><tr><td>E10</td><td>登记结果「返回展会主页」</td><td><code>expo-visitor-apply.html</code></td><td><code>expo.html</code></td><td>—</td><td>—</td></tr></tbody></table>
+<h3>0.3 角色与可见性</h3>
+<table><thead><tr><th>角色</th><th>可看</th><th>可做</th><th>未登录/未登记表现</th></tr></thead><tbody><tr><td>游客</td><td>展会信息、日程、展商、往届</td><td>浏览、报名、申请展位</td><td>公开资料可直接下载</td></tr><tr><td>已登记（待审核）</td><td>以上</td><td>等待审核</td><td>「需登记解锁」资料仍锁定，提示审核中</td></tr><tr><td>已登记（已通过）</td><td>以上 + 入场证</td><td>到场扫码核销</td><td>「需登记解锁」解锁；「需核销解锁」仍锁</td></tr><tr><td>已核销</td><td>全部</td><td>下载全部资料</td><td>全解锁</td></tr><tr><td>展商</td><td>展位申请与结果</td><td>自选展位、提交申请、查看缴费状态</td><td>—</td></tr></tbody></table>
+<h3>0.4 数据对象与唯一写入方</h3>
+<table><thead><tr><th>对象</th><th>字段要点</th><th>谁产生</th><th>谁消费</th></tr></thead><tbody><tr><td>展会配置</td><td>届次/日期/场馆/规模/倒计时/平面图</td><td>运营端 14b</td><td>买家端只读</td></tr><tr><td>展商与往届</td><td>展商名/展位/主营/精选；往届图</td><td>运营端 14b</td><td>买家端只读</td></tr><tr><td>日程</td><td>天/时间/标题/地点/类型/嘉宾/亮点</td><td>运营端 14b</td><td>买家端只读</td></tr><tr><td>参观登记单</td><td>编号 <code>V2026xxxx</code>/姓名/企业/身份/日期/品类/状态</td><td><strong>买家端写</strong></td><td>14b 审核</td></tr><tr><td>核销记录</td><td>核销时间/方式</td><td>现场扫码</td><td>14b 只读</td></tr><tr><td>展位申请单</td><td>编号/企业/联系人/展位号/金额/状态</td><td><strong>买家端写</strong></td><td>14b 审核</td></tr><tr><td>官方资料</td><td>名称/格式/大小/访问策略</td><td>运营端 14b</td><td>买家端按策略下载</td></tr><tr><td>我的日程</td><td>场次 ID 列表</td><td><strong>买家端写</strong>（本地）</td><td>本端</td></tr></tbody></table>
+<h3>0.5 状态机</h3>
+<p><strong>参观登记（6 态）</strong></p>
+<table><thead><tr><th>端上 key</th><th>后台状态</th><th>端上表现</th></tr></thead><tbody><tr><td><code>pending</code></td><td>待审核</td><td>结果页「等待审核」+ 登记编号</td></tr><tr><td><code>approved</code></td><td>已通过</td><td>生成入场码 <code>V+年+届次+4位</code>，可扫码</td></tr><tr><td><code>checkedin</code></td><td>已核销</td><td>入场证 + 资料全解锁</td></tr><tr><td><code>rejected</code></td><td>已驳回</td><td>驳回原因 + 重新登记</td></tr><tr><td><code>noshow</code></td><td>未到场</td><td>仅后台可见（端上无入口）</td></tr><tr><td><code>cancelled</code></td><td>已取消</td><td>仅后台可见</td></tr></tbody></table>
+<p><strong>展位申请（端上可见 4 态）</strong>：<code>待审核</code> → <code>已通过（待缴费）</code> → <code>已确认</code>；异常 <code>已驳回</code> / <code>已取消</code>。</p>
+<p><strong>资料访问策略</strong>：<code>public 公开</code> / <code>registered 需登记通过</code> / <code>checkedin 需现场核销</code>。</p>
+<pre class="code"><code data-lang="mermaid">stateDiagram-v2
+  [*] --&gt; pending: 提交登记
+  pending --&gt; approved: 审核通过
+  pending --&gt; rejected: 驳回
+  rejected --&gt; pending: 重新登记
+  approved --&gt; checkedin: 现场扫码
+  approved --&gt; noshow: 截止未核销
+  approved --&gt; cancelled: 后台取消</code></pre>
+<h3>0.6 口径与术语</h3>
+<table><thead><tr><th>项</th><th>口径</th></tr></thead><tbody><tr><td>入场码</td><td><code>V + 年份 + 届次 + 4 位流水</code>（示例 <code>V2026180001</code>）</td></tr><tr><td>审核时长</td><td>1 个工作日</td></tr><tr><td>核销窗口</td><td>展会期间每日开馆前 1 小时 – 闭馆；重复核销幂等</td></tr><tr><td>资料解锁</td><td>需 <code>approved</code>；<code>checkedin</code> 策略需到场核销</td></tr><tr><td>展位号</td><td>多选自选，提交时<strong>英文逗号</strong>分隔（后台 <code>boothNo</code>）</td></tr><tr><td>展位缴费</td><td>本期<strong>线下/财务手工确认</strong>，端上只显示「待缴费」与对公信息</td></tr><tr><td>我的日程</td><td>仅存本机 <code>expoMySchedule</code>，换设备不迁移</td></tr></tbody></table>
+<h3>0.7 导航与返回栈</h3>
+<table><thead><tr><th>场景</th><th>规则</th></tr></thead><tbody><tr><td><code>expo</code> 返回</td><td>回首页</td></tr><tr><td><code>expo-info</code> / <code>expo-schedule</code> / <code>expo-materials</code> 返回</td><td>回 <code>expo</code></td></tr><tr><td><code>expo-session-detail</code> 返回</td><td>回 <code>expo-schedule</code>（或来源页）</td></tr><tr><td><code>expo-visitor-apply</code> 返回</td><td>步骤内回上一步；结果页回 <code>expo</code></td></tr><tr><td><code>expo-booth-apply</code> 返回</td><td>回 <code>expo</code></td></tr><tr><td>底部弹层（展商详情/扫码）</td><td>点遮罩关闭，不触发页面返回</td></tr></tbody></table>
+<h3>0.8 端间落点表</h3>
+<table><thead><tr><th>#</th><th>买家端页面</th><th>运营端 14b</th><th>商户端</th><th>数据方向</th></tr></thead><tbody><tr><td>P1</td><td><code>expo.html</code></td><td><code>expo-list.html</code>（展会配置）、<code>expo-material.html</code>、<code>expo-archive.html</code></td><td>❌</td><td>后台 → 本端</td></tr><tr><td>P2</td><td><code>expo-info.html</code></td><td><code>expo-list.html</code>（展会介绍配置）</td><td>❌</td><td>后台 → 本端</td></tr><tr><td>P3</td><td><code>expo-schedule.html</code></td><td><code>expo-schedule-manage.html</code></td><td>❌</td><td>后台 → 本端</td></tr><tr><td>P4</td><td><code>expo-session-detail.html</code></td><td><code>expo-schedule-manage.html</code></td><td>❌</td><td>后台 → 本端</td></tr><tr><td>P5</td><td><code>expo-visitor-apply.html</code></td><td><code>expo-visitor.html</code>（审核）</td><td>❌</td><td>双向</td></tr><tr><td>P6</td><td><code>expo-materials.html</code></td><td><code>expo-material.html</code>（策略）</td><td>❌</td><td>后台 → 本端</td></tr><tr><td>P7</td><td><code>expo-booth-apply.html</code></td><td><code>expo-booth.html</code>（审核/分配）</td><td>❌</td><td>双向</td></tr></tbody></table>
+<h3>0.9 本期不做</h3>
+<ul><li>展位在线支付、退款、发票（财务线下确认）</li><li>展商在端上上传企业资料（仅商户端/后台）</li><li>日程提醒推送（仅「加入我的日程」本地记录）</li><li>未到场自动判定（后台定时任务）</li><li>观众取消登记入口</li></ul>
+<h3>0.10 跨端字段差异</h3>
+<table><thead><tr><th>概念</th><th>本端</th><th>后台 14b</th><th>目标口径</th></tr></thead><tbody><tr><td>登记状态</td><td><code>pending/approved/rejected/checkedin</code></td><td>6 个中文状态</td><td>接口层映射</td></tr><tr><td>核销标记</td><td><code>localStorage.expoCheckin='1'</code></td><td>核销记录表</td><td>统一由核销接口返回</td></tr><tr><td>展位号</td><td><code>boothNo</code> 逗号分隔</td><td><code>boothNo</code></td><td>一致（v1.3 已对齐）</td></tr></tbody></table>
+<hr>
+<h3>0.9 出链覆盖（A 内联 / B 独立 / C 待写）</h3>
+<table><thead><tr><th>页面</th><th>出口</th><th>已覆盖</th><th>B 欠账</th><th>说明</th></tr></thead><tbody><tr><td>展会首页</td><td>10</td><td>9</td><td>0</td><td>框架出口 <code>mine.html</code></td></tr><tr><td>其余 6 页</td><td>2~4</td><td>全覆</td><td>0</td><td>族内互跳均已成节</td></tr></tbody></table>
+<p><strong>结论</strong>：F11 = <strong>✅</strong>。</p>
+<hr>
+<h2 id="p1">1. 展会首页 <code>expo.html</code></h2>
+<h3>1.1 页面说明</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>页面目标</td><td>展会总入口：规模数据、倒计时、登记状态、快捷入口、日程预览、平面图、精选展商、往届回顾</td></tr><tr><td>使用角色</td><td>观众 / 展商 / 游客</td></tr><tr><td>入口</td><td>首页宫格「袜博会」（E1）</td></tr><tr><td>前置</td><td>无</td></tr><tr><td>后置</td><td>→ 介绍 / 展位申请 / 参观登记 / 日程 / 资料 / 日程详情</td></tr></tbody></table>
+<h3>1.2 本页端间关系</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>数据来源</td><td>14b：届次/日期/场馆/规模/平面图/展商/往届/日程</td></tr><tr><td>跨端影响</td><td>无写操作；扫码核销写本地 <code>expoCheckin</code></td></tr><tr><td>依赖页面</td><td>14b <code>expo-list</code> / <code>expo-checkin</code></td></tr><tr><td>不涉及</td><td>商户端</td></tr><tr><td>一致性</td><td>登记状态与 <code>expo-visitor-apply</code>、<code>expo-materials</code> 共用 <code>expoVisitorReg</code></td></tr></tbody></table>
+<h3>1.3 页面结构</h3>
+<table><thead><tr><th>区块</th><th>内容</th></tr></thead><tbody><tr><td>头图</td><td>届次、展会名、日期/场馆/面积、倒计时</td></tr><tr><td>规模条</td><td>展商 / 观众 / 展位（3 项）</td></tr><tr><td>参观登记状态卡</td><td>未登记 / 待审核 / 已通过（入场码）/ 已驳回 / 已核销</td></tr><tr><td>快捷入口</td><td>6 宫格（介绍/展位/登记/日程/资料/展商名录）</td></tr><tr><td>展会日程</td><td>3 天预览，各 3 条，点进详情</td></tr><tr><td>展位平面图</td><td>静态 SVG（后台上传图）</td></tr><tr><td>精选展商</td><td>横滑卡 + 「展商名录」弹层</td></tr><tr><td>往届回顾</td><td>横滑图，点击看大图</td></tr><tr><td>悬浮扫码</td><td>现场核销入口</td></tr></tbody></table>
+<p><strong>页内子视图</strong></p>
+<table><thead><tr><th>子视图</th><th>触发</th><th>规格位置</th></tr></thead><tbody><tr><td>展商详情弹层</td><td>点展商卡</td><td>§1.6</td></tr><tr><td>展商名录弹层</td><td>点「全部」</td><td>§1.6</td></tr><tr><td>往届大图</td><td>点往届图</td><td>§1.6</td></tr><tr><td>扫码结果弹层</td><td>点悬浮扫码</td><td>§1.6 / §1.8</td></tr></tbody></table>
+<h3>1.4 列表规则</h3>
+<table><thead><tr><th>列表</th><th>排序</th><th>条数</th><th>空态</th></tr></thead><tbody><tr><td>日程预览</td><td>天 → 时间</td><td>3 天 × 3 条</td><td>隐藏区块</td></tr><tr><td>精选展商</td><td>运营排序</td><td>6</td><td>隐藏区块</td></tr><tr><td>往届回顾</td><td>年份倒序</td><td>3</td><td>隐藏区块</td></tr></tbody></table>
+<h3>1.5 字段规格</h3>
+<table><thead><tr><th>区域</th><th>字段</th></tr></thead><tbody><tr><td>头图</td><td>届次、名称、日期、场馆、面积、倒计时（天/时/分）</td></tr><tr><td>规模</td><td>800+ 展商 / 5万+ 观众 / 2000+ 展位</td></tr><tr><td>登记卡</td><td>状态、登记编号、入场码、核销时间</td></tr><tr><td>展商卡</td><td>名称、展位号、主营、标签</td></tr><tr><td>往届</td><td>年份、届次、图片</td></tr></tbody></table>
+<h3>1.6 交互规则</h3>
+<table><thead><tr><th>元素</th><th>显示条件</th><th>可点条件</th><th>点击后</th></tr></thead><tbody><tr><td>立即参观登记</td><td>未登记/已驳回</td><td>始终</td><td><code>expo-visitor-apply.html</code></td></tr><tr><td>登记状态卡</td><td><code>expoVisitorReg</code> 有值</td><td>始终</td><td>已通过/已核销 → 入场证；待审核 → 等待页</td></tr><tr><td>快捷入口</td><td>始终</td><td>始终</td><td>对应页面</td></tr><tr><td>日程条目</td><td>始终</td><td>始终</td><td><code>expo-session-detail.html?id=</code></td></tr><tr><td>展商卡</td><td>始终</td><td>始终</td><td>展商详情弹层</td></tr><tr><td>展商名录</td><td>始终</td><td>始终</td><td>名录弹层（点击进详情）</td></tr><tr><td>往届图</td><td>始终</td><td>始终</td><td>全屏大图</td></tr><tr><td>悬浮扫码</td><td>始终</td><td>始终</td><td>未登记/待审核/未通过 → 提示；已通过未核销 → 模拟核销</td></tr></tbody></table>
+<h3>1.7 业务规则与口径</h3>
+<table><thead><tr><th>编号</th><th>规则</th><th>触发</th><th>处理</th><th>影响端</th></tr></thead><tbody><tr><td>R-01</td><td>登记状态读 <code>expoVisitorReg</code></td><td>渲染</td><td>无值→未登记；有值按 status</td><td>14b</td></tr><tr><td>R-02</td><td>核销状态读 <code>expoCheckin</code></td><td>渲染</td><td><code>'1'</code> 视为已核销</td><td>现场</td></tr><tr><td>R-03</td><td>未核销不可下载「需核销」资料</td><td>渲染</td><td>以 <code>getReg/isCheckedIn</code> 判定</td><td>14b</td></tr><tr><td>R-04</td><td>倒计时以开展时间为准</td><td>渲染</td><td>到期显示「展会进行中」</td><td>14b</td></tr></tbody></table>
+<h3>1.8 异常与边界</h3>
+<table><thead><tr><th>场景</th><th>处理</th><th>提示文案</th></tr></thead><tbody><tr><td>未登记点扫码</td><td>弹层引导登记</td><td>「请先完成参观登记」</td></tr><tr><td>待审核点扫码</td><td>弹层提示审核中</td><td>「登记审核中」</td></tr><tr><td>已驳回点扫码</td><td>弹层提示未通过</td><td>「登记未通过」</td></tr><tr><td>数据缺失</td><td>区块隐藏</td><td>—</td></tr></tbody></table>
+<h3>1.9 通知与消息</h3>
+<table><thead><tr><th>事件</th><th>来源</th><th>本页呈现</th></tr></thead><tbody><tr><td>登记审核通过</td><td>14b</td><td>状态卡变入场证（短信由后台发）</td></tr><tr><td>日程变更</td><td>14b</td><td>日程区内容更新</td></tr></tbody></table>
+<h3>1.10 验收标准</h3>
+<table><thead><tr><th>#</th><th>前置</th><th>操作</th><th>预期</th><th>优先级</th></tr></thead><tbody><tr><td>AC-01</td><td>未登记</td><td>点扫码</td><td>弹「请先完成参观登记」</td><td>P0</td></tr><tr><td>AC-02</td><td>待审核</td><td>打开首页</td><td>状态卡显示待审核 + 编号</td><td>P0</td></tr><tr><td>AC-03</td><td>已通过未核销</td><td>点扫码模拟核销</td><td>状态变已核销</td><td>P1</td></tr><tr><td>AC-04</td><td>点日程条目</td><td>—</td><td>进入对应场次详情</td><td>P0</td></tr></tbody></table>
+<hr>
+<h2 id="p2">2. 展会介绍 <code>expo-info.html</code></h2>
+<h3>2.1 页面说明</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>页面目标</td><td>展会概况、组织机构、展品范围、亮点、交通</td></tr><tr><td>使用角色</td><td>观众 / 展商 / 游客</td></tr><tr><td>入口</td><td>首页快捷入口「展会介绍」（E2）</td></tr><tr><td>前置</td><td>无</td></tr><tr><td>后置</td><td>返回首页</td></tr></tbody></table>
+<h3>2.2 本页端间关系</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>数据来源</td><td><code>EXPO_CFG.info</code>（后台「展会介绍配置」）</td></tr><tr><td>跨端影响</td><td>无</td></tr><tr><td>依赖页面</td><td>14b <code>expo-list</code></td></tr><tr><td>不涉及</td><td>商户端</td></tr><tr><td>一致性</td><td>与首页头图日期/场馆同源</td></tr></tbody></table>
+<h3>2.3 页面结构</h3>
+<table><thead><tr><th>区块</th><th>内容</th></tr></thead><tbody><tr><td>头图</td><td>届次、名称、日期/场馆/面积</td></tr><tr><td>展会概况</td><td>2 段文字</td></tr><tr><td>组织机构</td><td>主办/承办/支持单位</td></tr><tr><td>展品范围</td><td>6 类（袜品/袜机/原料/设计包装/物流/跨境）</td></tr><tr><td>展会亮点</td><td>4 条</td></tr><tr><td>交通指南</td><td>自驾/高铁/公交/机场</td></tr></tbody></table>
+<p><strong>页内子视图</strong>：无（纯内容页）。</p>
+<h3>2.4 列表规则</h3>
+<p>不适用（静态内容，后端配置驱动）。</p>
+<h3>2.5 字段规格</h3>
+<table><thead><tr><th>区域</th><th>字段</th></tr></thead><tbody><tr><td>头图</td><td>届次、名称、日期、场馆、面积</td></tr><tr><td>概况</td><td>段落 × 2</td></tr><tr><td>机构</td><td>角色、单位名</td></tr><tr><td>展品</td><td>类目、说明</td></tr><tr><td>亮点</td><td>标题、说明</td></tr><tr><td>交通</td><td>方式、路线说明</td></tr></tbody></table>
+<h3>2.6 交互规则</h3>
+<table><thead><tr><th>元素</th><th>显示条件</th><th>可点条件</th><th>点击后</th></tr></thead><tbody><tr><td>返回</td><td>始终</td><td>始终</td><td><code>expo.html</code></td></tr><tr><td>交通条目</td><td>始终</td><td>不可点</td><td>—</td></tr></tbody></table>
+<h3>2.7 业务规则与口径</h3>
+<table><thead><tr><th>编号</th><th>规则</th><th>触发</th><th>处理</th><th>影响端</th></tr></thead><tbody><tr><td>R-05</td><td>全页读后台配置</td><td>渲染</td><td>各栏目独立维护，保存即同步</td><td>14b</td></tr><tr><td>R-06</td><td>缺栏目隐藏</td><td>渲染</td><td><code>info.xxx</code> 为空则不渲染区块</td><td>14b</td></tr></tbody></table>
+<h3>2.8 异常与边界</h3>
+<table><thead><tr><th>场景</th><th>处理</th><th>提示文案</th></tr></thead><tbody><tr><td>配置缺失</td><td>隐藏对应区块</td><td>—</td></tr><tr><td>图片失败</td><td>渐变兜底</td><td>—</td></tr></tbody></table>
+<h3>2.9 通知与消息</h3>
+<p>无。</p>
+<h3>2.10 验收标准</h3>
+<table><thead><tr><th>#</th><th>前置</th><th>操作</th><th>预期</th><th>优先级</th></tr></thead><tbody><tr><td>AC-05</td><td>配置完整</td><td>打开</td><td>5 个区块全部有内容</td><td>P0</td></tr><tr><td>AC-06</td><td>后台改日期</td><td>刷新</td><td>头图日期同步</td><td>P1</td></tr></tbody></table>
+<hr>
+<h2 id="p3">3. 展会日程 <code>expo-schedule.html</code></h2>
+<h3>3.1 页面说明</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>页面目标</td><td>三天完整日程 + 我的日程管理</td></tr><tr><td>使用角色</td><td>观众 / 展商</td></tr><tr><td>入口</td><td>首页快捷入口（E5）、场次详情「完整日程」</td></tr><tr><td>前置</td><td>无</td></tr><tr><td>后置</td><td>→ 场次详情</td></tr></tbody></table>
+<h3>3.2 本页端间关系</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>数据来源</td><td><code>EXPO_SESSIONS</code>（后台日程管理）</td></tr><tr><td>跨端影响</td><td>「加入我的日程」写本地 <code>expoMySchedule</code></td></tr><tr><td>依赖页面</td><td><code>expo-session-detail.html</code></td></tr><tr><td>不涉及</td><td>商户端</td></tr><tr><td>一致性</td><td>与详情页共用同一份场次数据与收藏 key</td></tr></tbody></table>
+<h3>3.3 页面结构</h3>
+<table><thead><tr><th>区块</th><th>内容</th></tr></thead><tbody><tr><td>顶部</td><td>日期切换（Day1 / Day2 / Day3）</td></tr><tr><td>场次时间轴</td><td>时间 + 类型标签 + 标题 + 地点 + 收藏按钮</td></tr><tr><td>我的日程</td><td>已加入场次列表</td></tr></tbody></table>
+<p><strong>页内子视图</strong></p>
+<table><thead><tr><th>子视图</th><th>触发</th><th>规格位置</th></tr></thead><tbody><tr><td>Day Tab</td><td>默认 Day1</td><td>§3.6</td></tr><tr><td>我的日程区</td><td>有收藏</td><td>§3.4</td></tr></tbody></table>
+<h3>3.4 列表规则</h3>
+<table><thead><tr><th>列表</th><th>排序</th><th>条数</th><th>空态</th></tr></thead><tbody><tr><td>当日日程</td><td>时间升序</td><td>Day1 8 / Day2 7 / Day3 6</td><td>「当日暂无日程」</td></tr><tr><td>我的日程</td><td>加入顺序</td><td>0–N</td><td>「还没有加入日程」</td></tr></tbody></table>
+<h3>3.5 字段规格</h3>
+<table><thead><tr><th>区域</th><th>字段</th></tr></thead><tbody><tr><td>场次卡</td><td>时间、类型、标题、地点、嘉宾、收藏状态</td></tr><tr><td>我的日程</td><td>时间、标题、地点、移除</td></tr></tbody></table>
+<h3>3.6 交互规则</h3>
+<table><thead><tr><th>元素</th><th>显示条件</th><th>可点条件</th><th>点击后</th></tr></thead><tbody><tr><td>Day Tab</td><td>始终</td><td>始终</td><td>切换当日列表</td></tr><tr><td>场次卡</td><td>始终</td><td>始终</td><td><code>expo-session-detail.html?id=</code></td></tr><tr><td>收藏（日历图标）</td><td>始终</td><td>始终</td><td>加入/移出我的日程 + toast</td></tr><tr><td>我的日程项</td><td>有收藏</td><td>始终</td><td>进场次详情</td></tr></tbody></table>
+<h3>3.7 业务规则与口径</h3>
+<table><thead><tr><th>编号</th><th>规则</th><th>触发</th><th>处理</th><th>影响端</th></tr></thead><tbody><tr><td>R-07</td><td>收藏存本地 <code>expoMySchedule</code></td><td>点击</td><td>数组增删，持久化</td><td>无</td></tr><tr><td>R-08</td><td>与详情页共用 key</td><td>渲染</td><td>两页状态一致</td><td>无</td></tr><tr><td>R-09</td><td>只展示已发布场次</td><td>渲染</td><td>后台下架的不展示</td><td>14b</td></tr></tbody></table>
+<h3>3.8 异常与边界</h3>
+<table><thead><tr><th>场景</th><th>处理</th><th>提示文案</th></tr></thead><tbody><tr><td>当日无场次</td><td>空态</td><td>⬜ 待实现</td></tr><tr><td>localStorage 不可用</td><td>收藏仅本次会话</td><td>—</td></tr></tbody></table>
+<h3>3.9 通知与消息</h3>
+<p>无（变更提醒在后台短信）。</p>
+<h3>3.10 验收标准</h3>
+<table><thead><tr><th>#</th><th>前置</th><th>操作</th><th>预期</th><th>优先级</th></tr></thead><tbody><tr><td>AC-07</td><td>Day2</td><td>切 Tab</td><td>显示 7 条 Day2 日程</td><td>P0</td></tr><tr><td>AC-08</td><td>点收藏</td><td>—</td><td>toast「已加入我的日程」，我的日程出现</td><td>P0</td></tr><tr><td>AC-09</td><td>已收藏再点</td><td>—</td><td>移出并提示已取消</td><td>P1</td></tr></tbody></table>
+<hr>
+<h2 id="p4">4. 日程详情 <code>expo-session-detail.html</code></h2>
+<h3>4.1 页面说明</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>页面目标</td><td>单场活动的完整信息 + 加入我的日程</td></tr><tr><td>使用角色</td><td>观众 / 展商</td></tr><tr><td>入口</td><td>日程列表卡片（E8）、首页日程预览（E7）</td></tr><tr><td>前置</td><td><code>?id=S2026-x-xxx</code>，缺省回退首场</td></tr><tr><td>后置</td><td>完整日程 / 我的日程</td></tr></tbody></table>
+<h3>4.2 本页端间关系</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>数据来源</td><td>同 <code>EXPO_SESSIONS</code></td></tr><tr><td>跨端影响</td><td>收藏写本地</td></tr><tr><td>依赖页面</td><td><code>expo-schedule.html</code></td></tr><tr><td>不涉及</td><td>商户端</td></tr><tr><td>一致性</td><td>收藏状态与列表页同步</td></tr></tbody></table>
+<h3>4.3 页面结构</h3>
+<table><thead><tr><th>区块</th><th>内容</th></tr></thead><tbody><tr><td>头图</td><td>类型标签、标题、日期</td></tr><tr><td>信息卡</td><td>时间、地点、嘉宾</td></tr><tr><td>活动介绍</td><td>正文</td></tr><tr><td>活动亮点</td><td>2–3 条</td></tr><tr><td>嘉宾</td><td>姓名/职务/单位</td></tr><tr><td>相关场次</td><td>3 条</td></tr><tr><td>吸底操作</td><td>加入我的日程 / 完整日程</td></tr></tbody></table>
+<p><strong>页内子视图</strong>：无（详情页）。</p>
+<h3>4.4 列表规则</h3>
+<table><thead><tr><th>列表</th><th>排序</th><th>条数</th><th>空态</th></tr></thead><tbody><tr><td>相关场次</td><td>后台推荐</td><td>3</td><td>隐藏区块</td></tr></tbody></table>
+<h3>4.5 字段规格</h3>
+<table><thead><tr><th>区域</th><th>字段</th></tr></thead><tbody><tr><td>头部</td><td>类型、标题、日期、时间、地点</td></tr><tr><td>正文</td><td>介绍、亮点、嘉宾（姓名/角色/单位）</td></tr><tr><td>操作</td><td>加入状态</td></tr></tbody></table>
+<h3>4.6 交互规则</h3>
+<table><thead><tr><th>元素</th><th>显示条件</th><th>可点条件</th><th>点击后</th></tr></thead><tbody><tr><td>加入我的日程</td><td>始终</td><td>始终</td><td>切换收藏 + toast</td></tr><tr><td>完整日程</td><td>始终</td><td>始终</td><td><code>expo-schedule.html</code></td></tr><tr><td>相关场次</td><td>有推荐</td><td>始终</td><td>同页换 id</td></tr></tbody></table>
+<h3>4.7 业务规则与口径</h3>
+<table><thead><tr><th>编号</th><th>规则</th><th>触发</th><th>处理</th><th>影响端</th></tr></thead><tbody><tr><td>R-10</td><td>收藏幂等</td><td>点击</td><td>按 id 增删</td><td>无</td></tr><tr><td>R-11</td><td>id 无效回退首场</td><td>渲染</td><td>取第一个场次</td><td>无</td></tr></tbody></table>
+<h3>4.8 异常与边界</h3>
+<table><thead><tr><th>场景</th><th>处理</th><th>提示文案</th></tr></thead><tbody><tr><td>id 不存在</td><td>回退首场</td><td>—</td></tr><tr><td>场次已取消</td><td>顶部标「已取消」</td><td>⬜ 待实现</td></tr></tbody></table>
+<h3>4.9 通知与消息</h3>
+<p>无。</p>
+<h3>4.10 验收标准</h3>
+<table><thead><tr><th>#</th><th>前置</th><th>操作</th><th>预期</th><th>优先级</th></tr></thead><tbody><tr><td>AC-10</td><td><code>?id=S2026-1-004</code></td><td>打开</td><td>显示论坛标题/时间/地点/嘉宾</td><td>P0</td></tr><tr><td>AC-11</td><td>点加入</td><td>—</td><td>toast 并写入本地</td><td>P0</td></tr><tr><td>AC-12</td><td>点完整日程</td><td>—</td><td>返回日程页</td><td>P1</td></tr></tbody></table>
+<hr>
+<h2 id="p5">5. 参观登记 <code>expo-visitor-apply.html</code></h2>
+<h3>5.1 页面说明</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>页面目标</td><td>观众提交参观登记，回显待审核/通过（入场证）/驳回三态</td></tr><tr><td>使用角色</td><td>观众</td></tr><tr><td>入口</td><td>首页顶部按钮 / 快捷入口 / 登记状态卡（E4）</td></tr><tr><td>前置</td><td>无</td></tr><tr><td>后置</td><td>生成登记编号；通过后入场证</td></tr></tbody></table>
+<h3>5.2 本页端间关系</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>数据来源</td><td>展会日期、身份类型字典</td></tr><tr><td>跨端影响</td><td>写 <code>expoVisitorReg</code>；审核结果由 14b 回写</td></tr><tr><td>依赖页面</td><td>14b <code>expo-visitor.html</code>（审核）</td></tr><tr><td>不涉及</td><td>商户端</td></tr><tr><td>一致性</td><td>状态被首页与资料页读取</td></tr></tbody></table>
+<h3>5.3 页面结构</h3>
+<table><thead><tr><th>区块</th><th>内容</th></tr></thead><tbody><tr><td>Step1 表单</td><td>姓名、企业、身份类型、参观日期（多选）、关注品类（多选）、手机号</td></tr><tr><td>Step2 待审核</td><td>编号、状态、时间轴、登记信息回显、演示通过/驳回</td></tr><tr><td>Step3 入场证</td><td>二维码、姓名/企业/身份/日期、入场须知</td></tr><tr><td>Step4 已驳回</td><td>编号、驳回原因、重新登记</td></tr></tbody></table>
+<p><strong>页内子视图</strong></p>
+<table><thead><tr><th>子视图</th><th>触发</th><th>规格位置</th></tr></thead><tbody><tr><td>待审核卡</td><td>提交后</td><td>§5.5 / §5.6</td></tr><tr><td>入场证卡</td><td>演示通过 / 后台通过</td><td>§5.5</td></tr><tr><td>驳回卡</td><td>演示驳回 / 后台驳回</td><td>§5.5</td></tr></tbody></table>
+<h3>5.4 列表与筛选</h3>
+<p>不适用（表单 + 结果态）。</p>
+<h3>5.5 字段规格</h3>
+<table><thead><tr><th>字段</th><th>必填</th><th>校验</th><th>说明</th></tr></thead><tbody><tr><td>姓名</td><td>✅</td><td>非空</td><td>—</td></tr><tr><td>企业名称</td><td>✅</td><td>非空</td><td>—</td></tr><tr><td>身份类型</td><td>✅</td><td>选择</td><td>采购商/经销商/设计师/媒体/其他</td></tr><tr><td>参观日期</td><td>✅</td><td>至少 1 天</td><td>10.18/19/20 多选</td></tr><tr><td>关注品类</td><td>❌</td><td>多选</td><td>袜品/袜机/原料/设计包装等</td></tr><tr><td>手机号</td><td>✅</td><td>11 位</td><td>接收入场码</td></tr><tr><td>登记编号</td><td>自动</td><td><code>V2026180001</code></td><td>—</td></tr><tr><td>入场码</td><td>通过后</td><td>二维码</td><td>核销用</td></tr></tbody></table>
+<h3>5.6 交互规则</h3>
+<table><thead><tr><th>元素</th><th>显示条件</th><th>可点条件</th><th>点击后</th></tr></thead><tbody><tr><td>提交登记申请</td><td>Step1</td><td>必填齐全</td><td>存 <code>pending</code>，切 Step2</td></tr><tr><td>模拟审核通过</td><td>Step2（演示）</td><td>始终</td><td><code>approved</code>，生成入场码，切 Step3</td></tr><tr><td>模拟审核驳回</td><td>Step2（演示）</td><td>始终</td><td><code>rejected</code>，切 Step4</td></tr><tr><td>重新登记</td><td>Step4</td><td>始终</td><td>清本地，回 Step1</td></tr><tr><td>返回展会主页</td><td>Step2/3/4</td><td>始终</td><td><code>expo.html</code></td></tr></tbody></table>
+<h3>5.7 业务规则与口径</h3>
+<table><thead><tr><th>编号</th><th>规则</th><th>触发</th><th>处理</th><th>影响端</th></tr></thead><tbody><tr><td>R-12</td><td>提交即待审核</td><td>提交</td><td><code>status='pending'</code>，不发入场码</td><td>14b</td></tr><tr><td>R-13</td><td>入场码规则</td><td>通过</td><td><code>V+年+届次+4位</code></td><td>14b</td></tr><tr><td>R-14</td><td>一次有效登记</td><td>提交</td><td>覆盖旧记录</td><td>14b</td></tr><tr><td>R-15</td><td>驳回可重提</td><td>重提</td><td>清本地后重新填</td><td>14b</td></tr></tbody></table>
+<h3>5.8 异常与边界</h3>
+<table><thead><tr><th>场景</th><th>处理</th><th>提示文案</th></tr></thead><tbody><tr><td>必填缺失</td><td>阻止提交</td><td>⬜ 待实现</td></tr><tr><td>日期未选</td><td>阻止提交</td><td>⬜ 待实现</td></tr><tr><td>手机号格式错</td><td>阻止提交</td><td>⬜ 待实现</td></tr><tr><td>重复提交</td><td>覆盖旧登记</td><td>—</td></tr></tbody></table>
+<h3>5.9 通知与消息</h3>
+<table><thead><tr><th>事件</th><th>接收人</th><th>渠道</th></tr></thead><tbody><tr><td>登记提交成功</td><td>观众</td><td>页面提示（短信由后台发）</td></tr><tr><td>审核通过</td><td>观众</td><td>短信 + 入场码</td></tr><tr><td>审核驳回</td><td>观众</td><td>短信 + 原因</td></tr></tbody></table>
+<h3>5.10 验收标准</h3>
+<table><thead><tr><th>#</th><th>前置</th><th>操作</th><th>预期</th><th>优先级</th></tr></thead><tbody><tr><td>AC-13</td><td>填写完整</td><td>提交</td><td>进入待审核，显示编号</td><td>P0</td></tr><tr><td>AC-14</td><td>待审核</td><td>演示通过</td><td>进入场证，二维码 + 编号</td><td>P0</td></tr><tr><td>AC-15</td><td>待审核</td><td>演示驳回</td><td>显示原因 + 重新登记</td><td>P1</td></tr><tr><td>AC-16</td><td>已通过</td><td>回首页</td><td>状态卡显示已通过</td><td>P0</td></tr></tbody></table>
+<hr>
+<h2 id="p6">6. 资料下载 <code>expo-materials.html</code></h2>
+<h3>6.1 页面说明</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>页面目标</td><td>按访问策略分发官方资料：公开可直接下，登记/核销后解锁</td></tr><tr><td>使用角色</td><td>观众 / 展商</td></tr><tr><td>入口</td><td>首页快捷入口（E6）</td></tr><tr><td>前置</td><td>无</td></tr><tr><td>后置</td><td>下载（模拟进度）</td></tr></tbody></table>
+<h3>6.2 本页端间关系</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>数据来源</td><td>14b 官方资料（名称/格式/大小/策略）</td></tr><tr><td>跨端影响</td><td>无写操作（下载量由后台统计）</td></tr><tr><td>依赖页面</td><td>14b <code>expo-material.html</code></td></tr><tr><td>不涉及</td><td>商户端</td></tr><tr><td>一致性</td><td>策略与后台配置一致</td></tr></tbody></table>
+<h3>6.3 页面结构</h3>
+<table><thead><tr><th>区块</th><th>内容</th></tr></thead><tbody><tr><td>解锁状态条</td><td>未登记 / 待审核 / 已驳回 / 已通过未核销 / 已核销</td></tr><tr><td>资料列表</td><td>名称、简介、格式、大小、策略标签、下载/解锁按钮</td></tr><tr><td>说明</td><td>纸质版领取提示</td></tr></tbody></table>
+<p><strong>页内子视图</strong>：下载进度条（行内）。</p>
+<h3>6.4 列表规则</h3>
+<table><thead><tr><th>项</th><th>规则</th></tr></thead><tbody><tr><td>排序</td><td>后台排序</td></tr><tr><td>条数</td><td>6（公开 3 / 需登记 1 / 需核销 2）</td></tr><tr><td>空态</td><td>「暂无资料」</td></tr></tbody></table>
+<h3>6.5 字段规格</h3>
+<table><thead><tr><th>区域</th><th>字段</th></tr></thead><tbody><tr><td>资料</td><td>名称、简介、格式、大小、策略</td></tr><tr><td>状态条</td><td>当前登记状态、入场编号</td></tr><tr><td>按钮</td><td>下载 / 登记解锁 / 核销解锁</td></tr></tbody></table>
+<h3>6.6 交互规则</h3>
+<table><thead><tr><th>元素</th><th>显示条件</th><th>可点条件</th><th>点击后</th></tr></thead><tbody><tr><td>下载</td><td>已解锁</td><td>始终</td><td>进度条 → 完成 toast</td></tr><tr><td>登记解锁</td><td><code>policy=registered</code> 未解锁</td><td>始终</td><td><code>expo-visitor-apply.html</code></td></tr><tr><td>核销解锁</td><td><code>policy=checkedin</code> 未解锁</td><td>始终</td><td>提示到场核销</td></tr><tr><td>去登记 / 重新登记</td><td>状态条</td><td>始终</td><td>登记页</td></tr></tbody></table>
+<h3>6.7 业务规则与口径</h3>
+<table><thead><tr><th>编号</th><th>规则</th><th>触发</th><th>处理</th><th>影响端</th></tr></thead><tbody><tr><td>R-16</td><td><code>public</code> 直接下载</td><td>渲染</td><td>无锁</td><td>14b</td></tr><tr><td>R-17</td><td><code>registered</code> 需 <code>approved</code></td><td>渲染</td><td>待审核/驳回均锁</td><td>14b</td></tr><tr><td>R-18</td><td><code>checkedin</code> 需已核销</td><td>渲染</td><td>通过未核销仍锁</td><td>现场</td></tr><tr><td>R-19</td><td>解锁状态实时读本地</td><td>返回页面</td><td>重新渲染</td><td>无</td></tr></tbody></table>
+<h3>6.8 异常与边界</h3>
+<table><thead><tr><th>场景</th><th>处理</th><th>提示文案</th></tr></thead><tbody><tr><td>未登记下载受限资料</td><td>锁定 + 去登记</td><td>「需先完成参观登记并通过审核」</td></tr><tr><td>待审核</td><td>锁定</td><td>「参观登记审核中（1 个工作日内），通过后解锁」</td></tr><tr><td>已驳回</td><td>锁定</td><td>「参观登记未通过审核，请核对信息后重新提交」</td></tr><tr><td>需核销未到场</td><td>锁定</td><td>「需到场扫码核销后解锁（展会期间现场核销）」</td></tr></tbody></table>
+<h3>6.9 通知与消息</h3>
+<p>无（解锁为状态驱动）。</p>
+<h3>6.10 验收标准</h3>
+<table><thead><tr><th>#</th><th>前置</th><th>操作</th><th>预期</th><th>优先级</th></tr></thead><tbody><tr><td>AC-17</td><td>未登记</td><td>点受限资料</td><td>显示锁定原因 + 去登记</td><td>P0</td></tr><tr><td>AC-18</td><td>已通过未核销</td><td>打开</td><td>「需登记」解锁，「需核销」仍锁</td><td>P0</td></tr><tr><td>AC-19</td><td>已核销</td><td>打开</td><td>全部解锁</td><td>P1</td></tr></tbody></table>
+<hr>
+<h2 id="p7">7. 展位申请 <code>expo-booth-apply.html</code></h2>
+<h3>7.1 页面说明</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>页面目标</td><td>展商填写企业信息、自选展位、提交申请并查看审核/缴费状态</td></tr><tr><td>使用角色</td><td>展商（入驻商户或外部企业）</td></tr><tr><td>入口</td><td>首页快捷入口「展位申请」（E3）</td></tr><tr><td>前置</td><td>无</td></tr><tr><td>后置</td><td>生成申请编号；待缴费 → 已确认</td></tr></tbody></table>
+<h3>7.2 本页端间关系</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>数据来源</td><td>展位类型/价格/平面图/可选状态</td></tr><tr><td>跨端影响</td><td>写申请单；库存预占；审核由 14b 处理</td></tr><tr><td>依赖页面</td><td>14b <code>expo-booth.html</code></td></tr><tr><td>不涉及</td><td>商户端</td></tr><tr><td>一致性</td><td>展位可选状态与后台平面图一致</td></tr></tbody></table>
+<h3>7.3 页面结构</h3>
+<table><thead><tr><th>区块</th><th>内容</th></tr></thead><tbody><tr><td>企业信息</td><td>企业名、联系人、电话、主营产品、统一社会信用代码</td></tr><tr><td>展位自选</td><td>区域/楼层切换、展位格（可选/已售/锁定）、多选累加</td></tr><tr><td>金额条</td><td>已选展位、数量、合计金额</td></tr><tr><td>提交</td><td>申请须知勾选 + 提交</td></tr><tr><td>结果态</td><td>待审核 / 待缴费（去缴费）/ 已确认 / 已驳回</td></tr></tbody></table>
+<p><strong>页内子视图</strong></p>
+<table><thead><tr><th>子视图</th><th>触发</th><th>规格位置</th></tr></thead><tbody><tr><td>展位选择器</td><td>默认</td><td>§7.4 / §7.6</td></tr><tr><td>缴费信息弹层</td><td>点「去缴费」</td><td>§7.6</td></tr><tr><td>演示审核/收款</td><td>结果态</td><td>§7.6</td></tr></tbody></table>
+<h3>7.4 列表规则</h3>
+<table><thead><tr><th>项</th><th>规则</th></tr></thead><tbody><tr><td>展位格</td><td>按区域/楼层分组；状态 可选 / 已售 / 锁定</td></tr><tr><td>多选</td><td>可累加，金额按类型单价汇总</td></tr><tr><td>已售/锁定</td><td>置灰不可选</td></tr></tbody></table>
+<h3>7.5 字段规格</h3>
+<table><thead><tr><th>字段</th><th>必填</th><th>校验</th><th>说明</th></tr></thead><tbody><tr><td>企业名称</td><td>✅</td><td>非空</td><td>—</td></tr><tr><td>联系人 / 电话</td><td>✅</td><td>非空 / 11 位</td><td>—</td></tr><tr><td>主营产品</td><td>✅</td><td>非空</td><td>—</td></tr><tr><td>信用代码</td><td>✅</td><td>18 位</td><td>—</td></tr><tr><td>展位</td><td>✅</td><td>至少 1 个</td><td>多选逗号分隔</td></tr><tr><td>申请须知</td><td>✅</td><td>勾选</td><td>—</td></tr><tr><td>申请编号</td><td>自动</td><td><code>B2026xxxx</code></td><td>—</td></tr><tr><td>展位号</td><td>自动</td><td><code>boothNo</code></td><td>逗号分隔</td></tr></tbody></table>
+<h3>7.6 交互规则</h3>
+<table><thead><tr><th>元素</th><th>显示条件</th><th>可点条件</th><th>点击后</th></tr></thead><tbody><tr><td>展位格</td><td>可选</td><td>未售未锁</td><td>选中/取消，金额更新</td></tr><tr><td>区域切换</td><td>始终</td><td>始终</td><td>换区展示</td></tr><tr><td>提交申请</td><td>始终</td><td>必填 + 至少 1 展位 + 勾须知</td><td>生成申请，进结果态</td></tr><tr><td>去缴费</td><td><code>待缴费</code></td><td>始终</td><td>弹层展示对公账户/金额</td></tr><tr><td>演示审核通过</td><td><code>待审核</code>（演示）</td><td>始终</td><td>→ 待缴费</td></tr><tr><td>演示确认收款</td><td><code>待缴费</code>（演示）</td><td>始终</td><td>→ 已确认</td></tr><tr><td>演示驳回</td><td><code>待审核</code>（演示）</td><td>始终</td><td>→ 已驳回</td></tr></tbody></table>
+<h3>7.7 业务规则与口径</h3>
+<table><thead><tr><th>编号</th><th>规则</th><th>触发</th><th>处理</th><th>影响端</th></tr></thead><tbody><tr><td>R-20</td><td>至少选 1 个展位</td><td>提交</td><td>拦截</td><td>14b</td></tr><tr><td>R-21</td><td>提交预占库存</td><td>提交</td><td>展位置锁定</td><td>14b</td></tr><tr><td>R-22</td><td>展位号逗号分隔</td><td>提交</td><td><code>c.list.join(',')</code></td><td>14b</td></tr><tr><td>R-23</td><td>逾期未缴自动取消</td><td>定时</td><td>释放展位</td><td>14b</td></tr><tr><td>R-24</td><td>缴费线下确认</td><td>结果态</td><td>端上仅展示对公信息</td><td>财务</td></tr></tbody></table>
+<h3>7.8 异常与边界</h3>
+<table><thead><tr><th>场景</th><th>处理</th><th>提示文案</th></tr></thead><tbody><tr><td>未选展位</td><td>阻止提交</td><td>「请先选择至少一个展位」</td></tr><tr><td>必填缺失</td><td>阻止提交</td><td>⬜ 待实现</td></tr><tr><td>展位被抢</td><td>置灰并提示重选</td><td>⬜ 待实现</td></tr><tr><td>重复提交</td><td>覆盖/置灰</td><td>—</td></tr></tbody></table>
+<h3>7.9 通知与消息</h3>
+<table><thead><tr><th>事件</th><th>接收人</th><th>渠道</th></tr></thead><tbody><tr><td>审核通过</td><td>展商</td><td>短信 + 端上状态</td></tr><tr><td>缴费提醒</td><td>展商</td><td>短信（到期前 3 天/1 天）</td></tr><tr><td>展位确认</td><td>展商</td><td>短信 + 端上状态</td></tr></tbody></table>
+<h3>7.10 验收标准</h3>
+<table><thead><tr><th>#</th><th>前置</th><th>操作</th><th>预期</th><th>优先级</th></tr></thead><tbody><tr><td>AC-20</td><td>未选展位</td><td>提交</td><td>toast「请先选择至少一个展位」</td><td>P0</td></tr><tr><td>AC-21</td><td>选 2 个展位</td><td>提交</td><td>编号生成，状态待审核，金额=单价和</td><td>P0</td></tr><tr><td>AC-22</td><td>待缴费</td><td>点去缴费</td><td>弹层显示对公账户与金额</td><td>P1</td></tr><tr><td>AC-23</td><td>演示确认收款</td><td>—</td><td>状态已确认，展位号展示</td><td>P1</td></tr></tbody></table>
+<hr>
+<h2>附录 A：与分册的对齐记录</h2>
+<table><thead><tr><th>#</th><th>分册要求（14b v1.3）</th><th>原型实现</th><th>处置</th></tr></thead><tbody><tr><td>A-1</td><td>参观登记审核流（6 态）</td><td>已实现 4 态（待审核/通过/驳回/核销），未到场/取消仅后台</td><td>✅</td></tr><tr><td>A-2</td><td>资料「需登记解锁」策略</td><td>已实现 3 类策略与拦截（E-38）</td><td>✅</td></tr><tr><td>A-3</td><td>展位号多选与后台对齐</td><td>已改为逗号分隔</td><td>✅</td></tr><tr><td>A-4</td><td>展位在线支付</td><td>未做，财务线下确认</td><td>⚠️ 本期不做</td></tr><tr><td>A-5</td><td>未到场自动判定</td><td>仅后台</td><td>⚠️ 接口期</td></tr><tr><td>A-6</td><td>日程变更通知</td><td>仅后台短信</td><td>⚠️ 接口期</td></tr></tbody></table>
+<h2>附录 B：接口依赖</h2>
+<table><thead><tr><th>接口</th><th>用途</th><th>现状</th></tr></thead><tbody><tr><td><code>GET /expo/config</code></td><td>届次/规模/介绍/平面图/展商/往届</td><td>mock</td></tr><tr><td><code>GET /expo/sessions</code></td><td>日程列表与详情</td><td>mock</td></tr><tr><td><code>POST /expo/visitor</code></td><td>参观登记</td><td>mock（本地）</td></tr><tr><td><code>POST /expo/checkin</code></td><td>现场核销</td><td>mock（本地）</td></tr><tr><td><code>GET /expo/materials</code></td><td>资料与访问策略</td><td>mock</td></tr><tr><td><code>POST /expo/booth</code></td><td>展位申请</td><td>mock（本地）</td></tr></tbody></table>
+<h2>附录 C：页面清单</h2>
+<table><thead><tr><th>#</th><th>页面</th><th>文件</th><th>节</th><th>入口数</th><th>状态</th></tr></thead><tbody><tr><td>1</td><td>展会首页</td><td><code>expo.html</code></td><td>§1</td><td>1</td><td>✅</td></tr><tr><td>2</td><td>展会介绍</td><td><code>expo-info.html</code></td><td>§2</td><td>1</td><td>✅</td></tr><tr><td>3</td><td>展会日程</td><td><code>expo-schedule.html</code></td><td>§3</td><td>2</td><td>✅</td></tr><tr><td>4</td><td>日程详情</td><td><code>expo-session-detail.html</code></td><td>§4</td><td>2</td><td>✅</td></tr><tr><td>5</td><td>参观登记</td><td><code>expo-visitor-apply.html</code></td><td>§5</td><td>3</td><td>✅</td></tr><tr><td>6</td><td>资料下载</td><td><code>expo-materials.html</code></td><td>§6</td><td>1</td><td>✅</td></tr><tr><td>7</td><td>展位申请</td><td><code>expo-booth-apply.html</code></td><td>§7</td><td>1</td><td>✅</td></tr></tbody></table>
+</body></html>

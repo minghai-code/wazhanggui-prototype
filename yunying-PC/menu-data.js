@@ -149,17 +149,17 @@ window.MENU_DATA = [
     ]},
     { type: 'item', name: '视频管理', page: null, status: 'dev', points: ['商家视频上传', '下架'] },
     { type: 'item', name: '采购询价需求管理', page: 'mall-inquiry.html', status: 'done', points: ['需求列表（发布人/需求详情/竞价人/竞价详情）', '成交人及关联订单', '违规下架/关闭'] },
-    { type: 'item', name: '个性定制需求管理', page: null, status: 'dev', points: ['需求列表（三种类型：仅打样/直接大货/先打样后大货）', '竞价详情', '关联定制订单'] },
+    { type: 'item', name: '个性定制需求管理', page: 'mall-custom-demand.html', status: 'done', points: ['需求列表（三种类型：仅打样/直接大货/先打样后大货）', '竞价详情', '关联定制订单'] },
     { type: 'group', name: '订单管理', items: [
       { type: 'item', name: '普通订单', page: null, status: 'ext', points: ['外采 igshop 系统承载，无需改造，开发直接看外采系统'] },
       { type: 'item', name: '采购询价订单', page: 'mall-order-inquiry.html', status: 'done', points: ['可关联原始需求单', '字段对齐普通订单 + 询价个性化（需求溯源/成交报价/交期承诺）'] },
-      { type: 'item', name: '拼单集采订单', page: null, status: 'dev', points: ['拼单发起人', '拼单参与人'] },
-      { type: 'item', name: '样品打样订单', page: null, status: 'dev', points: ['可关联原始需求单', '可关联定制主订单（先打样后大货）'] },
-      { type: 'item', name: '定制订单', page: null, status: 'dev', points: ['个性小批量（可关联需求单）', '企业大批量（可关联需求单和打样单）'] }
+      { type: 'item', name: '拼单集采订单', page: 'mall-order-group.html', status: 'done', points: ['拼单发起人', '拼单参与人', '参团人明细（各人数量与实付）', '目标档位与成团时间', '详情可跳拼单活动'] },
+      { type: 'item', name: '样品打样订单', page: 'mall-order-sample.html', status: 'done', points: ['可关联原始需求单', '可关联定制主订单（先打样后大货）', '打样轮次与设计方案快照', '打样费抵扣额度与使用情况', '详情可跳关联定制单'] },
+      { type: 'item', name: '定制订单', page: 'mall-order-custom.html', status: 'done', points: ['个性小批量（可关联需求单）', '企业大批量（可关联需求单和打样单）', '打样费抵扣立减（须标注"打样费抵扣"）', '详情可跳关联打样单'] }
     ]},
     { type: 'item', name: '营销运营', page: null, status: 'dev', points: ['团购活动', '秒杀活动', '新品发售', '尾货专区', '细分主题'] },
     { type: 'item', name: '热搜词管理', page: 'trend-data.html', status: 'done', points: ['关键词热度列表', '置顶', '隐藏'] },
-    { type: 'item', name: '推荐位管理', page: null, status: 'dev', points: ['线下商场商铺推荐位（2026-10-09 业务确认：推荐位 = 推荐线下商铺，归本模块）', '与 09 内容管理的「平台级内容位」分界：两处不得改同一前端位'] },
+    { type: 'item', name: '推荐位管理', page: 'mall-recommend.html', status: 'done', points: ['线下商场商铺推荐位（2026-10-09 业务确认：推荐位 = 推荐线下商铺，归本模块）', '与 09 内容管理的「平台级内容位」分界：两处不得改同一前端位（两套位字典分表）', '端上落点：买家端线下市场「市场布局图」下方「实力商家」橱窗（2026-10-26 确认）', '同位次同时段唯一；商铺清退自动下线'] },
     { type: 'item', name: '趋势榜单管理', page: 'trend-ranking.html', status: 'done', points: ['榜单类型', '榜单列表（配置/详情）'] },
     { type: 'item', name: '财务资金管理', page: null, status: 'dev', points: ['对账管理', '结算管理', '提现流水'] },
     { type: 'item', name: '商城报表', page: null, status: 'dev', points: ['销售报表', '商品报表', '活动报表', '客户报表'] }

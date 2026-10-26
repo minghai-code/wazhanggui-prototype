@@ -53,13 +53,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
   <div class="bg-white rounded-2xl shadow-soft p-3">
     <div class="flex items-center justify-between mb-2">
       <span class="text-[11px] text-gray-500">已选条件</span>
-      <button onclick="toast('筛选条件已重置')" class="text-[10px] text-primary">清空全部</button>
+      <button onclick="clearAll()" class="text-[10px] text-primary">清空全部</button>
     </div>
-    <div class="flex flex-wrap gap-1.5">
-      <span class="text-[10px] text-primary bg-[#FFF0EB] px-2 py-1 rounded-full">男袜 <i class="fas fa-xmark text-[8px]"></i></span>
-      <span class="text-[10px] text-primary bg-[#FFF0EB] px-2 py-1 rounded-full">3-5元 <i class="fas fa-xmark text-[8px]"></i></span>
-      <span class="text-[10px] text-primary bg-[#FFF0EB] px-2 py-1 rounded-full">精梳棉 <i class="fas fa-xmark text-[8px]"></i></span>
-      <span class="text-[10px] text-primary bg-[#FFF0EB] px-2 py-1 rounded-full">无骨缝头 <i class="fas fa-xmark text-[8px]"></i></span>
+    <div class="flex flex-wrap gap-1.5" id="chipBox">
+      <span class="chip text-[10px] text-primary bg-[#FFF0EB] px-2 py-1 rounded-full" onclick="removeChip(this)">男袜 <i class="fas fa-xmark text-[8px]"></i></span>
+      <span class="chip text-[10px] text-primary bg-[#FFF0EB] px-2 py-1 rounded-full" onclick="removeChip(this)">3-5元 <i class="fas fa-xmark text-[8px]"></i></span>
+      <span class="chip text-[10px] text-primary bg-[#FFF0EB] px-2 py-1 rounded-full" onclick="removeChip(this)">精梳棉 <i class="fas fa-xmark text-[8px]"></i></span>
+      <span class="chip text-[10px] text-primary bg-[#FFF0EB] px-2 py-1 rounded-full" onclick="removeChip(this)">无骨缝头 <i class="fas fa-xmark text-[8px]"></i></span>
     </div>
   </div>
 </div>
@@ -68,16 +68,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <div class="px-3 pt-2.5">
   <div class="bg-white rounded-2xl shadow-soft overflow-hidden">
     <div class="flex overflow-x-auto no-bar border-b border-gray-50">
-      <span class="sort-item on">综合推荐</span>
-      <span class="sort-item">销量优先</span>
-      <span class="sort-item">价格从低到高</span>
-      <span class="sort-item">好评优先</span>
+      <span class="sort-item on" onclick="setSort(this)">综合推荐</span>
+      <span class="sort-item" onclick="setSort(this)">销量优先</span>
+      <span class="sort-item" onclick="setSort(this)">价格从低到高</span>
+      <span class="sort-item" onclick="setSort(this)">好评优先</span>
     </div>
   </div>
 </div>
 
 <!-- 商品列表 -->
-<div class="px-3 mt-3 pb-24">
+<div class="px-3 mt-3 pb-24" id="goodsList">
   <!-- 商品1 -->
   <a href="product-detail.html" class="card bg-white rounded-2xl shadow-soft flex gap-3 p-3 mb-2.5 fade-up">
     <img src="images/sock_03.jpg" class="w-[100px] h-[100px] rounded-xl object-cover flex-shrink-0">
@@ -202,10 +202,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
   </a>
 </div>
 
+<!-- 空态（筛选无结果） -->
+<div class="px-6 pt-10 text-center" id="emptyBox" style="display:none">
+  <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3" style="background:#FFF0EB">
+    <i class="fas fa-magnifying-glass text-xl" style="color:#FF8A4C"></i>
+  </div>
+  <p class="text-[13px] font-bold text-gray-700">没有符合条件的商品</p>
+  <p class="text-[10px] text-gray-400 mt-1.5 leading-relaxed">当前筛选条件过严，可减少 1-2 个条件<br>或直接查看全部商品</p>
+  <button onclick="clearAll()" class="mt-4 px-5 py-2 rounded-full text-[12px] font-bold text-white grad-h">清空筛选条件</button>
+</div>
+
 <!-- 底部重新筛选 -->
 <div class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-gray-100 px-3 flex items-center" style="height:60px;z-index:100;width:393px">
   <a href="market-socks.html" class="card flex-1 mr-2 py-2.5 rounded-full text-center text-[13px] font-medium text-gray-500 bg-gray-100 border border-gray-200">返回市场</a>
-  <button onclick="toast('重新打开筛选面板')" class="card flex-1 py-2.5 rounded-full text-[13px] font-bold text-white shadow-card grad-h">重新筛选</button>
+  <a href="market-socks.html?filter=1" class="card flex-1 py-2.5 rounded-full text-[13px] font-bold text-white shadow-card grad-h text-center">重新筛选</a>
 </div>
 
 <div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none"><div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:2px"></div></div>
@@ -215,7 +225,41 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <script>
 var toastTimer;
 function toast(msg){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},1600)}
+
+/* 排序切换：仅切换高亮并提示，原型不重排数据 */
+function setSort(el){
+  document.querySelectorAll('.sort-item').forEach(function(s){s.classList.remove('on')});
+  el.classList.add('on');
+  toast('已按「'+el.textContent.trim()+'」排序');
+}
+/* 已选条件：单条删除 */
+function removeChip(el){
+  el.remove();
+  refreshEmpty();
+  toast('已移除筛选条件');
+}
+/* 清空全部 */
+function clearAll(){
+  var box=document.getElementById('chipBox');
+  if(!box.querySelector('.chip')){toast('没有可清空的筛选条件');return;}
+  box.innerHTML='';
+  refreshEmpty();
+  toast('已清空筛选条件');
+}
+/* 筛选无结果空态：?empty=1 演示 */
+var forceEmpty=new URLSearchParams(location.search).get('empty')==='1';
+function refreshEmpty(){
+  var box=document.getElementById('chipBox');
+  var hasChip=!!box.querySelector('.chip');
+  var list=document.getElementById('goodsList');
+  var empty=document.getElementById('emptyBox');
+  var show=forceEmpty&&hasChip;
+  list.style.display=show?'none':'';
+  empty.style.display=show?'':'none';
+}
+refreshEmpty();
 </script>
 
+<script src="../shared/page-prd.js?v=20261023f"></script>
 </body>
 </html>

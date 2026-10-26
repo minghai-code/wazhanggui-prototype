@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>商城运营 - 定制订单</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.tab-active{color:#FF4D2D;border-bottom:2px solid #FF4D2D;font-weight:600}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:40}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:780px;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:50;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.ftitle{font-size:13px;font-weight:700;color:#1F2430;margin:18px 0 10px;display:flex;align-items:center;gap:6px}
+.ftitle::before{content:'';width:3px;height:13px;border-radius:2px;background:#FF4D2D}
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.5);opacity:0;pointer-events:none;transition:.2s;z-index:60;display:flex;align-items:center;justify-content:center}
+.modal.on{opacity:1;pointer-events:auto}
+.kv{display:flex;gap:8px;font-size:12.5px;line-height:1.9}
+.kv .k{color:#94A3B8;width:106px;flex-shrink:0}
+.kv .v{color:#1F2430;flex:1}
+.amt{font-size:12.5px;display:flex;justify-content:space-between;padding:5px 0}
+.amt .k{color:#94A3B8}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+<div class="p-6">
+
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">定制订单</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">10 商城运营</span>
+        <span class="tag" style="background:#FFE4E6;color:#BE123C">订单类型：custom</span>
+      </div>
+      <p class="text-[12px] text-[#94A3B8] mt-1">商城运营 / 订单管理 · 定制订单　·　个性小批量（可关联需求单）/ 企业大批量（可关联需求单和打样单）　·　<b>打样费以「订单立减」方式抵扣</b>（F3）</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="simCreate()"><i class="fas fa-plus mr-1"></i>模拟创建定制单</button>
+      <span class="text-[11px] text-[#94A3B8] bg-white border border-gray-100 rounded-lg px-3 py-1.5"><i class="fas fa-user-shield mr-1" style="color:#FF4D2D"></i>当前角色：商城运营专员</span>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-5 mb-4 border-b border-gray-200" id="tabs">
+    <span class="tab-active py-2.5 text-[13px] cursor-pointer" data-s="all">全部</span>
+    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600" data-s="待付款">待付款</span>
+    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600" data-s="待生产">待生产</span>
+    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600" data-s="生产中">生产中</span>
+    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600" data-s="待发货">待发货</span>
+    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600" data-s="已完成">已完成</span>
+  </div>
+
+  <div class="grid grid-cols-5 gap-3 mb-5">
+    <div class="stat-card bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">定制单总数</p><p class="text-xl font-bold mt-1" style="color:#BE123C">74</p><p class="text-[10px] text-[#94A3B8] mt-0.5">个性 48 · 企业 26</p></div>
+    <div class="stat-card bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">待生产</p><p class="text-xl font-bold mt-1" style="color:#B45309">15</p><p class="text-[10px] text-[#94A3B8] mt-0.5">已付款待排产</p></div>
+    <div class="stat-card bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">生产中</p><p class="text-xl font-bold mt-1" style="color:#2563EB">21</p><p class="text-[10px] text-[#94A3B8] mt-0.5">交期 7–15 天</p></div>
+    <div class="stat-card bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">待发货</p><p class="text-xl font-bold mt-1" style="color:#1D4ED8">11</p><p class="text-[10px] text-[#94A3B8] mt-0.5">待出库</p></div>
+    <div class="stat-card bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">已抵扣打样费合计</p><p class="text-xl font-bold mt-1" style="color:#15803D">¥6,800</p><p class="text-[10px] text-[#94A3B8] mt-0.5">来自 34 张打样单</p></div>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+    <div class="flex items-center gap-3 flex-wrap">
+      <div class="relative">
+        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+        <input id="kw" type="text" placeholder="定制单号 / 需求号 / 打样单号" class="w-64 pl-8 pr-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary">
+      </div>
+      <select id="fBatch" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+        <option value="">全部批量类型</option><option>个性小批量</option><option>企业大批量</option>
+      </select>
+      <select id="fDeduct" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+        <option value="">全部抵扣情况</option><option>有抵扣</option><option>无抵扣</option>
+      </select>
+      <button class="btn btn-primary" onclick="render()"><i class="fas fa-filter mr-1"></i>查询</button>
+      <button class="btn btn-ghost" onclick="resetF()">重置</button>
+      <span class="ml-auto text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>直接大货无打样单；先样品后大货才有抵扣</span>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="toast('已导出定制订单台账（含来源需求、打样单、抵扣金额）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+      <span class="text-[12px] text-[#94A3B8]" id="cnt">共 0 条</span>
+      <span class="ml-auto text-[11px] text-[#94A3B8]">打样费抵扣为「订单立减」，金额区单独列示</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-[13px]" style="min-width:1420px">
+        <thead>
+          <tr class="bg-gray-50 text-gray-500 text-[12px]">
+            <th class="px-4 py-3 text-left font-medium">定制单号</th>
+            <th class="px-4 py-3 text-left font-medium">来源需求</th>
+            <th class="px-4 py-3 text-left font-medium">来源打样单</th>
+            <th class="px-4 py-3 text-left font-medium">批量类型</th>
+            <th class="px-4 py-3 text-right font-medium">数量</th>
+            <th class="px-4 py-3 text-right font-medium">单价</th>
+            <th class="px-4 py-3 text-right font-medium">打样费抵扣</th>
+            <th class="px-4 py-3 text-right font-medium">应付金额</th>
+            <th class="px-4 py-3 text-left font-medium">交期承诺</th>
+            <th class="px-4 py-3 text-left font-medium">订单状态</th>
+            <th class="px-4 py-3 text-center font-medium">操作</th>
+          </tr>
+        </thead>
+        <tbody id="tb" class="divide-y divide-gray-50"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div id="mask" class="mask" onclick="closeAll()"></div>
+<div id="drawer" class="drawer">
+  <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+    <div><h3 class="text-[15px] font-bold text-[#1F2430]" id="dTitle">定制单详情</h3><p class="text-[11px] text-[#94A3B8] mt-0.5" id="dSub"></p></div>
+    <button onclick="closeAll()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-xmark text-lg"></i></button>
+  </div>
+  <div class="flex-1 overflow-y-auto px-6 py-5" id="dBody"></div>
+  <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex items-center gap-3" id="dFoot"></div>
+</div>
+
+<div id="modal" class="modal"></div>
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-2.5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]" style="padding-left:20px;padding-right:20px"></div>
+
+<script>
+/* 定制订单（mock；字段见分册 §8.5） */
+var C = [
+  { no:'CZ20261026004', demand:'CE20261026001', sp:'—', batch:'企业大批量', goods:'某科技企业年会礼盒袜 LOGO刺绣',
+    qty:3000, price:'9.20', deduct:'0.00', amount:'27,600.00', promise:'2026-11-10 前交付', state:'生产中', paid:true,
+    log:['2026-10-23 15:35 由需求 CE20261026001 选标生成（直接大货，无打样）','2026-10-23 16:00 买家付款 ¥27,600.00','2026-10-24 09:00 卖家开始排产'] },
+  { no:'CZ20261026007', demand:'CP20261024002', sp:'SP20261024011', batch:'个性小批量', goods:'情侣款刺绣短袜 姓名定制',
+    qty:200, price:'7.80', deduct:'200.00', amount:'1,360.00', promise:'2026-11-05 前交付', state:'待生产', paid:true,
+    log:['2026-10-26 09:15 由打样单 SP20261024011 确认样衣后生成','2026-10-26 09:15 打样费抵扣 -¥200.00（订单立减）','2026-10-26 09:30 买家付款 ¥1,360.00'] },
+  { no:'CZ20261021003', demand:'CE20261019004', sp:'SP20261020002', batch:'企业大批量', goods:'连锁酒店客房一次性拖鞋袜',
+    qty:10000, price:'2.75', deduct:'500.00', amount:'27,000.00', promise:'2026-11-15 前交付', state:'待发货', paid:true,
+    log:['2026-10-21 10:35 由打样单 SP20261020002 确认后生成','2026-10-21 10:35 打样费抵扣 -¥500.00（订单立减）','2026-10-25 18:00 生产完成，待出库'] },
+  { no:'CZ20261024009', demand:'CP20261026003', sp:'—', batch:'个性小批量', goods:'宠物主题潮袜 柯基图案',
+    qty:500, price:'4.10', deduct:'0.00', amount:'2,050.00', promise:'2026-11-08 前交付', state:'待付款', paid:false,
+    log:['2026-10-24 20:10 由需求 CP20261026003 选标生成（直接大货）','2026-10-24 20:10 订单待付款（24h 未付将自动取消）'] },
+  { no:'CZ20261018006', demand:'CP20261010007', sp:'SP20261012004', batch:'个性小批量', goods:'汉服配套提花袜',
+    qty:300, price:'7.20', deduct:'200.00', amount:'1,960.00', promise:'2026-10-28 前交付', state:'已完成', paid:true,
+    log:['2026-10-18 10:00 由打样单 SP20261012004 生成','2026-10-18 10:00 打样费抵扣 -¥200.00（订单立减）','2026-10-26 14:20 买家确认收货，订单完成'] }
+];
+
+var cur=null, rows=C.slice(), tab='all';
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function stBadge(s){
+  var map={'待付款':'background:#FEF3C7;color:#B45309','待生产':'background:#FFEDD5;color:#C2410C','生产中':'background:#DBEAFE;color:#1D4ED8','待发货':'background:#E0F2FE;color:#0369A1','已完成':'background:#DCFCE7;color:#15803D','已取消':'background:#F1F5F9;color:#64748B'};
+  return '<span class="tag" style="'+(map[s]||'background:#F1F5F9;color:#64748B')+'">'+s+'</span>';
+}
+function batchBadge(b){
+  return '<span class="tag" style="'+(b==='企业大批量'?'background:#E0F2FE;color:#0369A1':'background:#F5F3FF;color:#6D28D9')+'">'+b+'</span>';
+}
+function deductCell(o){
+  return Number(o.deduct)>0
+    ? '<span style="color:#15803D;font-weight:600">-¥'+esc(o.deduct)+'</span>'
+    : '<span class="text-[#CBD5E1]">无</span>';
+}
+
+document.querySelectorAll('#tabs span').forEach(function(el){
+  el.onclick=function(){
+    document.querySelectorAll('#tabs span').forEach(function(x){x.className='text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600';});
+    el.className='tab-active py-2.5 text-[13px] cursor-pointer';
+    tab=el.getAttribute('data-s');render();
+  };
+});
+
+function render(){
+  var kw=(document.getElementById('kw').value||'').trim();
+  var fb=document.getElementById('fBatch').value, fd=document.getElementById('fDeduct').value;
+  rows=C.filter(function(o){
+    if(tab!=='all'&&o.state!==tab)return false;
+    if(kw&&o.no.indexOf(kw)<0&&o.demand.indexOf(kw)<0&&o.sp.indexOf(kw)<0)return false;
+    if(fb&&o.batch!==fb)return false;
+    if(fd==='有抵扣'&&Number(o.deduct)<=0)return false;
+    if(fd==='无抵扣'&&Number(o.deduct)>0)return false;
+    return true;
+  });
+  var h='';
+  rows.forEach(function(o){
+    h+='<tr>'
+      +'<td class="px-4 py-3 font-medium" style="color:#1F2430">'+esc(o.no)+'</td>'
+      +'<td class="px-4 py-3"><span class="lk" onclick="toast(\'跳转来源需求 '+esc(o.demand)+'\')">'+esc(o.demand)+'</span></td>'
+      +'<td class="px-4 py-3">'+(o.sp==='—'?'<span class="text-[#CBD5E1]">—</span>':'<span class="lk" onclick="jumpSP(\''+esc(o.sp)+'\')">'+esc(o.sp)+'</span>')+'</td>'
+      +'<td class="px-4 py-3">'+batchBadge(o.batch)+'</td>'
+      +'<td class="px-4 py-3 text-right">'+Number(o.qty).toLocaleString('en-US')+'</td>'
+      +'<td class="px-4 py-3 text-right">¥'+esc(o.price)+'</td>'
+      +'<td class="px-4 py-3 text-right">'+deductCell(o)+'</td>'
+      +'<td class="px-4 py-3 text-right font-medium">¥'+esc(o.amount)+'</td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(o.promise)+'</td>'
+      +'<td class="px-4 py-3">'+stBadge(o.state)+'</td>'
+      +'<td class="px-4 py-3 text-center whitespace-nowrap"><span class="lk" onclick="openD(\''+o.no+'\')">详情</span></td>'
+      +'</tr>';
+  });
+  if(!rows.length) h='<tr><td colspan="11" class="px-4 py-16 text-center text-gray-300"><i class="fas fa-inbox text-3xl block mb-2"></i><span class="text-[12px]">暂无匹配的定制订单</span></td></tr>';
+  document.getElementById('tb').innerHTML=h;
+  document.getElementById('cnt').textContent='共 '+rows.length+' 条';
+}
+
+function resetF(){document.getElementById('kw').value='';document.getElementById('fBatch').value='';document.getElementById('fDeduct').value='';tab='all';
+  document.querySelectorAll('#tabs span').forEach(function(x,i){x.className=i===0?'tab-active py-2.5 text-[13px] cursor-pointer':'text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600';});
+  render();toast('已重置筛选条件');}
+
+function openD(no){
+  var o=C.filter(function(x){return x.no===no;})[0]; if(!o)return; cur=o;
+  document.getElementById('dTitle').textContent='定制单详情';
+  document.getElementById('dSub').textContent=o.no+' · '+o.goods;
+  var h='';
+  h+='<div class="ftitle" style="margin-top:0">基础信息（对齐普通订单字段）</div><div class="grid grid-cols-2 gap-x-6">'
+    +'<div class="kv"><span class="k">定制单号</span><span class="v">'+esc(o.no)+'</span></div>'
+    +'<div class="kv"><span class="k">订单类型</span><span class="v"><span class="tag" style="background:#FFE4E6;color:#BE123C">custom</span></span></div>'
+    +'<div class="kv"><span class="k">批量类型</span><span class="v">'+batchBadge(o.batch)+'</span></div>'
+    +'<div class="kv"><span class="k">数量</span><span class="v">'+Number(o.qty).toLocaleString('en-US')+' 双</span></div>'
+    +'<div class="kv"><span class="k">交期承诺</span><span class="v">'+esc(o.promise)+'</span></div>'
+    +'<div class="kv"><span class="k">订单状态</span><span class="v">'+stBadge(o.state)+'</span></div>'
+    +'</div>';
+
+  h+='<div class="ftitle">定制信息（定制单个性化字段）</div>'
+    +'<div class="rounded-xl p-4 mb-3" style="background:#FFF1F2;border:1px solid #FECDD3">'
+    +'<div class="kv"><span class="k">来源需求</span><span class="v"><span class="lk" onclick="toast(\'跳转来源需求 '+esc(o.demand)+'\')">'+esc(o.demand)+'</span></span></div>'
+    +'<div class="kv"><span class="k">来源打样单</span><span class="v">'+(o.sp==='—'?'—':'<span class="lk" onclick="jumpSP(\''+esc(o.sp)+'\')">'+esc(o.sp)+'</span>')+'</span></div>'
+    +'<div class="kv"><span class="k">设计方案</span><span class="v">按来源需求/打样单快照固化，不随设计稿后续修改变化</span></div>'
+    +'</div>';
+
+  // 金额明细：打样费抵扣单独列示（F3 + ML-20）
+  var qty=Number(o.qty), price=Number(o.price.replace(/,/g,'')), sub=qty*price, ded=Number(o.deduct);
+  h+='<div class="ftitle">金额明细</div><div class="rounded-xl p-4" style="background:#F8FAFC;border:1px solid #E2E8F0">'
+    +'<div class="amt"><span class="k">商品金额（'+qty.toLocaleString('en-US')+' 双 × ¥'+esc(o.price)+'）</span><span>¥'+sub.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+'</span></div>';
+  if(ded>0){
+    h+='<div class="amt"><span class="k" style="color:#15803D">打样费抵扣（来源打样单 '+esc(o.sp)+'）</span><span style="color:#15803D">-¥'+ded.toFixed(2)+'</span></div>';
+  }else{
+    h+='<div class="amt"><span class="k">打样费抵扣</span><span class="text-[#94A3B8]">无（'+(o.sp==='—'?'直接大货，无打样单':'打样单无可用额度')+'）</span></div>';
+  }
+  h+='<div class="amt" style="border-top:1px dashed #E2E8F0;margin-top:4px;padding-top:8px"><span class="k" style="color:#1F2430;font-weight:600">应付金额</span><span style="color:#E63E20;font-weight:700">¥'+esc(o.amount)+'</span></div>'
+    +'</div>';
+
+  h+='<div class="ftitle">关联打样单</div>';
+  if(o.sp==='—'){
+    h+='<div class="rounded-xl p-4 text-[12px]" style="background:#F8FAFC;border:1px solid #E2E8F0;color:#64748B">本单为「直接大货」，无关联打样单与抵扣</div>';
+  }else{
+    h+='<div class="rounded-xl p-4" style="background:#FAF5FF;border:1px solid #E9D5FF">'
+      +'<div class="kv"><span class="k">打样单号</span><span class="v"><span class="lk" onclick="jumpSP(\''+esc(o.sp)+'\')">'+esc(o.sp)+'</span></span></div>'
+      +'<div class="kv"><span class="k">抵扣额度</span><span class="v">¥'+ded.toFixed(2)+'（已在本单立减）</span></div>'
+      +'</div>';
+  }
+
+  h+='<div class="ftitle">履约信息（复用外采系统）</div><div class="rounded-lg p-3 bg-gray-50 text-[12px] text-gray-600">支付、物流、售后由外采承载；本页只做溯源、抵扣核对与异常跟进。</div>';
+
+  h+='<div class="ftitle">操作日志</div><div class="border-l-2 border-gray-100 pl-3 space-y-1.5">';
+  o.log.forEach(function(l){h+='<p class="text-[12px] text-gray-500">'+esc(l)+'</p>';});
+  h+='</div>';
+
+  document.getElementById('dBody').innerHTML=h;
+  var foot='<button class="btn btn-ghost" onclick="closeAll()">关闭</button>';
+  if(o.sp!=='—') foot+='<button class="btn btn-primary" onclick="jumpSP(\''+esc(o.sp)+'\')">查看打样单</button>';
+  document.getElementById('dFoot').innerHTML=foot;
+  document.getElementById('mask').classList.add('on');
+  document.getElementById('drawer').classList.add('on');
+}
+
+function jumpSP(no){
+  toast('跳转关联打样单 '+no);
+  setTimeout(function(){location.href='mall-order-sample.html?focus='+encodeURIComponent(no);},600);
+}
+
+/* 模拟创建：演示前置校验（ML-21 打样未确认 / ML-22 抵扣重复使用） */
+function simCreate(){
+  var sps=[{no:'SP20261025003',state:'已寄样',deduct:'可用'},{no:'SP20261024011',state:'样衣确认',deduct:'已用'},{no:'SP20261026005',state:'待制样',deduct:'可用'}];
+  var opts=sps.map(function(s){return '<option value="'+s.no+'">'+s.no+'｜样衣：'+s.state+'｜额度：'+s.deduct+'</option>';}).join('');
+  showModal('模拟创建定制单（前置校验）','真实场景由买家在端上下单触发；此处仅演示后台的两道硬校验。',
+    '<label class="block text-[11px] text-[#94A3B8] mb-1">选择来源打样单 *</label>'
+    +'<select id="spPick" class="w-full px-3 py-2 text-[13px] bg-gray-50 border border-gray-200 rounded-lg outline-none">'+opts+'</select>',
+    '校验并创建', function(){
+      var no=document.getElementById('spPick').value;
+      var s=sps.filter(function(x){return x.no===no;})[0];
+      if(s.state!=='样衣确认'){toast('打样单未确认样衣，不能创建定制单');return false;}
+      if(s.deduct==='已用'){toast('该打样单的抵扣额度已使用，不能重复抵扣');return false;}
+      closeModal();toast('校验通过，已创建定制单（演示）');return true;
+    });
+}
+
+function showModal(title,desc,body,okText,onOk){
+  document.getElementById('modal').innerHTML='<div class="bg-white rounded-2xl p-5" style="width:520px;max-width:94vw">'
+    +'<h3 class="text-[15px] font-bold text-[#1F2430]">'+title+'</h3>'
+    +'<p class="text-[12px] text-[#64748B] mt-1 mb-3">'+desc+'</p>'+body
+    +'<div class="flex justify-end gap-2 mt-4"><button class="btn btn-ghost" onclick="closeModal()">取消</button>'
+    +'<button class="btn btn-primary" id="mOk">'+okText+'</button></div></div>';
+  document.getElementById('mOk').onclick=function(){ if(onOk()!==false) closeModal(); };
+  document.getElementById('modal').classList.add('on');
+}
+function closeModal(){document.getElementById('modal').classList.remove('on');}
+function closeAll(){document.getElementById('mask').classList.remove('on');document.getElementById('drawer').classList.remove('on');closeModal();}
+
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},2800);}
+
+(function(){
+  var f=new URLSearchParams(location.search).get('focus');
+  if(f&&C.some(function(x){return x.no===f;})){toast('已定位到定制单 '+f);setTimeout(function(){openD(f);},400);}
+})();
+render();
+</script>
+<script src="../shared/op-guard.js"></script>
+<script src="../shared/page-prd.js"></script>
+</body>
+</html>

@@ -86,7 +86,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
           <p class="text-[14px] font-bold text-gray-800 truncate">纯棉商务袜 拼团特惠</p>
           <p class="text-[11px] text-gray-400 mt-0.5">规格: 黑色/42-44 / 10双装</p>
           <div class="flex items-center gap-2 mt-1.5">
-            <span class="text-[11px] text-gray-500">目标 <span class="font-bold text-gray-800">500</span>双</span>
+            <span class="text-[11px] text-gray-500">起拼档 <span class="font-bold text-gray-800">500</span>双</span>
             <span class="text-gray-300">|</span>
             <span class="text-[11px] text-gray-500">已凑 <span class="font-bold text-primary">320</span>双</span>
           </div>
@@ -121,9 +121,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
           <i class="fas fa-clock text-[10px] text-orange-400"></i>
           <span>截止: 09-03 23:59</span>
         </div>
-        <button class="card text-[12px] font-bold text-white px-4 py-2 rounded-full shadow-soft" style="background:linear-gradient(90deg,#FF6B35,#FF4D2D)">
-          <i class="fas fa-share-nodes text-[10px] mr-1"></i>邀请好友
-        </button>
+        <div class="flex items-center gap-2">
+          <button onclick="quitGroup(12)" class="text-[12px] font-bold text-gray-400 px-3 py-2 rounded-full border border-gray-200">退出拼单</button>
+          <button onclick="inviteFriend()" class="card text-[12px] font-bold text-white px-4 py-2 rounded-full shadow-soft" style="background:linear-gradient(90deg,#FF6B35,#FF4D2D)">
+            <i class="fas fa-share-nodes text-[10px] mr-1"></i>邀请好友
+          </button>
+        </div>
       </div>
     </div>
 
@@ -179,7 +182,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
           <i class="fas fa-circle-check text-[10px] text-blue-400"></i>
           <span>08-28 已完成</span>
         </div>
-        <button class="card text-[12px] font-bold text-blue-500 px-4 py-2 rounded-full border border-blue-200 bg-blue-50">
+        <button onclick="viewGroupOrder()" class="card text-[12px] font-bold text-blue-500 px-4 py-2 rounded-full border border-blue-200 bg-blue-50">
           <i class="fas fa-file-invoice text-[10px] mr-1"></i>查看订单
         </button>
       </div>
@@ -194,7 +197,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
       <!-- 状态标签 + 时间 -->
       <div class="flex justify-between items-center mb-3">
         <span class="text-[11px] font-bold px-2.5 py-1 rounded-full text-white" style="background:linear-gradient(90deg,#9CA3AF,#6B7280)">
-          <i class="fas fa-ban text-[9px] mr-0.5"></i>已取消
+          <i class="fas fa-ban text-[9px] mr-0.5"></i>已失效
         </span>
         <span class="text-[10px] text-gray-400">单号 GB20260810-03</span>
       </div>
@@ -207,7 +210,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
           <p class="text-[14px] font-bold text-gray-600 truncate">运动透气袜 秋冬款</p>
           <p class="text-[11px] text-gray-400 mt-0.5">规格: 灰色/40-42 / 10双装</p>
           <div class="flex items-center gap-2 mt-1.5">
-            <span class="text-[11px] text-gray-500">目标 <span class="font-bold text-gray-600">200</span>双</span>
+            <span class="text-[11px] text-gray-500">起拼档 <span class="font-bold text-gray-600">200</span>双</span>
             <span class="text-gray-300">|</span>
             <span class="text-[11px] text-gray-500">已凑 <span class="font-bold text-gray-500">85</span>双</span>
           </div>
@@ -239,9 +242,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
       <div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-50">
         <div class="flex items-center gap-1 text-[11px] text-gray-400">
           <i class="fas fa-ban text-[10px]"></i>
-          <span>08-15 已取消</span>
+          <span>08-15 已失效 · 已退款</span>
         </div>
-        <button class="card text-[12px] font-bold text-white px-4 py-2 rounded-full shadow-soft" style="background:linear-gradient(90deg,#FF6B35,#FF4D2D)">
+        <button onclick="restartGroup()" class="card text-[12px] font-bold text-white px-4 py-2 rounded-full shadow-soft" style="background:linear-gradient(90deg,#FF6B35,#FF4D2D)">
           <i class="fas fa-rotate-right text-[10px] mr-1"></i>重新发起
         </button>
       </div>
@@ -285,6 +288,42 @@ function switchTab(tab){
   }
 }
 </script>
+
+<script>
+function grToast(msg){
+  var d=document.createElement('div');d.textContent=msg;
+  d.style.cssText='position:fixed;left:50%;top:46%;transform:translate(-50%,-50%);background:rgba(15,18,26,.9);color:#fff;padding:11px 18px;border-radius:12px;font-size:13px;z-index:9999';
+  document.body.appendChild(d);setTimeout(function(){d.remove()},1600);
+}
+function inviteFriend(){grToast('邀请链接已复制，发给好友一起拼');}
+/* M01 BR-5：团长撤回 / 取消（二次确认） */
+function askConfirm(o){
+  var d=document.createElement('div');
+  d.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(17,24,39,.45);padding:0 32px';
+  d.innerHTML='<div style="width:100%;background:#fff;border-radius:16px;padding:20px 18px;box-shadow:0 12px 40px rgba(0,0,0,.18)">'
+    +'<p style="font-size:14px;font-weight:700;color:#1F2937;text-align:center">'+o.title+'</p>'
+    +'<p style="font-size:11px;color:#6B7280;line-height:1.85;margin-top:8px;text-align:center">'+o.body+'</p>'
+    +'<div style="display:flex;gap:10px;margin-top:16px">'
+    +'<button id="__cNo" style="flex:1;padding:10px 0;border-radius:10px;background:#F3F4F6;color:#6B7280;font-size:12px;font-weight:700">再想想</button>'
+    +'<button id="__cOk" style="flex:1;padding:10px 0;border-radius:10px;color:#fff;font-size:12px;font-weight:700;background:#EF4444">'+(o.ok||'确认')+'</button>'
+    +'</div></div>';
+  document.body.appendChild(d);
+  d.querySelector('#__cNo').onclick=function(){d.remove();};
+  d.querySelector('#__cOk').onclick=function(){d.remove();if(o.onOk)o.onOk();};
+}
+/* 10b FR-24：团长退出，份额保留、身份不转移，团继续（不是解散） */
+function quitGroup(joined){
+  askConfirm({
+    title:'退出拼单',
+    body:'退出后你已拼的份额<b>仍保留在本团</b>，不影响其他 '+joined+' 人参团。<br>团长身份将不转移；本团到期前仍可继续凑档。',
+    ok:'确认退出',
+    onOk:function(){grToast('已退出拼单，份额保留在本团');}
+  });
+}
+function viewGroupOrder(){grToast('正在打开拼单订单…');setTimeout(function(){window.location.href='orders.html'},500);}
+function restartGroup(){grToast('正在重新发起，请确认规格与数量');setTimeout(function(){window.location.href='group-buy-join.html'},500);}
+</script>
+<script src="../shared/page-prd.js?v=20261023h"></script>
 
 </body>
 </html>

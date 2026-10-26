@@ -67,17 +67,131 @@
     'yunying-PC/expo-schedule-manage.html': ['14b-袜博会管理/05-日程安排管理', '', '日程安排管理'],
     'yunying-PC/expo-checkin.html':         ['14b-袜博会管理/06-签到管理', '', '签到管理'],
     'yunying-PC/expo-material.html':        ['14b-袜博会管理/07-资料管理', '', '资料管理'],
-    'yunying-PC/expo-archive.html':         ['14b-袜博会管理/08-往期存档回顾', '', '往期存档回顾']
+    'yunying-PC/expo-archive.html':         ['14b-袜博会管理/08-往期存档回顾', '', '往期存档回顾'],
+    'yunying-PC/mall-inquiry.html':       ['10a-采购询价/01-采购询价需求管理', '', '采购询价需求管理'],
+    'yunying-PC/mall-order-inquiry.html': ['10a-采购询价/02-采购询价订单', '', '采购询价订单'],
+    'yunying-PC/mall-custom-demand.html': ['10b-商城运营/01-个性定制需求管理', '', '个性定制需求管理'],
+    'yunying-PC/mall-order-group.html':   ['10b-商城运营/02-拼单集采订单', '', '拼单集采订单'],
+    'yunying-PC/mall-order-sample.html':  ['10b-商城运营/03-样品打样订单', '', '样品打样订单'],
+    'yunying-PC/mall-order-custom.html':  ['10b-商城运营/04-定制订单', '', '定制订单'],
+    'yunying-PC/mall-recommend.html':     ['10b-商城运营/05-推荐位管理', '', '推荐位管理'],
+
+    /* ===== 移动端 · 功能族（值指向 _views/ 下的单页视图，不是族文档） ===== */
+    'mai-APP/home.html':              ['_views/F01-首页与导航-p1', '', '首页'],
+    'mai-APP/search.html':            ['_views/F01-首页与导航-p2', '', '搜索'],
+    'mai-APP/video.html':             ['_views/F01-首页与导航-p3', '', '视频看货'],
+    'mai-APP/ai.html':                ['_views/F01-首页与导航-p4', '', 'AI 工具'],
+    'mai-APP/messages.html':          ['_views/F01-首页与导航-p5', '', '消息中心'],
+    'mai-APP/news-detail.html':       ['_views/F01-首页与导航-p6', '', '资讯详情'],
+
+    'mai-APP/study-tour.html':        ['_views/F10-文旅研学-p1', '', '研学首页'],
+    'mai-APP/study-route.html':       ['_views/F10-文旅研学-p2', '', '路线详情'],
+    'mai-APP/study-personal.html':    ['_views/F10-文旅研学-p3', '', '个人报名'],
+    'mai-APP/study-apply.html':       ['_views/F10-文旅研学-p4', '', '团体申请'],
+    'mai-APP/study-my.html':          ['_views/F10-文旅研学-p5', '', '报名详情'],
+    'mai-APP/tourism.html':           ['_views/F10-文旅研学-p6', '', '文旅活动'],
+    'mai-APP/tourism-detail.html':    ['_views/F10-文旅研学-p7', '', '活动详情'],
+    'mai-APP/tourism-resource.html':  ['_views/F10-文旅研学-p8', '', '文旅资源详情'],
+
+    'mai-APP/expo.html':              ['_views/F11-袜博会-p1', '', '展会首页'],
+    'mai-APP/expo-info.html':         ['_views/F11-袜博会-p2', '', '展会介绍'],
+    'mai-APP/expo-schedule.html':     ['_views/F11-袜博会-p3', '', '展会日程'],
+    'mai-APP/expo-session-detail.html':['_views/F11-袜博会-p4', '', '日程详情'],
+    'mai-APP/expo-visitor-apply.html':['_views/F11-袜博会-p5', '', '参观登记'],
+    'mai-APP/expo-materials.html':    ['_views/F11-袜博会-p6', '', '资料下载'],
+    'mai-APP/expo-booth-apply.html':  ['_views/F11-袜博会-p7', '', '展位申请'],
+
+    'mai-APP/product-filter.html':    ['_views/F02-市场与找货-p1', '', '商品列表'],
+    'mai-APP/product-detail.html':    ['_views/F02-市场与找货-p2', '', '商品详情'],
+    'mai-APP/photo-search.html':      ['_views/F02-市场与找货-p3', '', '拍照找货'],
+    'mai-APP/ai-search.html':         ['_views/F02-市场与找货-p4', '', 'AI 找货'],
+    'mai-APP/market-socks.html':      ['_views/F02-市场与找货-p5', '', '袜子市场'],
+    'mai-APP/market-map.html':        ['_views/F02-市场与找货-p6', '', '市场导览'],
+
+    'mai-APP/ranking-terminal.html':  ['_views/F03-榜单与品牌-p1', '', '终端热销榜'],
+    'mai-APP/ranking-search.html':    ['_views/F03-榜单与品牌-p2', '', '平台热搜榜'],
+    'mai-APP/ranking-new.html':       ['_views/F03-榜单与品牌-p3', '', '新品关注榜'],
+    'mai-APP/ranking-cross.html':     ['_views/F03-榜单与品牌-p4', '', '跨境热销榜'],
+    'mai-APP/brand.html':             ['_views/F03-榜单与品牌-p5', '', '品牌馆'],
+    'mai-APP/brand-detail.html':      ['_views/F03-榜单与品牌-p6', '', '品牌详情'],
+
+    'mai-APP/group-buy.html':         ['_views/F04-拼单集采-p1', '', '拼单集采'],
+    'mai-APP/group-buy-join.html':    ['_views/F04-拼单集采-p2', '', '拼单详情'],
+    'mai-APP/group-records.html':     ['_views/F04-拼单集采-p3', '', '拼单记录'],
+
+    'mai-APP/purchase-order.html':    ['_views/F07-交易与订单-p1', '', '进货单'],
+    'mai-APP/order-checkout.html':    ['_views/F07-交易与订单-p2', '', '确认订单'],
+    'mai-APP/orders.html':            ['_views/F07-交易与订单-p3', '', '我的订单'],
+    'mai-APP/order-detail.html':      ['_views/F07-交易与订单-p4', '', '订单详情'],
+    'mai-APP/order-detail-inquiry.html':['_views/F07-交易与订单-p5', '', '询价订单详情'],
+    'mai-APP/order-reviewed.html':    ['_views/F07-交易与订单-p6', '', '已评价订单'],
+    'mai-APP/purchase-records.html':  ['_views/F07-交易与订单-p7', '', '采购记录'],
+    'mai-APP/address.html':           ['_views/F07-交易与订单-p8', '', '收货地址'],
+    'mai-APP/complaint.html':         ['_views/F07-交易与订单-p9', '', '投诉建议'],
+
+    'mai-APP/inquiry.html':           ['_views/F08-采购询价与定制-p1', '', '采购询价'],
+    'mai-APP/inquiry-publish.html':   ['_views/F08-采购询价与定制-p2', '', '发布采购询价'],
+    'mai-APP/inquiry-mypublish.html': ['_views/F08-采购询价与定制-p3', '', '我的发布详情'],
+    'mai-APP/inquiry-demand.html':    ['_views/F08-采购询价与定制-p4', '', '公开需求详情'],
+    'mai-APP/custom-design.html':     ['_views/F08-采购询价与定制-p5', '', '个性定制'],
+    'mai-APP/bulk-custom.html':       ['_views/F08-采购询价与定制-p6', '', '批量定制'],
+    'mai-APP/ai-outfit.html':         ['_views/F08-采购询价与定制-p7', '', 'AI 穿搭']
   };
 
   var parts = location.pathname.replace(/\\/g, '/').split('/');
   var file = parts.pop() || '';
   var seg = parts.pop() || '';
   var hit = PRD_MAP[seg + '/' + file] || PRD_MAP[file];
-  if (!hit || !seg) return;
+
+  /* 宿主文档：从直接父级逐层向上，找「最近一个可访问（同源）的父文档」。
+     为什么不直接用 window.top：IDE 预览常把整个外壳再套一层 iframe，最外层通常跨域不可读，
+     而直接父级（我们的预览壳 index-app-mai.html）是同源、可挂载的。 */
+  var TOP = (function () {
+    var w = window;
+    for (var i = 0; i < 6; i++) {
+      var p;
+      try { p = w.parent; } catch (e) { break; }
+      if (!p || p === w) break;
+      var ok = false;
+      try { ok = !!(p.document && (p.document.body || p.document.documentElement)); } catch (e) { ok = false; }
+      if (ok) return p;          // 最近可访问祖先 → 挂这里
+      w = p;                     // 不可访问则继续向上找
+    }
+    return window;
+  })();
+  var DOC = TOP.document;
+  var EMBED = DOC !== document;
+  var IS_FRAME = false;
+  try { IS_FRAME = !!(window.parent && window.parent !== window); } catch (e) { IS_FRAME = true; }
+
+  function cleanupTop() {
+    try {
+      var r = DOC.getElementById('__ppd_root');
+      if (r && r.parentNode) r.parentNode.removeChild(r);
+    } catch (e) {}
+  }
+  function cleanupSelf() {
+    var r = document.getElementById('__ppd_root');
+    if (r && r.parentNode) r.parentNode.removeChild(r);
+  }
+  function tellParent(msg) {
+    try { window.parent.postMessage(msg, '*'); } catch (e) {}
+  }
+
+  /* 本页没有说明（或导航到无说明页）时：清掉残留抽屉，并让外壳撤掉按钮 */
+  if (!hit || !seg) {
+    if (EMBED) cleanupTop();
+    else if (IS_FRAME) { tellParent({ type: 'ppd:hide' }); setTimeout(function () { tellParent({ type: 'ppd:hide' }); }, 200); }
+    return;
+  }
 
   var src = 'prd/' + hit[0] + '.prd.html' + (hit[1] ? '#' + hit[1] : '');
   var sub = hit[2] || '';
+  /* 移动端单页视图路径形如 _views/F10-文旅研学-p3：标题回显功能族名，不显示内部路径 */
+  var fam = hit[0].replace(/^_views\//, '').replace(/-p\d+$/, '');
+
+  /* 嵌入手机框时抽屉占右侧空白区；独立打开时保持原宽度 */
+  var PANEL_W = EMBED ? 'min(760px,46vw)' : 'min(880px,94vw)';
 
   var CSS = ''
     + '.pp-btn{position:fixed;right:18px;bottom:18px;z-index:2147483000;display:flex;align-items:center;gap:6px;'
@@ -85,9 +199,10 @@
     + 'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif;'
     + 'box-shadow:0 6px 20px rgba(15,23,42,.25);cursor:pointer;border:0;transition:transform .15s,box-shadow .15s;opacity:.92}'
     + '.pp-btn:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(15,23,42,.32);opacity:1}'
+    + '.pp-btn.on-dark{background:#fff;color:#1F2430;box-shadow:0 8px 24px rgba(0,0,0,.35)}'
     + '.pp-mask{position:fixed;inset:0;background:rgba(15,23,42,.42);z-index:2147483001;display:none}'
     + '.pp-mask.on{display:block}'
-    + '.pp-drawer{position:fixed;top:0;right:0;height:100%;width:min(880px,94vw);background:#fff;z-index:2147483002;'
+    + '.pp-drawer{position:fixed;top:0;right:0;height:100%;width:' + PANEL_W + ';background:#fff;z-index:2147483002;'
     + 'display:flex;flex-direction:column;box-shadow:-12px 0 40px rgba(15,23,42,.18);transform:translateX(102%);'
     + 'transition:transform .22s ease}'
     + '.pp-drawer.on{transform:none}'
@@ -100,25 +215,35 @@
     + '.pp-frame{flex:1;border:0;width:100%}';
 
   var el = function (tag, cls, html) {
-    var n = document.createElement(tag);
+    var n = DOC.createElement(tag);
     if (cls) n.className = cls;
     if (html != null) n.innerHTML = html;
     return n;
   };
 
   function mount() {
-    var st = el('style');
+    /* 每次挂载先清掉上一份（iframe 内跳页时，父文档里的旧抽屉不会自动消失） */
+    var old = DOC.getElementById('__ppd_root');
+    if (old && old.parentNode) old.parentNode.removeChild(old);
+
+    var root = DOC.createElement('div');
+    root.id = '__ppd_root';
+
+    var st = DOC.createElement('style');
     st.textContent = CSS;
-    document.head.appendChild(st);
+    root.appendChild(st);
 
-    var btn = el('button', 'pp-btn', '产品逻辑说明');
+    var btn = el('button', 'pp-btn' + (EMBED ? ' on-dark' : ''), '产品逻辑说明');
     btn.type = 'button';
-    btn.title = '查看本页的页面 PRD';
+    btn.title = '查看本页的页面 PRD' + (EMBED ? '（右侧面板）' : '（页内）');
+    try { console.log('[page-prd] host=' + (EMBED ? 'parent' : 'self') + ' size=' + DOC.documentElement.clientWidth + 'x' + DOC.documentElement.clientHeight); } catch (e) {}
 
-    var mask = el('div', 'pp-mask');
+    /* 嵌入手机框预览时不加遮罩：右侧可读说明，左侧手机原型仍可见 */
+    var mask = EMBED ? null : el('div', 'pp-mask');
+
     var drawer = el('div', 'pp-drawer');
     var head = el('div', 'pp-head');
-    head.innerHTML = '<div><p class="pp-title">' + hit[0] + '</p><p class="pp-sub">'
+    head.innerHTML = '<div><p class="pp-title">' + fam + '</p><p class="pp-sub">'
       + (sub ? sub + ' · ' : '') + file + '</p></div>';
     var close = el('button', 'pp-close', '&times;');
 
@@ -127,18 +252,18 @@
 
     function open() {
       if (!frame.src) frame.src = src;
-      mask.classList.add('on');
+      if (mask) mask.classList.add('on');
       drawer.classList.add('on');
     }
     function shut() {
-      mask.classList.remove('on');
+      if (mask) mask.classList.remove('on');
       drawer.classList.remove('on');
     }
 
     btn.addEventListener('click', open);
     close.addEventListener('click', shut);
-    mask.addEventListener('click', shut);
-    document.addEventListener('keydown', function (e) {
+    if (mask) mask.addEventListener('click', shut);
+    DOC.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') shut();
     });
 
@@ -146,14 +271,43 @@
     drawer.appendChild(head);
     drawer.appendChild(frame);
 
-    document.body.appendChild(btn);
-    document.body.appendChild(mask);
-    document.body.appendChild(drawer);
+    root.appendChild(btn);
+    if (mask) root.appendChild(mask);
+    root.appendChild(drawer);
+    (DOC.body || DOC.documentElement).appendChild(root);
+  }
+
+  function start() {
+    /* 1) 独立打开，或父文档同源可访问 → 直接挂（优先父级） */
+    if (!IS_FRAME || EMBED) { mount(); return; }
+
+    /* 2) 跨域 iframe（IDE 预览常见）：交给外壳渲染，子页不画按钮 */
+    var absSrc = src;
+    try { absSrc = new URL(src, location.href).href; } catch (e) {}
+    var payload = { type: 'ppd:hello', src: absSrc, title: fam, sub: sub, file: file };
+    var bridged = false;
+    try { console.log('[page-prd] cross-origin iframe → postMessage to shell'); } catch (e) {}
+
+    window.addEventListener('message', function (e) {
+      if (e.data && e.data.type === 'ppd:ack') {
+        bridged = true;
+        cleanupSelf();
+        try { console.log('[page-prd] ack: panel rendered by shell'); } catch (e2) {}
+      }
+    });
+
+    /* 手机内点击不再关闭面板：避免每次操作都左右移动；切页由 ppd:hello 原地刷新 */
+
+    tellParent(payload);
+    setTimeout(function () { if (!bridged) tellParent(payload); }, 150);
+    setTimeout(function () { if (!bridged) tellParent(payload); }, 450);
+    /* 3) 外壳没有桥接 → 退回页内（800ms 后） */
+    setTimeout(function () { if (!bridged) mount(); }, 800);
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', mount);
+    document.addEventListener('DOMContentLoaded', start);
   } else {
-    mount();
+    start();
   }
 })();

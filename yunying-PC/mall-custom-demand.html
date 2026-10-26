@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>商城运营 - 个性定制需求管理</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:40}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:760px;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:50;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.ftitle{font-size:13px;font-weight:700;color:#1F2430;margin:18px 0 10px;display:flex;align-items:center;gap:6px}
+.ftitle::before{content:'';width:3px;height:13px;border-radius:2px;background:#FF4D2D}
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.5);opacity:0;pointer-events:none;transition:.2s;z-index:60;display:flex;align-items:center;justify-content:center}
+.modal.on{opacity:1;pointer-events:auto}
+.kv{display:flex;gap:8px;font-size:12.5px;line-height:1.9}
+.kv .k{color:#94A3B8;width:96px;flex-shrink:0}
+.kv .v{color:#1F2430;flex:1}
+</style>
+<!-- Tailwind 静态样式：本地引用（不再依赖 cdn.tailwindcss.com）；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+<div class="p-6">
+
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">个性定制需求管理</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">10 商城运营</span>
+        <span class="tag" style="background:#EDE9FE;color:#7C3AED">定制需求 CP / CE</span>
+      </div>
+      <p class="text-[12px] text-[#94A3B8] mt-1">商城运营 / 定制 · 买家发需求 → 商户竞价 → 买家选标　·　<b>运营只做监督与处置，不参与选标</b>（决策 Q2）</p>
+    </div>
+    <span class="text-[11px] text-[#94A3B8] bg-white border border-gray-100 rounded-lg px-3 py-1.5"><i class="fas fa-user-shield mr-1" style="color:#FF4D2D"></i>当前角色：商城运营专员</span>
+  </div>
+
+  <!-- 统计卡 -->
+  <div class="grid grid-cols-5 gap-3 mb-5">
+    <div class="stat-card bg-white rounded-lg border border-gray-100 p-3.5">
+      <p class="text-[11px] text-gray-400">报价中</p>
+      <p class="text-xl font-bold mt-1" style="color:#2563EB">18</p>
+      <p class="text-[10px] text-[#94A3B8] mt-0.5">等待买家选标</p>
+    </div>
+    <div class="stat-card bg-white rounded-lg border border-gray-100 p-3.5">
+      <p class="text-[11px] text-gray-400">已成交</p>
+      <p class="text-xl font-bold mt-1" style="color:#15803D">42</p>
+      <p class="text-[10px] text-[#94A3B8] mt-0.5">已生成订单</p>
+    </div>
+    <div class="stat-card bg-white rounded-lg border border-gray-100 p-3.5">
+      <p class="text-[11px] text-gray-400">今日新增</p>
+      <p class="text-xl font-bold mt-1" style="color:#7C3AED">7</p>
+      <p class="text-[10px] text-[#94A3B8] mt-0.5">个性 5 · 企业 2</p>
+    </div>
+    <div class="stat-card bg-white rounded-lg border border-gray-100 p-3.5">
+      <p class="text-[11px] text-gray-400">临期待成交</p>
+      <p class="text-xl font-bold mt-1" style="color:#B45309">3</p>
+      <p class="text-[10px] text-[#94A3B8] mt-0.5">不足 24 小时</p>
+    </div>
+    <div class="stat-card bg-white rounded-lg border border-gray-100 p-3.5">
+      <p class="text-[11px] text-gray-400">异常待处置</p>
+      <p class="text-xl font-bold mt-1" style="color:#B91C1C">2</p>
+      <p class="text-[10px] text-[#94A3B8] mt-0.5">零报价到期 / 举报</p>
+    </div>
+  </div>
+
+  <!-- 筛选 -->
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+    <div class="flex items-center gap-3 flex-wrap">
+      <div class="relative">
+        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+        <input id="kw" type="text" placeholder="需求号 / 标题" class="w-56 pl-8 pr-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary">
+      </div>
+      <select id="fKind" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+        <option value="">全部买家类型</option><option>个性</option><option>企业</option>
+      </select>
+      <select id="fType" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+        <option value="">全部需求类型</option><option>仅样品定制</option><option>直接大货</option><option>先样品后大货</option>
+      </select>
+      <select id="fState" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+        <option value="">全部状态</option><option>报价中</option><option>已成交</option><option>已关闭</option>
+      </select>
+      <label class="flex items-center gap-1.5 text-[12px] text-gray-600"><input type="checkbox" id="fZero">仅看零报价</label>
+      <label class="flex items-center gap-1.5 text-[12px] text-gray-600"><input type="checkbox" id="fUrgent">仅看临期</label>
+      <button class="btn btn-primary" onclick="render()"><i class="fas fa-filter mr-1"></i>查询</button>
+      <button class="btn btn-ghost" onclick="resetF()">重置</button>
+      <span class="ml-auto text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>商户端仅见自己的报价；运营可见全量报价（决策 Q7）</span>
+    </div>
+  </div>
+
+  <!-- 表格 -->
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="toast('已导出定制需求台账（含需求类型、报价数、成交结果）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+      <span class="text-[12px] text-[#94A3B8]" id="cnt">共 0 条</span>
+      <span class="ml-auto text-[11px] text-[#94A3B8]">选标由买家在端上完成，运营端不提供选标入口</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-[13px]" style="min-width:1320px">
+        <thead>
+          <tr class="bg-gray-50 text-gray-500 text-[12px]">
+            <th class="px-4 py-3 text-left font-medium">需求号</th>
+            <th class="px-4 py-3 text-left font-medium">标题</th>
+            <th class="px-4 py-3 text-left font-medium">买家类型</th>
+            <th class="px-4 py-3 text-left font-medium">需求类型</th>
+            <th class="px-4 py-3 text-right font-medium">数量</th>
+            <th class="px-4 py-3 text-right font-medium">期望单价</th>
+            <th class="px-4 py-3 text-center font-medium">报价数</th>
+            <th class="px-4 py-3 text-left font-medium">截止(剩余)</th>
+            <th class="px-4 py-3 text-left font-medium">状态</th>
+            <th class="px-4 py-3 text-left font-medium">关联订单</th>
+            <th class="px-4 py-3 text-center font-medium">操作</th>
+          </tr>
+        </thead>
+        <tbody id="tb" class="divide-y divide-gray-50"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div id="mask" class="mask" onclick="closeAll()"></div>
+<div id="drawer" class="drawer">
+  <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+    <div>
+      <h3 class="text-[15px] font-bold text-[#1F2430]" id="dTitle">需求详情</h3>
+      <p class="text-[11px] text-[#94A3B8] mt-0.5" id="dSub"></p>
+    </div>
+    <button onclick="closeAll()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-xmark text-lg"></i></button>
+  </div>
+  <div class="flex-1 overflow-y-auto px-6 py-5" id="dBody"></div>
+  <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex items-center gap-3" id="dFoot"></div>
+</div>
+
+<div id="modal" class="modal"></div>
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
+
+<script>
+/* ============ 数据（mock，字段与分册 §2.2 一致） ============ */
+var D = [
+  { id:'CP20261026001', kind:'个性', type:'先样品后大货', title:'校服配套定制袜（含校徽）', buyer:'周**', qty:1000, unit:'双', price:'5.0',
+    quotes:3, left:'剩 2 天', urgent:false, state:'报价中', order:'—',
+    design:{style:'藏青+银灰条纹 / 商务简约', mat:'80S 精梳棉', height:'中筒', craft:'200针提花 · 无骨缝头', img:'藏青条纹'},
+    qs:[{shop:'大唐自有品牌旗舰店', sp:'¥28/件', bulk:'¥4.6/双', changes:1, win:false},
+        {shop:'锦程袜业', sp:'¥26/件', bulk:'¥4.2/双', changes:0, win:true},
+        {shop:'丹吉娅智能工厂', sp:'¥30/件', bulk:'¥4.8/双', changes:2, win:false}],
+    log:['2026-10-24 10:02 买家提交需求','2026-10-24 14:20 锦程袜业报价 ¥26/件 · ¥4.2/双','2026-10-25 09:10 买家选标：锦程袜业','2026-10-25 09:12 生成打样单 SP20261025003'] },
+  { id:'CP20261026002', kind:'个性', type:'仅样品定制', title:'情侣款刺绣短袜 姓名定制', buyer:'吴**', qty:200, unit:'双', price:'8.0',
+    quotes:1, left:'剩 3 天', urgent:false, state:'报价中', order:'—',
+    design:{style:'刺绣姓名 / 情侣款', mat:'纯棉', height:'短筒', craft:'电脑绣花', img:'刺绣情侣'},
+    qs:[{shop:'丹吉娅智能工厂', sp:'¥22/件', bulk:'—', changes:0, win:false}],
+    log:['2026-10-25 16:30 买家提交需求','2026-10-26 09:05 丹吉娅智能工厂报价 ¥22/件（仅打样）'] },
+  { id:'CP20261026003', kind:'个性', type:'直接大货', title:'宠物主题潮袜 柯基图案', buyer:'郑**', qty:500, unit:'双', price:'4.2',
+    quotes:4, left:'剩 1 天', urgent:true, state:'报价中', order:'—',
+    design:{style:'柯基图案 / 潮流', mat:'精梳棉', height:'中筒', craft:'数码印花', img:'柯基潮袜'},
+    qs:[{shop:'大唐自有品牌旗舰店', sp:'—', bulk:'¥4.0/双', changes:0, win:false},
+        {shop:'锦程袜业', sp:'—', bulk:'¥3.9/双', changes:1, win:false},
+        {shop:'丹吉娅智能工厂', sp:'—', bulk:'¥4.1/双', changes:0, win:false},
+        {shop:'恒丰织造', sp:'—', bulk:'¥3.8/双', changes:0, win:false}],
+    log:['2026-10-23 11:00 买家提交需求','2026-10-25 18:20 4 家商户已报价（临期提醒已发）'] },
+  { id:'CE20261026001', kind:'企业', type:'直接大货', title:'某科技企业年会礼盒袜 LOGO刺绣', buyer:'企业采购', qty:3000, unit:'双', price:'9.8',
+    quotes:3, left:'剩 1 天', urgent:true, state:'已成交', order:'CZ20261026004',
+    design:{style:'LOGO 刺绣 / 深灰', mat:'80S 精梳棉', height:'中筒', craft:'刺绣 + 礼盒包装', img:'LOGO礼盒'},
+    qs:[{shop:'大唐自有品牌旗舰店', sp:'—', bulk:'¥9.2/双', changes:0, win:true},
+        {shop:'锦程袜业', sp:'—', bulk:'¥9.5/双', changes:0, win:false},
+        {shop:'恒丰织造', sp:'—', bulk:'¥9.6/双', changes:1, win:false}],
+    log:['2026-10-22 09:00 企业采购提交需求（3000 双）','2026-10-23 15:30 买家选标：大唐自有品牌旗舰店','2026-10-23 15:35 生成定制单 CZ20261026004（直接大货，无打样）'] },
+  { id:'CP20261024008', kind:'个性', type:'先样品后大货', title:'健身房定制毛巾底袜', buyer:'何**', qty:800, unit:'双', price:'6.0',
+    quotes:0, left:'已到期', urgent:false, state:'已关闭', order:'—',
+    design:{style:'毛巾底加厚 / 深灰', mat:'棉 + 氨纶', height:'中筒', craft:'毛巾底编织', img:'毛巾底'},
+    qs:[], log:['2026-10-20 10:00 买家提交需求','2026-10-26 00:00 截止，零报价自动关闭（原因=超时无报价）'] },
+  { id:'CP20261025011', kind:'个性', type:'直接大货', title:'动漫IP联名长筒袜', buyer:'许**', qty:1200, unit:'双', price:'5.8',
+    quotes:2, left:'剩 5 天', urgent:false, state:'已关闭', order:'—',
+    design:{style:'IP 联名 / 长筒', mat:'精梳棉', height:'长筒', craft:'提花 + 印花', img:'IP联名'},
+    qs:[{shop:'大唐自有品牌旗舰店', sp:'—', bulk:'¥5.6/双', changes:0, win:false},
+        {shop:'锦丰针织', sp:'—', bulk:'¥5.7/双', changes:0, win:false}],
+    log:['2026-10-25 10:00 买家提交需求','2026-10-26 09:30 运营违规下架（原因=涉嫌侵犯 IP 授权）'] }
+];
+
+var cur = null, rows = D.slice();
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function money(n){return Number(n).toLocaleString('en-US');}
+
+function stBadge(s){
+  var map={'报价中':'background:#DBEAFE;color:#1D4ED8','已成交':'background:#DCFCE7;color:#15803D','已关闭':'background:#F1F5F9;color:#64748B'};
+  return '<span class="tag" style="'+map[s]+'">'+s+'</span>';
+}
+function typeBadge(t){
+  var map={'仅样品定制':'background:#EDE9FE;color:#7C3AED','先样品后大货':'background:#E0E7FF;color:#4338CA','直接大货':'background:#FFE4E6;color:#BE123C'};
+  return '<span class="tag" style="'+map[t]+'">'+t+'</span>';
+}
+
+function render(){
+  var kw=(document.getElementById('kw').value||'').trim();
+  var kind=document.getElementById('fKind').value, type=document.getElementById('fType').value, state=document.getElementById('fState').value;
+  var zero=document.getElementById('fZero').checked, urg=document.getElementById('fUrgent').checked;
+  rows=D.filter(function(d){
+    if(kw&&d.id.indexOf(kw)<0&&d.title.indexOf(kw)<0)return false;
+    if(kind&&d.kind!==kind)return false;
+    if(type&&d.type!==type)return false;
+    if(state&&d.state!==state)return false;
+    if(zero&&d.quotes!==0)return false;
+    if(urg&&!d.urgent)return false;
+    return true;
+  });
+  var h='';
+  rows.forEach(function(d){
+    h+='<tr>'
+      +'<td class="px-4 py-3 font-medium" style="color:#1F2430">'+esc(d.id)+'</td>'
+      +'<td class="px-4 py-3"><div class="text-[#1F2430]">'+esc(d.title)+'</div><div class="text-[11px] text-[#94A3B8]">买家 '+esc(d.buyer)+'</div></td>'
+      +'<td class="px-4 py-3"><span class="tag" style="background:'+(d.kind==='企业'?'#E0F2FE;color:#0369A1':'#F5F3FF;color:#6D28D9')+'">'+esc(d.kind)+'</span></td>'
+      +'<td class="px-4 py-3">'+typeBadge(d.type)+'</td>'
+      +'<td class="px-4 py-3 text-right">'+money(d.qty)+' '+esc(d.unit)+'</td>'
+      +'<td class="px-4 py-3 text-right">¥'+esc(d.price)+'/'+esc(d.unit)+'</td>'
+      +'<td class="px-4 py-3 text-center">'+(d.quotes?('<b style="color:#1D4ED8">'+d.quotes+'</b>'):'<span style="color:#B91C1C">0</span>')+'</td>'
+      +'<td class="px-4 py-3"><span style="'+(d.urgent?'color:#B91C1C;font-weight:600':'color:#64748B')+'">'+esc(d.left)+'</span></td>'
+      +'<td class="px-4 py-3">'+stBadge(d.state)+'</td>'
+      +'<td class="px-4 py-3">'+(d.order==='—'?'<span class="text-[#CBD5E1]">—</span>':'<span class="lk" onclick="jumpOrder(\''+esc(d.order)+'\')">'+esc(d.order)+'</span>')+'</td>'
+      +'<td class="px-4 py-3 text-center whitespace-nowrap"><span class="lk" onclick="openD(\''+d.id+'\')">详情</span>'
+      +(d.state==='报价中'?' · <span class="lk-gray" onclick="askOff(\''+d.id+'\')">违规下架</span>':'')
+      +'</td></tr>';
+  });
+  if(!rows.length) h='<tr><td colspan="11" class="px-4 py-16 text-center text-gray-300"><i class="fas fa-inbox text-3xl block mb-2"></i><span class="text-[12px]">暂无匹配的定制需求</span></td></tr>';
+  document.getElementById('tb').innerHTML=h;
+  document.getElementById('cnt').textContent='共 '+rows.length+' 条';
+}
+
+function resetF(){
+  ['kw','fKind','fType','fState'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('fZero').checked=false;document.getElementById('fUrgent').checked=false;
+  render();toast('已重置筛选条件');
+}
+
+function openD(id){
+  var d=D.filter(function(x){return x.id===id;})[0]; if(!d)return; cur=d;
+  document.getElementById('dTitle').textContent='定制需求详情';
+  document.getElementById('dSub').textContent=d.id+' · '+d.title;
+  var h='';
+  if(d.urgent) h+='<div class="rounded-xl p-3 mb-1 text-[11.5px]" style="background:#FEF2F2;border:1px solid #FECACA;color:#B91C1C"><i class="fas fa-clock mr-1"></i>该需求距截止不足 24 小时，请尽快处置</div>';
+  h+='<div class="ftitle" style="margin-top:0">需求信息</div><div class="grid grid-cols-2 gap-x-6">'
+    +'<div class="kv"><span class="k">需求号</span><span class="v">'+esc(d.id)+'</span></div>'
+    +'<div class="kv"><span class="k">买家类型</span><span class="v">'+esc(d.kind)+'</span></div>'
+    +'<div class="kv"><span class="k">需求类型</span><span class="v">'+esc(d.type)+'</span></div>'
+    +'<div class="kv"><span class="k">数量</span><span class="v">'+money(d.qty)+' '+esc(d.unit)+'</span></div>'
+    +'<div class="kv"><span class="k">期望单价</span><span class="v">¥'+esc(d.price)+'/'+esc(d.unit)+'</span></div>'
+    +'<div class="kv"><span class="k">截止</span><span class="v" style="'+(d.urgent?'color:#B91C1C':'')+'">'+esc(d.left)+'</span></div>'
+    +'<div class="kv"><span class="k">状态</span><span class="v">'+stBadge(d.state)+'</span></div>'
+    +'<div class="kv"><span class="k">关联订单</span><span class="v">'+(d.order==='—'?'—':'<span class="lk" onclick="jumpOrder(\''+esc(d.order)+'\')">'+esc(d.order)+'</span>')+'</span></div>'
+    +'</div>';
+
+  h+='<div class="ftitle">设计方案快照（AI 生成，后台只存快照）</div>'
+    +'<div class="rounded-xl p-4" style="background:#FAFAFF;border:1px solid #EDE9FE">'
+    +'<div class="flex items-start gap-4"><div class="rounded-xl flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0" style="width:96px;height:96px;background:linear-gradient(135deg,#7C3AED,#C084FC)">'+esc(d.design.img)+'</div>'
+    +'<div class="flex-1 space-y-1">'
+    +'<div class="kv"><span class="k">风格</span><span class="v">'+esc(d.design.style)+'</span></div>'
+    +'<div class="kv"><span class="k">材质</span><span class="v">'+esc(d.design.mat)+'</span></div>'
+    +'<div class="kv"><span class="k">筒高</span><span class="v">'+esc(d.design.height)+'</span></div>'
+    +'<div class="kv"><span class="k">工艺</span><span class="v">'+esc(d.design.craft)+'</span></div>'
+    +'</div></div></div>';
+
+  h+='<div class="ftitle">报价明细（运营可见全量，商户端仅见自己）</div>';
+  if(!d.qs.length){
+    h+='<div class="rounded-xl p-4 text-[12px] text-[#94A3B8]" style="background:#FEF2F2;border:1px solid #FECACA">零报价：到期将自动关闭（原因=超时无报价）</div>';
+  }else{
+    h+='<table class="w-full text-[12.5px]"><thead><tr class="text-[11px] text-gray-400"><th class="text-left py-1.5 font-medium">商户</th><th class="text-right font-medium">样品价</th><th class="text-right font-medium">大货价</th><th class="text-center font-medium">改价</th><th class="text-center font-medium">结果</th></tr></thead><tbody>';
+    d.qs.forEach(function(q){
+      h+='<tr class="border-t border-gray-50"><td class="py-2">'+esc(q.shop)+'</td><td class="py-2 text-right">'+esc(q.sp)+'</td><td class="py-2 text-right">'+esc(q.bulk)+'</td>'
+        +'<td class="py-2 text-center">'+q.changes+'/2</td>'
+        +'<td class="py-2 text-center">'+(q.win?'<span class="tag" style="background:#DCFCE7;color:#15803D">已中标</span>':'<span class="text-[#94A3B8]">未中标</span>')+'</td></tr>';
+    });
+    h+='</tbody></table>';
+  }
+
+  h+='<div class="ftitle">操作日志</div><div class="border-l-2 border-gray-100 pl-3 space-y-1.5">';
+  d.log.forEach(function(l){h+='<p class="text-[12px] text-gray-500">'+esc(l)+'</p>';});
+  h+='</div>';
+
+  document.getElementById('dBody').innerHTML=h;
+  var foot='<button class="btn btn-ghost" onclick="closeAll()">关闭</button>';
+  if(d.state==='报价中'){
+    foot+='<button class="btn" style="background:#fff;color:#DC2626;border:1px solid #FECACA" onclick="askOff(\''+d.id+'\')">违规下架</button>';
+    foot+='<button class="btn" style="background:#FEF2F2;color:#B91C1C;border:1px solid #FECACA" onclick="askClose(\''+d.id+'\')">强制关闭（主管）</button>';
+  }
+  if(d.order!=='—') foot+='<button class="btn btn-primary" onclick="jumpOrder(\''+esc(d.order)+'\')">查看关联订单</button>';
+  document.getElementById('dFoot').innerHTML=foot;
+  document.getElementById('mask').classList.add('on');
+  document.getElementById('drawer').classList.add('on');
+}
+
+/* 违规下架：原因必填（ML-02 / ML-03） */
+function askOff(id){
+  var d=D.filter(function(x){return x.id===id;})[0]; if(!d)return;
+  showModal('违规下架需求','下架后商户端需求池将不再出现，买家与报价商户会收到通知。',
+    '<label class="block text-[11px] text-[#94A3B8] mb-1">下架原因 *</label>'
+    +'<select id="offReason" class="w-full px-3 py-2 text-[13px] bg-gray-50 border border-gray-200 rounded-lg outline-none mb-2">'
+    +'<option value="">请选择</option><option>涉嫌侵权 / 无授权</option><option>虚假需求</option><option>违规内容</option><option>其他</option></select>'
+    +'<textarea id="offNote" rows="2" class="w-full px-3 py-2 text-[13px] bg-gray-50 border border-gray-200 rounded-lg outline-none" placeholder="补充说明（选填）"></textarea>',
+    '确认下架', function(){
+      var r=document.getElementById('offReason').value;
+      if(!r){toast('下架原因必填（将通知买家与报价商户）');return false;}
+      d.state='已关闭';d.left='已下架';
+      d.log.push('2026-10-26 运营违规下架（原因='+r+'）');
+      closeModal();render();
+      if(cur&&cur.id===d.id)openD(d.id);
+      toast('已下架需求 '+d.id+'，已通知买家与 '+d.qs.length+' 位报价商户');
+    });
+}
+
+/* 强制关闭：原因必填（ML-04 / ML-05） */
+function askClose(id){
+  var d=D.filter(function(x){return x.id===id;})[0]; if(!d)return;
+  showModal('强制关闭需求（主管权限）','该动作仅商城运营主管可执行，需填写原因并留痕。',
+    '<label class="block text-[11px] text-[#94A3B8] mb-1">关闭原因 *</label>'
+    +'<textarea id="closeNote" rows="3" class="w-full px-3 py-2 text-[13px] bg-gray-50 border border-gray-200 rounded-lg outline-none" placeholder="如：与商户串通、需求信息不实等"></textarea>',
+    '确认关闭', function(){
+      var n=(document.getElementById('closeNote').value||'').trim();
+      if(!n){toast('关闭原因必填');return false;}
+      d.state='已关闭';d.left='已关闭';
+      d.log.push('2026-10-26 主管强制关闭（原因='+n+'）');
+      closeModal();render();
+      if(cur&&cur.id===d.id)openD(d.id);
+      toast('已关闭需求 '+d.id);
+    });
+}
+
+function jumpOrder(no){
+  var target=no.indexOf('CZ')===0?'mall-order-custom.html':(no.indexOf('SP')===0?'mall-order-sample.html':'mall-order-group.html');
+  toast('跳转关联订单 '+no);
+  setTimeout(function(){location.href=target+'?focus='+encodeURIComponent(no);},600);
+}
+
+function showModal(title,desc,body,okText,onOk){
+  document.getElementById('modal').innerHTML='<div class="bg-white rounded-2xl p-5" style="width:520px;max-width:94vw">'
+    +'<h3 class="text-[15px] font-bold text-[#1F2430]">'+title+'</h3>'
+    +'<p class="text-[12px] text-[#64748B] mt-1 mb-3">'+desc+'</p>'
+    +body
+    +'<div class="flex justify-end gap-2 mt-4"><button class="btn btn-ghost" onclick="closeModal()">取消</button>'
+    +'<button class="btn btn-primary" id="mOk">'+okText+'</button></div></div>';
+  document.getElementById('mOk').onclick=function(){ if(onOk()!==false) closeModal(); };
+  document.getElementById('modal').classList.add('on');
+}
+function closeModal(){document.getElementById('modal').classList.remove('on');}
+function closeAll(){
+  document.getElementById('mask').classList.remove('on');
+  document.getElementById('drawer').classList.remove('on');
+  closeModal();
+}
+
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},2800);}
+
+document.getElementById('fZero').addEventListener('change',function(){
+  if(this.checked){render();toast('已筛选「仅看零报价」，共 '+rows.length+' 条');}
+});
+render();
+</script>
+<script src="../shared/op-guard.js"></script>
+<script src="../shared/page-prd.js"></script>
+</body>
+</html>

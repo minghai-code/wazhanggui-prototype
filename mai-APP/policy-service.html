@@ -252,7 +252,15 @@ function renderPolicies(cat){
   html+='</div>';
   html+='</div>';
   html+='</div>';
- });
+  });
+  if(!list.length){
+  html='<div class="bg-white rounded-2xl shadow-soft p-8 text-center">'
+   +'<div class="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-2" style="background:#F5F3FF"><i class="fas fa-folder-open text-xl" style="color:#A78BFA"></i></div>'
+   +'<p class="text-[12px] font-bold text-gray-700">该分类暂无可申报政策</p>'
+   +'<p class="text-[10px] text-gray-400 mt-1 leading-relaxed">可能本期尚未开放，或政策已截止<br>可切换分类查看，或关注「申报日历」</p>'
+   +'<button onclick="document.querySelector(\'#catTabBar .tab-item\').click()" class="mt-3 px-4 py-2 rounded-full text-[11px] font-bold text-white" style="background:linear-gradient(135deg,#8B5CF6,#7C3AED)">查看全部政策</button>'
+   +'</div>';
+ }
  document.getElementById('policyList').innerHTML=html;
  bindEvents();
  renderApplyBoxes();
@@ -334,8 +342,16 @@ function renderApplyBox(gid){
   +'</div>';
 }
 function submitApply(gid){
- APPLY_STATE[gid]={status:'已提交',time:'2026-10-13 09:41'};
- renderApplyBox(gid);toast('申报已提交，等待后台受理（约3个工作日）');
+ var p=null;policies.forEach(function(x){if(x.gid===gid)p=x;});
+ askConfirm({
+  title:'确认提交申报',
+  body:'将提交《'+(p?p.title:'该项政策')+'》的申报材料 <b>'+(p?p.materials.length:0)+' 项</b>。<br>提交后<b>不可自行修改</b>，如需变更须联系受理部门退回补正。',
+  ok:'确认提交',cancel:'再检查一下',
+  onOk:function(){
+   APPLY_STATE[gid]={status:'已提交',time:'2026-10-13 09:41'};
+   renderApplyBox(gid);toast('申报已提交，等待后台受理（约3个工作日）');
+  }
+ });
 }
 function cycleApply(gid){
  var cur=APPLY_STATE[gid]?APPLY_STATE[gid].status:'已提交';
@@ -351,6 +367,21 @@ function toast(msg){
  var t=document.getElementById('toast');
  if(msg&&t.querySelector('span'))t.querySelector('span').textContent=msg;
  t.classList.add('on');setTimeout(function(){t.classList.remove('on');},1800);
+}
+/* 二次确认弹窗（M06-Q37 申报提交不可自行修改） */
+function askConfirm(o){
+ var d=document.createElement('div');
+ d.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(17,24,39,.45);padding:0 32px';
+ d.innerHTML='<div style="width:100%;background:#fff;border-radius:16px;padding:20px 18px;box-shadow:0 12px 40px rgba(0,0,0,.18)">'
+  +'<p style="font-size:14px;font-weight:700;color:#1F2937;text-align:center">'+o.title+'</p>'
+  +'<p style="font-size:11px;color:#6B7280;line-height:1.85;margin-top:8px;text-align:center">'+o.body+'</p>'
+  +'<div style="display:flex;gap:10px;margin-top:16px">'
+  +'<button id="__cfmNo" style="flex:1;padding:10px 0;border-radius:10px;background:#F3F4F6;color:#6B7280;font-size:12px;font-weight:700">'+(o.cancel||'再想想')+'</button>'
+  +'<button id="__cfmOk" style="flex:1;padding:10px 0;border-radius:10px;color:#fff;font-size:12px;font-weight:700;background:'+(o.color||'#7C3AED')+'">'+(o.ok||'确定')+'</button>'
+  +'</div></div>';
+ document.body.appendChild(d);
+ d.querySelector('#__cfmNo').onclick=function(){d.remove();};
+ d.querySelector('#__cfmOk').onclick=function(){d.remove();if(o.onOk)o.onOk();};
 }
 
 document.querySelectorAll('#catTabBar .tab-item').forEach(function(tab){

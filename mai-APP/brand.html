@@ -156,7 +156,13 @@ function renderBrandList(list){
   var countEl=document.getElementById('brandCount');
   if(!box)return;
   countEl.textContent='共 '+list.length+' 家';
-  if(!list.length){box.innerHTML='<div class="text-center py-12"><i class="fas fa-search text-gray-200 text-4xl"></i><p class="text-[12px] text-gray-400 mt-3">未找到匹配品牌</p></div>';return;}
+  if(!list.length){
+    box.innerHTML='<div class="text-center py-12"><i class="fas fa-search text-gray-200 text-4xl"></i>'
+      +'<p class="text-[12px] text-gray-400 mt-3">未找到匹配品牌</p>'
+      +'<p class="text-[10px] text-gray-300 mt-1">换个关键词，或清空筛选看全部品牌</p>'
+      +'<button onclick="resetBrandFilter()" class="mt-3 px-4 py-2 rounded-full text-[11px] font-bold text-white" style="background:linear-gradient(135deg,#7C3AED,#C084FC)">清空筛选</button></div>';
+    return;
+  }
   var h='';
   list.forEach(function(b,i){
     var isFollow=followed.indexOf(b.id)>-1;
@@ -220,6 +226,16 @@ function clearSearch(){
   var input=document.getElementById('brandSearch');if(input)input.value='';
   filterBrand('');
 }
+/* 空态引导：清空关键词 + 回到「全部品牌」 */
+function resetBrandFilter(){
+  var input=document.getElementById('brandSearch');if(input)input.value='';
+  currentCate='all';
+  document.querySelectorAll('#cateTabs .brand-tab').forEach(function(t){t.classList.remove('on');});
+  var first=document.querySelector('#cateTabs .brand-tab');if(first)first.classList.add('on');
+  document.getElementById('clearSearch').style.display='none';
+  applyFilter();
+  toast('已清空筛选条件');
+}
 
 function applyFilter(){
   var kw=(document.getElementById('brandSearch').value||'').trim().toLowerCase();
@@ -247,5 +263,6 @@ function sortBrand(){
 renderTopBrands();
 applyFilter();
 </script>
+<script src="../shared/page-prd.js?v=20261023g"></script>
 </body>
 </html>

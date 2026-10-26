@@ -207,6 +207,7 @@ function renderCard(o,delay){
     </div>
     <!-- 订单号 -->
     <div class="px-3.5 pb-2 text-[10px] text-gray-400">订单号：${o.id}</div>
+    ${o.status==='pay'?`<div class="px-3.5 pb-2 text-[10px] text-amber-500" data-cd="${o.id}">剩余 29:59 自动取消</div>`:''}
     <!-- 中部：商品 -->
     <div class="flex gap-3 px-3.5 pb-3">
       <img src="${o.img}" class="w-[68px] h-[68px] rounded-xl object-cover flex-shrink-0 bg-gray-50" alt="${o.name}">
@@ -225,7 +226,7 @@ function renderCard(o,delay){
     <div class="flex items-center justify-between px-3.5 pb-3 pt-1 border-t border-gray-50">
       <span class="text-[11px] text-gray-500">共${o.qty}件 合计 <span class="text-primary font-bold text-[15px]">¥${total}</span></span>
       <div class="flex gap-2">
-        ${btns.map(b=>`<button class="${b.cls} text-[11px] font-medium px-3 py-1.5 rounded-full">${b.t}</button>`).join('')}
+        ${btns.map(b=>`<button class="${b.cls} text-[11px] font-medium px-3 py-1.5 rounded-full" onclick="event.stopPropagation();handleOrderBtn('${b.t}','${o.id}')">${b.t}</button>`).join('')}
       </div>
     </div>
   </div>`;
@@ -293,7 +294,70 @@ tabBar.addEventListener('click',e=>{
   // 滚动到顶部
   window.scrollTo({top:0,behavior:'smooth'});
 });
+
+/* ===== M03 BR-2：待付款 30 分钟超时自动取消 ===== */
+const payRemain={};
+orders.forEach(o=>{if(o.status==='pay')payRemain[o.id]=29*60+59;});
+function fmtCd(s){const m=String(Math.floor(s/60)).padStart(2,'0');const ss=String(s%60).padStart(2,'0');return m+':'+ss;}
+function tickPayCd(){
+  Object.keys(payRemain).forEach(id=>{
+    if(payRemain[id]<=0)return;
+    payRemain[id]--;
+    document.querySelectorAll('[data-cd="'+id+'"]').forEach(el=>{
+      if(payRemain[id]<=0){
+        el.textContent='订单超时未支付，已自动取消';
+        el.className='px-3.5 pb-2 text-[10px] text-gray-400';
+      }else{
+        el.textContent='剩余 '+fmtCd(payRemain[id])+' 自动取消';
+      }
+    });
+  });
+}
+setInterval(tickPayCd,1000);
+
+/* ===== M03 BR-3：取消订单需二次确认；待发货后只能走售后 ===== */
+function m03Toast(msg){
+  const d=document.createElement('div');d.textContent=msg;
+  d.style.cssText='position:fixed;left:50%;top:44%;transform:translate(-50%,-50%);background:rgba(15,18,26,.9);color:#fff;padding:11px 18px;border-radius:12px;font-size:13px;z-index:9999;max-width:280px;text-align:center;line-height:1.7';
+  document.body.appendChild(d);setTimeout(()=>d.remove(),1800);
+}
+function m03Confirm(o){
+  const d=document.createElement('div');
+  d.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(17,24,39,.45);padding:0 32px';
+  d.innerHTML='<div style="width:100%;background:#fff;border-radius:16px;padding:20px 18px">'
+    +'<p style="font-size:14px;font-weight:700;color:#1F2937;text-align:center">'+o.title+'</p>'
+    +'<p style="font-size:11px;color:#6B7280;line-height:1.85;margin-top:8px;text-align:center">'+o.body+'</p>'
+    +'<div style="display:flex;gap:10px;margin-top:16px">'
+    +'<button id="__m03no" style="flex:1;padding:10px 0;border-radius:10px;background:#F3F4F6;color:#6B7280;font-size:12px;font-weight:700">再想想</button>'
+    +'<button id="__m03ok" style="flex:1;padding:10px 0;border-radius:10px;color:#fff;font-size:12px;font-weight:700;background:#FF4D2D">'+(o.ok||'确认')+'</button>'
+    +'</div></div>';
+  document.body.appendChild(d);
+  d.querySelector('#__m03no').onclick=()=>d.remove();
+  d.querySelector('#__m03ok').onclick=()=>{d.remove();o.onOk&&o.onOk();};
+}
+function handleOrderBtn(label,id){
+  if(label==='取消订单'){
+    m03Confirm({
+      title:'取消订单',
+      body:'取消后订单不可恢复，库存将释放。<br>如已付款，请改走「申请退款」。',
+      ok:'确认取消',
+      onOk:()=>{m03Toast('订单已取消（M03-Q12）');}
+    });
+    return;
+  }
+  if(label==='退款'){
+    m03Toast('已付款订单不支持直接取消，请申请退款（人工处理）');
+    return;
+  }
+  if(label==='去付款'||label==='去支付'){m03Toast('调起微信支付（原型演示）');return;}
+  if(label==='确认收货'){
+    m03Confirm({title:'确认收货',body:'确认已收到全部货品？<br>确认后订单完成，可进行评价。',ok:'确认收货',onOk:()=>m03Toast('已确认收货')});
+    return;
+  }
+  m03Toast(label+'（原型演示）');
+}
 </script>
 
+<script src="../shared/page-prd.js?v=20261023i"></script>
 </body>
 </html>

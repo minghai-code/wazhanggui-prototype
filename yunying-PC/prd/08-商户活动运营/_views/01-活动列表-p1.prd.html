@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>活动列表 · 页面说明</title><style>
+:root{--fg:#1F2430;--muted:#64748B;--line:#E9EDF3}
+*{box-sizing:border-box}
+body{margin:0;padding:26px 32px 90px;background:#fff;color:var(--fg);
+ font:14px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif}
+h1{font-size:20px;margin:0 0 6px}
+h2{font-size:17px;margin:34px 0 12px;padding-top:12px;border-top:1px solid var(--line)}
+h3{font-size:15px;margin:22px 0 10px}
+h4{font-size:14px;margin:18px 0 8px;color:#334155}
+p{margin:8px 0}
+table{border-collapse:collapse;width:100%;margin:10px 0 16px;font-size:12.5px}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:#F8FAFC;font-weight:700}
+tr:nth-child(even) td{background:#FCFDFE}
+code{background:#F1F5F9;padding:1px 5px;border-radius:4px;font-size:12px;
+ font-family:ui-monospace,Menlo,Consolas,monospace;color:#B91C1C}
+pre.code{background:#0F172A;color:#E2E8F0;padding:14px 16px;border-radius:10px;overflow:auto;font-size:12px}
+pre.code code{background:none;color:inherit;padding:0}
+blockquote{margin:10px 0;padding:10px 14px;background:#EFF6FF;border-left:3px solid #60A5FA;
+ border-radius:0 8px 8px 0;color:#334155;font-size:13px}
+ul,ol{margin:8px 0;padding-left:22px}
+li{margin:3px 0}
+hr{border:0;border-top:1px dashed var(--line);margin:22px 0}
+a{color:#2563EB;text-decoration:none}
+.meta{font-size:12px;color:var(--muted);margin:0 0 20px}
+.vtitle{font-size:18px;font-weight:800;margin:0 0 4px}
+details.fam{margin:12px 0 20px;border:1px solid var(--line);border-radius:10px;background:#F8FAFC;padding:0 14px}
+details.fam summary{cursor:pointer;padding:10px 0;font-size:13px;font-weight:700;color:#334155}
+details.fam[open]{padding-bottom:10px}
+.vnav{display:flex;justify-content:space-between;margin-top:34px;padding-top:14px;border-top:1px dashed var(--line);font-size:13px}
+</style></head><body>
+<div class="meta">由 <code>yunying-PC/prd/08-商户活动运营/01-活动列表.md</code> 的 §1 生成，勿手改；改文档请改 md 后重跑 build-prd --views。</div>
+<div class="vtitle">08 商户活动运营 · 运营端页面说明（首篇） · 活动列表 <code>activity.html</code></div>
+<details class="fam"><summary>所属功能族通用说明（§0）</summary><blockquote>端：运营端 PC（<code>yunying-PC</code>）　｜　模块：08 商户活动运营 <strong>本文件 = 模块通用说明（§0）+ 第 1 页</strong>，同目录其余文件只写本页 页面版本：v1.0（2026-10-22）　｜　业务分册：<code>开发PRD/运营管理端分册PRD/08-活动运营.md</code> <strong>v1.6</strong> 同目录：<code>02-活动创建.md</code>、<code>03-活动审批.md</code>、<code>04-报名管理.md</code>、<code>05-签到管理.md</code>、<code>06-活动详情.md</code></blockquote>
+<hr>
+<h2 id="p0">0. 模块通用说明（本模块其他页面不再重复）</h2>
+<h3>0.1 这个模块解决什么问题</h3>
+<p>商户培训、沙龙、消防演练这类活动靠微信群接龙 + Excel 记名字，<strong>名额经常超</strong>、<strong>签到靠纸质点名</strong>、<strong>商户自己办的活动没人管</strong>。 本模块把「发布 → 审批 → 报名 → 签到 → 统计」收到一个入口，名额与签到状态以系统为准。 不做：活动就只能继续用微信群，事后说不清谁到过、办了几场、商户活动该不该批。</p>
+<h3>0.2 角色与权限矩阵</h3>
+<table><thead><tr><th>功能</th><th>运营专员</th><th>运营主管</th><th>商户</th><th>无权限表现</th></tr></thead><tbody><tr><td>创建平台活动</td><td>✅</td><td>✅</td><td>❌</td><td>菜单不可见</td></tr><tr><td>提交商户活动申请</td><td>—</td><td>—</td><td>✅（仅自己）</td><td>—</td></tr><tr><td>审批商户活动</td><td>✅</td><td>✅</td><td>❌</td><td>按钮隐藏</td></tr><tr><td>编辑活动</td><td>✅（报名中限字段）</td><td>✅</td><td>仅自己且待审批前</td><td>超出状态 → 按钮隐藏</td></tr><tr><td>上下架</td><td>✅</td><td>✅</td><td>❌</td><td>按钮隐藏</td></tr><tr><td><strong>取消活动</strong></td><td>❌</td><td>✅</td><td>仅申请</td><td><strong>按钮只对主管可见</strong></td></tr><tr><td>报名审核</td><td>✅</td><td>✅</td><td>自己活动</td><td>—</td></tr><tr><td>导出名单</td><td>✅（留痕）</td><td>✅</td><td>❌</td><td>按钮隐藏</td></tr><tr><td>核销</td><td>✅</td><td>✅</td><td>自己活动</td><td>—</td></tr><tr><td>现场补录</td><td>✅</td><td>✅</td><td>自己活动（超名额需运营）</td><td>—</td></tr><tr><td>删除活动</td><td>仅草稿</td><td>仅草稿</td><td>仅草稿</td><td>非草稿 → 按钮隐藏</td></tr><tr><td>手机号完整值</td><td>✅（填原因 + 留痕）</td><td>✅</td><td>脱敏 <code>138****6688</code></td><td>—</td></tr></tbody></table>
+<h3>0.3 菜单与端间落点表</h3>
+<table><thead><tr><th>#</th><th>页面</th><th>本端文件</th><th>商户端</th><th>买家端</th><th>数据方向</th></tr></thead><tbody><tr><td>P1</td><td>活动列表</td><td><code>activity.html</code></td><td><code>shanghu-APP/activity-list.html</code>（仅上架 + 未结束）</td><td>❌</td><td>本端 → 商户端（上下架/取消/改期）</td></tr><tr><td>P2</td><td>活动创建</td><td><code>activity-create.html</code></td><td><code>shanghu-activity-apply.html</code>（商户申请）</td><td>❌</td><td>商户 → 本端（待审）</td></tr><tr><td>P3</td><td>活动审批</td><td><code>activity-approve.html</code></td><td>同上</td><td>❌</td><td>商户 → 本端</td></tr><tr><td>P4</td><td>报名管理</td><td><code>activity-signup.html</code></td><td><code>activity-signup.html</code>（自主报名）、<code>shanghu-activity-manage.html</code>（名单）</td><td>❌</td><td>双向（≤5s）</td></tr><tr><td>P5</td><td>签到管理</td><td><code>activity-checkin.html</code></td><td><code>shanghu-activity-checkin.html</code>（仅自己主办）</td><td>❌</td><td>双向（即时）</td></tr><tr><td>P6</td><td>活动详情</td><td><code>activity-detail.html</code></td><td><code>activity-detail.html</code></td><td>❌</td><td>本端 → 商户端（只读）</td></tr></tbody></table>
+<blockquote><strong>买家端全面不涉及</strong>：面向公众的文旅活动归 <strong>14 文商旅管理 · 文旅活动管理</strong>；本模块面向商户，唯一 C 端出口是<strong>商户端「物业服务 → 活动参与」</strong>。</blockquote>
+<p><strong>运营端内依赖</strong>：02 市场资源（活动地点只读）｜04 商户管理（主办方信息、停用联动下架）｜09 内容管理<strong>无交互</strong>（v1.1 取消投放位）。</p>
+<h3>0.4 核心数据对象</h3>
+<table><thead><tr><th>对象</th><th>说明</th><th>关键字段</th><th>谁产生</th><th>谁消费</th></tr></thead><tbody><tr><td><strong>活动 ACT</strong></td><td>一场活动</td><td>id / 名称 / 类型 / 主办方 / 名额 / 报名与活动时间 / 地点 / <strong>三层状态</strong></td><td>运营创建、商户申请</td><td>全模块 + 商户端</td></tr><tr><td><strong>报名单 SIGN</strong></td><td>一条报名（占 N 个名额，N = 1 + 同行）</td><td>id / 活动 id / 姓名 / 手机 / 商户 / 岗位 / 同行 / 来源 / 审核态 / 签到态 / 签到码</td><td>商户端提交、现场补录、批量导入</td><td>名单、签到、统计</td></tr></tbody></table>
+<h3>0.5 状态机</h3>
+<p><strong>三层分离（不要压成一个字段）</strong></p>
+<table><thead><tr><th>层</th><th>字段</th><th>取值</th></tr></thead><tbody><tr><td>审核态</td><td><code>audit</code></td><td>草稿 / 待审批 / 已通过 / 已驳回</td></tr><tr><td>生命周期</td><td><code>life</code></td><td>未开始 / 报名中 / 待开始 / 进行中 / 已结束 / 已取消</td></tr><tr><td>上下架</td><td><code>online</code></td><td>上架 / 下架</td></tr></tbody></table>
+<p><strong>展示态派生优先级</strong>（列表只显示一个，从上到下取第一个命中） <code>草稿 &gt; 待审批 &gt; 已驳回 &gt; 已取消 &gt; 已下架 &gt; 已结束 &gt; 进行中 &gt; 待开始 &gt; 报名中 &gt; 未开始</code></p>
+<pre class="code"><code data-lang="mermaid">stateDiagram-v2
+    state "审核态" as A {
+        草稿 --&gt; 待审批: 商户提交
+        待审批 --&gt; 已通过: 运营通过
+        待审批 --&gt; 已驳回: 运营驳回
+        已驳回 --&gt; 待审批: 修改重提（编号不变，版本+1）
+    }
+    state "生命周期" as L {
+        未开始 --&gt; 报名中: 到报名开始
+        报名中 --&gt; 待开始: 到报名截止
+        待开始 --&gt; 进行中: 到活动开始
+        进行中 --&gt; 已结束: 到活动结束
+        未开始 --&gt; 已取消: 主管取消
+        报名中 --&gt; 已取消: 主管取消
+        待开始 --&gt; 已取消: 主管取消
+    }</code></pre>
+<p><strong>状态转换表</strong></p>
+<table><thead><tr><th>当前</th><th>事件</th><th>操作者</th><th>前置</th><th>目标</th><th>伴随动作</th><th>禁止条件</th></tr></thead><tbody><tr><td>草稿</td><td>提交</td><td>商户</td><td>必填完整</td><td>待审批</td><td>通知运营</td><td>校验不过 → 行内拦截</td></tr><tr><td>草稿</td><td>发布</td><td>运营</td><td>平台活动</td><td>未开始/报名中</td><td>按时间自动定位</td><td>—</td></tr><tr><td>待审批</td><td>通过</td><td>运营</td><td>预检通过</td><td>未开始/报名中</td><td>上架 + 通知商户</td><td>—</td></tr><tr><td>待审批</td><td>驳回</td><td>运营</td><td>原因 + 说明必填</td><td>已驳回</td><td>通知商户</td><td>说明为空 → 拦截</td></tr><tr><td>已驳回</td><td>修改重提</td><td>商户</td><td>—</td><td>待审批</td><td>版本 +1，编号不变</td><td>—</td></tr><tr><td>未开始/报名中/待开始</td><td>取消</td><td><strong>主管</strong></td><td>原因必填</td><td>已取消</td><td>通知全部报名者</td><td>非主管 → 按钮不出现</td></tr><tr><td>任意非终态</td><td>下架</td><td>运营</td><td>—</td><td>online=下架</td><td>商户端不可见</td><td>—</td></tr><tr><td>已结束</td><td>复制新建</td><td>运营</td><td>—</td><td>新草稿</td><td>新编号</td><td>—</td></tr></tbody></table>
+<p><strong>禁止路径</strong></p>
+<table><thead><tr><th>场景</th><th>系统行为</th><th>提示文案</th><th>日志</th></tr></thead><tbody><tr><td>报名中改时间/名额/地点</td><td>字段禁用</td><td>见 A-20</td><td>是</td></tr><tr><td>非主管点取消</td><td>按钮不渲染</td><td>—</td><td>否</td></tr><tr><td>已结束活动编辑</td><td>按钮不渲染（只给"复制新建"）</td><td>—</td><td>否</td></tr><tr><td>已有报名的活动删除</td><td>拦截（只能取消或下架）</td><td>见 A-04 相邻规则</td><td>是</td></tr></tbody></table>
+<h3>0.6 名词与口径</h3>
+<table><thead><tr><th>名词</th><th>定义</th><th>备注</th></tr></thead><tbody><tr><td><strong>已占位</strong></td><td>待审核 + 已通过（<strong>按人数</strong> = Σ(1 + 同行)）</td><td>已取消 / 已驳回<strong>不占名额</strong></td></tr><tr><td>余量</td><td>名额 − 已占位</td><td>可为 0，不为负（超录需确认）</td></tr><tr><td><strong>签到率</strong></td><td>已签到 ÷ 已通过</td><td><strong>活动开始前显示 <code>—</code>，不显示 0%</strong></td></tr><tr><td>爽约</td><td>已结束 + 未签到，结束后 24h 结算</td><td>可人工修正</td></tr><tr><td>报名单数 vs 占位人数</td><td>前者按条，后者按 Σ(1+同行)</td><td>两个数不能混用</td></tr><tr><td>签到码</td><td>6 位数字，全局唯一</td><td>不启用签到则不生成</td></tr></tbody></table>
+<h3>0.6.1 跨端字段差异（只列不一致的）</h3>
+<table><thead><tr><th>概念</th><th>运营端</th><th>商户端现状</th><th>目标口径</th></tr></thead><tbody><tr><td>活动状态</td><td><code>audit</code> + <code>life</code> + <code>online</code> 三层 → 派生 <code>display</code></td><td><code>status</code> <strong>单字段</strong></td><td>商户端读后台下发的 <code>display</code>，不自己算</td></tr><tr><td>活动 <code>audit</code></td><td>枚举四态</td><td>布尔 <code>audit: true/false</code>（同名不同义）</td><td>统一枚举；布尔改名 <code>needAudit</code></td></tr><tr><td>名额占用</td><td><code>hold</code>（按人数）</td><td><code>occupied</code>（数字）</td><td>统一 <code>hold</code></td></tr><tr><td>签到时间</td><td><code>checkinAt</code></td><td><code>signTime</code></td><td>统一 <code>checkinAt</code></td></tr></tbody></table>
+<h3>0.7 本期不做</h3>
+<p>付费报名 / 押金 / 候补队列 / 活动评价 / 直播 / 自动排座 / 优惠券 / 买家端展示 / 分场次与分区 / 投放位选择（Banner·文旅日历）</p>
+<hr></details>
+<h2 id="p1">1. 活动列表 <code>activity.html</code></h2>
+<h3>1.1 页面说明</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>页面目标</td><td>一屏看清"有哪些活动、什么状态、报名到哪了"，并承载全部单条操作</td></tr><tr><td>使用角色</td><td>运营专员（常规操作）、运营主管（多"取消"）</td></tr><tr><td>入口</td><td>菜单 → 商户活动运营 → 活动列表</td></tr><tr><td>前置</td><td>已登录且有本模块权限</td></tr><tr><td>后置</td><td>本页是操作起点；下钻进详情 / 报名 / 签到</td></tr></tbody></table>
+<h3>1.2 本页端间关系</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>本页数据来源</td><td>运营创建 + 商户申请（待审批）</td></tr><tr><td>本页操作的跨端影响</td><td>上架 → 商户端「活动参与」出现；下架/取消 → 立即消失或标已取消；改期 → 通知已报名者</td></tr><tr><td>依赖的其他端页面</td><td><code>shanghu-APP/activity-list.html</code>、<code>shanghu-APP/activity-detail.html</code></td></tr><tr><td>不涉及的端</td><td>买家端（全面不涉及）</td></tr><tr><td>一致性要求</td><td>状态/余量 ≤5s 同步商户端；取消即时生效</td></tr></tbody></table>
+<h3>1.3 页面结构</h3>
+<table><thead><tr><th>区块</th><th>内容</th></tr></thead><tbody><tr><td>顶部</td><td>标题「商户活动运营」+ 说明行 + <strong>「活动审批」（带红点数字，跳 P3）</strong> + 「创建活动」</td></tr><tr><td><strong>统计卡（4）</strong></td><td>进行中 / 报名中 / 待审批 / 已结束（按派生态计数，带图标与色）</td></tr><tr><td>筛选区</td><td>关键词（活动编号 / 名称）+ 类型 + 状态（10 态）+ 主办方（平台 / 商户）+ 查询 + 重置</td></tr><tr><td>列表工具条</td><td>结果计数 + 「导出活动」</td></tr><tr><td>表格</td><td><strong>9 列</strong></td></tr><tr><td>行操作</td><td><strong>按状态显隐</strong>（见 §1.6）</td></tr></tbody></table>
+<h3>1.4 列表、筛选与排序</h3>
+<table><thead><tr><th>项目</th><th>规则</th></tr></thead><tbody><tr><td>默认排序</td><td>活动开始时间倒序（最近/即将开始在前）</td></tr><tr><td>可排序</td><td>无表头排序（靠筛选）</td></tr><tr><td>分页</td><td>不分页（本期活动量 &lt; 200，一次渲染）</td></tr><tr><td>筛选组合</td><td>条件之间 <strong>且</strong></td></tr><tr><td>关键词</td><td>匹配活动编号或名称，输入即筛（<code>oninput</code>）</td></tr><tr><td>重置</td><td>清空 4 个条件，恢复默认</td></tr><tr><td>空结果</td><td>「没有符合条件的活动 —— 换个筛选条件，或先创建一场」</td></tr><tr><td>导出</td><td>「导出活动」→ 按当前筛选导出 Excel</td></tr></tbody></table>
+<h3>1.5 字段规格</h3>
+<table><thead><tr><th>列</th><th>字段</th><th>类型</th><th>说明</th></tr></thead><tbody><tr><td>活动编号</td><td><code>id</code></td><td>文本</td><td><code>EVT + 年月日 + 序号</code></td></tr><tr><td>活动名称</td><td><code>name</code></td><td>文本</td><td>超长截断；带类型图标与色条</td></tr><tr><td>类型</td><td><code>type</code></td><td>枚举</td><td>展会 / 直采节 / 培训 / 沙龙 / 会议 / 应急演练 / 其他</td></tr><tr><td>主办方</td><td><code>owner</code></td><td>枚举</td><td>平台 / 商户（商户显示简称）</td></tr><tr><td>报名时间</td><td><code>signStart</code>~<code>signEnd</code></td><td>日期区间</td><td>—</td></tr><tr><td>活动时间</td><td><code>start</code>~<code>end</code></td><td>日期时间</td><td>—</td></tr><tr><td>报名进度</td><td><code>hold</code>/<code>quota</code></td><td>派生</td><td><code>已占位 / 名额</code> + 进度条；<strong>满 100% 变红</strong></td></tr><tr><td>状态</td><td><code>display</code></td><td>派生 10 态</td><td>彩色标签，优先级见 §0.5</td></tr><tr><td>操作</td><td>—</td><td>—</td><td>按状态显隐，见 §1.6</td></tr></tbody></table>
+<blockquote>进行中 / 已结束的行，报名进度下方追加一行「签到 N/M」。</blockquote>
+<h3>1.6 交互规则（<strong>按状态显隐</strong>）</h3>
+<table><thead><tr><th>状态</th><th>行操作</th></tr></thead><tbody><tr><td>草稿</td><td>编辑 / 删除</td></tr><tr><td>待审批</td><td>审批（跳 P3）/ 详情</td></tr><tr><td>已驳回</td><td>详情 / <strong>催改</strong>（通知商户改后重提）</td></tr><tr><td>未开始 / 报名中 / 待开始</td><td>详情 / 报名 / <strong>下架</strong> / <strong>取消</strong>（主管）</td></tr><tr><td>进行中</td><td>详情 / 报名 / 签到</td></tr><tr><td>已结束</td><td>详情 / 名单</td></tr><tr><td>已下架</td><td>详情 / 上架</td></tr></tbody></table>
+<table><thead><tr><th>顶部元素</th><th>显示条件</th><th>可点条件</th><th>点击后</th></tr></thead><tbody><tr><td>活动审批</td><td>始终</td><td>始终</td><td>跳 P3（红点 = 待审批数）</td></tr><tr><td>创建活动</td><td>始终</td><td>运营</td><td>跳 P2</td></tr><tr><td>导出活动</td><td>始终</td><td>运营/主管</td><td>按当前筛选导出</td></tr></tbody></table>
+<h3>1.7 业务规则与计算口径</h3>
+<table><thead><tr><th>编号</th><th>规则</th><th>触发</th><th>处理</th><th>影响端</th></tr></thead><tbody><tr><td>R-01</td><td>展示态派生</td><td>每次渲染</td><td>按 §0.5 优先级取第一个命中</td><td>商户端同值</td></tr><tr><td>R-02</td><td>名额账</td><td>报名变化</td><td>已占位 = 待审核 + 已通过（按人数）</td><td>商户端余量</td></tr><tr><td>R-03</td><td>已占位达名额</td><td>渲染</td><td>进度条变红 + 状态"已满"（仍可进详情）</td><td>商户端按钮置灰</td></tr><tr><td>R-04</td><td>取消需主管</td><td>点取消</td><td>非主管隐藏按钮</td><td>商户端状态变更</td></tr><tr><td>R-05</td><td>取消原因必填</td><td>确认取消</td><td>为空 → 拦截</td><td>—</td></tr><tr><td>R-06</td><td>删除仅草稿</td><td>点删除</td><td>非草稿不渲染"删除"</td><td>—</td></tr><tr><td>R-07</td><td>重复提交</td><td>取消/删除</td><td>按钮 loading 锁 1.5s</td><td>—</td></tr></tbody></table>
+<h3>1.8 异常与边界</h3>
+<table><thead><tr><th>类型</th><th>场景</th><th>系统行为</th><th>提示文案</th></tr></thead><tbody><tr><td>数据</td><td>筛选无结果 / 首次无活动</td><td>空态</td><td>【已实现】「没有符合条件的活动 —— 换个筛选条件，或先创建一场」</td></tr><tr><td>权限</td><td>非主管点取消</td><td>按钮不渲染</td><td>—</td></tr><tr><td>并发</td><td>取消时活动已被他人改</td><td>刷新列表</td><td>【待实现】原型无并发校验</td></tr><tr><td>依赖</td><td>详情页不存在</td><td>隐藏入口</td><td>—</td></tr></tbody></table>
+<h4>1.8.1 本页提示语清单（来源：分册 §8.6，编号可回溯）</h4>
+<table><thead><tr><th>编号</th><th>场景</th><th>提示文案</th><th>形式</th><th>状态</th></tr></thead><tbody><tr><td>A-01</td><td>取消未填原因</td><td>请填写取消说明</td><td>弹窗内</td><td>✅</td></tr><tr><td>A-02</td><td>取消成功</td><td>活动已取消，已通知 {n} 名报名者</td><td>Toast</td><td>✅</td></tr><tr><td>A-03</td><td>复制成功</td><td>已复制为新活动</td><td>Toast</td><td>✅</td></tr><tr><td>A-04</td><td>删除成功</td><td>已删除</td><td>Toast</td><td>✅</td></tr><tr><td>A-05</td><td>筛选无结果（空态）</td><td>没有符合条件的活动 —— 换个筛选条件，或先创建一场</td><td>空态</td><td>✅</td></tr><tr><td>A-06</td><td>首次无活动（空态）</td><td>—</td><td>—</td><td>➖ 已合并进 A-05</td></tr><tr><td>A-07</td><td>非主管点取消</td><td>取消活动需主管权限，请联系运营主管</td><td>Toast</td><td>⬜</td></tr><tr><td>A-55</td><td>已驳回行点「催改」</td><td>已通知商户按驳回原因修改后重提</td><td>Toast</td><td>✅</td></tr><tr><td>A-56</td><td>导出活动</td><td>已导出 {n} 场活动</td><td>Toast</td><td>✅</td></tr></tbody></table>
+<h3>1.9 通知与消息</h3>
+<table><thead><tr><th>事件</th><th>接收人</th><th>渠道</th><th>抑制条件</th></tr></thead><tbody><tr><td>活动被取消</td><td>全部已报名商户</td><td>站内 + 短信</td><td>已取消的不重复发</td></tr><tr><td>活动改期</td><td>全部已报名商户</td><td>站内 + 短信</td><td>—</td></tr><tr><td>活动上架</td><td>面向的商户</td><td>站内</td><td>已结束/已取消不发</td></tr></tbody></table>
+<h3>1.10 验收标准</h3>
+<table><thead><tr><th>编号</th><th>前置</th><th>操作</th><th>预期</th><th>级别</th></tr></thead><tbody><tr><td>AC-01</td><td>存在报名中活动</td><td>主管点取消并填原因</td><td>置已取消 + 下架，全部报名者收到通知</td><td>P0</td></tr><tr><td>AC-02</td><td>活动已结束</td><td>查看行操作</td><td>无"编辑"，有"复制新建"以外的仅详情/名单</td><td>P0</td></tr><tr><td>AC-03</td><td>草稿活动</td><td>点删除</td><td>二次确认后删除，列表少一条</td><td>P1</td></tr><tr><td>AC-04</td><td>非主管账号</td><td>查看行操作</td><td>无"取消"</td><td>P1</td></tr><tr><td>AC-05</td><td>名额已满</td><td>查看进度</td><td>进度条红色 + 显示"已满"</td><td>P1</td></tr><tr><td>AC-06</td><td>筛选"待审批"</td><td>查看列表</td><td>只返回待审批，统计卡数字一致</td><td>P1</td></tr></tbody></table>
+<div class="vnav"><span></span><span></span></div>
+</body></html>

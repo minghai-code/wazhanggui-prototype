@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>F10 文旅研学 · 买家端页面说明（功能族） · 页面 PRD</title><style>
+:root{--fg:#1F2430;--muted:#64748B;--line:#E9EDF3}
+*{box-sizing:border-box}
+body{margin:0;padding:26px 32px 90px;background:#fff;color:var(--fg);
+ font:14px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif}
+h1{font-size:20px;margin:0 0 6px}
+h2{font-size:17px;margin:34px 0 12px;padding-top:12px;border-top:1px solid var(--line)}
+h3{font-size:15px;margin:22px 0 10px}
+h4{font-size:14px;margin:18px 0 8px;color:#334155}
+p{margin:8px 0}
+table{border-collapse:collapse;width:100%;margin:10px 0 16px;font-size:12.5px}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:#F8FAFC;font-weight:700}
+tr:nth-child(even) td{background:#FCFDFE}
+code{background:#F1F5F9;padding:1px 5px;border-radius:4px;font-size:12px;
+ font-family:ui-monospace,Menlo,Consolas,monospace;color:#B91C1C}
+pre.code{background:#0F172A;color:#E2E8F0;padding:14px 16px;border-radius:10px;overflow:auto;font-size:12px}
+pre.code code{background:none;color:inherit;padding:0}
+blockquote{margin:10px 0;padding:10px 14px;background:#EFF6FF;border-left:3px solid #60A5FA;
+ border-radius:0 8px 8px 0;color:#334155;font-size:13px}
+ul,ol{margin:8px 0;padding-left:22px}
+li{margin:3px 0}
+hr{border:0;border-top:1px dashed var(--line);margin:22px 0}
+a{color:#2563EB;text-decoration:none}
+.meta{font-size:12px;color:var(--muted);margin:0 0 20px}
+.vtitle{font-size:18px;font-weight:800;margin:0 0 4px}
+details.fam{margin:12px 0 20px;border:1px solid var(--line);border-radius:10px;background:#F8FAFC;padding:0 14px}
+details.fam summary{cursor:pointer;padding:10px 0;font-size:13px;font-weight:700;color:#334155}
+details.fam[open]{padding-bottom:10px}
+.vnav{display:flex;justify-content:space-between;margin-top:34px;padding-top:14px;border-top:1px dashed var(--line);font-size:13px}
+</style></head><body>
+<div class="meta">由 <code>mai-APP/prd/F10-文旅研学.md</code> 生成，勿手改；改文档请改 md 后重跑 build-prd。</div>
+<h1>F10 文旅研学 · 买家端页面说明（功能族）</h1>
+<blockquote>端：买家端 App（<code>mai-APP</code>）　｜　功能族：<strong>F10 文旅研学</strong>（8 页） 族版本：v1.0（2026-10-23）　｜　业务分册：<code>开发PRD/运营管理端分册PRD/14a-研学管理.md</code> <strong>v1.3</strong>、<code>14b-袜博会管理.md</code> <strong>v1.3</strong>（同源数据）；买家端分册 <code>M07-文旅服务.md</code> 待撰写 本文件是族通用说明（§0）+ 8 个页面的<strong>唯一源</strong>；<code>_views/</code> 下的单页视图由 <code>tools/build-prd.mjs --views</code> 生成，勿手改。 页面顺序：研学 5 页（§1–§5）→ 文旅 3 页（§6–§8）。</blockquote>
+<hr>
+<h2 id="p0">0. 族通用说明（本族各页面共用）</h2>
+<h3>0.1 这族解决什么问题</h3>
+<p>把大唐袜业城的<strong>研学</strong>（路线/场次/报名/责任书/签到）与<strong>文旅资源</strong>（活动日历、场馆资源）搬到手机端，让家长与学校自助完成"选路线 → 报名 → 签责任书 → 现场扫码签到"，让游客查看活动与场馆信息。</p>
+<p>不做会怎样：报名仍靠微信群接龙、责任书靠纸质签署，出现安全事件无法追溯"谁签的、什么时候签的"，现场点名也无法沉淀数据。</p>
+<h3>0.2 入口矩阵（移动端一页多入口，必须列全）</h3>
+<table><thead><tr><th>#</th><th>入口</th><th>所在页面</th><th>目标页</th><th>参数</th><th>备注</th></tr></thead><tbody><tr><td>E1</td><td>首页宫格「研学申请」</td><td><code>home.html</code></td><td><code>study-tour.html</code></td><td>—</td><td>主入口</td></tr><tr><td>E2</td><td>首页宫格「文旅活动」/「更多」</td><td><code>home.html</code></td><td><code>tourism.html</code></td><td>—</td><td>次入口</td></tr><tr><td>E3</td><td>研学首页底部吸底按钮</td><td><code>study-tour.html</code></td><td><code>study-apply.html</code></td><td>—</td><td>团体申请</td></tr><tr><td>E4</td><td>精选路线卡</td><td><code>study-tour.html</code></td><td><code>study-route.html</code></td><td><code>?id=1..3</code></td><td>缺 id 回退 1</td></tr><tr><td>E5</td><td>我的研学卡</td><td><code>study-tour.html</code></td><td><code>study-my.html</code></td><td><code>?id=1..2</code></td><td>状态读本地</td></tr><tr><td>E6</td><td>路线页场次「个人报名」</td><td><code>study-route.html</code></td><td><code>study-personal.html</code></td><td><code>?id=&amp;date=</code></td><td>已满走候补</td></tr><tr><td>E7</td><td>路线页「团体研学申请」</td><td><code>study-route.html</code></td><td><code>study-apply.html</code></td><td><code>?id=</code></td><td>文字链</td></tr><tr><td>E8</td><td>团体申请结果「查看我的报名」</td><td><code>study-apply.html</code></td><td><code>study-my.html</code></td><td><code>?id=2</code></td><td>固定示例</td></tr><tr><td>E9</td><td>活动卡</td><td><code>tourism.html</code></td><td><code>tourism-detail.html</code></td><td><code>?id=act1..n</code></td><td>时间轴</td></tr><tr><td>E10</td><td>资源卡</td><td><code>tourism.html</code></td><td><code>tourism-resource.html</code></td><td><code>?id=1..3</code></td><td>横滑卡</td></tr></tbody></table>
+<h3>0.3 角色与可见性</h3>
+<table><thead><tr><th>角色</th><th>可看</th><th>可做</th><th>未登录表现（原型）</th></tr></thead><tbody><tr><td>游客</td><td>路线、活动、资源、往期风采</td><td>浏览、打电话</td><td>不拦截（⚠️ 未做登录墙）</td></tr><tr><td>家长（个人报名）</td><td>以上 + 我的研学</td><td>报名、签署、签到、评价、取消</td><td>不拦截</td></tr><tr><td>学校负责人（团体）</td><td>以上 + 团体申请</td><td>提交申请、补材料、查看结果</td><td>不拦截</td></tr><tr><td>运营（后台）</td><td>全部</td><td>审核、排期、催签、补签</td><td>—</td></tr></tbody></table>
+<h3>0.4 数据对象与唯一写入方</h3>
+<table><thead><tr><th>对象</th><th>字段要点</th><th>谁产生</th><th>谁消费</th></tr></thead><tbody><tr><td>研学路线</td><td>标题/标签/时长/成团人数/亮点/行程/费用</td><td>运营端 14a</td><td>买家端只读</td></tr><tr><td>场次</td><td>日期/星期/状态/余席/上限/候补开关/候补人数</td><td>运营端 14a</td><td>买家端只读</td></tr><tr><td>研学基地</td><td>名称/简介/距离/开放时间</td><td>运营端 14a</td><td>买家端只读</td></tr><tr><td>责任书模板</td><td>版本号/条款（个人 7 条 / 团体 5 条）</td><td>运营端 14a</td><td>买家端只读</td></tr><tr><td>报名单</td><td>编号/类型/路线/场次/人数/联系人/状态</td><td><strong>买家端写</strong></td><td>14a 审核</td></tr><tr><td>签署存证</td><td>签名图 + 时间 + IP</td><td><strong>买家端写一次</strong></td><td>14a 只读</td></tr><tr><td>签到记录</td><td>签到时间/方式</td><td>现场扫码</td><td>14a 只读</td></tr><tr><td>文旅活动</td><td>标题/时间/地点/费用/流程/须知/状态</td><td>运营端 14</td><td>买家端只读</td></tr><tr><td>文旅资源</td><td>名称/标签/介绍/特色/交通/提示</td><td>运营端 14</td><td>买家端只读</td></tr></tbody></table>
+<h3>0.5 状态机</h3>
+<p><strong>报名单（9 态，端上 key ↔ 后台中文）</strong></p>
+<table><thead><tr><th>端上 key</th><th>后台状态</th><th>可做的动作</th></tr></thead><tbody><tr><td><code>pending</code></td><td>待审核</td><td>等待（演示：审核通过/补材料/驳回）</td></tr><tr><td><code>supplement</code></td><td>待补充</td><td>去补充材料、重新提交</td></tr><tr><td><code>rejected</code></td><td>已驳回</td><td>修改后重新申请</td></tr><tr><td><code>unsigned</code></td><td>已通过（待签署）</td><td>签署责任书、取消</td></tr><tr><td><code>signed</code></td><td>已签署（待出行）</td><td>查看签到码、取消、模拟签到</td></tr><tr><td><code>checkedin</code></td><td>已签到</td><td>活动结束后评价</td></tr><tr><td><code>completed</code></td><td>已完成</td><td>查看评价</td></tr><tr><td><code>noshow</code></td><td>未到场</td><td>重新报名（签到码失效）</td></tr><tr><td><code>cancelled</code></td><td>已取消</td><td>重新报名</td></tr></tbody></table>
+<pre class="code"><code data-lang="mermaid">stateDiagram-v2
+  [*] --&gt; pending
+  pending --&gt; supplement: 要求补材料
+  supplement --&gt; pending: 补件重提（原编号）
+  pending --&gt; rejected: 驳回
+  pending --&gt; unsigned: 审核通过
+  unsigned --&gt; signed: 签署责任书
+  unsigned --&gt; cancelled: 取消
+  signed --&gt; checkedin: 现场扫码
+  signed --&gt; noshow: 签到截止未到
+  signed --&gt; cancelled: 取消（24h 前）
+  checkedin --&gt; completed: 活动结束+评价</code></pre>
+<p><strong>场次</strong>：<code>可报名 / 仅剩少量 / 已满</code>（已满只可候补登记，暂不自动递补）。 <strong>活动</strong>：<code>报名中 / 已结束 / 待开放</code>（端上只读状态徽标）。</p>
+<h3>0.6 口径与术语</h3>
+<table><thead><tr><th>项</th><th>口径</th></tr></thead><tbody><tr><td>余席</td><td>后台 <code>left</code>，展示「余 N 席 / 上限 M」；<code>left=0</code> → 「候补中」</td></tr><tr><td>候补</td><td>可登记，<strong>不自动递补</strong>，由运营人工通知</td></tr><tr><td>取消</td><td>出行前 <strong>24 小时</strong>可自助取消；24h 内联系客服</td></tr><tr><td>报名编号</td><td><code>YX + yyyyMMdd + 3 位序号</code>（团体 <code>YX20260910003</code>）</td></tr><tr><td>年龄</td><td>个人报名 <strong>6–18 岁</strong></td></tr><tr><td>团体人数</td><td>最少 <strong>10 人</strong>；<strong>≥50 人</strong>需主管终审</td></tr><tr><td>责任书</td><td>当前模板 <strong>v2.1（2026-09-01 启用）</strong>；个人 7 条 / 团体 5 条</td></tr><tr><td>签到窗</td><td>出行日当天 00:00 – 活动开始后 1 小时</td></tr><tr><td>活动状态</td><td>报名中 → 已结束；非报名中不可提交报名</td></tr></tbody></table>
+<h3>0.7 导航与返回栈（移动端专属）</h3>
+<table><thead><tr><th>场景</th><th>规则</th></tr></thead><tbody><tr><td>Tab 切换</td><td>本族页面均非 Tab 页，全部为<strong>二级/三级页</strong>，返回逐级回退</td></tr><tr><td><code>study-tour</code> 返回</td><td>回首页（<code>home.html</code>）</td></tr><tr><td><code>study-route</code> 返回</td><td>回 <code>study-tour</code></td></tr><tr><td><code>study-personal</code> 返回</td><td>三步内返回上一步，<strong>已填内容不丢</strong>（DOM 不重建）</td></tr><tr><td><code>study-my</code> 返回</td><td>回来源页（<code>study-tour</code> 或团体申请结果页）</td></tr><tr><td><code>tourism</code> 返回</td><td>回首页</td></tr><tr><td><code>tourism-detail</code> / <code>tourism-resource</code> 返回</td><td>回 <code>tourism</code></td></tr><tr><td>底部面板（报名/签名）</td><td>点遮罩或关闭按钮收起，<strong>不触发页面返回</strong></td></tr></tbody></table>
+<h3>0.8 端间落点表</h3>
+<table><thead><tr><th>#</th><th>买家端页面</th><th>运营端页面（14a / 14b）</th><th>商户端</th><th>数据方向</th></tr></thead><tbody><tr><td>P1</td><td><code>study-tour.html</code></td><td><code>study-route.html</code>（线路管理）、<code>study-base.html</code>（基地）、<code>study-promo.html</code>（风采）</td><td>❌</td><td>后台 → 本端</td></tr><tr><td>P2</td><td><code>study-route.html</code></td><td><code>study-route.html</code>、<code>study-letter.html</code>（模板）</td><td>❌</td><td>后台 → 本端</td></tr><tr><td>P3</td><td><code>study-personal.html</code></td><td><code>study-approve.html</code>（报名审批）</td><td>❌</td><td>双向（提交 → 审核回写）</td></tr><tr><td>P4</td><td><code>study-apply.html</code></td><td><code>study-approve.html</code>、<code>study-group.html</code>（团体批次）</td><td>❌</td><td>双向</td></tr><tr><td>P5</td><td><code>study-my.html</code></td><td><code>study-approve.html</code>、<code>study-group.html</code>（签署/签到记录）</td><td>❌</td><td>双向（签署/签到回传）</td></tr><tr><td>P6</td><td><code>tourism.html</code></td><td>文商旅 · 文旅活动管理</td><td>❌</td><td>后台 → 本端</td></tr><tr><td>P7</td><td><code>tourism-detail.html</code></td><td>同上（活动编辑）</td><td>❌</td><td>双向（报名回传）</td></tr><tr><td>P8</td><td><code>tourism-resource.html</code></td><td>同上（资源维护）</td><td>❌</td><td>后台 → 本端</td></tr></tbody></table>
+<h3>0.9 本期不做</h3>
+<ul><li>在线支付 / 退款 / 发票（研学与活动均免费或线下结算）</li><li>团体名单 Excel 导入、批量报名</li><li>候补自动递补（只登记，人工通知）</li><li>端上评价审核（提交后进后台待审）</li><li>短信/推送真实通道（原型仅文案）</li><li>登录墙与实名认证（原型未拦截）</li></ul>
+<h3>0.10 跨端字段差异（只列不一致的）</h3>
+<table><thead><tr><th>概念</th><th>本端</th><th>后台 14a</th><th>目标口径</th></tr></thead><tbody><tr><td>报名状态</td><td>9 个英文 key（见 §0.5）</td><td>9 个中文状态</td><td>接口层做映射，端上不存中文</td></tr><tr><td>场次余席</td><td><code>left</code></td><td><code>remain</code>（名额配置）</td><td>统一 <code>left</code>，后台下发</td></tr><tr><td>签署时间</td><td><code>signedAt</code>（本地）</td><td><code>signTime</code></td><td>统一 <code>signedAt</code></td></tr></tbody></table>
+<hr>
+<h3>0.9 出链覆盖（A 内联 / B 独立 / C 待写）</h3>
+<table><thead><tr><th>页面</th><th>出口</th><th>已覆盖</th><th>B 欠账</th><th>说明</th></tr></thead><tbody><tr><td>研学首页</td><td>7</td><td>6</td><td>0</td><td>框架出口 <code>mine.html</code></td></tr><tr><td>其余 7 页</td><td>2~4</td><td>全覆</td><td>0</td><td>族内互跳均已成节</td></tr></tbody></table>
+<p><strong>结论</strong>：F10 = <strong>✅</strong>。</p>
+<hr>
+<h2 id="p1">1. 研学首页 <code>study-tour.html</code></h2>
+<h3>1.1 页面说明</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>页面目标</td><td>研学总入口：我的报名、精选路线、基地、往期风采、团体申请</td></tr><tr><td>使用角色</td><td>家长 / 学校负责人 / 游客</td></tr><tr><td>入口</td><td>首页宫格「研学申请」（E1）</td></tr><tr><td>前置</td><td>无</td></tr><tr><td>后置</td><td>→ 路线详情 / 我的研学 / 团体申请</td></tr></tbody></table>
+<h3>1.2 本页端间关系</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>数据来源</td><td>运营端 14a：路线、基地、往期风采、改期通知</td></tr><tr><td>跨端影响</td><td>无写操作（纯展示 + 跳转）</td></tr><tr><td>依赖页面</td><td><code>study-route.html</code> / <code>study-my.html</code> / <code>study-apply.html</code></td></tr><tr><td>不涉及</td><td>商户端</td></tr><tr><td>一致性</td><td>路线在售状态、余席与 <code>study-route.html</code> 同源</td></tr></tbody></table>
+<h3>1.3 页面结构</h3>
+<table><thead><tr><th>区块</th><th>内容</th></tr></thead><tbody><tr><td>顶部</td><td>渐变头图 + 标题「研学申请」</td></tr><tr><td>站内消息条</td><td>改期/审核通知，最多 1 条，可关闭</td></tr><tr><td>我的研学</td><td>报名卡（最多 2 条）+ 状态徽标</td></tr><tr><td>精选研学路线</td><td>横滑卡（3 条）</td></tr><tr><td>研学基地</td><td>网格卡（4 个）</td></tr><tr><td>往期研学风采</td><td>卡片流（活动内容 + 评价数 + 照片）</td></tr><tr><td>吸底按钮</td><td>「团体研学申请」固定于底部</td></tr></tbody></table>
+<p><strong>页内子视图</strong></p>
+<table><thead><tr><th>子视图</th><th>触发</th><th>规格位置</th></tr></thead><tbody><tr><td>往期风采全屏详情</td><td>点风采卡</td><td>§1.6</td></tr><tr><td>消息条关闭</td><td>点 ×</td><td>§1.6</td></tr></tbody></table>
+<h3>1.4 列表规则</h3>
+<table><thead><tr><th>列表</th><th>排序</th><th>条数</th><th>空态</th></tr></thead><tbody><tr><td>我的研学</td><td>报名时间倒序</td><td>2（示例）</td><td>「还没有研学报名」</td></tr><tr><td>精选路线</td><td>运营排序</td><td>3</td><td>隐藏区块</td></tr><tr><td>研学基地</td><td>距离升序</td><td>4</td><td>隐藏区块</td></tr><tr><td>往期风采</td><td>时间倒序</td><td>6（含 1 条 hidden）</td><td>隐藏区块</td></tr></tbody></table>
+<h3>1.5 字段规格</h3>
+<table><thead><tr><th>区域</th><th>字段</th></tr></thead><tbody><tr><td>报名卡</td><td>类型（个人/团体）、路线名、日期、参与人/学校、状态</td></tr><tr><td>路线卡</td><td>封面、标题、标签、时长、成团人数、简介</td></tr><tr><td>基地卡</td><td>名称、简介、距离、开放时间</td></tr><tr><td>风采卡</td><td>封面、标题、摘要、评价数、日期</td></tr></tbody></table>
+<h3>1.6 交互规则</h3>
+<table><thead><tr><th>元素</th><th>显示条件</th><th>可点条件</th><th>点击后</th></tr></thead><tbody><tr><td>报名卡</td><td>有报名</td><td>始终</td><td><code>study-my.html?id=</code></td></tr><tr><td>路线卡</td><td>在售</td><td>始终</td><td><code>study-route.html?id=</code></td></tr><tr><td>基地卡</td><td>—</td><td>始终</td><td>toast「基地详情开发中」</td></tr><tr><td>风采卡</td><td><code>status!=='hidden'</code></td><td>始终</td><td>展开全屏详情（标题/活动内容/评价/照片）</td></tr><tr><td>团体研学申请</td><td>始终</td><td>始终</td><td><code>study-apply.html</code></td></tr><tr><td>消息条 ×</td><td>有通知</td><td>始终</td><td>收起，本次会话不再显示</td></tr></tbody></table>
+<h3>1.7 业务规则与口径</h3>
+<table><thead><tr><th>编号</th><th>规则</th><th>触发</th><th>处理</th><th>影响端</th></tr></thead><tbody><tr><td>R-01</td><td>报名状态以本地 <code>studyRegState_{id}</code> 为准</td><td>渲染</td><td>有值覆盖、无值用示例态</td><td>无</td></tr><tr><td>R-02</td><td>风采隐藏项不展示</td><td>渲染</td><td><code>status==='hidden'</code> 过滤</td><td>无</td></tr><tr><td>R-03</td><td>路线下架不展示</td><td>渲染</td><td><code>sale==='下架'</code> 过滤（⚠️ 当前仅 study-route 有配置，首页未过滤）</td><td>14a</td></tr></tbody></table>
+<h3>1.8 异常与边界</h3>
+<table><thead><tr><th>场景</th><th>处理</th><th>提示文案</th></tr></thead><tbody><tr><td>无报名</td><td>固定 2 条示例，<strong>未做空态</strong></td><td>⬜ 待实现</td></tr><tr><td>localStorage 不可用</td><td>回落示例态</td><td>无</td></tr><tr><td>图片加载失败</td><td>渐变底色兜底</td><td>无</td></tr><tr><td>通知超过 1 条</td><td>只显示最新 1 条</td><td>无</td></tr></tbody></table>
+<h3>1.9 通知与消息</h3>
+<table><thead><tr><th>事件</th><th>来源</th><th>本页呈现</th></tr></thead><tbody><tr><td>场次改期</td><td>14a 改期</td><td>顶部消息条（含原日期/新日期）</td></tr><tr><td>审核结果</td><td>14a 审核</td><td>消息条 + 报名卡状态</td></tr></tbody></table>
+<h3>1.10 验收标准</h3>
+<table><thead><tr><th>#</th><th>前置</th><th>操作</th><th>预期</th><th>优先级</th></tr></thead><tbody><tr><td>AC-01</td><td>有 2 条报名</td><td>打开首页</td><td>我的研学显示 2 条，状态与本地一致</td><td>P0</td></tr><tr><td>AC-02</td><td>路线 3 条</td><td>点第 2 条</td><td>进入 <code>study-route.html?id=2</code></td><td>P0</td></tr><tr><td>AC-03</td><td>有 hidden 风采</td><td>打开首页</td><td>不展示该条</td><td>P1</td></tr><tr><td>AC-04</td><td>点吸底按钮</td><td>—</td><td>进入团体申请页</td><td>P0</td></tr></tbody></table>
+<hr>
+<h2 id="p2">2. 路线详情 <code>study-route.html</code></h2>
+<h3>2.1 页面说明</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>页面目标</td><td>单条研学路线的完整介绍 + 场次日历 + 报名入口 + 往期风采</td></tr><tr><td>使用角色</td><td>家长 / 学校负责人</td></tr><tr><td>入口</td><td>研学首页路线卡（E4）</td></tr><tr><td>前置</td><td><code>?id=1..3</code>，缺省回退 1</td></tr><tr><td>后置</td><td>→ 个人报名 / 团体申请</td></tr></tbody></table>
+<h3>2.2 本页端间关系</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>数据来源</td><td>14a 路线、场次、历史风采、责任书模板版本</td></tr><tr><td>跨端影响</td><td>无写操作</td></tr><tr><td>依赖页面</td><td><code>study-personal.html</code>、<code>study-apply.html</code></td></tr><tr><td>不涉及</td><td>商户端</td></tr><tr><td>一致性</td><td>余席/候补与 14a 场次管理实时同步</td></tr></tbody></table>
+<h3>2.3 页面结构</h3>
+<table><thead><tr><th>区块</th><th>内容</th></tr></thead><tbody><tr><td>封面</td><td>大图 + 返回 + 标签（工艺体验/文化课堂/工厂参观）</td></tr><tr><td>路线信息</td><td>标题、时长、成团人数、简介</td></tr><tr><td>路线亮点</td><td>3–4 条</td></tr><tr><td>行程安排</td><td>时间轴</td></tr><tr><td>费用说明</td><td>含/不含项</td></tr><tr><td><strong>活动日历及报名</strong></td><td>场次列表（Tab：场次 / 历史风采）</td></tr><tr><td>历史风采</td><td>场次统计 + 风采卡</td></tr><tr><td>精选留言</td><td>后台精选评价</td></tr><tr><td>吸底按钮</td><td>「立即报名」</td></tr></tbody></table>
+<p><strong>页内子视图</strong></p>
+<table><thead><tr><th>子视图</th><th>触发</th><th>规格位置</th></tr></thead><tbody><tr><td>场次 Tab</td><td>默认</td><td>§2.4.1</td></tr><tr><td>历史风采 Tab</td><td>点第二个 Tab</td><td>§2.4.2</td></tr></tbody></table>
+<h3>2.4 列表规则</h3>
+<h4>2.4.1 场次</h4>
+<table><thead><tr><th>项</th><th>规则</th></tr></thead><tbody><tr><td>排序</td><td>日期升序</td></tr><tr><td>状态</td><td>可报名 / 仅剩少量 / 已满（已满置灰，按钮变「候补登记」）</td></tr><tr><td>余席</td><td>「余 N 席 / 上限 M」；0 → 「候补中」</td></tr><tr><td>候补提示</td><td><code>waitOn</code> 且有候补 → 显示「已开启候补 · 当前候补 N 人（暂不自动递补）」</td></tr></tbody></table>
+<h4>2.4.2 历史风采</h4>
+<table><thead><tr><th>项</th><th>规则</th></tr></thead><tbody><tr><td>统计</td><td>已开展场次、累计参与人数</td></tr><tr><td>卡片</td><td>场次日期、参与人数、照片、评价</td></tr></tbody></table>
+<h3>2.5 字段规格</h3>
+<table><thead><tr><th>区域</th><th>字段</th></tr></thead><tbody><tr><td>路线</td><td>标题、标签、时长、成团人数、简介、亮点、行程、费用</td></tr><tr><td>场次</td><td>日期、星期、状态、余席、上限、候补人数</td></tr><tr><td>风采</td><td>场次、人数、封面、评价摘要</td></tr></tbody></table>
+<h3>2.6 交互规则</h3>
+<table><thead><tr><th>元素</th><th>显示条件</th><th>可点条件</th><th>点击后</th></tr></thead><tbody><tr><td>个人报名</td><td><code>status!=='已满'</code></td><td>始终</td><td><code>study-personal.html?id=&amp;date=</code></td></tr><tr><td>候补登记</td><td><code>status==='已满'</code></td><td>始终</td><td>toast「已加入候补队列，当前第 N 位」</td></tr><tr><td>团体研学申请（文字链）</td><td>始终</td><td>始终</td><td><code>study-apply.html</code></td></tr><tr><td>返回</td><td>始终</td><td>始终</td><td><code>study-tour.html</code></td></tr><tr><td>Tab 切换</td><td>始终</td><td>始终</td><td>切换场次/风采，不刷新页面</td></tr></tbody></table>
+<h3>2.7 业务规则与口径</h3>
+<table><thead><tr><th>编号</th><th>规则</th><th>触发</th><th>处理</th><th>影响端</th></tr></thead><tbody><tr><td>R-04</td><td>已满只可候补</td><td>渲染</td><td>按钮换「候补登记」，不生成报名单</td><td>14a</td></tr><tr><td>R-05</td><td>余席取后台 <code>left</code></td><td>渲染</td><td>展示「余 N 席 / 上限 M」</td><td>14a</td></tr><tr><td>R-06</td><td>候补不自动递补</td><td>渲染</td><td>文案明确「由运营人工通知」</td><td>14a</td></tr><tr><td>R-07</td><td>路线下架不可报名</td><td>渲染</td><td>⚠️ 配置有 <code>sale:'下架'</code>，页面未拦截（附录 A）</td><td>14a</td></tr></tbody></table>
+<h3>2.8 异常与边界</h3>
+<table><thead><tr><th>场景</th><th>处理</th><th>提示文案</th></tr></thead><tbody><tr><td>id 不存在</td><td>回退路线 1</td><td>无</td></tr><tr><td>场次为空</td><td>场次列表为空，<strong>未做空态文案</strong></td><td>⬜ 待实现</td></tr><tr><td>候补已达上限</td><td>仍可登记</td><td>—</td></tr><tr><td>网络失败（接口期）</td><td>接口期处理</td><td>⬜ 待实现</td></tr></tbody></table>
+<h3>2.9 通知与消息</h3>
+<p>改期通知在研学首页展示，本页不重复。</p>
+<h3>2.10 验收标准</h3>
+<table><thead><tr><th>#</th><th>前置</th><th>操作</th><th>预期</th><th>优先级</th></tr></thead><tbody><tr><td>AC-05</td><td>场次「已满」</td><td>点按钮</td><td>toast 候补提示，不跳报名</td><td>P0</td></tr><tr><td>AC-06</td><td>场次「余 6 席」</td><td>点个人报名</td><td>进入报名页且日期选中该场</td><td>P0</td></tr><tr><td>AC-07</td><td>切到历史风采</td><td>—</td><td>显示场次数 + 累计人数</td><td>P1</td></tr><tr><td>AC-08</td><td><code>?id=99</code></td><td>打开</td><td>回退路线 1，不白屏</td><td>P1</td></tr></tbody></table>
+<hr>
+<h2 id="p3">3. 个人报名 <code>study-personal.html</code></h2>
+<h3>3.1 页面说明</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>页面目标</td><td>家长三步完成个人报名：学生信息 → 签责任书 → 确认提交</td></tr><tr><td>使用角色</td><td>家长 / 监护人</td></tr><tr><td>入口</td><td>路线页场次「个人报名」（E6）、路线页「立即报名」</td></tr><tr><td>前置</td><td><code>?id=</code> 路线，<code>?date=</code> 场次下标</td></tr><tr><td>后置</td><td>成功页（编号 + 后续说明）</td></tr></tbody></table>
+<h3>3.2 本页端间关系</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>数据来源</td><td>14a 路线/场次/责任书模板（个人版 7 条）</td></tr><tr><td>跨端影响</td><td>提交生成报名单（待审核），回传 14a</td></tr><tr><td>依赖页面</td><td><code>study-my.html</code>（查看进度）</td></tr><tr><td>不涉及</td><td>商户端</td></tr><tr><td>一致性</td><td>责任书条款与 14a 模板 v2.1 一致</td></tr></tbody></table>
+<h3>3.3 页面结构</h3>
+<table><thead><tr><th>区块</th><th>内容</th></tr></thead><tbody><tr><td>步骤条</td><td>① 学生信息 ② 签责任书 ③ 确认</td></tr><tr><td>Step1</td><td>学生姓名、年龄、性别、学校、年级、家长姓名、电话、关系</td></tr><tr><td>Step2</td><td>责任书全文（7 条，可逐条勾选）+ 手写签名画布</td></tr><tr><td>Step3</td><td>确认信息 + 提交</td></tr><tr><td>Step4</td><td>成功页：报名编号 + 后续步骤</td></tr></tbody></table>
+<p><strong>页内子视图</strong></p>
+<table><thead><tr><th>子视图</th><th>触发</th><th>规格位置</th></tr></thead><tbody><tr><td>责任书条款勾选</td><td>Step2</td><td>§3.6</td></tr><tr><td>手写签名画布</td><td>Step2 底部</td><td>§3.6</td></tr><tr><td>成功页</td><td>提交后</td><td>§3.5</td></tr></tbody></table>
+<h3>3.4 列表与筛选</h3>
+<p>不适用（纯表单）。</p>
+<h3>3.5 字段规格</h3>
+<table><thead><tr><th>字段</th><th>必填</th><th>校验</th><th>提示</th></tr></thead><tbody><tr><td>学生姓名</td><td>✅</td><td>非空</td><td>「请填写完整信息」</td></tr><tr><td>年龄</td><td>✅</td><td>6–18</td><td>同</td></tr><tr><td>性别</td><td>✅</td><td>选择</td><td>同</td></tr><tr><td>学校</td><td>✅</td><td>非空</td><td>同</td></tr><tr><td>年级</td><td>✅</td><td>非空</td><td>同</td></tr><tr><td>家长姓名</td><td>✅</td><td>非空</td><td>同</td></tr><tr><td>家长电话</td><td>✅</td><td>非空</td><td>同</td></tr><tr><td>与学生关系</td><td>✅</td><td>选择</td><td>同</td></tr><tr><td>条款勾选</td><td>✅</td><td>7 条全选</td><td>「请阅读并同意全部条款」</td></tr><tr><td>手写签名</td><td>✅</td><td>画布非空</td><td>「请手写签名」</td></tr><tr><td>报名编号</td><td>自动</td><td><code>YX+yyyyMMdd+3位</code></td><td>—</td></tr></tbody></table>
+<h3>3.6 交互规则</h3>
+<table><thead><tr><th>元素</th><th>显示条件</th><th>可点条件</th><th>点击后</th></tr></thead><tbody><tr><td>下一步</td><td>Step1</td><td>必填齐全</td><td>进入 Step2；缺失则 toast + 聚焦</td></tr><tr><td>全选条款</td><td>Step2</td><td>始终</td><td>勾选/取消全部</td></tr><tr><td>签名清空</td><td>有笔迹</td><td>始终</td><td>清空画布</td></tr><tr><td>提交报名</td><td>Step3</td><td>条款全选 + 已签名</td><td>生成编号，进成功页</td></tr><tr><td>返回上一步</td><td>Step2/3</td><td>始终</td><td>回上一步，内容保留</td></tr></tbody></table>
+<h3>3.7 业务规则与口径</h3>
+<table><thead><tr><th>编号</th><th>规则</th><th>触发</th><th>处理</th><th>影响端</th></tr></thead><tbody><tr><td>R-08</td><td>年龄 6–18</td><td>提交</td><td>超范围拦截</td><td>14a</td></tr><tr><td>R-09</td><td>条款必须全选</td><td>提交</td><td>未全选 → 拦截</td><td>14a</td></tr><tr><td>R-10</td><td>签名必填</td><td>提交</td><td>未画 → 拦截</td><td>14a</td></tr><tr><td>R-11</td><td>编号规则</td><td>提交</td><td><code>YX+日期+007</code>（示例）</td><td>14a</td></tr><tr><td>R-12</td><td>提交即占名额</td><td>提交</td><td>进入待审核，占位</td><td>14a</td></tr></tbody></table>
+<h3>3.8 异常与边界</h3>
+<table><thead><tr><th>场景</th><th>处理</th><th>提示文案</th></tr></thead><tbody><tr><td>必填缺失</td><td>聚焦首个空项</td><td>「请填写完整信息」</td></tr><tr><td>条款未全选</td><td>阻止提交</td><td>「请先逐条阅读并勾选责任书条款」</td></tr><tr><td>未签名</td><td>阻止提交</td><td>「请家长先手写签名」</td></tr><tr><td>重复点击提交</td><td>按钮置灰</td><td>无</td></tr><tr><td>场次已满（深链进入）</td><td>选场次时拦截</td><td>「该场次名额已满，请改选其他场次」</td></tr></tbody></table>
+<h3>3.9 通知与消息</h3>
+<table><thead><tr><th>事件</th><th>接收人</th><th>渠道</th></tr></thead><tbody><tr><td>提交成功</td><td>家长</td><td>短信（原型仅文案）</td></tr><tr><td>审核通过/驳回</td><td>家长</td><td>短信</td></tr></tbody></table>
+<h3>3.10 验收标准</h3>
+<table><thead><tr><th>#</th><th>前置</th><th>操作</th><th>预期</th><th>优先级</th></tr></thead><tbody><tr><td>AC-09</td><td>空表单</td><td>点下一步</td><td>停留并提示，聚焦首个空项</td><td>P0</td></tr><tr><td>AC-10</td><td>条款未全选</td><td>点提交</td><td>拦截并提示</td><td>P0</td></tr><tr><td>AC-11</td><td>全部完成</td><td>提交</td><td>生成编号，进成功页</td><td>P0</td></tr><tr><td>AC-12</td><td>年龄填 20</td><td>下一步</td><td>拦截</td><td>P1</td></tr></tbody></table>
+<hr>
+<h2 id="p4">4. 团体申请 <code>study-apply.html</code></h2>
+<h3>4.1 页面说明</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>页面目标</td><td>学校/机构提交团体研学申请，并回显"待审核 / 待补充"两种结果</td></tr><tr><td>使用角色</td><td>学校负责人</td></tr><tr><td>入口</td><td>研学首页吸底按钮（E3）、路线页文字链（E7）</td></tr><tr><td>前置</td><td>无（可带 <code>?id=</code> 预选路线）</td></tr><tr><td>后置</td><td>→ 我的报名 / 返回研学</td></tr></tbody></table>
+<h3>4.2 本页端间关系</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>数据来源</td><td>14a 路线、场次余席、责任书（团体版 5 条）</td></tr><tr><td>跨端影响</td><td>生成团体申请单；≥50 人触发主管终审</td></tr><tr><td>依赖页面</td><td><code>study-my.html</code>、14a <code>study-group.html</code></td></tr><tr><td>不涉及</td><td>商户端</td></tr><tr><td>一致性</td><td>余席不足进候补，与 14a 名额口径一致</td></tr></tbody></table>
+<h3>4.3 页面结构</h3>
+<table><thead><tr><th>区块</th><th>内容</th></tr></thead><tbody><tr><td>表单</td><td>学校、联系人、电话、人数、路线、日期、备注、协议勾选</td></tr><tr><td>步骤卡</td><td>Step1 填写 → Step2 审核 → Step3 签署 → Step4 出行</td></tr><tr><td>结果态</td><td>① 已提交（待审核）② 待补材料（退回原因 + 补充）</td></tr></tbody></table>
+<p><strong>页内子视图</strong></p>
+<table><thead><tr><th>子视图</th><th>触发</th><th>规格位置</th></tr></thead><tbody><tr><td>已提交结果卡</td><td>提交成功</td><td>§4.5</td></tr><tr><td>待补材料结果卡</td><td>演示「模拟审核退回」或后台退回</td><td>§4.5 / §4.6</td></tr></tbody></table>
+<h3>4.4 列表与筛选</h3>
+<p>不适用。</p>
+<h3>4.5 字段规格</h3>
+<table><thead><tr><th>字段</th><th>必填</th><th>校验</th><th>提示</th></tr></thead><tbody><tr><td>学校名称</td><td>✅</td><td>非空</td><td>「请填写学校名称」</td></tr><tr><td>联系人</td><td>✅</td><td>非空</td><td>「请填写联系人」</td></tr><tr><td>联系电话</td><td>✅</td><td>11 位</td><td>「请填写正确的手机号」</td></tr><tr><td>参与人数</td><td>✅</td><td>≥10</td><td>「团体人数不少于 10 人」</td></tr><tr><td>研学路线</td><td>✅</td><td>选择</td><td>「请选择研学路线」</td></tr><tr><td>出行日期</td><td>✅</td><td>可报名场次</td><td>「请选择出行日期」</td></tr><tr><td>备注</td><td>❌</td><td>≤200 字</td><td>—</td></tr><tr><td>协议</td><td>✅</td><td>勾选</td><td>「请阅读并同意《团体研学协议》」</td></tr><tr><td>申请编号</td><td>自动</td><td><code>YX+日期+序号</code></td><td>—</td></tr></tbody></table>
+<h3>4.6 交互规则</h3>
+<table><thead><tr><th>元素</th><th>显示条件</th><th>可点条件</th><th>点击后</th></tr></thead><tbody><tr><td>提交申请</td><td>始终</td><td>必填齐全 + 协议勾选</td><td>生成编号 → 已提交态</td></tr><tr><td>补充材料</td><td>待补材料态</td><td>始终</td><td>滚动回表单，保留原编号</td></tr><tr><td>查看我的报名</td><td>已提交/待补</td><td>始终</td><td><code>study-my.html?id=2</code></td></tr><tr><td>模拟审核退回</td><td>已提交态（演示）</td><td>始终</td><td>切到待补材料态</td></tr><tr><td>返回研学</td><td>始终</td><td>始终</td><td><code>study-tour.html</code></td></tr></tbody></table>
+<h3>4.7 业务规则与口径</h3>
+<table><thead><tr><th>编号</th><th>规则</th><th>触发</th><th>处理</th><th>影响端</th></tr></thead><tbody><tr><td>R-13</td><td>团体最少 10 人</td><td>提交</td><td>&lt;10 拦截</td><td>14a</td></tr><tr><td>R-14</td><td>余席不足进候补</td><td>提交</td><td>结果态提示「候补队列，不自动递补」</td><td>14a</td></tr><tr><td>R-15</td><td>≥50 人主管终审</td><td>审核</td><td>审核周期可能 +1 工作日</td><td>14a</td></tr><tr><td>R-16</td><td>补件保留原编号</td><td>补件</td><td>编号不变，重新进审核</td><td>14a</td></tr><tr><td>R-17</td><td>补件 7 天未提自动取消</td><td>定时</td><td>释放名额</td><td>14a</td></tr></tbody></table>
+<h3>4.8 异常与边界</h3>
+<table><thead><tr><th>场景</th><th>处理</th><th>提示文案</th></tr></thead><tbody><tr><td>人数 &lt;10</td><td>输入框 <code>min=10</code> 限制，<strong>无单独拦截提示</strong></td><td>⬜ 待实现</td></tr><tr><td>场次已满</td><td>允许提交但进候补</td><td>「当前名额不足，已进入候补队列」</td></tr><tr><td>协议未勾</td><td>页面<strong>未设协议勾选</strong></td><td>⬜ 待实现</td></tr><tr><td>重复提交</td><td>按钮置灰</td><td>无</td></tr><tr><td>补件超 7 天</td><td>后台置取消，端上无提示</td><td>—</td></tr></tbody></table>
+<h3>4.9 通知与消息</h3>
+<table><thead><tr><th>事件</th><th>接收人</th><th>渠道</th></tr></thead><tbody><tr><td>提交成功</td><td>联系人</td><td>短信（原型仅文案）</td></tr><tr><td>审核通过/退回/驳回</td><td>联系人</td><td>短信</td></tr></tbody></table>
+<h3>4.10 验收标准</h3>
+<table><thead><tr><th>#</th><th>前置</th><th>操作</th><th>预期</th><th>优先级</th></tr></thead><tbody><tr><td>AC-13</td><td>人数填 5</td><td>提交</td><td>拦截并提示</td><td>P0</td></tr><tr><td>AC-14</td><td>信息完整</td><td>提交</td><td>显示已提交态 + 编号</td><td>P0</td></tr><tr><td>AC-15</td><td>已提交</td><td>点模拟退回</td><td>显示退回原因 + 补充按钮</td><td>P1</td></tr><tr><td>AC-16</td><td>待补材料</td><td>点补充材料</td><td>回到表单，编号不变</td><td>P1</td></tr></tbody></table>
+<hr>
+<h2 id="p5">5. 报名详情 <code>study-my.html</code></h2>
+<h3>5.1 页面说明</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>页面目标</td><td>单个报名单的第一现场：9 态进度、签署、签到码、取消、评价</td></tr><tr><td>使用角色</td><td>家长 / 学校负责人</td></tr><tr><td>入口</td><td>研学首页报名卡（E5）、团体申请结果（E8）</td></tr><tr><td>前置</td><td><code>?id=1..2</code>；可选 <code>?status=</code> 直达演示态</td></tr><tr><td>后置</td><td>返回来源页</td></tr></tbody></table>
+<h3>5.2 本页端间关系</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>数据来源</td><td>报名单（端上）+ 审核/签署/签到状态（14a 回写）</td></tr><tr><td>跨端影响</td><td>签署存证、签到记录回传 14a</td></tr><tr><td>依赖页面</td><td>14a <code>study-approve.html</code>、<code>study-group.html</code></td></tr><tr><td>不涉及</td><td>商户端</td></tr><tr><td>一致性</td><td>状态与 14a 9 态一一对应</td></tr></tbody></table>
+<h3>5.3 页面结构</h3>
+<table><thead><tr><th>区块</th><th>内容</th></tr></thead><tbody><tr><td>头部</td><td>渐变主题（随状态变色）+ 副标题</td></tr><tr><td>报名信息</td><td>姓名/学校/电话/编号/审核状态</td></tr><tr><td>进度条</td><td>提交 → 审核 → 签署 → 研学（第 3/4 节点随状态）</td></tr><tr><td>内容区</td><td>9 态分支（待审核/待补充/已驳回/待签署/已签署/已签到/已完成/未到场/已取消）</td></tr><tr><td>底部提示</td><td>客服热线 / 取消入口</td></tr></tbody></table>
+<p><strong>页内子视图</strong></p>
+<table><thead><tr><th>子视图</th><th>触发</th><th>规格位置</th></tr></thead><tbody><tr><td>责任书签署（全文 + 手写签名）</td><td>待签署态</td><td>§5.6</td></tr><tr><td>签到二维码 + 模拟签到</td><td>已签署/已签到</td><td>§5.6</td></tr><tr><td>取消确认弹窗</td><td>点「取消报名」</td><td>§5.6</td></tr><tr><td>评价弹窗（星级 + 文字）</td><td>已完成前</td><td>§5.6</td></tr><tr><td>演示态切换（审核/补件/驳回/重提）</td><td>待审核/待补充态</td><td>§5.6</td></tr></tbody></table>
+<h3>5.4 列表与筛选</h3>
+<p>不适用（单条详情）。</p>
+<h3>5.5 字段规格</h3>
+<table><thead><tr><th>区域</th><th>字段</th></tr></thead><tbody><tr><td>报名信息</td><td>类型、姓名/学校、人数、联系电话、申请编号、审核状态</td></tr><tr><td>签署</td><td>模板版本 v2.1、条款（个人 7 / 团体 5）、签名、签署日期、存证编号 <code>CE+编号</code></td></tr><tr><td>签到码</td><td>二维码、说明、签到时间</td></tr><tr><td>评价</td><td>星级、文字、提交时间、审核状态</td></tr></tbody></table>
+<h3>5.6 交互规则</h3>
+<table><thead><tr><th>元素</th><th>显示条件</th><th>可点条件</th><th>点击后</th></tr></thead><tbody><tr><td>立即签署</td><td><code>unsigned</code></td><td>始终</td><td>滚动到责任书</td></tr><tr><td>提交签名</td><td>有笔迹</td><td>必填</td><td>状态 → <code>signed</code>，生成签到码</td></tr><tr><td>签到码</td><td><code>signed/checkedin/completed</code></td><td>—</td><td>展示二维码</td></tr><tr><td>模拟扫码签到</td><td><code>signed</code></td><td>始终</td><td>状态 → <code>checkedin</code>，记录时间</td></tr><tr><td>取消报名</td><td><code>unsigned/signed</code> 且距出行 &gt;24h</td><td>始终</td><td>二次确认 → <code>cancelled</code></td></tr><tr><td>去补充材料</td><td><code>supplement</code></td><td>始终</td><td>跳 <code>study-apply.html</code></td></tr><tr><td>重新提交</td><td><code>supplement</code>（演示）</td><td>始终</td><td>状态 → <code>pending</code>，编号不变</td></tr><tr><td>演示审核通过/补件/驳回</td><td><code>pending</code>（演示）</td><td>始终</td><td>切换对应状态</td></tr><tr><td>重新报名</td><td><code>rejected/noshow/cancelled</code></td><td>始终</td><td>跳申请页</td></tr><tr><td>去评价</td><td><code>checkedin</code> 且活动结束</td><td>始终</td><td>评价弹窗 → <code>completed</code></td></tr></tbody></table>
+<h3>5.7 业务规则与口径</h3>
+<table><thead><tr><th>编号</th><th>规则</th><th>触发</th><th>处理</th><th>影响端</th></tr></thead><tbody><tr><td>R-18</td><td>9 态映射</td><td>渲染</td><td>主题/徽标/进度/内容同步切换</td><td>14a</td></tr><tr><td>R-19</td><td>补件保留原编号</td><td>重新提交</td><td>编号不变</td><td>14a</td></tr><tr><td>R-20</td><td>未到场码失效</td><td><code>noshow</code></td><td>不渲染二维码</td><td>14a</td></tr><tr><td>R-21</td><td>24h 内不可自助取消</td><td>取消</td><td>提示联系客服</td><td>14a</td></tr><tr><td>R-22</td><td>签到幂等</td><td>重复签到</td><td>拦截并提示已签到时间</td><td>现场</td></tr><tr><td>R-23</td><td>评价需活动结束</td><td>评价</td><td>未结束只可「标记活动结束」（演示）</td><td>14a</td></tr></tbody></table>
+<h3>5.8 异常与边界</h3>
+<table><thead><tr><th>场景</th><th>处理</th><th>提示文案</th></tr></thead><tbody><tr><td>id 无效</td><td>回退 1</td><td>无</td></tr><tr><td>localStorage 失败</td><td>用默认态</td><td>无</td></tr><tr><td>重复签到</td><td>已签到后不再显示签到按钮（无重复入口）</td><td>—</td></tr><tr><td>未签署点签到码</td><td>不展示二维码</td><td>无</td></tr><tr><td>补件超 7 天</td><td>后台置取消，端上无提示</td><td>—</td></tr></tbody></table>
+<h3>5.9 通知与消息</h3>
+<table><thead><tr><th>事件</th><th>接收人</th><th>渠道</th></tr></thead><tbody><tr><td>审核通过（待签署）</td><td>家长</td><td>短信</td></tr><tr><td>出行前 3 天/1 天未签</td><td>家长</td><td>短信</td></tr><tr><td>改期</td><td>家长</td><td>站内 + 短信</td></tr></tbody></table>
+<h3>5.10 验收标准</h3>
+<table><thead><tr><th>#</th><th>前置</th><th>操作</th><th>预期</th><th>优先级</th></tr></thead><tbody><tr><td>AC-17</td><td><code>?status=pending</code></td><td>打开</td><td>显示待审核 + 演示按钮</td><td>P0</td></tr><tr><td>AC-18</td><td>待签署</td><td>签名提交</td><td>状态变已签署，出现签到码</td><td>P0</td></tr><tr><td>AC-19</td><td><code>?status=noshow</code></td><td>打开</td><td>显示未到场且无二维码</td><td>P0</td></tr><tr><td>AC-20</td><td>距出行 12h</td><td>点取消</td><td>拦截并提示联系客服</td><td>P1</td></tr><tr><td>AC-21</td><td>已签到且活动结束</td><td>提交评价</td><td>状态变已完成</td><td>P1</td></tr></tbody></table>
+<hr>
+<h2 id="p6">6. 文旅活动 <code>tourism.html</code></h2>
+<h3>6.1 页面说明</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>页面目标</td><td>文旅资源入口 + 活动日历（按月筛选）</td></tr><tr><td>使用角色</td><td>游客 / 采购商 / 家长</td></tr><tr><td>入口</td><td>首页宫格「文旅活动」/「更多」（E2）</td></tr><tr><td>前置</td><td>无</td></tr><tr><td>后置</td><td>→ 资源详情 / 活动详情</td></tr></tbody></table>
+<h3>6.2 本页端间关系</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>数据来源</td><td>文商旅 · 文旅资源、活动日历</td></tr><tr><td>跨端影响</td><td>无写操作（活动报名在详情页）</td></tr><tr><td>依赖页面</td><td><code>tourism-detail.html</code>、<code>tourism-resource.html</code></td></tr><tr><td>不涉及</td><td>商户端</td></tr><tr><td>一致性</td><td>活动状态与报名人数与详情页同源</td></tr></tbody></table>
+<h3>6.3 页面结构</h3>
+<table><thead><tr><th>区块</th><th>内容</th></tr></thead><tbody><tr><td>顶部</td><td>渐变头「文旅活动」</td></tr><tr><td>文旅资源</td><td>横滑卡（教育/文化/工业旅游）</td></tr><tr><td>月份筛选</td><td>全部 / 08 / 09 / 10 …</td></tr><tr><td>活动时间轴</td><td>按月分组的活动卡（状态徽标 + 人数 + 去报名）</td></tr></tbody></table>
+<p><strong>页内子视图</strong></p>
+<table><thead><tr><th>子视图</th><th>触发</th><th>规格位置</th></tr></thead><tbody><tr><td>月份筛选</td><td>点月份 pill</td><td>§6.6</td></tr><tr><td>横滑拖拽</td><td>鼠标/手指拖动</td><td>§6.6</td></tr></tbody></table>
+<h3>6.4 列表规则</h3>
+<table><thead><tr><th>列表</th><th>排序</th><th>筛选</th><th>空态</th></tr></thead><tbody><tr><td>文旅资源</td><td>运营排序</td><td>无</td><td>隐藏区块</td></tr><tr><td>活动时间轴</td><td>日期升序</td><td>月份</td><td>「该月暂无活动」</td></tr></tbody></table>
+<h3>6.5 字段规格</h3>
+<table><thead><tr><th>区域</th><th>字段</th></tr></thead><tbody><tr><td>资源卡</td><td>封面、标题、标签、简介、地址、电话</td></tr><tr><td>活动卡</td><td>月份、状态、日期、标题、简介、地点、参与人数</td></tr></tbody></table>
+<h3>6.6 交互规则</h3>
+<table><thead><tr><th>元素</th><th>显示条件</th><th>可点条件</th><th>点击后</th></tr></thead><tbody><tr><td>资源卡</td><td>始终</td><td>始终</td><td><code>tourism-resource.html?id=</code></td></tr><tr><td>活动卡</td><td>始终</td><td>始终</td><td><code>tourism-detail.html?id=act{id}</code></td></tr><tr><td>去报名标签</td><td><code>canSignup=true</code></td><td>始终</td><td>同活动卡</td></tr><tr><td>月份 pill</td><td>始终</td><td>始终</td><td>过滤时间轴</td></tr><tr><td>返回首页</td><td>始终</td><td>始终</td><td><code>home.html</code></td></tr></tbody></table>
+<h3>6.7 业务规则与口径</h3>
+<table><thead><tr><th>编号</th><th>规则</th><th>触发</th><th>处理</th><th>影响端</th></tr></thead><tbody><tr><td>R-24</td><td>已结束活动置灰</td><td>渲染</td><td>不可报名，dot 变灰</td><td>14</td></tr><tr><td>R-25</td><td>报名中显示「去报名」</td><td>渲染</td><td>详情页可提交</td><td>14</td></tr><tr><td>R-26</td><td>月份筛选只影响时间轴</td><td>点击</td><td>资源区不变</td><td>无</td></tr></tbody></table>
+<h3>6.8 异常与边界</h3>
+<table><thead><tr><th>场景</th><th>处理</th><th>提示文案</th></tr></thead><tbody><tr><td>该月无活动</td><td>时间轴渲染为空，<strong>未做空态文案</strong></td><td>⬜ 待实现</td></tr><tr><td>图片加载失败</td><td>渐变兜底</td><td>无</td></tr><tr><td>活动数 0</td><td>隐藏区块</td><td>无</td></tr></tbody></table>
+<h3>6.9 通知与消息</h3>
+<p>无（活动变更通知在详情页/首页）。</p>
+<h3>6.10 验收标准</h3>
+<table><thead><tr><th>#</th><th>前置</th><th>操作</th><th>预期</th><th>优先级</th></tr></thead><tbody><tr><td>AC-22</td><td>7 场活动</td><td>打开</td><td>时间轴按日期展示</td><td>P0</td></tr><tr><td>AC-23</td><td>选 08 月</td><td>点 pill</td><td>只剩 8 月活动</td><td>P1</td></tr><tr><td>AC-24</td><td>点资源卡</td><td>—</td><td>进入资源详情且内容匹配</td><td>P0</td></tr></tbody></table>
+<hr>
+<h2 id="p7">7. 活动详情 <code>tourism-detail.html</code></h2>
+<h3>7.1 页面说明</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>页面目标</td><td>单个活动详情 + 底部报名面板</td></tr><tr><td>使用角色</td><td>游客 / 采购商</td></tr><tr><td>入口</td><td>活动卡（E9）</td></tr><tr><td>前置</td><td><code>?id=act1..n</code>，缺省回退 act1</td></tr><tr><td>后置</td><td>报名成功（toast）</td></tr></tbody></table>
+<h3>7.2 本页端间关系</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>数据来源</td><td>文旅活动（标题/时间/地点/费用/流程/须知/状态）</td></tr><tr><td>跨端影响</td><td>报名单回传运营端</td></tr><tr><td>依赖页面</td><td><code>tourism.html</code></td></tr><tr><td>不涉及</td><td>商户端</td></tr><tr><td>一致性</td><td>报名人数与列表页同步</td></tr></tbody></table>
+<h3>7.3 页面结构</h3>
+<table><thead><tr><th>区块</th><th>内容</th></tr></thead><tbody><tr><td>封面</td><td>大图 + 状态徽标 + 标题 + 日期</td></tr><tr><td>信息卡</td><td>地点 / 时间 / 参与人数 / 费用</td></tr><tr><td>活动介绍</td><td>正文 + 2 张图</td></tr><tr><td>活动流程</td><td>时间轴</td></tr><tr><td>主办方</td><td>名称 + 电话</td></tr><tr><td>参与须知</td><td>条目</td></tr><tr><td>吸底操作</td><td>收藏 / 分享 / 立即报名</td></tr></tbody></table>
+<p><strong>页内子视图</strong></p>
+<table><thead><tr><th>子视图</th><th>触发</th><th>规格位置</th></tr></thead><tbody><tr><td>报名底部面板</td><td>点「立即报名」</td><td>§7.5 / §7.6</td></tr><tr><td>报名成功 toast</td><td>提交</td><td>§7.6</td></tr></tbody></table>
+<h3>7.4 列表与筛选</h3>
+<p>不适用。</p>
+<h3>7.5 字段规格</h3>
+<table><thead><tr><th>区域</th><th>字段</th></tr></thead><tbody><tr><td>活动</td><td>标题、日期、时间、地点、参与人数、费用、介绍、流程、主办方、须知、状态</td></tr><tr><td>报名面板</td><td>姓名、手机号、票种、数量</td></tr><tr><td>状态按钮</td><td>立即报名 / 活动已结束 / 查看详情</td></tr></tbody></table>
+<h3>7.6 交互规则</h3>
+<table><thead><tr><th>元素</th><th>显示条件</th><th>可点条件</th><th>点击后</th></tr></thead><tbody><tr><td>立即报名</td><td><code>status==='报名中'</code></td><td>始终</td><td>打开底部面板</td></tr><tr><td>活动已结束</td><td><code>status==='已结束'</code></td><td>置灰</td><td>toast「该活动已结束」</td></tr><tr><td>查看详情</td><td>其他状态</td><td>始终</td><td>toast「活动即将开放报名，请关注后续通知」</td></tr><tr><td>数量 +/−</td><td>面板</td><td>≥1</td><td>更新数量</td></tr><tr><td>提交报名</td><td>面板</td><td>姓名/手机非空</td><td>toast 报名成功，关闭面板</td></tr><tr><td>收藏 / 分享</td><td>始终</td><td>始终</td><td>toast</td></tr></tbody></table>
+<h3>7.7 业务规则与口径</h3>
+<table><thead><tr><th>编号</th><th>规则</th><th>触发</th><th>处理</th><th>影响端</th></tr></thead><tbody><tr><td>R-27</td><td>仅报名中可报名</td><td>渲染</td><td>按钮按状态切换</td><td>14</td></tr><tr><td>R-28</td><td>免费活动不显示金额</td><td>渲染</td><td>费用显示「免费」</td><td>14</td></tr><tr><td>R-29</td><td>数量最少 1</td><td>点 −</td><td>不低于 1</td><td>无</td></tr><tr><td>R-30</td><td>报名人数含本次</td><td>提交</td><td>回写活动人数</td><td>14</td></tr></tbody></table>
+<h3>7.8 异常与边界</h3>
+<table><thead><tr><th>场景</th><th>处理</th><th>提示文案</th></tr></thead><tbody><tr><td>id 无效</td><td>回退 act1</td><td>无</td></tr><tr><td>姓名为空</td><td>阻止提交（手机号未校验）</td><td>「请填写姓名」</td></tr><tr><td>重复提交</td><td>面板关闭</td><td>无</td></tr><tr><td>活动已结束（深链）</td><td>按钮置灰</td><td>「该活动已结束」</td></tr></tbody></table>
+<h3>7.9 通知与消息</h3>
+<table><thead><tr><th>事件</th><th>接收人</th><th>渠道</th></tr></thead><tbody><tr><td>报名成功</td><td>报名人</td><td>短信（原型仅 toast）</td></tr><tr><td>活动变更/取消</td><td>已报名人</td><td>短信</td></tr></tbody></table>
+<h3>7.10 验收标准</h3>
+<table><thead><tr><th>#</th><th>前置</th><th>操作</th><th>预期</th><th>优先级</th></tr></thead><tbody><tr><td>AC-25</td><td>act1（已结束）</td><td>打开</td><td>按钮「活动已结束」且置灰</td><td>P0</td></tr><tr><td>AC-26</td><td>act2（报名中）</td><td>点报名 → 提交</td><td>提示成功，面板关闭</td><td>P0</td></tr><tr><td>AC-27</td><td>数量点 −</td><td>连续点</td><td>最小为 1</td><td>P2</td></tr></tbody></table>
+<hr>
+<h2 id="p8">8. 文旅资源详情 <code>tourism-resource.html</code></h2>
+<h3>8.1 页面说明</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>页面目标</td><td>单个文旅资源（场馆/基地）的介绍、特色、交通、提示</td></tr><tr><td>使用角色</td><td>游客 / 家长</td></tr><tr><td>入口</td><td>文旅资源卡（E10）</td></tr><tr><td>前置</td><td><code>?id=1..3</code>，缺省回退 1</td></tr><tr><td>后置</td><td>导航/收藏（toast）</td></tr></tbody></table>
+<h3>8.2 本页端间关系</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>数据来源</td><td>文旅资源库（名称/标签/介绍/特色/交通/提示）</td></tr><tr><td>跨端影响</td><td>无</td></tr><tr><td>依赖页面</td><td><code>tourism.html</code></td></tr><tr><td>不涉及</td><td>商户端</td></tr><tr><td>一致性</td><td>与列表卡同源</td></tr></tbody></table>
+<h3>8.3 页面结构</h3>
+<table><thead><tr><th>区块</th><th>内容</th></tr></thead><tbody><tr><td>封面</td><td>大图 + 标签 + 名称 + 副标题</td></tr><tr><td>资源介绍</td><td>正文</td></tr><tr><td>特色</td><td>图标 + 文字（3–4 条）</td></tr><tr><td>图集</td><td>6 宫格</td></tr><tr><td>交通指引</td><td>自驾/公交/步行</td></tr><tr><td>温馨提示</td><td>预约/参观规则</td></tr><tr><td>吸底操作</td><td>导航 / 收藏</td></tr></tbody></table>
+<h3>8.4 列表与筛选</h3>
+<p>不适用。</p>
+<h3>8.5 字段规格</h3>
+<table><thead><tr><th>区域</th><th>字段</th></tr></thead><tbody><tr><td>头部</td><td>标签、名称、副标题、封面</td></tr><tr><td>正文</td><td>介绍、特色、图集、交通、提示</td></tr><tr><td>操作</td><td>导航、收藏</td></tr></tbody></table>
+<h3>8.6 交互规则</h3>
+<table><thead><tr><th>元素</th><th>显示条件</th><th>可点条件</th><th>点击后</th></tr></thead><tbody><tr><td>导航</td><td>始终</td><td>始终</td><td>toast（原型模拟）</td></tr><tr><td>收藏</td><td>始终</td><td>始终</td><td>toast「已收藏资源」</td></tr><tr><td>外部链接</td><td>有外链</td><td>始终</td><td>toast「跳转外部页面（原型模拟）」</td></tr><tr><td>返回</td><td>始终</td><td>始终</td><td><code>tourism.html</code></td></tr></tbody></table>
+<h3>8.7 业务规则与口径</h3>
+<table><thead><tr><th>编号</th><th>规则</th><th>触发</th><th>处理</th><th>影响端</th></tr></thead><tbody><tr><td>R-31</td><td>资源只读</td><td>渲染</td><td>无写操作</td><td>14</td></tr><tr><td>R-32</td><td>需预约资源给提示</td><td>渲染</td><td>提示「部分体验课程需提前预约」</td><td>14</td></tr></tbody></table>
+<h3>8.8 异常与边界</h3>
+<table><thead><tr><th>场景</th><th>处理</th><th>提示文案</th></tr></thead><tbody><tr><td>id 无效</td><td>回退 1</td><td>无</td></tr><tr><td>图片失败</td><td>渐变兜底</td><td>无</td></tr><tr><td>无外链</td><td>隐藏运营按钮</td><td>无</td></tr></tbody></table>
+<h3>8.9 通知与消息</h3>
+<p>无。</p>
+<h3>8.10 验收标准</h3>
+<table><thead><tr><th>#</th><th>前置</th><th>操作</th><th>预期</th><th>优先级</th></tr></thead><tbody><tr><td>AC-28</td><td><code>?id=2</code></td><td>打开</td><td>显示华夏金石学馆内容</td><td>P0</td></tr><tr><td>AC-29</td><td>点收藏</td><td>—</td><td>toast 提示</td><td>P2</td></tr><tr><td>AC-30</td><td><code>?id=99</code></td><td>打开</td><td>回退资源 1</td><td>P2</td></tr></tbody></table>
+<hr>
+<h2>附录 A：与分册的对齐记录</h2>
+<table><thead><tr><th>#</th><th>分册要求（14a v1.3）</th><th>原型实现</th><th>处置</th></tr></thead><tbody><tr><td>A-1</td><td>路线下架不可报名</td><td>配置有 <code>sale:'下架'</code>，<code>study-route.html</code> <strong>未拦截</strong></td><td>⚠️ 待修（端上待办）</td></tr><tr><td>A-2</td><td>登录后才可报名</td><td>原型无登录墙</td><td>⚠️ 已知缺口（接口期）</td></tr><tr><td>A-3</td><td>未到场由定时任务判定</td><td>仅 <code>?status=noshow</code> 演示</td><td>⚠️ 接口期</td></tr><tr><td>A-4</td><td>短信通知</td><td>仅文案/toast</td><td>⚠️ 接口期</td></tr><tr><td>A-5</td><td>补件保留原编号</td><td>已实现（<code>supplement → pending</code>，编号不变）</td><td>✅</td></tr><tr><td>A-6</td><td>责任书模板版本化</td><td>标注 v2.1（2026-09-01 启用）</td><td>✅（版本号待确认）</td></tr></tbody></table>
+<h2>附录 B：接口依赖</h2>
+<table><thead><tr><th>接口</th><th>用途</th><th>现状</th></tr></thead><tbody><tr><td><code>GET /study/routes</code></td><td>路线列表/详情</td><td>mock</td></tr><tr><td><code>GET /study/sessions?routeId=</code></td><td>场次与余席</td><td>mock</td></tr><tr><td><code>POST /study/signup</code></td><td>个人/团体报名</td><td>mock</td></tr><tr><td><code>POST /study/sign</code></td><td>签署存证</td><td>mock（本地）</td></tr><tr><td><code>POST /study/checkin</code></td><td>现场签到</td><td>mock</td></tr><tr><td><code>GET /tourism/activities</code></td><td>活动列表/详情</td><td>mock</td></tr><tr><td><code>GET /tourism/resources</code></td><td>资源列表/详情</td><td>mock</td></tr></tbody></table>
+<h2>附录 C：页面清单</h2>
+<table><thead><tr><th>#</th><th>页面</th><th>文件</th><th>节</th><th>入口数</th><th>状态</th></tr></thead><tbody><tr><td>1</td><td>研学首页</td><td><code>study-tour.html</code></td><td>§1</td><td>1</td><td>✅</td></tr><tr><td>2</td><td>路线详情</td><td><code>study-route.html</code></td><td>§2</td><td>1</td><td>✅</td></tr><tr><td>3</td><td>个人报名</td><td><code>study-personal.html</code></td><td>§3</td><td>2</td><td>✅</td></tr><tr><td>4</td><td>团体申请</td><td><code>study-apply.html</code></td><td>§4</td><td>2</td><td>✅</td></tr><tr><td>5</td><td>报名详情</td><td><code>study-my.html</code></td><td>§5</td><td>2</td><td>✅</td></tr><tr><td>6</td><td>文旅活动</td><td><code>tourism.html</code></td><td>§6</td><td>1</td><td>✅</td></tr><tr><td>7</td><td>活动详情</td><td><code>tourism-detail.html</code></td><td>§7</td><td>1</td><td>✅</td></tr><tr><td>8</td><td>文旅资源详情</td><td><code>tourism-resource.html</code></td><td>§8</td><td>1</td><td>✅</td></tr></tbody></table>
+</body></html>

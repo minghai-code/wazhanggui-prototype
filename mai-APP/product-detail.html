@@ -608,7 +608,7 @@ function applyQtyTier(){
   var save=(base-selected.price).toFixed(2);
   var hint=document.getElementById('specHint');
   if(qty<100){
-    hint.innerHTML='<i class="fas fa-triangle-exclamation text-[8px] mr-0.5"></i>'+(specMode==='group'?('拼单'+Math.ceil(100*0.2)+'双起（当前 '+qty+'双）· '):'')+'阶梯价¥'+selected.price.toFixed(2)+'/双';
+    hint.innerHTML='<i class="fas fa-triangle-exclamation text-[8px] mr-0.5"></i>'+(specMode==='group'?('本档 '+selected.min+' 双 · 团长至少 '+Math.ceil(selected.min*0.2)+' 双 · '):'')+'阶梯价¥'+selected.price.toFixed(2)+'/双';
   }else{
     hint.innerHTML='<i class="fas fa-check-circle text-[8px] mr-0.5"></i>已达 '+selected.min+'双档 · 单价¥'+selected.price.toFixed(2)+'/双'+(save>0?(' · <span style="color:#059669">较起批价省¥'+save+'/双</span>'):'');
   }
@@ -621,17 +621,68 @@ function stepQty(delta){
   input.value=v;
   applyQtyTier();
 }
+/* 数量门槛校验：加购/下单按起批量，拼单按起批量 20%（不得低于 1 双） */
+function qtyGuard(action){
+  var input=document.getElementById('specQty');
+  var qty=parseInt(input.value)||0;
+  var base=tierMin||100;
+  if(action==='group'){
+    /* 10b：拼单下限 = 商品起批量 × 20%（起批量取最小档，不用当前档位） */
+    var tMin=Math.ceil((TIERS[0].min||100)*0.2);
+    if(qty<tMin){
+      input.value=tMin;applyQtyTier();
+      toast('团长下单不得少于 '+tMin+' 双（起批 '+base+' 双的 20%），已自动调整');
+      return false;
+    }
+    return true;
+  }
+  if(qty<base){
+    input.value=base;
+    toast('该商品最少 '+base+' 双，已自动调整为 '+base+' 双');
+    applyQtyTier();
+    return false;
+  }
+  if(qty%10!==0){
+    var fixed=Math.ceil(qty/10)*10;
+    input.value=fixed;
+    toast('数量需为 10 的整数倍，已调整为 '+fixed+' 双');
+    applyQtyTier();
+    return false;
+  }
+  return true;
+}
 function addToCart(){
+  if(!qtyGuard('cart'))return;
   closeSpec();
   toast('已加入进货单');
 }
 function buyNow(){
+  if(!qtyGuard('buy'))return;
   closeSpec();
   setTimeout(function(){window.location.href='order-checkout.html';},300);
 }
 function createGroup(){
+  if(!qtyGuard('group'))return;
+  var tier=tierMin||100;
+  var leader=parseInt(document.getElementById('specQty').value)||Math.ceil(tier*0.2);
   closeSpec();
-  setTimeout(function(){window.location.href='order-checkout.html?mode=group';},300);
+  toast('发起拼团 '+leader+' 双，支付后团即开始，累计达档即成团');
+  setTimeout(function(){window.location.href='order-checkout.html?mode=group&tier='+tier+'&qty='+leader+'&price='+tierPrice;},600);
+}
+
+/* M01 BR-2b：运营端「是否支持拼单」为否时不展示发起入口（?nogroup=1 演示） */
+var GROUP_ENABLED=new URLSearchParams(window.location.search).get('nogroup')!=='1';
+if(!GROUP_ENABLED){
+  document.querySelectorAll('button[onclick="openSpecSheet(\'group\')"],#specBtnGroup').forEach(function(b){if(b)b.style.display='none';});
+}
+
+/* M04 BR-13：售罄可浏览不可下单（?soldout=1 演示） */
+if(new URLSearchParams(window.location.search).get('soldout')==='1'){
+  document.querySelectorAll('button[onclick^="openSpecSheet"]').forEach(function(b){
+    b.removeAttribute('onclick');
+    b.style.opacity='.5';
+    b.onclick=function(e){e.stopPropagation();toast('该商品暂时售罄，可先收藏等补货');};
+  });
 }
 
 // 清仓模式
@@ -664,5 +715,6 @@ if(isClearance){
 }
 </script>
 
+<script src="../shared/page-prd.js?v=20261023f"></script>
 </body>
 </html>

@@ -126,5 +126,95 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </div>
 </div>
 
+<!-- 页面说明桥接：子页在手机框（跨域 iframe）里，面板由外壳渲染到浏览器右侧；整块可删，删后原型完全恢复 -->
+<script id="ppd-bridge">
+(function () {
+  var btn, panel, frame, titleEl, subEl, srcNow = '', isOpen = false;
+
+  /* 打开时左移原型的容器；空间不足时隐藏左侧说明栏（只对本壳生效，可按需改） */
+  var SHIFT_SEL = '.layout', SIDE_SEL = '.side-info';
+
+  function ensure() {
+    if (btn) return;
+    var st = document.createElement('style');
+    st.textContent = 'body.ppd-open .layout{transition:transform .22s ease}'
+      + 'body.ppd-compact ' + SIDE_SEL + '{display:none}';
+    document.head.appendChild(st);
+    btn = document.createElement('button');
+    btn.textContent = '产品逻辑说明';
+    btn.style.cssText = 'position:fixed;right:24px;bottom:24px;z-index:2147483000;padding:10px 16px;border-radius:999px;border:0;background:#fff;color:#1F2430;font:700 12px/1 -apple-system,BlinkMacSystemFont,"Microsoft YaHei",sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.35);cursor:pointer;display:none';
+    btn.onclick = open;
+    document.body.appendChild(btn);
+
+    panel = document.createElement('div');
+    panel.style.cssText = 'position:fixed;top:0;right:0;height:100%;width:min(760px,46vw);background:#fff;z-index:2147483002;transform:translateX(102%);transition:transform .22s ease;box-shadow:-12px 0 40px rgba(15,23,42,.18);display:flex;flex-direction:column';
+    var head = document.createElement('div');
+    head.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-bottom:1px solid #E9EDF3';
+    var box = document.createElement('div');
+    titleEl = document.createElement('p');
+    titleEl.style.cssText = 'margin:0;font-size:14px;font-weight:700;color:#1F2430';
+    subEl = document.createElement('p');
+    subEl.style.cssText = 'margin:2px 0 0;font-size:11px;color:#94A3B8';
+    box.appendChild(titleEl); box.appendChild(subEl);
+    var x = document.createElement('button');
+    x.textContent = '×';
+    x.style.cssText = 'border:0;background:#F1F5F9;color:#64748B;width:28px;height:28px;border-radius:8px;cursor:pointer;font-size:15px;flex-shrink:0';
+    x.onclick = close;
+    head.appendChild(box); head.appendChild(x);
+
+    frame = document.createElement('iframe');
+    frame.style.cssText = 'flex:1;border:0;width:100%';
+    panel.appendChild(head); panel.appendChild(frame);
+    document.body.appendChild(panel);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+  }
+  function open() {
+    panel.style.transform = 'none';
+    isOpen = true;
+    var w = panel.getBoundingClientRect().width;
+    var el = document.querySelector(SHIFT_SEL);
+    document.body.classList.add('ppd-open');
+    if (!el) return;
+    var free = window.innerWidth - w;
+    var r = el.getBoundingClientRect();
+    /* 剩余空间放不下整块内容 → 收起左侧说明栏，只留手机 */
+    if (r.width > free - 32 && document.querySelector(SIDE_SEL)) {
+      document.body.classList.add('ppd-compact');
+      r = el.getBoundingClientRect();
+    }
+    /* 右边缘不得进入面板：需要时整体左移 */
+    var delta = Math.min(0, free - 24 - r.right);
+    el.style.transform = 'translateX(' + delta + 'px)';
+  }
+  function close() {
+    panel.style.transform = 'translateX(102%)';
+    isOpen = false;
+    var el = document.querySelector(SHIFT_SEL);
+    if (el) el.style.transform = '';
+    document.body.classList.remove('ppd-open', 'ppd-compact');
+  }
+  /* 点页面空白处 / 左侧说明区收起；点面板内部或按钮不收起 */
+  document.addEventListener('mousedown', function (e) {
+    if (!isOpen) return;
+    if (panel.contains(e.target) || btn.contains(e.target)) return;
+    close();
+  });
+  window.addEventListener('message', function (e) {
+    var d = e.data || {};
+    if (d.type === 'ppd:hello' && d.src) {
+      ensure();
+      if (srcNow !== d.src) { srcNow = d.src; frame.src = d.src; }
+      titleEl.textContent = d.title || '页面说明';
+      subEl.textContent = (d.sub ? d.sub + ' · ' : '') + (d.file || '');
+      btn.style.display = '';
+      try { e.source.postMessage({ type: 'ppd:ack' }, '*'); } catch (err) {}
+      /* 已打开时原地换内容，不关不抖；未打开时保持关闭 */
+    } else if (d.type === 'ppd:hide') {
+      if (btn) btn.style.display = 'none';
+      close();
+    }
+  });
+})();
+</script>
 </body>
 </html>

@@ -40,6 +40,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .tree-sub{padding:6px 10px 6px 30px;border-radius:8px;cursor:pointer;font-size:12px;color:#64748B;transition:.15s}
 .tree-sub:hover{background:#F8FAFC;color:#1F2430}
 .tree-sub.on{background:#FFF1ED;color:#FF4D2D;font-weight:600}
+/* 场所层（三级树第一级） */
+.tree-place{display:flex;align-items:center;gap:7px;padding:7px 8px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;color:#1F2430;margin-top:3px}
+.tree-place:hover{background:#F8FAFC}
+.tree-place>i{color:#FF4D2D;font-size:12px}
+.tree-b{display:flex;align-items:center;gap:8px;padding:7px 10px 7px 20px;border-radius:8px;cursor:pointer;font-size:13px;color:#334155;transition:.15s}
+.tree-b:hover{background:#F8FAFC}
+.tree-b.on{background:#FFF1ED;color:#FF4D2D;font-weight:600}
+.tree-empty{padding:6px 10px 8px 26px;font-size:11px;color:#94A3B8;line-height:1.6}
 </style>
 <!-- Tailwind 静态样式：本地引用（不再依赖 cdn.tailwindcss.com）；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
 <link rel="stylesheet" href="tailwind.css">
@@ -62,7 +70,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
   </div>
 
   <!-- 统计卡 -->
-  <div class="grid grid-cols-4 gap-4 mb-5">
+  <div class="grid grid-cols-5 gap-4 mb-5">
+    <div class="stat-card bg-white rounded-xl border border-gray-100 p-4">
+      <div class="flex items-center justify-between"><span class="text-[12px] text-[#64748B]">场所数</span><i class="fas fa-map-location-dot text-[13px]" style="color:#0EA5E9"></i></div>
+      <p class="text-2xl font-bold text-[#1F2430] mt-2" id="s-p">3</p>
+      <p class="text-[11px] text-[#94A3B8] mt-1">初始化配置写入 · 只读</p>
+    </div>
     <div class="stat-card bg-white rounded-xl border border-gray-100 p-4">
       <div class="flex items-center justify-between"><span class="text-[12px] text-[#64748B]">楼栋总数</span><i class="fas fa-building text-[13px]" style="color:#FF4D2D"></i></div>
       <p class="text-2xl font-bold text-[#1F2430] mt-2" id="s-b">3</p>
@@ -92,7 +105,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
       <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
         <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
           <span class="text-[13px] font-bold text-[#1F2430]">场所结构</span>
-          <span class="text-[11px] text-[#94A3B8]">大唐袜业城 / 原料市场 / 行政服务中心</span>
+          <span class="text-[11px] text-[#94A3B8]">场所 → 楼栋 → 楼层　·　场所只读，点可折叠</span>
         </div>
         <div class="p-2" id="tree"></div>
       </div>
@@ -104,6 +117,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
         <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
           <div class="section-label mb-0" id="floorTitle">A 栋（主市场） · 楼层列表</div>
           <div class="flex gap-2">
+            <button class="btn btn-ghost" onclick="openBuilding(curBid)"><i class="fas fa-pen mr-1"></i>编辑楼栋</button>
             <button class="btn btn-ghost" onclick="openFloor('new')"><i class="fas fa-plus mr-1"></i>新增楼层</button>
             <button class="btn btn-ghost" onclick="location.href='resource-unit.html'"><i class="fas fa-table-list mr-1"></i>前往档口台账</button>
           </div>
@@ -116,7 +130,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
           <tbody id="floorBody"></tbody>
         </table>
         <div class="px-5 py-3 border-t border-gray-100 text-[11px] text-[#94A3B8]">
-          <i class="fas fa-circle-info mr-1"></i>出租率 = 在租档口 ÷ 可租档口（可租 = 全部 − 公共设施 − 停用 − 未开放楼层），"在租"由合同数据判定
+          <i class="fas fa-circle-info mr-1"></i>出租率 = 在租档口 ÷ 可租档口（可租 = 全部 − 公共设施 − 停用 − 未开放楼层），"在租"由合同数据判定　·　<b>场所固定 3 个、只读</b>（初始化配置写入）；楼栋可新增/编辑/停用，楼层可新增/编辑/停用；<b>有档口的楼层不可删除</b>（只能停用）
         </div>
       </div>
     </div>
@@ -135,7 +149,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
     <button onclick="closeD()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-xmark text-lg"></i></button>
   </div>
   <div class="flex-1 overflow-y-auto px-6 py-5" id="d-body"></div>
-  <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
+  <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3" id="d-foot">
     <button class="btn btn-ghost py-2.5" onclick="closeD()">取消</button>
     <button class="btn btn-primary py-2.5 px-6" onclick="saveForm()">保存</button>
   </div>
@@ -147,20 +161,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 /* ===== 数据（原型态静态模拟数据） ===== */
 /* v2.5：新增"场所"层（pl 字段）——大唐袜业城 / 原料市场 / 行政服务中心 */
 var buildings=[
-  {id:'A',name:'A 栋（主市场）',pl:'大唐袜业城',code:'A',area:'86,000',status:'开放',floors:[
+  {id:'A',name:'A 栋（主市场）',pl:'大唐袜业城',btype:'市场楼',code:'A',area:'86,000',status:'开放',floors:[
     {no:'B1',name:'地下停车场',area:'12,000',units:0,rent:0,can:0,plan:'未上传',status:'开放'},
     {no:'1F',name:'袜子区',area:'22,000',units:486,rent:412,can:462,plan:'已发布',status:'开放'},
     {no:'2F',name:'品牌馆',area:'21,000',units:298,rent:243,can:280,plan:'已发布',status:'开放'},
     {no:'3F',name:'配套服务区',area:'16,000',units:122,rent:98,can:110,plan:'草稿',status:'开放'}
   ]},
-  {id:'B',name:'B 栋（原料馆）',code:'B',area:'42,000',status:'开放',floors:[
+  {id:'B',name:'B 栋（原料馆）',pl:'大唐袜业城',btype:'市场楼',code:'B',area:'42,000',status:'开放',floors:[
     {no:'1F',name:'原料区',area:'16,000',units:236,rent:188,can:220,plan:'已发布',status:'开放'},
     {no:'2F',name:'辅料·机械区',area:'15,000',units:144,rent:96,can:130,plan:'未上传',status:'开放'}
   ]},
-  {id:'C',name:'C 栋（配套楼）',code:'C',area:'18,000',status:'未开放',floors:[
+  {id:'C',name:'C 栋（配套楼）',pl:'大唐袜业城',btype:'办公楼',code:'C',area:'18,000',status:'未开放',floors:[
     {no:'1F',name:'生活配套',area:'8,000',units:0,rent:0,can:0,plan:'未上传',status:'未开放'}
   ]}
 ];
+/* 场所固定 3 个，由初始化配置写入、界面只读（分册 D-28）——不做前端增删改查 */
+var PLACES=['大唐袜业城','原料市场','行政服务中心'];
+var openPl={};
 var curBid='A';
 var editTarget=null;
 
@@ -176,23 +193,43 @@ function stTag(s){
   return '<span class="tag" style="background:#F1F5F9;color:#64748B">停用</span>';
 }
 
+/* 三级树：场所 → 楼栋 → 楼层 */
 function renderTree(){
   var h='';
-  buildings.forEach(function(b){
-    var on=(b.id===curBid);
-    h+='<div class="tree-item '+(on?'on':'')+'" onclick="pick(\''+b.id+'\')">'
-      +'<i class="fas fa-building text-[12px]"></i><span class="flex-1">'+esc(b.name)+'</span>'
-      +'<span class="text-[11px] '+(on?'':'text-[#94A3B8]')+'">'+b.floors.length+'F</span></div>';
-    if(on){ b.floors.forEach(function(f){ h+='<div class="tree-sub" onclick="event.stopPropagation();jump(\''+b.id+'\',\''+f.no+'\')">'+esc(f.no)+' · '+esc(f.name)+'</div>'; }); }
+  PLACES.forEach(function(p){
+    var bs=buildings.filter(function(b){return b.pl===p;});
+    var op=(openPl[p]!==false);
+    h+='<div class="tree-place" onclick="togglePl(\''+p+'\')">'
+      +'<i class="fas '+(op?'fa-folder-open':'fa-folder')+'"></i>'
+      +'<span class="flex-1">'+esc(p)+'</span>'
+      +'<span class="text-[11px] text-[#94A3B8]">'+bs.length+' 栋</span></div>';
+    if(!op) return;
+    if(!bs.length){ h+='<div class="tree-empty">暂无楼栋 · 点右上「新增楼栋」挂到本场所</div>'; return; }
+    bs.forEach(function(b){
+      var on=(b.id===curBid);
+      h+='<div class="tree-b '+(on?'on':'')+'" onclick="pick(\''+b.id+'\')">'
+        +'<i class="fas fa-building text-[12px]"></i><span class="flex-1">'+esc(b.name)+'</span>'
+        +'<span class="text-[11px] '+(on?'':'text-[#94A3B8]')+'">'+b.floors.length+'F</span></div>';
+      if(on){ b.floors.forEach(function(f){ h+='<div class="tree-sub" onclick="event.stopPropagation();jump(\''+b.id+'\',\''+f.no+'\')">'+esc(f.no)+' · '+esc(f.name)+'</div>'; }); }
+    });
   });
+  /* 兜底：历史数据可能缺场所（v2.5 前建成），单独列出来提示补录 */
+  var orphan=buildings.filter(function(b){return PLACES.indexOf(b.pl)<0;});
+  if(orphan.length){
+    h+='<div class="tree-place" style="color:#DC2626"><i class="fas fa-triangle-exclamation"></i><span class="flex-1">未归类场所</span><span class="text-[11px]">'+orphan.length+'</span></div>';
+    orphan.forEach(function(b){
+      h+='<div class="tree-b" onclick="pick(\''+b.id+'\')"><i class="fas fa-building text-[12px]"></i><span class="flex-1">'+esc(b.name)+'</span><span class="text-[11px] text-[#DC2626]">请补录</span></div>';
+    });
+  }
   document.getElementById('tree').innerHTML=h;
 }
+function togglePl(p){ openPl[p]=(openPl[p]===false); renderTree(); }
 function pick(id){ curBid=id; renderTree(); renderFloors(); }
 function jump(bid,fno){ location.href='resource-unit.html?b='+bid+'&f='+encodeURIComponent(fno); }
 
 function renderFloors(){
   var b=buildings.filter(function(x){return x.id===curBid;})[0];
-  document.getElementById('floorTitle').textContent=b.name+' · 楼层列表';
+  document.getElementById('floorTitle').innerHTML='<span class="text-[#94A3B8] font-normal">'+esc(b.pl||'未归类')+' / </span>'+esc(b.name)+' · 楼层列表';
   var h='';
   if(!b.floors.length){ h='<tr><td colspan="10" class="text-center text-[#94A3B8] py-10">该楼栋暂无楼层，点击右上角「新增楼层」创建</td></tr>'; }
   b.floors.forEach(function(f,i){
@@ -206,10 +243,20 @@ function renderFloors(){
       +'<td>'+stTag(f.status)+'</td>'
       +'<td><span class="lk" onclick="location.href=\'resource-unit.html?b='+b.id+'&f='+encodeURIComponent(f.no)+'\'">查看档口</span>'
         +' · <span class="lk" onclick="openFloor('+i+')">编辑</span>'
-        +' · <span class="lk" onclick="toggleFloor('+i+')">'+(f.status==='停用'?'启用':'停用')+'</span></td>'
+        +' · <span class="lk" onclick="toggleFloor('+i+')">'+(f.status==='停用'?'启用':'停用')+'</span>'
+        +((f.units===0&&f.rent===0)?' · <span class="lk" style="color:#DC2626" onclick="delFloor('+i+')">删除</span>':'')+'</td>'
       +'</tr>';
   });
   document.getElementById('floorBody').innerHTML=h;
+}
+function delFloor(i){
+  var b=buildings.filter(function(x){return x.id===curBid;})[0];
+  var f=b.floors[i];
+  if(f.units>0||f.rent>0){ toast('该楼层已有 '+f.units+' 个档口，不可删除；请先停用或迁走档口'); return; }
+  if(!confirm('删除楼层「'+f.no+' '+f.name+'」？\n删除后不可恢复，其平面图与点位将一并失效。')) return;
+  b.floors.splice(i,1);
+  toast('已删除楼层 '+f.no);
+  closeD(); renderFloors(); renderTree();
 }
 function toggleFloor(i){
   var b=buildings.filter(function(x){return x.id===curBid;})[0];
@@ -225,19 +272,26 @@ function openBuilding(id){
   editTarget={type:'b',id:id};
   document.getElementById('d-title').textContent=(id==='new')?'新增楼栋':'编辑楼栋';
   document.getElementById('d-sub').textContent='楼栋编码唯一，层数由楼层数自动派生';
-  var b=(id==='new')?{code:'',name:'',area:'',status:'开放'}:buildings.filter(function(x){return x.id===id;})[0];
+  var b=(id==='new')?{code:'',name:'',area:'',status:'开放',pl:PLACES[0],btype:'市场楼'}:buildings.filter(function(x){return x.id===id;})[0];
   document.getElementById('d-body').innerHTML=
     '<div class="grid grid-cols-2 gap-3">'
+    +'<div class="col-span-2"><label class="fl"><i>*</i>所属场所</label><select class="fi" id="f_pl">'
+      +PLACES.map(function(p){return '<option'+(b.pl===p?' selected':'')+'>'+esc(p)+'</option>';}).join('')
+      +'</select><p class="text-[11px] text-[#94A3B8] mt-1">场所固定 3 个、由初始化配置写入（界面只读）；一个场所下可挂多栋楼</p></div>'
     +'<div><label class="fl"><i>*</i>楼栋编码</label><input class="fi" id="f_code" value="'+esc(b.code)+'" placeholder="如 A"></div>'
     +'<div><label class="fl"><i>*</i>楼栋名称</label><input class="fi" id="f_name" value="'+esc(b.name)+'" placeholder="如 A 栋（主市场）"></div>'
     +'<div><label class="fl">建筑面积(㎡)</label><input class="fi" id="f_area" value="'+esc(b.area)+'"></div>'
+    +'<div><label class="fl">楼栋类型</label><select class="fi" id="f_btype">'
+      +['市场楼','办公楼','店面区'].map(function(x){return '<option'+(b.btype===x?' selected':'')+'>'+x+'</option>';}).join('')
+      +'</select></div>'
     +'<div><label class="fl">状态</label><select class="fi" id="f_status">'
       +'<option'+(b.status==='开放'?' selected':'')+'>开放</option>'
       +'<option'+(b.status==='未开放'?' selected':'')+'>未开放</option>'
       +'<option'+(b.status==='停用'?' selected':'')+'>停用</option></select></div>'
-    +'<div class="col-span-2"><label class="fl">备注</label><input class="fi" placeholder="选填"></div>'
+    +'<div><label class="fl">备注</label><input class="fi" placeholder="选填"></div>'
     +'</div>'
     +'<div class="mt-4 p-4 bg-gray-50 rounded-xl text-[12px] text-[#64748B]"><i class="fas fa-circle-info mr-1 text-[#FF4D2D]"></i>楼栋是档口与平面图的父级；编码将作为档口编号前缀之一参与编号规则</div>';
+  setFoot('b');
   showD();
 }
 function openFloor(iOrNew){
@@ -260,17 +314,44 @@ function openFloor(iOrNew){
     +'<div><label class="fl">平面图状态</label><div class="py-2 text-[13px] text-[#64748B]">'+esc(f.plan)+'（在「平面图维护」中变更）</div></div>'
     +'</div>'
     +'<div class="mt-4 p-4 bg-gray-50 rounded-xl text-[12px] text-[#64748B]"><i class="fas fa-circle-info mr-1 text-[#FF4D2D]"></i>档口数 / 在租 / 可租 由档口台账与合同匹配结果派生，不在此处维护</div>';
+  setFoot('f');
   showD();
+}
+/* 抽屉底部：编辑态追加「删除」（新增态不显示） */
+function setFoot(type){
+  var isEdit=(type==='b')?(editTarget.id!=='new'):(editTarget.idx!=='new');
+  var html='<button class="btn btn-ghost py-2.5" onclick="closeD()">取消</button>'
+    +'<button class="btn btn-primary py-2.5 px-6" onclick="saveForm()">保存</button>';
+  if(isEdit){
+    html='<button class="btn btn-ghost py-2.5" style="margin-right:auto;color:#DC2626" onclick="'
+      +(type==='b'?'delBuilding()':'delFloor(editTarget.idx)')+'">'
+      +'<i class="fas fa-trash mr-1"></i>删除'+(type==='b'?'楼栋':'楼层')+'</button>'+html;
+  }
+  document.getElementById('d-foot').innerHTML=html;
+}
+function delBuilding(){
+  var b=buildings.filter(function(x){return x.id===editTarget.id;})[0];
+  if(!b) return;
+  var rent=b.floors.reduce(function(a,f){return a+f.rent;},0);
+  if(rent>0){ toast('该楼栋下有 '+rent+' 个在租档口，不可删除；可改为「停用」'); return; }
+  if(b.floors.length){ toast('该楼栋下还有 '+b.floors.length+' 层，请先删除楼层'); return; }
+  if(!confirm('删除楼栋「'+b.name+'」？\n删除后不可恢复，其档口与平面图关系一并解除。')) return;
+  buildings=buildings.filter(function(x){return x.id!==b.id;});
+  if(curBid===b.id) curBid=buildings.length?buildings[0].id:'';
+  closeD(); renderTree(); renderFloors();
+  toast('已删除楼栋 '+b.name);
 }
 function saveForm(){
   var b=buildings.filter(function(x){return x.id===curBid;})[0];
   if(editTarget.type==='b'){
-    var code=val('f_code'),name=val('f_name');
+    var code=val('f_code'),name=val('f_name'),pl=val('f_pl');
     if(!code||!name){ toast('楼栋编码与名称均为必填'); return; }
+    if(!pl){ toast('请选择所属场所'); return; }
     var dup=buildings.filter(function(x){return x.code===code && x.id!==editTarget.id;});
     if(dup.length){ toast('楼栋编码已存在，请更换'); return; }
-    if(editTarget.id==='new'){ buildings.push({id:code,name:name,code:code,area:val('f_area'),status:val('f_status'),floors:[]}); toast('已新增楼栋'); curBid=code; }
-    else { var t=buildings.filter(function(x){return x.id===editTarget.id;})[0]; t.name=name;t.area=val('f_area');t.status=val('f_status'); toast('已保存修改'); }
+    var btype=val('f_btype')||'市场楼';
+    if(editTarget.id==='new'){ buildings.push({id:code,name:name,pl:pl,btype:btype,code:code,area:val('f_area'),status:val('f_status'),floors:[]}); toast('已新增楼栋（'+pl+'）'); curBid=code; openPl[pl]=true; }
+    else { var t=buildings.filter(function(x){return x.id===editTarget.id;})[0]; t.name=name;t.pl=pl;t.btype=btype;t.area=val('f_area');t.status=val('f_status'); toast('已保存修改'); openPl[pl]=true; }
   } else {
     var no=val('f_no'),fname=val('f_name');
     if(!no||!fname){ toast('楼层号与名称为必填'); return; }

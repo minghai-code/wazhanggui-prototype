@@ -68,6 +68,12 @@ for (const end of ends) {
 
   const cited = new Map();
 
+  /* 移动端：manifest.json 记录 page→族，用于把「跨族引用」排除在覆盖率之外 */
+  const manifestPath = path.join(prdDir, 'manifest.json');
+  const manifest = fs.existsSync(manifestPath)
+    ? (() => { try { return JSON.parse(fs.readFileSync(manifestPath, 'utf8')); } catch (e) { return null; } })()
+    : null;
+
   for (const mdPath of mds) {
     const md = path.relative(prdDir, mdPath).replace(/\\/g, '/');
     const mdTime = fs.statSync(mdPath).mtimeMs;
@@ -84,6 +90,19 @@ for (const end of ends) {
       if (/未建/.test(line)) continue;
       refs.add(f);
     }
+    /* 只把「本族页面」计入覆盖：跨族引用（如首页指向 market-socks）不产生覆盖，避免同前缀页误报漏登 */
+    const famId = (md.match(/^(F\d+)/) || [])[1];
+    const famPages = manifest && famId
+      ? new Set(Object.entries(manifest.pages || {})
+        .filter(([, v]) => v && v.fam === famId)
+        .map(([k]) => k))
+      : null;
+    if (famPages) {
+      for (const f of [...refs]) {
+        if (!famPages.has(path.basename(f))) refs.delete(f);
+      }
+    }
+
     if (!refs.size) warn(`${end}/prd/${md}：未引用任何页面文件（缺 §0.3 端间落点表？）`);
 
     for (const f of refs) {
@@ -96,7 +115,10 @@ for (const end of ends) {
         }
       }
       if (!cand) { err(`${end}/prd/${md} → 引用的页面不存在：${f}`); continue; }
-      cited.set(path.basename(cand), { md, mtime: mdTime });
+      /* 一个页面可能被多份文档提及（如 resource-unit 被 02 本模块 + 05 台账跳转引用）。
+         归属取**第一次登记**（目录名排序靠前的通常是本模块），后到的引用不覆盖。 */
+      const key = path.basename(cand);
+      if (!cited.has(key)) cited.set(key, { md, mtime: mdTime });
     }
   }
 
@@ -134,15 +156,44 @@ if (fs.existsSync(LOADER)) {
 
 const uniq = (a) => [...new Set(a)].sort((x, y) => x - y);
 
+/* 移动端：PRD_MAP 的值指向 _views/{族}-p{N}（单页视图），源文档是 {族}.md 的第 N 节。
+   返回 { mdRel, text } —— text 已裁剪为「本页那一节」，避免拿整族文档做断言。 */
+function resolveDoc(mdKey, endName) {
+  if (!mdKey.startsWith('_views/')) {
+    const mdRel = mdKey + '.md';
+    const p = path.join(ROOT, endName, 'prd', mdRel);
+    return fs.existsSync(p) ? { mdRel, text: fs.readFileSync(p, 'utf8') } : null;
+  }
+  const inner = mdKey.slice('_views/'.length);
+  const m = inner.match(/^(.*)-p(\d+)$/);
+  if (!m) return null;
+  const mdRel = m[1] + '.md';
+  const p = path.join(ROOT, endName, 'prd', mdRel);
+  if (!fs.existsSync(p)) return null;
+  const full = fs.readFileSync(p, 'utf8');
+  return { mdRel, text: sectionOf(full, m[2]) };
+}
+
+function sectionOf(md, sec) {
+  const L = md.split(/\r?\n/);
+  const re = new RegExp('^##\\s+' + sec + '\\.\\s');
+  let s = -1, e = L.length;
+  for (let i = 0; i < L.length; i++) {
+    if (s < 0 && re.test(L[i])) { s = i; continue; }
+    if (s >= 0 && /^##\s+\d+\.\s/.test(L[i])) { e = i; break; }
+  }
+  return s < 0 ? '' : L.slice(s, e).join('\n');
+}
+
 for (const [key, mdKey] of Object.entries(HTML2MD)) {
   const htmlPath = path.join(ROOT, key);
   const endName = key.split('/')[0];
-  const mdPath = path.join(ROOT, endName, 'prd', mdKey + '.md');
   if (!fs.existsSync(htmlPath)) { err(`映射表里的页面不存在：${key}`); continue; }
-  if (!fs.existsSync(mdPath)) { err(`${key} 映射的文档不存在：prd/${mdKey}.md`); continue; }
+  const doc = resolveDoc(mdKey, endName);
+  if (!doc) { err(`${key} 映射的文档不存在：prd/${mdKey}.md`); continue; }
 
   const H = fs.readFileSync(htmlPath, 'utf8');
-  const M = fs.readFileSync(mdPath, 'utf8');
+  const M = doc.text;
 
   /* 统计卡 */
   const hStat = (H.match(/class="stat-card/g) || []).length;
@@ -201,13 +252,13 @@ function copyCells(md) {
 for (const [key, mdKey] of Object.entries(HTML2MD)) {
   const htmlPath = path.join(ROOT, key);
   const endName = key.split('/')[0];
-  const mdPath = path.join(ROOT, endName, 'prd', mdKey + '.md');
-  if (!fs.existsSync(htmlPath) || !fs.existsSync(mdPath)) continue;
+  if (!fs.existsSync(htmlPath)) continue;
+  const doc = resolveDoc(mdKey, endName);
+  if (!doc) continue;
 
   const H = normText(fs.readFileSync(htmlPath, 'utf8'));
-  const M = fs.readFileSync(mdPath, 'utf8');
-  // 只核对本页章节：§0 是模块通用说明，里面的表可能指向其他页面的文案
-  const MBody = M.replace(/^## 0\.[\s\S]*?(?=^## 1\.)/m, '');
+  // 族文档已按节裁剪；PC 文档仍需剔除 §0（模块通用说明）
+  const MBody = mdKey.startsWith('_views/') ? doc.text : doc.text.replace(/^## 0\.[\s\S]*?(?=^## 1\.)/m, '');
   const copies = copyCells(MBody);
 
   let bad = 0;
