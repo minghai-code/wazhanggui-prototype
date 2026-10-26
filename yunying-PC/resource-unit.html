@@ -60,7 +60,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
         <h1 class="text-[20px] font-bold text-[#1F2430]">摊位商铺管理</h1>
         <span class="tag" style="background:#FFF1ED;color:#FF4D2D">档口编号权威源</span>
       </div>
-      <p class="text-[12px] text-[#94A3B8] mt-1">市场资源管理 / 摊位商铺管理　·　全市场档口唯一台账。<b>v2.9</b>：<b>「当前租户」的唯一来源 = 05 合同</b>——合同「已存档 · 生效中」→ 当前租户 = 合同承租人（在租）；合同<b>「已终止」</b>（<b>提前终止</b>，05 合同台账发起）→ <b>当前租户清空 + 档口置「空闲（待竞拍）」</b>并记空置开始日，<b>历届租户结束原因 = 终止原因</b>；合同<b>「已到期」</b>（自然到期、系统自动）→ 档口结果相同，<b>但结束原因记「到期（重新竞拍）」，不叫终止</b>；本模块<b>只接收结果、不做终止入口</b></p>
+      <p class="text-[12px] text-[#94A3B8] mt-1">市场资源管理 / 摊位商铺管理　·　全市场档口唯一台账。<b>v2.9</b>：<b>「当前租户」的唯一来源 = 05 合同</b>——合同「已存档 · 生效中」（<b>= 05 盖章扫描件回传后</b>，审核签字不算）→ 当前租户 = 合同承租人（在租）；合同<b>「已终止」</b>（<b>提前终止</b>，05 合同台账发起）→ <b>当前租户清空 + 档口置「空闲（待竞拍）」</b>并记空置开始日，<b>历届租户结束原因 = 终止原因</b>；合同<b>「已到期」</b>（自然到期、系统自动）→ 档口结果相同，<b>但结束原因记「到期（重新竞拍）」，不叫终止</b>；本模块<b>只接收结果、不做终止入口</b></p>
     </div>
     <div class="flex gap-2">
       <button class="btn btn-ghost" onclick="toast('已下载档口导入模板（Excel）')"><i class="fas fa-file-arrow-down mr-1"></i>导入模板</button>
@@ -145,7 +145,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
         </table>
       </div>
       <div class="px-5 py-3 border-t border-gray-100 text-[11px] text-[#94A3B8]">
-        <i class="fas fa-circle-info mr-1"></i>「当前租户」由 <b>05 合同</b>写入——<b>合同「已存档」事件</b>（+ 每日兜底同步）写入当前租户；<b>合同「已终止」（提前终止）或「已到期」（自然到期）</b>→ 当前租户清空、档口回「空闲（待竞拍）」；「在租 / 空闲」由合同判定，<b>不支持手工修改</b>；物业仅可标记「装修中 / 停用」；<b>档口不可删除</b>——编号一经使用即为合同匹配键，只能停用（停用不计出租率）
+        <i class="fas fa-circle-info mr-1"></i>「当前租户」由 <b>05 合同</b>写入——<b>合同「已存档」事件</b>（<b>= 盖章扫描件回传后</b>，审核签字不触发；+ 每日兜底同步）写入当前租户；<b>合同「已终止」（提前终止）或「已到期」（自然到期）</b>→ 当前租户清空、档口回「空闲（待竞拍）」；「在租 / 空闲」由合同判定，<b>不支持手工修改</b>；物业仅可标记「装修中 / 停用」；<b>档口不可删除</b>——编号一经使用即为合同匹配键，只能停用（停用不计出租率）
       </div>
     </div>
 
@@ -353,7 +353,7 @@ function editAttr(){
       +'</select></div>'
     +'<div><label class="fl">摊位等级</label><select class="fi" id="a_lv">'
       +'<option value="">—</option><option'+(u.lv==='精品摊'?' selected':'')+'>精品摊</option><option'+(u.lv==='普通摊'?' selected':'')+'>普通摊</option></select></div>'
-    +'<div><label class="fl">备注</label><input class="fi" id="a_note" placeholder="选填，如位置说明"></div>'
+    +'<div><label class="fl">备注</label><input class="fi" id="a_note" value="'+esc(u.note||'')+'" placeholder="选填，如位置说明"></div>'
     +'</div>'
     +'<div class="mt-3 p-3 rounded-lg text-[11px] leading-relaxed" style="background:#F8FAFC;color:#64748B">'
     +'<i class="fas fa-circle-info mr-1"></i>编号与楼栋/楼层<b>不可改</b>（编号是合同匹配键）；「在租 / 空闲」由合同判定；档口<b>不可删除</b>，只能标记「装修中 / 停用」</div>';
@@ -366,9 +366,11 @@ function saveAttr(){
   if(!area||area<=0){ toast('请填写正确的面积'); return; }
   var t=document.getElementById('a_type').value;
   var lv=document.getElementById('a_lv').value;
+  var note=document.getElementById('a_note').value.trim();
   u.area=area;
   u.type=t;
   u.lv=(t==='档口')?lv:'';
+  u.note=note;
   closeM();
   renderUnits(); stat();
   openUnit(u.no);

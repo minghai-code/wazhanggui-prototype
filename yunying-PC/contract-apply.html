@@ -58,9 +58,9 @@ textarea.fi{font-family:inherit;line-height:1.8;resize:vertical}
         <span class="tag" style="background:#DBEAFE;color:#2563EB">05 合同管理</span>
         <span class="tag" style="background:#FFEDE7;color:#E63E20">后台主动发起</span>
         <span class="tag" style="background:#E0E7FF;color:#4338CA">短信通知（独立服务）</span>
-        <span class="tag" style="background:#DCFCE7;color:#15803D">审核签字即生效</span>
+        <span class="tag" style="background:#FFEDE7;color:#E63E20">盖章件回传才生效</span>
       </div>
-      <p class="text-[12px] text-gray-400 mt-1"><b>v1.8（2026-10-15）</b>：① 合同主体分 <b>个人 / 企业</b> —— 企业主体须填 <b>企业名称 / 统一社会信用代码 / 法定代表人·联系人 / 联系电话 / 企业类型</b>（签署匹配键 = 联系人手机号）；② <b>Tab 职责切分</b>：<b>Tab1</b> 录入/导入竞拍结果 + <b>生成合同并发送</b>（生成与发送是同一动作，取消独立「待生成」）；<b>Tab2「签署与盖章」</b> 只处理 <b>待商户签字 / 待签署审核 / 盖章件待回传·已回传</b>。<br>流程：竞拍结果由<b>浙交会线下</b>给到袜业城 → <b>合同专员录入 / 导入</b> → <b>主动发起合同</b>（模板按资源类型）→ <b>发送并自动发短信</b> → 联系人<b>用同一手机号注册</b>后商户端出现待签合同 → <b>手写签名</b>（无人脸识别）→ <b>合同专员审核签字</b> → <b>合同生效 + 存档</b>（盖章件回传仅影响归档完整性）</p>
+      <p class="text-[12px] text-gray-400 mt-1"><b>v1.8（2026-10-15）</b>：① 合同主体分 <b>个人 / 企业</b> —— 企业主体须填 <b>企业名称 / 统一社会信用代码 / 法定代表人·联系人 / 联系电话 / 企业类型</b>（签署匹配键 = 联系人手机号）；② <b>Tab 职责切分</b>：<b>Tab1</b> 录入/导入竞拍结果 + <b>生成合同并发送</b>（生成与发送是同一动作，取消独立「待生成」）；<b>Tab2「签署与盖章」</b> 只处理 <b>待商户签字 / 待签署审核 / 盖章件待回传·已回传</b>。<br>流程：竞拍结果由<b>浙交会线下</b>给到袜业城 → <b>合同专员录入 / 导入</b> → <b>主动发起合同</b>（模板按资源类型）→ <b>发送并自动发短信</b> → 联系人<b>用同一手机号注册</b>后商户端出现待签合同 → <b>手写签名</b>（无人脸识别）→ <b>合同专员审核签字</b> → <b>待盖章归档</b>（此时<b>尚未生效</b>）→ <b>下载合同 → 线下盖章 → 上传盖章扫描件</b> → <b>合同生效 + 存档</b>（<b>未回传盖章件不生效，也不推送 02/04/应收</b>）</p>
     </div>
     <div class="flex items-center gap-2">
       <button class="btn btn-ghost" onclick="toast('已导出合同发起台账（含竞拍结果、短信记录、签署状态）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
@@ -128,7 +128,7 @@ textarea.fi{font-family:inherit;line-height:1.8;resize:vertical}
       <div class="flex items-center gap-3 flex-wrap">
         <input id="s-kw" type="text" placeholder="合同号 / 承租人 / 资源编号" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary w-56">
         <select id="s-state" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
-          <option value="">全部签署状态</option><option>待商户签字</option><option>待签署审核</option><option>已存档·生效中</option><option>已撤回</option>
+          <option value="">全部签署状态</option><option>待商户签字</option><option>待签署审核</option><option>待盖章归档</option><option>已存档·生效中</option><option>已撤回</option>
         </select>
         <select id="s-own" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
           <option value="">全部处理人</option><option>合同专员</option><option>承租商户</option>
@@ -145,7 +145,7 @@ textarea.fi{font-family:inherit;line-height:1.8;resize:vertical}
           <span class="text-[13px] font-bold text-[#1F2430]">合同签署单</span>
           <span class="text-[12px] text-[#94A3B8]" id="sCnt">共 0 条</span>
         </div>
-        <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i><b>本 Tab 只处理"合同已发出之后"的环节</b>（生成与发送在 Tab1「竞拍结果与发起」完成）：<b>待商户签字</b> → 商户同号注册手写签名 → <b>待签署审核</b> → <b>合同专员审核签字</b> → 生效存档 → <b>盖章件待回传 / 已回传</b>；<b>v1.10「撤回」≠ 重发</b>：撤回会把合同<b>收回并退回「待发起」</b>（原签署链接与短信作废），请到 <b>Tab1</b> 重新编辑后再发送（<b>v+1、合同号不变</b>）</span>
+        <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i><b>本 Tab 只处理"合同已发出之后"的环节</b>（生成与发送在 Tab1「竞拍结果与发起」完成）：<b>待商户签字</b> → 商户同号注册手写签名 → <b>待签署审核</b> → <b>合同专员审核签字</b> → <b>待盖章归档</b> → <b>上传盖章扫描件</b> → 已存档·生效中（<b>盖章件不回传 = 合同不生效</b>）；<b>v1.10「撤回」≠ 重发</b>：撤回会把合同<b>收回并退回「待发起」</b>（原签署链接与短信作废），请到 <b>Tab1</b> 重新编辑后再发送（<b>v+1、合同号不变</b>）</span>
       </div>
       <div class="overflow-x-auto">
         <table class="w-full text-[13px]" style="min-width:1380px">
@@ -219,7 +219,7 @@ textarea.fi{font-family:inherit;line-height:1.8;resize:vertical}
 /* ===== 字典 ===== */
 var TPLS={'档口·精品摊':'档口租赁合同模板（精品摊·5 年）','档口·普通摊':'档口租赁合同模板（普通摊·3 年）','办公室':'办公室租赁合同模板','店面':'店面租赁合同模板','物业':'物业合同模板'};
 var AUSTC={'待发起':'background:#DBEAFE;color:#2563EB','已发起':'background:#FEF3C7;color:#B45309','已签约':'background:#DCFCE7;color:#15803D'};
-var SSTC={'待商户签字':'background:#EDE9FE;color:#6D28D9','待签署审核':'background:#FEF3C7;color:#B45309','已存档·生效中':'background:#DCFCE7;color:#15803D','已作废':'background:#F1F5F9;color:#94A3B8','已撤回':'background:#F1F5F9;color:#475569'};
+var SSTC={'待商户签字':'background:#EDE9FE;color:#6D28D9','待签署审核':'background:#FEF3C7;color:#B45309','待盖章归档':'background:#FFEDE7;color:#E63E20','已存档·生效中':'background:#DCFCE7;color:#15803D','已作废':'background:#F1F5F9;color:#94A3B8','已撤回':'background:#F1F5F9;color:#475569'};
 var SEAL={'待回传':'background:#FFEDE7;color:#E63E20','已回传':'background:#DCFCE7;color:#15803D'};
 var RJC={'签名有误（错别字 / 签名不符）':'签名有误（错别字 / 签名不符）','合同内容错项':'合同内容错项','手机号与承租人不符':'手机号与承租人不符','其他':'其他'};
 
@@ -256,10 +256,15 @@ var SG=[
    tmpl:'档口租赁合同模板（普通摊·3 年）', ver:1, sms:'2026-10-13 08:40 已送达（重试 1 次）', sign:'2026-10-13 09:12 手写签名已提交（无人脸核身）', audit:'', seal:'', src:'JT2027-0026',
    logs:['2026-10-13 08:40 发送签署（第 1 次失败已重试，第 2 次送达）','2026-10-13 09:12 商户手写签名提交 → 待签署审核']},
   {no:'HT2027-0003', unit:'3F-A01', type:'档口·精品摊', m:'浙江××袜业股份（赵××）', ent:'企业', phone:'135****7788',
-   term:'2027.09.01 ~ 2032.08.31', rent:'21.5 万/年', dep:'2 万元', state:'已存档·生效中', owner:'—', hrs:0,
+   term:'2027.09.01 ~ 2032.08.31', rent:'21.5 万/年', dep:'2 万元', state:'待盖章归档', owner:'合同专员', hrs:432,
    tmpl:'档口租赁合同模板（精品摊·5 年）', ver:2, sms:'2026-10-10 10:05 已送达（重试 0 次）',
    sign:'2026-10-10 14:20 手写签名已提交（无人脸核身）', audit:'签署审核通过（合同专员 何敏 2026-10-10 15:02）', seal:'待回传', src:'JT2027-0025',
-   logs:['2026-10-10 10:05 生成合同 v2 并发送签署（短信已送达）','2026-10-10 14:20 商户手写签名提交','2026-10-10 15:02 合同专员审核签字通过 → 合同生效并存档','2026-10-10 15:03 推送 02（在租）/ 04（自动建档 + 开通物业模块）/ 应收计划']}
+   logs:['2026-10-10 10:05 生成合同 v2 并发送签署（短信已送达）','2026-10-10 14:20 商户手写签名提交','2026-10-10 15:02 合同专员审核签字通过 → 待上传盖章件（尚未生效）','2026-10-10 15:10 已下载合同待线下盖章']},
+  {no:'HT2027-0002', unit:'1F-B02', type:'档口·普通摊', m:'诸暨××针织（钱××）', ent:'企业', phone:'139****2233',
+   term:'2027.09.01 ~ 2030.08.31', rent:'9.6 万/年', dep:'1 万元', state:'已存档·生效中', owner:'—', hrs:0,
+   tmpl:'档口租赁合同模板（普通摊·3 年）', ver:1, sms:'2026-10-08 09:15 已送达（重试 0 次）',
+   sign:'2026-10-08 11:40 手写签名已提交（无人脸核身）', audit:'签署审核通过（合同专员 何敏 2026-10-08 14:00）', seal:'已回传', src:'JT2027-0024',
+   logs:['2026-10-08 09:15 生成合同 v1 并发送签署（短信已送达）','2026-10-08 11:40 商户手写签名提交','2026-10-08 14:00 合同专员审核签字通过 → 待上传盖章件','2026-10-08 16:30 上传盖章扫描件 → 合同生效并归档','2026-10-08 16:31 推送 02（在租）/ 04（自动建档 + 开通物业模块）/ 应收计划']}
 ];
 /* ===== 模拟数据：短信记录 ===== */
 var SMS=[
@@ -277,7 +282,7 @@ function sOf(no){return SG.filter(function(x){return x.no===no;})[0];}
 function ast(s){return '<span class="st" style="'+(AUSTC[s]||'background:#F1F5F9;color:#64748B')+'">'+esc(s)+'</span>';}
 function sst(s){return '<span class="st" style="'+(SSTC[s]||'background:#F1F5F9;color:#64748B')+'">'+esc(s)+'</span>';}
 function sealTag(s){return s?('<span class="tag" style="'+(SEAL[s]||'background:#F1F5F9;color:#64748B')+'">盖章件 '+esc(s)+'</span>'):'';}
-function isSlow(x){return (x.state==='待商户签字'&&x.hrs>168)||(x.state==='待签署审核'&&x.hrs>48)||(x.state==='已存档·生效中'&&x.seal==='待回传'&&x.hrs>360);}
+function isSlow(x){return (x.state==='待商户签字'&&x.hrs>168)||(x.state==='待签署审核'&&x.hrs>48)||(x.state==='待盖章归档'&&x.hrs>360);}
 function smsOf(no){return SMS.filter(function(m){return m.no===no;})[0];}
 
 function renderStats(){
@@ -285,8 +290,9 @@ function renderStats(){
   var sign=SG.filter(function(s){return s.state==='待商户签字';}).length;
   var audit=SG.filter(function(s){return s.state==='待签署审核';}).length;
   var smsOk=SMS.filter(function(m){return m.state==='已送达';}).length;
-  var seal=SG.filter(function(s){return s.state==='已存档·生效中'&&s.seal==='待回传';}).length;
-  var cards=[['待发起合同（竞拍结果）',wait,'#2563EB'],['待商户签字',sign,'#6D28D9'],['待签署审核',audit,'#B45309'],['短信已送达（累计）',smsOk,'#4338CA'],['盖章件待回传',seal,'#E63E20']];
+  var seal=SG.filter(function(s){return s.state==='待盖章归档';}).length;
+  var sealed=SG.filter(function(s){return s.state==='已存档·生效中';}).length;
+  var cards=[['待发起合同（竞拍结果）',wait,'#2563EB'],['待商户签字',sign,'#6D28D9'],['待签署审核',audit,'#B45309'],['待盖章归档',seal,'#E63E20'],['已归档·生效中',sealed,'#15803D']];
   document.getElementById('stats').innerHTML=cards.map(function(x){
     return '<div class="bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">'+x[0]+'</p><p class="text-xl font-bold mt-1" style="color:'+x[2]+'">'+x[1]+'</p></div>';
   }).join('');
@@ -332,14 +338,15 @@ function renderSg(){
     if(s.state==='待商户签字'){ops='<span class="lk-gray" onclick="resendSms(\''+s.no+'\')">重发短信</span> · <span class="lk-gray" onclick="openRebind(\''+s.no+'\')">改绑手机号</span> · <span class="lk" onclick="openWithdraw(\''+s.no+'\')">撤回</span> · '+ops;}
     if(s.state==='已撤回'){ops='<span class="lk" onclick="gotoAu()">去 Tab1 重新发起</span> · '+ops;}
     if(s.state==='待签署审核'){ops='<span class="lk" onclick="openAudit(\''+s.no+'\')">审核签字</span> · '+ops;}
-    if(s.state==='已存档·生效中'){ops=(s.seal==='待回传'?'<span class="lk" onclick="openSeal(\''+s.no+'\')">上传盖章件</span> · ':'')+'<span class="lk-gray" onclick="toast(\'已下载：合同文本 PDF + 商户签字页 + 盖章扫描件\')">下载归档件</span> · '+ops;}
+    if(s.state==='待盖章归档'){ops='<span class="lk" onclick="openSeal(\''+s.no+'\')"><b>上传盖章件</b></span> · <span class="lk-gray" onclick="toast(\'已下载合同文本 PDF（可打印盖章）：\'+(\''+s.no+'\'))">下载合同待盖章</span> · '+ops;}
+    if(s.state==='已存档·生效中'){ops='<span class="lk-gray" onclick="toast(\'已下载：合同文本 PDF + 商户签字页 + 盖章扫描件\')">下载归档件</span> · '+ops;}
     h+='<tr class="hover:bg-gray-50 transition">'
       +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(s.no)+'<div class="text-[11px] text-[#94A3B8]">来自 '+esc(s.src)+'</div></td>'
       +'<td class="px-4 py-3" style="max-width:220px"><div class="font-medium text-[#1F2430]">'+esc(s.m)+'</div>'
         +'<div class="text-[11px] text-[#94A3B8]">'+esc(s.unit)+'　'+esc(s.type)+'</div></td>'
       +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(s.term)+'</td>'
       +'<td class="px-4 py-3 text-[12px]"><b>'+esc(s.rent)+'</b></td>'
-      +'<td class="px-4 py-3">'+sst(s.state)+(s.ver?'<div class="text-[10px] text-[#94A3B8] mt-0.5">合同 v'+s.ver+'</div>':'')+((s.state==='已存档·生效中')?'<div class="mt-1">'+sealTag(s.seal)+'</div>':'')+'</td>'
+      +'<td class="px-4 py-3">'+sst(s.state)+(s.ver?'<div class="text-[10px] text-[#94A3B8] mt-0.5">合同 v'+s.ver+'</div>':'')+(((s.state==='已存档·生效中'||s.state==='待盖章归档')&&s.seal)?'<div class="mt-1">'+sealTag(s.seal)+'</div>':'')+'</td>'
       +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(s.owner)+'</td>'
       +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(s.sms||'—')+'</td>'
       +'<td class="px-4 py-3 text-[12px]">'+(s.state==='已存档·生效中'?'<span class="text-[#94A3B8]">—</span>':('<span style="'+(isSlow(s)?'color:#E63E20;font-weight:600':'color:#1F2430')+'">'+s.hrs+' 小时'+(isSlow(s)?' · 超时':'')+'</span>'))+'</td>'
@@ -676,20 +683,18 @@ function openAudit(no){
   h+='<div class="px-5 py-3 border-t border-gray-100 flex items-center justify-end gap-2">'
     +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
     +'<button class="btn btn-ghost" onclick="auditReject(\''+no+'\')">驳回</button>'
-    +'<button class="btn btn-primary" onclick="auditPass(\''+no+'\')"><i class="fas fa-check text-[10px] mr-1"></i>审核通过（合同生效）</button></div>';
+    +'<button class="btn btn-primary" onclick="auditPass(\''+no+'\')"><i class="fas fa-check text-[10px] mr-1"></i>审核通过（转待盖章归档）</button></div>';
   document.getElementById('drawer').innerHTML=h;
   document.getElementById('mask').className='mask on';
   document.getElementById('drawer').className='drawer on';
 }
 function auditPass(no){
   var s=sOf(no);
-  s.state='已存档·生效中';s.owner='—';s.hrs=0;s.seal='待回传';
+  /* v1.11：审核签字不再直接生效 —— 转「待盖章归档」，等线下盖章扫描件回传后才生效 */
+  s.state='待盖章归档';s.owner='合同专员';s.hrs=0;s.seal='待回传';
   s.audit='签署审核通过（合同专员 何敏 2026-10-13 10:50）';
-  s.logs.push('2026-10-13 10:50 合同专员审核签字通过 → 合同生效并存档');
-  s.logs.push('2026-10-13 10:51 推送 02（资源在租）/ 04（自动建档 + 开通物业模块）/ 应收计划');
-  var u=AU.filter(function(a){return a.no===no;})[0];
-  if(u){u.state='已签约';u.logs.push('2026-10-13 10:50 合同生效（'+no+'）');}
-  closeDrawer();toast('审核通过：'+no+' 合同已生效并存档（盖章件待回传）');
+  s.logs.push('2026-10-13 10:50 合同专员审核签字通过 → 待上传盖章件');
+  closeDrawer();toast('审核通过：'+no+' 转「待盖章归档」——请下载合同线下盖章后上传扫描件，上传后才生效');
 }
 function auditReject(no){
   var reason=document.getElementById('rj-sel').value;
@@ -708,16 +713,16 @@ function openSeal(no){
   curNo=no;var s=sOf(no);
   var h='<div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">'
     +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">上传盖章扫描件　'+esc(s.no)+'</h3>'
-    +'<p class="text-[11px] text-[#94A3B8] mt-1">合同已生效（'+esc(s.audit)+'）　盖章件：'+esc(s.seal)+'</p></div>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">审核已通过（'+esc(s.audit||'—')+'）　盖章件：'+esc(s.seal||'待回传')+'</p></div>'
     +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
   h+='<div class="px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
-    +'<div class="rounded-xl border p-3" style="border-color:#BBF7D0;background:#F0FDF4"><p class="text-[11px] text-[#64748B]">本合同已<b>生效</b>（审核签字通过即生效）；盖章件仅用于<b>归档完整性</b>——超 15 天未回传会升级提醒，但<b>不影响生效与业务</b>。<b>是否改为线上盖章：客户后续再定</b>（当前流程 = 下载合同 → 线下打印盖章 → 上传扫描件）。</p></div>'
+    +'<div class="rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B]"><b>上传盖章件后合同才生效</b>：流程 = 下载合同 → <b>线下打印并加盖双方印章</b> → 上传扫描件 → 合同置「已存档·生效中」，并推送 <b>02（档口在租）/ 04（自动建档）/ 应收计划</b>。<br>未回传期间状态为「<b>待盖章归档</b>」：<b>不计为生效合同</b>，超 <b>15 天</b>未回传升级提醒主管。<b>是否改为线上盖章：客户后续再定</b>。</p></div>'
     +'<div class="seal" style="width:100%;height:110px" onclick="toast(\'已选择文件：HT2027-0003_盖章件.pdf（3 页）\')"><div><i class="fas fa-file-pdf block mb-1 text-[16px]"></i>点击上传盖章扫描件（PDF / 图片，可多页）</div></div>'
     +'<div><label class="fl">备注</label><input class="fi" id="seal-note" placeholder="如：已线下盖章并回传，共 3 页"></div>'
     +'</div>';
   h+='<div class="px-5 py-3 border-t border-gray-100 flex items-center justify-end gap-2" style="margin-top:auto">'
     +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
-    +'<button class="btn btn-primary" onclick="doSeal(\''+no+'\')">确认上传（标记已回传）</button></div>';
+    +'<button class="btn btn-primary" onclick="doSeal(\''+no+'\')"><i class="fas fa-check text-[10px] mr-1"></i>确认上传（合同生效）</button></div>';
   document.getElementById('drawer').innerHTML=h;
   document.getElementById('mask').className='mask on';
   document.getElementById('drawer').className='drawer on';
@@ -725,8 +730,14 @@ function openSeal(no){
 function doSeal(no){
   var s=sOf(no);
   s.seal='已回传';
-  s.logs.push('2026-10-13 10:55 上传盖章扫描件（盖章件已回传，归档完成）');
-  closeDrawer();toast('盖章件已回传：'+no+'（归档完成）');
+  s.state='已存档·生效中';
+  s.owner='—';
+  s.hrs=0;
+  s.logs.push('2026-10-13 10:55 上传盖章扫描件（盖章件已回传）→ 合同生效并归档');
+  s.logs.push('2026-10-13 10:56 推送 02（资源在租）/ 04（自动建档 + 开通物业模块）/ 应收计划');
+  var u=AU.filter(function(a){return a.no===no;})[0];
+  if(u){u.state='已签约';u.logs.push('2026-10-13 10:55 盖章件回传，合同生效（'+no+'）');}
+  closeDrawer();toast('盖章件已回传：'+no+'　合同生效并归档，已推送 02 / 04 / 应收计划');
 }
 /* ===== 查看签署单 ===== */
 function openView(no){

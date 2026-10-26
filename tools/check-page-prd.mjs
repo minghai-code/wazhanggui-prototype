@@ -15,6 +15,10 @@ const DAY = 86400000;
 
 const SKIP_DIR = new Set(['node_modules', '.git', 'shared', 'tools', 'prd', '_legacy', '.codebuddy']);
 
+/* 页面 → 文档映射（来自挂载器 page-prd.js，是「页面 ↔ 文档」的唯一权威）。
+   提前声明：checkEnd 在文件靠前处被调用，晚声明会踩 TDZ。 */
+const HTML2MD = {};
+
 /* 公共脚本（说明挂载器 / 操作守卫）里的通用文案也算文案来源，否则会被误判为"页面里找不到" */
 const SHARED_TEXT = (() => {
   const dir = path.join(ROOT, 'shared');
@@ -135,9 +139,16 @@ for (const end of ends) {
     const text = fs.readFileSync(p, 'utf8');
     if (!/page-prd\.js/.test(text)) info(`${end}/${h}：未引入 page-prd.js（页面上没有说明按钮）`);
 
-    const c = cited.get(h);
-    if (c && fs.statSync(p).mtimeMs - c.mtime > STALE * DAY) {
-      warn(`${end}/${h}：页面修改时间晚于 ${c.md}（${new Date(c.mtime).toISOString().slice(0, 10)}），文档可能未同步`);
+    /* 归属优先用挂载器映射（page-prd.js 是「页面 ↔ 文档」唯一权威）。
+       仅靠"谁先提到该页"会误判：模块总览/跳转说明类文档会抢走归属，报出不相干的"未同步"。
+       无映射 = 该页尚未登记文档，归属不可信 → 不做判定。 */
+    const mapped = HTML2MD[`${end}/${h}`];
+    if (!mapped) continue;
+    const mdp = path.join(prdDir, mapped + '.md');
+    if (!fs.existsSync(mdp)) continue;
+    const mtime = fs.statSync(mdp).mtimeMs;
+    if (fs.statSync(p).mtimeMs - mtime > STALE * DAY) {
+      warn(`${end}/${h}：页面修改时间晚于 ${mapped}.md（${new Date(mtime).toISOString().slice(0, 10)}），文档可能未同步`);
     }
   }
 }
@@ -146,7 +157,6 @@ for (const end of ends) {
  * 规则：文档里凡是"统计卡（N）""（N 列）"这类数字断言，必须与页面实际一致。
  * 映射来自 shared/page-prd.js，它同时是"页面 ↔ 文档"的唯一权威。 */
 const LOADER = path.join(ROOT, 'shared', 'page-prd.js');
-const HTML2MD = {};
 if (fs.existsSync(LOADER)) {
   const src = fs.readFileSync(LOADER, 'utf8');
   for (const m of src.matchAll(/'([A-Za-z0-9_\-/]+\.html)'\s*:\s*\[\s*'([^']+)'/g)) {

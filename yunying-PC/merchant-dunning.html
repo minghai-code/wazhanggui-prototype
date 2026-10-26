@@ -72,9 +72,9 @@ textarea.fi{font-family:inherit;line-height:1.8;resize:vertical}
       <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>规则全局生效；单个商户可在列表内"暂停该户"</span>
     </div>
     <div>
-      <span class="rule"><i class="fas fa-calendar text-[#FF4D2D]"></i>催缴期：<b>8.15 ~ 8.31</b></span>
-      <span class="rule"><i class="fas fa-clock text-[#FF4D2D]"></i>频率：<b>工作日每日 1 次</b></span>
-      <span class="rule"><i class="fas fa-bell text-[#FF4D2D]"></i>时段：<b>09:00–10:00</b></span>
+      <span class="rule"><i class="fas fa-calendar text-[#FF4D2D]"></i>催缴期：<b id="r-sum-range">8.15 ~ 8.31</b></span>
+      <span class="rule"><i class="fas fa-clock text-[#FF4D2D]"></i>频率：<b id="r-sum-freq">工作日每日 1 次</b></span>
+      <span class="rule"><i class="fas fa-bell text-[#FF4D2D]"></i>时段：<b id="r-sum-time">09:00–10:00</b></span>
       <span class="rule"><i class="fas fa-paper-plane text-[#FF4D2D]"></i>渠道：<b>站内推送 + 微信消息推送</b></span>
       <span class="rule"><i class="fas fa-comment-sms text-[#FF4D2D]"></i>短信：<b>可选（可配置 · 独立短信服务）</b></span>
       <span class="rule"><i class="fas fa-sliders text-[#FF4D2D]"></i><b>以上规则全部可配置（默认值仅初始值）</b></span>
@@ -363,6 +363,15 @@ function openDetail(id){
 }
 
 /* ===== 规则配置 ===== */
+/* 规则落在内存状态里（原型态）；摘要区与抽屉回填都读这里 —— 保证「保存」不是只弹 toast */
+var RULE={start:'08-15',end:'08-31',freq:'每日 1 次（工作日）',time:'09:00–10:00'};
+function ruleSummary(){
+  var d=function(x){return String(x).replace(/^0/,'').replace('-','.');};
+  var a=document.getElementById('r-sum-range'),b=document.getElementById('r-sum-freq'),c=document.getElementById('r-sum-time');
+  if(a) a.textContent=d(RULE.start)+' ~ '+d(RULE.end);
+  if(b) b.textContent=RULE.freq.replace('（工作日）','').replace('每日 1 次','工作日每日 1 次');
+  if(c) c.textContent=RULE.time;
+}
 function openRule(){
   var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
     +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">催缴规则配置</h3>'
@@ -371,10 +380,12 @@ function openRule(){
   h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">';
   h+='<div class="blk"><div class="blk-t"><i class="fas fa-calendar text-[#FF4D2D]"></i>催缴期与频率</div>'
     +'<div class="grid grid-cols-2 gap-3">'
-    +'<div><label class="fl">催缴开始日</label><input class="fi" id="r-start" value="08-15" placeholder="每年 MM-DD"></div>'
-    +'<div><label class="fl">催缴结束日（未缴清可延）</label><input class="fi" id="r-end" value="08-31"></div>'
-    +'<div><label class="fl">频率</label><select class="sel" id="r-freq"><option>每日 1 次（工作日）</option><option>隔日 1 次</option><option>每周 1 次</option></select></div>'
-    +'<div><label class="fl">发送时段</label><input class="fi" id="r-time" value="09:00–10:00"></div>'
+    +'<div><label class="fl">催缴开始日</label><input class="fi" id="r-start" value="'+RULE.start+'" placeholder="每年 MM-DD"></div>'
+    +'<div><label class="fl">催缴结束日（未缴清可延）</label><input class="fi" id="r-end" value="'+RULE.end+'"></div>'
+    +'<div><label class="fl">频率</label><select class="sel" id="r-freq">'
+      +['每日 1 次（工作日）','隔日 1 次','每周 1 次'].map(function(x){return '<option'+(RULE.freq===x?' selected':'')+'>'+x+'</option>';}).join('')
+      +'</select></div>'
+    +'<div><label class="fl">发送时段</label><input class="fi" id="r-time" value="'+RULE.time+'"></div>'
     +'</div>'
     +'<p class="text-[11px] text-[#94A3B8] mt-2"><i class="fas fa-circle-info mr-1"></i>业务口径：租赁年度 = 当年 9.1 ~ 次年 8.31，<b>每年 8 月底前</b>缴清，故 <b>8.15</b> 起催缴第二年租金。</p></div>';
   h+='<div class="blk"><div class="blk-t"><i class="fas fa-users text-[#2563EB]"></i>对象与渠道</div>'
@@ -404,7 +415,11 @@ function openRule(){
 }
 function saveRule(){
   var s=document.getElementById('r-start').value.trim(),f=document.getElementById('r-freq').value;
+  var e=document.getElementById('r-end').value.trim(),tm=document.getElementById('r-time').value.trim();
   if(!s){toast('请填写催缴开始日');return;}
+  if(!e){toast('请填写催缴结束日');return;}
+  RULE.start=s; RULE.end=e; RULE.freq=f; RULE.time=tm;
+  ruleSummary();
   closeAll();
   toast('催缴规则已保存：每年 '+s+' 起 · '+f+' · 站内 + 微信；下一轮扫描即生效（已缴清/已终止不发送）');
 }

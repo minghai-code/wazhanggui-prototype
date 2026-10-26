@@ -33,7 +33,14 @@ node tools\build-prd.mjs --root . --views
 
 # 一致性检查（交付前 ERROR 必须为 0）
 node tools\check-page-prd.mjs --root .
+
+# 「存在但无效」检测（交付前 ERROR 必须为 0）
+node tools\check-smoke.mjs --dir yunying-PC
 ```
+
+> **两个检查不能互替**：`check-page-prd` 查「文档 ↔ 页面」是否一致；`check-smoke` 查「页面自身通不通电」——
+> 表单控件有没有接进保存、保存是不是只弹 toast、函数分支是不是死代码、数据字段有没有接进渲染。
+> 后者专治"脚本全绿但演示一点就穿帮"。
 
 - `--views`：把移动端族文档按 `## N. 页面名 \`file.html\`` 切成单页视图，输出到 `prd/_views/`（**生成物，勿手改**）
 - 校验：断链 / 漏登 / 未挂载 / 页面比文档新 / 统计卡数量 / 提示文案能否在源码命中
