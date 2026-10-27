@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>07 物业服务 · 05 问题上报 · 页面 PRD</title><style>
+:root{--fg:#1F2430;--muted:#64748B;--line:#E9EDF3}
+*{box-sizing:border-box}
+body{margin:0;padding:26px 32px 90px;background:#fff;color:var(--fg);
+ font:14px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif}
+h1{font-size:20px;margin:0 0 6px}
+h2{font-size:17px;margin:34px 0 12px;padding-top:12px;border-top:1px solid var(--line)}
+h3{font-size:15px;margin:22px 0 10px}
+h4{font-size:14px;margin:18px 0 8px;color:#334155}
+p{margin:8px 0}
+table{border-collapse:collapse;width:100%;margin:10px 0 16px;font-size:12.5px}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:#F8FAFC;font-weight:700}
+tr:nth-child(even) td{background:#FCFDFE}
+code{background:#F1F5F9;padding:1px 5px;border-radius:4px;font-size:12px;
+ font-family:ui-monospace,Menlo,Consolas,monospace;color:#B91C1C}
+pre.code{background:#0F172A;color:#E2E8F0;padding:14px 16px;border-radius:10px;overflow:auto;font-size:12px}
+pre.code code{background:none;color:inherit;padding:0}
+blockquote{margin:10px 0;padding:10px 14px;background:#EFF6FF;border-left:3px solid #60A5FA;
+ border-radius:0 8px 8px 0;color:#334155;font-size:13px}
+ul,ol{margin:8px 0;padding-left:22px}
+li{margin:3px 0}
+hr{border:0;border-top:1px dashed var(--line);margin:22px 0}
+a{color:#2563EB;text-decoration:none}
+.meta{font-size:12px;color:var(--muted);margin:0 0 20px}
+.vtitle{font-size:18px;font-weight:800;margin:0 0 4px}
+details.fam{margin:12px 0 20px;border:1px solid var(--line);border-radius:10px;background:#F8FAFC;padding:0 14px}
+details.fam summary{cursor:pointer;padding:10px 0;font-size:13px;font-weight:700;color:#334155}
+details.fam[open]{padding-bottom:10px}
+.vnav{display:flex;justify-content:space-between;margin-top:34px;padding-top:14px;border-top:1px dashed var(--line);font-size:13px}
+</style></head><body>
+<div class="meta">由 <code>yunying-PC/prd/07-物业服务/05-问题上报.md</code> 生成，勿手改；改文档请改 md 后重跑 build-prd。</div>
+<h1>07 物业服务 · 05 问题上报</h1>
+<blockquote>端：运营端 PC（<code>yunying-PC</code>）　｜　模块：07 物业服务（分册 §8.6） 页面：<code>property-issue.html</code>　｜　页面版本：v1.0（2026-10-27） 前置：<code>01-报修工单.md</code>（含模块通用说明 §0）</blockquote>
+<hr>
+<h2 id="p1">1. 页面定位</h2>
+<p>承载<strong>巡检发现</strong>与<strong>外部反馈</strong>的现场问题，按<strong>责任方</strong>分流：商户责任 → 整改（<code>ZG</code>），物业责任 → <strong>转报修</strong>（<code>BX</code>），待判定 → 主管判定。</p>
+<blockquote><strong>核心分清</strong>：问题（<code>WT</code>）不等于报修（<code>BX</code>）。转报修是<strong>新建一张 BX 并回写 BX 号到 WT</strong>，<code>WT</code> 记录<strong>永久保留</strong>（WT-1）。</blockquote>
+<ul><li>使用者：巡检员（上报）、物业主管（判定责任方 + 分流）</li><li>上游：P5 巡检任务上报、商户端 / 买家端 / 电话反馈</li><li>下游：P7 整改（<code>ZG</code>）、P1 报修（<code>BX</code>）</li></ul>
+<h2 id="p2">2. 分区结构</h2>
+<table><thead><tr><th>区块</th><th>内容</th></tr></thead><tbody><tr><td>统计卡（4）</td><td>待处理 · 待判定 · 已转报修 · 本月已解决</td></tr><tr><td>Tab（7）</td><td>全部 / 待判定 / 待处理 / 已派整改 / 已转报修 / 已解决 / 已关闭（带条数）</td></tr><tr><td>筛选</td><td>关键词 + 类型 + 责任方 + <strong>仅看待判定超 3 天</strong></td></tr><tr><td>列表（9 列）</td><td>问题编号 <code>WT</code>（带来源）· 区域 · 类型 · 描述 · <strong>责任方</strong> · 严重程度 · 上报人 · 状态（带关联单号）· 操作</td></tr><tr><td>详情抽屉</td><td>问题信息（含关联 ZG/BX 号、关闭原因）/ 现场照片 / 处理留痕</td></tr></tbody></table>
+<h2 id="p3">3. 统计卡口径</h2>
+<table><thead><tr><th>卡</th><th>口径</th></tr></thead><tbody><tr><td>待处理</td><td><code>state = 待处理</code>（已判定责任方，等分流）</td></tr><tr><td>待判定</td><td><code>state = 待判定</code>（等主管判定）</td></tr><tr><td>已转报修</td><td><code>state = 已转报修</code></td></tr><tr><td>本月已解决</td><td><code>state = 已解决</code></td></tr></tbody></table>
+<h2 id="p4">4. 状态机（6 态）</h2>
+<pre class="code"><code data-lang="mermaid">stateDiagram-v2
+    [*] --&gt; 待判定: 上报时责任方=待判定
+    [*] --&gt; 待处理: 上报时责任方=商户/物业
+    待判定 --&gt; 待处理: 主管判定责任方
+    待处理 --&gt; 已派整改: 派整改（商户责任）→ 生成 ZG
+    待处理 --&gt; 已转报修: 转报修（物业责任）→ 生成 BX
+    已派整改 --&gt; 已解决: 整改复核通过
+    已派整改 --&gt; 已关闭: 关闭（原因必填）
+    已转报修 --&gt; 已解决: 报修完成
+    已转报修 --&gt; 已关闭: 关闭（原因必填）
+    待处理 --&gt; 已关闭: 关闭（重复/无效/已自行处理）
+    待判定 --&gt; 已关闭: 关闭（原因必填）</code></pre>
+<h2 id="p5">5. 表单字段与校验</h2>
+<table><thead><tr><th>字段</th><th>必填</th><th>校验</th></tr></thead><tbody><tr><td>区域（楼栋/楼层 + 档口）</td><td>是</td><td>楼栋楼层与具体位置均必填（02 字典）</td></tr><tr><td>问题类型</td><td>是</td><td>消防 / 卫生 / 占道 / 设备 / 安全</td></tr><tr><td>问题描述</td><td>是</td><td><strong>≥5 字</strong></td></tr><tr><td><strong>现场照片</strong></td><td><strong>是</strong></td><td><strong>≥1 张</strong>（同 BX 规则，水印含时间·位置·编号）</td></tr><tr><td>严重程度</td><td>是</td><td>严重 / 一般 / 轻微</td></tr><tr><td><strong>责任方</strong></td><td><strong>是</strong></td><td>商户责任 / 物业责任 / 待判定</td></tr><tr><td>限期</td><td><strong>商户责任时必填</strong></td><td>日期（不得早于当日）</td></tr></tbody></table>
+<blockquote>责任方选择后，页面即时提示后续路径（派整改 / 转报修 / 需判定）。</blockquote>
+<h2 id="p6">6. 分流操作</h2>
+<table><thead><tr><th>操作</th><th>显示条件</th><th>效果</th></tr></thead><tbody><tr><td>判定责任方</td><td>待判定</td><td>选商户/物业责任 + 判定说明 → 待处理</td></tr><tr><td><strong>派整改</strong></td><td>待处理 + 商户责任</td><td>生成 <code>ZG</code> 单（带原照片与位置），状态「已派整改」，显示 ZG 号</td></tr><tr><td><strong>转报修</strong></td><td>待处理 + 物业责任</td><td>生成 <code>BX</code> 单（带原照片与位置），状态「已转报修」，显示 BX 号</td></tr><tr><td><strong>改判</strong></td><td>待处理 / 已派整改 / 已转报修</td><td>原因必填（≥4 字），<strong>留痕</strong>；已生成的 ZG/BX <strong>不撤销</strong></td></tr><tr><td>关闭</td><td>除已关闭外任一</td><td>原因必填（重复 / 无效 / 已自行处理 / 已合并 / 其他）</td></tr></tbody></table>
+<p><strong>规则</strong></p>
+<table><thead><tr><th>编号</th><th>规则</th></tr></thead><tbody><tr><td>WT-1</td><td><strong>转报修后原记录保留</strong>（不删除、不改类型），仅回写 BX 号</td></tr><tr><td>WT-2</td><td>改判责任方<strong>需留痕</strong>（原值 → 新值 + 原因）</td></tr><tr><td>WT-3</td><td><strong>待判定超 3 天</strong>提醒主管（列表标红「超 N 天」）</td></tr><tr><td>WT-4</td><td>商户责任未设限期不能派整改</td></tr></tbody></table>
+<h2 id="p7">7. 提示语表</h2>
+<blockquote><code>✅</code> 原型已有 / <code>⬜</code> 待实现。<strong>编号前缀 <code>WT-</code></strong>（此处为提示语编号，前缀用 <code>WTQ-</code> 与规则区分）。</blockquote>
+<table><thead><tr><th>编号</th><th>场景</th><th>提示文案</th><th>形式</th><th>阻断</th><th>状态</th></tr></thead><tbody><tr><td>WTQ-01</td><td>缺位置</td><td>请填写楼栋楼层与具体位置</td><td>Toast</td><td>是</td><td>✅</td></tr><tr><td>WTQ-02</td><td>描述过短</td><td>问题描述至少 5 个字（当前 {n} 字）</td><td>Toast</td><td>是</td><td>✅</td></tr><tr><td>WTQ-03</td><td>缺照片</td><td>请上传现场照片（至少 1 张）</td><td>Toast</td><td>是</td><td>✅</td></tr><tr><td>WTQ-04</td><td>商户责任缺限期</td><td>商户责任必须填写限期</td><td>Toast</td><td>是</td><td>✅</td></tr><tr><td>WTQ-05</td><td>上报成功</td><td>已上报问题：{单号}　{待主管判定责任方 / 可直接分流（责任方）}</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>WTQ-06</td><td>判定成功</td><td>已判定：{单号} → {责任方}　{请点「派整改」/ 请点「转报修」}</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>WTQ-07</td><td>改判未填原因</td><td>改判原因必填（至少 4 个字）</td><td>Toast</td><td>是</td><td>✅</td></tr><tr><td>WTQ-08</td><td>改判成功</td><td>已改判：{单号}　{原} → {新}（原单不撤销）</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>WTQ-09</td><td>派整改成功</td><td>已派整改：{单号} → {ZG 号}　已通知商户（限期 {日期}）</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>WTQ-10</td><td>转报修成功</td><td>已转报修：{单号} → {BX 号}　原记录保留（不删除）</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>WTQ-11</td><td>商户责任无期限就派整改</td><td>商户责任需先设置限期</td><td>Toast</td><td>是</td><td>✅</td></tr><tr><td>WTQ-12</td><td>关闭成功</td><td>已关闭：{单号}　{原因}</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>WTQ-13</td><td>列表空态</td><td>暂无符合条件的问题</td><td>空态</td><td>否</td><td>✅</td></tr><tr><td>WTQ-14</td><td>导出</td><td>已导出问题清单（含责任方分布、超期统计）</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>WTQ-15</td><td><strong>待判定超 3 天提醒</strong></td><td>建议：{单号} 待判定已超 3 天，请主管尽快判定</td><td>站内提醒</td><td>否</td><td>⬜ 原型只标红「超 N 天」</td></tr><tr><td>WTQ-16</td><td><strong>照片复用检测</strong></td><td>建议：该照片与 {另一单号} 相同，疑似复用</td><td>Toast</td><td>是</td><td>⬜ 未做哈希比对</td></tr></tbody></table>
+<p><strong>自检结论</strong>：✅ <strong>14</strong> / ⬜ <strong>2</strong> / 共 16 条。</p>
+<h2 id="p8">8. 验收要点</h2>
+<table><thead><tr><th>编号</th><th>场景</th><th>期望</th></tr></thead><tbody><tr><td>AC-01</td><td>上报不传照片</td><td>拦截，不生成 WT</td></tr><tr><td>AC-02</td><td>责任方=商户责任但未填限期</td><td>提交拦截</td></tr><tr><td>AC-03</td><td>待判定点「判定责任方」</td><td>判定后出现「派整改」或「转报修」按钮</td></tr><tr><td>AC-04</td><td>转报修</td><td>生成 BX 号，<strong>WT 记录仍存在</strong>且状态为「已转报修」</td></tr><tr><td>AC-05</td><td>已转报修后改判</td><td>允许，留痕，<strong>BX 单不撤销</strong></td></tr><tr><td>AC-06</td><td>关闭</td><td>原因必填，状态转「已关闭」</td></tr><tr><td>AC-07</td><td>待判定超 3 天</td><td>列表责任方列标红「超 N 天」</td></tr></tbody></table>
+</body></html>

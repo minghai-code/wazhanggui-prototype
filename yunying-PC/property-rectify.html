@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>物业服务 - 整改管理</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.stat-card{transition:box-shadow .2s ease,transform .2s ease}
+.stat-card:hover{box-shadow:0 4px 20px rgba(0,0,0,.08);transform:translateY(-1px)}
+.tb th{font-size:12px;font-weight:600;color:#64748B;background:#F8FAFC;padding:10px 12px;text-align:left;white-space:nowrap}
+.tb td{font-size:13px;color:#1F2430;padding:11px 12px;border-bottom:1px solid #F1F5F9;white-space:nowrap}
+.tb tbody tr:hover{background:#FFF7F5}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}
+.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}
+.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}
+.lk:hover{text-decoration:underline}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}
+.lk-gray:hover{color:#1F2430}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:40}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:660px;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:50;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.fl{display:block;font-size:12px;color:#64748B;margin-bottom:5px}
+.fl i{color:#FF4D2D;font-style:normal;margin-right:2px}
+.fi{width:100%;padding:8px 11px;font-size:13px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;outline:none}
+.fi:focus{border-color:#FF4D2D;background:#fff}
+.blk{border:1px solid #F1F5F9;border-radius:12px;padding:13px 15px}
+.blk-t{font-size:12px;font-weight:700;color:#1F2430;display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.kv{display:flex;gap:10px;font-size:12px;padding:4px 0;line-height:1.6}
+.kv .k{color:#94A3B8;width:80px;flex-shrink:0}
+.kv .v{color:#1F2430;flex:1}
+.ph{border-radius:10px;overflow:hidden;background:linear-gradient(135deg,#94A3B8,#CBD5E1);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;font-size:10px;position:relative}
+.ph.before{background:linear-gradient(135deg,#F87171,#DC2626)}
+.ph.after{background:linear-gradient(135deg,#34D399,#059669)}
+.ph .cap{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.42);padding:3px 6px;font-size:10px}
+.tl{position:relative;padding-left:16px}
+.tl::before{content:'';position:absolute;left:4px;top:4px;bottom:4px;width:1px;background:#E2E8F0}
+.tl-i{position:relative;padding:0 0 10px;font-size:12px;color:#64748B;line-height:1.6}
+.tl-i::before{content:'';position:absolute;left:-16px;top:5px;width:7px;height:7px;border-radius:50%;background:#FF4D2D}
+.tl-i b{color:#1F2430;font-weight:600}
+.tab-on{color:#FF4D2D;border-bottom:2px solid #FF4D2D;font-weight:600}
+.empty{padding:50px 0;text-align:center;color:#CBD5E1}
+.empty i{font-size:28px;display:block;margin-bottom:8px}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+<div class="p-6">
+
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">整改管理</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">07 物业服务</span>
+        <span class="tag" style="background:#FFEDE7;color:#E63E20">无照片不能提交</span>
+        <span class="tag" style="background:#FEF3C7;color:#B45309">退回 3 次升级主管</span>
+      </div>
+      <p class="text-[12px] text-gray-400 mt-1">把<b>商户责任</b>问题派给商户并跟踪到验收闭环：派发 → 商户提交（整改说明 + <b>整改后照片</b>）→ 复核（<b>原照片 vs 整改后照片并排对比</b>）→ 通过关闭 或 退回整改（超期天数重置）。</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="toast('已导出整改台账（含超期天数、退回次数、复核结论）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+      <button class="btn btn-ghost" onclick="batchPass()"><i class="fas fa-list-check mr-1"></i>批量通过</button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-4 gap-3 mb-5" id="stats"></div>
+
+  <div class="flex items-center gap-5 mb-3 border-b border-gray-200" id="tabs">
+    <span class="py-2.5 text-[13px] cursor-pointer tab-on" onclick="switchTab('待派发',this)">待派发 <span class="text-[11px] text-[#94A3B8]" id="c-wait"></span></span>
+    <span class="py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600" onclick="switchTab('整改中',this)">整改中 <span class="text-[11px]" id="c-doing"></span></span>
+    <span class="py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600" onclick="switchTab('待复核',this)">待复核 <span class="text-[11px]" id="c-review"></span></span>
+    <span class="py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600" onclick="switchTab('已关闭',this)">已关闭 <span class="text-[11px]" id="c-close"></span></span>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-[13px] font-bold text-[#1F2430]">整改单列表</span>
+        <span class="text-[12px] text-[#94A3B8]" id="cnt">共 0 条</span>
+      </div>
+      <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>超期未提交提醒商户 + 抄送主管；退货累计 3 次自动升级</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full tb" style="min-width:1180px">
+        <thead><tr>
+          <th style="width:34px"><input type="checkbox" id="ck-all" onclick="toggleAll(this)"></th>
+          <th>整改编号</th><th>关联问题</th><th>整改商户</th><th>整改要求</th><th>限期</th><th>状态</th><th>超期天数</th><th class="text-center">操作</th>
+        </tr></thead>
+        <tbody id="tb"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="mask" id="mask" onclick="closeAll()"></div>
+<div class="drawer" id="drawer"></div>
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
+
+<script>
+/* ================= 数据 ================= */
+var STC={'待派发':'background:#FEF3C7;color:#B45309','整改中':'background:#DBEAFE;color:#2563EB',
+  '待复核':'background:#EDE9FE;color:#6D28D9','已通过关闭':'background:#DCFCE7;color:#15803D',
+  '无效关闭':'background:#F1F5F9;color:#64748B'};
+var CLOSE_STATE=['已通过关闭','无效关闭'];
+
+var ZG=[
+  {no:'ZG202610-0031', wt:'WT202610-0061', wtDesc:'商铺货物堆放到消防通道，宽约 1.2m，影响疏散', wtPhotos:2,
+   merchant:'诸暨××袜业（王××）', unit:'A 栋 3F · 3F-A18', req:'清理消防通道堆放货物，保证净宽 ≥1.5m，并签署不占用承诺',
+   deadline:'2026-10-29', state:'待派发', over:0, notify:'', reject:0, submit:null, closeType:'', checked:false,
+   logs:[['2026-10-26 10:20','由问题 WT202610-0061 生成（商户责任）']]},
+
+  {no:'ZG202610-0030', wt:'WT202610-0054', wtDesc:'店门口油污未清理，地面黏脚', wtPhotos:1,
+   merchant:'义乌××针织（陈××）', unit:'B 栋 2F · 2F-B12', req:'清理门前油污并铺设防滑垫',
+   deadline:'2026-10-30', state:'整改中', over:0, notify:'站内 + 短信', reject:0, submit:null, closeType:'', checked:false,
+   logs:[['2026-10-25 09:10','由问题 WT202610-0054 生成'],['2026-10-25 09:30','已派发（站内 + 短信），已通知商户']]},
+
+  {no:'ZG202610-0029', wt:'WT202610-0052', wtDesc:'门前纸箱与包装物长期堆放，占用通道', wtPhotos:2,
+   merchant:'大唐××商贸（周××）', unit:'A 栋 1F · 1F-A02', req:'清空门前堆放物，日后不得超边线摆放',
+   deadline:'2026-10-22', state:'整改中', over:5, notify:'站内', reject:0, submit:null, closeType:'', checked:false,
+   logs:[['2026-10-18 10:00','由问题 WT202610-0052 生成'],['2026-10-18 10:20','已派发（站内）'],
+     ['2026-10-23 09:00','超期未提交 → 已提醒商户并抄送主管']]},
+
+  {no:'ZG202610-0028', wt:'WT202610-0049', wtDesc:'店外违规设置广告立牌，遮挡消防栓', wtPhotos:1,
+   merchant:'诸暨××服饰（李××）', unit:'B 栋 1F · 1F-B07', req:'撤除广告立牌，消防栓前 1m 内不得摆放任何物品',
+   deadline:'2026-10-26', state:'待复核', over:0, notify:'站内', reject:0, closeType:'', checked:false,
+   submit:{desc:'已撤除广告立牌，消防栓前已清空，附整改后照片 1 张', photos:1, by:'商户 李××', at:'2026-10-26 15:20'},
+   logs:[['2026-10-24 09:00','由问题 WT202610-0049 生成'],['2026-10-24 09:20','已派发（站内）'],
+     ['2026-10-26 15:20','商户提交整改（照片 1 张）→ 待复核']]},
+
+  {no:'ZG202610-0027', wt:'WT202610-0046', wtDesc:'后厨排烟口油渍滴落至通道，地面有污迹', wtPhotos:2,
+   merchant:'诸暨××餐饮（赵××）', unit:'C 栋 1F · 1F-C09', req:'清洗排烟口并加装接油盘，清理地面污迹',
+   deadline:'2026-10-25', state:'待复核', over:1, notify:'站内 + 短信', reject:2, closeType:'', checked:false,
+   submit:{desc:'已清洗排烟口，地面已清洁（第二次提交）', photos:2, by:'商户 赵××', at:'2026-10-26 11:00'},
+   logs:[['2026-10-22 10:00','由问题 WT202610-0046 生成'],['2026-10-22 10:15','已派发（站内 + 短信）'],
+     ['2026-10-24 16:00','商户第 1 次提交'],['2026-10-24 17:30','退回：只清洗了地面，排烟口未处理（第 1 次退回）'],
+     ['2026-10-25 14:00','商户第 2 次提交'],['2026-10-25 15:10','退回：接油盘未安装（第 2 次退回）'],
+     ['2026-10-26 11:00','商户第 3 次提交 → 待复核']]},
+
+  {no:'ZG202610-0026', wt:'WT202610-0043', wtDesc:'门前垃圾桶满溢，周边散落垃圾', wtPhotos:1,
+   merchant:'义乌××袜业（孙××）', unit:'D 栋 1F · 1F-D05', req:'清运垃圾并每日定时清倒',
+   deadline:'2026-10-20', state:'已通过关闭', over:0, notify:'站内', reject:0, closeType:'通过',
+   submit:{desc:'已清运垃圾，安排每日 17:00 清倒', photos:2, by:'商户 孙××', at:'2026-10-19 16:00'},
+   logs:[['2026-10-17 09:00','由问题 WT202610-0043 生成'],['2026-10-17 09:20','已派发（站内）'],
+     ['2026-10-19 16:00','商户提交整改（照片 2 张）'],['2026-10-19 17:00','复核通过 → 已通过关闭，关联问题转「已解决」']]},
+
+  {no:'ZG202610-0025', wt:'WT202610-0040', wtDesc:'店外堆放装修废料', wtPhotos:1,
+   merchant:'诸暨××建材（吴××）', unit:'A 栋 2F · 2F-A11', req:'清运装修废料',
+   deadline:'2026-10-18', state:'无效关闭', over:0, notify:'站内', reject:0, closeType:'无效',
+   submit:null,
+   logs:[['2026-10-16 09:00','由问题 WT202610-0040 生成'],['2026-10-16 09:20','已派发（站内）'],
+     ['2026-10-17 10:00','现场复查：废料已由商户自行清运，无需整改 → 无效关闭']]}
+];
+
+var curTab='待派发', curRows=[], curNo=null, allChecked=false;
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},3200);}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function zOf(no){return ZG.filter(function(x){return x.no===no;})[0];}
+function tabOf(x){return CLOSE_STATE.indexOf(x.state)>-1?'已关闭':x.state;}
+
+function renderStats(){
+  var wait=0,doing=0,review=0,closed=0;
+  ZG.forEach(function(x){
+    var t=tabOf(x);
+    if(t==='待派发')wait++;
+    else if(t==='整改中')doing++;
+    else if(t==='待复核')review++;
+    else closed++;
+  });
+  var cards=[['待派发',wait,'#B45309'],['整改中',doing,'#2563EB'],['待复核',review,'#6D28D9'],['本月已关闭',closed,'#15803D']];
+  document.getElementById('stats').innerHTML=cards.map(function(x){
+    var tn=(x[0]==='本月已关闭')?'已关闭':x[0];
+    return '<div class="stat-card bg-white rounded-lg border border-gray-100 p-3.5" onclick="switchTab(\''+tn+'\')">'
+      +'<p class="text-[11px] text-gray-400">'+x[0]+'</p>'
+      +'<p class="text-xl font-bold mt-1" style="color:'+x[2]+'">'+x[1]+'</p></div>';
+  }).join('');
+  document.getElementById('c-wait').textContent='('+wait+')';
+  document.getElementById('c-doing').textContent='('+doing+')';
+  document.getElementById('c-review').textContent='('+review+')';
+  document.getElementById('c-close').textContent='('+closed+')';
+}
+
+function render(){
+  var h='';
+  curRows.forEach(function(x){
+    var ops='<span class="lk-gray" onclick="openDetail(\''+x.no+'\')">查看</span>';
+    if(x.state==='待派发'){
+      ops='<span class="lk" onclick="openAssign(\''+x.no+'\')">派发</span> · '+ops;
+    }else if(x.state==='整改中'){
+      ops='<span class="lk-gray" onclick="urge(\''+x.no+'\')">催办</span> · <span class="lk-gray" onclick="openMock(\''+x.no+'\')">代录提交</span> · '+ops;
+    }else if(x.state==='待复核'){
+      ops='<span class="lk" onclick="openReview(\''+x.no+'\')">复核</span> · '+ops;
+    }
+    var overCell=x.over>0?'<span style="color:#DC2626;font-weight:600">超 '+x.over+' 天</span>':'<span class="text-[#94A3B8]">—</span>';
+    h+='<tr>'
+      +'<td>'+(x.state==='待复核'?'<input type="checkbox" '+(x.checked?'checked':'')+' onclick="pick(\''+x.no+'\',this)">':'')+'</td>'
+      +'<td><div class="font-medium">'+esc(x.no)+'</div>'+(x.reject?'<div class="text-[10px]" style="color:#B45309">退回 '+x.reject+' 次</div>':'')+'</td>'
+      +'<td class="text-[12px]"><span class="lk-gray" onclick="toast(\'已定位到问题 '+x.wt+'\')">'+esc(x.wt)+'</span>'
+        +'<div class="text-[10px] text-[#94A3B8]" style="max-width:230px;white-space:normal;overflow:hidden">'+esc(x.wtDesc.slice(0,26))+'…</div></td>'
+      +'<td class="text-[12px]">'+esc(x.merchant)+'<div class="text-[10px] text-[#94A3B8]">'+esc(x.unit)+'</div></td>'
+      +'<td class="text-[12px] text-[#64748B]" style="max-width:260px;white-space:normal">'+esc(x.req)+'</td>'
+      +'<td class="text-[12px] text-[#64748B]">'+esc(x.deadline)+'</td>'
+      +'<td><span class="tag" style="'+(STC[x.state]||'background:#F1F5F9;color:#64748B')+'">'+esc(x.state)+'</span></td>'
+      +'<td class="text-[12px]">'+overCell+'</td>'
+      +'<td class="text-center whitespace-nowrap">'+ops+'</td></tr>';
+  });
+  document.getElementById('tb').innerHTML=h||'<tr><td colspan="9"><div class="empty"><i class="fas fa-clipboard-check"></i>该分类下暂无整改单</div></td></tr>';
+  document.getElementById('cnt').textContent='共 '+curRows.length+' 条';
+}
+function switchTab(t,el){
+  curTab=t;
+  document.querySelectorAll('#tabs span').forEach(function(x){x.className='py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600';});
+  if(el)el.className='py-2.5 text-[13px] cursor-pointer tab-on';
+  curRows=ZG.filter(function(x){return tabOf(x)===t;});
+  render();
+}
+function pick(no,el){zOf(no).checked=el.checked;}
+function toggleAll(el){
+  curRows.forEach(function(x){if(x.state==='待复核')x.checked=el.checked;});
+  render();
+}
+
+/* ================= 派发 ================= */
+function openAssign(no){
+  curNo=no;var x=zOf(no);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">派发整改单</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(x.no)+'　'+esc(x.merchant)+'　限期 '+esc(x.deadline)+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div class="blk"><div class="blk-t"><i class="fas fa-circle-exclamation text-[#FF4D2D]"></i>问题与要求</div>'
+    +'<div class="kv"><span class="k">关联问题</span><span class="v">'+esc(x.wt)+'　'+esc(x.wtDesc)+'</span></div>'
+    +'<div class="kv"><span class="k">整改商户</span><span class="v">'+esc(x.merchant)+'（'+esc(x.unit)+'）</span></div>'
+    +'<div class="kv"><span class="k">整改要求</span><span class="v">'+esc(x.req)+'</span></div></div>'
+    +'<div><label class="fl"><i>*</i>限期完成时间</label><input class="fi" id="ds_due" type="date" value="'+esc(x.deadline)+'"></div>'
+    +'<div><label class="fl"><i>*</i>通知方式</label><select class="fi" id="ds_notify">'
+      +['站内','短信','站内 + 短信'].map(function(v){return '<option>'+v+'</option>';}).join('')+'</select>'
+      +'<p class="text-[11px] text-[#94A3B8] mt-1">短信为独立服务，按条计费；超期未提交将自动提醒商户并抄送主管</p></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveAssign(\''+no+'\')">确认派发</button></div>';
+  document.getElementById('drawer').innerHTML=h;show();
+}
+function saveAssign(no){
+  var x=zOf(no);
+  var due=document.getElementById('ds_due').value;
+  var notify=document.getElementById('ds_notify').value;
+  if(!due){toast('请填写限期完成时间');return;}
+  if(!notify){toast('请选择通知方式');return;}
+  if(due<'2026-10-27'){toast('限期不得早于当日（2026-10-27）');return;}
+  x.deadline=due;x.notify=notify;x.state='整改中';
+  x.logs.push(['2026-10-27 '+new Date().toTimeString().slice(0,5),'已派发（'+notify+'），限期 '+due+'，已通知商户']);
+  curRows=ZG.filter(function(y){return tabOf(y)===curTab;});
+  renderStats();render();closeAll();
+  toast('已派发：'+no+'　'+x.merchant+'（'+notify+'，限期 '+due+'）');
+}
+function urge(no){
+  var x=zOf(no);
+  x.logs.push(['2026-10-27 '+new Date().toTimeString().slice(0,5),'人工催办（'+x.notify+'）']);
+  toast('已催办：'+no+'　已向商户发送提醒，并抄送物业主管');
+}
+/* 原型演示：模拟商户端提交 */
+var sbPhotos=0;
+function openMock(no){
+  curNo=no;var x=zOf(no);sbPhotos=0;
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">代录商户提交（原型演示）</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(x.no)+'　真实流程由商户在商户端 App 提交；此处用于演示复核</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div><label class="fl"><i>*</i>整改说明（≥5 字）</label><input class="fi" id="sb_desc" placeholder="如：已清空门前堆放物，日后不超边线摆放"></div>'
+    +'<div><label class="fl"><i>*</i>整改后照片</label>'
+    +'<div class="flex"><div class="ph" style="width:90px;height:70px" onclick="pickSb()" id="sbBox"><i class="fas fa-camera"></i></div></div>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1" id="sbTip">尚未上传（无照片不能提交）</p></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveMock(\''+no+'\')">提交整改</button></div>';
+  document.getElementById('drawer').innerHTML=h;show();
+}
+function pickSb(){
+  sbPhotos++;
+  var b=document.getElementById('sbBox');
+  b.className='ph after';b.innerHTML='<i class="fas fa-image"></i>';
+  document.getElementById('sbTip').textContent='已上传整改后照片 '+sbPhotos+' 张';
+  toast('已上传整改后照片 '+sbPhotos+' 张');
+}
+function saveMock(no){
+  var x=zOf(no);
+  var desc=document.getElementById('sb_desc').value.trim();
+  if(desc.length<5){toast('整改说明至少 5 个字（当前 '+desc.length+' 字）');return;}
+  if(!sbPhotos){toast('无照片不能提交：请至少上传 1 张整改后照片');return;}
+  x.state='待复核';
+  x.submit={desc:desc, photos:sbPhotos, by:'商户（代录）', at:'2026-10-27 '+new Date().toTimeString().slice(0,5)};
+  x.logs.push(['2026-10-27 '+new Date().toTimeString().slice(0,5),'商户提交整改（照片 '+sbPhotos+' 张）→ 待复核']);
+  sbPhotos=0;
+  curRows=ZG.filter(function(y){return tabOf(y)===curTab;});
+  renderStats();render();closeAll();
+  toast('已提交整改：'+no+'　待物业复核（照片对比）');
+}
+
+/* ================= 复核 ================= */
+function openReview(no){
+  curNo=no;var x=zOf(no);
+  var cmp='<div class="grid grid-cols-2 gap-3">'
+    +'<div><div class="ph before" style="height:150px"><i class="fas fa-image text-xl"></i>原问题照片（'+x.wtPhotos+' 张）'
+    +'<span class="cap">问题上报时 · '+esc(x.wt)+'</span></div></div>'
+    +'<div><div class="ph after" style="height:150px"><i class="fas fa-image text-xl"></i>整改后照片（'+(x.submit?x.submit.photos:0)+' 张）'
+    +'<span class="cap">商户提交 · '+(x.submit?esc(x.submit.at):'—')+'</span></div></div></div>';
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">整改复核</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(x.no)+'　'+esc(x.merchant)+'　退回 '+x.reject+' 次'+(x.over>0?'　<span style="color:#DC2626">超期 '+x.over+' 天</span>':'')+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-images text-[#6D28D9]"></i>前后照片对比（必看）</div>'+cmp+'</div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-list-check text-[#FF4D2D]"></i>整改要求与商户说明</div>'
+    +'<div class="kv"><span class="k">整改要求</span><span class="v">'+esc(x.req)+'</span></div>'
+    +'<div class="kv"><span class="k">商户说明</span><span class="v">'+(x.submit?esc(x.submit.desc):'—')+'</span></div>'
+    +'<div class="kv"><span class="k">提交人</span><span class="v">'+(x.submit?esc(x.submit.by)+'　'+esc(x.submit.at):'—')+'</span></div></div>';
+  h+='<div><label class="fl">复核意见（退回必填）</label><input class="fi" id="rv_note" placeholder="如：排烟口仍未清洗，请重新处理"></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-ghost" style="color:#B91C1C;border-color:#FECACA" onclick="doReject(\''+no+'\')">退回整改</button>'
+    +'<button class="btn btn-primary" onclick="doPass(\''+no+'\')">通过关闭</button></div>';
+  document.getElementById('drawer').innerHTML=h;show();
+}
+function doPass(no){
+  var x=zOf(no);
+  x.state='已通过关闭';x.closeType='通过';
+  x.logs.push(['2026-10-27 '+new Date().toTimeString().slice(0,5),'复核通过 → 已通过关闭，关联问题 '+x.wt+' 转「已解决」']);
+  curRows=ZG.filter(function(y){return tabOf(y)===curTab;});
+  renderStats();render();closeAll();
+  toast('复核通过：'+no+'　已关闭，关联问题 '+x.wt+' 已转「已解决」');
+}
+function doReject(no){
+  var x=zOf(no);
+  var note=document.getElementById('rv_note').value.trim();
+  if(note.length<4){toast('退回原因必填（至少 4 个字）');return;}
+  x.reject++;
+  x.state='整改中';x.over=0;
+  x.submit=null;
+  x.logs.push(['2026-10-27 '+new Date().toTimeString().slice(0,5),'退回整改（第 '+x.reject+' 次）：'+note+'；超期天数已重置']);
+  curRows=ZG.filter(function(y){return tabOf(y)===curTab;});
+  renderStats();render();closeAll();
+  if(x.reject>=3){
+    toast('已退回：'+no+'　累计退回 '+x.reject+' 次 → 已自动升级至物业主管（并抄送运营）');
+  }else{
+    toast('已退回：'+no+'（第 '+x.reject+' 次）　超期天数重置，已通知商户重新提交');
+  }
+}
+function batchPass(){
+  var list=ZG.filter(function(x){return x.state==='待复核'&&x.checked;});
+  if(!list.length){toast('请先在「待复核」勾选要批量通过的整改单');return;}
+  if(!confirm('批量通过 '+list.length+' 张整改单？\n通过后关联问题将转「已解决」，操作留痕（记录操作人与批次）。')) return;
+  list.forEach(function(x){
+    x.state='已通过关闭';x.closeType='通过';
+    x.logs.push(['2026-10-27 '+new Date().toTimeString().slice(0,5),'批量复核通过（批次 '+list.length+' 张）→ 已关闭']);
+    x.checked=false;
+  });
+  curRows=ZG.filter(function(y){return tabOf(y)===curTab;});
+  renderStats();render();
+  toast('已批量通过 '+list.length+' 张整改单（留痕：操作人 物业 张××）');
+}
+
+/* ================= 详情 ================= */
+function openDetail(no){
+  var x=zOf(no);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+esc(x.no)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(x.wt)+'　<span class="tag" style="'+(STC[x.state]||'')+'">'+esc(x.state)+'</span></p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div class="blk"><div class="blk-t"><i class="fas fa-circle-info text-[#FF4D2D]"></i>整改信息</div>'
+    +'<div class="kv"><span class="k">关联问题</span><span class="v">'+esc(x.wt)+'　'+esc(x.wtDesc)+'</span></div>'
+    +'<div class="kv"><span class="k">整改商户</span><span class="v">'+esc(x.merchant)+'</span></div>'
+    +'<div class="kv"><span class="k">位置</span><span class="v">'+esc(x.unit)+'</span></div>'
+    +'<div class="kv"><span class="k">整改要求</span><span class="v">'+esc(x.req)+'</span></div>'
+    +'<div class="kv"><span class="k">限期</span><span class="v">'+esc(x.deadline)+(x.over>0?'　<span style="color:#DC2626">超期 '+x.over+' 天</span>':'')+'</span></div>'
+    +'<div class="kv"><span class="k">通知方式</span><span class="v">'+(x.notify||'<span class="text-[#94A3B8]">未派发</span>')+'</span></div>'
+    +'<div class="kv"><span class="k">退回次数</span><span class="v">'+x.reject+' 次'+(x.reject>=3?'（已升级主管）':'')+'</span></div></div>';
+  if(x.submit){
+    h+='<div class="blk"><div class="blk-t"><i class="fas fa-images text-[#6D28D9]"></i>前后照片对比</div>'
+      +'<div class="grid grid-cols-2 gap-3">'
+      +'<div class="ph before" style="height:130px"><i class="fas fa-image"></i>原问题<span class="cap">'+esc(x.wt)+'</span></div>'
+      +'<div class="ph after" style="height:130px"><i class="fas fa-image"></i>整改后<span class="cap">'+esc(x.submit.at)+'</span></div></div>'
+      +'<p class="text-[12px] text-[#64748B] mt-2">'+esc(x.submit.desc)+'　·　提交人 '+esc(x.submit.by)+'</p></div>';
+  }
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-clock-rotate-left text-[#64748B]"></i>处理留痕</div><div class="tl">'
+    +x.logs.map(function(l){return '<div class="tl-i"><b>'+esc(l[0])+'</b>　'+esc(l[1])+'</div>';}).join('')
+    +'</div></div></div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end"><button class="btn btn-ghost" onclick="closeAll()">关闭</button></div>';
+  document.getElementById('drawer').innerHTML=h;show();
+}
+
+function show(){document.getElementById('mask').className='mask on';document.getElementById('drawer').className='drawer on';}
+function closeAll(){document.getElementById('mask').className='mask';document.getElementById('drawer').className='drawer';}
+renderStats();
+curRows=ZG.filter(function(x){return tabOf(x)==='待派发';});
+render();
+</script>
+<script src="../shared/op-guard.js"></script>
+<script src="../shared/page-prd.js"></script>
+</body>
+</html>

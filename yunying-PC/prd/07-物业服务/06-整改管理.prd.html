@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>07 物业服务 · 06 整改管理 · 页面 PRD</title><style>
+:root{--fg:#1F2430;--muted:#64748B;--line:#E9EDF3}
+*{box-sizing:border-box}
+body{margin:0;padding:26px 32px 90px;background:#fff;color:var(--fg);
+ font:14px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif}
+h1{font-size:20px;margin:0 0 6px}
+h2{font-size:17px;margin:34px 0 12px;padding-top:12px;border-top:1px solid var(--line)}
+h3{font-size:15px;margin:22px 0 10px}
+h4{font-size:14px;margin:18px 0 8px;color:#334155}
+p{margin:8px 0}
+table{border-collapse:collapse;width:100%;margin:10px 0 16px;font-size:12.5px}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:#F8FAFC;font-weight:700}
+tr:nth-child(even) td{background:#FCFDFE}
+code{background:#F1F5F9;padding:1px 5px;border-radius:4px;font-size:12px;
+ font-family:ui-monospace,Menlo,Consolas,monospace;color:#B91C1C}
+pre.code{background:#0F172A;color:#E2E8F0;padding:14px 16px;border-radius:10px;overflow:auto;font-size:12px}
+pre.code code{background:none;color:inherit;padding:0}
+blockquote{margin:10px 0;padding:10px 14px;background:#EFF6FF;border-left:3px solid #60A5FA;
+ border-radius:0 8px 8px 0;color:#334155;font-size:13px}
+ul,ol{margin:8px 0;padding-left:22px}
+li{margin:3px 0}
+hr{border:0;border-top:1px dashed var(--line);margin:22px 0}
+a{color:#2563EB;text-decoration:none}
+.meta{font-size:12px;color:var(--muted);margin:0 0 20px}
+.vtitle{font-size:18px;font-weight:800;margin:0 0 4px}
+details.fam{margin:12px 0 20px;border:1px solid var(--line);border-radius:10px;background:#F8FAFC;padding:0 14px}
+details.fam summary{cursor:pointer;padding:10px 0;font-size:13px;font-weight:700;color:#334155}
+details.fam[open]{padding-bottom:10px}
+.vnav{display:flex;justify-content:space-between;margin-top:34px;padding-top:14px;border-top:1px dashed var(--line);font-size:13px}
+</style></head><body>
+<div class="meta">由 <code>yunying-PC/prd/07-物业服务/06-整改管理.md</code> 生成，勿手改；改文档请改 md 后重跑 build-prd。</div>
+<h1>07 物业服务 · 06 整改管理</h1>
+<blockquote>端：运营端 PC（<code>yunying-PC</code>）　｜　模块：07 物业服务（分册 §8.7） 页面：<code>property-rectify.html</code>　｜　页面版本：v1.0（2026-10-27） 前置：<code>01-报修工单.md</code>（含模块通用说明 §0）</blockquote>
+<hr>
+<h2 id="p1">1. 页面定位</h2>
+<p>把<strong>商户责任</strong>问题派给商户并跟踪到验收闭环。原「整改派发」「整改复核」两页<strong>合并为本页</strong>（4 个 Tab）。</p>
+<ul><li>使用者：物业主管（派发 / 复核）</li><li>上游：P6「派整改」、P8 投诉「转整改」</li><li>下游：复核通过 → P6 关联问题转「已解决」</li></ul>
+<h2 id="p2">2. 分区结构</h2>
+<table><thead><tr><th>Tab</th><th>内容</th></tr></thead><tbody><tr><td>待派发</td><td>问题已上报但未派发（可改限期、选通知方式）</td></tr><tr><td>整改中</td><td>已派发，等商户提交（可催办、代录提交）</td></tr><tr><td>待复核</td><td>商户已提交，等验收（可勾选批量通过）</td></tr><tr><td>已关闭</td><td>已通过关闭 / 无效关闭</td></tr></tbody></table>
+<p><strong>统计卡（4）</strong>：待派发 · 整改中 · 待复核 · 本月已关闭</p>
+<p><strong>列表（9 列，含勾选）</strong>：勾选（仅待复核）· 整改编号 <code>ZG</code>（带退回次数）· 关联问题 · 整改商户 · 整改要求 · 限期 · 状态 · <strong>超期天数</strong> · 操作</p>
+<h2 id="p3">3. 状态机（4 态 + 2 终态）</h2>
+<pre class="code"><code data-lang="mermaid">stateDiagram-v2
+    [*] --&gt; 待派发: P6 派整改生成
+    待派发 --&gt; 整改中: 派发（选通知方式，限期不早于当日）
+    整改中 --&gt; 待复核: 商户提交（说明 + 照片）
+    待复核 --&gt; 已通过关闭: 复核通过 → 关联问题转「已解决」
+    待复核 --&gt; 整改中: 退回整改（原因必填，超期天数重置）
+    整改中 --&gt; 无效关闭: 现场复查无需整改</code></pre>
+<h2 id="p4">4. 整改单字段</h2>
+<table><thead><tr><th>字段</th><th>必填</th><th>说明</th></tr></thead><tbody><tr><td>关联问题</td><td>是</td><td>自动带入（<code>WT</code> 号 + 描述 + 原照片）</td></tr><tr><td>整改商户</td><td>是</td><td>从 04 商户档案选，或按档口带出当前租户</td></tr><tr><td>整改要求</td><td>是</td><td>≥5 字（派发时以此为准，复核时逐条对照）</td></tr><tr><td>限期完成时间</td><td>是</td><td><strong>不早于当日</strong></td></tr><tr><td>通知方式</td><td>是</td><td>站内 / 短信 / 站内 + 短信（短信为独立服务，按条计费）</td></tr></tbody></table>
+<h3>商户提交（端上，原型用「代录提交」演示）</h3>
+<table><thead><tr><th>字段</th><th>必填</th><th>校验</th></tr></thead><tbody><tr><td>整改说明</td><td>是</td><td>≥5 字</td></tr><tr><td><strong>整改后照片</strong></td><td><strong>是</strong></td><td><strong>≥1 张</strong>（无照片不能提交，ZG-3）</td></tr><tr><td>提交人</td><td>自动</td><td>—</td></tr></tbody></table>
+<h2 id="p5">5. 复核（本页关键）</h2>
+<p>抽屉<strong>必显前后照片并排对比</strong>：</p>
+<pre class="code"><code data-lang="">┌────────────────┬────────────────┐
+│  原问题照片     │  整改后照片     │
+│  （红框，上报时）│  （绿框，提交时）│
+└────────────────┴────────────────┘</code></pre>
+<table><thead><tr><th>操作</th><th>效果</th></tr></thead><tbody><tr><td><strong>通过关闭</strong></td><td>整改单 → <code>已通过关闭</code>，关联问题 → <strong>已解决</strong></td></tr><tr><td><strong>退回整改</strong></td><td>原因必填（≥4 字），回 <code>整改中</code>，<strong>超期天数重置</strong>，退回次数 +1</td></tr><tr><td><strong>批量通过</strong></td><td>勾选多张同批次通过，<strong>留痕</strong>（记录操作人与批次）</td></tr></tbody></table>
+<p><strong>规则</strong></p>
+<table><thead><tr><th>编号</th><th>规则</th></tr></thead><tbody><tr><td>ZG-1</td><td>超期未提交提醒商户 + 抄送主管</td></tr><tr><td>ZG-2</td><td><strong>退回累计 3 次自动升级主管</strong>（并抄送运营）</td></tr><tr><td>ZG-3</td><td><strong>无照片不能提交</strong></td></tr><tr><td>ZG-4</td><td>退回后<strong>超期天数重置</strong>（不累计，避免一次违约永久背锅）</td></tr></tbody></table>
+<h2 id="p6">6. 提示语表</h2>
+<blockquote><code>✅</code> 原型已有 / <code>⬜</code> 待实现。<strong>编号前缀 <code>ZG-</code></strong>（此处用 <code>ZGQ-</code> 与规则区分）。</blockquote>
+<table><thead><tr><th>编号</th><th>场景</th><th>提示文案</th><th>形式</th><th>阻断</th><th>状态</th></tr></thead><tbody><tr><td>ZGQ-01</td><td>派发缺限期</td><td>请填写限期完成时间</td><td>Toast</td><td>是</td><td>✅</td></tr><tr><td>ZGQ-02</td><td>限期早于当日</td><td>限期不得早于当日（{今日}）</td><td>Toast</td><td>是</td><td>✅</td></tr><tr><td>ZGQ-03</td><td>派发成功</td><td>已派发：{单号}　{商户}（{通知方式}，限期 {日期}）</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>ZGQ-04</td><td>催办</td><td>已催办：{单号}　已向商户发送提醒，并抄送物业主管</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>ZGQ-05</td><td>代录提交·说明过短</td><td>整改说明至少 5 个字（当前 {n} 字）</td><td>Toast</td><td>是</td><td>✅</td></tr><tr><td>ZGQ-06</td><td>代录提交·缺照片</td><td>无照片不能提交：请至少上传 1 张整改后照片</td><td>Toast</td><td>是</td><td>✅</td></tr><tr><td>ZGQ-07</td><td>提交成功</td><td>已提交整改：{单号}　待物业复核（照片对比）</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>ZGQ-08</td><td>退回未填原因</td><td>退回原因必填（至少 4 个字）</td><td>Toast</td><td>是</td><td>✅</td></tr><tr><td>ZGQ-09</td><td>退回成功</td><td>已退回：{单号}（第 {n} 次）　超期天数重置，已通知商户重新提交</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>ZGQ-10</td><td><strong>退回满 3 次</strong></td><td>已退回：{单号}　累计退回 {n} 次 → 已自动升级至物业主管（并抄送运营）</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>ZGQ-11</td><td>复核通过</td><td>复核通过：{单号}　已关闭，关联问题 {WT} 已转「已解决」</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>ZGQ-12</td><td>批量通过成功</td><td>已批量通过 {n} 张整改单（留痕：操作人 {姓名}）</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>ZGQ-13</td><td>未勾选就批量通过</td><td>请先在「待复核」勾选要批量通过的整改单</td><td>Toast</td><td>是</td><td>✅</td></tr><tr><td>ZGQ-14</td><td>列表空态</td><td>该分类下暂无整改单</td><td>空态</td><td>否</td><td>✅</td></tr><tr><td>ZGQ-15</td><td>导出</td><td>已导出整改台账（含超期天数、退回次数、复核结论）</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>ZGQ-16</td><td><strong>超期自动提醒</strong></td><td>建议：{单号} 已超期 {n} 天未提交，已提醒商户并抄送主管</td><td>站内 / 短信</td><td>否</td><td>⬜ 原型仅标「超 N 天」</td></tr><tr><td>ZGQ-17</td><td><strong>商户端提交入口</strong></td><td>建议：商户端 App 应有「待整改」列表与拍照提交页</td><td>—</td><td>—</td><td>⬜ 端上待办</td></tr></tbody></table>
+<p><strong>自检结论</strong>：✅ <strong>15</strong> / ⬜ <strong>2</strong> / 共 17 条。</p>
+<h2 id="p7">7. 验收要点</h2>
+<table><thead><tr><th>编号</th><th>场景</th><th>期望</th></tr></thead><tbody><tr><td>AC-01</td><td>待派发限期填昨天</td><td>拦截「限期不得早于当日」</td></tr><tr><td>AC-02</td><td>派发后</td><td>商户端可收到通知，Tab 从待派发移到整改中</td></tr><tr><td>AC-03</td><td>提交不传照片</td><td>拦截（ZG-3）</td></tr><tr><td>AC-04</td><td>复核抽屉</td><td><strong>必须并排显示</strong>原照片与整改后照片</td></tr><tr><td>AC-05</td><td>退回</td><td>超期天数归零，退回次数 +1</td></tr><tr><td>AC-06</td><td>连续退回 3 次</td><td>提示已升级主管</td></tr><tr><td>AC-07</td><td>通过关闭</td><td>关联问题状态变「已解决」</td></tr><tr><td>AC-08</td><td>批量通过 3 张</td><td>3 张全关闭，留痕记录批次</td></tr></tbody></table>
+</body></html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>07 物业服务 · 03 维修资金台账 · 页面 PRD</title><style>
+:root{--fg:#1F2430;--muted:#64748B;--line:#E9EDF3}
+*{box-sizing:border-box}
+body{margin:0;padding:26px 32px 90px;background:#fff;color:var(--fg);
+ font:14px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif}
+h1{font-size:20px;margin:0 0 6px}
+h2{font-size:17px;margin:34px 0 12px;padding-top:12px;border-top:1px solid var(--line)}
+h3{font-size:15px;margin:22px 0 10px}
+h4{font-size:14px;margin:18px 0 8px;color:#334155}
+p{margin:8px 0}
+table{border-collapse:collapse;width:100%;margin:10px 0 16px;font-size:12.5px}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:#F8FAFC;font-weight:700}
+tr:nth-child(even) td{background:#FCFDFE}
+code{background:#F1F5F9;padding:1px 5px;border-radius:4px;font-size:12px;
+ font-family:ui-monospace,Menlo,Consolas,monospace;color:#B91C1C}
+pre.code{background:#0F172A;color:#E2E8F0;padding:14px 16px;border-radius:10px;overflow:auto;font-size:12px}
+pre.code code{background:none;color:inherit;padding:0}
+blockquote{margin:10px 0;padding:10px 14px;background:#EFF6FF;border-left:3px solid #60A5FA;
+ border-radius:0 8px 8px 0;color:#334155;font-size:13px}
+ul,ol{margin:8px 0;padding-left:22px}
+li{margin:3px 0}
+hr{border:0;border-top:1px dashed var(--line);margin:22px 0}
+a{color:#2563EB;text-decoration:none}
+.meta{font-size:12px;color:var(--muted);margin:0 0 20px}
+.vtitle{font-size:18px;font-weight:800;margin:0 0 4px}
+details.fam{margin:12px 0 20px;border:1px solid var(--line);border-radius:10px;background:#F8FAFC;padding:0 14px}
+details.fam summary{cursor:pointer;padding:10px 0;font-size:13px;font-weight:700;color:#334155}
+details.fam[open]{padding-bottom:10px}
+.vnav{display:flex;justify-content:space-between;margin-top:34px;padding-top:14px;border-top:1px dashed var(--line);font-size:13px}
+</style></head><body>
+<div class="meta">由 <code>yunying-PC/prd/07-物业服务/03-维修资金台账.md</code> 生成，勿手改；改文档请改 md 后重跑 build-prd。</div>
+<h1>07 物业服务 · 03 维修资金台账</h1>
+<blockquote>端：运营端 PC（<code>yunying-PC</code>）　｜　模块：07 物业服务（分册 §8.4） 页面：<code>property-budget.html</code>　｜　页面版本：v1.0（2026-10-27） 前置：<code>01-报修工单.md</code>（含模块通用说明 §0）</blockquote>
+<hr>
+<h2 id="p1">1. 页面定位</h2>
+<p>一眼看清"<strong>今年 30 万花了多少、还剩多少、花在哪</strong>"，并管住超额申请。</p>
+<ul><li>使用者：财务（核对）、物业主管（发起申请）、董事长（看额度红线）</li><li>上游：P2 核销成功金额 → 计入「已核销」；P2 已通过未核销 → 计入「在途」</li><li>下游：额度不足时阻断 P2 核销，引导到这里申请追加</li></ul>
+<h2 id="p2">2. 分区结构</h2>
+<table><thead><tr><th>区块</th><th>内容</th></tr></thead><tbody><tr><td>顶部</td><td>年度切换（2026.09–2027.08）+「历史采购导入」「导出」「额外申请」</td></tr><tr><td><strong>统计卡（5）</strong>：额度看板</td><td>年度总额度 · 已核销 · 在途 · <strong>剩余</strong> · 额外追加</td></tr><tr><td>额度进度条</td><td>已核销（红）+ 在途（黄）+ 剩余（灰），带预警文案</td></tr><tr><td>趋势</td><td>月度消耗柱状（12 个月）+ 合计与峰值</td></tr><tr><td>结构分析（3 块）</td><td>物资类别 TOP10（金额）· 供应商 TOP5（金额）· 楼栋维度消耗</td></tr><tr><td>待核销清单</td><td>已通过未核销的交办单（含停留天数），点击去核销</td></tr><tr><td>额外申请列表</td><td>申请单号 / 金额 / 用途 / 附件 / 当前节点 / 状态 / 申请人 / 时间 / 操作</td></tr></tbody></table>
+<h2 id="p3">3. 额度看板口径</h2>
+<table><thead><tr><th>卡</th><th>口径</th><th>预警</th></tr></thead><tbody><tr><td>年度总额度</td><td><code>base + extra</code>（合同约定 300,000 + 追加）</td><td>—</td></tr><tr><td>已核销</td><td>Σ <strong>核销成功</strong>金额</td><td>—</td></tr><tr><td>在途</td><td>Σ（已通过 / 部分核销单的 <code>审批金额 − 已核销</code>）</td><td>—</td></tr><tr><td><strong>剩余</strong></td><td><code>总额度 − 已核销 − 在途</code></td><td><strong>&lt;20% 橙色；&lt;0 红色「已超支」</strong></td></tr><tr><td>额外追加</td><td>Σ 已通过的额外申请金额</td><td>—</td></tr></tbody></table>
+<blockquote><strong>BD-2</strong>：只有「核销成功」才计入已核销；<strong>审批通过只算在途</strong>，不占已核销。 <strong>BD-1</strong>：额度周期 = 租赁年度 9.1–8.31，<strong>跨期不结转</strong>。</blockquote>
+<h2 id="p4">4. 结构分析口径</h2>
+<table><thead><tr><th>块</th><th>口径</th><th>备注</th></tr></thead><tbody><tr><td>物资类别 TOP10</td><td>按核销明细的物资类别汇总金额，降序</td><td>展示前 10，带占比条</td></tr><tr><td>供应商 TOP5</td><td>按核销供应商汇总金额</td><td>单一供应商 &gt;70% 会命中风控 R6（供应商集中）</td></tr><tr><td>楼栋维度</td><td>按位置楼栋汇总</td><td>用于判断哪栋楼设备老化</td></tr></tbody></table>
+<h2 id="p5">5. 待核销清单</h2>
+<table><thead><tr><th>列</th><th>说明</th></tr></thead><tbody><tr><td>交办单号 / 项目名称 / 审批金额 / 已核销 / <strong>待核金额</strong> / 提交时间 / <strong>停留</strong> / 操作</td></tr></tbody></table>
+<p><strong>停留 &gt; 15 天</strong>标红「久悬」——跨期未核销会挤占下一年度额度。</p>
+<h2 id="p6">6. 额外申请</h2>
+<h3>6.1 申请字段</h3>
+<table><thead><tr><th>字段</th><th>必填</th><th>校验</th></tr></thead><tbody><tr><td>申请金额</td><td>是</td><td><strong>&gt;0</strong></td></tr><tr><td>用途说明</td><td>是</td><td><strong>≥10 字</strong></td></tr><tr><td>依据附件</td><td>否</td><td>报价单 / 说明文件</td></tr><tr><td>申请人 / 时间</td><td>自动</td><td>—</td></tr></tbody></table>
+<h3>6.2 审批链（串行 2 级）</h3>
+<p><code>运营主管 → 财务</code></p>
+<ul><li>运营主管通过 → 节点转「财务」，<strong>额度尚未追加</strong></li><li>财务通过 → <strong>追加到当年总额度</strong>，留痕（申请人 / 审批人 / 金额 / 原因）</li><li>驳回 → 原因必填（≥4 字），额度不追加</li></ul>
+<blockquote><strong>BD-3</strong>：额外申请通过后追加到<strong>当年</strong>总额度，跨期不结转。</blockquote>
+<h2 id="p7">7. 历史采购导入</h2>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>模板列</td><td>物资名称 / 规格 / 数量 / 单价 / 供应商 / 采购日期 / 发票号（可空）</td></tr><tr><td>校验</td><td><strong>物资名称与单价必填</strong>；单价 &gt;0；日期格式 <code>YYYY-MM-DD</code></td></tr><tr><td>失败处理</td><td><strong>整批回滚</strong> + 失败行清单（每行标具体错误）</td></tr><tr><td>导入后</td><td>写入<strong>历史成交价库</strong>（作为 P2 单价偏离校验的基准）</td></tr></tbody></table>
+<blockquote><strong>BD-5</strong>：历史采购导入<strong>不影响额度</strong>（历史年度已花掉），仅用于价格基准。</blockquote>
+<h2 id="p8">8. 提示语表</h2>
+<blockquote><code>✅</code> 原型已有 / <code>⬜</code> 待实现。<strong>编号前缀 <code>ZD-</code></strong>（资金台账）。</blockquote>
+<table><thead><tr><th>编号</th><th>场景</th><th>提示文案</th><th>形式</th><th>阻断</th><th>状态</th></tr></thead><tbody><tr><td>ZD-01</td><td>切换年度</td><td>已切换到租赁年度 {期间}（额度按年度独立，跨期不结转）</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>ZD-02</td><td>申请金额非法</td><td>请填写申请金额（大于 0）</td><td>Toast</td><td>是</td><td>✅</td></tr><tr><td>ZD-03</td><td>用途说明过短</td><td>用途说明至少 10 个字（当前 {n} 字）</td><td>Toast</td><td>是</td><td>✅</td></tr><tr><td>ZD-04</td><td>提交申请</td><td>已提交额外申请：{单号}　+¥{金额}（审批链 运营主管 → 财务）</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>ZD-05</td><td>运营主管通过</td><td>已通过：{单号}　转下一节点「财务」（额度尚未追加）</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>ZD-06</td><td>财务通过</td><td>审批通过：{单号}　额度已追加 ¥{金额}（总额度 → ¥{新额度}）</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>ZD-07</td><td>驳回未填原因</td><td>驳回原因必填（至少 4 个字）</td><td>Toast</td><td>是</td><td>✅</td></tr><tr><td>ZD-08</td><td>驳回成功</td><td>已驳回：{单号}　额度未追加</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>ZD-09</td><td><strong>导入有失败行</strong></td><td>导入失败：{n} 行校验不通过，整批已回滚（0 行入库），请修正后重传</td><td>Toast</td><td>是</td><td>✅</td></tr><tr><td>ZD-10</td><td>导入成功</td><td>已导入 {n} 行到历史成交价库（不影响额度，仅作价格偏离基准）</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>ZD-11</td><td>导出</td><td>已导出额度台账 Excel（含月度消耗、类别/供应商/楼栋结构、待核销清单）</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>ZD-12</td><td>无待核销</td><td>无待核销交办单</td><td>空态</td><td>否</td><td>✅</td></tr><tr><td>ZD-13</td><td><strong>剩余额度 &lt;20%</strong></td><td>低于 20%</td><td>卡角标（橙）；&lt;0 时显示「已超支」（红）</td><td>否</td><td>✅ 视觉已做；主动提醒未做</td></tr><tr><td>ZD-14</td><td><strong>额度不足阻断 P2</strong></td><td>建议：本年度剩余额度不足，请先申请追加</td><td>抽屉拦截</td><td>是</td><td>⬜ P2 与 P3 数据未打通</td></tr></tbody></table>
+<p><strong>自检结论</strong>：✅ <strong>12</strong> / ⬜ <strong>1</strong> / 共 14 条（ZD-13 视觉已做、主动提醒未做）。</p>
+<h2 id="p9">9. 验收要点</h2>
+<table><thead><tr><th>编号</th><th>场景</th><th>期望</th></tr></thead><tbody><tr><td>AC-01</td><td>待核销清单</td><td>金额等于 P2 已通过未核销的合计（口径一致）</td></tr><tr><td>AC-02</td><td>核销一笔后回看</td><td>已核销 ↑、在途 ↓、剩余不变（总额度不变）</td></tr><tr><td>AC-03</td><td>额外申请走完 2 级</td><td>总额度 = 原额度 + 申请金额，额外追加卡同步</td></tr><tr><td>AC-04</td><td>运营主管通过后</td><td>节点转「财务」，<strong>额度未变</strong>（不能提前加）</td></tr><tr><td>AC-05</td><td>导入含 1 行失败</td><td><strong>整批回滚</strong>，提示 0 行入库，列出失败行</td></tr><tr><td>AC-06</td><td>剩余低于 20%</td><td>剩余卡变橙色；低于 0 变红色「已超支」</td></tr><tr><td>AC-07</td><td>切换年度</td><td>全部看板与结构分析同步切换</td></tr></tbody></table>
+</body></html>

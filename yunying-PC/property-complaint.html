@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>物业服务 - 投诉建议</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.stat-card{transition:box-shadow .2s ease,transform .2s ease}
+.stat-card:hover{box-shadow:0 4px 20px rgba(0,0,0,.08);transform:translateY(-1px)}
+.tb th{font-size:12px;font-weight:600;color:#64748B;background:#F8FAFC;padding:10px 12px;text-align:left;white-space:nowrap}
+.tb td{font-size:13px;color:#1F2430;padding:11px 12px;border-bottom:1px solid #F1F5F9;white-space:nowrap}
+.tb tbody tr:hover{background:#FFF7F5}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}
+.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}
+.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}
+.lk:hover{text-decoration:underline}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}
+.lk-gray:hover{color:#1F2430}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:40}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:620px;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:50;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.fl{display:block;font-size:12px;color:#64748B;margin-bottom:5px}
+.fl i{color:#FF4D2D;font-style:normal;margin-right:2px}
+.fi{width:100%;padding:8px 11px;font-size:13px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;outline:none;transition:.15s}
+.fi:focus{border-color:#FF4D2D;background:#fff}
+.blk{border:1px solid #F1F5F9;border-radius:12px;padding:13px 15px}
+.blk-t{font-size:12px;font-weight:700;color:#1F2430;display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.kv{display:flex;gap:10px;font-size:12px;padding:4px 0;line-height:1.6}
+.kv .k{color:#94A3B8;width:84px;flex-shrink:0}
+.kv .v{color:#1F2430;flex:1}
+.tl{position:relative;padding-left:16px}
+.tl::before{content:'';position:absolute;left:4px;top:4px;bottom:4px;width:1px;background:#E2E8F0}
+.tl-i{position:relative;padding:0 0 10px;font-size:12px;color:#64748B;line-height:1.6}
+.tl-i::before{content:'';position:absolute;left:-16px;top:5px;width:7px;height:7px;border-radius:50%;background:#FF4D2D}
+.tl-i b{color:#1F2430;font-weight:600}
+.tab-on{color:#FF4D2D;border-bottom:2px solid #FF4D2D;font-weight:600}
+.empty{padding:50px 0;text-align:center;color:#CBD5E1}
+.empty i{font-size:28px;display:block;margin-bottom:8px}
+.star{color:#F59E0B;font-size:12px}
+.star.off{color:#E2E8F0}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+<div class="p-6">
+
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">投诉建议</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">07 物业服务</span>
+        <span class="tag" style="background:#FEF3C7;color:#B45309">24h 未受理即升级</span>
+        <span class="tag" style="background:#FFEDE7;color:#E63E20">≤3 星自动回访</span>
+      </div>
+      <p class="text-[12px] text-gray-400 mt-1">收敛商户与买家的不满，并通过转单反哺物业：<b>维修质量 → 转报修（BX）</b>、<b>秩序问题 → 转整改（ZG）</b>。电话代录<b>必填来电号码</b>；满意度 ≤3 星<b>自动回访</b>（退回处理中）。</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="toast('已导出投诉台账（含满意度分布、超时统计、转单关联）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+      <button class="btn btn-primary" onclick="openNew()"><i class="fas fa-plus mr-1"></i>新增投诉（代录）</button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-4 gap-3 mb-5" id="stats"></div>
+
+  <div class="flex items-center gap-5 mb-3 border-b border-gray-200" id="tabs">
+    <span class="py-2.5 text-[13px] cursor-pointer tab-on" onclick="switchTab('',this)">全部 <span class="text-[11px] text-[#94A3B8]" id="c-all"></span></span>
+    <span class="py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600" onclick="switchTab('待受理',this)">待受理 <span class="text-[11px]" id="c-wait"></span></span>
+    <span class="py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600" onclick="switchTab('处理中',this)">处理中 <span class="text-[11px]" id="c-doing"></span></span>
+    <span class="py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600" onclick="switchTab('已回复',this)">已回复 <span class="text-[11px]" id="c-reply"></span></span>
+    <span class="py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600" onclick="switchTab('已关闭',this)">已关闭 <span class="text-[11px]" id="c-close"></span></span>
+    <span class="py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600" onclick="switchTab('已升级',this)">已升级 <span class="text-[11px]" id="c-up"></span></span>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-100 p-3 mb-4 flex items-center gap-3 flex-wrap">
+    <input id="f-kw" type="text" placeholder="投诉编号 / 投诉人 / 内容" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none w-56">
+    <select id="f-src" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+      <option value="">全部来源</option><option>商户端</option><option>买家端</option><option>电话代录</option><option>巡检转</option>
+    </select>
+    <select id="f-cat" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+      <option value="">全部分类</option><option>维修质量</option><option>秩序问题</option><option>服务态度</option><option>收费争议</option><option>环境卫生</option><option>其他</option>
+    </select>
+    <label class="flex items-center gap-1.5 text-[12px] text-gray-600"><input type="checkbox" id="f-slow" class="accent-[#FF4D2D]">仅看超时</label>
+    <button class="btn btn-primary" onclick="doSearch()">查询</button>
+    <button class="btn btn-ghost" onclick="resetSearch()">重置</button>
+    <span class="text-[11px] text-[#94A3B8] ml-auto"><i class="fas fa-circle-info mr-1"></i>超时基线：24h 未受理 / 3 工作日未回复</span>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-[13px] font-bold text-[#1F2430]">投诉清单</span>
+        <span class="text-[12px] text-[#94A3B8]" id="cnt">共 0 条</span>
+      </div>
+      <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>转报修 / 转整改后原投诉保留，可回看原内容</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full tb" style="min-width:1280px">
+        <thead><tr>
+          <th>投诉编号</th><th>来源</th><th>投诉人</th><th>被投诉对象</th><th>分类</th><th>内容摘要</th><th>状态</th><th>超时</th><th class="text-center">操作</th>
+        </tr></thead>
+        <tbody id="tb"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="mask" id="mask" onclick="closeAll()"></div>
+<div class="drawer" id="drawer"></div>
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
+
+<script>
+/* ================= 数据 ================= */
+var SRC=['商户端','买家端','电话代录','巡检转'];
+var CAT=['维修质量','秩序问题','服务态度','收费争议','环境卫生','其他'];
+var OBJ=['商户','物业人员','公共区域','平台'];
+var STC={'待受理':'background:#FEF3C7;color:#B45309','处理中':'background:#DBEAFE;color:#2563EB',
+  '已回复':'background:#EDE9FE;color:#6D28D9','已关闭':'background:#DCFCE7;color:#15803D','已升级':'background:#FEE2E2;color:#B91C1C'};
+
+var TS=[
+  {no:'TS202610-0062', src:'商户端', by:'诸暨××袜业（王××）', phone:'138****6721', obj:'物业人员', cat:'维修质量',
+   desc:'报修 3 天了没人来处理，打物业电话也没人接', photos:0, state:'待受理', over:6,
+   acceptBy:'', handler:'', reply:'', star:0, tags:[], cmt:'', bxNo:'', zgNo:'',
+   createdAt:'2026-10-27 08:30', logs:[['2026-10-27 08:30','商户端提交投诉']]},
+
+  {no:'TS202610-0061', src:'电话代录', by:'买家（李女士）', phone:'139****2233', obj:'商户', cat:'服务态度',
+   desc:'到店询价被店员冷落，态度恶劣', photos:0, state:'待受理', over:2,
+   acceptBy:'', handler:'', reply:'', star:0, tags:[], cmt:'', bxNo:'', zgNo:'',
+   createdAt:'2026-10-27 10:15', logs:[['2026-10-27 10:15','电话代录（来电号 139****2233）']]},
+
+  {no:'TS202610-0060', src:'商户端', by:'义乌××针织（陈××）', phone:'137****8810', obj:'公共区域', cat:'环境卫生',
+   desc:'B 栋 2F 卫生间长期异味，无人清理', photos:1, state:'处理中', over:0,
+   acceptBy:'客服 何××', handler:'物业 张××', reply:'', star:0, tags:[], cmt:'', bxNo:'', zgNo:'',
+   createdAt:'2026-10-26 14:20', logs:[['2026-10-26 14:20','商户端提交投诉（照片 1 张）'],
+     ['2026-10-26 15:00','已受理，指派 物业 张×× 处理']]},
+
+  {no:'TS202610-0059', src:'商户端', by:'诸暨××服饰（李××）', phone:'136****1122', obj:'商户', cat:'秩序问题',
+   desc:'隔壁 1F-B07 长期把货物摆到通道，影响通行', photos:2, state:'已回复', over:0,
+   acceptBy:'客服 何××', handler:'物业 张××', reply:'已现场核查，已向该商户下发整改单，限 3 日内清理通道并承诺不超线摆放。',
+   star:0, tags:[], cmt:'', bxNo:'', zgNo:'ZG202610-0028', 
+   createdAt:'2026-10-24 09:10', logs:[['2026-10-24 09:10','商户端提交投诉（照片 2 张）'],
+     ['2026-10-24 10:00','已受理，指派 物业 张××'],['2026-10-24 16:30','已转整改 → ZG202610-0028'],
+     ['2026-10-24 17:00','已回复（转单处理中）']]},
+
+  {no:'TS202610-0058', src:'买家端', by:'买家（赵先生）', phone:'—', obj:'平台', cat:'其他',
+   desc:'在市场内找不到卫生间指示，导航也不显示', photos:1, state:'已升级', over:30,
+   acceptBy:'', handler:'', reply:'', star:0, tags:[], cmt:'', bxNo:'', zgNo:'',
+   createdAt:'2026-10-23 11:40', logs:[['2026-10-23 11:40','买家端提交投诉（照片 1 张）'],
+     ['2026-10-24 12:00','超 24h 未受理 → 自动置「已升级」并通知运营主管']]},
+
+  {no:'TS202610-0057', src:'商户端', by:'大唐××商贸（周××）', phone:'135****4433', obj:'物业人员', cat:'收费争议',
+   desc:'认为本月物业费多算了公摊电费，要求核对明细', photos:0, state:'已关闭', over:0,
+   acceptBy:'客服 何××', handler:'财务 吴××', reply:'已提供本月公摊电费分摊明细（按面积比），核算无误，商户确认。',
+   star:5, tags:['回复及时','解释清楚'], cmt:'明细发了，确实没算错', bxNo:'', zgNo:'',
+   createdAt:'2026-10-20 09:00', logs:[['2026-10-20 09:00','商户端提交投诉'],['2026-10-20 09:40','已受理'],
+     ['2026-10-21 10:00','已回复（附分摊明细）'],['2026-10-21 15:20','商户评价 5 星 → 已关闭']]},
+
+  {no:'TS202610-0056', src:'商户端', by:'浙江××服饰（钱××）', phone:'134****7788', obj:'公共区域', cat:'维修质量',
+   desc:'A 栋 2F 中央空调出风小，报修后仍没改善', photos:1, state:'处理中', over:0,
+   acceptBy:'客服 何××', handler:'物业 张××', reply:'已转报修，维修班组将于明日上午入场复检。',
+   star:2, tags:['处理慢'], cmt:'等了好几天还是老样子', bxNo:'BX202610-0028', zgNo:'',
+   createdAt:'2026-10-22 10:30', logs:[['2026-10-22 10:30','商户端提交投诉'],['2026-10-22 11:00','已受理'],
+     ['2026-10-22 14:00','已转报修 → BX202610-0028'],['2026-10-22 14:10','已回复'],
+     ['2026-10-23 09:00','商户评价 2 星（≤3 星）→ 自动回访：退回「处理中」并通知主管']]},
+
+  {no:'TS202610-0055', src:'巡检转', by:'巡检员 陈××', phone:'—', obj:'商户', cat:'秩序问题',
+   desc:'巡检发现 A 栋 3F 消防通道被货物占用，商户拒不配合', photos:2, state:'已关闭', over:0,
+   acceptBy:'客服 何××', handler:'物业 张××', reply:'已下发整改单 ZG202610-0031，商户已清理完毕并通过复核。',
+   star:4, tags:['处理到位'], cmt:'已经清干净了', bxNo:'', zgNo:'ZG202610-0031',
+   createdAt:'2026-10-19 15:00', logs:[['2026-10-19 15:00','巡检转投诉'],['2026-10-19 15:30','已受理'],
+     ['2026-10-19 16:00','已转整改 → ZG202610-0031'],['2026-10-20 10:00','已回复'],
+     ['2026-10-21 09:00','商户评价 4 星 → 已关闭']]}
+];
+
+var curRows=TS.slice(), curTab='', curNo=null;
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},3200);}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function sOf(no){return TS.filter(function(x){return x.no===no;})[0];}
+function isSlow(x){return x.state==='待受理'&&x.over>=24;}
+function avgStar(){
+  var a=TS.filter(function(x){return x.star>0;});
+  if(!a.length)return '—';
+  var s=0;a.forEach(function(x){s+=x.star;});
+  return (s/a.length).toFixed(1);
+}
+
+function renderStats(){
+  var wait=0,doing=0,closed=0;
+  TS.forEach(function(x){
+    if(x.state==='待受理'||x.state==='已升级')wait++;
+    else if(x.state==='处理中')doing++;
+    else if(x.state==='已关闭')closed++;
+  });
+  var cards=[['待受理',wait,'#B45309'],['处理中',doing,'#2563EB'],['本月已关闭',closed,'#15803D'],['平均满意度',avgStar()+' 星','#F59E0B']];
+  document.getElementById('stats').innerHTML=cards.map(function(x){
+    var tn=(x[0]==='本月已关闭')?'已关闭':x[0];
+    return '<div class="stat-card bg-white rounded-lg border border-gray-100 p-3.5"'+(x[0]==='平均满意度'?'':' onclick="switchTab(\''+tn+'\')"')+'>'
+      +'<p class="text-[11px] text-gray-400">'+x[0]+'</p>'
+      +'<p class="text-xl font-bold mt-1" style="color:'+x[2]+'">'+x[1]+'</p></div>';
+  }).join('');
+  document.getElementById('c-all').textContent='('+TS.length+')';
+  document.getElementById('c-wait').textContent='('+wait+')';
+  document.getElementById('c-doing').textContent='('+doing+')';
+  document.getElementById('c-reply').textContent='('+TS.filter(function(x){return x.state==='已回复';}).length+')';
+  document.getElementById('c-close').textContent='('+closed+')';
+  document.getElementById('c-up').textContent='('+TS.filter(function(x){return x.state==='已升级';}).length+')';
+}
+
+function render(){
+  var h='';
+  curRows.forEach(function(x){
+    var ops='<span class="lk-gray" onclick="openDetail(\''+x.no+'\')">查看</span>';
+    if(x.state==='待受理'||x.state==='已升级'){
+      ops='<span class="lk" onclick="openAccept(\''+x.no+'\')">受理</span> · '+ops;
+    }else if(x.state==='处理中'){
+      ops='<span class="lk" onclick="openReply(\''+x.no+'\')">回复</span>';
+      if(x.cat==='维修质量'&&!x.bxNo) ops+=' · <span class="lk" onclick="toBx(\''+x.no+'\')">转报修</span>';
+      if(x.cat==='秩序问题'&&!x.zgNo) ops+=' · <span class="lk" onclick="toZg(\''+x.no+'\')">转整改</span>';
+      ops+=' · '+ops0(x);
+    }else if(x.state==='已回复'){
+      ops='<span class="lk'+(x.star?'':'')+'" onclick="openClose(\''+x.no+'\')">关闭</span> · '+ops;
+      if(!x.star) ops='<span class="lk-gray" onclick="toast(\'商户尚未评价，关闭需已回复且已评价；3 个工作日未回复已升级主管\')">关闭</span> · '+ops;
+    }
+    var starHtml='';
+    if(x.star){
+      starHtml='<div class="mt-1">';
+      for(var i=1;i<=5;i++) starHtml+='<i class="fas fa-star star'+(i<=x.star?'':' off')+'"></i>';
+      starHtml+='</div>';
+    }
+    h+='<tr>'
+      +'<td class="font-medium">'+esc(x.no)+'</td>'
+      +'<td class="text-[12px] text-[#64748B]">'+esc(x.src)+(x.src==='电话代录'?'<div class="text-[10px] text-[#94A3B8]">'+esc(x.phone)+'</div>':'')+'</td>'
+      +'<td class="text-[12px]">'+esc(x.by)+'</td>'
+      +'<td class="text-[12px] text-[#64748B]">'+esc(x.obj)+'</td>'
+      +'<td class="text-[12px]">'+esc(x.cat)+'</td>'
+      +'<td class="text-[12px] text-[#64748B]" style="max-width:250px;white-space:normal">'+esc(x.desc)+'</td>'
+      +'<td><span class="tag" style="'+STC[x.state]+'">'+esc(x.state)+'</span>'+starHtml+'</td>'
+      +'<td class="text-[12px]">'+(x.over>=24&&(x.state==='待受理'||x.state==='已升级')?'<span style="color:#DC2626;font-weight:600">'+x.over+' 小时</span>':'<span class="text-[#94A3B8]">—</span>')+'</td>'
+      +'<td class="text-center whitespace-nowrap">'+ops+'</td></tr>';
+  });
+  document.getElementById('tb').innerHTML=h||'<tr><td colspan="9"><div class="empty"><i class="fas fa-inbox"></i>暂无符合条件投诉</div></td></tr>';
+  document.getElementById('cnt').textContent='共 '+curRows.length+' 条';
+}
+function ops0(x){return '<span class="lk-gray" onclick="openDetail(\''+x.no+'\')">查看</span>';}
+function switchTab(s,el){
+  curTab=s;
+  document.querySelectorAll('#tabs span').forEach(function(x){x.className='py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600';});
+  if(el)el.className='py-2.5 text-[13px] cursor-pointer tab-on';
+  curRows=TS.filter(function(x){return !s||x.state===s;});
+  render();
+}
+function doSearch(){
+  var kw=document.getElementById('f-kw').value.trim();
+  var src=document.getElementById('f-src').value;
+  var cat=document.getElementById('f-cat').value;
+  var slow=document.getElementById('f-slow').checked;
+  curRows=TS.filter(function(x){
+    return (!kw||x.no.indexOf(kw)>-1||x.by.indexOf(kw)>-1||x.desc.indexOf(kw)>-1)
+      &&(!src||x.src===src)&&(!cat||x.cat===cat)&&(!slow||isSlow(x))
+      &&(!curTab||x.state===curTab);
+  });
+  render();toast('已查询，共 '+curRows.length+' 条');
+}
+function resetSearch(){
+  ['f-kw','f-src','f-cat'].forEach(function(k){document.getElementById(k).value='';});
+  document.getElementById('f-slow').checked=false;
+  curTab='';curRows=TS.slice();
+  document.querySelectorAll('#tabs span').forEach(function(x,i){x.className=i===0?'py-2.5 text-[13px] cursor-pointer tab-on':'py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600';});
+  render();toast('已重置');
+}
+
+/* ================= 代录新增 ================= */
+function openNew(){
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">新增投诉（代录）</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">电话代录<b>必填来电号码</b>；其余来源可不填</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">';
+  h+='<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl"><i>*</i>来源</label><select class="fi" id="n_src" onchange="phoneTip()">'
+      +SRC.map(function(s){return '<option>'+s+'</option>';}).join('')+'</select></div>'
+    +'<div><label class="fl"><i>*</i>投诉人</label><input class="fi" id="n_by" placeholder="如 买家（李女士）／商户名"></div>'
+    +'<div><label class="fl"><i>*</i>联系方式</label><input class="fi" id="n_phone" placeholder="电话代录必填来电号"><p class="text-[11px] text-[#94A3B8] mt-1" id="phoneTip">当前来源可不填</p></div>'
+    +'<div><label class="fl"><i>*</i>记录人</label><input class="fi" id="n_rec" value="客服 何××"></div>'
+    +'<div><label class="fl"><i>*</i>被投诉对象</label><select class="fi" id="n_obj">'
+      +OBJ.map(function(o){return '<option>'+o+'</option>';}).join('')+'</select></div>'
+    +'<div><label class="fl"><i>*</i>分类</label><select class="fi" id="n_cat">'
+      +CAT.map(function(c){return '<option>'+c+'</option>';}).join('')+'</select></div>'
+    +'</div>'
+    +'<div><label class="fl"><i>*</i>投诉内容</label><input class="fi" id="n_desc" placeholder="请如实记录投诉人陈述"></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveNew()">提交</button></div>';
+  document.getElementById('drawer').innerHTML=h;show();
+}
+function phoneTip(){
+  var s=document.getElementById('n_src').value;
+  document.getElementById('phoneTip').textContent=(s==='电话代录')?'电话代录必填来电号码（否则无法回访）':'当前来源可不填';
+}
+function saveNew(){
+  var src=document.getElementById('n_src').value;
+  var by=document.getElementById('n_by').value.trim();
+  var phone=document.getElementById('n_phone').value.trim();
+  var rec=document.getElementById('n_rec').value.trim();
+  var obj=document.getElementById('n_obj').value;
+  var cat=document.getElementById('n_cat').value;
+  var desc=document.getElementById('n_desc').value.trim();
+  if(!by){toast('请填写投诉人');return;}
+  if(src==='电话代录'&&!phone){toast('电话代录必须填写来电号码（否则无法回访）');return;}
+  if(desc.length<5){toast('投诉内容至少 5 个字（当前 '+desc.length+' 字）');return;}
+  var no='TS202610-00'+(63+TS.length);
+  TS.unshift({no:no, src:src, by:by, phone:phone||'—', obj:obj, cat:cat, desc:desc, photos:0,
+    state:'待受理', over:0, acceptBy:'', handler:'', reply:'', star:0, tags:[], cmt:'', bxNo:'', zgNo:'',
+    createdAt:'2026-10-27 '+new Date().toTimeString().slice(0,5),
+    logs:[['2026-10-27 '+new Date().toTimeString().slice(0,5),'代录投诉（记录人 '+rec+'，来源 '+src+'）']]});
+  curRows=TS.slice();curTab='';
+  renderStats();render();closeAll();
+  toast('已提交投诉：'+no+'　（24h 未受理将自动升级）');
+}
+
+/* ================= 受理 / 回复 / 转单 / 关闭 ================= */
+function openAccept(no){
+  curNo=no;var x=sOf(no);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">受理投诉</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(x.no)+'　'+esc(x.src)+'　'+esc(x.cat)+(x.over>=24?'　<span style="color:#DC2626">已超 '+x.over+' 小时</span>':'')+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div class="blk"><div class="kv"><span class="k">投诉内容</span><span class="v">'+esc(x.desc)+'</span></div>'
+    +'<div class="kv"><span class="k">联系方式</span><span class="v">'+esc(x.phone)+'</span></div></div>'
+    +'<div><label class="fl"><i>*</i>指派处理人</label><select class="fi" id="ac_handler">'
+      +['物业 张××','财务 吴××','客服 何××','运营主管 何××'].map(function(v){return '<option>'+v+'</option>';}).join('')
+      +'</select></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveAccept(\''+no+'\')">确认受理</button></div>';
+  document.getElementById('drawer').innerHTML=h;show();
+}
+function saveAccept(no){
+  var x=sOf(no);
+  var hd=document.getElementById('ac_handler').value;
+  if(!hd){toast('请指派处理人');return;}
+  x.state='处理中';x.acceptBy='客服 何××';x.handler=hd;x.over=0;
+  x.logs.push(['2026-10-27 '+new Date().toTimeString().slice(0,5),'已受理，指派 '+hd]);
+  curRows=TS.slice();
+  renderStats();render();closeAll();
+  toast('已受理：'+no+'　指派 '+hd+'（3 个工作日内需回复）');
+}
+function openReply(no){
+  curNo=no;var x=sOf(no);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">回复投诉</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(x.no)+'　处理人 '+esc(x.handler)+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div class="blk"><div class="kv"><span class="k">投诉内容</span><span class="v">'+esc(x.desc)+'</span></div>'
+    +(x.bxNo?'<div class="kv"><span class="k">关联报修</span><span class="v"><span class="lk" onclick="toast(\'已定位到报修单 '+x.bxNo+'\')">'+esc(x.bxNo)+'</span></span></div>':'')
+    +(x.zgNo?'<div class="kv"><span class="k">关联整改</span><span class="v"><span class="lk" onclick="toast(\'已定位到整改单 '+x.zgNo+'\')">'+esc(x.zgNo)+'</span></span></div>':'')
+    +'</div>'
+    +'<div><label class="fl"><i>*</i>回复内容</label><input class="fi" id="rp_text" value="'+esc(x.reply)+'" placeholder="说明处理结果与后续安排"></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveReply(\''+no+'\')">提交回复</button></div>';
+  document.getElementById('drawer').innerHTML=h;show();
+}
+function saveReply(no){
+  var x=sOf(no);
+  var t=document.getElementById('rp_text').value.trim();
+  if(t.length<5){toast('回复内容至少 5 个字（当前 '+t.length+' 字）');return;}
+  x.reply=t;x.state='已回复';
+  x.logs.push(['2026-10-27 '+new Date().toTimeString().slice(0,5),'已回复，已通知投诉人']);
+  curRows=TS.slice();
+  renderStats();render();closeAll();
+  toast('已回复：'+no+'　已通知投诉人（商户可评价满意度）');
+}
+function toBx(no){
+  var x=sOf(no);
+  x.bxNo='BX202610-00'+(37+TS.length);
+  x.logs.push(['2026-10-27 '+new Date().toTimeString().slice(0,5),'转报修 → '+x.bxNo+'（原投诉保留）']);
+  curRows=TS.slice();render();
+  toast('已转报修：'+x.bxNo+'　原投诉记录保留，可回看');
+}
+function toZg(no){
+  var x=sOf(no);
+  x.zgNo='ZG202610-00'+(33+TS.length);
+  x.logs.push(['2026-10-27 '+new Date().toTimeString().slice(0,5),'转整改 → '+x.zgNo+'（原投诉保留）']);
+  curRows=TS.slice();render();
+  toast('已转整改：'+x.zgNo+'　原投诉记录保留，可回看');
+}
+function openClose(no){
+  curNo=no;var x=sOf(no);
+  if(!x.star){toast('商户尚未评价，暂不能关闭（已回复且已评价才可关闭）');return;}
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">关闭投诉</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(x.no)+'　满意度 '+x.star+' 星</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div class="blk"><div class="kv"><span class="k">回复内容</span><span class="v">'+esc(x.reply)+'</span></div>'
+    +'<div class="kv"><span class="k">评价标签</span><span class="v">'+(x.tags.length?esc(x.tags.join('、')):'—')+'</span></div>'
+    +'<div class="kv"><span class="k">评价内容</span><span class="v">'+(x.cmt?esc(x.cmt):'—')+'</span></div></div>'
+    +'<div><label class="fl">关闭备注</label><input class="fi" id="cl_note" placeholder="选填"></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveClose(\''+no+'\')">确认关闭</button></div>';
+  document.getElementById('drawer').innerHTML=h;show();
+}
+function saveClose(no){
+  var x=sOf(no);
+  var note=document.getElementById('cl_note').value.trim();
+  x.state='已关闭';
+  x.logs.push(['2026-10-27 '+new Date().toTimeString().slice(0,5),'已关闭（终态）'+(note?'：'+note:'')]);
+  curRows=TS.slice();
+  renderStats();render();closeAll();
+  toast('已关闭：'+no+'　投诉闭环（评价 '+x.star+' 星）');
+}
+
+/* ================= 详情 ================= */
+function openDetail(no){
+  var x=sOf(no);
+  var stars='';
+  for(var i=1;i<=5;i++) stars+='<i class="fas fa-star star'+(i<=x.star?'':' off')+'"></i>';
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+esc(x.no)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(x.src)+'　'+esc(x.cat)+'　<span class="tag" style="'+STC[x.state]+'">'+esc(x.state)+'</span></p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-user text-[#2563EB]"></i>基本信息</div>'
+    +'<div class="kv"><span class="k">来源</span><span class="v">'+esc(x.src)+'</span></div>'
+    +'<div class="kv"><span class="k">投诉人</span><span class="v">'+esc(x.by)+'</span></div>'
+    +'<div class="kv"><span class="k">联系方式</span><span class="v">'+esc(x.phone)+'</span></div>'
+    +'<div class="kv"><span class="k">提交时间</span><span class="v">'+esc(x.createdAt)+'</span></div></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-tags text-[#7C3AED]"></i>对象与分类</div>'
+    +'<div class="kv"><span class="k">被投诉对象</span><span class="v">'+esc(x.obj)+'</span></div>'
+    +'<div class="kv"><span class="k">分类</span><span class="v">'+esc(x.cat)+'</span></div>'
+    +'<div class="kv"><span class="k">内容</span><span class="v">'+esc(x.desc)+'</span></div></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-headset text-[#FF4D2D]"></i>处理</div>'
+    +'<div class="kv"><span class="k">受理人</span><span class="v">'+(x.acceptBy||'<span class="text-[#94A3B8]">未受理</span>')+'</span></div>'
+    +'<div class="kv"><span class="k">处理人</span><span class="v">'+(x.handler||'—')+'</span></div>'
+    +'<div class="kv"><span class="k">回复内容</span><span class="v">'+(x.reply?esc(x.reply):'<span class="text-[#94A3B8]">—</span>')+'</span></div>'
+    +(x.bxNo?'<div class="kv"><span class="k">关联报修</span><span class="v"><span class="lk" onclick="toast(\'已定位到报修单 '+x.bxNo+'\')">'+esc(x.bxNo)+'</span></span></div>':'')
+    +(x.zgNo?'<div class="kv"><span class="k">关联整改</span><span class="v"><span class="lk" onclick="toast(\'已定位到整改单 '+x.zgNo+'\')">'+esc(x.zgNo)+'</span></span></div>':'')
+    +'</div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-star text-[#F59E0B]"></i>评价</div>'
+    +'<div class="kv"><span class="k">满意度</span><span class="v">'+(x.star?stars+'　'+x.star+' 星':'<span class="text-[#94A3B8]">商户未评价</span>')+'</span></div>'
+    +'<div class="kv"><span class="k">标签</span><span class="v">'+(x.tags.length?esc(x.tags.join('、')):'—')+'</span></div>'
+    +'<div class="kv"><span class="k">评价内容</span><span class="v">'+(x.cmt?esc(x.cmt):'—')+'</span></div></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-clock-rotate-left text-[#64748B]"></i>处理留痕</div><div class="tl">'
+    +x.logs.map(function(l){return '<div class="tl-i"><b>'+esc(l[0])+'</b>　'+esc(l[1])+'</div>';}).join('')
+    +'</div></div></div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end"><button class="btn btn-ghost" onclick="closeAll()">关闭</button></div>';
+  document.getElementById('drawer').innerHTML=h;show();
+}
+
+function show(){document.getElementById('mask').className='mask on';document.getElementById('drawer').className='drawer on';}
+function closeAll(){document.getElementById('mask').className='mask';document.getElementById('drawer').className='drawer';}
+renderStats();render();
+</script>
+<script src="../shared/op-guard.js"></script>
+<script src="../shared/page-prd.js"></script>
+</body>
+</html>

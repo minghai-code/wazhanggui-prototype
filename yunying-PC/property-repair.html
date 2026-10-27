@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>物业服务 - 报修工单</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.stat-card{transition:box-shadow .2s ease,transform .2s ease;cursor:pointer}
+.stat-card:hover{box-shadow:0 4px 20px rgba(0,0,0,.08);transform:translateY(-1px)}
+.tb th{font-size:12px;font-weight:600;color:#64748B;background:#F8FAFC;padding:10px 12px;text-align:left;white-space:nowrap}
+.tb td{font-size:13px;color:#1F2430;padding:11px 12px;border-bottom:1px solid #F1F5F9;white-space:nowrap}
+.tb tbody tr:hover{background:#FFF7F5}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}
+.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}
+.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}
+.lk:hover{text-decoration:underline}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}
+.lk-gray:hover{color:#1F2430}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:40}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:600px;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:50;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.fl{display:block;font-size:12px;color:#64748B;margin-bottom:5px}
+.fl i{color:#FF4D2D;font-style:normal;margin-right:2px}
+.fi{width:100%;padding:8px 11px;font-size:13px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;outline:none;transition:.15s}
+.fi:focus{border-color:#FF4D2D;background:#fff}
+.thumb{width:56px;height:40px;border-radius:6px;background:linear-gradient(135deg,#64748B,#94A3B8);color:#fff;font-size:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;overflow:hidden}
+.thumb::after{content:'';position:absolute;left:0;bottom:0;right:0;height:12px;background:rgba(0,0,0,.45)}
+.ph-big{width:100%;height:150px;border-radius:10px;background:linear-gradient(135deg,#94A3B8,#CBD5E1);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:11px;position:relative}
+.ph-big .wm{position:absolute;left:8px;bottom:6px;font-size:10px;opacity:.9}
+.blk{border:1px solid #F1F5F9;border-radius:12px;padding:13px 15px}
+.blk-t{font-size:12px;font-weight:700;color:#1F2430;display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.kv{display:flex;gap:10px;font-size:12px;padding:4px 0;line-height:1.6}
+.kv .k{color:#94A3B8;width:78px;flex-shrink:0}
+.kv .v{color:#1F2430;flex:1}
+.tl{position:relative;padding-left:16px}
+.tl::before{content:'';position:absolute;left:4px;top:4px;bottom:4px;width:1px;background:#E2E8F0}
+.tl-i{position:relative;padding:0 0 12px;font-size:12px;color:#64748B;line-height:1.6}
+.tl-i::before{content:'';position:absolute;left:-16px;top:5px;width:7px;height:7px;border-radius:50%;background:#FF4D2D}
+.tl-i b{color:#1F2430;font-weight:600}
+.tab-on{color:#FF4D2D;border-bottom:2px solid #FF4D2D;font-weight:600}
+.empty{padding:56px 0;text-align:center;color:#CBD5E1}
+.empty i{font-size:30px;display:block;margin-bottom:8px}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+<div class="p-6">
+
+  <!-- 头部 -->
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">报修工单</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">07 物业服务</span>
+        <span class="tag" style="background:#FFEDE7;color:#E63E20">照片必传</span>
+        <span class="tag" style="background:#FEF3C7;color:#B45309">需物料转交办单</span>
+      </div>
+      <p class="text-[12px] text-gray-400 mt-1">商户端提交 或 物业巡逻发现 → 受理派单 → 处理（<b>前后照片</b>）→ 需物料则进「待采购池」，攒批走交办单审批与核销。报修单号 <b>BX + 年月 + 序号</b>；同一照片不可复用（哈希去重）；超时自动提醒。</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="toast('已导出报修清单（含位置 / 类型 / 处理人 / 停留时长）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+      <button class="btn btn-primary" onclick="openNew()"><i class="fas fa-plus mr-1"></i>新增报修（巡逻）</button>
+    </div>
+  </div>
+
+  <!-- 统计卡 -->
+  <div class="grid grid-cols-5 gap-3 mb-5" id="stats"></div>
+
+  <!-- Tab -->
+  <div class="flex items-center gap-5 mb-3 border-b border-gray-200" id="tabs">
+    <span class="py-2.5 text-[13px] cursor-pointer tab-on" onclick="switchTab('',this)">全部 <span class="text-[11px] text-[#94A3B8]" id="c-all"></span></span>
+    <span class="py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600" onclick="switchTab('待受理',this)">待受理 <span class="text-[11px]" id="c-wait"></span></span>
+    <span class="py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600" onclick="switchTab('处理中',this)">处理中 <span class="text-[11px]" id="c-doing"></span></span>
+    <span class="py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600" onclick="switchTab('待采购',this)">待采购 <span class="text-[11px]" id="c-mat"></span></span>
+    <span class="py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600" onclick="switchTab('待确认',this)">待确认 <span class="text-[11px]" id="c-conf"></span></span>
+    <span class="py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600" onclick="switchTab('已完成',this)">已完成 <span class="text-[11px]" id="c-done"></span></span>
+    <span class="py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600" onclick="switchTab('已驳回',this)">已驳回 <span class="text-[11px]" id="c-rej"></span></span>
+  </div>
+
+  <!-- 筛选 -->
+  <div class="bg-white rounded-xl border border-gray-100 p-3 mb-4">
+    <div class="flex items-center gap-3 flex-wrap">
+      <input id="f-kw" type="text" placeholder="报修编号 / 位置 / 报修人" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary w-56" onkeydown="if(event.key==='Enter')doSearch()">
+      <select id="f-src" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+        <option value="">全部来源</option><option>商户端</option><option>物业巡逻</option><option>巡检转单</option>
+      </select>
+      <select id="f-type" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+        <option value="">全部故障类型</option><option>照明</option><option>水电</option><option>门窗</option><option>地砖</option><option>空调</option><option>其他</option>
+      </select>
+      <select id="f-urg" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+        <option value="">全部紧急度</option><option>紧急</option><option>一般</option>
+      </select>
+      <label class="flex items-center gap-1.5 text-[12px] text-gray-600"><input type="checkbox" id="f-slow" class="accent-[#FF4D2D]">仅看超时</label>
+      <button class="btn btn-primary" onclick="doSearch()">查询</button>
+      <button class="btn btn-ghost" onclick="resetSearch()">重置</button>
+      <span class="text-[11px] text-[#94A3B8] ml-auto"><i class="fas fa-circle-info mr-1"></i>超时基线：待受理 <b>2 小时</b> · 待采购 <b>30 天</b> 未核销</span>
+    </div>
+  </div>
+
+  <!-- 列表 -->
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-[13px] font-bold text-[#1F2430]">报修列表</span>
+        <span class="text-[12px] text-[#94A3B8]" id="cnt">共 0 条</span>
+      </div>
+      <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>照片水印含「时间 · 位置 · 单号」，拍摄与提交间隔 &gt;24h 标「凭证存疑」</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-[13px] tb" style="min-width:1240px">
+        <thead><tr>
+          <th>报修编号</th><th>位置</th><th>报修人</th><th>故障类型</th><th>紧急度</th><th>照片</th><th>状态</th><th>停留时长</th><th class="text-center">操作</th>
+        </tr></thead>
+        <tbody id="tb"></tbody>
+      </table>
+    </div>
+    <div class="px-5 py-3 border-t border-gray-100 flex items-center justify-between text-[12px] text-[#94A3B8]">
+      <span id="pageInfo">共 0 条记录</span>
+      <span>第 1 页</span>
+    </div>
+  </div>
+</div>
+
+<div class="mask" id="mask" onclick="closeAll()"></div>
+<div class="drawer" id="drawer"></div>
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
+
+<script>
+/* ================= 字典 ================= */
+var STC={'待受理':'background:#FEF3C7;color:#B45309','已派单':'background:#DBEAFE;color:#2563EB','处理中':'background:#DBEAFE;color:#2563EB',
+  '待采购':'background:#FFEDE7;color:#E63E20','待确认':'background:#EDE9FE;color:#6D28D9','已完成':'background:#DCFCE7;color:#15803D','已驳回':'background:#F1F5F9;color:#64748B'};
+var TYPE=['照明','水电','门窗','地砖','空调','其他'];
+var PLACES=['大唐袜业城','原料市场','行政服务中心'];
+var TODAY='2026-10-27';
+
+/* ================= 数据 ================= */
+var BX=[
+  {no:'BX202610-0031', src:'商户端', reporter:'诸暨××袜业（王××）', pl:'大唐袜业城', b:'A 栋', f:'1F', unit:'1F-A08',
+   type:'照明', desc:'商铺内主照明灯不亮，影响营业', urg:'紧急', state:'待受理', hours:3, photos:1, doubt:false,
+   createdAt:'2026-10-27 08:40', expect:'2026-10-27 12:00', logs:[['2026-10-27 08:40','商户端提交报修（照片 1 张，水印合规）']]},
+  {no:'BX202610-0030', src:'物业巡逻', reporter:'巡检员 陈××', pl:'大唐袜业城', b:'B 栋', f:'2F', unit:'2F-B12',
+   type:'水电', desc:'公共走道水龙头漏水，地面有积水', urg:'紧急', state:'待受理', hours:1, photos:2, doubt:false,
+   createdAt:'2026-10-27 10:15', expect:'2026-10-27 14:00', logs:[['2026-10-27 10:15','巡逻发现并上报（照片 2 张）']]},
+  {no:'BX202610-0029', src:'商户端', reporter:'义乌××针织（陈××）', pl:'原料市场', b:'D 栋', f:'1F', unit:'1F-D03',
+   type:'门窗', desc:'卷帘门卡住，无法正常关闭', urg:'一般', state:'已派单', hours:5, photos:1, doubt:false,
+   acceptBy:'物业 张××', worker:'维修工 李××', arriveAt:'2026-10-27 12:30',
+   createdAt:'2026-10-27 07:20', expect:'2026-10-27 18:00',
+   logs:[['2026-10-27 07:20','商户端提交报修'],['2026-10-27 09:10','物业受理并派单（维修工 李××，预计 12:30 到场）']]},
+  {no:'BX202610-0028', src:'商户端', reporter:'浙江××服饰（李××）', pl:'大唐袜业城', b:'A 栋', f:'3F', unit:'3F-A21',
+   type:'空调', desc:'中央空调出风小，店内闷热', urg:'一般', state:'处理中', hours:8, photos:1, doubt:false,
+   acceptBy:'物业 张××', worker:'维修工 赵××', arriveAt:'2026-10-27 09:00',
+   createdAt:'2026-10-26 16:30', expect:'2026-10-27 12:00',
+   logs:[['2026-10-26 16:30','商户端提交报修'],['2026-10-27 08:10','受理并派单'],['2026-10-27 09:00','维修工到场，排查中']]},
+  {no:'BX202610-0027', src:'商户端', reporter:'诸暨××袜业（钱××）', pl:'大唐袜业城', b:'C 栋', f:'1F', unit:'1F-C05',
+   type:'地砖', desc:'门口地砖破损 2 块，需更换', urg:'一般', state:'待采购', hours:744, photos:1, doubt:false,
+   acceptBy:'物业 张××', worker:'维修工 李××', arriveAt:'2026-10-19 10:00',
+   resultDesc:'已清理破损地砖并做临时围挡，需采购同规格地砖 12 块后更换',
+   needMat:true, jbNo:'',
+   createdAt:'2026-10-19 08:10', expect:'2026-10-26 18:00',
+   logs:[['2026-10-19 08:10','商户端提交报修'],['2026-10-19 09:30','受理并派单'],['2026-10-19 10:00','到场处理'],
+     ['2026-10-19 11:20','提交处理结果：需采购地砖 12 块 → 进入待采购池']]},
+  {no:'BX202610-0026', src:'巡检转单', reporter:'巡检员 周××', pl:'大唐袜业城', b:'B 栋', f:'1F', unit:'1F-B01',
+   type:'照明', desc:'东侧公共通道 2 支灯管闪烁（来源：巡检问题 WT202610-0045）', urg:'一般', state:'待采购', hours:480, photos:1, doubt:false,
+   acceptBy:'物业 张××', worker:'维修工 赵××', arriveAt:'2026-10-21 14:00',
+   resultDesc:'灯管支架氧化，需更换 LED 灯管 8 支', needMat:true, jbNo:'JB202610-0007',
+   createdAt:'2026-10-21 11:00', expect:'2026-10-28 18:00',
+   logs:[['2026-10-21 11:00','由巡检问题 WT202610-0045 转报修'],['2026-10-21 13:20','受理并派单'],
+     ['2026-10-21 14:00','到场处理'],['2026-10-21 16:10','提交结果：需 LED 灯管 8 支 → 待采购池'],
+     ['2026-10-22 09:30','已并入交办单 JB202610-0007（待审批）']]},
+  {no:'BX202610-0025', src:'商户端', reporter:'诸暨××针织（赵××）', pl:'大唐袜业城', b:'A 栋', f:'2F', unit:'2F-A12',
+   type:'水电', desc:'卫生间下水缓慢，怀疑管道堵塞', urg:'一般', state:'待确认', hours:6, photos:2, doubt:false,
+   acceptBy:'物业 张××', worker:'维修工 李××', arriveAt:'2026-10-26 15:00',
+   resultDesc:'已疏通主管道并更换存水弯，排水恢复正常', needMat:false,
+   createdAt:'2026-10-26 13:40', expect:'2026-10-27 12:00',
+   logs:[['2026-10-26 13:40','商户端提交报修'],['2026-10-26 14:10','受理并派单'],
+     ['2026-10-26 15:00','到场处理'],['2026-10-26 17:30','提交处理结果（含处理后照片 1 张），待商户确认']]},
+  {no:'BX202610-0024', src:'商户端', reporter:'义乌××袜业（孙××）', pl:'原料市场', b:'D 栋', f:'2F', unit:'2F-D08',
+   type:'门窗', desc:'窗户把手断裂', urg:'一般', state:'已完成', hours:0, photos:1, doubt:false,
+   acceptBy:'物业 张××', worker:'维修工 赵××', arriveAt:'2026-10-25 10:00',
+   resultDesc:'更换窗户把手 1 套，开关正常', needMat:false, confirmState:'已确认', rating:5,
+   createdAt:'2026-10-25 09:10', expect:'2026-10-25 18:00',
+   logs:[['2026-10-25 09:10','商户端提交报修'],['2026-10-25 09:40','受理并派单'],
+     ['2026-10-25 10:00','到场处理'],['2026-10-25 11:20','提交处理结果'],
+     ['2026-10-25 14:00','商户确认完成并评价 5 星']]},
+  {no:'BX202610-0023', src:'商户端', reporter:'大唐××商贸（周××）', pl:'大唐袜业城', b:'A 栋', f:'1F', unit:'1F-A02',
+   type:'其他', desc:'店内自有货架损坏', urg:'一般', state:'已驳回', hours:0, photos:1, doubt:true,
+   rejectWhy:'属商户自有设施，非平台物业维修范围，请自行处理',
+   createdAt:'2026-10-24 15:20', expect:'',
+   logs:[['2026-10-24 15:20','商户端提交报修（照片 EXIF 早于提交 38 小时，标凭证存疑）'],
+     ['2026-10-24 16:40','物业驳回：属商户自有设施']]}
+];
+
+var curRows=BX.slice(), curTab='', curNo=null;
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},3000);}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function bOf(no){return BX.filter(function(x){return x.no===no;})[0];}
+function st(s){return '<span class="tag" style="'+(STC[s]||'background:#F1F5F9;color:#64748B')+'">'+esc(s)+'</span>';}
+function isSlow(x){return (x.state==='待受理'&&x.hours>2)||(x.state==='待采购'&&x.hours>720);}
+function tabOf(x){return (x.state==='已派单'||x.state==='处理中')?'处理中':x.state;}
+
+function renderStats(){
+  var wait=0,doing=0,mat=0,conf=0,done=0;
+  BX.forEach(function(x){
+    if(x.state==='待受理') wait++;
+    else if(x.state==='已派单'||x.state==='处理中') doing++;
+    else if(x.state==='待采购') mat++;
+    else if(x.state==='待确认') conf++;
+    else if(x.state==='已完成') done++;
+  });
+  var cards=[['待受理',wait,'#B45309'],['处理中',doing,'#2563EB'],['待采购',mat,'#E63E20'],['待确认',conf,'#6D28D9'],['本月已完成',done,'#15803D']];
+  document.getElementById('stats').innerHTML=cards.map(function(x){
+    var tabName=(x[0]==='本月已完成')?'已完成':x[0];
+    return '<div class="stat-card bg-white rounded-lg border border-gray-100 p-3.5" onclick="switchTab(\''+tabName+'\')">'
+      +'<p class="text-[11px] text-gray-400">'+x[0]+'</p>'
+      +'<p class="text-xl font-bold mt-1" style="color:'+x[2]+'">'+x[1]+'</p></div>';
+  }).join('');
+  document.getElementById('c-all').textContent='('+BX.length+')';
+  document.getElementById('c-wait').textContent='('+wait+')';
+  document.getElementById('c-doing').textContent='('+doing+')';
+  document.getElementById('c-mat').textContent='('+mat+')';
+  document.getElementById('c-conf').textContent='('+conf+')';
+  document.getElementById('c-done').textContent='('+done+')';
+  document.getElementById('c-rej').textContent='('+BX.filter(function(x){return x.state==='已驳回';}).length+')';
+}
+
+function render(){
+  var h='';
+  curRows.forEach(function(x){
+    var ops='<span class="lk-gray" onclick="openDetail(\''+x.no+'\')">查看</span>';
+    if(x.state==='待受理'){
+      ops='<span class="lk" onclick="openAccept(\''+x.no+'\')">受理派单</span> · <span class="lk-gray" onclick="openReject(\''+x.no+'\')">驳回</span> · '+ops;
+    }else if(x.state==='已派单'||x.state==='处理中'){
+      ops='<span class="lk" onclick="openResult(\''+x.no+'\')">提交处理结果</span> · <span class="lk-gray" onclick="openReassign(\''+x.no+'\')">改派</span> · '+ops;
+    }else if(x.state==='待采购'){
+      var noJb=BX.filter(function(y){return y.state==='待采购'&&!y.jbNo;}).length;
+      ops=(x.jbNo?'<span class="lk" onclick="toast(\'已定位到交办单 '+x.jbNo+'\')">查看交办单</span>'
+        :'<span class="lk" onclick="toast(\'已加入待采购池：'+x.no+'（当前共 '+noJb+' 单待组批）\')">去建交办单</span>')+' · '+ops;
+    }else if(x.state==='待确认'){
+      ops='<span class="lk-gray" onclick="toast(\'已代商户确认完成：'+x.no+'\')">代确认</span> · '+ops;
+    }
+    var ph='';
+    for(var i=0;i<x.photos;i++) ph+='<div class="thumb" onclick="toast(\'查看原图（水印：'+x.createdAt+' · '+x.unit+' · '+x.no+'）\')" style="margin-right:4px">照片</div>';
+    h+='<tr>'
+      +'<td><div class="font-medium">'+esc(x.no)+'</div><div class="text-[11px] text-[#94A3B8]">'+esc(x.src)+(x.doubt?' <span style="color:#DC2626">· 凭证存疑</span>':'')+'</div></td>'
+      +'<td><div>'+esc(x.pl)+' · '+esc(x.b)+' '+esc(x.f)+'</div><div class="text-[11px] text-[#94A3B8]">'+esc(x.unit)+'</div></td>'
+      +'<td class="text-[12px] text-[#64748B]">'+esc(x.reporter)+'</td>'
+      +'<td>'+esc(x.type)+'</td>'
+      +'<td>'+(x.urg==='紧急'?'<span class="tag" style="background:#FEE2E2;color:#B91C1C">紧急</span>':'<span class="tag" style="background:#F1F5F9;color:#64748B">一般</span>')+'</td>'
+      +'<td><div class="flex">'+ph+'</div></td>'
+      +'<td>'+st(x.state)+'</td>'
+      +'<td class="text-[12px]">'+(x.state==='已完成'||x.state==='已驳回'?'<span class="text-[#94A3B8]">—</span>':'<span style="'+(isSlow(x)?'color:#E63E20;font-weight:600':'')+'">'+(x.hours>=24?(x.hours/24).toFixed(0)+' 天':x.hours+' 小时')+(isSlow(x)?' · 超时':'')+'</span>')+'</td>'
+      +'<td class="text-center whitespace-nowrap">'+ops+'</td></tr>';
+  });
+  document.getElementById('tb').innerHTML=h||'<tr><td colspan="9"><div class="empty"><i class="fas fa-inbox"></i>暂无符合条件的报修单</div></td></tr>';
+  document.getElementById('cnt').textContent='共 '+curRows.length+' 条';
+  document.getElementById('pageInfo').textContent='共 '+curRows.length+' 条记录，第 1-'+curRows.length+' 条';
+}
+
+function switchTab(s,el){
+  curTab=s;
+  document.querySelectorAll('#tabs span').forEach(function(x){x.className='py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600';});
+  if(el) el.className='py-2.5 text-[13px] cursor-pointer tab-on';
+  curRows=BX.filter(function(x){return !s||tabOf(x)===s;});
+  render();
+}
+function doSearch(){
+  var kw=document.getElementById('f-kw').value.trim(),src=document.getElementById('f-src').value,
+      type=document.getElementById('f-type').value,urg=document.getElementById('f-urg').value,
+      slow=document.getElementById('f-slow').checked;
+  curRows=BX.filter(function(x){
+    return (!kw||x.no.indexOf(kw)>-1||x.unit.indexOf(kw)>-1||x.reporter.indexOf(kw)>-1||x.desc.indexOf(kw)>-1)
+      &&(!src||x.src===src)&&(!type||x.type===type)&&(!urg||x.urg===urg)
+      &&(!slow||isSlow(x))&&(!curTab||tabOf(x)===curTab);
+  });
+  render();
+  toast('已按条件查询，共 '+curRows.length+' 条');
+}
+function resetSearch(){
+  ['f-kw','f-src','f-type','f-urg'].forEach(function(k){document.getElementById(k).value='';});
+  document.getElementById('f-slow').checked=false;
+  curTab='';curRows=BX.slice();
+  document.querySelectorAll('#tabs span').forEach(function(x,i){x.className=i===0?'py-2.5 text-[13px] cursor-pointer tab-on':'py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600';});
+  render();toast('已重置筛选条件');
+}
+
+/* ================= 详情 ================= */
+function openDetail(no){
+  curNo=no;var x=bOf(no);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+esc(x.no)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(x.src)+'　'+esc(x.type)+'　'+st(x.state)+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:13px">';
+
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-circle-info text-[#FF4D2D]"></i>报修信息</div>'
+    +'<div class="kv"><span class="k">位置</span><span class="v">'+esc(x.pl)+' · '+esc(x.b)+' '+esc(x.f)+' · '+esc(x.unit)+'</span></div>'
+    +'<div class="kv"><span class="k">报修人</span><span class="v">'+esc(x.reporter)+'</span></div>'
+    +'<div class="kv"><span class="k">故障类型</span><span class="v">'+esc(x.type)+'　'+(x.urg==='紧急'?'<span class="tag" style="background:#FEE2E2;color:#B91C1C">紧急</span>':'<span class="tag" style="background:#F1F5F9;color:#64748B">一般</span>')+'</span></div>'
+    +'<div class="kv"><span class="k">问题描述</span><span class="v">'+esc(x.desc)+'</span></div>'
+    +'<div class="kv"><span class="k">提交时间</span><span class="v">'+esc(x.createdAt)+(x.expect?'　期望完成 '+esc(x.expect):'')+'</span></div>'
+    +(x.rejectWhy?'<div class="kv"><span class="k">驳回原因</span><span class="v" style="color:#B91C1C">'+esc(x.rejectWhy)+'</span></div>':'')
+    +'</div>';
+
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-camera text-[#2563EB]"></i>现场照片</div>'
+    +'<div class="ph-big"><i class="fas fa-image text-2xl"></i>现场照片（'+x.photos+' 张）'
+    +'<span class="wm">'+esc(x.createdAt)+' · '+esc(x.unit)+' · '+esc(x.no)+'</span></div>'
+    +'<p class="text-[11px] mt-2" style="color:'+(x.doubt?'#DC2626':'#94A3B8')+'"><i class="fas fa-circle-info mr-1"></i>'
+    +(x.doubt?'该照片拍摄时间早于报修 38 小时，已标记「凭证存疑」，建议要求重新拍摄':'EXIF 拍摄时间与提交时间一致，水印合规')+'</p></div>';
+
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-screwdriver-wrench text-[#7C3AED]"></i>处理记录</div>';
+  if(x.acceptBy||x.resultDesc){
+    h+='<div class="kv"><span class="k">受理 / 派单</span><span class="v">'+(x.acceptBy?esc(x.acceptBy)+' → '+esc(x.worker||'—'):'—')+(x.arriveAt?'　到场 '+esc(x.arriveAt):'')+'</span></div>'
+      +'<div class="kv"><span class="k">处理说明</span><span class="v">'+(x.resultDesc?esc(x.resultDesc):'<span class="text-[#94A3B8]">尚未提交</span>')+'</span></div>';
+    if(x.resultDesc){
+      h+='<div class="grid grid-cols-2 gap-3 mt-2">'
+        +'<div><div class="ph-big" style="height:110px;background:linear-gradient(135deg,#94A3B8,#CBD5E1)"><i class="fas fa-image"></i>处理前</div><p class="text-[10px] text-center text-[#94A3B8] mt-1">报修照片</p></div>'
+        +'<div><div class="ph-big" style="height:110px;background:linear-gradient(135deg,#34D399,#059669)"><i class="fas fa-image"></i>处理后</div><p class="text-[10px] text-center text-[#94A3B8] mt-1">处理后照片</p></div></div>';
+    }
+  }else{
+    h+='<p class="text-[12px] text-[#94A3B8]">尚未受理</p>';
+  }
+  h+='</div>';
+
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-boxes-packing text-[#E63E20]"></i>物料需求</div>';
+  if(x.needMat){
+    h+='<div class="kv"><span class="k">是否需物料</span><span class="v"><span class="tag" style="background:#FFEDE7;color:#E63E20">是</span></span></div>'
+      +'<div class="kv"><span class="k">关联交办单</span><span class="v">'+(x.jbNo?esc(x.jbNo)+'（'+'<span class="lk" onclick="toast(\'已定位到交办单 '+x.jbNo+'\')">查看</span>'+'）':'<span class="text-[#94A3B8]">尚未建交办单 · 在待采购池等待组批</span>')+'</span></div>'
+      +'<p class="text-[11px] text-[#94A3B8] mt-2"><i class="fas fa-circle-info mr-1"></i>本单不关闭，需物料核销完成后转「待确认」</p>';
+  }else{
+    h+='<div class="kv"><span class="k">是否需物料</span><span class="v">'+(x.resultDesc?'否（无需采购）':'待提交处理结果时确认')+'</span></div>';
+  }
+  h+='</div>';
+
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-star text-[#B45309]"></i>商户确认</div>'
+    +'<div class="kv"><span class="k">确认状态</span><span class="v">'+(x.confirmState?esc(x.confirmState):(x.state==='待确认'?'待确认（超 3 天自动确认）':'—'))+'</span></div>'
+    +'<div class="kv"><span class="k">评价</span><span class="v">'+(x.rating?('★'.repeat(x.rating)):'<span class="text-[#94A3B8]">暂无</span>')+'</span></div></div>';
+
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-clock-rotate-left text-[#64748B]"></i>流程时间轴</div><div class="tl">'
+    +x.logs.map(function(l){return '<div class="tl-i"><b>'+esc(l[0])+'</b>　'+esc(l[1])+'</div>';}).join('')
+    +'</div></div>';
+
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">关闭</button>'
+    +(x.state==='待受理'?'<button class="btn btn-primary" onclick="openAccept(\''+x.no+'\')">受理派单</button>':'')
+    +((x.state==='已派单'||x.state==='处理中')?'<button class="btn btn-primary" onclick="openResult(\''+x.no+'\')">提交处理结果</button>':'')
+    +'</div>';
+
+  document.getElementById('drawer').innerHTML=h;
+  show();
+}
+function show(){document.getElementById('mask').className='mask on';document.getElementById('drawer').className='drawer on';}
+function closeAll(){document.getElementById('mask').className='mask';document.getElementById('drawer').className='drawer';}
+
+/* ================= 新增（巡逻报修） ================= */
+function openNew(){
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">新增报修（物业巡逻）</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">现场照片为<b>必传项</b>（至少 1 张，自动带时间·位置·单号水印）</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">';
+  h+='<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl"><i>*</i>所属场所</label><select class="fi" id="n_pl">'
+      +PLACES.map(function(p){return '<option>'+p+'</option>';}).join('')+'</select></div>'
+    +'<div><label class="fl"><i>*</i>楼栋 / 楼层</label><input class="fi" id="n_bf" placeholder="如 A 栋 1F"></div>'
+    +'<div><label class="fl"><i>*</i>档口 / 位置</label><input class="fi" id="n_unit" placeholder="如 1F-A08"></div>'
+    +'<div><label class="fl"><i>*</i>故障类型</label><select class="fi" id="n_type">'
+      +TYPE.map(function(t){return '<option>'+t+'</option>';}).join('')+'</select></div>'
+    +'</div>'
+    +'<div><label class="fl"><i>*</i>问题描述</label><input class="fi" id="n_desc" placeholder="如：东侧公共通道 2 支灯管闪烁不亮"></div>'
+    +'<div><label class="fl"><i>*</i>紧急程度</label><select class="fi" id="n_urg"><option>一般</option><option>紧急</option></select></div>'
+    +'<div><label class="fl"><i>*</i>现场照片</label>'
+    +'<div class="flex gap-2"><div class="thumb" style="width:88px;height:66px" onclick="pickPhoto()" id="n_photo_box"><i class="fas fa-camera"></i></div></div>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1" id="n_photo_tip">尚未上传（至少 1 张才能提交）</p></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveNew()">提交报修</button></div>';
+  document.getElementById('drawer').innerHTML=h;
+  newPhoto=0;
+  show();
+}
+var newPhoto=0;
+function pickPhoto(){
+  newPhoto++;
+  document.getElementById('n_photo_box').innerHTML='<i class="fas fa-image"></i>';
+  document.getElementById('n_photo_box').style.background='linear-gradient(135deg,#34D399,#059669)';
+  document.getElementById('n_photo_tip').textContent='已上传 '+newPhoto+' 张（水印：2026-10-27 '+new Date().toTimeString().slice(0,5)+' · 自动带位置与单号）';
+  toast('已拍摄/选择照片 '+newPhoto+' 张（微信端将自动生成水印）');
+}
+function saveNew(){
+  var pl=document.getElementById('n_pl').value;
+  var bf=document.getElementById('n_bf').value.trim();
+  var unit=document.getElementById('n_unit').value.trim();
+  var type=document.getElementById('n_type').value;
+  var desc=document.getElementById('n_desc').value.trim();
+  var urg=document.getElementById('n_urg').value;
+  if(!bf||!unit){toast('请填写楼栋楼层与档口位置');return;}
+  if(desc.length<5){toast('请描述故障现象（至少 5 个字）');return;}
+  if(!newPhoto){toast('请上传现场照片（至少 1 张）');return;}
+  var no='BX202610-00'+(32+BX.length);
+  var b=bf.split(' ')[0],f=bf.split(' ')[1]||'';
+  BX.unshift({no:no, src:'物业巡逻', reporter:'物业 值班人员', pl:pl, b:b, f:f, unit:unit,
+    type:type, desc:desc, urg:urg, state:'待受理', hours:0, photos:newPhoto, doubt:false,
+    createdAt:'2026-10-27 '+new Date().toTimeString().slice(0,5), expect:'',
+    logs:[['2026-10-27 '+new Date().toTimeString().slice(0,5),'物业巡逻上报（照片 '+newPhoto+' 张，水印合规）']]});
+  newPhoto=0;
+  curRows=BX.slice();curTab='';
+  renderStats();render();closeAll();
+  toast('已提交报修：'+no+'　已通知物业受理（超 2 小时未受理将提醒主管）');
+}
+
+/* ================= 受理 / 改派 / 驳回 ================= */
+function openAccept(no){
+  curNo=no;var x=bOf(no);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">受理并派单</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(x.no)+'　'+esc(x.unit)+'　'+esc(x.type)+'　'+(x.urg==='紧急'?'<span style="color:#DC2626">紧急</span>':'一般')+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div class="blk"><div class="kv"><span class="k">问题描述</span><span class="v">'+esc(x.desc)+'</span></div></div>'
+    +'<div><label class="fl"><i>*</i>指派维修工</label><select class="fi" id="a_worker">'
+      +['维修工 李××','维修工 赵××','维修工 王××'].map(function(w){return '<option>'+w+'</option>';}).join('')+'</select></div>'
+    +'<div><label class="fl"><i>*</i>预计到场时间</label><input class="fi" id="a_arrive" type="datetime-local" value="2026-10-27T14:00"></div>'
+    +'<div class="rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B]">受理后状态转「已派单」，商户端可看到维修工与预计到场时间；<b>超 2 小时未受理会提醒物业主管</b>。</p></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveAccept(\''+no+'\')">确认受理</button></div>';
+  document.getElementById('drawer').innerHTML=h;show();
+}
+function saveAccept(no){
+  var x=bOf(no);
+  var w=document.getElementById('a_worker').value;
+  var arr=document.getElementById('a_arrive').value;
+  if(!w){toast('请指定维修工');return;}
+  if(!arr){toast('请填写预计到场时间');return;}
+  x.state='已派单';x.acceptBy='物业 张××';x.worker=w;x.hours=0;
+  x.arriveAt=arr.replace('T',' ');
+  x.logs.push(['2026-10-27 '+new Date().toTimeString().slice(0,5),'物业受理并派单（'+w+'，预计 '+x.arriveAt+' 到场）']);
+  curRows=BX.slice();
+  renderStats();render();closeAll();
+  toast('已受理：'+no+'　已指派 '+w+'（商户端可见进度）');
+}
+function openReassign(no){
+  curNo=no;var x=bOf(no);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">改派维修工</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(x.no)+'　当前：'+esc(x.worker||'—')+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4"><div><label class="fl"><i>*</i>改派给</label><select class="fi" id="a_worker2">'
+    +['维修工 李××','维修工 赵××','维修工 王××'].map(function(w){return '<option>'+w+'</option>';}).join('')
+    +'</select></div></div>'
+    +'<div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveReassign(\''+no+'\')">确认改派</button></div>';
+  document.getElementById('drawer').innerHTML=h;show();
+}
+function saveReassign(no){
+  var x=bOf(no);
+  var w=document.getElementById('a_worker2').value;
+  var old=x.worker;
+  x.worker=w;
+  x.logs.push(['2026-10-27 '+new Date().toTimeString().slice(0,5),'改派：'+old+' → '+w]);
+  render();closeAll();
+  toast('已改派：'+no+'　'+old+' → '+w+'（留痕）');
+}
+function openReject(no){
+  curNo=no;var x=bOf(no);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">驳回报修</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(x.no)+'　驳回将通知报修人</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div><label class="fl"><i>*</i>驳回原因</label><select class="fi" id="r_why">'
+      +['属商户自有设施，非平台维修范围','非物业职责范围','信息不足，请补充照片或描述','重复报修（已有关联工单）','其他']
+        .map(function(w){return '<option>'+w+'</option>';}).join('')+'</select></div>'
+    +'<div><label class="fl">补充说明</label><input class="fi" id="r_note" placeholder="选填，如：请自行联系装修方处理"></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" style="background:#B91C1C" onclick="saveReject(\''+no+'\')">确认驳回</button></div>';
+  document.getElementById('drawer').innerHTML=h;show();
+}
+function saveReject(no){
+  var x=bOf(no);
+  var why=document.getElementById('r_why').value;
+  var note=document.getElementById('r_note').value.trim();
+  if(!why){toast('驳回原因必填');return;}
+  x.state='已驳回';x.rejectWhy=why+(note?'（'+note+'）':'');x.hours=0;
+  x.logs.push(['2026-10-27 '+new Date().toTimeString().slice(0,5),'物业驳回：'+x.rejectWhy]);
+  renderStats();render();closeAll();
+  toast('已驳回：'+no+'　已通知报修人');
+}
+
+/* ================= 提交处理结果 ================= */
+function openResult(no){
+  curNo=no;var x=bOf(no);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">提交处理结果</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(x.no)+'　'+esc(x.unit)+'　'+esc(x.type)+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div class="blk"><div class="kv"><span class="k">问题描述</span><span class="v">'+esc(x.desc)+'</span></div></div>'
+    +'<div><label class="fl"><i>*</i>处理说明</label><input class="fi" id="w_desc" placeholder="如：更换 LED 灯管 2 支，通电测试正常"></div>'
+    +'<div><label class="fl"><i>*</i>处理后照片</label>'
+    +'<div class="flex gap-2"><div class="thumb" style="width:88px;height:66px" onclick="afterPhoto()" id="w_photo_box"><i class="fas fa-camera"></i></div>'
+    +'<div class="thumb" style="width:88px;height:66px;background:linear-gradient(135deg,#94A3B8,#CBD5E1)"><i class="fas fa-image"></i></div></div>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1" id="w_photo_tip">左侧为处理前参考；处理后照片至少 1 张</p></div>'
+    +'<div><label class="fl"><i>*</i>是否消耗物料</label><select class="fi" id="w_mat" onchange="matTip()">'
+      +'<option>否</option><option>是（需采购）</option></select>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1" id="w_mat_tip">选「是」后本单进入<b>待采购池</b>，等攒批建交办单审批</p></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveResult(\''+no+'\')">提交结果</button></div>';
+  document.getElementById('drawer').innerHTML=h;
+  wPhoto=0;show();
+}
+var wPhoto=0;
+function afterPhoto(){
+  wPhoto++;
+  document.getElementById('w_photo_box').innerHTML='<i class="fas fa-image"></i>';
+  document.getElementById('w_photo_box').style.background='linear-gradient(135deg,#34D399,#059669)';
+  document.getElementById('w_photo_tip').textContent='已上传处理后照片 '+wPhoto+' 张';
+  toast('已上传处理后照片 '+wPhoto+' 张');
+}
+function matTip(){
+  var v=document.getElementById('w_mat').value;
+  document.getElementById('w_mat_tip').innerHTML=(v==='否')
+    ? '无需物料 → 提交后转<b>待确认</b>，商户确认或 3 天自动确认'
+    : '选「是」后本单进入<b>待采购池</b>，等攒批建交办单审批；<b>物料核销完成前本单不关闭</b>';
+}
+function saveResult(no){
+  var x=bOf(no);
+  var desc=document.getElementById('w_desc').value.trim();
+  var mat=document.getElementById('w_mat').value;
+  if(desc.length<5){toast('请填写处理说明（至少 5 个字）');return;}
+  if(!wPhoto){toast('请上传处理后照片（至少 1 张）');return;}
+  x.resultDesc=desc;
+  x.logs.push(['2026-10-27 '+new Date().toTimeString().slice(0,5),'提交处理结果（含处理后照片 '+wPhoto+' 张）']);
+  if(mat==='否'){
+    x.state='待确认';x.needMat=false;x.hours=0;x.confirmState='待确认（超 3 天自动确认）';
+    x.logs.push(['2026-10-27 '+new Date().toTimeString().slice(0,5),'无需物料 → 转待确认，已通知商户确认']);
+    toast('已提交：'+no+'　转「待确认」，已通知商户（3 天未确认自动完成）');
+  }else{
+    x.state='待采购';x.needMat=true;x.hours=0;
+    x.logs.push(['2026-10-27 '+new Date().toTimeString().slice(0,5),'需采购物料 → 进入待采购池']);
+    toast('已提交：'+no+'　已进入待采购池（当前 '+BX.filter(function(y){return y.state==='待采购'&&!y.jbNo;}).length+' 单待组批）');
+  }
+  wPhoto=0;
+  curRows=BX.slice();
+  renderStats();render();closeAll();
+}
+</script>
+<script src="../shared/op-guard.js"></script>
+<script src="../shared/page-prd.js"></script>
+</body>
+</html>

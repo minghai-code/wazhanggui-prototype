@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>物业服务 - 维修资金台账</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.stat-card{transition:box-shadow .2s ease,transform .2s ease}
+.stat-card:hover{box-shadow:0 4px 20px rgba(0,0,0,.08);transform:translateY(-1px)}
+.tb th{font-size:12px;font-weight:600;color:#64748B;background:#F8FAFC;padding:10px 12px;text-align:left;white-space:nowrap}
+.tb td{font-size:13px;color:#1F2430;padding:11px 12px;border-bottom:1px solid #F1F5F9;white-space:nowrap}
+.tb tbody tr:hover{background:#FFF7F5}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}
+.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}
+.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}
+.lk:hover{text-decoration:underline}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}
+.lk-gray:hover{color:#1F2430}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:40}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:560px;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:50;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.fl{display:block;font-size:12px;color:#64748B;margin-bottom:5px}
+.fl i{color:#FF4D2D;font-style:normal;margin-right:2px}
+.fi{width:100%;padding:8px 11px;font-size:13px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;outline:none;transition:.15s}
+.fi:focus{border-color:#FF4D2D;background:#fff}
+.blk{border:1px solid #F1F5F9;border-radius:12px;padding:13px 15px}
+.blk-t{font-size:12px;font-weight:700;color:#1F2430;display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.bar{display:flex;align-items:flex-end;gap:10px;height:150px;padding-top:10px}
+.bar>div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px;height:100%}
+.bar .b{width:100%;border-radius:4px 4px 0 0;background:linear-gradient(180deg,#FF7849,#FF4D2D);min-height:3px;transition:.3s}
+.bar .b.zero{background:#E2E8F0}
+.bar .l{font-size:10px;color:#94A3B8}
+.bar .v{font-size:10px;color:#64748B;font-weight:600}
+.pg{height:6px;border-radius:3px;background:#F1F5F9;overflow:hidden}
+.pg>i{display:block;height:100%;transition:.3s}
+.rank{display:flex;align-items:center;gap:8px;font-size:12px;padding:5px 0}
+.rank .n{width:16px;color:#94A3B8;font-weight:600}
+.rank .nm{flex:1;color:#1F2430;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rank .bar2{width:90px;height:6px;border-radius:3px;background:#F1F5F9;overflow:hidden}
+.rank .bar2>i{display:block;height:100%;background:#FF7849}
+.rank .amt{width:78px;text-align:right;color:#64748B}
+.empty{padding:44px 0;text-align:center;color:#CBD5E1;font-size:12px}
+.empty i{font-size:26px;display:block;margin-bottom:8px}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+<div class="p-6">
+
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">维修资金台账</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">07 物业服务</span>
+        <span class="tag" style="background:#F1F5F9;color:#64748B">额度周期 9.1–8.31</span>
+        <span class="tag" style="background:#FFEDE7;color:#E63E20">跨期不结转</span>
+      </div>
+      <p class="text-[12px] text-gray-400 mt-1">一眼看清「今年 30 万花了多少、还剩多少、花在哪」。<b>只有核销成功才计入已核销</b>，审批通过只算在途；额度不足时 P2 核销被阻断，引导到这里申请追加。历史采购导入<b>不影响额度</b>，仅写入历史成交价库作价格基准。</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <select id="f-year" class="px-3 py-1.5 text-[13px] bg-white rounded-lg border border-gray-200 outline-none text-gray-600" onchange="switchYear()">
+        <option value="2026">租赁年度 2026.09–2027.08</option>
+        <option value="2025">租赁年度 2025.09–2026.08</option>
+      </select>
+      <button class="btn btn-ghost" onclick="openImport()"><i class="fas fa-file-import text-[10px] mr-1"></i>历史采购导入</button>
+      <button class="btn btn-ghost" onclick="toast('已导出额度台账 Excel（含月度消耗、类别/供应商/楼栋结构、待核销清单）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+      <button class="btn btn-primary" onclick="openApply()"><i class="fas fa-plus mr-1"></i>额外申请</button>
+    </div>
+  </div>
+
+  <!-- 额度看板 -->
+  <div class="grid grid-cols-5 gap-3 mb-5" id="stats"></div>
+
+  <!-- 额度进度条 -->
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-5">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-[13px] font-bold text-[#1F2430]">额度使用进度</span>
+      <span class="text-[11px] text-[#94A3B8]" id="pgTip"></span>
+    </div>
+    <div class="pg" style="height:10px"><i id="pgBar" style="width:0%;background:linear-gradient(90deg,#FF7849,#FF4D2D)"></i></div>
+    <div class="flex items-center gap-5 mt-2 text-[11px] text-[#64748B]">
+      <span><i class="fas fa-circle text-[8px] mr-1" style="color:#FF4D2D"></i>已核销</span>
+      <span><i class="fas fa-circle text-[8px] mr-1" style="color:#FBBF24"></i>在途（已审批未核销）</span>
+      <span><i class="fas fa-circle text-[8px] mr-1" style="color:#E2E8F0"></i>剩余可用</span>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-3 gap-4 mb-5">
+    <!-- 月度消耗 -->
+    <div class="col-span-2 bg-white rounded-xl border border-gray-100 p-4">
+      <div class="flex items-center justify-between mb-1">
+        <span class="text-[13px] font-bold text-[#1F2430]">月度消耗（核销金额）</span>
+        <span class="text-[11px] text-[#94A3B8]">柱=当月核销　折线=累计占比</span>
+      </div>
+      <div class="bar" id="bar"></div>
+      <div class="flex items-center justify-between mt-2 text-[11px] text-[#94A3B8]">
+        <span id="barSum"></span>
+        <span>峰值 <b id="barMax"></b></span>
+      </div>
+    </div>
+
+    <!-- 类别 TOP -->
+    <div class="bg-white rounded-xl border border-gray-100 p-4">
+      <div class="text-[13px] font-bold text-[#1F2430] mb-2">物资类别 TOP（金额）</div>
+      <div id="catList"></div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 gap-4 mb-5">
+    <div class="bg-white rounded-xl border border-gray-100 p-4">
+      <div class="text-[13px] font-bold text-[#1F2430] mb-2">供应商 TOP5（金额占比）</div>
+      <div id="supList"></div>
+      <p class="text-[11px] text-[#94A3B8] mt-2"><i class="fas fa-circle-info mr-1"></i>单一供应商占比 &gt;70% 会命中风控规则 R6（供应商集中）</p>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-100 p-4">
+      <div class="text-[13px] font-bold text-[#1F2430] mb-2">楼栋维度消耗</div>
+      <div id="bldList"></div>
+    </div>
+  </div>
+
+  <!-- 待核销清单 -->
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden mb-5">
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-[13px] font-bold text-[#1F2430]">待核销清单</span>
+        <span class="text-[12px] text-[#94A3B8]" id="pendCnt">共 0 条</span>
+      </div>
+      <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>已通过未核销的交办单占「在途」额度；停留越久越可能跨期作废</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full tb" style="min-width:900px">
+        <thead><tr><th>交办单号</th><th>项目名称</th><th>审批金额</th><th>已核销</th><th>待核金额</th><th>提交时间</th><th>停留</th><th class="text-center">操作</th></tr></thead>
+        <tbody id="tbPend"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 额外申请 -->
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-[13px] font-bold text-[#1F2430]">额外申请（额度追加）</span>
+        <span class="text-[12px] text-[#94A3B8]" id="applyCnt">共 0 条</span>
+      </div>
+      <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>审批串行：运营主管 → 财务；通过后追加到当年总额度并留痕</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full tb" style="min-width:1040px">
+        <thead><tr><th>申请单号</th><th>申请金额</th><th>用途说明</th><th>依据附件</th><th>当前节点</th><th>审批状态</th><th>申请人</th><th>申请时间</th><th class="text-center">操作</th></tr></thead>
+        <tbody id="tbApply"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="mask" id="mask" onclick="closeAll()"></div>
+<div class="drawer" id="drawer"></div>
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
+
+<script>
+/* ================= 数据 ================= */
+var BUDGET={
+  '2026':{base:300000, extra:20000, year:'2026.09–2027.08'},
+  '2025':{base:300000, extra:0, year:'2025.09–2026.08'}
+};
+var curYear='2026';
+
+/* 月度核销（与 P2 同口径：核销成功才计入） */
+var MONTH={'2026':[
+  {m:'26-09', v:18400},{m:'26-10', v:26520},{m:'26-11', v:0},{m:'26-12', v:0},
+  {m:'27-01', v:0},{m:'27-02', v:0},{m:'27-03', v:0},{m:'27-04', v:0},
+  {m:'27-05', v:0},{m:'27-06', v:0},{m:'27-07', v:0},{m:'27-08', v:0}
+],'2025':[
+  {m:'25-09', v:22300},{m:'25-10', v:31200},{m:'25-11', v:17800},{m:'25-12', v:26400},
+  {m:'26-01', v:15200},{m:'26-02', v:9800},{m:'26-03', v:24100},{m:'26-04', v:19600},
+  {m:'26-05', v:21300},{m:'26-06', v:28700},{m:'26-07', v:33100},{m:'26-08', v:19300}
+]};
+
+var CAT={'2026':[
+  {n:'地砖 / 石材', v:18600},{n:'照明灯具', v:12400},{n:'电气元件', v:9200},
+  {n:'门窗五金', v:7100},{n:'给排水管件', v:5400},{n:'涂料 / 腻子', v:3600},
+  {n:'人工费', v:2900},{n:'消防器材', v:1800},{n:'锁具', v:1200},{n:'其他', v:900}
+],'2025':[
+  {n:'地砖 / 石材', v:26400},{n:'照明灯具', v:21800},{n:'电气元件', v:15600},
+  {n:'门窗五金', v:12300},{n:'给排水管件', v:9800},{n:'涂料 / 腻子', v:7400},
+  {n:'人工费', v:6100},{n:'消防器材', v:4200},{n:'锁具', v:2600},{n:'其他', v:1900}
+]};
+
+var SUP={'2026':[
+  {n:'诸暨××建材', v:16800},{n:'诸暨××灯具', v:11200},{n:'诸暨××机电', v:8600},
+  {n:'浙勤安顺物业（自营）', v:6200},{n:'义乌××五交化', v:3900}
+],'2025':[
+  {n:'诸暨××建材', v:38200},{n:'诸暨××灯具', v:29400},{n:'诸暨××机电', v:18600},
+  {n:'浙勤安顺物业（自营）', v:12100},{n:'义乌××五交化', v:8900}
+]};
+
+var BLD={'2026':[
+  {n:'A 栋（主市场）', v:24800},{n:'B 栋（原料馆）', v:12600},{n:'C 栋（配套楼）', v:5400},{n:'原料市场 D 栋', v:3600}
+],'2025':[
+  {n:'A 栋（主市场）', v:96200},{n:'B 栋（原料馆）', v:58400},{n:'C 栋（配套楼）', v:21600},{n:'原料市场 D 栋', v:14800}
+]};
+
+/* 待核销（与 P2 一致：已通过/部分核销） */
+var PEND=[
+  {no:'JB202610-0007', name:'B 栋 1F 通道灯管更换', amount:784, done:592, at:'2026-10-22 09:30', days:5},
+  {no:'JB202610-0005', name:'C 栋 1F 消防栓箱更换', amount:1260, done:0, at:'2026-10-11 14:20', days:16},
+  {no:'JB202610-0004', name:'A 栋 3F 卫生间下水改造', amount:3200, done:1800, at:'2026-10-08 10:00', days:19}
+];
+
+/* 额外申请 */
+var APPLY=[
+  {no:'SQ202610-0003', amount:20000, use:'Q4 消防设施专项整改，涉及 A/B 栋消防栓箱与灭火器批量更换', att:'报价单-消防.pdf',
+   node:'财务', state:'待审核', by:'物业 张××', at:'2026-10-20 16:30', logs:[['2026-10-20 16:30','提交申请 ¥20,000'],['2026-10-21 09:40','运营主管 通过']]},
+  {no:'SQ202610-0002', amount:8000, use:'A 栋 1F 主入口雨棚破损加固，雨季前应急处理', att:'',
+   node:'—', state:'已通过', by:'物业 张××', at:'2026-09-18 11:00', logs:[['2026-09-18 11:00','提交申请 ¥8,000'],['2026-09-19 10:20','运营主管 通过'],['2026-09-19 15:30','财务 通过 → 额度追加 ¥8,000']]},
+  {no:'SQ202610-0001', amount:5000, use:'补充监控摄像头 3 台（B 栋 2F 走廊盲区）', att:'',
+   node:'—', state:'已驳回', by:'物业 张××', at:'2026-09-05 09:10', logs:[['2026-09-05 09:10','提交申请 ¥5,000'],['2026-09-06 14:00','财务 驳回：监控属技防改造，请走年度技防预算']]}
+];
+
+var curNo=null, tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},3200);}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function money(n){return Number(Math.round(n)).toLocaleString('en-US');}
+function total(){var b=BUDGET[curYear];return b.base+b.extra;}
+function used(){var s=0;MONTH[curYear].forEach(function(x){s+=x.v;});return s;}
+function inTransit(){var s=0;PEND.forEach(function(p){s+=p.amount-p.done;});return s;}
+function remain(){return total()-used()-inTransit();}
+function pctOf(a,b){return b?Math.round(a/b*1000)/10:0;}
+
+function renderStats(){
+  var u=used(), it=inTransit(), rm=remain(), t=total();
+  var leftPct=pctOf(rm,t);
+  var rmColor=rm<0?'#DC2626':(leftPct<20?'#EA580C':'#15803D');
+  var rmBadge=rm<0?'<span class="text-[10px] font-normal" style="color:#DC2626">已超支</span>'
+    :(leftPct<20?'<span class="text-[10px] font-normal" style="color:#EA580C">低于 20%</span>':'');
+  var cards=[
+    ['年度总额度','¥'+money(t),'#1F2430','含追加 ¥'+money(BUDGET[curYear].extra)],
+    ['已核销','¥'+money(u),'#FF4D2D','占额度 '+pctOf(u,t)+'%'],
+    ['在途','¥'+money(it),'#B45309',PEND.length+' 张待核销'],
+    ['剩余可用','¥'+money(rm),rmColor,rmBadge||('占额度 '+leftPct+'%')],
+    ['额外追加','¥'+money(BUDGET[curYear].extra),'#2563EB',APPLY.filter(function(a){return a.state==='已通过';}).length+' 笔已通过']
+  ];
+  document.getElementById('stats').innerHTML=cards.map(function(x){
+    return '<div class="stat-card bg-white rounded-lg border border-gray-100 p-3.5">'
+      +'<p class="text-[11px] text-gray-400">'+x[0]+'</p>'
+      +'<p class="text-xl font-bold mt-1" style="color:'+x[2]+'">'+x[1]+'</p>'
+      +'<p class="text-[10px] text-[#94A3B8] mt-1">'+x[3]+'</p></div>';
+  }).join('');
+  var uP=pctOf(u,t), iT=pctOf(it,t);
+  var bar=document.getElementById('pgBar');
+  bar.style.width=Math.min(100,uP+iT)+'%';
+  bar.style.background='linear-gradient(90deg,#FF4D2D 0%,#FF4D2D '+Math.min(100,uP/(uP+iT||1)*100)+'%,#FBBF24 '+Math.min(100,uP/(uP+iT||1)*100)+'%,#FBBF24 100%)';
+  document.getElementById('pgTip').textContent='已用 '+(uP+iT)+'%　剩余 '+Math.max(0,leftPct)+'%'+(leftPct<20?'　⚠ 低于预警线':'');
+}
+
+function renderBar(){
+  var list=MONTH[curYear];
+  var max=Math.max.apply(null,list.map(function(x){return x.v;}))||1;
+  var totalAll=list.reduce(function(a,b){return a+b.v;},0);
+  document.getElementById('bar').innerHTML=list.map(function(x){
+    var h=Math.round(x.v/max*100);
+    return '<div><span class="v">'+(x.v?money(x.v):'')+'</span>'
+      +'<div class="b '+(x.v?'':'zero')+'" style="height:'+Math.max(h,2)+'%"></div>'
+      +'<span class="l">'+x.m+'</span></div>';
+  }).join('');
+  document.getElementById('barSum').textContent='合计 ¥'+money(totalAll);
+  var mx=list.filter(function(x){return x.v===max;})[0];
+  document.getElementById('barMax').textContent=mx?(mx.m+'　¥'+money(max)):'—';
+}
+
+function rankList(el,arr,unit){
+  var max=Math.max.apply(null,arr.map(function(x){return x.v;}))||1;
+  document.getElementById(el).innerHTML=arr.slice(0,10).map(function(x,i){
+    var w=Math.round(x.v/max*100);
+    return '<div class="rank"><span class="n">'+(i+1)+'</span><span class="nm">'+esc(x.n)+'</span>'
+      +'<span class="bar2"><i style="width:'+w+'%"></i></span>'
+      +'<span class="amt">'+(unit==='%'?x.v+'%':'¥'+money(x.v))+'</span></div>';
+  }).join('');
+}
+
+function renderPend(){
+  var h='';
+  PEND.forEach(function(p){
+    var left=p.amount-p.done;
+    h+='<tr>'
+      +'<td class="font-medium">'+esc(p.no)+'</td>'
+      +'<td style="max-width:240px;white-space:normal">'+esc(p.name)+'</td>'
+      +'<td>¥'+money(p.amount)+'</td>'
+      +'<td class="text-[12px]" style="color:#15803D">¥'+money(p.done)+'</td>'
+      +'<td class="font-medium" style="color:#B45309">¥'+money(left)+'</td>'
+      +'<td class="text-[12px] text-[#64748B]">'+esc(p.at)+'</td>'
+      +'<td class="text-[12px]">'+(p.days>15?'<span style="color:#DC2626;font-weight:600">'+p.days+' 天 · 久悬</span>':p.days+' 天')+'</td>'
+      +'<td class="text-center"><span class="lk" onclick="toast(\'已跳转到交办单 '+p.no+'（在 P2 交办单与核销页打开）\')">去核销</span></td></tr>';
+  });
+  document.getElementById('tbPend').innerHTML=h||'<tr><td colspan="8"><div class="empty"><i class="fas fa-check-circle"></i>无待核销交办单</div></td></tr>';
+  document.getElementById('pendCnt').textContent='共 '+PEND.length+' 条';
+}
+
+function renderApply(){
+  var SC={'待审核':'background:#FEF3C7;color:#B45309','已通过':'background:#DCFCE7;color:#15803D','已驳回':'background:#FEE2E2;color:#B91C1C'};
+  var h='';
+  APPLY.forEach(function(a){
+    var ops='<span class="lk-gray" onclick="openApplyDetail(\''+a.no+'\')">查看</span>';
+    if(a.state==='待审核') ops='<span class="lk" onclick="openAudit(\''+a.no+'\')">审批</span> · '+ops;
+    h+='<tr>'
+      +'<td class="font-medium">'+esc(a.no)+'</td>'
+      +'<td class="font-medium">+¥'+money(a.amount)+'</td>'
+      +'<td class="text-[12px] text-[#64748B]" style="max-width:320px;white-space:normal">'+esc(a.use)+'</td>'
+      +'<td>'+(a.att?'<span class="lk" onclick="toast(\'已下载 '+esc(a.att)+'\')">'+esc(a.att)+'</span>':'<span class="text-[#94A3B8]">—</span>')+'</td>'
+      +'<td class="text-[12px] text-[#64748B]">'+esc(a.node)+'</td>'
+      +'<td><span class="tag" style="'+(SC[a.state]||'background:#F1F5F9;color:#64748B')+'">'+esc(a.state)+'</span></td>'
+      +'<td class="text-[12px] text-[#64748B]">'+esc(a.by)+'</td>'
+      +'<td class="text-[12px] text-[#64748B]">'+esc(a.at)+'</td>'
+      +'<td class="text-center whitespace-nowrap">'+ops+'</td></tr>';
+  });
+  document.getElementById('tbApply').innerHTML=h||'<tr><td colspan="9"><div class="empty"><i class="fas fa-file-invoice"></i>暂无额外申请</div></td></tr>';
+  document.getElementById('applyCnt').textContent='共 '+APPLY.length+' 条';
+}
+
+function renderAll(){
+  renderStats();renderBar();
+  rankList('catList',CAT[curYear]);
+  rankList('supList',SUP[curYear]);
+  rankList('bldList',BLD[curYear]);
+  renderPend();renderApply();
+}
+function switchYear(){
+  curYear=document.getElementById('f-year').value;
+  renderAll();
+  toast('已切换到租赁年度 '+BUDGET[curYear].year+'（额度按年度独立，跨期不结转）');
+}
+
+/* ================= 额外申请 ================= */
+function openApply(){
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">额外申请（额度追加）</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">当前年度剩余 ¥'+money(remain())+'　·　审批：运营主管 → 财务（串行）</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div><label class="fl"><i>*</i>申请金额（元）</label><input class="fi" id="ap_amt" placeholder="如 20000"></div>'
+    +'<div><label class="fl"><i>*</i>用途说明（≥10 字）</label><input class="fi" id="ap_use" placeholder="如：Q4 消防设施专项整改，A/B 栋消防栓箱与灭火器批量更换"></div>'
+    +'<div><label class="fl">依据附件</label><div class="fi" style="cursor:pointer;color:#94A3B8" onclick="pickApAtt()" id="apAttBox">点击上传（报价单 / 说明文件）</div></div>'
+    +'<div class="rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFBEB">'
+    +'<p class="text-[11px] text-[#64748B]">通过后<b>追加到当年总额度</b>并留痕（申请人 / 审批人 / 金额 / 原因）；跨期不结转。</p></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveApply()">提交申请</button></div>';
+  document.getElementById('drawer').innerHTML=h;show();
+}
+var apAtt=false;
+function pickApAtt(){apAtt=true;document.getElementById('apAttBox').textContent='已上传：追加申请依据.pdf';document.getElementById('apAttBox').style.color='#1F2430';toast('已上传依据附件');}
+function saveApply(){
+  var amt=parseFloat(document.getElementById('ap_amt').value)||0;
+  var use=document.getElementById('ap_use').value.trim();
+  if(!amt||amt<=0){toast('请填写申请金额（大于 0）');return;}
+  if(use.length<10){toast('用途说明至少 10 个字（当前 '+use.length+' 字）');return;}
+  var no='SQ202610-00'+(4+APPLY.length);
+  APPLY.unshift({no:no, amount:amt, use:use, att:apAtt?'追加申请依据.pdf':'',
+    node:'运营主管', state:'待审核', by:'物业 张××', at:'2026-10-27 '+new Date().toTimeString().slice(0,5),
+    logs:[['2026-10-27 '+new Date().toTimeString().slice(0,5),'提交申请 ¥'+money(amt)]]});
+  apAtt=false;
+  renderApply();closeAll();
+  toast('已提交额外申请：'+no+'　+¥'+money(amt)+'（审批链 运营主管 → 财务）');
+}
+
+function openAudit(no){
+  var a=APPLY.filter(function(x){return x.no===no;})[0];
+  curNo=no;
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">审批额外申请</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(a.no)+'　+¥'+money(a.amount)+'　当前节点 '+esc(a.node)+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div class="blk"><div class="blk-t"><i class="fas fa-file-lines text-[#2563EB]"></i>申请内容</div>'
+    +'<div class="kv" style="display:flex;gap:10px;font-size:12px;padding:4px 0"><span style="color:#94A3B8;width:78px;flex-shrink:0">用途</span><span style="flex:1">'+esc(a.use)+'</span></div>'
+    +'<div class="kv" style="display:flex;gap:10px;font-size:12px;padding:4px 0"><span style="color:#94A3B8;width:78px;flex-shrink:0">申请人</span><span style="flex:1">'+esc(a.by)+'　'+esc(a.at)+'</span></div>'
+    +'<div class="kv" style="display:flex;gap:10px;font-size:12px;padding:4px 0"><span style="color:#94A3B8;width:78px;flex-shrink:0">依据</span><span style="flex:1">'+(a.att?esc(a.att):'未上传')+'</span></div></div>'
+    +'<div class="blk"><div class="blk-t"><i class="fas fa-clock-rotate-left text-[#64748B]"></i>审批链</div>'
+    +a.logs.map(function(l){return '<div style="font-size:12px;color:#64748B;padding:3px 0"><b style="color:#1F2430">'+esc(l[0])+'</b>　'+esc(l[1])+'</div>';}).join('')+'</div>'
+    +'<div><label class="fl">审批意见（驳回必填）</label><input class="fi" id="au_note2" placeholder="如：金额偏高，请补充 3 家报价"></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-ghost" style="color:#B91C1C;border-color:#FECACA" onclick="applyReject(\''+no+'\')">驳回</button>'
+    +'<button class="btn btn-primary" onclick="applyPass(\''+no+'\')">通过</button></div>';
+  document.getElementById('drawer').innerHTML=h;show();
+}
+function applyPass(no){
+  var a=APPLY.filter(function(x){return x.no===no;})[0];
+  a.logs.push(['2026-10-27 '+new Date().toTimeString().slice(0,5),a.node+' 通过']);
+  if(a.node==='运营主管'){
+    a.node='财务';
+    renderApply();closeAll();
+    toast('已通过：'+no+'　转下一节点「财务」（额度尚未追加）');
+  }else{
+    a.state='已通过';a.node='—';
+    BUDGET[curYear].extra+=a.amount;
+    a.logs.push(['2026-10-27 '+new Date().toTimeString().slice(0,5),'财务 通过 → 额度追加 ¥'+money(a.amount)]);
+    renderAll();closeAll();
+    toast('审批通过：'+no+'　额度已追加 ¥'+money(a.amount)+'（总额度 → ¥'+money(total())+'）');
+  }
+}
+function applyReject(no){
+  var a=APPLY.filter(function(x){return x.no===no;})[0];
+  var note=document.getElementById('au_note2').value.trim();
+  if(note.length<4){toast('驳回原因必填（至少 4 个字）');return;}
+  a.state='已驳回';a.node='—';
+  a.logs.push(['2026-10-27 '+new Date().toTimeString().slice(0,5),'驳回：'+note]);
+  renderApply();closeAll();
+  toast('已驳回：'+no+'　额度未追加');
+}
+function openApplyDetail(no){
+  var a=APPLY.filter(function(x){return x.no===no;})[0];
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+esc(a.no)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">+¥'+money(a.amount)+'　'+esc(a.state)+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>'
+    +'<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div class="blk"><div style="font-size:12px;color:#64748B;line-height:1.8">'+esc(a.use)+'</div></div>'
+    +'<div class="blk"><div class="blk-t"><i class="fas fa-clock-rotate-left text-[#64748B]"></i>审批链</div>'
+    +a.logs.map(function(l){return '<div style="font-size:12px;color:#64748B;padding:3px 0"><b style="color:#1F2430">'+esc(l[0])+'</b>　'+esc(l[1])+'</div>';}).join('')+'</div></div>'
+    +'<div class="px-5 py-3.5 border-t border-gray-100 flex justify-end"><button class="btn btn-ghost" onclick="closeAll()">关闭</button></div>';
+  document.getElementById('drawer').innerHTML=h;show();
+}
+
+/* ================= 历史采购导入 ================= */
+var impRows=[];
+function openImport(){
+  impRows=[
+    {name:'LED 灯管 T8 18W', spec:'1.2m/白光', qty:20, price:66, vendor:'诸暨××灯具', date:'2026-08-12', inv:'INV-20260812-011', ok:true, err:''},
+    {name:'防滑地砖 600×600', spec:'灰色/通体', qty:30, price:95, vendor:'诸暨××建材', date:'2026-08-20', inv:'', ok:true, err:''},
+    {name:'小型断路器 DZ47-63 C25', spec:'2P/25A', qty:6, price:275, vendor:'诸暨××机电', date:'2026-08-25', inv:'INV-20260825-004', ok:true, err:''},
+    {name:'', spec:'304 不锈钢', qty:4, price:88, vendor:'义乌××五交化', date:'2026-07-30', inv:'', ok:false, err:'物资名称必填'},
+    {name:'卷帘门导轨', spec:'3m/镀锌', qty:2, price:0, vendor:'诸暨××门业', date:'2026-08-05', inv:'', ok:false, err:'单价必填且需 >0'},
+    {name:'润滑脂', spec:'500g', qty:5, price:38, vendor:'诸暨××门业', date:'2026-8-9', inv:'', ok:false, err:'日期格式应为 YYYY-MM-DD'}
+  ];
+  var okN=impRows.filter(function(r){return r.ok;}).length, badN=impRows.length-okN;
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">历史采购导入</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">写入<b>历史成交价库</b>（价格偏离校验基准）　·　<b>不影响额度</b>（历史年度已花掉）</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-table-columns text-[#7C3AED]"></i>模板列</div>'
+    +'<p class="text-[11px] text-[#64748B] leading-6">物资名称 / 规格 / 数量 / 单价 / 供应商 / 采购日期 / 发票号（可空）<br>'
+    +'校验：物资名称与单价必填；日期格式 YYYY-MM-DD；<b>整批回滚</b>（任一行失败则全部不入库，失败行给清单）</p></div>';
+  h+='<div class="flex items-center gap-2"><div class="fi" style="cursor:pointer;color:#94A3B8;flex:1" onclick="toast(\'已选择 历史采购台账2026H1.xlsx（6 行）\')">历史采购台账2026H1.xlsx（6 行）</div>'
+    +'<button class="btn btn-ghost" onclick="toast(\'已下载导入模板（含示例行与字段说明）\')"><i class="fas fa-download text-[10px] mr-1"></i>模板</button></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-list-check text-[#B45309]"></i>预校验结果：'
+    +'<span style="color:#15803D">通过 '+okN+' 行</span>　<span style="color:#B91C1C">失败 '+badN+' 行</span></div>'
+    +'<table class="w-full" style="font-size:11px"><thead><tr style="background:#F8FAFC">'
+    +'<th style="padding:6px 8px;text-align:left;color:#64748B">物资名称</th><th style="padding:6px 8px;text-align:left;color:#64748B">规格</th>'
+    +'<th style="padding:6px 8px;text-align:left;color:#64748B">数量</th><th style="padding:6px 8px;text-align:left;color:#64748B">单价</th>'
+    +'<th style="padding:6px 8px;text-align:left;color:#64748B">日期</th><th style="padding:6px 8px;text-align:left;color:#64748B">校验</th></tr></thead><tbody>'
+    +impRows.map(function(r){
+      return '<tr style="border-bottom:1px solid #F1F5F9'+(r.ok?'':';background:#FEF2F2')+'">'
+        +'<td style="padding:6px 8px">'+(r.name||'<span style="color:#DC2626">（空）</span>')+'</td>'
+        +'<td style="padding:6px 8px;color:#64748B">'+esc(r.spec)+'</td>'
+        +'<td style="padding:6px 8px">'+r.qty+'</td>'
+        +'<td style="padding:6px 8px">'+(r.price||'<span style="color:#DC2626">0</span>')+'</td>'
+        +'<td style="padding:6px 8px;color:#64748B">'+esc(r.date)+'</td>'
+        +'<td style="padding:6px 8px">'+(r.ok?'<span style="color:#15803D">通过</span>':'<span style="color:#DC2626">'+esc(r.err)+'</span>')+'</td></tr>';
+    }).join('')
+    +'</tbody></table>'
+    +'<div class="mt-2 rounded-lg p-2.5" style="background:#FEF2F2;border:1px solid #FECACA"><p class="text-[11px]" style="color:#B91C1C">'
+    +'<i class="fas fa-triangle-exclamation mr-1"></i>存在 '+badN+' 行失败：<b>整批回滚</b>，本次 0 行入库。请修正后重新上传。</p></div></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="doImport()">确认导入</button></div>';
+  document.getElementById('drawer').innerHTML=h;show();
+}
+function doImport(){
+  var okN=impRows.filter(function(r){return r.ok;}).length, badN=impRows.length-okN;
+  if(badN){
+    toast('导入失败：'+badN+' 行校验不通过，整批已回滚（0 行入库），请修正后重传');
+    return;
+  }
+  closeAll();
+  toast('已导入 '+okN+' 行到历史成交价库（不影响额度，仅作价格偏离基准）');
+}
+
+/* ================= 基础 ================= */
+function show(){document.getElementById('mask').className='mask on';document.getElementById('drawer').className='drawer on';}
+function closeAll(){document.getElementById('mask').className='mask';document.getElementById('drawer').className='drawer';}
+renderAll();
+</script>
+<script src="../shared/op-guard.js"></script>
+<script src="../shared/page-prd.js"></script>
+</body>
+</html>

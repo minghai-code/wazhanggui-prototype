@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>物业服务 - 问题上报</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.stat-card{transition:box-shadow .2s ease,transform .2s ease}
+.stat-card:hover{box-shadow:0 4px 20px rgba(0,0,0,.08);transform:translateY(-1px)}
+.tb th{font-size:12px;font-weight:600;color:#64748B;background:#F8FAFC;padding:10px 12px;text-align:left;white-space:nowrap}
+.tb td{font-size:13px;color:#1F2430;padding:11px 12px;border-bottom:1px solid #F1F5F9;white-space:nowrap}
+.tb tbody tr:hover{background:#FFF7F5}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}
+.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}
+.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}
+.lk:hover{text-decoration:underline}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}
+.lk-gray:hover{color:#1F2430}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:40}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:600px;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:50;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.fl{display:block;font-size:12px;color:#64748B;margin-bottom:5px}
+.fl i{color:#FF4D2D;font-style:normal;margin-right:2px}
+.fi{width:100%;padding:8px 11px;font-size:13px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;outline:none;transition:.15s}
+.fi:focus{border-color:#FF4D2D;background:#fff}
+.blk{border:1px solid #F1F5F9;border-radius:12px;padding:13px 15px}
+.blk-t{font-size:12px;font-weight:700;color:#1F2430;display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.kv{display:flex;gap:10px;font-size:12px;padding:4px 0;line-height:1.6}
+.kv .k{color:#94A3B8;width:80px;flex-shrink:0}
+.kv .v{color:#1F2430;flex:1}
+.thumb{width:52px;height:52px;border-radius:6px;background:linear-gradient(135deg,#64748B,#94A3B8);color:#fff;font-size:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;overflow:hidden;margin-right:5px}
+.tl{position:relative;padding-left:16px}
+.tl::before{content:'';position:absolute;left:4px;top:4px;bottom:4px;width:1px;background:#E2E8F0}
+.tl-i{position:relative;padding:0 0 10px;font-size:12px;color:#64748B;line-height:1.6}
+.tl-i::before{content:'';position:absolute;left:-16px;top:5px;width:7px;height:7px;border-radius:50%;background:#FF4D2D}
+.tl-i b{color:#1F2430;font-weight:600}
+.empty{padding:50px 0;text-align:center;color:#CBD5E1}
+.empty i{font-size:28px;display:block;margin-bottom:8px}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+<div class="p-6">
+
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">问题上报</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">07 物业服务</span>
+        <span class="tag" style="background:#FFEDE7;color:#E63E20">照片必传</span>
+        <span class="tag" style="background:#FEF3C7;color:#B45309">按责任方分流</span>
+      </div>
+      <p class="text-[12px] text-gray-400 mt-1">承载巡检发现与外部反馈的现场问题，按<b>责任方</b>分流：商户责任 → 派整改（ZG）；物业责任 → <b>转报修</b>（BX，带原照片与位置）；待判定 → 主管判定。<b>转报修后原记录保留</b>，改判留痕。</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="toast('已导出问题清单（含责任方分布、超期统计）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+      <button class="btn btn-primary" onclick="openNew('')"><i class="fas fa-plus mr-1"></i>上报问题</button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-4 gap-3 mb-5" id="stats"></div>
+
+  <div class="flex items-center gap-5 mb-3 border-b border-gray-200" id="tabs">
+    <span class="py-2.5 text-[13px] cursor-pointer tab-on" onclick="switchTab('',this)">全部 <span class="text-[11px] text-[#94A3B8]" id="c-all"></span></span>
+    <span class="py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600" onclick="switchTab('待判定',this)">待判定 <span class="text-[11px]" id="c-judge"></span></span>
+    <span class="py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600" onclick="switchTab('待处理',this)">待处理 <span class="text-[11px]" id="c-wait"></span></span>
+    <span class="py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600" onclick="switchTab('已派整改',this)">已派整改 <span class="text-[11px]" id="c-zg"></span></span>
+    <span class="py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600" onclick="switchTab('已转报修',this)">已转报修 <span class="text-[11px]" id="c-bx"></span></span>
+    <span class="py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600" onclick="switchTab('已解决',this)">已解决 <span class="text-[11px]" id="c-done"></span></span>
+    <span class="py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600" onclick="switchTab('已关闭',this)">已关闭 <span class="text-[11px]" id="c-close"></span></span>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-100 p-3 mb-4 flex items-center gap-3 flex-wrap">
+    <input id="f-kw" type="text" placeholder="问题编号 / 区域 / 描述" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none w-56">
+    <select id="f-type" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+      <option value="">全部类型</option><option>消防</option><option>卫生</option><option>占道</option><option>设备</option><option>安全</option>
+    </select>
+    <select id="f-duty" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+      <option value="">全部责任方</option><option>商户责任</option><option>物业责任</option><option>待判定</option>
+    </select>
+    <label class="flex items-center gap-1.5 text-[12px] text-gray-600"><input type="checkbox" id="f-slow" class="accent-[#FF4D2D]">仅看待判定超 3 天</label>
+    <button class="btn btn-primary" onclick="doSearch()">查询</button>
+    <button class="btn btn-ghost" onclick="resetSearch()">重置</button>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-[13px] font-bold text-[#1F2430]">问题清单</span>
+        <span class="text-[12px] text-[#94A3B8]" id="cnt">共 0 条</span>
+      </div>
+      <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>待判定超 3 天自动提醒主管；改判责任方需留痕</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full tb" style="min-width:1280px">
+        <thead><tr>
+          <th>问题编号</th><th>区域</th><th>类型</th><th>描述</th><th>责任方</th><th>严重程度</th><th>上报人</th><th>状态</th><th class="text-center">操作</th>
+        </tr></thead>
+        <tbody id="tb"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="mask" id="mask" onclick="closeAll()"></div>
+<div class="drawer" id="drawer"></div>
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-2.5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
+
+<script>
+/* ================= 数据 ================= */
+var TYPES=['消防','卫生','占道','设备','安全'];
+var DUTIES=['商户责任','物业责任','待判定'];
+var STC={'待判定':'background:#FEF3C7;color:#B45309','待处理':'background:#FFEDE7;color:#E63E20',
+  '已派整改':'background:#DBEAFE;color:#2563EB','已转报修':'background:#EDE9FE;color:#6D28D9',
+  '已解决':'background:#DCFCE7;color:#15803D','已关闭':'background:#F1F5F9;color:#64748B'};
+var DTC={'商户责任':'background:#FFEDE7;color:#E63E20','物业责任':'background:#DBEAFE;color:#2563EB','待判定':'background:#FEF3C7;color:#B45309'};
+var LVC={'严重':'background:#FEE2E2;color:#B91C1C','一般':'background:#FEF3C7;color:#B45309','轻微':'background:#F1F5F9;color:#64748B'};
+
+var WT=[
+  {no:'WT202610-0061', area:'A 栋 3F', unit:'3F-A18', type:'占道', desc:'商铺货物堆放到消防通道，宽约 1.2m，影响疏散',
+   photos:2, duty:'商户责任', level:'严重', by:'巡检员 陈××', from:'巡检 XJ202610-0085',
+   state:'已派整改', zgNo:'ZG202610-0031', days:1, deadline:'2026-10-29',
+   createdAt:'2026-10-26 09:40', logs:[['2026-10-26 09:40','巡检上报（照片 2 张）'],['2026-10-26 10:10','主管判定：商户责任'],
+     ['2026-10-26 10:20','已派整改 → ZG202610-0031（限期 2026-10-29）']]},
+  {no:'WT202610-0062', area:'A 栋 3F', unit:'3F-A21', type:'安全', desc:'东侧安全出口指示灯不亮，夜间疏散无指引',
+   photos:1, duty:'物业责任', level:'一般', by:'巡检员 陈××', from:'巡检 XJ202610-0085',
+   state:'已转报修', bxNo:'BX202610-0035', days:1, deadline:'',
+   createdAt:'2026-10-26 09:52', logs:[['2026-10-26 09:52','巡检上报（照片 1 张）'],['2026-10-26 10:15','主管判定：物业责任'],
+     ['2026-10-26 10:18','已转报修 → BX202610-0035（原记录保留）']]},
+  {no:'WT202610-0060', area:'B 栋 2F', unit:'2F-B09', type:'卫生', desc:'女卫地面长期积水，地砖湿滑有摔倒风险',
+   photos:1, duty:'物业责任', level:'一般', by:'巡检员 周××', from:'巡检 XJ202610-0083',
+   state:'待处理', days:3, deadline:'',
+   createdAt:'2026-10-24 09:30', logs:[['2026-10-24 09:30','巡检上报（照片 1 张）'],['2026-10-24 11:00','主管判定：物业责任']]},
+  {no:'WT202610-0059', area:'C 栋 1F', unit:'1F-C03', type:'消防', desc:'灭火器压力表指针在红区，已过期 3 个月',
+   photos:2, duty:'待判定', level:'严重', by:'商户 钱××（商户端）', from:'商户端反馈',
+   state:'待判定', days:5, deadline:'',
+   createdAt:'2026-10-22 15:10', logs:[['2026-10-22 15:10','商户端上报（照片 2 张）'],['2026-10-25 09:00','超 3 天未判定 → 已提醒主管']]},
+  {no:'WT202610-0058', area:'B 栋 1F', unit:'1F-B05', type:'设备', desc:'卷帘门电机异响，运行时抖动明显',
+   photos:1, duty:'待判定', level:'一般', by:'巡检员 吴××', from:'巡检 XJ202610-0084',
+   state:'待判定', days:2, deadline:'',
+   createdAt:'2026-10-25 15:00', logs:[['2026-10-25 15:00','巡检上报（照片 1 张）']]},
+  {no:'WT202610-0057', area:'A 栋 1F', unit:'1F-A02', type:'占道', desc:'店外堆放纸箱至通道边线，已当场提醒',
+   photos:1, duty:'商户责任', level:'轻微', by:'巡检员 陈××', from:'巡检 XJ202610-0082',
+   state:'已解决', days:0, deadline:'2026-10-23',
+   createdAt:'2026-10-22 10:20', logs:[['2026-10-22 10:20','巡检上报'],['2026-10-22 10:30','已派整改 ZG202610-0029'],
+     ['2026-10-22 16:40','商户已清理，复核通过 → 已解决']]},
+  {no:'WT202610-0056', area:'D 栋 1F', unit:'1F-D11', type:'卫生', desc:'门前垃圾未清运，有异味（重复上报）',
+   photos:1, duty:'商户责任', level:'轻微', by:'物业 张××', from:'电话反馈',
+   state:'已关闭', days:0, deadline:'',
+   closeWhy:'重复问题：与 WT202610-0051 同一位置同一问题，已合并处理',
+   createdAt:'2026-10-21 11:00', logs:[['2026-10-21 11:00','电话反馈代录'],['2026-10-21 15:20','关闭：重复问题（合并至 WT202610-0051）']]}
+];
+
+var curRows=WT.slice(), curTab='', curNo=null, newPhoto=0;
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},3200);}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function wOf(no){return WT.filter(function(x){return x.no===no;})[0];}
+function isSlowJudging(x){return x.state==='待判定'&&x.days>3;}
+
+function renderStats(){
+  var judge=0,wait=0,bx=0,done=0;
+  WT.forEach(function(x){
+    if(x.state==='待判定')judge++;
+    else if(x.state==='待处理')wait++;
+    else if(x.state==='已转报修')bx++;
+    else if(x.state==='已解决')done++;
+  });
+  var cards=[['待处理',wait,'#E63E20'],['待判定',judge,'#B45309'],['已转报修',bx,'#6D28D9'],['本月已解决',done,'#15803D']];
+  document.getElementById('stats').innerHTML=cards.map(function(x){
+    var tname=(x[0]==='本月已解决')?'已解决':x[0];
+    return '<div class="stat-card bg-white rounded-lg border border-gray-100 p-3.5" onclick="switchTab(\''+tname+'\')">'
+      +'<p class="text-[11px] text-gray-400">'+x[0]+'</p>'
+      +'<p class="text-xl font-bold mt-1" style="color:'+x[2]+'">'+x[1]+'</p></div>';
+  }).join('');
+  document.getElementById('c-all').textContent='('+WT.length+')';
+  document.getElementById('c-judge').textContent='('+judge+')';
+  document.getElementById('c-wait').textContent='('+wait+')';
+  document.getElementById('c-zg').textContent='('+WT.filter(function(x){return x.state==='已派整改';}).length+')';
+  document.getElementById('c-bx').textContent='('+bx+')';
+  document.getElementById('c-done').textContent='('+done+')';
+  document.getElementById('c-close').textContent='('+WT.filter(function(x){return x.state==='已关闭';}).length+')';
+}
+
+function render(){
+  var h='';
+  curRows.forEach(function(x){
+    var ops='<span class="lk-gray" onclick="openDetail(\''+x.no+'\')">查看</span>';
+    if(x.state==='待判定'){
+      ops='<span class="lk" onclick="openJudge(\''+x.no+'\')">判定责任方</span> · '+ops;
+    }else if(x.state==='待处理'){
+      ops=(x.duty==='商户责任'?'<span class="lk" onclick="doAssign(\''+x.no+'\')">派整改</span>'
+        :'<span class="lk" onclick="doToBx(\''+x.no+'\')">转报修</span>')
+        +' · <span class="lk-gray" onclick="openRejudge(\''+x.no+'\')">改判</span> · '+ops;
+    }else if(x.state==='已派整改'||x.state==='已转报修'){
+      ops='<span class="lk-gray" onclick="openRejudge(\''+x.no+'\')">改判</span> · '+ops;
+    }
+    if(x.state!=='已关闭') ops+=' · <span class="lk-gray" onclick="openClose(\''+x.no+'\')">关闭</span>';
+    var ph='';
+    for(var i=0;i<x.photos;i++) ph+='<div class="thumb" onclick="toast(\'查看原图（水印：'+x.createdAt+' · '+x.unit+' · '+x.no+'）\')">照片</div>';
+    h+='<tr>'
+      +'<td><div class="font-medium">'+esc(x.no)+'</div><div class="text-[11px] text-[#94A3B8]">'+esc(x.from)+'</div></td>'
+      +'<td><div>'+esc(x.area)+'</div><div class="text-[11px] text-[#94A3B8]">'+esc(x.unit)+'</div></td>'
+      +'<td>'+esc(x.type)+'</td>'
+      +'<td class="text-[12px] text-[#64748B]" style="max-width:280px;white-space:normal">'+esc(x.desc)+'</td>'
+      +'<td><span class="tag" style="'+DTC[x.duty]+'">'+esc(x.duty)+'</span>'+(x.days>3&&x.state==='待判定'?'<span class="text-[10px]" style="color:#DC2626"> 超'+x.days+'天</span>':'')+'</td>'
+      +'<td><span class="tag" style="'+LVC[x.level]+'">'+esc(x.level)+'</span></td>'
+      +'<td class="text-[12px] text-[#64748B]">'+esc(x.by)+'</td>'
+      +'<td><span class="tag" style="'+STC[x.state]+'">'+esc(x.state)+'</span>'
+        +(x.bxNo?'<div class="text-[10px] text-[#94A3B8]">'+esc(x.bxNo)+'</div>':'')
+        +(x.zgNo?'<div class="text-[10px] text-[#94A3B8]">'+esc(x.zgNo)+'</div>':'')+'</td>'
+      +'<td class="text-center whitespace-nowrap">'+ops+'</td></tr>';
+  });
+  document.getElementById('tb').innerHTML=h||'<tr><td colspan="9"><div class="empty"><i class="fas fa-inbox"></i>暂无符合条件的问题</div></td></tr>';
+  document.getElementById('cnt').textContent='共 '+curRows.length+' 条';
+}
+function switchTab(s,el){
+  curTab=s;
+  document.querySelectorAll('#tabs span').forEach(function(x){x.className='py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600';});
+  if(el)el.className='py-2.5 text-[13px] cursor-pointer tab-on';
+  curRows=WT.filter(function(x){return !s||x.state===s;});
+  render();
+}
+function doSearch(){
+  var kw=document.getElementById('f-kw').value.trim();
+  var type=document.getElementById('f-type').value;
+  var duty=document.getElementById('f-duty').value;
+  var slow=document.getElementById('f-slow').checked;
+  curRows=WT.filter(function(x){
+    return (!kw||x.no.indexOf(kw)>-1||x.area.indexOf(kw)>-1||x.desc.indexOf(kw)>-1)
+      &&(!type||x.type===type)&&(!duty||x.duty===duty)&&(!slow||isSlowJudging(x))
+      &&(!curTab||x.state===curTab);
+  });
+  render();toast('已查询，共 '+curRows.length+' 条');
+}
+function resetSearch(){
+  ['f-kw','f-type','f-duty'].forEach(function(k){document.getElementById(k).value='';});
+  document.getElementById('f-slow').checked=false;
+  curTab='';curRows=WT.slice();
+  document.querySelectorAll('#tabs span').forEach(function(x,i){x.className=i===0?'py-2.5 text-[13px] cursor-pointer tab-on':'py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600';});
+  render();toast('已重置');
+}
+
+/* ================= 上报 / 编辑 ================= */
+function openNew(area){
+  curNo=null;newPhoto=0;
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">上报现场问题</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">现场照片<b>必传</b>（≥1 张）；责任方决定后续分流路径</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">';
+  h+='<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl"><i>*</i>楼栋 / 楼层</label><input class="fi" id="w_area" value="'+esc(area||'')+'" placeholder="如 A 栋 3F"></div>'
+    +'<div><label class="fl"><i>*</i>档口 / 具体位置</label><input class="fi" id="w_unit" placeholder="如 3F-A18"></div>'
+    +'<div><label class="fl"><i>*</i>问题类型</label><select class="fi" id="w_type">'
+      +TYPES.map(function(t){return '<option>'+t+'</option>';}).join('')+'</select></div>'
+    +'<div><label class="fl"><i>*</i>严重程度</label><select class="fi" id="w_level"><option>一般</option><option>严重</option><option>轻微</option></select></div>'
+    +'</div>'
+    +'<div><label class="fl"><i>*</i>问题描述（≥5 字）</label><input class="fi" id="w_desc" placeholder="如：商铺货物堆放到消防通道，宽约 1.2m，影响疏散"></div>'
+    +'<div><label class="fl"><i>*</i>责任方</label><select class="fi" id="w_duty" onchange="dutyTip()">'
+      +DUTIES.map(function(d){return '<option>'+d+'</option>';}).join('')+'</select>'
+      +'<p class="text-[11px] text-[#94A3B8] mt-1" id="dutyTip">商户责任 → 派整改；物业责任 → 转报修；待判定 → 主管判定后再分流</p></div>'
+    +'<div><label class="fl">限期（商户责任时必填）</label><input class="fi" id="w_deadline" type="date" value="2026-10-30"></div>'
+    +'<div><label class="fl"><i>*</i>现场照片</label>'
+    +'<div class="flex"><div class="thumb" style="width:80px;height:60px" onclick="pickPhoto()" id="photoBox"><i class="fas fa-camera"></i></div></div>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1" id="photoTip">尚未上传（至少 1 张才能提交）</p></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveNew()">提交上报</button></div>';
+  document.getElementById('drawer').innerHTML=h;show();
+}
+function dutyTip(){
+  var d=document.getElementById('w_duty').value;
+  document.getElementById('dutyTip').textContent=(d==='商户责任')?'商户责任 → 提交后可直接「派整改」，生成 ZG 单'
+    :((d==='物业责任')?'物业责任 → 提交后可直接「转报修」，生成 BX 单（带原照片与位置）'
+    :'待判定 → 需主管判定责任方后才能分流；超 3 天未判定会提醒');
+}
+function pickPhoto(){
+  newPhoto++;
+  document.getElementById('photoBox').innerHTML='<i class="fas fa-image"></i>';
+  document.getElementById('photoBox').style.background='linear-gradient(135deg,#34D399,#059669)';
+  document.getElementById('photoTip').textContent='已上传 '+newPhoto+' 张（水印自动带时间·位置·编号）';
+  toast('已拍摄/选择照片 '+newPhoto+' 张');
+}
+function saveNew(){
+  var area=document.getElementById('w_area').value.trim();
+  var unit=document.getElementById('w_unit').value.trim();
+  var type=document.getElementById('w_type').value;
+  var level=document.getElementById('w_level').value;
+  var desc=document.getElementById('w_desc').value.trim();
+  var duty=document.getElementById('w_duty').value;
+  var dl=document.getElementById('w_deadline').value;
+  if(!area||!unit){toast('请填写楼栋楼层与具体位置');return;}
+  if(desc.length<5){toast('问题描述至少 5 个字（当前 '+desc.length+' 字）');return;}
+  if(!newPhoto){toast('请上传现场照片（至少 1 张）');return;}
+  if(duty==='商户责任'&&!dl){toast('商户责任必须填写限期');return;}
+  var no='WT202610-00'+(62+WT.length);
+  WT.unshift({no:no, area:area, unit:unit, type:type, desc:desc, photos:newPhoto,
+    duty:duty, level:level, by:'物业 值班人员', from:'后台上报',
+    state:(duty==='待判定')?'待判定':'待处理', days:0, deadline:dl||'',
+    createdAt:'2026-10-27 '+new Date().toTimeString().slice(0,5),
+    logs:[['2026-10-27 '+new Date().toTimeString().slice(0,5),'后台上报（照片 '+newPhoto+' 张，责任方 '+duty+'）']]});
+  newPhoto=0;curRows=WT.slice();curTab='';
+  renderStats();render();closeAll();
+  toast('已上报问题：'+no+'　'+(duty==='待判定'?'待主管判定责任方':'可直接分流（'+duty+'）'));
+}
+
+/* ================= 分流 ================= */
+function openJudge(no){
+  curNo=no;var x=wOf(no);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">判定责任方</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(x.no)+'　'+esc(x.area)+' · '+esc(x.unit)+'　已停留 '+x.days+' 天</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div class="blk"><div class="kv"><span class="k">问题</span><span class="v">'+esc(x.desc)+'</span></div>'
+    +'<div class="kv"><span class="k">类型 / 程度</span><span class="v">'+esc(x.type)+'　'+esc(x.level)+'</span></div></div>'
+    +'<div><label class="fl"><i>*</i>判定责任方</label><select class="fi" id="j_duty">'
+      +'<option>商户责任</option><option>物业责任</option></select></div>'
+    +'<div><label class="fl">判定说明</label><input class="fi" id="j_note" placeholder="选填，如：现场确认为商户堆货"></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveJudge(\''+no+'\')">确认判定</button></div>';
+  document.getElementById('drawer').innerHTML=h;show();
+}
+function saveJudge(no){
+  var x=wOf(no);
+  var d=document.getElementById('j_duty').value;
+  var note=document.getElementById('j_note').value.trim();
+  if(!d){toast('请选择责任方');return;}
+  x.duty=d;x.state='待处理';
+  x.logs.push(['2026-10-27 '+new Date().toTimeString().slice(0,5),'主管判定：'+d+(note?'（'+note+'）':'')]);
+  curRows=WT.slice();
+  renderStats();render();closeAll();
+  toast('已判定：'+no+' → '+d+'　'+(d==='商户责任'?'请点「派整改」':'请点「转报修」'));
+}
+function openRejudge(no){
+  curNo=no;var x=wOf(no);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">改判责任方</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(x.no)+'　当前 '+esc(x.duty)+'　改判将留痕'+(x.zgNo||x.bxNo?'，<b>已生成的 '+(x.zgNo||x.bxNo)+' 不会撤销</b>':'')+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div><label class="fl"><i>*</i>改判为</label><select class="fi" id="rj_duty">'
+      +DUTIES.map(function(d){return '<option'+(x.duty===d?' selected':'')+'>'+d+'</option>';}).join('')+'</select></div>'
+    +'<div><label class="fl"><i>*</i>改判原因</label><input class="fi" id="rj_note" placeholder="必填，将写入留痕"></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveRejudge(\''+no+'\')">确认改判</button></div>';
+  document.getElementById('drawer').innerHTML=h;show();
+}
+function saveRejudge(no){
+  var x=wOf(no);
+  var d=document.getElementById('rj_duty').value;
+  var note=document.getElementById('rj_note').value.trim();
+  if(!note||note.length<4){toast('改判原因必填（至少 4 个字）');return;}
+  var old=x.duty;
+  x.duty=d;
+  if(x.state==='待判定')x.state='待处理';
+  x.logs.push(['2026-10-27 '+new Date().toTimeString().slice(0,5),'改判：'+old+' → '+d+'（'+note+'）']);
+  curRows=WT.slice();
+  renderStats();render();closeAll();
+  toast('已改判：'+no+'　'+old+' → '+d+(x.zgNo||x.bxNo?'（原单不撤销）':''));
+}
+function doAssign(no){
+  var x=wOf(no);
+  if(!x.deadline){toast('商户责任需先设置限期');return;}
+  x.state='已派整改';
+  x.zgNo='ZG202610-00'+(32+WT.length);
+  x.logs.push(['2026-10-27 '+new Date().toTimeString().slice(0,5),'已派整改 → '+x.zgNo+'（限期 '+x.deadline+'）']);
+  curRows=WT.slice();
+  renderStats();render();
+  toast('已派整改：'+no+' → '+x.zgNo+'　已通知商户（限期 '+x.deadline+'）');
+}
+function doToBx(no){
+  var x=wOf(no);
+  x.state='已转报修';
+  x.bxNo='BX202610-00'+(36+WT.length);
+  x.logs.push(['2026-10-27 '+new Date().toTimeString().slice(0,5),'已转报修 → '+x.bxNo+'（带原照片与位置，原记录保留）']);
+  curRows=WT.slice();
+  renderStats();render();
+  toast('已转报修：'+no+' → '+x.bxNo+'　原记录保留（不删除）');
+}
+function openClose(no){
+  curNo=no;var x=wOf(no);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">关闭问题</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(x.no)+'　'+esc(x.area)+'　关闭原因必填</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div><label class="fl"><i>*</i>关闭原因</label><select class="fi" id="c_why">'
+      +['重复问题','无效上报（误报）','已由商户自行处理','已合并至其他问题','其他'].map(function(v){return '<option>'+v+'</option>';}).join('')
+      +'</select></div>'
+    +'<div><label class="fl">补充说明</label><input class="fi" id="c_note" placeholder="选填"></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveClose(\''+no+'\')">确认关闭</button></div>';
+  document.getElementById('drawer').innerHTML=h;show();
+}
+function saveClose(no){
+  var x=wOf(no);
+  var why=document.getElementById('c_why').value;
+  var note=document.getElementById('c_note').value.trim();
+  if(!why){toast('关闭原因必填');return;}
+  x.state='已关闭';x.closeWhy=why+(note?'：'+note:'');
+  x.logs.push(['2026-10-27 '+new Date().toTimeString().slice(0,5),'关闭：'+x.closeWhy]);
+  curRows=WT.slice();
+  renderStats();render();closeAll();
+  toast('已关闭：'+no+'　'+why);
+}
+
+/* ================= 详情 ================= */
+function openDetail(no){
+  var x=wOf(no);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+esc(x.no)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(x.from)+'　'+esc(x.type)+'　<span class="tag" style="'+STC[x.state]+'">'+esc(x.state)+'</span></p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div class="blk"><div class="blk-t"><i class="fas fa-circle-info text-[#FF4D2D]"></i>问题信息</div>'
+    +'<div class="kv"><span class="k">区域</span><span class="v">'+esc(x.area)+' · '+esc(x.unit)+'</span></div>'
+    +'<div class="kv"><span class="k">类型 / 程度</span><span class="v">'+esc(x.type)+'　<span class="tag" style="'+LVC[x.level]+'">'+esc(x.level)+'</span></span></div>'
+    +'<div class="kv"><span class="k">描述</span><span class="v">'+esc(x.desc)+'</span></div>'
+    +'<div class="kv"><span class="k">责任方</span><span class="v"><span class="tag" style="'+DTC[x.duty]+'">'+esc(x.duty)+'</span></span></div>'
+    +'<div class="kv"><span class="k">限期</span><span class="v">'+(x.deadline?esc(x.deadline):'<span class="text-[#94A3B8]">—</span>')+'</span></div>'
+    +'<div class="kv"><span class="k">上报人</span><span class="v">'+esc(x.by)+'　'+esc(x.createdAt)+'</span></div>'
+    +(x.zgNo?'<div class="kv"><span class="k">关联整改</span><span class="v"><span class="lk" onclick="toast(\'已定位到整改单 '+x.zgNo+'\')">'+esc(x.zgNo)+'</span></span></div>':'')
+    +(x.bxNo?'<div class="kv"><span class="k">关联报修</span><span class="v"><span class="lk" onclick="toast(\'已定位到报修单 '+x.bxNo+'\')">'+esc(x.bxNo)+'</span></span></div>':'')
+    +(x.closeWhy?'<div class="kv"><span class="k">关闭原因</span><span class="v">'+esc(x.closeWhy)+'</span></div>':'')
+    +'</div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-camera text-[#2563EB]"></i>现场照片（'+x.photos+' 张）</div><div class="flex">';
+  for(var i=0;i<x.photos;i++) h+='<div class="thumb" style="width:90px;height:70px" onclick="toast(\'查看原图\')">照片</div>';
+  h+='</div></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-clock-rotate-left text-[#64748B]"></i>处理留痕</div><div class="tl">'
+    +x.logs.map(function(l){return '<div class="tl-i"><b>'+esc(l[0])+'</b>　'+esc(l[1])+'</div>';}).join('')
+    +'</div></div></div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end"><button class="btn btn-ghost" onclick="closeAll()">关闭</button></div>';
+  document.getElementById('drawer').innerHTML=h;show();
+}
+
+/* ================= 基础 ================= */
+function show(){document.getElementById('mask').className='mask on';document.getElementById('drawer').className='drawer on';}
+function closeAll(){document.getElementById('mask').className='mask';document.getElementById('drawer').className='drawer';}
+renderStats();render();
+/* 从巡检任务「上报问题」跳转时带 area 参数，自动打开上报抽屉 */
+(function(){
+  var q=(location.search||'').replace(/^\?/,'');
+  var m=q.match(/area=([^&]*)/);
+  if(m&&m[1]) setTimeout(function(){openNew(decodeURIComponent(m[1]));},50);
+})();
+</script>
+<script src="../shared/op-guard.js"></script>
+<script src="../shared/page-prd.js"></script>
+</body>
+</html>

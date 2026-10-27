@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>07 物业服务 · 07 投诉建议 · 页面 PRD</title><style>
+:root{--fg:#1F2430;--muted:#64748B;--line:#E9EDF3}
+*{box-sizing:border-box}
+body{margin:0;padding:26px 32px 90px;background:#fff;color:var(--fg);
+ font:14px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif}
+h1{font-size:20px;margin:0 0 6px}
+h2{font-size:17px;margin:34px 0 12px;padding-top:12px;border-top:1px solid var(--line)}
+h3{font-size:15px;margin:22px 0 10px}
+h4{font-size:14px;margin:18px 0 8px;color:#334155}
+p{margin:8px 0}
+table{border-collapse:collapse;width:100%;margin:10px 0 16px;font-size:12.5px}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:#F8FAFC;font-weight:700}
+tr:nth-child(even) td{background:#FCFDFE}
+code{background:#F1F5F9;padding:1px 5px;border-radius:4px;font-size:12px;
+ font-family:ui-monospace,Menlo,Consolas,monospace;color:#B91C1C}
+pre.code{background:#0F172A;color:#E2E8F0;padding:14px 16px;border-radius:10px;overflow:auto;font-size:12px}
+pre.code code{background:none;color:inherit;padding:0}
+blockquote{margin:10px 0;padding:10px 14px;background:#EFF6FF;border-left:3px solid #60A5FA;
+ border-radius:0 8px 8px 0;color:#334155;font-size:13px}
+ul,ol{margin:8px 0;padding-left:22px}
+li{margin:3px 0}
+hr{border:0;border-top:1px dashed var(--line);margin:22px 0}
+a{color:#2563EB;text-decoration:none}
+.meta{font-size:12px;color:var(--muted);margin:0 0 20px}
+.vtitle{font-size:18px;font-weight:800;margin:0 0 4px}
+details.fam{margin:12px 0 20px;border:1px solid var(--line);border-radius:10px;background:#F8FAFC;padding:0 14px}
+details.fam summary{cursor:pointer;padding:10px 0;font-size:13px;font-weight:700;color:#334155}
+details.fam[open]{padding-bottom:10px}
+.vnav{display:flex;justify-content:space-between;margin-top:34px;padding-top:14px;border-top:1px dashed var(--line);font-size:13px}
+</style></head><body>
+<div class="meta">由 <code>yunying-PC/prd/07-物业服务/07-投诉建议.md</code> 生成，勿手改；改文档请改 md 后重跑 build-prd。</div>
+<h1>07 物业服务 · 07 投诉建议</h1>
+<blockquote>端：运营端 PC（<code>yunying-PC</code>）　｜　模块：07 物业服务（分册 §8.8） 页面：<code>property-complaint.html</code>　｜　页面版本：v1.0（2026-10-27） 前置：<code>01-报修工单.md</code>（含模块通用说明 §0）</blockquote>
+<hr>
+<h2 id="p1">1. 页面定位</h2>
+<p>收敛商户与买家的不满，并通过<strong>转单反哺</strong>物业闭环：</p>
+<ul><li><code>维修质量</code> → <strong>转报修</strong>（<code>BX</code>）</li><li><code>秩序问题</code> → <strong>转整改</strong>（<code>ZG</code>）</li></ul>
+<ul><li>使用者：客服 / 物业专员（受理 / 回复）、物业主管（升级处理）</li><li>上游：商户端 App、买家端 App、电话代录、巡检转</li><li>下游：P1 报修、P7 整改</li></ul>
+<h2 id="p2">2. 分区结构</h2>
+<table><thead><tr><th>区块</th><th>内容</th></tr></thead><tbody><tr><td>统计卡（4）</td><td>待受理 · 处理中 · 本月已关闭 · <strong>平均满意度</strong>（不可点击）</td></tr><tr><td>Tab（6）</td><td>全部 / 待受理 / 处理中 / 已回复 / 已关闭 / <strong>已升级</strong>（带条数）</td></tr><tr><td>筛选</td><td>关键词 + 来源 + 分类 + <strong>仅看超时</strong></td></tr><tr><td>列表（9 列）</td><td>投诉编号 <code>TS</code> · 来源（电话代录带来电号）· 投诉人 · 被投诉对象 · 分类 · 内容摘要 · 状态（带星级）· 超时 · 操作</td></tr><tr><td>详情抽屉</td><td>基本信息 / 对象与分类 / 处理（含关联 BX/ZG）/ 评价（星级 + 标签 + 内容）/ 处理留痕</td></tr></tbody></table>
+<h2 id="p3">3. 统计卡口径</h2>
+<table><thead><tr><th>卡</th><th>口径</th></tr></thead><tbody><tr><td>待受理</td><td><code>state ∈ {待受理, 已升级}</code>（升级也算未受理）</td></tr><tr><td>处理中</td><td><code>state = 处理中</code></td></tr><tr><td>本月已关闭</td><td><code>state = 已关闭</code></td></tr><tr><td><strong>平均满意度</strong></td><td>仅统计<strong>已评价</strong>的投诉，<code>Σ星级 / 评价数</code>，保留 1 位小数</td></tr></tbody></table>
+<h2 id="p4">4. 状态机（5 态）</h2>
+<pre class="code"><code data-lang="mermaid">stateDiagram-v2
+    [*] --&gt; 待受理: 商户端/买家端/电话代录/巡检转
+    待受理 --&gt; 已升级: 超 24h 未受理（自动）
+    已升级 --&gt; 处理中: 受理（指定处理人）
+    待受理 --&gt; 处理中: 受理
+    处理中 --&gt; 已回复: 填回复内容（通知投诉人）
+    已回复 --&gt; 已关闭: 已回复且已评价 → 关闭（终态）
+    已回复 --&gt; 处理中: 满意度 ≤3 星 → 自动回访</code></pre>
+<h2 id="p5">5. 字段分组</h2>
+<table><thead><tr><th>分组</th><th>字段</th><th>必填</th></tr></thead><tbody><tr><td>基本信息</td><td>来源（商户端 / 买家端 / 电话代录 / 巡检转）、投诉人、联系方式、记录人</td><td>是</td></tr><tr><td>对象与分类</td><td>被投诉对象（商户 / 物业人员 / 公共区域 / 平台）、分类</td><td>是</td></tr><tr><td>内容</td><td>描述（≥5 字）、照片（选填）</td><td>描述必填</td></tr><tr><td>处理</td><td>受理人、处理人、回复内容</td><td>回复时必填</td></tr><tr><td>评价</td><td>满意度 1–5 星、标签、评价内容</td><td>商户填（端上）</td></tr></tbody></table>
+<blockquote><strong>TS-4</strong>：来源 = <strong>电话代录</strong> 时，<strong>联系方式（来电号码）必填</strong>，否则无法回访。</blockquote>
+<h2 id="p6">6. 操作与显示条件</h2>
+<table><thead><tr><th>操作</th><th>显示条件</th><th>效果</th></tr></thead><tbody><tr><td><strong>受理</strong></td><td>待受理 / 已升级</td><td>指定处理人 → 处理中</td></tr><tr><td><strong>回复</strong></td><td>处理中</td><td>回复内容 ≥5 字 → 已回复，通知投诉人</td></tr><tr><td><strong>转报修</strong></td><td>处理中 + 分类=维修质量 + 未转过</td><td>生成 BX 号并回写（原投诉保留）</td></tr><tr><td><strong>转整改</strong></td><td>处理中 + 分类=秩序问题 + 未转过</td><td>生成 ZG 号并回写（原投诉保留）</td></tr><tr><td><strong>关闭</strong></td><td><strong>已回复 且 已评价</strong></td><td>终态；未评价时按钮为灰态并提示</td></tr><tr><td>升级</td><td>超时（系统自动）</td><td>通知运营主管</td></tr></tbody></table>
+<p><strong>规则</strong></p>
+<table><thead><tr><th>编号</th><th>规则</th></tr></thead><tbody><tr><td>TS-1</td><td><strong>24h 未受理</strong>提醒并置「已升级」</td></tr><tr><td>TS-2</td><td><strong>3 工作日未回复</strong>升级运营主管</td></tr><tr><td>TS-3</td><td>满意度 <strong>≤3 星自动回访</strong>（退回「处理中」）</td></tr><tr><td>TS-4</td><td>电话代录<strong>必填来电号码</strong></td></tr><tr><td>TS-5</td><td>转单后<strong>原投诉保留</strong>，可回看原内容</td></tr></tbody></table>
+<h2 id="p7">7. 提示语表</h2>
+<blockquote><code>✅</code> 原型已有 / <code>⬜</code> 待实现。<strong>编号前缀 <code>TSQ-</code></strong>（与规则 <code>TS-N</code> 区分）。</blockquote>
+<table><thead><tr><th>编号</th><th>场景</th><th>提示文案</th><th>形式</th><th>阻断</th><th>状态</th></tr></thead><tbody><tr><td>TSQ-01</td><td>缺投诉人</td><td>请填写投诉人</td><td>Toast</td><td>是</td><td>✅</td></tr><tr><td>TSQ-02</td><td><strong>电话代录缺来电号</strong></td><td>电话代录必须填写来电号码（否则无法回访）</td><td>Toast</td><td>是</td><td>✅</td></tr><tr><td>TSQ-03</td><td>内容过短</td><td>投诉内容至少 5 个字（当前 {n} 字）</td><td>Toast</td><td>是</td><td>✅</td></tr><tr><td>TSQ-04</td><td>代录提交成功</td><td>已提交投诉：{单号}　（24h 未受理将自动升级）</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>TSQ-05</td><td>受理成功</td><td>已受理：{单号}　指派 {处理人}（3 个工作日内需回复）</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>TSQ-06</td><td>回复过短</td><td>回复内容至少 5 个字（当前 {n} 字）</td><td>Toast</td><td>是</td><td>✅</td></tr><tr><td>TSQ-07</td><td>回复成功</td><td>已回复：{单号}　已通知投诉人（商户可评价满意度）</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>TSQ-08</td><td>转报修</td><td>已转报修：{BX 号}　原投诉记录保留，可回看</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>TSQ-09</td><td>转整改</td><td>已转整改：{ZG 号}　原投诉记录保留，可回看</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>TSQ-10</td><td><strong>未评价就关闭</strong></td><td>商户尚未评价，暂不能关闭（已回复且已评价才可关闭）</td><td>Toast</td><td>是</td><td>✅</td></tr><tr><td>TSQ-11</td><td>关闭成功</td><td>已关闭：{单号}　投诉闭环（评价 {n} 星）</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>TSQ-12</td><td>列表空态</td><td>暂无符合条件投诉</td><td>空态</td><td>否</td><td>✅</td></tr><tr><td>TSQ-13</td><td>导出</td><td>已导出投诉台账（含满意度分布、超时统计、转单关联）</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>TSQ-14</td><td><strong>≤3 星自动回访</strong></td><td>已自动回访：{单号} 满意度 {n} 星（≤3 星），已退回「处理中」并通知主管</td><td>Toast</td><td>否</td><td>⬜ 原型仅在留痕里体现，无状态翻转动作</td></tr><tr><td>TSQ-15</td><td><strong>24h 未受理升级</strong></td><td>建议：{单号} 超 24h 未受理，已置「已升级」并通知运营主管</td><td>站内提醒</td><td>否</td><td>⬜ 原型仅预置「已升级」数据</td></tr><tr><td>TSQ-16</td><td><strong>3 工作日未回复升级</strong></td><td>建议：{单号} 超 3 个工作日未回复，已升级运营主管</td><td>站内提醒</td><td>否</td><td>⬜ 未实现</td></tr></tbody></table>
+<p><strong>自检结论</strong>：✅ <strong>13</strong> / ⬜ <strong>3</strong> / 共 16 条。</p>
+<h2 id="p8">8. 验收要点</h2>
+<table><thead><tr><th>编号</th><th>场景</th><th>期望</th></tr></thead><tbody><tr><td>AC-01</td><td>电话代录不填来电号</td><td>拦截（TS-4）</td></tr><tr><td>AC-02</td><td>待受理超 24h</td><td>状态「已升级」，计入待受理卡</td></tr><tr><td>AC-03</td><td>分类=维修质量点「转报修」</td><td>生成 BX 号，投诉状态不变，可回看</td></tr><tr><td>AC-04</td><td>未评价点「关闭」</td><td>灰态 / 提示不能关闭</td></tr><tr><td>AC-05</td><td>5 星评价后关闭</td><td>状态已关闭，平均满意度重算</td></tr><tr><td>AC-06</td><td>2 星评价</td><td>应自动回访退回处理中（<strong>待实现</strong>）</td></tr><tr><td>AC-07</td><td>平均满意度</td><td>仅统计已评价，未评价不计入分母</td></tr></tbody></table>
+</body></html>

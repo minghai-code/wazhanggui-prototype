@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>07 物业服务 · 04 巡检管理 · 页面 PRD</title><style>
+:root{--fg:#1F2430;--muted:#64748B;--line:#E9EDF3}
+*{box-sizing:border-box}
+body{margin:0;padding:26px 32px 90px;background:#fff;color:var(--fg);
+ font:14px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif}
+h1{font-size:20px;margin:0 0 6px}
+h2{font-size:17px;margin:34px 0 12px;padding-top:12px;border-top:1px solid var(--line)}
+h3{font-size:15px;margin:22px 0 10px}
+h4{font-size:14px;margin:18px 0 8px;color:#334155}
+p{margin:8px 0}
+table{border-collapse:collapse;width:100%;margin:10px 0 16px;font-size:12.5px}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:#F8FAFC;font-weight:700}
+tr:nth-child(even) td{background:#FCFDFE}
+code{background:#F1F5F9;padding:1px 5px;border-radius:4px;font-size:12px;
+ font-family:ui-monospace,Menlo,Consolas,monospace;color:#B91C1C}
+pre.code{background:#0F172A;color:#E2E8F0;padding:14px 16px;border-radius:10px;overflow:auto;font-size:12px}
+pre.code code{background:none;color:inherit;padding:0}
+blockquote{margin:10px 0;padding:10px 14px;background:#EFF6FF;border-left:3px solid #60A5FA;
+ border-radius:0 8px 8px 0;color:#334155;font-size:13px}
+ul,ol{margin:8px 0;padding-left:22px}
+li{margin:3px 0}
+hr{border:0;border-top:1px dashed var(--line);margin:22px 0}
+a{color:#2563EB;text-decoration:none}
+.meta{font-size:12px;color:var(--muted);margin:0 0 20px}
+.vtitle{font-size:18px;font-weight:800;margin:0 0 4px}
+details.fam{margin:12px 0 20px;border:1px solid var(--line);border-radius:10px;background:#F8FAFC;padding:0 14px}
+details.fam summary{cursor:pointer;padding:10px 0;font-size:13px;font-weight:700;color:#334155}
+details.fam[open]{padding-bottom:10px}
+.vnav{display:flex;justify-content:space-between;margin-top:34px;padding-top:14px;border-top:1px dashed var(--line);font-size:13px}
+</style></head><body>
+<div class="meta">由 <code>yunying-PC/prd/07-物业服务/04-巡检管理.md</code> 生成，勿手改；改文档请改 md 后重跑 build-prd。</div>
+<h1>07 物业服务 · 04 巡检管理</h1>
+<blockquote>端：运营端 PC（<code>yunying-PC</code>）　｜　模块：07 物业服务（分册 §8.5） 页面：<code>property-inspect.html</code>　｜　页面版本：v1.0（2026-10-27） 前置：<code>01-报修工单.md</code>（含模块通用说明 §0）</blockquote>
+<hr>
+<h2 id="p1">1. 页面定位</h2>
+<p>按计划派发巡检任务、记录执行情况，把"现场治理"变成<strong>有频次、有打卡、有问题数</strong>的可量化动作。</p>
+<ul><li>使用者：物业主管（配计划）、巡检员（执行）</li><li>下游：发现问题 → P6 问题上报（按责任方分流）</li><li><strong>轻量版定位</strong>：只配<strong>区域 + 频次 + 巡检员</strong>，<strong>不配点位与检查项</strong>（与完整巡检系统区分）</li></ul>
+<h2 id="p2">2. 分区结构</h2>
+<table><thead><tr><th>Tab</th><th>内容</th></tr></thead><tbody><tr><td>① <strong>巡检计划</strong></td><td>计划名称 / 巡检区域（多选）/ 频次 / 巡检时段 / 巡检员（多人轮值）/ 状态 / 今日任务数 / <strong>执行率</strong> / 操作</td></tr><tr><td>② <strong>巡检任务</strong></td><td>筛选（关键词 + 状态 + 仅看今日）+ 任务列表 8 列</td></tr></tbody></table>
+<p><strong>统计卡（4）</strong>：今日待执行 · 执行中 · 本月已完成 · 逾期未执行</p>
+<h2 id="p3">3. 计划字段与校验</h2>
+<table><thead><tr><th>字段</th><th>必填</th><th>说明</th></tr></thead><tbody><tr><td>计划名称</td><td>是</td><td>如「A 栋日常巡检」</td></tr><tr><td>巡检区域</td><td>是</td><td><strong>可多选</strong>（A/B/C/D 栋 × 楼层），至少 1 个</td></tr><tr><td>频次</td><td>是</td><td>每日 1 次 / 每周 2 次 / 每周 1 次 / 每月 1 次</td></tr><tr><td>巡检时段</td><td>是</td><td>如 <code>09:00–11:00</code></td></tr><tr><td>巡检员</td><td>是</td><td><strong>可多人轮值</strong>，至少 1 人</td></tr><tr><td>状态</td><td>是</td><td>启用 / 停用</td></tr></tbody></table>
+<p><strong>计划规则</strong></p>
+<table><thead><tr><th>规则</th><th>说明</th></tr></thead><tbody><tr><td>启用的计划<strong>每日凌晨自动生成</strong>当天任务</td><td>停用后不再生成，<strong>已生成任务不受影响</strong></td></tr><tr><td>停用当日已生成任务</td><td>二次确认，提示「已生成 N 条任务不受影响」</td></tr><tr><td>立即生成任务</td><td>手工补建，为每个区域各生成 1 条</td></tr></tbody></table>
+<h2 id="p4">4. 任务列表（8 列）</h2>
+<p>任务编号 <code>XJ</code> · 区域 · 巡检员 · 计划时间 · <strong>状态</strong> · <strong>发现问题数</strong> · 打卡时间 · 操作</p>
+<h3>状态机（4 态）</h3>
+<pre class="code"><code data-lang="mermaid">stateDiagram-v2
+    [*] --&gt; 待执行: 计划自动生成 / 手工补建
+    待执行 --&gt; 执行中: 定位打卡开始
+    待执行 --&gt; 逾期: 超计划时间未开始
+    逾期 --&gt; 执行中: 补打卡
+    执行中 --&gt; 已完成: 完成巡检（可附总结）</code></pre>
+<blockquote><strong>逾期判定</strong>：超过计划时段结束仍未打卡。次日提醒巡检员 + 主管（XJ-1）。</blockquote>
+<h3>操作</h3>
+<table><thead><tr><th>操作</th><th>显示条件</th><th>效果</th></tr></thead><tbody><tr><td>开始巡检（打卡）</td><td>待执行 / 逾期</td><td>记录打卡时间与定位（误差 &lt;50m），状态转执行中</td></tr><tr><td>上报问题</td><td>执行中</td><td>跳 P6（<strong>区域自动带入</strong>），任务的问题数 +1</td></tr><tr><td>完成巡检</td><td>执行中</td><td>弹总结输入（<strong>选填</strong>），→ 已完成</td></tr><tr><td>查看</td><td>全部</td><td>详情抽屉（含执行留痕时间轴）</td></tr></tbody></table>
+<p><strong>规则</strong></p>
+<table><thead><tr><th>编号</th><th>规则</th></tr></thead><tbody><tr><td>XJ-1</td><td>逾期任务次日提醒巡检员 + 主管</td></tr><tr><td>XJ-2</td><td><strong>一条任务可上报多条问题</strong></td></tr><tr><td>XJ-3</td><td><strong>完成任务不强制有问题</strong>（无异常也是正常结果）</td></tr></tbody></table>
+<h2 id="p5">5. 提示语表</h2>
+<blockquote><code>✅</code> 原型已有 / <code>⬜</code> 待实现。<strong>编号前缀 <code>XJ-</code></strong>（与规则编号区分，此处为提示语编号 <code>TX-</code>）。</blockquote>
+<table><thead><tr><th>编号</th><th>场景</th><th>提示文案</th><th>形式</th><th>阻断</th><th>状态</th></tr></thead><tbody><tr><td>TX-01</td><td>缺计划名称</td><td>请填写计划名称</td><td>Toast</td><td>是</td><td>✅</td></tr><tr><td>TX-02</td><td>未选区域</td><td>请至少选择 1 个巡检区域</td><td>Toast</td><td>是</td><td>✅</td></tr><tr><td>TX-03</td><td>缺时段</td><td>请填写巡检时段</td><td>Toast</td><td>是</td><td>✅</td></tr><tr><td>TX-04</td><td>未指定巡检员</td><td>请至少指定 1 名巡检员</td><td>Toast</td><td>是</td><td>✅</td></tr><tr><td>TX-05</td><td>新增计划成功</td><td>已新增巡检计划：{名称}（启用后次日自动生成任务）</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>TX-06</td><td>保存计划</td><td>已保存巡检计划：{名称}</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>TX-07</td><td>启停计划</td><td>已{启用/停用}：{名称}（次日开始生成任务 / 已生成任务不受影响）</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>TX-08</td><td>计划已停用还生成任务</td><td>计划已停用，请先启用再生成任务</td><td>Toast</td><td>是</td><td>✅</td></tr><tr><td>TX-09</td><td>生成任务成功</td><td>已为「{名称}」生成 {n} 条任务（区域 {k} 个）</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>TX-10</td><td>打卡开始</td><td>已打卡开始巡检：{任务号}　{区域}（可多次上报问题）</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>TX-11</td><td>上报问题</td><td>已登记 1 条问题（任务 {任务号} 累计 {n} 条）；正式上报请到「问题上报」页，区域自动带入 {区域}</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>TX-12</td><td>完成巡检（有问题）</td><td>已完成巡检：{任务号}　发现问题 {n} 条，已进入问题清单</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>TX-13</td><td>完成巡检（无问题）</td><td>已完成巡检：{任务号}　无问题</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>TX-14</td><td>任务空态</td><td>暂无巡检任务 / 暂无巡检计划，点右上「新增巡检计划」创建</td><td>空态</td><td>否</td><td>✅</td></tr><tr><td>TX-15</td><td>导出</td><td>已导出巡检计划与任务执行率（含逾期统计）</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>TX-16</td><td><strong>逾期自动提醒</strong></td><td>建议：{任务号} 逾期未执行，已提醒巡检员与主管</td><td>站内 / 短信</td><td>否</td><td>⬜ 原型仅标状态，未做推送</td></tr><tr><td>TX-17</td><td><strong>定位异常</strong></td><td>建议：打卡位置距巡检区域 &gt;100m，已标记异常</td><td>Toast</td><td>否</td><td>⬜ 原型模拟打卡，未做地理围栏</td></tr></tbody></table>
+<p><strong>自检结论</strong>：✅ <strong>15</strong> / ⬜ <strong>2</strong> / 共 17 条。</p>
+<h2 id="p6">6. 验收要点</h2>
+<table><thead><tr><th>编号</th><th>场景</th><th>期望</th></tr></thead><tbody><tr><td>AC-01</td><td>新增计划选 3 个区域</td><td>「立即生成任务」产生 <strong>3 条</strong>任务</td></tr><tr><td>AC-02</td><td>停用当日有计划任务</td><td>二次确认，提示已生成任务不受影响</td></tr><tr><td>AC-03</td><td>逾期任务补打卡</td><td>状态从逾期转执行中，可继续上报</td></tr><tr><td>AC-04</td><td>执行中完成巡检</td><td>总结选填，填写后写入详情</td></tr><tr><td>AC-05</td><td>一条任务上报 3 条问题</td><td>问题数显示 3，跳 P6 时区域带入</td></tr><tr><td>AC-06</td><td>完成任务无问题</td><td>允许，问题数显示 0（不强制）</td></tr></tbody></table>
+</body></html>

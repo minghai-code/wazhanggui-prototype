@@ -48,6 +48,13 @@
     'expo-material.html':        [{ re: /上传|上架|下架|审核|删除/, perm: 'write' }],
     'expo-archive.html':         [{ re: /生成|导出|复制|编辑/, perm: 'audit' }],
 
+    'property-repair.html':     [{ re: /驳回|改派/, perm: 'audit' }],
+    'property-request.html':    [{ re: /审核|驳回/, perm: 'audit' }],
+    'property-budget.html':     [{ re: /额外申请|审批|导入/, perm: 'audit' }],
+    'property-inspect.html':    [{ re: /新增巡检计划|停用|启用/, perm: 'audit' }],
+    'property-issue.html':      [{ re: /判定|派整改|转报修/, perm: 'audit' }],
+    'property-rectify.html':    [{ re: /派发|复核|批量通过/, perm: 'audit' }],
+    'property-complaint.html':  [{ re: /受理|回复/, perm: 'audit' }],
     'mall-inquiry.html':        [{ re: /下架|导出/, perm: 'audit' }],
     'mall-order-inquiry.html':  [{ re: /取消|备注/, perm: 'audit' }],
     'mall-custom-demand.html': [{ re: /下架|强制关闭/, perm: 'audit' }],

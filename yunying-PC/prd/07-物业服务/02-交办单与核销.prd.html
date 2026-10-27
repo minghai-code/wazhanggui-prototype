@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>07 物业服务 · 02 交办单与核销 · 页面 PRD</title><style>
+:root{--fg:#1F2430;--muted:#64748B;--line:#E9EDF3}
+*{box-sizing:border-box}
+body{margin:0;padding:26px 32px 90px;background:#fff;color:var(--fg);
+ font:14px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif}
+h1{font-size:20px;margin:0 0 6px}
+h2{font-size:17px;margin:34px 0 12px;padding-top:12px;border-top:1px solid var(--line)}
+h3{font-size:15px;margin:22px 0 10px}
+h4{font-size:14px;margin:18px 0 8px;color:#334155}
+p{margin:8px 0}
+table{border-collapse:collapse;width:100%;margin:10px 0 16px;font-size:12.5px}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:#F8FAFC;font-weight:700}
+tr:nth-child(even) td{background:#FCFDFE}
+code{background:#F1F5F9;padding:1px 5px;border-radius:4px;font-size:12px;
+ font-family:ui-monospace,Menlo,Consolas,monospace;color:#B91C1C}
+pre.code{background:#0F172A;color:#E2E8F0;padding:14px 16px;border-radius:10px;overflow:auto;font-size:12px}
+pre.code code{background:none;color:inherit;padding:0}
+blockquote{margin:10px 0;padding:10px 14px;background:#EFF6FF;border-left:3px solid #60A5FA;
+ border-radius:0 8px 8px 0;color:#334155;font-size:13px}
+ul,ol{margin:8px 0;padding-left:22px}
+li{margin:3px 0}
+hr{border:0;border-top:1px dashed var(--line);margin:22px 0}
+a{color:#2563EB;text-decoration:none}
+.meta{font-size:12px;color:var(--muted);margin:0 0 20px}
+.vtitle{font-size:18px;font-weight:800;margin:0 0 4px}
+details.fam{margin:12px 0 20px;border:1px solid var(--line);border-radius:10px;background:#F8FAFC;padding:0 14px}
+details.fam summary{cursor:pointer;padding:10px 0;font-size:13px;font-weight:700;color:#334155}
+details.fam[open]{padding-bottom:10px}
+.vnav{display:flex;justify-content:space-between;margin-top:34px;padding-top:14px;border-top:1px dashed var(--line);font-size:13px}
+</style></head><body>
+<div class="meta">由 <code>yunying-PC/prd/07-物业服务/02-交办单与核销.md</code> 生成，勿手改；改文档请改 md 后重跑 build-prd。</div>
+<h1>07 物业服务 · 02 交办单与核销</h1>
+<blockquote>端：运营端 PC（<code>yunying-PC</code>）　｜　模块：07 物业服务（分册 §8.3） 页面：<code>property-request.html</code>　｜　页面版本：v1.0（2026-10-27） 前置：<code>01-报修工单.md</code>（含模块通用说明 §0，编号/权限/审批链/硬校验规则见该篇）</blockquote>
+<hr>
+<h2 id="p1">1. 页面定位</h2>
+<p><strong>本模块最核心的一页</strong>。它把"零散报修 → 攒批采购 → 审批 → 发票核销 → 额度扣减"串成可审计的链。</p>
+<ul><li>使用者：物业专员（建单/核销）、各级审批人（审核）</li><li>上游：P1「需物料」的报修单汇入<strong>待采购池</strong></li><li>下游：核销金额回流 P3 额度台账；异常进<strong>核销异常台账</strong></li></ul>
+<h2 id="p2">2. 分区结构</h2>
+<table><thead><tr><th>区块</th><th>内容</th></tr></thead><tbody><tr><td>顶部</td><td>标题 + 三个规则标签（审批链 1000 元分档 / 逐行核销）+「导出」「新建交办单」</td></tr><tr><td>统计卡（5）</td><td>待采购池 · 待审核 · 在途金额 · 本月核销 · 异常待处置</td></tr><tr><td>Tab（3）</td><td><strong>待采购池</strong> / <strong>交办单</strong> / <strong>核销异常台账</strong></td></tr></tbody></table>
+<h3>2.1 待采购池</h3>
+<table><thead><tr><th>列</th><th>说明</th></tr></thead><tbody><tr><td>勾选</td><td>支持合并建单（一次审批覆盖多张报修）</td></tr><tr><td>报修编号 / 位置 / 故障类型 / 处理说明 / 标记时间 / 停留</td><td>来自 P1「需物料」结果</td></tr><tr><td>操作</td><td>查看报修（定位 P1）</td></tr></tbody></table>
+<p><strong>超期</strong>：停留 &gt; <strong>7 天</strong>标红。</p>
+<h3>2.2 交办单列表（10 列）</h3>
+<p>交办单号（带版本号）· 项目名称 · 关联报修（张数）· 预申请金额 · <strong>核销进度</strong>（数量 x/y + 百分比条）· 当前节点 · 状态 · 提交人 · 提交时间 · 操作</p>
+<h3>2.3 核销异常台账</h3>
+<p>异常编号 <code>YC</code> · 交办单 · 物资行 · <strong>异常类型</strong> · 差额 · 处置状态 · 处置人 · 操作</p>
+<p>异常类型：<code>超核</code> / <code>单价偏高</code> / <code>金额超审批</code> / <code>换供应商</code> / <code>金额与发票不符</code></p>
+<h2 id="p3">3. 统计卡口径</h2>
+<table><thead><tr><th>卡</th><th>口径</th></tr></thead><tbody><tr><td>待采购池</td><td><code>POOL</code> 条数（P1 转入且未建单）</td></tr><tr><td>待审核</td><td>交办单 <code>state = 待审核</code></td></tr><tr><td>在途金额</td><td>Σ（已通过 / 部分核销单的 <code>审批金额 − 已核销金额</code>）</td></tr><tr><td>本月核销</td><td>Σ 所有核销记录金额</td></tr><tr><td>异常待处置</td><td>异常台账中 <code>state ≠ 已处置</code></td></tr></tbody></table>
+<h2 id="p4">4. 交办单状态机（6 态）</h2>
+<pre class="code"><code data-lang="mermaid">stateDiagram-v2
+    [*] --&gt; 草稿: 存草稿（不占额度、不进审批）
+    草稿 --&gt; 待审核: 提交审核
+    待审核 --&gt; 待审核: 通过 → 下一节点
+    待审核 --&gt; 已驳回: 驳回（版本 +1，重提从第一级）
+    已驳回 --&gt; 待审核: 修改后重提
+    待审核 --&gt; 已通过: 终审通过 → 可采购
+    已通过 --&gt; 部分核销: 上传凭证（未核完）
+    已通过 --&gt; 已核销完成: 上传凭证（全部核完）
+    部分核销 --&gt; 部分核销: 继续核销
+    部分核销 --&gt; 已核销完成: 核完
+    已通过 --&gt; 已核销完成: 申请结项（放弃剩余）</code></pre>
+<p><strong>当前节点字段</strong>：待审核时显示审批节点名（市场管理部 / 市场部负责人 / 分管领导 / 董事长）；已通过显示「已通过 · 可采购」；核完显示「已归档 · 核销完成」。</p>
+<h2 id="p5">5. 新建交办单</h2>
+<h3>5.1 表头字段</h3>
+<table><thead><tr><th>字段</th><th>必填</th><th>校验</th></tr></thead><tbody><tr><td>关联报修单</td><td>是</td><td>来自待采购池勾选，<strong>至少 1 张</strong></td></tr><tr><td>项目名称</td><td>是</td><td>—</td></tr><tr><td>工作内容</td><td>是</td><td>—</td></tr><tr><td>实施单位或部门</td><td>否</td><td>默认「浙勤安顺物业」</td></tr><tr><td>预计完成时间</td><td>是</td><td>—</td></tr><tr><td><strong>预申请金额</strong></td><td>是</td><td><strong>必须等于物资明细合计</strong>（差 0.01 即拦）</td></tr><tr><td>比价单</td><td><strong>是</strong></td><td><strong>≥2 家</strong>供应商报价 + 附件（PDF/图片/Excel/Word）</td></tr></tbody></table>
+<h3>5.2 物资明细（逐行）</h3>
+<p>物资名称 · 规格 · 数量 · 单价 · 小计（自动）· 供应商</p>
+<blockquote><strong>数量与单价是核销的比对基准</strong>：核销时逐行比对"累计数量 ≤ 审批数量"、"单价 ≤ 审批单价 ×1.1"。</blockquote>
+<h2 id="p6">6. 核销（本模块最核心机制）</h2>
+<h3>6.1 三步操作</h3>
+<ol><li><strong>勾选本次采购的物资行</strong>（默认预勾未核完的行，可勾部分数量）</li><li><strong>填发票</strong>：发票号 / 开票日期 / 供应商 / 发票金额 / 其他费用（运费·税费·折扣）/ 凭证附件</li><li><strong>看实时校验</strong>，提交</li></ol>
+<h3>6.2 五项校验（分级）</h3>
+<table><thead><tr><th>#</th><th>校验</th><th>级别</th><th>表现</th></tr></thead><tbody><tr><td>C1</td><td>未勾选物资行</td><td><strong>硬拦</strong></td><td>请至少勾选 1 行物资明细</td></tr><tr><td>C2</td><td>要素不全（发票号/日期/供应商/金额/附件）</td><td><strong>硬拦</strong></td><td>对应提示</td></tr><tr><td>C3</td><td><strong>发票号重复</strong></td><td><strong>硬拦</strong></td><td>发票号 {inv} 已用于核销，不可重复提交</td></tr><tr><td>C4</td><td>累计数量 &gt; 审批数量</td><td><strong>标异常</strong></td><td>生成 <code>YC</code> 超核，核销照常成功</td></tr><tr><td>C5</td><td>单价 &gt; 审批单价 ×1.1</td><td><strong>标异常</strong></td><td>生成 <code>YC</code> 单价偏高</td></tr><tr><td>C6</td><td>累计金额 &gt; 审批金额</td><td><strong>标异常</strong></td><td>生成 <code>YC</code> 金额超审批</td></tr><tr><td>C7</td><td>供应商与审批时不同</td><td><strong>标异常</strong></td><td>生成 <code>YC</code> 换供应商</td></tr><tr><td>C8</td><td>额度不足</td><td><strong>阻断</strong></td><td>提示跳 P3 申请追加</td></tr><tr><td>C9</td><td>明细+其他费用 ≠ 发票金额</td><td><strong>标异常</strong></td><td>实时提示差额，仍可提交</td></tr></tbody></table>
+<h3>6.3 核销后状态推进</h3>
+<table><thead><tr><th>条件</th><th>结果</th></tr></thead><tbody><tr><td>全部物资行 <code>已核 ≥ 审批</code></td><td><code>已核销完成</code>，节点「已归档 · 核销完成」</td></tr><tr><td>仍有未核完行</td><td><code>部分核销</code>，节点仍「已通过 · 可采购」</td></tr></tbody></table>
+<h2 id="p7">7. 审批（审核人视角）</h2>
+<p>抽屉分四段，<strong>不是简单点通过</strong>：</p>
+<table><thead><tr><th>段</th><th>内容</th></tr></thead><tbody><tr><td>① 报修真实性</td><td>显示关联报修单号，可点进看<strong>现场照片与处理后照片</strong></td></tr><tr><td>② 物资明细与价格参考</td><td>每行显示 <strong>历史中位价</strong> 与 <strong>偏离百分比</strong>（&gt;30% 标红）</td></tr><tr><td>③ 比价充分性</td><td>供应商列表 + 附件下载</td></tr><tr><td>④ 审批链</td><td>已走过的节点与意见</td></tr></tbody></table>
+<p><strong>通过</strong> → 推进下一节点；<strong>驳回</strong> → 原因必填（≥4 字），版本 +1，重提从第一级开始。</p>
+<h2 id="p8">8. 异常台账处置</h2>
+<table><thead><tr><th>动作</th><th>说明</th></tr></thead><tbody><tr><td>接受说明</td><td>认可以偏差（如原料涨价），留原因</td></tr><tr><td>要求补正</td><td>退回要求补材料</td></tr><tr><td>追回差额</td><td>从结算中扣减</td></tr></tbody></table>
+<p><strong>处置说明必填</strong>（≥4 字），写入台账留痕。</p>
+<h2 id="p9">9. 提示语表</h2>
+<blockquote><code>✅</code> 原型已有 / <code>⬜</code> 待实现。<strong>编号前缀 <code>JB-</code></strong>。</blockquote>
+<table><thead><tr><th>编号</th><th>场景</th><th>提示文案</th><th>形式</th><th>阻断</th><th>状态</th></tr></thead><tbody><tr><td>JB-01</td><td>未勾选报修单就合并建单</td><td>请至少勾选 1 张报修单</td><td>Toast</td><td>是</td><td>✅</td></tr><tr><td>JB-02</td><td>缺项目名称/内容</td><td>请填写项目名称与工作内容</td><td>Toast</td><td>是</td><td>✅</td></tr><tr><td>JB-03</td><td>无物资明细</td><td>请至少填写 1 行物资明细</td><td>Toast</td><td>是</td><td>✅</td></tr><tr><td>JB-04</td><td>金额与明细不符</td><td>物资明细合计 ¥{a} 与预申请金额 ¥{b} 不一致</td><td>Toast</td><td>是</td><td>✅</td></tr><tr><td>JB-05</td><td>比价不足 2 家</td><td>比价单需至少 2 家供应商报价（当前 {n} 家）</td><td>Toast</td><td>是</td><td>✅</td></tr><tr><td>JB-06</td><td>缺比价附件</td><td>请上传比价单附件（PDF / 图片 / Excel / Word）</td><td>Toast</td><td>是</td><td>✅</td></tr><tr><td>JB-07</td><td>存草稿</td><td>已存草稿：{单号}（草稿不占额度、不进入审批）</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>JB-08</td><td>提交审核</td><td>已提交审核：{单号}　审批链 {链}（{n} 级）</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>JB-09</td><td>审批通过（中间节点）</td><td>已通过：{单号}　转下一节点「{节点}」（超 1 个工作日未处理将提醒）</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>JB-10</td><td>终审通过</td><td>审批通过：{单号}　已通过全部 {n} 级，可开始采购并上传凭证</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>JB-11</td><td>驳回未填原因</td><td>驳回原因必填（至少 4 个字）</td><td>Toast</td><td>是</td><td>✅</td></tr><tr><td>JB-12</td><td>驳回成功</td><td>已驳回：{单号}　已通知提交人修改（重提后从第一级重新审批）</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>JB-13</td><td>核销未勾行</td><td>请至少勾选 1 行物资明细</td><td>Toast</td><td>是</td><td>✅</td></tr><tr><td>JB-14</td><td>核销要素不全</td><td>请填写发票号、开票日期、供应商、发票金额并上传附件</td><td>Toast</td><td>是</td><td>✅</td></tr><tr><td>JB-15</td><td><strong>发票号重复</strong></td><td>发票号 {inv} 已用于核销，不可重复提交</td><td>Toast</td><td>是</td><td>✅</td></tr><tr><td>JB-16</td><td>核销成功（无异常）</td><td>已核销：{单号} 第 {n} 次 ¥{金额}；进度 {x}/{y}（{z}%）</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>JB-17</td><td>核销成功（有异常）</td><td>已核销：{单号} 第 {n} 次 ¥{金额}；标记异常 {k} 项（已进异常台账）</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>JB-18</td><td>全部核完</td><td>核销完成：{单号} 全部物资已核销，额度已扣减</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>JB-19</td><td>结项成功</td><td>已结项：{单号}　放弃剩余未采购部分，交办单归档</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>JB-20</td><td>异常处置未填说明</td><td>请填写处置说明（至少 4 个字）</td><td>Toast</td><td>是</td><td>✅</td></tr><tr><td>JB-21</td><td>异常处置成功</td><td>已处置：{异常号}　{动作}（留痕）</td><td>Toast</td><td>否</td><td>✅</td></tr><tr><td>JB-22</td><td>列表空态</td><td>待采购池为空 / 暂无交办单 / 无异常记录</td><td>空态</td><td>否</td><td>✅</td></tr><tr><td>JB-23</td><td><strong>额度不足阻断核销</strong></td><td>建议：本年度剩余额度不足，请先申请追加</td><td>抽屉拦截 + 跳 P3</td><td>是</td><td>⬜ 原型未接额度校验（P2 独立数据）</td></tr><tr><td>JB-24</td><td>导出</td><td>已导出交办单台账（含审批链、物资明细、核销记录）</td><td>Toast</td><td>否</td><td>✅</td></tr></tbody></table>
+<p><strong>自检结论</strong>：✅ <strong>23</strong> / ⬜ <strong>1</strong> / 共 24 条。</p>
+<h2 id="p10">10. 验收要点</h2>
+<table><thead><tr><th>编号</th><th>场景</th><th>期望</th></tr></thead><tbody><tr><td>AC-01</td><td>新建 1,120 元交办单</td><td>审批链自动为 <strong>4 级</strong>（≥1000）</td></tr><tr><td>AC-02</td><td>新建 784 元交办单</td><td>审批链自动为 <strong>2 级</strong>（&lt;1000）</td></tr><tr><td>AC-03</td><td>逐级通过 4 次</td><td>第 4 次后状态转 <code>已通过</code>，节点「已通过 · 可采购」</td></tr><tr><td>AC-04</td><td>用已存在发票号核销</td><td><strong>硬拦</strong>，不生成核销记录</td></tr><tr><td>AC-05</td><td>核销数量超审批（剩 3 填 5）</td><td><strong>放行</strong>，进度 13/8，生成超核异常</td></tr><tr><td>AC-06</td><td>核销单价超审批 10%</td><td><strong>放行</strong>，生成「单价偏高」异常</td></tr><tr><td>AC-07</td><td>核完最后一行</td><td>状态转 <code>已核销完成</code>，节点「已归档 · 核销完成」</td></tr><tr><td>AC-08</td><td>驳回后重提</td><td>版本号 +1，从第一级重新审批</td></tr><tr><td>AC-09</td><td>待采购池建单</td><td>建单成功后该报修<strong>从池中移除</strong></td></tr></tbody></table>
+</body></html>

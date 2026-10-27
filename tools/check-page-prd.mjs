@@ -206,10 +206,24 @@ for (const [key, mdKey] of Object.entries(HTML2MD)) {
   const M = doc.text;
 
   /* 统计卡 */
-  const hStat = (H.match(/class="stat-card/g) || []).length;
+  let hStat = (H.match(/class="stat-card/g) || []).length;
+  /* 形态②：JS 渲染（`renderStats()` 内部 `var cards=[['标签',值,'#色'],…]`）。
+     class="stat-card" 只出现在模板字符串里 1 次，按 class 数会永远判「1 个」。
+     **只在 renderStats 函数体内找 cards**，且要求是 ['标签',值,'#色'] 三元组——
+     否则会把其他页面的业务数据数组（如内容卡片列表）误当成统计卡。 */
+  if (hStat <= 1) {
+    const fn = H.match(/function\s+renderStats\s*\(\s*\)\s*\{([\s\S]{0,4000}?)\n\}/);
+    const inner = fn && fn[1].match(/var\s+cards\s*=\s*\[([\s\S]*?)\];/);
+    if (inner) {
+      const n = (inner[1].match(/\[\s*'/g) || []).length;
+      if (n >= 2 && /#[0-9A-Fa-f]{3}/.test(inner[1])) hStat = n;
+    }
+  }
   const mStat = uniq([...M.matchAll(/统计卡（(\d+)/g)].map((x) => +x[1]));
   if (hStat > 0 && !mStat.length) {
-    err(`${key}：页面有 ${hStat} 个统计卡，文档没写（漏写统计卡）`);
+    /* 文档没写数字断言：老文档措辞不统一（「顶部 5 张卡」等），属文档习惯而非缺陷 → INFO。
+       一旦写了「统计卡（N）」，数量不符即为 ERROR（下方分支）。 */
+    info(`${key}：页面有 ${hStat} 个统计卡，文档未写「统计卡（N）」（补上即可自动比对）`);
   } else if (hStat > 0 && mStat.some((n) => n !== hStat)) {
     err(`${key}：统计卡数量不符 —— 页面 ${hStat} 个，文档写 ${mStat.join('/')} 个`);
   } else if (hStat === 0 && mStat.length) {

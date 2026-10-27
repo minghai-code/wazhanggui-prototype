@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>物业服务 - 交办单与核销</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.stat-card{transition:box-shadow .2s ease,transform .2s ease;cursor:pointer}
+.stat-card:hover{box-shadow:0 4px 20px rgba(0,0,0,.08);transform:translateY(-1px)}
+.tb th{font-size:12px;font-weight:600;color:#64748B;background:#F8FAFC;padding:10px 12px;text-align:left;white-space:nowrap}
+.tb td{font-size:13px;color:#1F2430;padding:11px 12px;border-bottom:1px solid #F1F5F9;white-space:nowrap}
+.tb tbody tr:hover{background:#FFF7F5}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}
+.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}
+.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}
+.lk:hover{text-decoration:underline}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}
+.lk-gray:hover{color:#1F2430}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:40}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:680px;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:50;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.fl{display:block;font-size:12px;color:#64748B;margin-bottom:5px}
+.fl i{color:#FF4D2D;font-style:normal;margin-right:2px}
+.fi{width:100%;padding:8px 11px;font-size:13px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;outline:none;transition:.15s}
+.fi:focus{border-color:#FF4D2D;background:#fff}
+.blk{border:1px solid #F1F5F9;border-radius:12px;padding:13px 15px}
+.blk-t{font-size:12px;font-weight:700;color:#1F2430;display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.kv{display:flex;gap:10px;font-size:12px;padding:4px 0;line-height:1.6}
+.kv .k{color:#94A3B8;width:84px;flex-shrink:0}
+.kv .v{color:#1F2430;flex:1}
+.tl{position:relative;padding-left:16px}
+.tl::before{content:'';position:absolute;left:4px;top:4px;bottom:4px;width:1px;background:#E2E8F0}
+.tl-i{position:relative;padding:0 0 12px;font-size:12px;color:#64748B;line-height:1.6}
+.tl-i::before{content:'';position:absolute;left:-16px;top:5px;width:7px;height:7px;border-radius:50%;background:#FF4D2D}
+.tl-i b{color:#1F2430;font-weight:600}
+.tab-on{color:#FF4D2D;border-bottom:2px solid #FF4D2D;font-weight:600}
+.empty{padding:50px 0;text-align:center;color:#CBD5E1}
+.empty i{font-size:28px;display:block;margin-bottom:8px}
+.pg{height:5px;border-radius:3px;background:#F1F5F9;overflow:hidden}
+.pg>i{display:block;height:100%;background:linear-gradient(90deg,#FF7849,#FF4D2D)}
+.itb th{font-size:11px;font-weight:600;color:#64748B;background:#F8FAFC;padding:7px 8px;text-align:left;white-space:nowrap}
+.itb td{font-size:12px;padding:6px 8px;border-bottom:1px solid #F1F5F9;white-space:nowrap}
+.chk{display:flex;align-items:center;gap:6px;font-size:12px;padding:7px 9px;border:1px solid #E2E8F0;border-radius:8px;margin-bottom:6px}
+.chk.on{border-color:#FF7849;background:#FFF7F5}
+.warn{font-size:11px;color:#B45309;background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;padding:6px 9px;margin-top:4px}
+.ok{font-size:11px;color:#15803D;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:6px 9px;margin-top:4px}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+<div class="p-6">
+
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">交办单与采购核销</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">07 物业服务</span>
+        <span class="tag" style="background:#FEF3C7;color:#B45309">审批链 1000 元分档</span>
+        <span class="tag" style="background:#FFEDE7;color:#E63E20">逐行核销</span>
+      </div>
+      <p class="text-[12px] text-gray-400 mt-1">攒批建<b>任务工作交办单</b>（附比价单 + 物资明细）→ 审批（<b>&lt;1000：市场管理部 → 市场部负责人；≥1000：+ 分管领导 → 董事长</b>）→ 通过后采购，<b>分次上传发票逐行核销</b>；数量/单价/金额超审批<b>只标异常不硬拦</b>，<b>发票号重复硬拦</b>。</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="toast('已导出交办单台账（含审批链、物资明细、核销记录）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+      <button class="btn btn-primary" onclick="openCreate()"><i class="fas fa-plus mr-1"></i>新建交办单</button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-5 gap-3 mb-5" id="stats"></div>
+
+  <div class="flex items-center gap-5 mb-3 border-b border-gray-200" id="tabs">
+    <span class="py-2.5 text-[13px] cursor-pointer tab-on" onclick="switchTab('pool',this)">待采购池 <span class="text-[11px] text-[#94A3B8]" id="c-pool"></span></span>
+    <span class="py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600" onclick="switchTab('jb',this)">交办单 <span class="text-[11px]" id="c-jb"></span></span>
+    <span class="py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600" onclick="switchTab('ex',this)">核销异常台账 <span class="text-[11px]" id="c-ex"></span></span>
+  </div>
+
+  <!-- 待采购池 -->
+  <div id="pane-pool">
+    <div class="bg-white rounded-xl border border-gray-100 p-3 mb-4 flex items-center gap-3 flex-wrap">
+      <input id="f-kw" type="text" placeholder="报修编号 / 位置 / 故障类型" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none w-60">
+      <label class="flex items-center gap-1.5 text-[12px] text-gray-600"><input type="checkbox" id="f-slow" class="accent-[#FF4D2D]">仅看停留 &gt;7 天</label>
+      <button class="btn btn-primary" onclick="doSearchPool()">查询</button>
+      <button class="btn btn-ghost" onclick="resetPool()">重置</button>
+      <span class="text-[11px] text-[#94A3B8] ml-auto"><i class="fas fa-circle-info mr-1"></i>勾选后可「合并建交办单」，一次审批覆盖多张报修</span>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+      <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-[13px] font-bold text-[#1F2430]">待采购报修单</span>
+          <span class="text-[12px] text-[#94A3B8]" id="poolCnt">共 0 条</span>
+        </div>
+        <button class="btn btn-ghost" onclick="buildFromPool()"><i class="fas fa-layer-group mr-1"></i>合并建交办单</button>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full tb" style="min-width:1080px">
+          <thead><tr>
+            <th style="width:36px"><input type="checkbox" id="ck-all" onclick="toggleAll(this)"></th>
+            <th>报修编号</th><th>位置</th><th>故障类型</th><th>处理说明</th><th>标记时间</th><th>停留</th><th class="text-center">操作</th>
+          </tr></thead>
+          <tbody id="tbPool"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 交办单 -->
+  <div id="pane-jb" style="display:none">
+    <div class="bg-white rounded-xl border border-gray-100 p-3 mb-4 flex items-center gap-3 flex-wrap">
+      <input id="f-jbkw" type="text" placeholder="交办单号 / 项目名称" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none w-56">
+      <select id="f-jbstate" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+        <option value="">全部状态</option><option>草稿</option><option>待审核</option><option>已驳回</option><option>已通过</option><option>部分核销</option><option>已核销完成</option>
+      </select>
+      <button class="btn btn-primary" onclick="doSearchJb()">查询</button>
+      <button class="btn btn-ghost" onclick="resetJb()">重置</button>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+      <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-[13px] font-bold text-[#1F2430]">交办单列表</span>
+          <span class="text-[12px] text-[#94A3B8]" id="jbCnt">共 0 条</span>
+        </div>
+        <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>审批通过后才可上传采购凭证核销</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full tb" style="min-width:1240px">
+          <thead><tr>
+            <th>交办单号</th><th>项目名称</th><th>关联报修</th><th>预申请金额</th><th>核销进度</th><th>当前节点</th><th>状态</th><th>提交人</th><th>提交时间</th><th class="text-center">操作</th>
+          </tr></thead>
+          <tbody id="tbJb"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 异常台账 -->
+  <div id="pane-ex" style="display:none">
+    <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+      <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-[13px] font-bold text-[#1F2430]">核销异常台账</span>
+          <span class="text-[12px] text-[#94A3B8]" id="exCnt">共 0 条</span>
+        </div>
+        <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>异常不阻断核销，但必须处置（接受说明 / 要求补正 / 追回）</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full tb" style="min-width:1100px">
+          <thead><tr>
+            <th>异常编号</th><th>交办单</th><th>物资行</th><th>异常类型</th><th>差额</th><th>处置状态</th><th>处置人</th><th class="text-center">操作</th>
+          </tr></thead>
+          <tbody id="tbEx"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mask" id="mask" onclick="closeAll()"></div>
+<div class="drawer" id="drawer"></div>
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
+
+<script>
+/* ================= 字典 ================= */
+var JSTC={'草稿':'background:#F1F5F9;color:#64748B','待审核':'background:#FEF3C7;color:#B45309','已驳回':'background:#FEE2E2;color:#B91C1C',
+  '已通过':'background:#DBEAFE;color:#2563EB','部分核销':'background:#FFEDE7;color:#E63E20','已核销完成':'background:#DCFCE7;color:#15803D'};
+var EXTC={'超核':'background:#FEE2E2;color:#B91C1C','单价偏高':'background:#FEF3C7;color:#B45309','金额超审批':'background:#FFEDE7;color:#E63E20',
+  '换供应商':'background:#EDE9FE;color:#6D28D9','金额与发票不符':'background:#F1F5F9;color:#64748B'};
+var FLOW={'<1000':['市场管理部','市场部负责人'],'>=1000':['市场管理部','市场部负责人','分管领导','董事长']};
+
+/* ================= 数据 ================= */
+/* 待采购池（来自报修单「需物料」） */
+var POOL=[
+  {no:'BX202610-0027', pl:'大唐袜业城', b:'C 栋', f:'1F', unit:'1F-C05', type:'地砖',
+   result:'已清理破损地砖并做临时围挡，需采购同规格地砖 12 块', markAt:'2026-10-19 11:20', days:8, checked:false},
+  {no:'BX202610-0033', pl:'大唐袜业城', b:'A 栋', f:'2F', unit:'2F-A18', type:'水电',
+   result:'配电箱空开烧毁，需更换同规格空开 3 只', markAt:'2026-10-24 16:40', days:3, checked:false},
+  {no:'BX202610-0034', pl:'原料市场', b:'D 栋', f:'1F', unit:'1F-D07', type:'照明',
+   result:'仓库照明灯管老化，需更换 LED 灯管 10 支', markAt:'2026-10-26 10:05', days:1, checked:false}
+];
+
+/* 交办单 */
+var JB=[
+  {no:'JB202610-0009', name:'C 栋 1F 地砖更换', content:'1F-C05 门口地砖破损 2 块，采购同规格地砖后更换',
+   amount:1560, unit:'浙勤安顺物业', due:'2026-11-05', reqBy:'物业 张××', reqAt:'2026-10-19 14:00',
+   state:'草稿', node:'—', ver:1, bx:['BX202610-0027'], att:'', quotes:[], logs:[],
+   items:[{id:1, name:'防滑地砖 600×600', spec:'灰色 / 通体', qty:12, price:98, vendor:'诸暨××建材', done:0},
+          {id:2, name:'水泥砂浆', spec:'25kg/袋', qty:4, price:30, vendor:'诸暨××建材', done:0},
+          {id:3, name:'人工费', spec:'2 人 × 1 天', qty:1, price:200, vendor:'—', done:0}],
+   entries:[]},
+  {no:'JB202610-0008', name:'A 栋 2F 配电箱空开更换', content:'2F-A18 配电箱空开烧毁，采购同规格空开 3 只并更换',
+   amount:1120, unit:'浙勤安顺物业', due:'2026-11-02', reqBy:'物业 张××', reqAt:'2026-10-24 17:10',
+   state:'待审核', node:'市场部负责人', ver:1, bx:['BX202610-0033'], att:'比价单-空开.pdf',
+   quotes:[{vendor:'诸暨××机电', price:280},{vendor:'义乌××电气', price:295},{vendor:'诸暨××五交化', price:310}],
+   logs:[['2026-10-24 17:10','提交审核（预申请 ¥1,120）'],['2026-10-25 09:20','市场管理部 通过（初审）']],
+   items:[{id:1, name:'小型断路器 DZ47-63 C25', spec:'2P / 25A', qty:3, price:280, vendor:'诸暨××机电', done:0},
+          {id:2, name:'辅材（线鼻子/绝缘胶带）', spec:'—', qty:1, price:160, vendor:'诸暨××五交化', done:0},
+          {id:3, name:'人工费', spec:'1 人 × 1 天', qty:1, price:120, vendor:'—', done:0}],
+   entries:[]},
+  {no:'JB202610-0007', name:'B 栋 1F 通道灯管更换', content:'东侧公共通道灯管闪烁，采购 LED 灯管 8 支更换',
+   amount:640, unit:'浙勤安顺物业', due:'2026-10-30', reqBy:'物业 张××', reqAt:'2026-10-22 09:30',
+   state:'部分核销', node:'已通过 · 可采购', ver:1, bx:['BX202610-0026'], att:'比价单-灯管.pdf',
+   quotes:[{vendor:'诸暨××灯具', price:68},{vendor:'义乌××照明', price:72},{vendor:'诸暨××五交化', price:75}],
+   logs:[['2026-10-22 09:30','提交审核（预申请 ¥640）'],['2026-10-22 11:00','市场管理部 通过'],
+     ['2026-10-23 10:15','市场部负责人 通过（<1000 元终审）→ 可采购'],
+     ['2026-10-24 15:30','第 1 次核销：发票 INV-20261024-007，¥340（灯管 5 支）']],
+   items:[{id:1, name:'LED 灯管 T8 18W', spec:'1.2m / 白光', qty:8, price:68, vendor:'诸暨××灯具', done:5},
+          {id:2, name:'灯管支架', spec:'T8 单管', qty:2, price:60, vendor:'诸暨××灯具', done:0},
+          {id:3, name:'人工费', spec:'1 人 × 半天', qty:1, price:120, vendor:'—', done:0}],
+   entries:[{no:'HX202610-0011', invoice:'INV-20261024-007', date:'2026-10-24', vendor:'诸暨××灯具',
+     amount:340, other:0, at:'2026-10-24 15:30', abn:[],
+     detail:[{itemId:1, qty:5, price:68}]}]},
+  {no:'JB202610-0006', name:'A 栋 1F 卷帘门维修', content:'1F-A02 卷帘门导轨磨损，更换导轨并润滑',
+   amount:880, unit:'浙勤安顺物业', due:'2026-10-20', reqBy:'物业 张××', reqAt:'2026-10-16 10:00',
+   state:'已核销完成', node:'已归档', ver:1, bx:['BX202610-0018'], att:'比价单-导轨.pdf',
+   quotes:[{vendor:'诸暨××门业', price:480},{vendor:'义乌××五金', price:520}],
+   logs:[['2026-10-16 10:00','提交审核（预申请 ¥880）'],['2026-10-16 15:20','市场管理部 通过'],
+     ['2026-10-17 09:40','市场部负责人 通过 → 可采购'],
+     ['2026-10-19 14:10','第 1 次核销：发票 INV-20261019-003，¥880（全额）→ 核销完成']],
+   items:[{id:1, name:'卷帘门导轨', spec:'3m / 镀锌', qty:2, price:480, vendor:'诸暨××门业', done:2},
+          {id:2, name:'润滑脂', spec:'500g', qty:1, price:40, vendor:'诸暨××门业', done:1}],
+   entries:[{no:'HX202610-0010', invoice:'INV-20261019-003', date:'2026-10-19', vendor:'诸暨××门业',
+     amount:880, other:-120, at:'2026-10-19 14:10', abn:[],
+     detail:[{itemId:1, qty:2, price:480},{itemId:2, qty:1, price:40}]}]}
+];
+
+/* 异常台账 */
+var EX=[
+  {no:'YC202610-0005', jb:'JB202610-0007', item:'LED 灯管 T8 18W', type:'单价偏高', diff:'+12 元/支（+17%）',
+   state:'待处置', who:'—', note:'审批 ¥68，本次 ¥80，供应商称原料涨价'},
+  {no:'YC202610-0004', jb:'JB202610-0006', item:'卷帘门导轨', type:'金额与发票不符', diff:'-120 元',
+   state:'已处置', who:'市场管理部 何××', note:'供应商让利 120 元，已按实收核销'}
+];
+
+var curTab='pool', poolRows=POOL.slice(), jbRows=JB.slice(), exRows=EX.slice(), curNo=null, sel=[];
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},3200);}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function money(n){return Number(n).toLocaleString('en-US');}
+function jOf(no){return JB.filter(function(x){return x.no===no;})[0];}
+function jst(s){return '<span class="tag" style="'+(JSTC[s]||'background:#F1F5F9;color:#64748B')+'">'+esc(s)+'</span>';}
+function itemDone(j,id){var it=null;j.items.forEach(function(x){if(x.id===id)it=x;});return it?it.done:0;}
+function jbAmount(j){var s=0;j.items.forEach(function(x){s+=x.qty*x.price;});return s;}
+function itemAmt(j){var s=0;j.items.forEach(function(x){s+=x.done*x.price;});return s;}
+function qtyTotal(j){var s=0;j.items.forEach(function(x){s+=x.qty;});return s;}
+function qtyDone(j){var s=0;j.items.forEach(function(x){s+=x.done;});return s;}
+function jbPct(j){var t=qtyTotal(j);return t?Math.round(qtyDone(j)/t*100):0;}
+function entryAmount(j){var s=0;j.entries.forEach(function(e){s+=e.amount;});return s;}
+
+function renderStats(){
+  var pool=POOL.length;
+  var wait=JB.filter(function(x){return x.state==='待审核';}).length;
+  var inTransit=0, thisMonth=0, pending=0;
+  JB.forEach(function(j){
+    if(j.state==='已通过'||j.state==='部分核销'){inTransit+=jbAmount(j)-entryAmount(j);}
+    j.entries.forEach(function(e){thisMonth+=e.amount;});
+  });
+  EX.forEach(function(e){if(e.state!=='已处置')pending++;});
+  var cards=[['待采购池',pool,'#E63E20'],['待审核',wait,'#B45309'],['在途金额','¥'+money(Math.round(inTransit)),'#2563EB'],
+    ['本月核销','¥'+money(Math.round(thisMonth)),'#15803D'],['异常待处置',pending,'#B91C1C']];
+  document.getElementById('stats').innerHTML=cards.map(function(x){
+    return '<div class="stat-card bg-white rounded-lg border border-gray-100 p-3.5">'
+      +'<p class="text-[11px] text-gray-400">'+x[0]+'</p>'
+      +'<p class="text-xl font-bold mt-1" style="color:'+x[2]+'">'+x[1]+'</p></div>';
+  }).join('');
+  document.getElementById('c-pool').textContent='('+POOL.length+')';
+  document.getElementById('c-jb').textContent='('+JB.length+')';
+  document.getElementById('c-ex').textContent='('+EX.filter(function(e){return e.state!=='已处置';}).length+')';
+}
+
+/* ================= 待采购池 ================= */
+function renderPool(){
+  var h='';
+  poolRows.forEach(function(p){
+    h+='<tr>'
+      +'<td><input type="checkbox" '+(p.checked?'checked':'')+' onclick="pickRow(\''+p.no+'\',this)"></td>'
+      +'<td class="font-medium">'+esc(p.no)+'</td>'
+      +'<td><div>'+esc(p.pl)+' · '+esc(p.b)+' '+esc(p.f)+'</div><div class="text-[11px] text-[#94A3B8]">'+esc(p.unit)+'</div></td>'
+      +'<td>'+esc(p.type)+'</td>'
+      +'<td class="text-[12px] text-[#64748B]" style="max-width:320px;white-space:normal">'+esc(p.result)+'</td>'
+      +'<td class="text-[12px] text-[#64748B]">'+esc(p.markAt)+'</td>'
+      +'<td class="text-[12px]">'+(p.days>7?'<span style="color:#E63E20;font-weight:600">'+p.days+' 天 · 超期</span>':p.days+' 天')+'</td>'
+      +'<td class="text-center"><span class="lk-gray" onclick="toast(\'已定位到报修单 '+p.no+'\')">查看报修</span></td></tr>';
+  });
+  document.getElementById('tbPool').innerHTML=h||'<tr><td colspan="8"><div class="empty"><i class="fas fa-inbox"></i>待采购池为空</div></td></tr>';
+  document.getElementById('poolCnt').textContent='共 '+poolRows.length+' 条';
+}
+function pickRow(no,el){
+  POOL.forEach(function(p){if(p.no===no)p.checked=el.checked;});
+  sel=POOL.filter(function(p){return p.checked;}).map(function(p){return p.no;});
+}
+function toggleAll(el){
+  POOL.forEach(function(p){p.checked=el.checked;});
+  sel=el.checked?POOL.map(function(p){return p.no;}):[];
+  renderPool();
+}
+function buildFromPool(){
+  sel=POOL.filter(function(p){return p.checked;}).map(function(p){return p.no;});
+  if(!sel.length){toast('请至少勾选 1 张报修单');return;}
+  openCreate(sel);
+}
+function doSearchPool(){
+  var kw=document.getElementById('f-kw').value.trim();
+  var slow=document.getElementById('f-slow').checked;
+  poolRows=POOL.filter(function(p){
+    return (!kw||p.no.indexOf(kw)>-1||p.unit.indexOf(kw)>-1||p.type.indexOf(kw)>-1||p.result.indexOf(kw)>-1)&&(!slow||p.days>7);
+  });
+  renderPool();toast('已查询，共 '+poolRows.length+' 条');
+}
+function resetPool(){
+  document.getElementById('f-kw').value='';
+  document.getElementById('f-slow').checked=false;
+  poolRows=POOL.slice();renderPool();toast('已重置');
+}
+
+/* ================= 交办单列表 ================= */
+function renderJb(){
+  var h='';
+  jbRows.forEach(function(j){
+    var pct=jbPct(j);
+    var ops='<span class="lk-gray" onclick="openJb(\''+j.no+'\')">查看</span>';
+    if(j.state==='草稿') ops='<span class="lk" onclick="openJb(\''+j.no+'\')">编辑</span> · <span class="lk" onclick="submitJb(\''+j.no+'\')">提交审核</span> · '+ops;
+    if(j.state==='待审核') ops='<span class="lk" onclick="openAudit(\''+j.no+'\')">审核</span> · '+ops;
+    if(j.state==='已驳回') ops='<span class="lk" onclick="openJb(\''+j.no+'\')">修改重提</span> · '+ops;
+    if(j.state==='已通过'||j.state==='部分核销') ops='<span class="lk" onclick="openEntry(\''+j.no+'\')">上传凭证核销</span> · <span class="lk-gray" onclick="openFinish(\''+j.no+'\')">申请结项</span> · '+ops;
+    h+='<tr>'
+      +'<td><div class="font-medium">'+esc(j.no)+'</div><div class="text-[11px] text-[#94A3B8]">v'+j.ver+'</div></td>'
+      +'<td style="max-width:200px;white-space:normal">'+esc(j.name)+'</td>'
+      +'<td class="text-[12px] text-[#64748B]">'+j.bx.length+' 张</td>'
+      +'<td class="font-medium">¥'+money(jbAmount(j))+'</td>'
+      +'<td style="min-width:150px"><div class="text-[11px] text-[#64748B] mb-1">数量 '+qtyDone(j)+'/'+qtyTotal(j)+'（'+pct+'%）</div><div class="pg"><i style="width:'+pct+'%"></i></div></td>'
+      +'<td class="text-[12px] text-[#64748B]">'+esc(j.node)+'</td>'
+      +'<td>'+jst(j.state)+'</td>'
+      +'<td class="text-[12px] text-[#64748B]">'+esc(j.reqBy)+'</td>'
+      +'<td class="text-[12px] text-[#64748B]">'+esc(j.reqAt)+'</td>'
+      +'<td class="text-center whitespace-nowrap">'+ops+'</td></tr>';
+  });
+  document.getElementById('tbJb').innerHTML=h||'<tr><td colspan="10"><div class="empty"><i class="fas fa-file-invoice"></i>暂无交办单</div></td></tr>';
+  document.getElementById('jbCnt').textContent='共 '+jbRows.length+' 条';
+}
+function doSearchJb(){
+  var kw=document.getElementById('f-jbkw').value.trim();
+  var st=document.getElementById('f-jbstate').value;
+  jbRows=JB.filter(function(j){return (!kw||j.no.indexOf(kw)>-1||j.name.indexOf(kw)>-1)&&(!st||j.state===st);});
+  renderJb();toast('已查询，共 '+jbRows.length+' 条');
+}
+function resetJb(){
+  document.getElementById('f-jbkw').value='';document.getElementById('f-jbstate').value='';
+  jbRows=JB.slice();renderJb();toast('已重置');
+}
+
+/* ================= 异常台账 ================= */
+function renderEx(){
+  var h='';
+  exRows.forEach(function(e){
+    h+='<tr>'
+      +'<td class="font-medium">'+esc(e.no)+'</td>'
+      +'<td class="text-[12px]"><span class="lk-gray" onclick="openJb(\''+e.jb+'\')">'+esc(e.jb)+'</span></td>'
+      +'<td class="text-[12px]">'+esc(e.item)+'</td>'
+      +'<td><span class="tag" style="'+(EXTC[e.type]||'background:#F1F5F9;color:#64748B')+'">'+esc(e.type)+'</span></td>'
+      +'<td class="text-[12px]" style="color:#E63E20">'+esc(e.diff)+'</td>'
+      +'<td>'+(e.state==='已处置'?'<span class="tag" style="background:#DCFCE7;color:#15803D">已处置</span>':'<span class="tag" style="background:#FEE2E2;color:#B91C1C">待处置</span>')+'</td>'
+      +'<td class="text-[12px] text-[#64748B]">'+esc(e.who)+'</td>'
+      +'<td class="text-center">'+(e.state==='已处置'?'<span class="lk-gray" onclick="toast(\'处置说明：'+esc(e.note)+'\')">查看</span>':'<span class="lk" onclick="openEx(\''+e.no+'\')">处置</span>')+'</td></tr>';
+  });
+  document.getElementById('tbEx').innerHTML=h||'<tr><td colspan="8"><div class="empty"><i class="fas fa-check-circle"></i>无异常记录</div></td></tr>';
+  document.getElementById('exCnt').textContent='共 '+exRows.length+' 条';
+}
+function openEx(no){
+  var e=EX.filter(function(x){return x.no===no;})[0];
+  curNo=no;
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">异常处置</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(e.no)+'　'+esc(e.type)+'　'+esc(e.jb)+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div class="blk"><div class="kv"><span class="k">物资行</span><span class="v">'+esc(e.item)+'</span></div>'
+    +'<div class="kv"><span class="k">差额</span><span class="v" style="color:#E63E20">'+esc(e.diff)+'</span></div>'
+    +'<div class="kv"><span class="k">说明</span><span class="v">'+esc(e.note)+'</span></div></div>'
+    +'<div><label class="fl"><i>*</i>处置方式</label><select class="fi" id="x_act">'
+      +['接受说明','要求补正','追回差额'].map(function(x){return '<option>'+x+'</option>';}).join('')+'</select></div>'
+    +'<div><label class="fl"><i>*</i>处置说明</label><input class="fi" id="x_note" placeholder="必填，将写入异常台账留痕"></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveEx(\''+no+'\')">确认处置</button></div>';
+  document.getElementById('drawer').innerHTML=h;show();
+}
+function saveEx(no){
+  var e=EX.filter(function(x){return x.no===no;})[0];
+  var act=document.getElementById('x_act').value;
+  var note=document.getElementById('x_note').value.trim();
+  if(note.length<4){toast('请填写处置说明（至少 4 个字）');return;}
+  e.state='已处置';e.who='市场管理部 何××';e.note=act+'：'+note;
+  exRows=EX.slice();
+  renderStats();renderEx();closeAll();
+  toast('已处置：'+no+'　'+act+'（留痕）');
+}
+
+/* ================= 新建交办单 ================= */
+var draftItems=[], draftBx=[];
+function openCreate(bxList){
+  draftBx=bxList||sel||[];
+  if(!draftBx.length){toast('请先在待采购池勾选报修单');return;}
+  draftItems=[{name:'',spec:'',qty:1,price:0,vendor:''}];
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">新建交办单</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">关联 '+draftBx.length+' 张报修单　·　<b>物资明细合计必须等于预申请金额</b>　·　比价单至少 2 家</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-link text-[#2563EB]"></i>关联报修单</div>'
+    +'<p class="text-[12px] text-[#64748B] leading-6">'+draftBx.map(function(x){return esc(x);}).join('、')+'</p></div>';
+  h+='<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl"><i>*</i>项目名称</label><input class="fi" id="n_name" placeholder="如：C 栋 1F 地砖更换"></div>'
+    +'<div><label class="fl">实施单位或部门</label><input class="fi" id="n_unit" value="浙勤安顺物业"></div>'
+    +'<div class="col-span-2"><label class="fl"><i>*</i>工作内容</label><input class="fi" id="n_content" placeholder="如：1F-C05 门口地砖破损 2 块，采购同规格地砖后更换"></div>'
+    +'<div><label class="fl"><i>*</i>预计完成时间</label><input class="fi" id="n_due" type="date" value="2026-11-05"></div>'
+    +'<div><label class="fl"><i>*</i>预申请金额（元）</label><input class="fi" id="n_amount" placeholder="须等于明细合计"></div>'
+    +'</div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-list text-[#7C3AED]"></i>物资明细 <span class="text-[11px] text-[#94A3B8] font-normal" id="itemSum">合计 ¥0</span></div>'
+    +'<div id="itemBox"></div>'
+    +'<button class="btn btn-ghost mt-2" onclick="addItem()"><i class="fas fa-plus mr-1"></i>加一行</button></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-file-invoice-dollar text-[#B45309]"></i>比价单（≥2 家）</div>'
+    +'<div class="grid grid-cols-3 gap-2">'
+    +'<input class="fi" id="q1" placeholder="供应商 1 + 单价"><input class="fi" id="q2" placeholder="供应商 2 + 单价"><input class="fi" id="q3" placeholder="供应商 3（可空）"></div>'
+    +'<div class="mt-2"><label class="fl"><i>*</i>比价单附件</label>'
+    +'<div class="fi" style="cursor:pointer;color:#94A3B8" onclick="pickAtt()" id="attBox">点击上传（PDF / 图片 / Excel / Word）</div></div></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-ghost" onclick="saveCreate(true)">存草稿</button>'
+    +'<button class="btn btn-primary" onclick="saveCreate(false)">提交审核</button></div>';
+  document.getElementById('drawer').innerHTML=h;
+  show();renderItems();
+}
+var attPicked=false;
+function pickAtt(){
+  attPicked=true;
+  document.getElementById('attBox').textContent='已上传：比价单-'+new Date().toTimeString().slice(0,5)+'.pdf';
+  document.getElementById('attBox').style.color='#1F2430';
+  toast('已上传比价单附件');
+}
+function renderItems(){
+  var h='<table class="w-full itb"><thead><tr><th>物资名称</th><th>规格</th><th style="width:64px">数量</th><th style="width:80px">单价</th><th style="width:78px">小计</th><th>供应商</th><th style="width:40px"></th></tr></thead><tbody>';
+  draftItems.forEach(function(it,i){
+    h+='<tr>'
+      +'<td><input class="fi" style="padding:4px 7px;font-size:12px" id="it_n'+i+'" value="'+esc(it.name)+'" placeholder="物资名"></td>'
+      +'<td><input class="fi" style="padding:4px 7px;font-size:12px" id="it_s'+i+'" value="'+esc(it.spec)+'" placeholder="规格"></td>'
+      +'<td><input class="fi" style="padding:4px 7px;font-size:12px" id="it_q'+i+'" value="'+it.qty+'" oninput="calcSum()"></td>'
+      +'<td><input class="fi" style="padding:4px 7px;font-size:12px" id="it_p'+i+'" value="'+it.price+'" oninput="calcSum()"></td>'
+      +'<td class="text-[12px]">¥'+money((it.qty||0)*(it.price||0))+'</td>'
+      +'<td><input class="fi" style="padding:4px 7px;font-size:12px" id="it_v'+i+'" value="'+esc(it.vendor)+'" placeholder="供应商"></td>'
+      +'<td>'+(draftItems.length>1?'<span class="lk-gray" onclick="delItem('+i+')"><i class="fas fa-trash"></i></span>':'')+'</td></tr>';
+  });
+  h+='</tbody></table>';
+  document.getElementById('itemBox').innerHTML=h;
+  calcSum();
+}
+function readItems(){
+  draftItems.forEach(function(it,i){
+    it.name=document.getElementById('it_n'+i).value.trim();
+    it.spec=document.getElementById('it_s'+i).value.trim();
+    it.qty=parseFloat(document.getElementById('it_q'+i).value)||0;
+    it.price=parseFloat(document.getElementById('it_p'+i).value)||0;
+    it.vendor=document.getElementById('it_v'+i).value.trim();
+  });
+}
+function calcSum(){
+  readItems();
+  var s=0;draftItems.forEach(function(it){s+=it.qty*it.price;});
+  document.getElementById('itemSum').textContent='合计 ¥'+money(s);
+  return s;
+}
+function addItem(){readItems();draftItems.push({name:'',spec:'',qty:1,price:0,vendor:''});renderItems();}
+function delItem(i){readItems();draftItems.splice(i,1);renderItems();}
+
+function saveCreate(isDraft){
+  var sum=calcSum();
+  var name=document.getElementById('n_name').value.trim();
+  var content=document.getElementById('n_content').value.trim();
+  var due=document.getElementById('n_due').value;
+  var amount=parseFloat(document.getElementById('n_amount').value)||0;
+  var q1=document.getElementById('q1').value.trim(),q2=document.getElementById('q2').value.trim(),q3=document.getElementById('q3').value.trim();
+  if(!name||!content){toast('请填写项目名称与工作内容');return;}
+  if(draftItems.length===0||!draftItems[0].name){toast('请至少填写 1 行物资明细');return;}
+  if(!isDraft){
+    if(!amount){toast('请填写预申请金额');return;}
+    if(Math.abs(amount-sum)>0.01){toast('物资明细合计 ¥'+money(sum)+' 与预申请金额 ¥'+money(amount)+' 不一致');return;}
+    var qn=[q1,q2,q3].filter(function(x){return x;}).length;
+    if(qn<2){toast('比价单需至少 2 家供应商报价（当前 '+qn+' 家）');return;}
+    if(!attPicked){toast('请上传比价单附件（PDF / 图片 / Excel / Word）');return;}
+  }
+  var no='JB202610-00'+(10+JB.length);
+  var flow=amount>=1000?FLOW['>=1000']:FLOW['<1000'];
+  var j={no:no, name:name, content:content, amount:amount||sum, unit:document.getElementById('n_unit').value.trim()||'浙勤安顺物业',
+    due:due||'—', reqBy:'物业 张××', reqAt:'2026-10-27 '+new Date().toTimeString().slice(0,5),
+    state:isDraft?'草稿':'待审核', node:isDraft?'—':flow[0], ver:1, bx:draftBx.slice(),
+    att:attPicked?'比价单.pdf':'', quotes:[[q1,q2,q3].filter(function(x){return x;})].map(function(x){return {vendor:x,price:0};}),
+    logs:isDraft?[]:[['2026-10-27 '+new Date().toTimeString().slice(0,5),'提交审核（预申请 ¥'+money(amount||sum)+'）｜审批链：'+flow.join(' → ')]],
+    items:draftItems.map(function(it,i){return {id:i+1,name:it.name,spec:it.spec,qty:it.qty,price:it.price,vendor:it.vendor,done:0};}),
+    entries:[]};
+  JB.unshift(j);
+  /* 从待采购池移除已建单的报修 */
+  draftBx.forEach(function(no2){
+    var idx=-1;POOL.forEach(function(p,i){if(p.no===no2)idx=i;});
+    if(idx>-1)POOL.splice(idx,1);
+  });
+  sel=[];attPicked=false;
+  poolRows=POOL.slice();jbRows=JB.slice();
+  renderStats();renderPool();renderJb();closeAll();
+  if(isDraft){toast('已存草稿：'+no+'（草稿不占额度、不进入审批）');}
+  else{var lvl=((amount||sum)>=1000)?'≥1000 元 4 级':'<1000 元 2 级';toast('已提交审核：'+no+'　审批链 '+flow.join(' → ')+'（'+lvl+'）');}
+}
+
+/* ================= 提交 / 审核 ================= */
+function submitJb(no){
+  var j=jOf(no);
+  if(!j.att){toast('请先上传比价单附件');return;}
+  var amt=jbAmount(j);
+  var flow=amt>=1000?FLOW['>=1000']:FLOW['<1000'];
+  j.state='待审核';j.node=flow[0];
+  j.logs.push(['2026-10-27 '+new Date().toTimeString().slice(0,5),'提交审核（预申请 ¥'+money(amt)+'）｜审批链：'+flow.join(' → ')]);
+  renderStats();renderJb();
+  toast('已提交审核：'+no+'　当前节点 '+flow[0]+'（'+(amt>=1000?'≥1000 元 4 级':'<1000 元 2 级')+'）');
+}
+function openAudit(no){
+  curNo=no;var j=jOf(no);
+  var amt=jbAmount(j);
+  var flow=amt>=1000?FLOW['>=1000']:FLOW['<1000'];
+  var idx=flow.indexOf(j.node);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">审核交办单</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(j.no)+'　¥'+money(amt)+'　当前节点 <b>'+esc(j.node)+'</b>（'+flow.join(' → ')+'）</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-camera text-[#2563EB]"></i>报修真实性（关联 '+j.bx.length+' 张）</div>'
+    +'<p class="text-[12px] text-[#64748B]">'+j.bx.map(function(x){return '<span class="lk" onclick="toast(\'已定位到报修单 '+x+'\')">'+esc(x)+'</span>';}).join('　')+'</p>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1"><i class="fas fa-info-circle mr-1"></i>报修单已含现场照片与处理后照片，可点单号查看</p></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-list text-[#7C3AED]"></i>物资明细与价格参考</div>'
+    +'<table class="w-full itb"><thead><tr><th>物资</th><th>数量</th><th>审批单价</th><th>小计</th><th>历史中位</th><th>偏离</th></tr></thead><tbody>'
+    +j.items.map(function(it){
+      var hist=[62,65,70][it.id%3];
+      var dev=Math.round((it.price/hist-1)*100);
+      return '<tr><td>'+esc(it.name)+'</td><td>'+it.qty+'</td><td>¥'+money(it.price)+'</td><td>¥'+money(it.qty*it.price)+'</td>'
+        +'<td class="text-[#64748B]">¥'+hist+'</td>'
+        +'<td style="color:'+(dev>30?'#E63E20':'#15803D')+'">'+(dev>0?'+':'')+dev+'%</td></tr>';
+    }).join('')
+    +'</tbody></table></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-scale-balanced text-[#B45309]"></i>比价充分性</div>'
+    +'<div class="text-[12px] text-[#64748B] leading-6">'+(j.quotes.length?j.quotes.map(function(q){return esc(q.vendor);}).join('　vs　'):'<span style="color:#B91C1C">未录入比价行</span>')
+    +'<br>附件：'+(j.att?'<span class="lk" onclick="toast(\'已下载 '+esc(j.att)+'\')">'+esc(j.att)+'</span>':'<span style="color:#B91C1C">未上传</span>')+'</div></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-clock-rotate-left text-[#64748B]"></i>审批链</div><div class="tl">'
+    +j.logs.map(function(l){return '<div class="tl-i"><b>'+esc(l[0])+'</b>　'+esc(l[1])+'</div>';}).join('')
+    +'</div></div>';
+  h+='<div><label class="fl">审核意见（驳回必填）</label><input class="fi" id="au_note" placeholder="如：比价不充分，请补充第 3 家报价"></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-ghost" style="color:#B91C1C;border-color:#FECACA" onclick="auditReject(\''+no+'\')">驳回</button>'
+    +'<button class="btn btn-primary" onclick="auditPass(\''+no+'\')">通过（进入下一节点）</button></div>';
+  document.getElementById('drawer').innerHTML=h;show();
+}
+function auditPass(no){
+  var j=jOf(no);
+  var amt=jbAmount(j);
+  var flow=amt>=1000?FLOW['>=1000']:FLOW['<1000'];
+  var idx=flow.indexOf(j.node);
+  j.logs.push(['2026-10-27 '+new Date().toTimeString().slice(0,5),j.node+' 通过']);
+  if(idx>=flow.length-1){
+    j.state='已通过';j.node='已通过 · 可采购';
+    j.logs.push(['2026-10-27 '+new Date().toTimeString().slice(0,5),'终审通过（'+j.node+'）→ 可采购并上传凭证']);
+    jbRows=JB.slice();renderStats();renderJb();closeAll();
+    toast('审批通过：'+no+'　已通过全部 '+flow.length+' 级，可开始采购并上传凭证');
+  }else{
+    j.node=flow[idx+1];
+    jbRows=JB.slice();renderStats();renderJb();closeAll();
+    toast('已通过：'+no+'　转下一节点「'+j.node+'」（超 1 个工作日未处理将提醒）');
+  }
+}
+function auditReject(no){
+  var j=jOf(no);
+  var note=document.getElementById('au_note').value.trim();
+  if(note.length<4){toast('驳回原因必填（至少 4 个字）');return;}
+  j.state='已驳回';j.node='—';j.ver++;
+  j.logs.push(['2026-10-27 '+new Date().toTimeString().slice(0,5),'驳回：'+note+'（版本 v'+j.ver+'）']);
+  jbRows=JB.slice();renderStats();renderJb();closeAll();
+  toast('已驳回：'+no+'　已通知提交人修改（重提后从第一级重新审批）');
+}
+
+/* ================= 核销 ================= */
+function openEntry(no){
+  curNo=no;var j=jOf(no);
+  window.__cur=new Array(j.items.length).fill(false);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">上传采购凭证核销</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(j.no)+'　审批 ¥'+money(jbAmount(j))+'　已核 ¥'+money(entryAmount(j))+'　已核销 '+j.entries.length+' 次</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-list-check text-[#7C3AED]"></i>① 勾选本次采购的物资行 <span class="text-[11px] font-normal text-[#94A3B8]">（默认预勾选未核完的行）</span></div>'
+    +'<div id="entryBox"></div></div>';
+  h+='<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl"><i>*</i>发票号</label><input class="fi" id="e_inv" placeholder="如 INV-20261027-001"></div>'
+    +'<div><label class="fl"><i>*</i>开票日期</label><input class="fi" id="e_date" type="date" value="2026-10-27"></div>'
+    +'<div><label class="fl"><i>*</i>供应商</label><input class="fi" id="e_vendor" placeholder="如 诸暨××灯具"></div>'
+    +'<div><label class="fl"><i>*</i>发票金额</label><input class="fi" id="e_amount" placeholder="含运费/税费" oninput="calcEntry()"></div>'
+    +'<div><label class="fl">其他费用（运费/税费/折扣）</label><input class="fi" id="e_other" value="0" oninput="calcEntry()"></div>'
+    +'<div><label class="fl">凭证附件</label><div class="fi" style="cursor:pointer;color:#94A3B8" onclick="pickInv()" id="invBox">点击上传发票（PDF / 图片）</div></div>'
+    +'</div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-shield-halved text-[#B45309]"></i>② 实时校验</div><div id="chkBox"></div></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="doEntry(\''+no+'\')">确认核销</button></div>';
+  document.getElementById('drawer').innerHTML=h;
+  show();renderEntryRows();
+}
+var invPicked=false;
+function pickInv(){invPicked=true;document.getElementById('invBox').textContent='已上传：发票-'+new Date().toTimeString().slice(0,5)+'.pdf';document.getElementById('invBox').style.color='#1F2430';toast('已上传凭证附件');}
+function renderEntryRows(){
+  var j=jOf(curNo);
+  var h='';
+  j.items.forEach(function(it,i){
+    var left=it.qty-it.done;
+    if(left<=0){
+      h+='<div class="chk" style="opacity:.55"><input type="checkbox" disabled><span>'+esc(it.name)+'　< b style="color:#15803D">已核销完毕 '+it.done+'/'+it.qty+'</span></div>';
+      return;
+    }
+    h+='<div class="chk '+(window.__cur[i]?'on':'')+'" id="chk'+i+'">'
+      +'<input type="checkbox" '+(window.__cur[i]?'checked':'')+' onchange="pickItem('+i+',this.checked)">'
+      +'<span style="flex:1">'+esc(it.name)+'　<span class="text-[11px] text-[#94A3B8]">审批 '+it.qty+'　剩余 '+left+'</span></span>'
+      +'<input class="fi" style="width:64px;padding:3px 6px;font-size:12px" id="eq'+i+'" value="'+(window.__cur[i]?left:'')+'" placeholder="数量" oninput="calcEntry()">'
+      +'<input class="fi" style="width:76px;padding:3px 6px;font-size:12px" id="ep'+i+'" value="'+it.price+'" placeholder="单价" oninput="calcEntry()">'
+      +'</div>';
+  });
+  document.getElementById('entryBox').innerHTML=h;
+  calcEntry();
+}
+function pickItem(i,on){
+  window.__cur[i]=on;
+  var el=document.getElementById('chk'+i);
+  if(el) el.className='chk'+(on?' on':'');
+  calcEntry();
+}
+function calcEntry(){
+  var j=jOf(curNo);
+  var sum=0,qtyAll=0;
+  j.items.forEach(function(it,i){
+    if(!window.__cur[i])return;
+    var q=parseFloat((document.getElementById('eq'+i)||{}).value)||0;
+    var p=parseFloat((document.getElementById('ep'+i)||{}).value)||0;
+    sum+=q*p;qtyAll+=q;
+  });
+  var other=parseFloat((document.getElementById('e_other')||{}).value)||0;
+  var inv=parseFloat((document.getElementById('e_amount')||{}).value)||0;
+  var msgs=[];
+  var picked=window.__cur.filter(Boolean).length;
+  if(!picked) msgs.push(['warn','未勾选物资行：至少勾选 1 行才能提交']);
+  if(inv&&Math.abs(sum+other-inv)>1) msgs.push(['warn','明细 ¥'+money(sum)+' + 其他 ¥'+money(other)+' 与发票 ¥'+money(inv)+' 差 ¥'+money(Math.abs(sum+other-inv))+'，将标记异常']);
+  if(!msgs.length) msgs.push(['ok','已勾选 '+picked+' 行 · 本次合计 ¥'+money(sum)+(other?('（含其他费用 ¥'+money(other)+'）'):'')]);
+  var box=document.getElementById('chkBox');
+  if(box) box.innerHTML=msgs.map(function(m){return '<div class="'+m[0]+'"><i class="fas fa-'+(m[0]==='ok'?'circle-check':'triangle-exclamation')+' mr-1"></i>'+m[1]+'</div>';}).join('');
+  return {sum:sum,other:other,inv:inv,qty:qtyAll,picked:picked};
+}
+function doEntry(no){
+  var j=jOf(no);
+  var chk=calcEntry();
+  var inv=document.getElementById('e_inv').value.trim();
+  var date=document.getElementById('e_date').value;
+  var vendor=document.getElementById('e_vendor').value.trim();
+  var invAmt=parseFloat(document.getElementById('e_amount').value)||0;
+  var other=parseFloat(document.getElementById('e_other').value)||0;
+  if(!chk.picked){toast('请至少勾选 1 行物资明细');return;}
+  if(!inv||!date||!vendor||!invAmt){toast('请填写发票号、开票日期、供应商、发票金额并上传附件');return;}
+  if(!invPicked){toast('请上传凭证附件');return;}
+  /* C3 发票号唯一（硬拦） */
+  var dup=false;
+  JB.forEach(function(x){x.entries.forEach(function(e){if(e.invoice===inv)dup=true;});});
+  if(dup){toast('发票号 '+inv+' 已用于核销，不可重复提交');return;}
+
+  var detail=[],abn=[];
+  j.items.forEach(function(it,i){
+    if(!window.__cur[i])return;
+    var q=parseFloat(document.getElementById('eq'+i).value)||0;
+    var p=parseFloat(document.getElementById('ep'+i).value)||0;
+    if(q<=0){return;}
+    detail.push({itemId:it.id,qty:q,price:p});
+    it.done+=q;
+    /* C4 数量超核 → 标异常 */
+    if(it.done>it.qty){
+      abn.push({type:'超核',item:it.name,diff:'累计 '+it.done+' / 审批 '+it.qty});
+      EX.unshift({no:'YC202610-00'+(10+EX.length), jb:j.no, item:it.name, type:'超核',
+        diff:'累计 '+it.done+' 超出审批 '+it.qty, state:'待处置', who:'—', note:'核销时累计数量超出审批数量'});
+    }
+    /* C5 单价超 10% → 标异常 */
+    if(p>it.price*1.1){
+      abn.push({type:'单价偏高',item:it.name,diff:'¥'+p+' vs 审批 ¥'+it.price});
+      EX.unshift({no:'YC202610-00'+(11+EX.length), jb:j.no, item:it.name, type:'单价偏高',
+        diff:'¥'+p+' 高于审批 ¥'+it.price, state:'待处置', who:'—', note:'核销单价高于审批单价 10% 以上'});
+    }
+  });
+  if(!detail.length){toast('本次数量均为 0，请填写');return;}
+
+  var e={no:'HX202610-00'+(20+j.entries.length), invoice:inv, date:date, vendor:vendor,
+    amount:invAmt, other:other, at:'2026-10-27 '+new Date().toTimeString().slice(0,5), abn:abn, detail:detail};
+  j.entries.push(e);
+
+  /* 累计金额超审批 → 标异常 */
+  if(entryAmount(j)>jbAmount(j)){
+    EX.unshift({no:'YC202610-00'+(12+EX.length), jb:j.no, item:'（整单）', type:'金额超审批',
+      diff:'已核 ¥'+money(entryAmount(j))+' / 审批 ¥'+money(jbAmount(j)), state:'待处置', who:'—', note:'累计核销金额超出预申请金额'});
+    abn.push({type:'金额超审批'});
+  }
+
+  /* 换供应商提示 */
+  var vendors=j.items.filter(function(it){return it.vendor&&it.vendor!=='—';}).map(function(it){return it.vendor;});
+  if(vendors.length&&vendors.indexOf(vendor)<0){
+    EX.unshift({no:'YC202610-00'+(13+EX.length), jb:j.no, item:'（供应商）', type:'换供应商',
+      diff:vendor+' ≠ 审批时 '+vendors[0], state:'待处置', who:'—', note:'本次供应商与审批时不同，未重新比价'});
+  }
+
+  /* 状态推进 */
+  var allDone=j.items.every(function(it){return it.done>=it.qty;});
+  j.state=allDone?'已核销完成':'部分核销';
+  j.node=allDone?'已归档 · 核销完成':'已通过 · 可采购';
+  j.logs.push(['2026-10-27 '+new Date().toTimeString().slice(0,5),
+    '第 '+j.entries.length+' 次核销：发票 '+inv+'，¥'+money(invAmt)+'（'+detail.length+' 行）'+(abn.length?'｜标记异常 '+abn.length+' 项':'')]);
+
+  invPicked=false;
+  jbRows=JB.slice();exRows=EX.slice();
+  renderStats();renderJb();renderEx();closeAll();
+  if(abn.length){
+    toast('已核销：'+no+' 第 '+j.entries.length+' 次 ¥'+money(invAmt)+'；标记异常 '+abn.length+' 项（已进异常台账）');
+  }else if(allDone){
+    toast('核销完成：'+no+' 全部物资已核销，额度已扣减');
+  }else{
+    toast('已核销：'+no+' 第 '+j.entries.length+' 次 ¥'+money(invAmt)+'；进度 '+qtyDone(j)+'/'+qtyTotal(j)+'（'+jbPct(j)+'%）');
+  }
+}
+
+/* ================= 申请结项 ================= */
+function openFinish(no){
+  curNo=no;var j=jOf(no);
+  var leftQty=qtyTotal(j)-qtyDone(j);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">申请结项</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(j.no)+'　剩余 '+leftQty+' 件未采购（¥'+money(jbAmount(j)-entryAmount(j))+'）</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div class="rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B]">结项后<b>不可再核销</b>；剩余额度<b>不会</b>自动退回预申请金额，但年度额度只按已核销扣减。需主管确认。</p></div>'
+    +'<div><label class="fl"><i>*</i>结项原因</label><select class="fi" id="fn_why">'
+      +['实际不需要该物资','报修已由其他方式解决','供应商缺货，另行采购','其他'].map(function(x){return '<option>'+x+'</option>';}).join('')+'</select></div>'
+    +'<div><label class="fl">补充说明</label><input class="fi" id="fn_note" placeholder="选填"></div></div>'
+    +'<div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="doFinish(\''+no+'\')">提交结项（主管确认）</button></div>';
+  document.getElementById('drawer').innerHTML=h;show();
+}
+function doFinish(no){
+  var j=jOf(no);
+  var why=document.getElementById('fn_why').value;
+  var note=document.getElementById('fn_note').value.trim();
+  j.state='已核销完成';j.node='已归档 · 结项';
+  j.logs.push(['2026-10-27 '+new Date().toTimeString().slice(0,5),'申请结项：'+why+(note?'（'+note+'）':'')+'　主管确认通过']);
+  jbRows=JB.slice();renderStats();renderJb();closeAll();
+  toast('已结项：'+no+'　放弃剩余未采购部分，交办单归档');
+}
+
+/* ================= 详情 / 基础 ================= */
+function openJb(no){
+  curNo=no;var j=jOf(no);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+esc(j.name)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(j.no)+'　v'+j.ver+'　'+jst(j.state)+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-file-invoice text-[#FF4D2D]"></i>表头</div>'
+    +'<div class="kv"><span class="k">项目名称</span><span class="v">'+esc(j.name)+'</span></div>'
+    +'<div class="kv"><span class="k">工作内容</span><span class="v">'+esc(j.content)+'</span></div>'
+    +'<div class="kv"><span class="k">预申请金额</span><span class="v"><b>¥'+money(jbAmount(j))+'</b></span></div>'
+    +'<div class="kv"><span class="k">实施单位</span><span class="v">'+esc(j.unit)+'</span></div>'
+    +'<div class="kv"><span class="k">预计完成</span><span class="v">'+esc(j.due)+'</span></div>'
+    +'<div class="kv"><span class="k">经办人</span><span class="v">'+esc(j.reqBy)+'　'+esc(j.reqAt)+'</span></div>'
+    +'<div class="kv"><span class="k">关联报修</span><span class="v">'+j.bx.map(function(x){return '<span class="lk" onclick="toast(\'已定位到报修单 '+x+'\')">'+esc(x)+'</span>';}).join('　')+'</span></div></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-list text-[#7C3AED]"></i>物资明细（逐行核销状态）</div>'
+    +'<table class="w-full itb"><thead><tr><th>物资</th><th>规格</th><th>审批</th><th>已核</th><th>单价</th><th>供应商</th><th>状态</th></tr></thead><tbody>'
+    +j.items.map(function(it){
+      var stt=it.done>=it.qty?'<span class="tag" style="background:#DCFCE7;color:#15803D">已核销</span>'
+        :(it.done>0?'<span class="tag" style="background:#FFEDE7;color:#E63E20">部分 '+it.done+'/'+it.qty+'</span>'
+        :'<span class="tag" style="background:#F1F5F9;color:#64748B">未核销</span>');
+      return '<tr><td>'+esc(it.name)+'</td><td class="text-[#64748B]">'+esc(it.spec)+'</td><td>'+it.qty+'</td>'
+        +'<td>'+it.done+'</td><td>¥'+money(it.price)+'</td><td class="text-[#64748B]">'+esc(it.vendor)+'</td><td>'+stt+'</td></tr>';
+    }).join('')
+    +'</tbody></table></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-receipt text-[#B45309]"></i>核销记录（'+j.entries.length+' 次）</div>';
+  if(j.entries.length){
+    h+=j.entries.map(function(e,i){
+      return '<div class="kv" style="align-items:flex-start"><span class="k">第 '+(i+1)+' 次</span><span class="v">'
+        +esc(e.at)+'　发票 '+esc(e.invoice)+'　¥'+money(e.amount)+'（'+e.detail.length+' 行）'
+        +(e.abn.length?'　<span style="color:#B45309">标记异常 '+e.abn.length+' 项</span>':'')
+        +'</span></div>';
+    }).join('');
+  }else{h+='<p class="text-[12px] text-[#94A3B8]">尚未核销</p>';}
+  h+='</div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-clock-rotate-left text-[#64748B]"></i>审批与操作留痕</div><div class="tl">'
+    +(j.logs.length?j.logs.map(function(l){return '<div class="tl-i"><b>'+esc(l[0])+'</b>　'+esc(l[1])+'</div>';}).join(''):'<div class="tl-i">尚无记录</div>')
+    +'</div></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">关闭</button>'
+    +((j.state==='已通过'||j.state==='部分核销')?'<button class="btn btn-primary" onclick="openEntry(\''+j.no+'\')">上传凭证核销</button>':'')
+    +'</div>';
+  document.getElementById('drawer').innerHTML=h;show();
+}
+function show(){document.getElementById('mask').className='mask on';document.getElementById('drawer').className='drawer on';}
+function closeAll(){document.getElementById('mask').className='mask';document.getElementById('drawer').className='drawer';}
+function switchTab(t,el){
+  curTab=t;
+  document.querySelectorAll('#tabs span').forEach(function(x){x.className='py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600';});
+  if(el)el.className='py-2.5 text-[13px] cursor-pointer tab-on';
+  document.getElementById('pane-pool').style.display=(t==='pool')?'':'none';
+  document.getElementById('pane-jb').style.display=(t==='jb')?'':'none';
+  document.getElementById('pane-ex').style.display=(t==='ex')?'':'none';
+}
+
+renderStats();renderPool();renderJb();renderEx();
+</script>
+<script src="../shared/op-guard.js"></script>
+<script src="../shared/page-prd.js"></script>
+</body>
+</html>
