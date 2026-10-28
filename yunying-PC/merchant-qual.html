@@ -29,6 +29,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .fl{display:block;font-size:11px;color:#94A3B8;margin-bottom:4px}
 button{cursor:pointer}
 .thumb{width:120px;height:84px;border-radius:8px;border:1px dashed #CBD5E1;background:repeating-linear-gradient(45deg,#F8FAFC,#F8FAFC 8px,#F1F5F9 8px,#F1F5F9 16px);display:flex;align-items:center;justify-content:center;font-size:11px;color:#94A3B8;cursor:pointer}
+.tab{padding:6px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;color:#64748B;transition:.15s;display:inline-flex;align-items:center;gap:5px}
+.tab:hover{background:#F8FAFC;color:#1F2430}
+.tab.on{background:#FFF1ED;color:#FF4D2D;font-weight:600}
 </style>
 <!-- Tailwind 静态样式：本地引用（不再依赖 cdn.tailwindcss.com）；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
 <link rel="stylesheet" href="tailwind.css">
@@ -52,52 +55,105 @@ button{cursor:pointer}
 
   <div class="grid grid-cols-4 gap-3 mb-4" id="stats"></div>
 
-  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
-    <div class="flex items-center gap-3 flex-wrap">
-      <input id="f-kw" type="text" placeholder="商户名称 / 证书编号" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary w-64">
-      <select id="f-type" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
-        <option value="">全部资质类型</option><option>营业执照</option><option>生产许可</option><option>品牌授权</option><option>质检报告</option>
-      </select>
-      <select id="f-status" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
-        <option value="">全部状态</option><option>待审核</option><option>已通过</option><option>已驳回</option><option>已过期</option>
-      </select>
-      <select id="f-exp" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
-        <option value="">到期提醒</option><option value="30">30 天内到期</option><option value="0">已过期</option>
-      </select>
-      <button class="btn btn-primary" onclick="doSearch()">查询</button>
-      <button class="btn btn-ghost" onclick="resetSearch()">重置</button>
+  <!-- Tab：证书维度 / 主体维度 -->
+  <div class="bg-white rounded-xl border border-gray-100 mb-4">
+    <div class="px-5 py-2.5 flex items-center gap-2 flex-wrap">
+      <div class="tab on" data-t="q">资质台账 <span class="tag" style="background:#DBEAFE;color:#2563EB">证书维度</span></div>
+      <div class="tab" data-t="c">主体认证 <span class="tag" style="background:#FEF3C7;color:#B45309">决定政策申报准入</span></div>
+      <span class="text-[11px] text-[#94A3B8] ml-auto"><i class="fas fa-circle-info mr-1"></i>资质台账管「这张证书到期没到期」；主体认证管「这家商户能不能申报政策」——两套状态互不替代</span>
     </div>
   </div>
 
-  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
-    <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
-      <span class="text-[12px] text-[#94A3B8]" id="cnt">共 0 条</span>
-      <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>报价权限<b>随入驻审核默认开通</b>；本页状态含义：资质有效（受限品类可报价）｜ 已过期/已驳回（<b>报价已冻结</b>，仍可浏览需求池）</span>
+  <!-- ① 资质台账（证书维度） -->
+  <div id="pane-q">
+    <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+      <div class="flex items-center gap-3 flex-wrap">
+        <input id="f-kw" type="text" placeholder="商户名称 / 证书编号" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary w-64">
+        <select id="f-type" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+          <option value="">全部资质类型</option><option>营业执照</option><option>生产许可</option><option>品牌授权</option><option>质检报告</option>
+        </select>
+        <select id="f-status" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+          <option value="">全部状态</option><option>待审核</option><option>已通过</option><option>已驳回</option><option>已过期</option>
+        </select>
+        <select id="f-exp" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+          <option value="">到期提醒</option><option value="30">30 天内到期</option><option value="0">已过期</option>
+        </select>
+        <button class="btn btn-primary" onclick="doSearch()">查询</button>
+        <button class="btn btn-ghost" onclick="resetSearch()">重置</button>
+      </div>
     </div>
-    <div class="overflow-x-auto">
-      <table class="w-full text-[13px]" style="min-width:1120px">
-        <thead>
-          <tr class="bg-gray-50 text-gray-500 text-[12px]">
-            <th class="px-4 py-3 text-left font-medium">商户名称</th>
-            <th class="px-4 py-3 text-left font-medium">商户类型</th>
-            <th class="px-4 py-3 text-left font-medium">资质类型</th>
-            <th class="px-4 py-3 text-left font-medium">证书编号</th>
-            <th class="px-4 py-3 text-left font-medium">有效期</th>
-            <th class="px-4 py-3 text-left font-medium">附件</th>
-            <th class="px-4 py-3 text-left font-medium">提交时间</th>
-            <th class="px-4 py-3 text-left font-medium">状态</th>
-            <th class="px-4 py-3 text-center font-medium">操作</th>
-          </tr>
-        </thead>
-        <tbody id="tb" class="divide-y divide-gray-50"></tbody>
-      </table>
+
+    <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+      <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+        <span class="text-[12px] text-[#94A3B8]" id="cnt">共 0 条</span>
+        <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>报价权限<b>随入驻审核默认开通</b>；本页状态含义：资质有效（受限品类可报价）｜ 已过期/已驳回（<b>报价已冻结</b>，仍可浏览需求池）</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-[13px]" style="min-width:1120px">
+          <thead>
+            <tr class="bg-gray-50 text-gray-500 text-[12px]">
+              <th class="px-4 py-3 text-left font-medium">商户名称</th>
+              <th class="px-4 py-3 text-left font-medium">商户类型</th>
+              <th class="px-4 py-3 text-left font-medium">资质类型</th>
+              <th class="px-4 py-3 text-left font-medium">证书编号</th>
+              <th class="px-4 py-3 text-left font-medium">有效期</th>
+              <th class="px-4 py-3 text-left font-medium">附件</th>
+              <th class="px-4 py-3 text-left font-medium">提交时间</th>
+              <th class="px-4 py-3 text-left font-medium">状态</th>
+              <th class="px-4 py-3 text-center font-medium">操作</th>
+            </tr>
+          </thead>
+          <tbody id="tb" class="divide-y divide-gray-50"></tbody>
+        </table>
+      </div>
+      <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+        <span class="text-[12px] text-gray-400" id="pageInfo">共 0 条记录</span>
+        <div class="flex items-center gap-1">
+          <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100" onclick="toast('已是第一页（原型）')"><i class="fas fa-chevron-left text-[10px]"></i></button>
+          <button class="w-7 h-7 flex items-center justify-center text-white text-[12px] rounded" style="background:#FF4D2D" onclick="toast('当前第 1 页（原型）')">1</button>
+          <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100" onclick="toast('已切换到第 2 页（原型）')"><i class="fas fa-chevron-right text-[10px]"></i></button>
+        </div>
+      </div>
     </div>
-    <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
-      <span class="text-[12px] text-gray-400" id="pageInfo">共 0 条记录</span>
-      <div class="flex items-center gap-1">
-        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100" onclick="toast('已是第一页（原型）')"><i class="fas fa-chevron-left text-[10px]"></i></button>
-        <button class="w-7 h-7 flex items-center justify-center text-white text-[12px] rounded" style="background:#FF4D2D" onclick="toast('当前第 1 页（原型）')">1</button>
-        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100" onclick="toast('已切换到第 2 页（原型）')"><i class="fas fa-chevron-right text-[10px]"></i></button>
+  </div>
+
+  <!-- ② 主体认证（商户维度，决定 13 产业链政策申报准入） -->
+  <div id="pane-c" class="hidden">
+    <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+      <div class="flex items-center gap-3 flex-wrap">
+        <input id="c-kw" type="text" placeholder="商户名称 / 证件编号" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary w-64">
+        <select id="c-sub" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+          <option value="">全部主体类型</option><option>个体工商户</option><option>企业</option><option>工厂制造商</option>
+        </select>
+        <select id="c-status" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+          <option value="">全部认证状态</option><option>未提交</option><option>审核中</option><option>已通过</option><option>已驳回</option>
+        </select>
+        <button class="btn btn-primary" onclick="doSearchC()">查询</button>
+        <button class="btn btn-ghost" onclick="resetSearchC()">重置</button>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+      <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between gap-3 flex-wrap">
+        <span class="text-[12px] text-[#94A3B8]" id="c-cnt">共 0 条</span>
+        <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>认证<b>已通过</b> → 买家端「政策申报 / 技术共享」入口开放；未提交 / 审核中 / 已驳回 → 端上显示「需企业资质」并引导认证（口径同 13 分册 v1.5）</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-[13px]" style="min-width:1120px">
+          <thead>
+            <tr class="bg-gray-50 text-gray-500 text-[12px]">
+              <th class="px-4 py-3 text-left font-medium">商户名称</th>
+              <th class="px-4 py-3 text-left font-medium">主体类型</th>
+              <th class="px-4 py-3 text-left font-medium">主体性质</th>
+              <th class="px-4 py-3 text-left font-medium">证件编号</th>
+              <th class="px-4 py-3 text-left font-medium">提交 / 审核时间</th>
+              <th class="px-4 py-3 text-left font-medium">认证状态</th>
+              <th class="px-4 py-3 text-left font-medium">政策申报准入</th>
+              <th class="px-4 py-3 text-center font-medium">操作</th>
+            </tr>
+          </thead>
+          <tbody id="tb-c" class="divide-y divide-gray-50"></tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -125,15 +181,100 @@ var TYC={'营业执照':'background:#DBEAFE;color:#2563EB','生产许可':'backg
 function st(s,c){return '<span class="st" style="'+(c||'background:#F1F5F9;color:#64748B')+'">'+esc(s)+'</span>';}
 function expTag(d){return d<0?'<span class="text-[11px]" style="color:#B91C1C">已过期 '+Math.abs(d)+' 天</span>':(d<=30?'<span class="text-[11px]" style="color:#B45309">'+d+' 天内到期</span>':'<span class="text-[11px] text-[#94A3B8]">'+d+' 天后到期</span>');}
 
-function renderStats(){
-  var wait=QL.filter(function(x){return x.status==='待审核';}).length;
-  var pass=QL.filter(function(x){return x.status==='已通过';}).length;
-  var soon=QL.filter(function(x){return x.days>0&&x.days<=30;}).length;
-  var over=QL.filter(function(x){return x.status==='已过期';}).length;
-  var cards=[['待审核资质',wait,'#B45309'],['本月通过',pass,'#15803D'],['30 天内到期',soon,'#E63E20'],['已过期（权限已冻结）',over,'#B91C1C']];
+/* ================= 主体认证（商户维度 → 决定 13 产业链政策申报准入） ================= */
+var CZ=[
+  {id:'CZ20260901001',m:'大唐旗舰精梳棉',sub:'个体工商户',code:'92330681MA2XXXXX21',submit:'2026-09-01 09:20',audit:'2026-09-02 11:05',status:'已通过',rej:'',by:'张专员'},
+  {id:'CZ20260912002',m:'诸暨市袜机配件厂',sub:'企业',code:'91330681MA2D1YYYY2',submit:'2026-09-12 14:30',audit:'2026-09-13 10:12',status:'已通过',rej:'',by:'张专员'},
+  {id:'CZ20260920003',m:'棉田纱线直营店',sub:'个体工商户',code:'92330681MA2XXXXX42',submit:'2026-09-20 10:05',audit:'',status:'审核中',rej:'',by:''},
+  {id:'CZ20260925004',m:'鸿程包装材料',sub:'企业',code:'91330681MA2D1ZZZZ3',submit:'2026-09-25 16:40',audit:'',status:'审核中',rej:'',by:''},
+  {id:'CZ20260927005',m:'晓琳袜业经营部',sub:'个体工商户',code:'92330681MA2XXXXX31',submit:'2026-09-27 15:40',audit:'2026-09-28 09:15',status:'已驳回',rej:'营业执照主体与经营者不一致，请重传',by:'李主管'},
+  {id:'',m:'大唐袜业产业园运营公司',sub:'企业',code:'—',submit:'',audit:'',status:'未提交',rej:'',by:''},
+  {id:'CZ20260928006',m:'锦程包装设计',sub:'工厂制造商',code:'91330681MA2D1WWWW4',submit:'2026-09-28 08:50',audit:'',status:'审核中',rej:'',by:''}
+];
+var CST={'未提交':'background:#F1F5F9;color:#64748B','审核中':'background:#FEF3C7;color:#B45309','已通过':'background:#DCFCE7;color:#15803D','已驳回':'background:#FEE2E2;color:#B91C1C'};
+var SUBTYPE={'个体工商户':'个人','企业':'企业','工厂制造商':'企业'};
+var curRowsC=CZ.slice(),curIdC=null;
+
+/* 认证结果 → 政策申报准入（口径同 13 分册 v1.5：限已绑定且认证通过的商户主体） */
+function accessOf(x){
+  if(x.status==='已通过') return '<span style="color:#15803D">可申报政策 / 技术共享</span>';
+  if(x.status==='审核中') return '<span style="color:#B45309">审核中，暂不可申报</span>';
+  if(x.status==='已驳回') return '<span style="color:#B91C1C">已关闭（驳回待重传）</span>';
+  return '<span style="color:#64748B">端上显示「需企业资质」</span>';
+}
+
+function renderStats(k){
+  var cards;
+  if(k==='c'){
+    cards=[
+      ['未提交认证',CZ.filter(function(x){return x.status==='未提交';}).length,'#64748B'],
+      ['审核中',CZ.filter(function(x){return x.status==='审核中';}).length,'#B45309'],
+      ['已通过（可申报）',CZ.filter(function(x){return x.status==='已通过';}).length,'#15803D'],
+      ['已驳回',CZ.filter(function(x){return x.status==='已驳回';}).length,'#B91C1C']
+    ];
+  }else{
+    cards=[
+      ['待审核资质',QL.filter(function(x){return x.status==='待审核';}).length,'#B45309'],
+      ['本月通过',QL.filter(function(x){return x.status==='已通过';}).length,'#15803D'],
+      ['30 天内到期',QL.filter(function(x){return x.days>0&&x.days<=30;}).length,'#E63E20'],
+      ['已过期（权限已冻结）',QL.filter(function(x){return x.status==='已过期';}).length,'#B91C1C']
+    ];
+  }
   document.getElementById('stats').innerHTML=cards.map(function(x){
     return '<div class="bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">'+x[0]+'</p><p class="text-xl font-bold mt-1" style="color:'+x[2]+'">'+x[1]+'</p></div>';
   }).join('');
+}
+
+function switchTab(k){
+  document.querySelectorAll('.tab[data-t]').forEach(function(x){
+    x.classList.toggle('on',x.getAttribute('data-t')===k);
+  });
+  document.getElementById('pane-q').classList.toggle('hidden',k!=='q');
+  document.getElementById('pane-c').classList.toggle('hidden',k!=='c');
+  renderStats(k);
+  if(k==='c') renderC();
+}
+document.querySelectorAll('.tab[data-t]').forEach(function(t){
+  t.addEventListener('click',function(){ switchTab(t.getAttribute('data-t')); });
+});
+
+function renderC(){
+  var h='';
+  curRowsC.forEach(function(x){
+    var idx=CZ.indexOf(x);
+    h+='<tr class="hover:bg-gray-50 transition">'
+      +'<td class="px-4 py-3 font-medium text-[#1F2430]">'+esc(x.m)+'</td>'
+      +'<td class="px-4 py-3">'+st(x.sub,'background:#EFF6FF;color:#2563EB')+'</td>'
+      +'<td class="px-4 py-3">'+st(SUBTYPE[x.sub]||'—',SUBTYPE[x.sub]==='企业'?'background:#DCFCE7;color:#15803D':'background:#F1F5F9;color:#64748B')+'</td>'
+      +'<td class="px-4 py-3 text-[#64748B] text-[12px]">'+esc(x.code)+'</td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+(x.submit?esc(x.submit):'—')
+        +(x.audit?'<br><span class="text-[#94A3B8]">审 '+esc(x.audit)+'</span>':'')+'</td>'
+      +'<td class="px-4 py-3">'+st(x.status,CST[x.status])+'</td>'
+      +'<td class="px-4 py-3 text-[12px]">'+accessOf(x)+'</td>'
+      +'<td class="px-4 py-3 text-center whitespace-nowrap">'
+        +((x.status==='审核中'||x.status==='未提交')?'<span class="lk" onclick="openCert('+idx+')">'+(x.status==='未提交'?'代录认证':'审核')+'</span> · ':'')
+        +'<span class="lk-gray" onclick="openCert('+idx+')">详情</span></td></tr>';
+  });
+  if(!curRowsC.length){h='<tr><td colspan="8" class="px-4 py-16 text-center text-gray-300"><i class="fas fa-inbox text-3xl block mb-2"></i><span class="text-[12px]">暂无匹配的主体认证记录</span></td></tr>';}
+  document.getElementById('tb-c').innerHTML=h;
+  document.getElementById('c-cnt').textContent='共 '+curRowsC.length+' 条';
+}
+function doSearchC(){
+  var kw=document.getElementById('c-kw').value.trim(),s=document.getElementById('c-sub').value,t=document.getElementById('c-status').value;
+  curRowsC=CZ.filter(function(x){
+    if(kw && x.m.indexOf(kw)<0 && (x.code||'').indexOf(kw)<0) return false;
+    if(s && x.sub!==s) return false;
+    if(t && x.status!==t) return false;
+    return true;
+  });
+  renderC();
+  toast('已筛选：'+curRowsC.length+' 条');
+}
+function resetSearchC(){
+  document.getElementById('c-kw').value='';
+  document.getElementById('c-sub').value='';
+  document.getElementById('c-status').value='';
+  curRowsC=CZ.slice();renderC();toast('已重置筛选条件');
 }
 function render(){
   var h='';
@@ -243,9 +384,101 @@ function audit(action){
     x.status='已驳回';
     toast('已驳回（'+rs+'）：询价权限保持冻结，已通知商户重传');
   }
-  closeD();render();renderStats();
+  closeD();render();renderStats('q');
 }
-renderStats();render();
+
+/* ================= 主体认证：审核抽屉 ================= */
+function openCert(idx){
+  curIdC=idx;
+  var x=CZ[idx]; if(!x) return;
+  var can=(x.status==='审核中'||x.status==='未提交');
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+(can?'主体认证审核':'主体认证详情')+'　'+esc(x.id||'—')+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+st(x.status,CST[x.status])+'　'+esc(x.m)+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeD()"><i class="fas fa-xmark"></i></button></div>';
+
+  h+='<div class="p-5 space-y-3">';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-building-columns"></i>主体信息</div>'
+    +'<div class="kv"><span class="k">商户名称</span><span class="v">'+esc(x.m)+'</span></div>'
+    +'<div class="kv"><span class="k">主体类型</span><span class="v">'+esc(x.sub)+'　'+st(SUBTYPE[x.sub]||'—',SUBTYPE[x.sub]==='企业'?'background:#DCFCE7;color:#15803D':'background:#F1F5F9;color:#64748B')+'</span></div>'
+    +'<div class="kv"><span class="k">证件编号</span><span class="v">'+esc(x.code)+'</span></div>'
+    +'<div class="kv"><span class="k">提交时间</span><span class="v">'+(x.submit?esc(x.submit):'—')+'</span></div>'
+    +'<div class="kv"><span class="k">认证状态</span><span class="v">'+st(x.status,CST[x.status])+'</span></div>'
+    +'</div>';
+
+  h+='<div class="blk" style="border-color:#BFDBFE;background:#F8FBFF"><div class="blk-t" style="color:#2563EB"><i class="fas fa-link"></i>政策申报准入联动（13 产业链服务）</div>'
+    +'<p class="text-[12px] text-[#64748B] leading-6">买家端「政策申报 / 技术共享」要求<b>已绑定且认证通过</b>的商户主体（13 分册 v1.5）。<br>'
+    +'· <b>已通过</b> → 端上入口开放，可直接申报；<br>'
+    +'· <b>未提交 / 审核中 / 已驳回</b> → 端上显示「需企业资质」并引导认证。<br>'
+    +'当前：'+accessOf(x)+'</p></div>';
+
+  if(can){
+    h+='<div class="blk" style="border-color:#FDB4A3;background:#FFF6F3"><div class="blk-t" style="color:#E63E20"><i class="fas fa-pen-to-square"></i>审核结论</div>'
+      +(x.status==='未提交'
+        ? '<p class="text-[12px] text-[#64748B] mb-2">该商户尚未提交主体认证材料，可先<b>代录</b>（线下收取证件）进入「审核中」。</p>'
+        : '')
+      +'<div id="cRejBlk" style="display:none"><label class="fl"><span style="color:#FF4D2D">*</span> 驳回原因（必填）</label>'
+      +'<select id="cRejReason" class="sel"><option value="">请选择驳回原因</option><option>营业执照主体与经营者不一致</option><option>证件不清晰 / 缺页</option><option>证件已过期</option><option>主体类型选择错误</option><option>其他</option></select></div>'
+      +'<label class="fl" style="margin-top:8px">审核备注（选填）</label>'
+      +'<textarea id="cMemo" rows="2" class="w-full p-2 text-[12px] border border-[#E2E8F0] rounded-lg outline-none" placeholder="会记入主体认证轨迹"></textarea>'
+      +'<div class="flex items-center gap-2 mt-3">'
+      +(x.status==='未提交'
+        ? '<button class="btn btn-primary" onclick="recordCert()">代录认证材料</button>'
+        : '<button class="btn btn-primary" onclick="doCertAudit(true)">审核通过（开放政策申报）</button>'
+          +'<button class="btn btn-ghost" onclick="showCertRej()" style="color:#B91C1C;border-color:#FECACA">驳回</button>'
+          +'<button class="btn btn-primary" id="btnCertRej" style="display:none;background:linear-gradient(135deg,#EF4444,#B91C1C)" onclick="doCertAudit(false)">确认驳回</button>')
+      +'</div></div>';
+  } else {
+    h+='<div class="blk"><div class="blk-t"><i class="fas fa-clock-rotate-left text-[#64748B]"></i>认证轨迹</div>'
+      +'<div class="text-[12px] text-[#64748B] leading-7">'
+      +(x.submit?'· 提交主体认证　'+esc(x.submit)+'<br>':'')
+      +(x.status==='已通过'?'· 审核通过（'+esc(x.by||'—')+'）　'+esc(x.audit)+' → 政策申报入口已开放<br>':'')
+      +(x.status==='已驳回'?'· 驳回（'+esc(x.by||'—')+'）　'+esc(x.audit)+'<br>　原因：'+esc(x.rej)+'<br>':'')
+      +'</div></div>';
+  }
+  h+='</div>';
+
+  document.getElementById('drawer').innerHTML=h;
+  document.getElementById('mask').classList.add('on');
+  document.getElementById('drawer').classList.add('on');
+}
+
+function showCertRej(){
+  document.getElementById('cRejBlk').style.display='block';
+  var b=document.getElementById('btnCertRej'); if(b) b.style.display='inline-flex';
+}
+
+function recordCert(){
+  var x=CZ[curIdC]; if(!x) return;
+  x.status='审核中';
+  x.submit=nowStr();
+  x.id='CZ'+nowStr().replace(/[-: ]/g,'').slice(0,12);
+  closeD(); renderC(); renderStats('c');
+  toast('已代录认证材料（'+x.m+'），状态 → 审核中');
+}
+
+function doCertAudit(pass){
+  var x=CZ[curIdC]; if(!x) return;
+  if(!pass){
+    var rs=(document.getElementById('cRejReason')||{}).value||'';
+    if(!rs){ toast('驳回原因必填，请先选择'); return; }
+    x.status='已驳回'; x.rej=rs; x.by='运营专员';
+  }else{
+    x.status='已通过'; x.rej=''; x.by='运营专员';
+  }
+  x.audit=nowStr();
+  closeD(); renderC(); renderStats('c');
+  toast(pass
+    ? '已通过：'+x.m+'（买家端政策申报入口已开放）'
+    : '已驳回：'+x.m+'（原因：'+x.rej+'）已通知商户重传');
+}
+
+function nowStr(){
+  var d=new Date(),p=function(n){return (n<10?'0':'')+n;};
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());
+}
+
+renderStats('q');render();renderC();
 </script>
 <script src="../shared/op-guard.js"></script>
 <script src="../shared/page-prd.js"></script>

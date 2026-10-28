@@ -59,8 +59,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
   <div class="grid grid-cols-4 gap-4 mb-5">
     <div class="stat-card bg-white rounded-xl border border-gray-100 p-4">
       <div class="flex items-center justify-between"><span class="text-[12px] text-[#64748B]">官方资料</span><i class="fas fa-file-arrow-down text-[13px]" style="color:#FF4D2D"></i></div>
-      <p class="text-2xl font-bold text-[#1F2430] mt-2">8</p>
-      <p class="text-[11px] text-[#94A3B8] mt-1">已发布 7 · 下架 1</p>
+      <p class="text-2xl font-bold text-[#1F2430] mt-2">9</p>
+      <p class="text-[11px] text-[#94A3B8] mt-1">已发布 8 · 下架 1</p>
     </div>
     <div class="stat-card bg-white rounded-xl border border-gray-100 p-4">
       <div class="flex items-center justify-between"><span class="text-[12px] text-[#64748B]">展商资料待审</span><i class="fas fa-file-circle-exclamation text-[13px]" style="color:#F97316"></i></div>
@@ -82,13 +82,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
   <div class="bg-white rounded-xl border border-gray-100 overflow-hidden mb-4">
     <div class="px-5 py-3 border-b border-gray-100 flex items-center gap-2 flex-wrap">
       <button class="btn btn-ghost" onclick="toast('打开分类维护')"><i class="fas fa-folder-tree mr-1"></i>分类维护</button>
-      <button class="btn btn-primary" onclick="toast('打开上传资料')"><i class="fas fa-upload mr-1"></i>上传资料</button>
+      <button class="btn btn-primary" onclick="openOfficial(null)"><i class="fas fa-upload mr-1"></i>上传资料</button>
     </div>
   </div>
 
   <div class="bg-white rounded-xl border border-gray-100 mb-4">
     <div class="px-5 pt-4 pb-3 flex items-center gap-2">
-      <div class="tab on" data-t="o">官方资料 <span class="tag ml-1" style="background:#FFF1ED;color:#FF4D2D">8</span></div>
+      <div class="tab on" data-t="o">官方资料 <span class="tag ml-1" style="background:#FFF1ED;color:#FF4D2D">9</span></div>
       <div class="tab" data-t="m">展商资料 <span class="tag ml-1" style="background:#FEF3C7;color:#D97706" id="tabPending">37 待审</span></div>
     </div>
   </div>
@@ -103,70 +103,147 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 
   <!-- 官方资料 -->
   <div class="bg-white rounded-xl border border-gray-100 overflow-hidden" id="pane-o">
-    <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
-      <div class="section-label mb-0">官方资料（8）</div>
-      <div class="text-[12px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>「需登记解锁」资料要求观众参观登记审核通过后方可下载</div>
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between gap-3 flex-wrap">
+      <div class="section-label mb-0">官方资料（<span id="ofCount">9</span>）</div>
+      <div class="flex items-center gap-3 flex-wrap">
+        <select id="ofScope" class="px-3 py-1.5 text-[12px] bg-gray-50 border border-gray-200 rounded-lg outline-none" onchange="filterOfficial(this.value)">
+          <option value="">适用对象：全部</option>
+          <option value="audience">只看观众可见</option>
+          <option value="exhibitor">只看展商可见</option>
+        </select>
+        <span class="text-[12px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>「适用对象」决定资料出现在观众侧还是展商侧；「需登记解锁」需观众登记审核通过后方可下载</span>
+      </div>
     </div>
     <table class="w-full tb">
       <thead><tr>
-        <th>资料名称</th><th>描述</th><th>格式</th><th>大小</th><th>访问策略</th><th>下载次数</th><th>状态</th><th>操作</th>
+        <th>资料名称</th><th>适用对象</th><th>格式 / 大小</th><th>版本</th><th>访问策略</th><th>下载次数</th><th>状态</th><th>操作</th>
       </tr></thead>
-      <tbody>
-        <tr>
-          <td><div class="flex items-center gap-2"><i class="fas fa-file-pdf" style="color:#DC2626"></i><span class="font-medium">展商名录（完整版）</span></div></td>
-          <td class="text-[#64748B]">800+ 展商信息 · 展位号 · 主营产品 · 联系方式</td><td>PDF</td><td>5.2MB</td>
-          <td><span class="tag" style="background:#F1F5F9;color:#64748B">公开</span></td><td class="font-medium">6,240</td>
-          <td><span class="tag" style="background:#DCFCE7;color:#059669">已发布</span></td>
-          <td><span class="lk" onclick="openD('o')">编辑</span> · <span class="lk" onclick="toast('资料已下架')">下架</span></td>
+      <tbody id="tbody-o">
+        <tr data-id="M001" data-name="展商名录（完整版）" data-desc="800+ 展商信息 · 展位号 · 主营产品 · 联系方式"
+            data-scope="audience,exhibitor" data-fmt="PDF" data-size="5.2MB" data-ver="v3.0"
+            data-access="public" data-dl="6240" data-state="published">
+          <td>
+            <div class="flex items-center gap-2"><i class="fas fa-file-pdf" style="color:#DC2626"></i><span class="font-medium">展商名录（完整版）</span></div>
+            <p class="text-[11px] text-[#94A3B8] mt-0.5">800+ 展商信息 · 展位号 · 主营产品 · 联系方式</p>
+          </td>
+          <td class="of-scope"><span class="tag" style="background:#F0FDF4;color:#16A34A">全部</span></td>
+          <td>PDF · 5.2MB</td><td>v3.0</td>
+          <td class="of-access"><span class="tag" style="background:#F1F5F9;color:#64748B">公开</span></td>
+          <td class="font-medium">6,240</td>
+          <td class="of-state"><span class="tag" style="background:#DCFCE7;color:#059669">已发布</span></td>
+          <td class="of-ops"><span class="lk" onclick="openOfficial(this)">编辑</span> · <span class="lk" onclick="toggleOfficial(this)">下架</span></td>
         </tr>
-        <tr>
-          <td><div class="flex items-center gap-2"><i class="fas fa-file-pdf" style="color:#DC2626"></i><span class="font-medium">展位平面图（高清版）</span></div></td>
-          <td class="text-[#64748B]">A/B/C/D 全馆展位分布 · 含展商名称</td><td>PDF</td><td>3.8MB</td>
-          <td><span class="tag" style="background:#F1F5F9;color:#64748B">公开</span></td><td class="font-medium">4,180</td>
-          <td><span class="tag" style="background:#DCFCE7;color:#059669">已发布</span></td>
-          <td><span class="lk" onclick="openD('o')">编辑</span> · <span class="lk" onclick="toast('资料已下架')">下架</span></td>
+        <tr data-id="M002" data-name="展位平面图（高清版）" data-desc="A/B/C/D 全馆展位分布 · 含展商名称"
+            data-scope="audience,exhibitor" data-fmt="PDF" data-size="3.8MB" data-ver="v2.1"
+            data-access="public" data-dl="4180" data-state="published">
+          <td>
+            <div class="flex items-center gap-2"><i class="fas fa-file-pdf" style="color:#DC2626"></i><span class="font-medium">展位平面图（高清版）</span></div>
+            <p class="text-[11px] text-[#94A3B8] mt-0.5">A/B/C/D 全馆展位分布 · 含展商名称</p>
+          </td>
+          <td class="of-scope"><span class="tag" style="background:#F0FDF4;color:#16A34A">全部</span></td>
+          <td>PDF · 3.8MB</td><td>v2.1</td>
+          <td class="of-access"><span class="tag" style="background:#F1F5F9;color:#64748B">公开</span></td>
+          <td class="font-medium">4,180</td>
+          <td class="of-state"><span class="tag" style="background:#DCFCE7;color:#059669">已发布</span></td>
+          <td class="of-ops"><span class="lk" onclick="openOfficial(this)">编辑</span> · <span class="lk" onclick="toggleOfficial(this)">下架</span></td>
         </tr>
-        <tr>
-          <td><div class="flex items-center gap-2"><i class="fas fa-file-pdf" style="color:#DC2626"></i><span class="font-medium">展会日程手册</span></div></td>
-          <td class="text-[#64748B]">3 天完整日程 · 论坛议程 · 活动详情</td><td>PDF</td><td>2.1MB</td>
-          <td><span class="tag" style="background:#F1F5F9;color:#64748B">公开</span></td><td class="font-medium">3,920</td>
-          <td><span class="tag" style="background:#DCFCE7;color:#059669">已发布</span></td>
-          <td><span class="lk" onclick="openD('o')">编辑</span> · <span class="lk" onclick="toast('资料已下架')">下架</span></td>
+        <tr data-id="M003" data-name="展会日程手册" data-desc="3 天完整日程 · 论坛议程 · 活动详情"
+            data-scope="audience" data-fmt="PDF" data-size="2.1MB" data-ver="v1.4"
+            data-access="public" data-dl="3920" data-state="published">
+          <td>
+            <div class="flex items-center gap-2"><i class="fas fa-file-pdf" style="color:#DC2626"></i><span class="font-medium">展会日程手册</span></div>
+            <p class="text-[11px] text-[#94A3B8] mt-0.5">3 天完整日程 · 论坛议程 · 活动详情</p>
+          </td>
+          <td class="of-scope"><span class="tag" style="background:#EFF6FF;color:#2563EB">观众</span></td>
+          <td>PDF · 2.1MB</td><td>v1.4</td>
+          <td class="of-access"><span class="tag" style="background:#F1F5F9;color:#64748B">公开</span></td>
+          <td class="font-medium">3,920</td>
+          <td class="of-state"><span class="tag" style="background:#DCFCE7;color:#059669">已发布</span></td>
+          <td class="of-ops"><span class="lk" onclick="openOfficial(this)">编辑</span> · <span class="lk" onclick="toggleOfficial(this)">下架</span></td>
         </tr>
-        <tr>
-          <td><div class="flex items-center gap-2"><i class="fas fa-file-pdf" style="color:#DC2626"></i><span class="font-medium">参观指南</span></div></td>
-          <td class="text-[#64748B]">交通指南 · 入场流程 · 展馆服务 · 注意事项</td><td>PDF</td><td>1.5MB</td>
-          <td><span class="tag" style="background:#F1F5F9;color:#64748B">公开</span></td><td class="font-medium">2,760</td>
-          <td><span class="tag" style="background:#DCFCE7;color:#059669">已发布</span></td>
-          <td><span class="lk" onclick="openD('o')">编辑</span> · <span class="lk" onclick="toast('资料已下架')">下架</span></td>
+        <tr data-id="M004" data-name="参观指南" data-desc="交通指南 · 入场流程 · 展馆服务 · 注意事项"
+            data-scope="audience" data-fmt="PDF" data-size="1.5MB" data-ver="v2.0"
+            data-access="public" data-dl="2760" data-state="published">
+          <td>
+            <div class="flex items-center gap-2"><i class="fas fa-file-pdf" style="color:#DC2626"></i><span class="font-medium">参观指南</span></div>
+            <p class="text-[11px] text-[#94A3B8] mt-0.5">交通指南 · 入场流程 · 展馆服务 · 注意事项</p>
+          </td>
+          <td class="of-scope"><span class="tag" style="background:#EFF6FF;color:#2563EB">观众</span></td>
+          <td>PDF · 1.5MB</td><td>v2.0</td>
+          <td class="of-access"><span class="tag" style="background:#F1F5F9;color:#64748B">公开</span></td>
+          <td class="font-medium">2,760</td>
+          <td class="of-state"><span class="tag" style="background:#DCFCE7;color:#059669">已发布</span></td>
+          <td class="of-ops"><span class="lk" onclick="openOfficial(this)">编辑</span> · <span class="lk" onclick="toggleOfficial(this)">下架</span></td>
         </tr>
-        <tr>
-          <td><div class="flex items-center gap-2"><i class="fas fa-file-zipper" style="color:#F59E0B"></i><span class="font-medium">媒体素材包</span></div></td>
-          <td class="text-[#64748B]">展会 Logo · 海报 · 现场图片 · 新闻通稿</td><td>ZIP</td><td>28.6MB</td>
-          <td><span class="tag" style="background:#F1F5F9;color:#64748B">公开</span></td><td class="font-medium">486</td>
-          <td><span class="tag" style="background:#DCFCE7;color:#059669">已发布</span></td>
-          <td><span class="lk" onclick="openD('o')">编辑</span> · <span class="lk" onclick="toast('资料已下架')">下架</span></td>
+        <tr data-id="M005" data-name="媒体素材包" data-desc="展会 Logo · 海报 · 现场图片 · 新闻通稿"
+            data-scope="audience,exhibitor" data-fmt="ZIP" data-size="28.6MB" data-ver="v1.0"
+            data-access="public" data-dl="486" data-state="published">
+          <td>
+            <div class="flex items-center gap-2"><i class="fas fa-file-zipper" style="color:#F59E0B"></i><span class="font-medium">媒体素材包</span></div>
+            <p class="text-[11px] text-[#94A3B8] mt-0.5">展会 Logo · 海报 · 现场图片 · 新闻通稿</p>
+          </td>
+          <td class="of-scope"><span class="tag" style="background:#F0FDF4;color:#16A34A">全部</span></td>
+          <td>ZIP · 28.6MB</td><td>v1.0</td>
+          <td class="of-access"><span class="tag" style="background:#F1F5F9;color:#64748B">公开</span></td>
+          <td class="font-medium">486</td>
+          <td class="of-state"><span class="tag" style="background:#DCFCE7;color:#059669">已发布</span></td>
+          <td class="of-ops"><span class="lk" onclick="openOfficial(this)">编辑</span> · <span class="lk" onclick="toggleOfficial(this)">下架</span></td>
         </tr>
-        <tr>
-          <td><div class="flex items-center gap-2"><i class="fas fa-lock" style="color:#7C3AED"></i><span class="font-medium">2026 袜业白皮书</span></div></td>
-          <td class="text-[#64748B]">行业数据 · 趋势分析 · 市场报告</td><td>PDF</td><td>8.4MB</td>
-          <td><span class="tag" style="background:#EDE9FE;color:#7C3AED">需登记解锁</span></td><td class="font-medium">612</td>
-          <td><span class="tag" style="background:#DCFCE7;color:#059669">已发布</span></td>
-          <td><span class="lk" onclick="openD('o')">编辑</span> · <span class="lk" onclick="toast('资料已下架')">下架</span></td>
+        <tr data-id="M006" data-name="2026 袜业白皮书" data-desc="行业数据 · 趋势分析 · 市场报告"
+            data-scope="audience" data-fmt="PDF" data-size="8.4MB" data-ver="v1.2"
+            data-access="unlock" data-dl="612" data-state="published">
+          <td>
+            <div class="flex items-center gap-2"><i class="fas fa-lock" style="color:#7C3AED"></i><span class="font-medium">2026 袜业白皮书</span></div>
+            <p class="text-[11px] text-[#94A3B8] mt-0.5">行业数据 · 趋势分析 · 市场报告</p>
+          </td>
+          <td class="of-scope"><span class="tag" style="background:#EFF6FF;color:#2563EB">观众</span></td>
+          <td>PDF · 8.4MB</td><td>v1.2</td>
+          <td class="of-access"><span class="tag" style="background:#EDE9FE;color:#7C3AED">需登记解锁</span></td>
+          <td class="font-medium">612</td>
+          <td class="of-state"><span class="tag" style="background:#DCFCE7;color:#059669">已发布</span></td>
+          <td class="of-ops"><span class="lk" onclick="openOfficial(this)">编辑</span> · <span class="lk" onclick="toggleOfficial(this)">下架</span></td>
         </tr>
-        <tr>
-          <td><div class="flex items-center gap-2"><i class="fas fa-file-word" style="color:#2563EB"></i><span class="font-medium">参展商合同模板</span></div></td>
-          <td class="text-[#64748B]">标准展位合同 · 含条款及附件</td><td>DOC</td><td>0.8MB</td>
-          <td><span class="tag" style="background:#F1F5F9;color:#64748B">公开</span></td><td class="font-medium">198</td>
-          <td><span class="tag" style="background:#DCFCE7;color:#059669">已发布</span></td>
-          <td><span class="lk" onclick="openD('o')">编辑</span> · <span class="lk" onclick="toast('资料已下架')">下架</span></td>
+        <tr data-id="M007" data-name="参展商合同模板" data-desc="标准展位合同 · 含条款及附件"
+            data-scope="exhibitor" data-fmt="DOC" data-size="0.8MB" data-ver="v2.3"
+            data-access="public" data-dl="198" data-state="published">
+          <td>
+            <div class="flex items-center gap-2"><i class="fas fa-file-word" style="color:#2563EB"></i><span class="font-medium">参展商合同模板</span></div>
+            <p class="text-[11px] text-[#94A3B8] mt-0.5">标准展位合同 · 含条款及附件</p>
+          </td>
+          <td class="of-scope"><span class="tag" style="background:#FEF3C7;color:#D97706">展商</span></td>
+          <td>DOC · 0.8MB</td><td>v2.3</td>
+          <td class="of-access"><span class="tag" style="background:#F1F5F9;color:#64748B">公开</span></td>
+          <td class="font-medium">198</td>
+          <td class="of-state"><span class="tag" style="background:#DCFCE7;color:#059669">已发布</span></td>
+          <td class="of-ops"><span class="lk" onclick="openOfficial(this)">编辑</span> · <span class="lk" onclick="toggleOfficial(this)">下架</span></td>
         </tr>
-        <tr>
-          <td><div class="flex items-center gap-2"><i class="fas fa-lock" style="color:#7C3AED"></i><span class="font-medium">品牌新品目录</span></div></td>
-          <td class="text-[#64748B]">30+ 品牌秋冬新品 · 含产品参数图</td><td>PDF</td><td>4.6MB</td>
-          <td><span class="tag" style="background:#EDE9FE;color:#7C3AED">需登记解锁</span></td><td class="font-medium">24</td>
-          <td><span class="tag" style="background:#F1F5F9;color:#94A3B8">已下架</span></td>
-          <td><span class="lk" onclick="openD('o')">编辑</span> · <span class="lk" onclick="toast('资料已上架')">上架</span></td>
+        <tr data-id="M008" data-name="品牌新品目录" data-desc="30+ 品牌秋冬新品 · 含产品参数图"
+            data-scope="audience" data-fmt="PDF" data-size="4.6MB" data-ver="v1.1"
+            data-access="unlock" data-dl="24" data-state="offline">
+          <td>
+            <div class="flex items-center gap-2"><i class="fas fa-lock" style="color:#7C3AED"></i><span class="font-medium">品牌新品目录</span></div>
+            <p class="text-[11px] text-[#94A3B8] mt-0.5">30+ 品牌秋冬新品 · 含产品参数图</p>
+          </td>
+          <td class="of-scope"><span class="tag" style="background:#EFF6FF;color:#2563EB">观众</span></td>
+          <td>PDF · 4.6MB</td><td>v1.1</td>
+          <td class="of-access"><span class="tag" style="background:#EDE9FE;color:#7C3AED">需登记解锁</span></td>
+          <td class="font-medium">24</td>
+          <td class="of-state"><span class="tag" style="background:#F1F5F9;color:#94A3B8">已下架</span></td>
+          <td class="of-ops"><span class="lk" onclick="openOfficial(this)">编辑</span> · <span class="lk" onclick="toggleOfficial(this)">上架</span></td>
+        </tr>
+        <tr data-id="M009" data-name="2026 参展商参展手册" data-desc="报到流程 · 布展须知 · 现场服务 · 撤展安排"
+            data-scope="exhibitor" data-fmt="PDF" data-size="3.6MB" data-ver="v1.0"
+            data-access="public" data-dl="412" data-state="published">
+          <td>
+            <div class="flex items-center gap-2"><i class="fas fa-file-pdf" style="color:#DC2626"></i><span class="font-medium">2026 参展商参展手册</span><span class="tag" style="background:#FFF1ED;color:#FF4D2D">唯一</span></div>
+            <p class="text-[11px] text-[#94A3B8] mt-0.5">报到流程 · 布展须知 · 现场服务 · 撤展安排</p>
+          </td>
+          <td class="of-scope"><span class="tag" style="background:#FEF3C7;color:#D97706">展商</span></td>
+          <td>PDF · 3.6MB</td><td>v1.0</td>
+          <td class="of-access"><span class="tag" style="background:#F1F5F9;color:#64748B">公开</span></td>
+          <td class="font-medium">412</td>
+          <td class="of-state"><span class="tag" style="background:#DCFCE7;color:#059669">已发布</span></td>
+          <td class="of-ops"><span class="lk" onclick="openOfficial(this)">编辑</span> · <span class="lk" onclick="toggleOfficial(this)">下架</span></td>
         </tr>
       </tbody>
     </table>
@@ -302,33 +379,160 @@ function applyExh(name){
 }
 function clearExh(){ applyExh(''); toast('已清除展商筛选，显示全部展商资料'); }
 
-/* ---------- 官方资料详情 ---------- */
-var BODY={
- o:`<div class="ftitle" style="margin-top:0">资料信息</div>
-    <div class="bg-gray-50 rounded-xl px-4 py-2">
-      <div class="ir"><span>资料名称</span><span>2026 袜业白皮书</span></div>
-      <div class="ir"><span>描述</span><span>行业数据 · 趋势分析 · 市场报告</span></div>
-      <div class="ir"><span>格式 / 大小</span><span>PDF · 8.4MB</span></div>
-      <div class="ir"><span>访问策略</span><span class="tag" style="background:#EDE9FE;color:#7C3AED">需登记解锁</span></div>
-      <div class="ir"><span>下载次数</span><span>612</span></div>
-      <div class="ir"><span>状态</span><span class="tag" style="background:#DCFCE7;color:#059669">已发布</span></div>
-    </div>
-    <div class="ftitle">访问权限</div>
-    <p class="text-[12px] text-[#64748B] leading-relaxed">勾选「需登记解锁」后，观众必须完成参观登记且审核通过才能下载；未通过审核的用户点击下载将引导至登记页。</p>
-    <div class="mt-4 flex items-start gap-2 px-3 py-2 rounded-lg bg-orange-50 border border-orange-100">
-      <i class="fas fa-circle-info text-[12px] mt-0.5" style="color:#F97316"></i>
-      <p class="text-[11px] text-[#64748B]">纸质版资料包可在展会现场咨询服务台领取；该提示文案可在「展会配置 - 基本信息」中维护。</p>
-    </div>`
+/* ---------- 官方资料：适用对象 / 版本 / 参展手册唯一性 ---------- */
+var SCOPE={
+  audience:['观众','#EFF6FF','#2563EB'],
+  exhibitor:['展商','#FEF3C7','#D97706'],
+  both:['全部','#F0FDF4','#16A34A']
 };
+var ACCESS={
+  public:['公开','#F1F5F9','#64748B'],
+  unlock:['需登记解锁','#EDE9FE','#7C3AED']
+};
+var OFSTATE={
+  published:['已发布','#DCFCE7','#059669'],
+  offline:['已下架','#F1F5F9','#94A3B8']
+};
+var OF_ROW=null;
 
-function openD(){
-  document.getElementById('d-title').textContent='官方资料详情';
-  document.getElementById('d-sub').textContent='2026 袜业白皮书';
-  document.getElementById('d-body').innerHTML=BODY.o;
-  document.getElementById('d-foot').innerHTML='<button class="btn btn-ghost py-2.5" onclick="closeD()">关闭</button>'
-    +'<button class="btn btn-primary py-2.5 px-6" onclick="closeD();toast(\'资料已保存\')">保存</button>';
+function tagOf(m){ return '<span class="tag" style="background:'+m[1]+';color:'+m[2]+'">'+m[0]+'</span>'; }
+function scopeKey(s){
+  s=s||'';
+  var a=s.indexOf('audience')>=0, e=s.indexOf('exhibitor')>=0;
+  return a&&e?'both':(a?'audience':(e?'exhibitor':''));
+}
+function iconOf(f){
+  if(f==='ZIP') return '<i class="fas fa-file-zipper" style="color:#F59E0B"></i>';
+  if(f==='DOC') return '<i class="fas fa-file-word" style="color:#2563EB"></i>';
+  return '<i class="fas fa-file-pdf" style="color:#DC2626"></i>';
+}
+/* 「参展手册 + 含展商」= 买家端参展商中心取数的那条，全届只允许一条 */
+function isHandbook(tr){
+  return (tr.dataset.name||'').indexOf('参展手册')>=0 && (tr.dataset.scope||'').indexOf('exhibitor')>=0;
+}
+function refreshOfCount(){
+  document.getElementById('ofCount').textContent=document.querySelectorAll('#tbody-o tr').length;
+}
+function filterOfficial(v){
+  document.querySelectorAll('#tbody-o tr').forEach(function(t){
+    t.style.display=(!v||(t.dataset.scope||'').indexOf(v)>=0)?'':'none';
+  });
+}
+function repaintOfficial(tr){
+  var d=tr.dataset, tds=tr.querySelectorAll('td');
+  tds[0].innerHTML='<div class="flex items-center gap-2">'+iconOf(d.fmt)
+    +'<span class="font-medium">'+d.name+'</span>'
+    +(d.name.indexOf('参展手册')>=0?'<span class="tag" style="background:#FFF1ED;color:#FF4D2D">唯一</span>':'')+'</div>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-0.5">'+(d.desc||'')+'</p>';
+  tds[1].innerHTML=tagOf(SCOPE[scopeKey(d.scope)]||SCOPE.audience);
+  tds[2].textContent=d.fmt+' · '+(d.size||'—');
+  tds[3].textContent=d.ver||'—';
+  tds[4].innerHTML=tagOf(ACCESS[d.access]||ACCESS.public);
+  tds[5].textContent=Number(d.dl||0).toLocaleString();
+  tds[6].innerHTML=tagOf(OFSTATE[d.state]||OFSTATE.published);
+  tds[7].innerHTML='<span class="lk" onclick="openOfficial(this)">编辑</span> · '
+    +'<span class="lk" onclick="toggleOfficial(this)">'+(d.state==='offline'?'上架':'下架')+'</span>';
+}
+
+function openOfficial(el){
+  var tr=el?el.closest('tr'):null;
+  OF_ROW=tr;
+  var d=tr?tr.dataset:{name:'',desc:'',scope:'',fmt:'PDF',size:'',ver:'',access:'public',dl:'0',state:'published'};
+  document.getElementById('d-title').textContent = tr?'编辑官方资料':'上传官方资料';
+  document.getElementById('d-sub').textContent = tr?d.name:'新增一条官方资料';
+  document.getElementById('d-body').innerHTML = officialForm(d);
+  document.getElementById('d-foot').innerHTML='<button class="btn btn-ghost py-2.5" onclick="closeD()">取消</button>'
+    +'<button class="btn btn-primary py-2.5 px-6" onclick="doSaveOfficial()">保存</button>';
   document.getElementById('mask').classList.add('on');
   document.getElementById('drawer').classList.add('on');
+}
+
+function officialForm(d){
+  var sc=(d.scope||'').split(','), a=sc.indexOf('audience')>=0, e=sc.indexOf('exhibitor')>=0;
+  return '<div class="ftitle" style="margin-top:0">基本信息</div>'
+    +'<div><label class="text-[12px] text-[#64748B]">资料名称 <span style="color:#DC2626">*</span></label>'
+    +'<input id="of_name" value="'+(d.name||'')+'" class="w-full mt-1 px-3 py-2 text-[13px] bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-primary" placeholder="如：2026 参展商参展手册"></div>'
+    +'<div class="mt-3"><label class="text-[12px] text-[#64748B]">描述</label>'
+    +'<input id="of_desc" value="'+(d.desc||'')+'" class="w-full mt-1 px-3 py-2 text-[13px] bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-primary" placeholder="一句话说明内容"></div>'
+    +'<div class="mt-3"><label class="text-[12px] text-[#64748B]">格式 / 大小</label>'
+    +'<div class="flex gap-2 mt-1">'
+    +'<select id="of_fmt" class="px-3 py-2 text-[13px] bg-gray-50 border border-gray-200 rounded-lg outline-none">'
+    +'<option'+(d.fmt==='PDF'?' selected':'')+'>PDF</option>'
+    +'<option'+(d.fmt==='DOC'?' selected':'')+'>DOC</option>'
+    +'<option'+(d.fmt==='ZIP'?' selected':'')+'>ZIP</option></select>'
+    +'<input id="of_size" value="'+(d.size||'')+'" class="flex-1 px-3 py-2 text-[13px] bg-gray-50 border border-gray-200 rounded-lg outline-none" placeholder="如 3.6MB"></div></div>'
+    +'<div class="ftitle">适用对象 <span style="color:#DC2626">*</span></div>'
+    +'<div class="bg-gray-50 rounded-xl px-4 py-3">'
+    +'<label class="flex items-center gap-2 text-[13px] cursor-pointer"><input type="checkbox" id="of_a"'+(a?' checked':'')+'> 观众（买家端资料下载页可见）</label>'
+    +'<label class="flex items-center gap-2 text-[13px] mt-2 cursor-pointer"><input type="checkbox" id="of_e"'+(e?' checked':'')+'> 展商（买家端参展商中心可见）</label>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-2">两项都勾 = 全部；只勾一项则仅在该侧出现</p></div>'
+    +'<div class="ftitle">版本与策略</div>'
+    +'<div><label class="text-[12px] text-[#64748B]">版本号（可选）</label>'
+    +'<input id="of_ver" value="'+(d.ver||'')+'" class="w-full mt-1 px-3 py-2 text-[13px] bg-gray-50 border border-gray-200 rounded-lg outline-none" placeholder="如 v1.0"></div>'
+    +'<div class="mt-3"><label class="text-[12px] text-[#64748B]">访问策略</label>'
+    +'<select id="of_access" class="w-full mt-1 px-3 py-2 text-[13px] bg-gray-50 border border-gray-200 rounded-lg outline-none">'
+    +'<option value="public"'+(d.access==='public'?' selected':'')+'>公开</option>'
+    +'<option value="unlock"'+(d.access==='unlock'?' selected':'')+'>需登记解锁（仅对观众侧生效）</option></select></div>'
+    +'<div class="mt-4 flex items-start gap-2 px-3 py-2 rounded-lg bg-orange-50 border border-orange-100">'
+    +'<i class="fas fa-circle-info text-[12px] mt-0.5" style="color:#F97316"></i>'
+    +'<p class="text-[11px] text-[#64748B]">同一届次内，「适用对象含展商」的<b>参展手册</b>只允许一条 —— 买家端参展商中心按这一条取数。</p></div>';
+}
+
+function doSaveOfficial(){
+  var name=(document.getElementById('of_name').value||'').trim();
+  var desc=(document.getElementById('of_desc').value||'').trim();
+  var fmt=document.getElementById('of_fmt').value;
+  var size=(document.getElementById('of_size').value||'').trim();
+  var ver=(document.getElementById('of_ver').value||'').trim();
+  var access=document.getElementById('of_access').value;
+  var scope=[];
+  if(document.getElementById('of_a').checked) scope.push('audience');
+  if(document.getElementById('of_e').checked) scope.push('exhibitor');
+
+  if(!name){ toast('请填写资料名称'); return; }
+  if(!scope.length){ toast('请至少选择一个适用对象（观众 / 展商）'); return; }
+
+  /* 参展手册唯一性：同届内「名称含参展手册 且 含展商」只允许一条 */
+  if(name.indexOf('参展手册')>=0 && scope.indexOf('exhibitor')>=0){
+    var dup=false;
+    document.querySelectorAll('#tbody-o tr').forEach(function(t){
+      if(t===OF_ROW) return;
+      if(isHandbook(t)) dup=true;
+    });
+    if(dup){ toast('已存在参展商参展手册，同一届次只允许一条（请直接编辑已有条目）'); return; }
+  }
+
+  var sc=scope.join(',');
+  if(OF_ROW){
+    var d=OF_ROW.dataset;
+    d.name=name; d.desc=desc; d.scope=sc; d.fmt=fmt;
+    d.size=size; d.ver=ver; d.access=access;
+    repaintOfficial(OF_ROW);
+    filterOfficial(document.getElementById('ofScope').value);
+    closeD();
+    toast('已保存：'+name+'（买家端同步更新）');
+  }else{
+    var tr=document.createElement('tr');
+    tr.dataset.name=name; tr.dataset.desc=desc; tr.dataset.scope=sc;
+    tr.dataset.fmt=fmt; tr.dataset.size=size; tr.dataset.ver=ver;
+    tr.dataset.access=access; tr.dataset.dl='0'; tr.dataset.state='published';
+    tr.innerHTML='<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>';
+    document.getElementById('tbody-o').appendChild(tr);
+    repaintOfficial(tr);
+    refreshOfCount();
+    filterOfficial(document.getElementById('ofScope').value);
+    closeD();
+    toast('已上传：'+name+'（默认已发布，如需隐藏请下架）');
+  }
+}
+
+function toggleOfficial(el){
+  var tr=el.closest('tr'), d=tr.dataset;
+  d.state = d.state==='offline' ? 'published' : 'offline';
+  repaintOfficial(tr);
+  if(d.state==='offline') toast('资料已下架：'+d.name);
+  else if(d.name.indexOf('参展手册')>=0) toast('参展手册已上架，买家端参展商中心同步更新');
+  else toast('资料已上架：'+d.name);
 }
 
 /* ---------- 展商资料审核（本页是唯一审核台） ---------- */
