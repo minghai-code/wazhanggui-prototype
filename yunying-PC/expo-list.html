@@ -83,55 +83,35 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
   <!-- 列表 -->
   <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
     <div class="px-5 py-3 border-b border-gray-100 flex items-center gap-2 flex-wrap">
-      <button class="btn btn-ghost" onclick="toast('已复制第 18 届配置，生成第 19 届草稿')"><i class="fas fa-copy mr-1"></i>复制新一届</button>
+      <button class="btn btn-ghost" onclick="createNew()"><i class="fas fa-plus mr-1"></i>创建新一届</button>
+      <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>「创建新一届」= 空白配置；要沿用往届结构，请用已归档届次的「复制模板」</span>
     </div>
     <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
-      <div class="section-label mb-0">届次列表（5）</div>
-      <div class="text-[12px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>仅「筹备中 / 报名中」届次可编辑配置</div>
+      <div class="section-label mb-0" id="listTitle">届次列表</div>
+      <div class="text-[12px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>「配置」是唯一编辑入口（第一个 Tab 即基本信息），不再单独设「编辑」</div>
     </div>
     <table class="w-full tb">
       <thead><tr>
         <th>届次</th><th>年份</th><th>展会名称</th><th>起止日期</th><th>场馆</th><th>展览面积</th>
         <th>展位 / 已售</th><th>展商</th><th>观众登记</th><th>状态</th><th>操作</th>
       </tr></thead>
-      <tbody>
-        <tr>
-          <td><span class="tag" style="background:#FFF1ED;color:#FF4D2D">第 18 届</span></td>
-          <td>2026</td><td class="font-medium">2026 中国国际袜业博览会</td><td>2026-10-18 ~ 10-20</td>
-          <td>大唐袜业城</td><td>5 万㎡</td><td>2,000 / 1,560</td><td>812</td><td>12,480</td>
-          <td><span class="tag" style="background:#DCFCE7;color:#059669">报名中</span></td>
-          <td><span class="lk" onclick="openCfg()">配置</span> · <span class="lk" onclick="openCfg()">编辑</span> · <span class="lk" onclick="toast('已生成第 18 届存档报告')">生成存档</span></td>
-        </tr>
-        <tr>
-          <td><span class="tag" style="background:#F1F5F9;color:#64748B">第 17 届</span></td>
-          <td>2025</td><td>2025 中国国际袜业博览会</td><td>2025-10-18 ~ 10-20</td>
-          <td>大唐袜业城</td><td>4.6 万㎡</td><td>1,860 / 1,792</td><td>745</td><td>11,203</td>
-          <td><span class="tag" style="background:#F1F5F9;color:#94A3B8">已归档</span></td>
-          <td><span class="lk" onclick="toast('跳转往期存档回顾')">查看存档</span> · <span class="lk" onclick="toast('已复制配置')">复制模板</span></td>
-        </tr>
-        <tr>
-          <td><span class="tag" style="background:#F1F5F9;color:#64748B">第 16 届</span></td>
-          <td>2024</td><td>2024 中国国际袜业博览会</td><td>2024-10-19 ~ 10-21</td>
-          <td>大唐袜业城</td><td>4.2 万㎡</td><td>1,700 / 1,655</td><td>698</td><td>10,412</td>
-          <td><span class="tag" style="background:#F1F5F9;color:#94A3B8">已归档</span></td>
-          <td><span class="lk" onclick="toast('跳转往期存档回顾')">查看存档</span> · <span class="lk" onclick="toast('已复制配置')">复制模板</span></td>
-        </tr>
-        <tr>
-          <td><span class="tag" style="background:#F1F5F9;color:#64748B">第 15 届</span></td>
-          <td>2023</td><td>2023 中国国际袜业博览会</td><td>2023-10-20 ~ 10-22</td>
-          <td>大唐袜业城</td><td>3.8 万㎡</td><td>1,520 / 1,438</td><td>612</td><td>9,105</td>
-          <td><span class="tag" style="background:#F1F5F9;color:#94A3B8">已归档</span></td>
-          <td><span class="lk" onclick="toast('跳转往期存档回顾')">查看存档</span> · <span class="lk" onclick="toast('已复制配置')">复制模板</span></td>
-        </tr>
-        <tr>
-          <td><span class="tag" style="background:#DBEAFE;color:#2563EB">第 19 届</span></td>
-          <td>2027</td><td>2027 中国国际袜业博览会</td><td>2027-10-18 ~ 10-20</td>
-          <td>大唐袜业城</td><td>5 万㎡</td><td>2,000 / 0</td><td>0</td><td>0</td>
-          <td><span class="tag" style="background:#FEF3C7;color:#D97706">筹备中</span></td>
-          <td><span class="lk" onclick="openCfg()">配置</span> · <span class="lk" onclick="openCfg()">编辑</span> · <span class="lk" onclick="toast('已删除第 19 届草稿')">删除</span></td>
-        </tr>
-      </tbody>
+      <tbody id="tb"></tbody>
     </table>
+  </div>
+</div>
+
+<!-- 复制预览弹窗 -->
+<div class="mask" id="cpMask" onclick="closeCopy()"></div>
+<div id="cpBox" style="position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.96);width:640px;max-height:82vh;background:#fff;border-radius:14px;box-shadow:0 20px 60px rgba(15,23,42,.28);z-index:70;opacity:0;pointer-events:none;transition:.2s;display:flex;flex-direction:column">
+  <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+    <div><h3 class="text-[15px] font-bold text-[#1F2430]">复制模板</h3>
+      <p class="text-[11px] text-[#94A3B8] mt-0.5" id="cpSub">—</p></div>
+    <button onclick="closeCopy()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-xmark text-lg"></i></button>
+  </div>
+  <div class="flex-1 overflow-y-auto px-5 py-4" id="cpBody"></div>
+  <div class="px-5 py-3.5 border-t border-gray-100 bg-gray-50 flex justify-end gap-2">
+    <button class="btn btn-ghost py-2.5" onclick="closeCopy()">取消</button>
+    <button class="btn btn-primary py-2.5 px-6" onclick="doCopy()">确认复制并生成草稿</button>
   </div>
 </div>
 
@@ -140,17 +120,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 <div class="drawer" id="drawer">
   <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
     <div>
-      <h3 class="text-[15px] font-bold text-[#1F2430]">展会配置 · 第 18 届</h3>
-      <p class="text-[11px] text-[#94A3B8] mt-0.5">各栏目独立维护，保存后即时同步至买家端　·　上次同步 2026-09-09 15:20</p>
+      <h3 class="text-[15px] font-bold text-[#1F2430]">展会配置 · <span id="cfgTitle">第 18 届</span></h3>
+      <p class="text-[11px] text-[#94A3B8] mt-0.5" id="cfgSub">各栏目独立维护，保存后即时同步至买家端</p>
     </div>
     <button onclick="closeD()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-xmark text-lg"></i></button>
   </div>
 
   <div class="px-6 py-3 border-b border-gray-100 flex gap-1 overflow-x-auto">
-    <span class="ctab on" data-c="base">基本信息</span>
-    <span class="ctab" data-c="intro">展会介绍</span>
-    <span class="ctab" data-c="booth">展位管理</span>
-    <span class="ctab" data-c="star">精选展商</span>
+    <span class="ctab on" data-c="base">① 基本信息</span>
+    <span class="ctab" data-c="intro">② 展会介绍</span>
+    <span class="ctab" data-c="booth">③ 展位管理</span>
+    <span class="ctab" data-c="showcase">④ 展示管理</span>
   </div>
 
   <div class="flex-1 overflow-y-auto px-6 py-5" id="d-body"></div>
@@ -227,15 +207,7 @@ intro:`
     </div>
   </div>`,
 booth:function(){return renderBooth();},
-star:`
-  <p class="text-[12px] text-[#94A3B8] mb-3">精选展商（买家端首页「精选展商」板块，可拖拽排序）</p>
-  <div class="space-y-2">
-    <div class="flex items-center gap-2"><span class="text-[#94A3B8] text-[12px] w-6">1</span><input class="fi w-36" value="丹吉娅"><input class="fi w-24" value="品牌展商"><input class="fi w-28" value="A01-A02"><input class="fi flex-1" value="袜品"></div>
-    <div class="flex items-center gap-2"><span class="text-[#94A3B8] text-[12px] w-6">2</span><input class="fi w-36" value="步人堂"><input class="fi w-24" value="智能袜机"><input class="fi w-28" value="C05"><input class="fi flex-1" value="袜机设备"></div>
-    <div class="flex items-center gap-2"><span class="text-[#94A3B8] text-[12px] w-6">3</span><input class="fi w-36" value="宝娜斯"><input class="fi w-24" value="丝袜"><input class="fi w-28" value="A03-A04"><input class="fi flex-1" value="袜品"></div>
-    <div class="flex items-center gap-2"><span class="text-[#94A3B8] text-[12px] w-6">4</span><input class="fi w-36" value="情怡袜业"><input class="fi w-24" value="运动袜"><input class="fi w-28" value="B01-B02"><input class="fi flex-1" value="袜品"></div>
-  </div>
-  <button class="btn btn-ghost w-full mt-3" onclick="toast('添加展商')"><i class="fas fa-plus mr-1"></i>添加展商</button>`
+showcase:function(){return renderShowcase();}
 };
 
 /* ===== 展位管理：展位类型 + 展位配置 CRUD（原型态，无后端） ===== */
@@ -398,11 +370,318 @@ function cancelEdit(){ editTypeId=null; editAreaId=null; boothEdit={aid:null,bid
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function val(id){ var e=document.getElementById(id); return e?e.value.trim():''; }
 
-function openCfg(){
+/* ================= 届次数据（原型态，无后端） ================= */
+var EXPO=[
+  {id:19, year:2027, name:'2027 中国国际袜业博览会', start:'2027-10-18', end:'2027-10-20', venue:'大唐袜业城',
+   area:'5 万㎡', booths:2000, sold:0, exhibitors:0, visitors:0, state:'筹备中', sync:'未同步'},
+  {id:18, year:2026, name:'2026 中国国际袜业博览会', start:'2026-10-18', end:'2026-10-20', venue:'大唐袜业城',
+   area:'5 万㎡', booths:2000, sold:1560, exhibitors:812, visitors:12480, state:'报名中', sync:'2026-09-09 15:20'},
+  {id:17, year:2025, name:'2025 中国国际袜业博览会', start:'2025-10-18', end:'2025-10-20', venue:'大唐袜业城',
+   area:'4.6 万㎡', booths:1860, sold:1792, exhibitors:745, visitors:11203, state:'已归档', sync:'2025-11-02 10:00'},
+  {id:16, year:2024, name:'2024 中国国际袜业博览会', start:'2024-10-19', end:'2024-10-21', venue:'大唐袜业城',
+   area:'4.2 万㎡', booths:1700, sold:1655, exhibitors:698, visitors:10412, state:'已归档', sync:'2024-11-05 09:30'},
+  {id:15, year:2023, name:'2023 中国国际袜业博览会', start:'2023-10-20', end:'2023-10-22', venue:'大唐袜业城',
+   area:'3.8 万㎡', booths:1520, sold:1438, exhibitors:612, visitors:9105, state:'已归档', sync:'2023-11-08 14:10'}
+];
+
+/* 参展商名录（主数据在「参展商管理」，此处为只读候选池） */
+var EXHIBITORS=[
+  {id:'E01', name:'丹吉娅', cat:'袜品', booth:'A01-A02'},
+  {id:'E02', name:'步人堂', cat:'袜机设备', booth:'C05'},
+  {id:'E03', name:'宝娜斯', cat:'袜品', booth:'A03-A04'},
+  {id:'E04', name:'情怡袜业', cat:'袜品', booth:'B01-B02'},
+  {id:'E05', name:'浙江袜业研究院', cat:'原料纱线', booth:'D01'},
+  {id:'E06', name:'恒丰机械', cat:'袜机设备', booth:'C08-C09'}
+];
+/* 展示管理：上首页的展商（只存 eid + 推荐语，其余字段从名录只读带入） */
+var SHOWCASE=[
+  {eid:'E01', rec:'连续 12 年参展'},
+  {eid:'E02', rec:'高速织袜机首发'},
+  {eid:'E03', rec:'丝袜品类标杆'},
+  {eid:'E04', rec:'运动袜出口 30 国'}
+];
+/* 买家端栏目开关 */
+var SEC_SWITCH=[
+  {k:'star', n:'精选展商板块', on:true},
+  {k:'list', n:'展商名录', on:true},
+  {k:'archive', n:'往届回顾', on:true},
+  {k:'schedule', n:'日程安排', on:true}
+];
+
+var curExpo=null, copyFrom=null, newIdFlag=null;
+/* 展示管理：可选展商搜索关键词（真实名录 800+ 家，必须能搜） */
+var scKw='';
+
+var ESTC={'筹备中':'background:#FEF3C7;color:#D97706','报名中':'background:#DCFCE7;color:#059669',
+  '进行中':'background:#DBEAFE;color:#2563EB','已结束':'background:#F1F5F9;color:#64748B','已归档':'background:#F1F5F9;color:#94A3B8'};
+
+/* ================= 列表 ================= */
+function renderList(){
+  var arr=EXPO.slice().sort(function(a,b){return b.id-a.id;});
+  document.getElementById('listTitle').textContent='届次列表（'+arr.length+'）';
+  document.getElementById('tb').innerHTML=arr.map(function(e){
+    var ops='';
+    if(e.state==='筹备中'){
+      ops='<span class="lk" onclick="openCfg('+e.id+')">配置</span> · <span class="lk" style="color:#64748B" onclick="delExpo('+e.id+')">删除</span>';
+    }else if(e.state==='已归档'){
+      ops='<span class="lk" style="color:#64748B" onclick="genArchive('+e.id+')">查看存档</span> · <span class="lk" onclick="openCopy('+e.id+')">复制模板</span>';
+    }else{
+      ops='<span class="lk" onclick="openCfg('+e.id+')">配置</span> · <span class="lk" style="color:#64748B" onclick="genArchive('+e.id+')">生成存档</span>';
+    }
+    var isNew=(newIdFlag===e.id);
+    return '<tr'+(isNew?' style="background:#FFF7F5"':'')+'>'
+      +'<td><span class="tag" style="'+(isNew?'background:#FFEDE7;color:#E63E20':'background:#FFF1ED;color:#FF4D2D')+'">第 '+e.id+' 届</span>'
+      +(isNew?' <span class="tag" style="background:#FFEDE7;color:#E63E20">新</span>':'')+'</td>'
+      +'<td>'+e.year+'</td><td class="font-medium">'+esc(e.name)+'</td>'
+      +'<td>'+(e.start?esc(e.start)+' ~ '+esc(e.end.slice(5)):'<span style="color:#DC2626">待填</span>')+'</td>'
+      +'<td>'+esc(e.venue)+'</td><td>'+(esc(e.area)||'—')+'</td>'
+      +'<td>'+e.booths.toLocaleString()+' / '+e.sold.toLocaleString()+'</td>'
+      +'<td>'+e.exhibitors+'</td><td>'+e.visitors.toLocaleString()+'</td>'
+      +'<td><span class="tag" style="'+(ESTC[e.state]||'')+'">'+e.state+'</span></td>'
+      +'<td class="whitespace-nowrap">'+ops+'</td></tr>';
+  }).join('');
+}
+
+function genArchive(id){
+  var e=EXPO.filter(function(x){return x.id===id;})[0];
+  if(e.state==='已归档'){toast('已打开第 '+id+' 届往期存档回顾');}
+  else{toast('已生成第 '+id+' 届存档快照（可在「往期存档回顾」查看）');}
+}
+
+function delExpo(id){
+  var e=EXPO.filter(function(x){return x.id===id;})[0];
+  if(e.sold>0||e.exhibitors>0){toast('该届已有展位/展商数据，不可删除；如需停办请改为「已结束」');return;}
+  if(!confirm('删除第 '+id+' 届草稿？\n删除后其配置一并移除，不可恢复。')) return;
+  EXPO=EXPO.filter(function(x){return x.id!==id;});
+  renderList();
+  toast('已删除第 '+id+' 届草稿');
+}
+
+/* ================= 创建新一届（空白配置） ================= */
+function createNew(){
+  var maxId=Math.max.apply(null,EXPO.map(function(x){return x.id;}));
+  var id=maxId+1;
+  EXPO.push({id:id, year:2000+id+7, name:'第 '+id+' 届中国国际袜业博览会', start:'', end:'',
+    venue:'大唐袜业城', area:'', booths:0, sold:0, exhibitors:0, visitors:0,
+    state:'筹备中', sync:'未同步', copiedFrom:null});
+  newIdFlag=id;
+  renderList();
+  toast('已创建第 '+id+' 届（空白配置，请先填写届次与日期）');
+  openCfg(id);
+}
+
+/* ================= 配置抽屉（「编辑」已并入此入口） ================= */
+function openCfg(id){
+  curExpo=EXPO.filter(function(x){return x.id===id;})[0]||null;
+  if(curExpo){
+    document.getElementById('cfgTitle').textContent='第 '+curExpo.id+' 届';
+    document.getElementById('cfgSub').textContent='各栏目独立维护，保存后即时同步至买家端　·　上次同步 '+curExpo.sync;
+  }
+  document.querySelectorAll('.ctab').forEach(function(x,i){x.classList.toggle('on',i===0);});
   document.getElementById('d-body').innerHTML=C.base;
   document.getElementById('mask').classList.add('on');
   document.getElementById('drawer').classList.add('on');
 }
+
+/* ================= 复制模板：预览 + 生成 ================= */
+var CP_IN=[ /* 带过来 */
+  ['intro','展会介绍（概况 / 组织机构 / 展品范围 / 亮点 / 交通指南）','组织机构与联系方式必须复核'],
+  ['types','展位类型配置（名称 / 规格 / 计价单位 / 配置标签）','**价格带过来但标「待复核」**，早鸟价每年不同'],
+  ['areas','展位区域·楼层·编号结构','同场馆固定；换场馆需重录'],
+  ['plan','展位平面图','同场馆可直接复用'],
+  ['switch','展示管理：买家端栏目开关与排序','栏目结构不变'],
+  ['days','日程天数与每日主题（仅框架）','不带具体议程'],
+  ['docs','资料管理：官方资料与访问策略','文件带过来，状态重置为草稿'],
+  ['notice','参展须知 / 参观须知文案','涉费用或时间须同步改']
+];
+var CP_OUT=[
+  ['届次号 / 年份','必须新填，且校验不重复'],
+  ['起止日期 / 开幕时间','每年不同，带过来等于埋错'],
+  ['规模数据（展商数 / 观众数 / 展位数）','归零，等本届实际产生'],
+  ['**展位状态（已售 / 锁定）**','**全部重置为「可选」**——带上届「已售」会让本届展位直接不可选'],
+  ['展示管理中的「已选展商 + 排序」','每年重新选；上届展商本届未必参展'],
+  ['参展商名录 / 申请单 / 参观登记 / 签到记录','历史数据留档，复制会重复统计'],
+  ['日程具体议程（场次 / 时间 / 嘉宾）','每年嘉宾与议题都变'],
+  ['资料审核状态 / 下载量','状态重置、统计归零'],
+  ['上次同步时间 / 发布状态','重置为「未同步 · 草稿」']
+];
+var cpPicked={};
+
+function openCopy(id){
+  copyFrom=EXPO.filter(function(x){return x.id===id;})[0];
+  cpPicked={};
+  CP_IN.forEach(function(x){cpPicked[x[0]]=true;});
+  document.getElementById('cpSub').textContent='从第 '+id+' 届复制 → 生成新一届草稿（'+copyFrom.name+'）';
+  renderCopy();
+  document.getElementById('cpMask').classList.add('on');
+  var box=document.getElementById('cpBox');
+  box.style.opacity='1';box.style.pointerEvents='auto';box.style.transform='translate(-50%,-50%) scale(1)';
+}
+function closeCopy(){
+  document.getElementById('cpMask').classList.remove('on');
+  var box=document.getElementById('cpBox');
+  box.style.opacity='0';box.style.pointerEvents='none';box.style.transform='translate(-50%,-50%) scale(.96)';
+}
+function renderCopy(){
+  var h='<div class="rounded-xl p-3 mb-4" style="background:#FFFBEB;border:1px solid #FDE68A">'
+    +'<p class="text-[11px] leading-relaxed" style="color:#B45309"><i class="fas fa-triangle-exclamation mr-1"></i>'
+    +'新届次为<b>草稿</b>：展位状态将<b>全部重置为可选</b>，价格需复核后同步；买家家不会立刻看到。</p></div>';
+  h+='<p class="text-[12px] font-bold text-[#1F2430] mb-2">① 带过来（可复用结构，默认全选）</p>'
+    +'<div class="space-y-1.5 mb-4">'
+    +CP_IN.map(function(x){
+      var on=cpPicked[x[0]];
+      return '<label class="flex items-start gap-2 p-2.5 rounded-lg border cursor-pointer" style="border-color:'+(on?'#FFB39E':'#E2E8F0')+';background:'+(on?'#FFF7F5':'#fff')+'">'
+        +'<input type="checkbox" '+(on?'checked':'')+' onchange="toggleCp(\''+x[0]+'\',this.checked)" class="mt-0.5 accent-[#FF4D2D]">'
+        +'<span class="flex-1 text-[12px] text-[#1F2430]">'+esc(x[1])+'</span>'
+        +'<span class="text-[10px] text-[#94A3B8]" style="max-width:200px">'+esc(x[2].replace(/\*\*/g,''))+'</span></label>';
+    }).join('')+'</div>';
+  h+='<p class="text-[12px] font-bold text-[#1F2430] mb-2">② 不带（当届性 / 实时性数据，不可勾选）</p>'
+    +'<div class="rounded-lg border border-gray-100 overflow-hidden">'
+    +CP_OUT.map(function(x,i){
+      return '<div class="flex gap-3 px-3 py-2 text-[11px]'+(i?' border-t border-gray-50':'')+'">'
+        +'<span class="text-[#94A3B8] w-44 flex-shrink-0">'+esc(x[0].replace(/\*\*/g,''))+'</span>'
+        +'<span class="text-[#64748B] flex-1">'+esc(x[1].replace(/\*\*/g,''))+'</span></div>';
+    }).join('')+'</div>';
+  document.getElementById('cpBody').innerHTML=h;
+}
+function toggleCp(k,v){cpPicked[k]=v;renderCopy();}
+
+function doCopy(){
+  var maxId=Math.max.apply(null,EXPO.map(function(x){return x.id;}));
+  var id=maxId+1;
+  var picked=CP_IN.filter(function(x){return cpPicked[x[0]];}).map(function(x){return x[0];});
+  EXPO.push({id:id, year:copyFrom.year+2,
+    name:'第 '+id+' 届（复制自第 '+copyFrom.id+' 届）', start:'', end:'',
+    venue:copyFrom.venue, area:copyFrom.area,
+    booths:copyFrom.booths, sold:0, exhibitors:0, visitors:0,
+    state:'筹备中', sync:'未同步', copiedFrom:copyFrom.id, copiedItems:picked});
+  newIdFlag=id;
+  closeCopy();
+  renderList();
+  toast('已生成第 '+id+' 届草稿（带入 '+picked.length+' 项；展位状态已重置为可选，价格待复核）');
+  openCfg(id);
+}
+
+/* ================= 展示管理（原「精选展商」升级，单一数据源） ================= */
+function renderShowcase(){
+  var h='<div class="rounded-xl p-3 mb-4" style="background:#EFF6FF;border:1px solid #BFDBFE">'
+    +'<p class="text-[11px] leading-relaxed" style="color:#1D4ED8"><i class="fas fa-circle-info mr-1"></i>'
+    +'展商名 / 类目 / 展位号<b>来自「参展商管理」，此处只读</b>。本页只决定<b>谁上首页、什么顺序</b>，不新增展商。</p></div>';
+
+  h+='<p class="text-[12px] font-bold text-[#1F2430] mb-2">买家端栏目开关</p>'
+    +'<div class="grid grid-cols-2 gap-2 mb-4">'
+    +SEC_SWITCH.map(function(s){
+      return '<label class="flex items-center gap-2 p-2.5 rounded-lg border border-gray-100 cursor-pointer">'
+        +'<input type="checkbox" '+(s.on?'checked':'')+' onchange="toggleSec(\''+s.k+'\',this.checked)" class="accent-[#FF4D2D]">'
+        +'<span class="text-[12px] text-[#1F2430]">'+esc(s.n)+'</span></label>';
+    }).join('')+'</div>';
+
+  h+='<div class="flex items-center justify-between mb-2">'
+    +'<p class="text-[12px] font-bold text-[#1F2430]">首页精选展商（已选 '+SHOWCASE.length+' 家 · 按顺序展示）</p>'
+    +'<span class="text-[11px] text-[#94A3B8]">建议 4–8 家</span></div>';
+  if(!SHOWCASE.length){
+    h+='<p class="text-[12px] text-[#94A3B8] py-3">尚未选择展商</p>';
+  }else{
+    h+='<div class="space-y-2 mb-4">'+SHOWCASE.map(function(s,i){
+      var e=EXHIBITORS.filter(function(x){return x.id===s.eid;})[0]||{name:'—',cat:'—',booth:'—'};
+      return '<div class="flex items-center gap-2 p-2.5 rounded-lg border border-gray-100">'
+        +'<span class="text-[#94A3B8] text-[12px] w-5">'+(i+1)+'</span>'
+        +'<span class="text-[12px] font-medium text-[#1F2430] w-36">'+esc(e.name)+'</span>'
+        +'<span class="tag" style="background:#F1F5F9;color:#64748B">'+esc(e.cat)+'</span>'
+        +'<span class="text-[11px] text-[#94A3B8] w-24">'+esc(e.booth)+'</span>'
+        +'<input class="fi flex-1" style="padding:4px 8px;font-size:12px" value="'+esc(s.rec)+'" placeholder="一句话推荐（≤20 字）" onchange="setRec('+i+',this.value)">'
+        +'<button class="btn btn-ghost" style="padding:3px 7px" onclick="mvShow('+i+',-1)" '+(i===0?'disabled style="opacity:.35;padding:3px 7px"':'')+'><i class="fas fa-arrow-up text-[10px]"></i></button>'
+        +'<button class="btn btn-ghost" style="padding:3px 7px" onclick="mvShow('+i+',1)" '+(i===SHOWCASE.length-1?'disabled style="opacity:.35;padding:3px 7px"':'')+'><i class="fas fa-arrow-down text-[10px]"></i></button>'
+        +'<button class="btn btn-ghost" style="padding:3px 7px;color:#DC2626" onclick="rmShow('+i+')"><i class="fas fa-xmark text-[10px]"></i></button>'
+        +'</div>';
+    }).join('')+'</div>';
+  }
+
+  h+='<p class="text-[12px] font-bold text-[#1F2430] mb-2">可选展商（本届参展但未上首页）</p>'
+    +'<div class="relative mb-2">'
+    +'<i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[11px] text-[#94A3B8]"></i>'
+    +'<input id="scKw" value="'+esc(scKw)+'" placeholder="搜索展商名称 / 类目 / 展位号（本届参展共 '+EXHIBITORS.length+' 家）"'
+    +' class="fi" style="padding-left:30px;padding-right:30px" oninput="onScKw(this.value)">'
+    +'<span id="scClr">'+(scKw?'<button onclick="clearScKw()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#1F2430]"><i class="fas fa-circle-xmark text-[12px]"></i></button>':'')+'</span>'
+    +'</div>'
+    +'<div id="candList">'+renderCandList()+'</div>';
+  return h;
+}
+
+/* 可选展商列表（搜索后只刷这块，输入框不失焦） */
+function renderCandList(){
+  var kw=(scKw||'').trim().toLowerCase();
+  var rest=EXHIBITORS.filter(function(e){return !SHOWCASE.some(function(s){return s.eid===e.id;});});
+  var hit=rest.filter(function(e){
+    if(!kw)return true;
+    return (e.name+' '+e.cat+' '+e.booth).toLowerCase().indexOf(kw)>-1;
+  });
+  var LIMIT=20, show=hit.slice(0,LIMIT);
+  var h='<div class="flex items-center justify-between mb-1.5">'
+    +'<span class="text-[11px] text-[#94A3B8]">可选 '+rest.length+' 家'+(kw?'　·　匹配「'+esc(scKw.trim())+'」<b style="color:#1F2430">'+hit.length+'</b> 家':'')+'</span>'
+    +(hit.length>LIMIT?'<span class="text-[11px]" style="color:#B45309">仅列前 '+LIMIT+' 条，请细化关键词</span>':'')
+    +'</div>';
+  if(!hit.length){
+    h+='<div class="text-center py-5 rounded-lg" style="background:#F8FAFC">'
+      +'<i class="fas fa-magnifying-glass text-[#CBD5E1] text-lg block mb-1"></i>'
+      +'<p class="text-[12px] text-[#94A3B8]">'+(rest.length?'没有匹配「'+esc(scKw.trim())+'」的展商':'本届参展商已全部上首页')+'</p>'
+      +(kw&&rest.length?'<button class="btn btn-ghost mt-2" onclick="clearScKw()">清空搜索</button>':'')
+      +'</div>';
+  }else{
+    h+='<div class="space-y-1.5">'+show.map(function(e){
+      return '<div class="flex items-center gap-2 p-2 rounded-lg bg-gray-50">'
+        +'<span class="text-[12px] text-[#1F2430] w-36 truncate" title="'+esc(e.name)+'">'+esc(e.name)+'</span>'
+        +'<span class="tag" style="background:#fff;color:#64748B">'+esc(e.cat)+'</span>'
+        +'<span class="text-[11px] text-[#94A3B8] flex-1">'+esc(e.booth)+'</span>'
+        +'<button class="btn btn-ghost" style="padding:3px 10px" onclick="addShow(\''+e.id+'\')"><i class="fas fa-plus text-[9px] mr-1"></i>加入首页</button>'
+        +'</div>';
+    }).join('')+'</div>';
+  }
+  return h;
+}
+function onScKw(v){
+  scKw=v;
+  /* 只刷候选列表与清空按钮，不动输入框本身 → 输入时不失焦 */
+  var el=document.getElementById('candList');
+  if(el) el.innerHTML=renderCandList();
+  var c=document.getElementById('scClr');
+  if(c){
+    c.innerHTML=(v&&String(v).trim())
+      ? '<button onclick="clearScKw()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#1F2430]"><i class="fas fa-circle-xmark text-[12px]"></i></button>'
+      : '';
+  }
+}
+function clearScKw(){
+  scKw='';
+  var i=document.getElementById('scKw');
+  if(i){i.value='';}
+  var el=document.getElementById('candList');
+  if(el) el.innerHTML=renderCandList();
+  document.getElementById('d-body').innerHTML=renderShowcase();
+}
+function toggleSec(k,v){SEC_SWITCH.forEach(function(s){if(s.k===k)s.on=v;});toast('已'+(v?'开启':'关闭')+'买家端栏目（保存后生效）');}
+function setRec(i,v){SHOWCASE[i].rec=v.slice(0,20);}
+function mvShow(i,d){
+  var t=i+d;
+  if(t<0||t>=SHOWCASE.length)return;
+  var tmp=SHOWCASE[i];SHOWCASE[i]=SHOWCASE[t];SHOWCASE[t]=tmp;
+  document.getElementById('d-body').innerHTML=renderShowcase();
+}
+function rmShow(i){
+  var e=EXHIBITORS.filter(function(x){return x.id===SHOWCASE[i].eid;})[0];
+  SHOWCASE.splice(i,1);
+  document.getElementById('d-body').innerHTML=renderShowcase();
+  toast('已移出首页：'+(e?e.name:''));
+}
+function addShow(eid){
+  if(SHOWCASE.length>=8){toast('首页精选最多 8 家，请先移出部分展商');return;}
+  SHOWCASE.push({eid:eid, rec:''});
+  document.getElementById('d-body').innerHTML=renderShowcase();
+  var e=EXHIBITORS.filter(function(x){return x.id===eid;})[0];
+  toast('已加入首页：'+(e?e.name:''));
+}
+
+renderList();
 document.querySelectorAll('.ctab').forEach(function(t){
   t.addEventListener('click',function(){
     document.querySelectorAll('.ctab').forEach(function(x){x.classList.remove('on')});

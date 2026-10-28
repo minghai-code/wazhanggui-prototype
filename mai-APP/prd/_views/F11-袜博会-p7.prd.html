@@ -49,7 +49,7 @@ details.fam[open]{padding-bottom:10px}
 <h3>0.5 状态机</h3>
 <p><strong>参观登记（6 态）</strong></p>
 <table><thead><tr><th>端上 key</th><th>后台状态</th><th>端上表现</th></tr></thead><tbody><tr><td><code>pending</code></td><td>待审核</td><td>结果页「等待审核」+ 登记编号</td></tr><tr><td><code>approved</code></td><td>已通过</td><td>生成入场码 <code>V+年+届次+4位</code>，可扫码</td></tr><tr><td><code>checkedin</code></td><td>已核销</td><td>入场证 + 资料全解锁</td></tr><tr><td><code>rejected</code></td><td>已驳回</td><td>驳回原因 + 重新登记</td></tr><tr><td><code>noshow</code></td><td>未到场</td><td>仅后台可见（端上无入口）</td></tr><tr><td><code>cancelled</code></td><td>已取消</td><td>仅后台可见</td></tr></tbody></table>
-<p><strong>展位申请（端上可见 4 态）</strong>：<code>待审核</code> → <code>已通过（待缴费）</code> → <code>已确认</code>；异常 <code>已驳回</code> / <code>已取消</code>。</p>
+<p><strong>展位申请（2026-10-28 v1.1：取消在线支付后 3 态）</strong>：<code>待审核</code> → <code>已通过（报名成功 · 参展商）</code>；异常 <code>已驳回</code> / <code>已取消</code>。<strong>缴费状态与参展资格解耦</strong>：<code>未缴费（线下转账）</code> / <code>组委会已登记到账</code>，逾期不取消展位。</p>
 <p><strong>资料访问策略</strong>：<code>public 公开</code> / <code>registered 需登记通过</code> / <code>checkedin 需现场核销</code>。</p>
 <pre class="code"><code data-lang="mermaid">stateDiagram-v2
   [*] --&gt; pending: 提交登记
@@ -60,7 +60,7 @@ details.fam[open]{padding-bottom:10px}
   approved --&gt; noshow: 截止未核销
   approved --&gt; cancelled: 后台取消</code></pre>
 <h3>0.6 口径与术语</h3>
-<table><thead><tr><th>项</th><th>口径</th></tr></thead><tbody><tr><td>入场码</td><td><code>V + 年份 + 届次 + 4 位流水</code>（示例 <code>V2026180001</code>）</td></tr><tr><td>审核时长</td><td>1 个工作日</td></tr><tr><td>核销窗口</td><td>展会期间每日开馆前 1 小时 – 闭馆；重复核销幂等</td></tr><tr><td>资料解锁</td><td>需 <code>approved</code>；<code>checkedin</code> 策略需到场核销</td></tr><tr><td>展位号</td><td>多选自选，提交时<strong>英文逗号</strong>分隔（后台 <code>boothNo</code>）</td></tr><tr><td>展位缴费</td><td>本期<strong>线下/财务手工确认</strong>，端上只显示「待缴费」与对公信息</td></tr><tr><td>我的日程</td><td>仅存本机 <code>expoMySchedule</code>，换设备不迁移</td></tr></tbody></table>
+<table><thead><tr><th>项</th><th>口径</th></tr></thead><tbody><tr><td>入场码</td><td><code>V + 年份 + 届次 + 4 位流水</code>（示例 <code>V2026180001</code>）</td></tr><tr><td>审核时长</td><td>1 个工作日</td></tr><tr><td>核销窗口</td><td>展会期间每日开馆前 1 小时 – 闭馆；重复核销幂等</td></tr><tr><td>资料解锁</td><td>需 <code>approved</code>；<code>checkedin</code> 策略需到场核销</td></tr><tr><td>展位号</td><td>多选自选，提交时<strong>英文逗号</strong>分隔（后台 <code>boothNo</code>）</td></tr><tr><td>展位缴费</td><td><strong>本期无在线支付</strong>：审核通过即报名成功并锁位，费用走线下对公转账；端上只展示缴费状态与转账指引，不阻断</td></tr><tr><td>我的日程</td><td>仅存本机 <code>expoMySchedule</code>，换设备不迁移</td></tr></tbody></table>
 <h3>0.7 导航与返回栈</h3>
 <table><thead><tr><th>场景</th><th>规则</th></tr></thead><tbody><tr><td><code>expo</code> 返回</td><td>回首页</td></tr><tr><td><code>expo-info</code> / <code>expo-schedule</code> / <code>expo-materials</code> 返回</td><td>回 <code>expo</code></td></tr><tr><td><code>expo-session-detail</code> 返回</td><td>回 <code>expo-schedule</code>（或来源页）</td></tr><tr><td><code>expo-visitor-apply</code> 返回</td><td>步骤内回上一步；结果页回 <code>expo</code></td></tr><tr><td><code>expo-booth-apply</code> 返回</td><td>回 <code>expo</code></td></tr><tr><td>底部弹层（展商详情/扫码）</td><td>点遮罩关闭，不触发页面返回</td></tr></tbody></table>
 <h3>0.8 端间落点表</h3>
@@ -76,19 +76,19 @@ details.fam[open]{padding-bottom:10px}
 <hr></details>
 <h2 id="p7">7. 展位申请 <code>expo-booth-apply.html</code></h2>
 <h3>7.1 页面说明</h3>
-<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>页面目标</td><td>展商填写企业信息、自选展位、提交申请并查看审核/缴费状态</td></tr><tr><td>使用角色</td><td>展商（入驻商户或外部企业）</td></tr><tr><td>入口</td><td>首页快捷入口「展位申请」（E3）</td></tr><tr><td>前置</td><td>无</td></tr><tr><td>后置</td><td>生成申请编号；待缴费 → 已确认</td></tr></tbody></table>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>页面目标</td><td>展商填写企业信息、自选展位、提交申请并查看审核/缴费状态</td></tr><tr><td>使用角色</td><td>展商（入驻商户或外部企业）</td></tr><tr><td>入口</td><td>首页快捷入口「展位申请」（E3）</td></tr><tr><td>前置</td><td>无</td></tr><tr><td>后置</td><td>生成申请编号；审核通过即<strong>报名成功（参展商）并锁定展位</strong>，无缴费节点</td></tr></tbody></table>
 <h3>7.2 本页端间关系</h3>
 <table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>数据来源</td><td>展位类型/价格/平面图/可选状态</td></tr><tr><td>跨端影响</td><td>写申请单；库存预占；审核由 14b 处理</td></tr><tr><td>依赖页面</td><td>14b <code>expo-booth.html</code></td></tr><tr><td>不涉及</td><td>商户端</td></tr><tr><td>一致性</td><td>展位可选状态与后台平面图一致</td></tr></tbody></table>
 <h3>7.3 页面结构</h3>
-<table><thead><tr><th>区块</th><th>内容</th></tr></thead><tbody><tr><td>企业信息</td><td>企业名、联系人、电话、主营产品、统一社会信用代码</td></tr><tr><td>展位自选</td><td>区域/楼层切换、展位格（可选/已售/锁定）、多选累加</td></tr><tr><td>金额条</td><td>已选展位、数量、合计金额</td></tr><tr><td>提交</td><td>申请须知勾选 + 提交</td></tr><tr><td>结果态</td><td>待审核 / 待缴费（去缴费）/ 已确认 / 已驳回</td></tr></tbody></table>
+<table><thead><tr><th>区块</th><th>内容</th></tr></thead><tbody><tr><td>企业信息</td><td>企业名、联系人、电话、主营产品、统一社会信用代码</td></tr><tr><td>展位自选</td><td>区域/楼层切换、展位格（可选/已售/锁定）、多选累加</td></tr><tr><td>金额条</td><td>已选展位、数量、合计金额</td></tr><tr><td>提交</td><td>申请须知勾选 + 提交</td></tr><tr><td>结果态</td><td>待审核 / 报名成功（参展商）/ 已驳回；缴费状态单列（未缴费 · 已登记到账）</td></tr></tbody></table>
 <p><strong>页内子视图</strong></p>
-<table><thead><tr><th>子视图</th><th>触发</th><th>规格位置</th></tr></thead><tbody><tr><td>展位选择器</td><td>默认</td><td>§7.4 / §7.6</td></tr><tr><td>缴费信息弹层</td><td>点「去缴费」</td><td>§7.6</td></tr><tr><td>演示审核/收款</td><td>结果态</td><td>§7.6</td></tr></tbody></table>
+<table><thead><tr><th>子视图</th><th>触发</th><th>规格位置</th></tr></thead><tbody><tr><td>展位选择器</td><td>默认</td><td>§7.4 / §7.6</td></tr><tr><td>缴费信息弹层</td><td>点「查看缴费指引（对公转账）」</td><td>§7.6</td></tr><tr><td>演示审核/收款</td><td>结果态</td><td>§7.6</td></tr></tbody></table>
 <h3>7.4 列表规则</h3>
 <table><thead><tr><th>项</th><th>规则</th></tr></thead><tbody><tr><td>展位格</td><td>按区域/楼层分组；状态 可选 / 已售 / 锁定</td></tr><tr><td>多选</td><td>可累加，金额按类型单价汇总</td></tr><tr><td>已售/锁定</td><td>置灰不可选</td></tr></tbody></table>
 <h3>7.5 字段规格</h3>
 <table><thead><tr><th>字段</th><th>必填</th><th>校验</th><th>说明</th></tr></thead><tbody><tr><td>企业名称</td><td>✅</td><td>非空</td><td>—</td></tr><tr><td>联系人 / 电话</td><td>✅</td><td>非空 / 11 位</td><td>—</td></tr><tr><td>主营产品</td><td>✅</td><td>非空</td><td>—</td></tr><tr><td>信用代码</td><td>✅</td><td>18 位</td><td>—</td></tr><tr><td>展位</td><td>✅</td><td>至少 1 个</td><td>多选逗号分隔</td></tr><tr><td>申请须知</td><td>✅</td><td>勾选</td><td>—</td></tr><tr><td>申请编号</td><td>自动</td><td><code>B2026xxxx</code></td><td>—</td></tr><tr><td>展位号</td><td>自动</td><td><code>boothNo</code></td><td>逗号分隔</td></tr></tbody></table>
 <h3>7.6 交互规则</h3>
-<table><thead><tr><th>元素</th><th>显示条件</th><th>可点条件</th><th>点击后</th></tr></thead><tbody><tr><td>展位格</td><td>可选</td><td>未售未锁</td><td>选中/取消，金额更新</td></tr><tr><td>区域切换</td><td>始终</td><td>始终</td><td>换区展示</td></tr><tr><td>提交申请</td><td>始终</td><td>必填 + 至少 1 展位 + 勾须知</td><td>生成申请，进结果态</td></tr><tr><td>去缴费</td><td><code>待缴费</code></td><td>始终</td><td>弹层展示对公账户/金额</td></tr><tr><td>演示审核通过</td><td><code>待审核</code>（演示）</td><td>始终</td><td>→ 待缴费</td></tr><tr><td>演示确认收款</td><td><code>待缴费</code>（演示）</td><td>始终</td><td>→ 已确认</td></tr><tr><td>演示驳回</td><td><code>待审核</code>（演示）</td><td>始终</td><td>→ 已驳回</td></tr></tbody></table>
+<table><thead><tr><th>元素</th><th>显示条件</th><th>可点条件</th><th>点击后</th></tr></thead><tbody><tr><td>展位格</td><td>可选</td><td>未售未锁</td><td>选中/取消，金额更新</td></tr><tr><td>区域切换</td><td>始终</td><td>始终</td><td>换区展示</td></tr><tr><td>提交申请</td><td>始终</td><td>必填 + 至少 1 展位 + 勾须知</td><td>生成申请，进结果态</td></tr><tr><td>缴费指引</td><td><code>报名成功</code> 且未登记到账</td><td>始终</td><td>弹层展示对公账户/金额/「逾期不影响展位」</td></tr><tr><td>演示审核通过</td><td><code>待审核</code>（演示）</td><td>始终</td><td>→ 报名成功（参展商）</td></tr><tr><td>演示登记到账</td><td>已报名未到账（演示）</td><td>始终</td><td>缴费状态 → 已登记到账（状态不变）</td></tr><tr><td>演示驳回</td><td><code>待审核</code>（演示）</td><td>始终</td><td>→ 已驳回</td></tr></tbody></table>
 <h3>7.7 业务规则与口径</h3>
 <table><thead><tr><th>编号</th><th>规则</th><th>触发</th><th>处理</th><th>影响端</th></tr></thead><tbody><tr><td>R-20</td><td>至少选 1 个展位</td><td>提交</td><td>拦截</td><td>14b</td></tr><tr><td>R-21</td><td>提交预占库存</td><td>提交</td><td>展位置锁定</td><td>14b</td></tr><tr><td>R-22</td><td>展位号逗号分隔</td><td>提交</td><td><code>c.list.join(',')</code></td><td>14b</td></tr><tr><td>R-23</td><td>逾期未缴自动取消</td><td>定时</td><td>释放展位</td><td>14b</td></tr><tr><td>R-24</td><td>缴费线下确认</td><td>结果态</td><td>端上仅展示对公信息</td><td>财务</td></tr></tbody></table>
 <h3>7.8 异常与边界</h3>
@@ -96,7 +96,7 @@ details.fam[open]{padding-bottom:10px}
 <h3>7.9 通知与消息</h3>
 <table><thead><tr><th>事件</th><th>接收人</th><th>渠道</th></tr></thead><tbody><tr><td>审核通过</td><td>展商</td><td>短信 + 端上状态</td></tr><tr><td>缴费提醒</td><td>展商</td><td>短信（到期前 3 天/1 天）</td></tr><tr><td>展位确认</td><td>展商</td><td>短信 + 端上状态</td></tr></tbody></table>
 <h3>7.10 验收标准</h3>
-<table><thead><tr><th>#</th><th>前置</th><th>操作</th><th>预期</th><th>优先级</th></tr></thead><tbody><tr><td>AC-20</td><td>未选展位</td><td>提交</td><td>toast「请先选择至少一个展位」</td><td>P0</td></tr><tr><td>AC-21</td><td>选 2 个展位</td><td>提交</td><td>编号生成，状态待审核，金额=单价和</td><td>P0</td></tr><tr><td>AC-22</td><td>待缴费</td><td>点去缴费</td><td>弹层显示对公账户与金额</td><td>P1</td></tr><tr><td>AC-23</td><td>演示确认收款</td><td>—</td><td>状态已确认，展位号展示</td><td>P1</td></tr></tbody></table>
+<table><thead><tr><th>#</th><th>前置</th><th>操作</th><th>预期</th><th>优先级</th></tr></thead><tbody><tr><td>AC-20</td><td>未选展位</td><td>提交</td><td>toast「请先选择至少一个展位」</td><td>P0</td></tr><tr><td>AC-21</td><td>选 2 个展位</td><td>提交</td><td>编号生成，状态待审核，金额=单价和</td><td>P0</td></tr><tr><td>AC-22</td><td>报名成功未缴费</td><td>点「查看缴费指引」</td><td>弹层显示对公账户与金额，且说明逾期不影响展位</td><td>P1</td></tr><tr><td>AC-23</td><td>演示确认收款</td><td>—</td><td>状态已确认，展位号展示</td><td>P1</td></tr></tbody></table>
 <hr>
-<div class="vnav"><a href="F11-袜博会-p6.prd.html">&larr; 资料下载</a><span></span></div>
+<div class="vnav"><a href="F11-袜博会-p6.prd.html">&larr; 资料下载</a><a href="F11-袜博会-p8.prd.html">参展商中心 &rarr;</a></div>
 </body></html>

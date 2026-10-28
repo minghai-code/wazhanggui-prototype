@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>参展商中心 - 袜掌柜买家版</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+:root{--p:#EC4899;--pl:#F472B6;--bg:#FFF7FA}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+::-webkit-scrollbar{width:2px;height:2px}::-webkit-scrollbar-thumb{background:#e5e5e5;border-radius:1px}
+.card{transition:transform .2s cubic-bezier(.34,1.56,.64,1)}
+.card:active{transform:scale(.975)}
+.shadow-soft{box-shadow:0 6px 20px rgba(236,72,153,.10)}
+.fade-up{animation:fadeUp .5s cubic-bezier(.22,1,.36,1) both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.mask{position:fixed;inset:0;background:rgba(17,24,39,.45);display:none;z-index:200}
+.mask.on{display:block}
+.sheet{position:fixed;left:0;right:0;bottom:0;background:#fff;border-radius:20px 20px 0 0;z-index:201;transform:translateY(100%);transition:transform .28s;max-height:78vh;overflow-y:auto}
+.sheet.on{transform:translateY(0)}
+#toast{position:fixed;left:50%;top:44%;transform:translate(-50%,-50%);background:rgba(17,24,39,.9);color:#fff;padding:10px 16px;border-radius:12px;font-size:12px;z-index:999;opacity:0;transition:opacity .2s;max-width:280px;text-align:center;line-height:1.7}
+#toast.on{opacity:1}
+</style>
+</head>
+<body>
+
+<!-- 顶部 -->
+<div class="relative" style="background:linear-gradient(135deg,#7C3AED,#EC4899)">
+  <div class="flex items-center px-4 pt-4 pb-6">
+    <a href="expo.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-[13px]"></i></a>
+    <span class="ml-3 text-white font-extrabold text-[18px]">参展商中心</span>
+    <button onclick="downloadHandbook()" class="ml-auto text-white/80 text-[11px]"><i class="fas fa-book-open mr-1"></i>参展手册</button>
+  </div>
+</div>
+
+<!-- 状态卡 -->
+<div class="px-3 -mt-4" id="heroBox"></div>
+
+<!-- 我的参展证（审核通过即发码） -->
+<div class="px-3 mt-3" id="passBox"></div>
+
+<!-- 待办 -->
+<div class="px-3 mt-3">
+  <div class="bg-white rounded-2xl shadow-soft p-3.5">
+    <p class="text-[12px] font-bold text-gray-800 mb-2.5"><i class="fas fa-list-check text-[11px] mr-1" style="color:#EC4899"></i>接下来要做</p>
+    <div id="todoList" class="space-y-2"></div>
+  </div>
+</div>
+
+<!-- 我的展位 -->
+<div class="px-3 mt-3">
+  <div class="bg-white rounded-2xl shadow-soft p-3.5">
+    <div class="flex items-center justify-between mb-2.5">
+      <p class="text-[12px] font-bold text-gray-800"><i class="fas fa-square-parking text-[11px] mr-1" style="color:#7C3AED"></i>我的展位</p>
+      <a href="expo.html" class="text-[10px]" style="color:#EC4899">查看平面图 <i class="fas fa-chevron-right text-[8px]"></i></a>
+    </div>
+    <div id="boothBox" class="space-y-1.5"></div>
+  </div>
+</div>
+
+<!-- 企业资料 -->
+<div class="px-3 mt-3">
+  <div class="bg-white rounded-2xl shadow-soft p-3.5">
+    <div class="flex items-center justify-between mb-1">
+      <p class="text-[12px] font-bold text-gray-800"><i class="fas fa-folder-open text-[11px] mr-1" style="color:#F59E0B"></i>企业资料</p>
+      <span class="text-[9px] text-gray-400">审核通过后进入展商名录</span>
+    </div>
+    <div id="docList" class="mt-1.5 space-y-2"></div>
+  </div>
+</div>
+
+<!-- 参展服务 -->
+<div class="px-3 mt-3 mb-28">
+  <div class="bg-white rounded-2xl shadow-soft p-3.5">
+    <p class="text-[12px] font-bold text-gray-800 mb-2.5"><i class="fas fa-headset text-[11px] mr-1" style="color:#059669"></i>参展服务</p>
+    <div class="grid grid-cols-3 gap-2">
+      <button onclick="downloadHandbook()" class="card bg-gray-50 rounded-xl py-3 flex flex-col items-center gap-1">
+        <i class="fas fa-file-pdf text-[15px]" style="color:#EF4444"></i><span class="text-[9px] text-gray-600">参展手册</span>
+        <span class="text-[7px] text-gray-400" id="hbMeta">v3 · 2.4MB</span>
+      </button>
+      <button onclick="openPass()" class="card bg-gray-50 rounded-xl py-3 flex flex-col items-center gap-1">
+        <i class="fas fa-id-badge text-[15px]" style="color:#7C3AED"></i><span class="text-[9px] text-gray-600">参展证件</span>
+        <span class="text-[7px] text-gray-400">出示二维码</span>
+      </button>
+      <a href="tel:057587420000" class="card bg-gray-50 rounded-xl py-3 flex flex-col items-center gap-1">
+        <i class="fas fa-phone text-[15px]" style="color:#059669"></i><span class="text-[9px] text-gray-600">联系组委会</span>
+        <span class="text-[7px] text-gray-400">0575-8742 0000</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- 参展证放大 -->
+<div class="mask" id="passMask" onclick="closePass()"></div>
+<div class="sheet" id="passSheet">
+  <div class="px-4 pt-3 pb-2 sticky top-0 bg-white border-b border-gray-50">
+    <div class="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-2"></div>
+    <p class="text-[13px] font-bold text-gray-800">参展证 · 现场出示</p>
+  </div>
+  <div class="px-4 py-3 text-center">
+    <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-soft">
+      <p class="text-[11px] font-bold text-gray-800 mb-0.5">中国国际袜业博览会 · 参展商</p>
+      <p class="text-[9px] text-gray-400 mb-3">第18届 · 2026.10.18-10.20 · 大唐袜业城</p>
+      <div id="passQRBig" class="flex justify-center mb-3"></div>
+      <div class="border-t border-gray-100 pt-2.5 text-left">
+        <div class="flex justify-between text-[10px] mb-1"><span class="text-gray-400">证件编号</span><span class="font-semibold text-gray-800" id="passNoBig">-</span></div>
+        <div class="flex justify-between text-[10px] mb-1"><span class="text-gray-400">展位号</span><span class="font-semibold text-gray-800" id="passBoothBig">-</span></div>
+        <div class="flex justify-between text-[10px]"><span class="text-gray-400">状态</span><span class="font-semibold" id="passStateBig" style="color:#059669">已发码 · 未核销</span></div>
+      </div>
+    </div>
+    <p class="text-[10px] text-gray-400 mt-3 leading-relaxed">请在入口闸机出示此码，扫码后自动核销；<br>证件与账号绑定，请勿转发。</p>
+  </div>
+  <div class="px-4 pb-5 pt-1"><button onclick="closePass()" class="w-full py-2.5 rounded-full text-white font-bold text-[12px]" style="background:linear-gradient(135deg,#34D399,#059669)">关闭</button></div>
+</div>
+
+<!-- 缴费指引弹层 -->
+<div class="mask" id="payMask" onclick="closePay()"></div>
+<div class="sheet" id="paySheet">
+  <div class="px-4 pt-3 pb-2 sticky top-0 bg-white border-b border-gray-50">
+    <div class="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-2"></div>
+    <p class="text-[13px] font-bold text-gray-800">缴费指引 · 对公转账</p>
+  </div>
+  <div class="px-4 py-3 text-[11px] text-gray-600 leading-relaxed">
+    <div class="bg-gray-50 rounded-xl p-3 space-y-1.5">
+      <div class="flex justify-between"><span class="text-gray-400">户名</span><span class="font-semibold text-gray-800">诸暨大唐袜业博览会组委会</span></div>
+      <div class="flex justify-between"><span class="text-gray-400">开户行</span><span class="font-semibold text-gray-800">中国银行诸暨大唐支行</span></div>
+      <div class="flex justify-between"><span class="text-gray-400">账号</span><span class="font-semibold text-gray-800">3766 5801 2345 6789</span></div>
+      <div class="flex justify-between"><span class="text-gray-400">应缴金额</span><span class="font-bold" style="color:#EC4899" id="payAmount">¥ -</span></div>
+    </div>
+    <p class="mt-3"><b>本期不提供在线支付</b>：请按上面对公信息转账，转账后由组委会登记到账。</p>
+    <p class="mt-1 text-amber-600"><i class="fas fa-circle-info mr-1"></i>逾期未缴<b>不会取消展位</b>，缴费状态与参展资格解耦。</p>
+  </div>
+  <div class="px-4 pb-5 pt-1"><button onclick="closePay()" class="w-full py-2.5 rounded-full text-white font-bold text-[12px]" style="background:linear-gradient(135deg,#F59E0B,#D97706)">知道了</button></div>
+</div>
+
+<div id="toast"></div>
+<div style="height:8px"></div>
+
+<script>
+var BOOTH_KEY='expoBoothApply';
+var DOC_KEY='expoExhibitorDocs';
+var apply=null;
+try{apply=JSON.parse(localStorage.getItem(BOOTH_KEY)||'null')}catch(e){apply=null}
+
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('on');clearTimeout(window._tt);window._tt=setTimeout(function(){t.classList.remove('on')},1900)}
+function getDocs(){try{return JSON.parse(localStorage.getItem(DOC_KEY)||'{}')}catch(e){return {}}}
+function saveDocs(d){try{localStorage.setItem(DOC_KEY,JSON.stringify(d))}catch(e){}}
+
+/* 参展手册：数据源 = 后台 14b「资料管理」中【适用对象含展商 + 名称=参展手册 + 当前届次】的唯一一条
+   端上只读；未上传时 HANDBOOK=null，卡片显示「未上传」并提示稍后 */
+var HANDBOOK={edition:18,name:'第18届袜博会参展手册',version:'v3',size:'2.4MB',updated:'2026-10-01'};
+function downloadHandbook(){
+  if(!HANDBOOK){toast('组委会尚未上传参展手册，请稍后再试');return}
+  toast('开始下载：'+HANDBOOK.name+' '+HANDBOOK.version+'（'+HANDBOOK.size+' · 更新于'+HANDBOOK.updated+'）');
+}
+
+var DOC_DEFS=[
+  {k:'intro',name:'企业介绍',hint:'公司简介 / 主营品类 / 产能'},
+  {k:'catalog',name:'商品名录',hint:'主推款图片与规格（可多张）'},
+  {k:'logo',name:'企业 LOGO',hint:'用于展商名录与展位楣板'},
+  {k:'booth',name:'展位效果图',hint:'特装展位请上传设计图'}
+];
+
+/* ===== 参展证（审核通过即发码，与参观入场证同机制） ===== */
+function boothCode(){
+  var seq=(apply&&apply.no)?apply.no.replace(/\D/g,'').slice(-4):'0001';
+  return 'E2026-18-'+seq;
+}
+function isBoothChecked(){try{return localStorage.getItem('expoBoothCheckin')==='1'}catch(e){return false}}
+function drawQR(el,px,seed){
+  if(!el)return;
+  var n=13,sv=seed||2026;
+  function rnd(){sv=(sv*9301+49297)%233280;return sv/233280}
+  var cell=Math.floor(px/n),h='';
+  for(var y=0;y<n;y++){
+    for(var x=0;x<n;x++){
+      var inCorner=(x<3&&y<3)||(x>n-4&&y<3)||(x<3&&y>n-4);
+      var on=inCorner?((x%2===0)||(y%2===0)):(rnd()>0.52);
+      h+='<i style="display:block;width:'+cell+'px;height:'+cell+'px;background:'+(on?'#111827':'#fff')+'"></i>';
+    }
+  }
+  el.innerHTML='<div style="display:grid;grid-template-columns:repeat('+n+','+cell+'px);background:#fff;padding:5px;border-radius:8px;border:1px solid #E5E7EB">'+h+'</div>';
+}
+function renderPass(){
+  var box=document.getElementById('passBox');
+  if(!box)return;
+  var ok=apply&&(apply.status==='approved'||apply.status==='confirmed');
+  if(!ok){box.innerHTML='';return;}
+  var code=boothCode(),done=isBoothChecked();
+  box.innerHTML='<div class="bg-white rounded-2xl shadow-soft p-3.5">'
+    +'<div class="flex items-center justify-between mb-2"><p class="text-[12px] font-bold text-gray-800"><i class="fas fa-id-badge text-[11px] mr-1" style="color:#059669"></i>我的参展证</p>'
+    +'<span class="text-[8px] px-1.5 py-0.5 rounded-full font-bold" style="background:'+(done?'#DBEAFE;color:#2563EB':'#D1FAE5;color:#059669')+'">'+(done?'已核销':'已发码')+'</span></div>'
+    +'<div class="flex items-center gap-3"><div id="passQR"></div>'
+    +'<div class="flex-1"><p class="text-[10px] text-gray-400">证件编号</p><p class="text-[12px] font-bold text-gray-800">'+code+'</p>'
+    +'<p class="text-[9px] text-gray-400 mt-1">展位 '+(apply.boothNo||'-')+' · 展期 10.18-10.20</p></div></div>'
+    +'<button onclick="openPass()" class="mt-2.5 w-full py-2 rounded-full text-white text-[11px] font-bold" style="background:linear-gradient(135deg,#34D399,#059669)">放大出示</button>'
+    +'</div>';
+  drawQR(document.getElementById('passQR'),104,Number(code.replace(/\D/g,''))||2026);
+}
+function openPass(){
+  var code=boothCode(),done=isBoothChecked();
+  document.getElementById('passNoBig').textContent=code;
+  document.getElementById('passBoothBig').textContent=(apply&&apply.boothNo)||'-';
+  var st=document.getElementById('passStateBig');
+  st.textContent=done?'已核销 · 已完成入场':'已发码 · 未核销';
+  st.style.color=done?'#2563EB':'#059669';
+  drawQR(document.getElementById('passQRBig'),221,Number(code.replace(/\D/g,''))||2026);
+  document.getElementById('passMask').classList.add('on');
+  document.getElementById('passSheet').classList.add('on');
+}
+function closePass(){
+  document.getElementById('passMask').classList.remove('on');
+  document.getElementById('passSheet').classList.remove('on');
+}
+
+function render(){
+  var hero=document.getElementById('heroBox');
+  if(!apply){
+    hero.innerHTML='<div class="bg-white rounded-2xl shadow-soft p-4 text-center">'
+      +'<p class="text-[13px] font-bold text-gray-800">还没有展位申请</p>'
+      +'<p class="text-[10px] text-gray-400 mt-1">申请通过后，这里会显示展位与缴费状态</p>'
+      +'<a href="expo-booth-apply.html" class="inline-block mt-3 px-4 py-2 rounded-full text-white text-[12px] font-bold" style="background:linear-gradient(135deg,#FB7185,#EC4899)">去申请展位</a></div>';
+    document.getElementById('todoList').innerHTML='<p class="text-[10px] text-gray-400">暂无可办事项</p>';
+    document.getElementById('boothBox').innerHTML='<p class="text-[10px] text-gray-400">暂无展位信息</p>';
+    document.getElementById('docList').innerHTML='<p class="text-[10px] text-gray-400">报名成功后开放资料维护</p>';
+    document.getElementById('passBox').innerHTML='';
+    return;
+  }
+
+  var paid=(apply.status==='confirmed');
+  var ok=(apply.status==='approved'||apply.status==='confirmed');
+  hero.innerHTML='<div class="bg-white rounded-2xl shadow-soft p-4">'
+    +'<div class="flex items-center gap-2.5">'
+    +'<div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background:'+(ok?'#F0FDF4':'#FFFBEB')+'">'
+    +'<i class="fas '+(ok?'fa-store':'fa-hourglass-half')+' text-[15px]" style="color:'+(ok?'#059669':'#D97706')+'"></i></div>'
+    +'<div class="flex-1"><div class="flex items-center gap-1.5"><p class="text-[14px] font-bold text-gray-800">'+(ok?'报名成功':'审核中')+'</p>'
+    +'<span class="text-[8px] px-1.5 py-0.5 rounded-full font-bold" style="background:'+(ok?'#D1FAE5;color:#059669':'#FEF3C7;color:#D97706')+'">'+(ok?'参展商':'待审核')+'</span></div>'
+    +'<p class="text-[9px] text-gray-400 mt-0.5">编号 '+(apply.no||'-')+' · 展位 '+(apply.boothNo||'-')+'</p></div></div>'
+    +(ok?'<div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-50">'
+      +'<div><p class="text-[9px] text-gray-400">缴费状态</p><p class="text-[11px] font-bold" style="color:'+(paid?'#059669':'#D97706')+'">'+(paid?'组委会已登记到账':'未缴费（线下转账）')+'</p></div>'
+      +'<button onclick="openPay()" class="px-3 py-1.5 rounded-full text-[10px] font-bold" style="background:#FFF7ED;color:#D97706;border:1px solid #FED7AA">缴费指引</button></div>'
+      :'<p class="text-[10px] text-gray-500 mt-2">审核通过即报名成功并锁定展位，无需等待缴费。</p>')
+    +'</div>';
+
+  /* 待办 */
+  var docs=getDocs();
+  var docDone=DOC_DEFS.filter(function(d){return docs[d.k]==='已通过'||docs[d.k]==='审核中'}).length;
+  var todos=[
+    {t:'完善企业资料（'+docDone+'/'+DOC_DEFS.length+'）',d:'资料审核通过后进入展商名录',done:docDone>=DOC_DEFS.length,act:'scrollToDocs'},
+    {t:paid?'缴费已完成登记':'对公转账并等组委会登记',d:paid?'组委会已登记到账':'本期无在线支付，逾期不影响展位',done:paid,act:'openPay'},
+    {t:'查看布展时间与日程',d:'布展 10.16-10.17 · 展期 10.18-10.20',done:false,act:'goSchedule'}
+  ];
+  document.getElementById('todoList').innerHTML=todos.map(function(x,i){
+    return '<div class="flex items-center gap-2.5 p-2.5 rounded-xl '+(x.done?'bg-emerald-50':'bg-gray-50')+' cursor-pointer" onclick="'+x.act+'()">'
+      +'<i class="fas '+(x.done?'fa-circle-check':'fa-circle')+' text-[13px]" style="color:'+(x.done?'#059669':'#D1D5DB')+'"></i>'
+      +'<div class="flex-1"><p class="text-[11px] font-semibold '+(x.done?'text-emerald-700':'text-gray-700')+'">'+x.t+'</p>'
+      +'<p class="text-[9px] text-gray-400 mt-0.5">'+x.d+'</p></div>'
+      +'<i class="fas fa-chevron-right text-gray-300 text-[10px]"></i></div>';
+  }).join('');
+
+  /* 参展证（审核通过即发码） */
+  renderPass();
+
+  /* 参展手册版本信息（来源于后台资料管理） */
+  var hb=document.getElementById('hbMeta');
+  if(hb)hb.textContent=HANDBOOK?(HANDBOOK.version+' · '+HANDBOOK.size):'未上传';
+
+  /* 展位 */
+  var rows=[
+    ['展位号',apply.boothNo||'-'],
+    ['展位类型',apply.boothType||'标准展位'],
+    ['所在区域',apply.zone||'A区·智能馆'],
+    ['应缴金额','¥'+(apply.amount||0).toLocaleString()],
+    ['缴费状态',paid?'组委会已登记到账':'未缴费（线下转账）']
+  ];
+  document.getElementById('boothBox').innerHTML=rows.map(function(r){
+    return '<div class="flex justify-between text-[11px]"><span class="text-gray-400">'+r[0]+'</span><span class="font-semibold text-gray-800">'+r[1]+'</span></div>';
+  }).join('');
+
+  /* 资料 */
+  document.getElementById('docList').innerHTML=DOC_DEFS.map(function(d){
+    var st=docs[d.k]||'未上传';
+    var map={'未上传':['#F3F4F6','#9CA3AF'],'审核中':['#FEF3C7','#D97706'],'已通过':['#D1FAE5','#059669'],'已驳回':['#FEE2E2','#DC2626']};
+    var c=map[st]||map['未上传'];
+    return '<div class="flex items-center gap-2.5 p-2.5 bg-gray-50 rounded-xl">'
+      +'<div class="flex-1"><div class="flex items-center gap-1.5"><p class="text-[11px] font-semibold text-gray-700">'+d.name+'</p>'
+      +'<span class="text-[8px] px-1.5 py-0.5 rounded-full font-bold" style="background:'+c[0]+';color:'+c[1]+'">'+st+'</span></div>'
+      +'<p class="text-[9px] text-gray-400 mt-0.5">'+d.hint+'</p></div>'
+      +'<button onclick="uploadDoc(\''+d.k+'\')" class="px-2.5 py-1.5 rounded-full text-[10px] font-bold" style="background:#fff;color:#EC4899;border:1px solid #FBCFE8">'+(st==='未上传'?'上传':'替换')+'</button></div>';
+  }).join('');
+}
+
+function uploadDoc(k){
+  var docs=getDocs();docs[k]='审核中';saveDocs(docs);render();
+  toast('资料已提交，组委会审核中（1 个工作日）');
+}
+function openPay(){document.getElementById('payMask').classList.add('on');document.getElementById('paySheet').classList.add('on');
+  document.getElementById('payAmount').textContent='¥'+(apply&&apply.amount?apply.amount.toLocaleString():'-');}
+function closePay(){document.getElementById('payMask').classList.remove('on');document.getElementById('paySheet').classList.remove('on');}
+function scrollToDocs(){document.getElementById('docList').scrollIntoView({behavior:'smooth',block:'center'});toast('请逐项上传企业资料');}
+function goSchedule(){window.location.href='expo-schedule.html';}
+
+render();
+</script>
+<script src="../shared/page-prd.js?v=20261028a"></script>
+</body>
+</html>

@@ -18,8 +18,8 @@
  * 【顺序】数组顺序 = 侧边栏展示顺序，调整顺序即移动数组元素，勿复制粘贴
  * ========================================================================== */
 
-window.MENU_VERSION = '2026.10.27-07';
-window.MENU_UPDATED = '2026-10-27';
+window.MENU_VERSION = '2026.10.28-02';
+window.MENU_UPDATED = '2026-10-28';
 
 window.MENU_DATA = [
 
@@ -244,13 +244,13 @@ window.MENU_DATA = [
       { type: 'item', name: '责任书模板管理', page: 'study-letter.html', status: 'done', points: ['个人版（7 条）', '团体版（5 条）', '条款编辑', '版本管理与存证说明'] }
     ]},
     { type: 'group', name: '袜博会', items: [
-      { type: 'item', name: '袜博会列表', page: 'expo-list.html', status: 'done', points: ['创建（基本信息/展会介绍）', '每届信息（编辑删除、关联信息）', '栏目化配置一键同步'] },
-      { type: 'item', name: '展位申请管理', page: 'expo-booth.html', status: 'done', points: ['待审批', '已通过', '已驳回', '展位由展商在买家端自选', '缴费状态'] },
+      { type: 'item', name: '袜博会列表', page: 'expo-list.html', status: 'done', points: ['创建新一届（空白配置）', '复制模板：已归档届次一键生成新届次草稿（结构性配置带过来，展位状态重置为可选，价格标待复核）', '配置 = 唯一编辑入口（基本信息 / 展会介绍 / 展位管理 / 展示管理 4 个 Tab），「编辑」已合并', '展示管理：从参展商名录勾选上首页展商 + 排序，不再手填（原「精选展商」）', '每 Tab 独立保存，保存后同步买家端'] },
+      { type: 'item', name: '展位申请管理', page: 'expo-booth.html', status: 'done', points: ['待审批 / 已通过 / 已驳回', '展位由展商在买家端申请时自选', '审核通过即报名成功（参展商）并锁定展位，无需等缴费', '缴费走线下对公转账，此处只做「登记缴费」（金额/到账日期/凭证），不影响参展资格', '逾期未缴不自动取消，进催缴名单'] },
       { type: 'item', name: '参观申请管理', page: 'expo-visitor.html', status: 'done', points: ['待审批', '已通过', '已驳回', '名单导出', '观众画像统计'] },
-      { type: 'item', name: '参展商管理', page: 'expo-exhibitor.html', status: 'done', points: ['展商列表', '详情', '展位信息', '企业资料状态'] },
+      { type: 'item', name: '参展商管理', page: 'expo-exhibitor.html', status: 'done', points: ['展商主数据（谁参展）：展商列表 / 详情 / 展位信息 / 企业资料状态', '资料审核不在本页：状态只读，「去审核」跳资料管理并带展商筛选（唯一审核台 = 资料管理）', '缴费状态（未缴费 / 已缴费）+「登记缴费」（线下到账，一笔可覆盖多个展位）', '「上首页」只读——由袜博会列表 → 配置 → 展示管理勾选排序，本页不再「设为精选」', '按公司维度催缴（欠费不影响参展资格）'] },
       { type: 'item', name: '日程安排管理', page: 'expo-schedule-manage.html', status: 'done', points: ['新建日程', '日程列表', '议程详情与嘉宾', '发布与变更通知'] },
       { type: 'item', name: '签到管理', page: 'expo-checkin.html', status: 'done', points: ['签到名单', '详情', '手工补签', '到场率统计'] },
-      { type: 'item', name: '资料管理', page: 'expo-material.html', status: 'done', points: ['官方资料上传与策略', '展商资料审核', '下载量统计'] },
+      { type: 'item', name: '资料管理', page: 'expo-material.html', status: 'done', points: ['官方资料上传与策略', '展商资料审核（唯一审核台）：厂家介绍 / 商品名录 / 展位效果图 三类同队列', '支持 ?tab=m&exh=展商名 从参展商管理跳入并自动筛选 + 顶部筛选条', '驳回原因必填（≥2 字）；待审数（卡 / Tab 徽标 / 列表标题）同源联动', '下载量统计'] },
       { type: 'item', name: '往期存档回顾', page: 'expo-archive.html', status: 'done', points: ['每届信息聚合报告', '导出', '复制为新一届模板'] }
     ]}
   ]

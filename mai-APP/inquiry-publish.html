@@ -164,11 +164,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <div class="mb-3">
 <label class="lbl">发布方式</label>
 <div class="grid grid-cols-2 gap-2">
-<button class="card flex items-center gap-2 p-2.5 rounded-xl border" style="border-color:#FF4D2D;background:#FFF7F4">
+<button id="pubOpen" onclick="selectPublish('open')" class="card flex items-center gap-2 p-2.5 rounded-xl border" style="border-color:#FF4D2D;background:#FFF7F4">
 <div class="w-8 h-8 rounded-lg text-white flex items-center justify-center" style="background:linear-gradient(135deg,#FF8A4C,#FF4D2D)"><i class="fas fa-bullhorn text-xs"></i></div>
 <div><p class="text-[12px] font-semibold text-gray-800">公开广场</p><p class="text-[9px] text-gray-400">所有商家可见</p></div>
 </button>
-<button class="card flex items-center gap-2 p-2.5 rounded-xl border border-gray-100 bg-white" onclick="toast('公开广场方式')">
+<button id="pubInvite" onclick="selectPublish('invite')" class="card flex items-center gap-2 p-2.5 rounded-xl border border-gray-100 bg-white">
 <div class="w-8 h-8 rounded-lg text-white flex items-center justify-center" style="background:linear-gradient(135deg,#2DD4BF,#14B8A6)"><i class="fas fa-lock text-xs"></i></div>
 <div><p class="text-[12px] font-medium text-gray-700">定向邀请</p><p class="text-[9px] text-gray-400">指定商家报价</p></div>
 </button>
@@ -218,12 +218,28 @@ function renderCert(){
     c.innerHTML='<div class="rounded-2xl px-3.5 py-4 flex items-center gap-2.5 shadow-soft" style="background:linear-gradient(135deg,#FEF3C7,#FDE68A)">'
       +'<i class="fas fa-lock text-amber-600 text-sm"></i>'
       +'<div class="flex-1"><p class="text-[12px] font-bold text-amber-700">未完成采购商实名认证</p><p class="text-[9px] text-amber-600/90 mt-0.5">完成实名认证后方可发布采购需求</p></div>'
-      +'<a href="inquiry.html" class="text-[11px] font-bold text-white px-3 py-1.5 rounded-lg" style="background:linear-gradient(135deg,#F59E0B,#D97706)" onclick="toast(\'跳转采购商实名认证（演示）\')">去认证</a></div>';
+      +'<a href="inquiry.html" class="text-[11px] font-bold text-white px-3 py-1.5 rounded-lg" style="background:linear-gradient(135deg,#F59E0B,#D97706)" onclick="toast(\'实名认证线上入口尚未开放，请联系市场服务中心 0575-8878 1001\')">去认证</a></div>';
   }
 }
 function toggleCert(){certified=!certified;renderCert();toast(certified?'已恢复为「已认证」（演示）':'已切换为「未认证」（演示）')}
 var needSample=false;
 function toggleNeedSample(){needSample=!needSample;var sw=document.getElementById('needSampleSw');sw.classList.toggle('on',needSample);document.getElementById('needSampleTip').style.display=needSample?'block':'none';}
+/* 发布方式切换（公开广场 / 定向邀请），默认公开广场 */
+var PUBLISH_MODE='open';
+function selectPublish(v){
+  PUBLISH_MODE=v;
+  var o=document.getElementById('pubOpen'),i=document.getElementById('pubInvite');
+  if(!o||!i)return;
+  function set(el,on){
+    var p=el.querySelector('p');
+    el.style.borderColor=on?'#FF4D2D':'';
+    el.style.background=on?'#FFF7F4':'#fff';
+    if(p)p.className='text-[12px] '+(on?'font-semibold text-gray-800':'font-medium text-gray-700');
+  }
+  set(o,v==='open');set(i,v==='invite');
+  toast(v==='open'?'已选择：公开广场（所有商家可见）':'已选择：定向邀请（指定商家报价）');
+}
+
 function publish(){
   if(!certified){toast('请先完成采购商实名认证');return}
   var n=document.getElementById('fName').value,q=document.getElementById('fQty').value;

@@ -204,7 +204,8 @@
     + '.pp-btn{position:fixed;right:18px;bottom:18px;z-index:2147483000;display:flex;align-items:center;gap:6px;'
     + 'padding:8px 14px;border-radius:999px;background:#1F2430;color:#fff;font-size:12px;font-weight:600;'
     + 'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif;'
-    + 'box-shadow:0 6px 20px rgba(15,23,42,.25);cursor:pointer;border:0;transition:transform .15s,box-shadow .15s;opacity:.92}'
+    + 'box-shadow:0 6px 20px rgba(15,23,42,.25);cursor:pointer;border:0;'
+    + 'transition:transform .15s,box-shadow .15s,opacity .18s,left .2s ease,right .2s ease,top .2s ease,bottom .2s ease;opacity:.92}'
     + '.pp-btn:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(15,23,42,.32);opacity:1}'
     + '.pp-btn.on-dark{background:#fff;color:#1F2430;box-shadow:0 8px 24px rgba(0,0,0,.35)}'
     + '.pp-mask{position:fixed;inset:0;background:rgba(15,23,42,.42);z-index:2147483001;display:none}'
@@ -282,6 +283,86 @@
     if (mask) root.appendChild(mask);
     root.appendChild(drawer);
     (DOC.body || DOC.documentElement).appendChild(root);
+
+    /* ===== 自动避让：按钮不许压住业务抽屉 / 弹层的操作区 =====
+       本按钮 z-index 高于业务抽屉（.drawer z-index 50），停右下会正好盖住
+       抽屉底部的「保存并同步 / 确认」等操作栏。这里改为：一旦检测到
+       可见的大尺寸浮层与按钮相交，就把按钮让到该浮层左侧；左侧也放不下
+       则退到其上方；都放不下才隐藏。 */
+    var AVOID_SEL = '[class*="drawer"],[class*="modal"],[class*="sheet"],[class*="dialog"],[class*="popup"]';
+    var SKIP_RE = /(mask|overlay|backdrop)/i;   /* 全屏透明遮罩不算遮挡物，否则永远判定铺满 */
+    var avoidTimer = 0;
+
+    function doAvoid() {
+      /* 先复位成默认位置，再重新判；复位后 rect 才是基准 */
+      btn.style.left = 'auto';
+      btn.style.right = '18px';
+      btn.style.bottom = '18px';
+      btn.style.top = 'auto';
+      btn.style.opacity = '';
+      btn.style.pointerEvents = '';
+
+      var b = btn.getBoundingClientRect();
+      if (!b.width) return;
+
+      var nodes = DOC.querySelectorAll(AVOID_SEL);
+      var cover = null;
+      for (var i = 0; i < nodes.length; i++) {
+        var n = nodes[i];
+        if (SKIP_RE.test(n.className || '')) continue;
+        var cs = DOC.defaultView.getComputedStyle(n);
+        if (cs.display === 'none' || cs.visibility === 'hidden' || parseFloat(cs.opacity) === 0) continue;
+        var r = n.getBoundingClientRect();
+        /* 太小的是标签/小卡片，不是浮层；移出屏幕的抽屉 rect.left 会超出视口，自然不相交 */
+        if (r.width < 140 || r.height < 120) continue;
+        if (r.right > b.left && r.left < b.right && r.bottom > b.top && r.top < b.bottom) { cover = r; break; }
+      }
+      if (!cover) return;
+
+      var GAP = 14;
+      /* 窄屏（移动端）的浮层基本都是全宽全高，让到哪儿都还在内容上 → 直接收起 */
+      if ((DOC.documentElement.clientWidth || 0) < 600) {
+        btn.style.opacity = '0';
+        btn.style.pointerEvents = 'none';
+        return;
+      }
+      var lp = cover.left - b.width - GAP;
+      if (lp >= 10) {                       /* ① 让到浮层左侧 */
+        btn.style.right = 'auto';
+        btn.style.left = lp + 'px';
+        return;
+      }
+      var tp = cover.top - b.height - GAP;
+      if (tp >= 10) {                       /* ② 让到浮层上方 */
+        btn.style.bottom = 'auto';
+        btn.style.top = tp + 'px';
+        return;
+      }
+      btn.style.opacity = '0';              /* ③ 浮层铺满：暂时收起 */
+      btn.style.pointerEvents = 'none';
+    }
+
+    /* 抽屉带 0.22~0.26s 的滑入/滑出过渡：单次采样必然抓到中间态（rect 还在移动），
+       因此在动画过程中的多个时点各采一次，动画结束后那次才算数。 */
+    function avoid() {
+      if (avoidTimer) return;
+      avoidTimer = 1;
+      var delays = [40, 220, 460, 720];
+      for (var i = 0; i < delays.length; i++) setTimeout(doAvoid, delays[i]);
+      setTimeout(function () { avoidTimer = 0; }, 800);
+    }
+
+    /* 抽屉靠切 class 开合 → 监听 class；个别页面用 style 控制 → 点击后再兜一次 */
+    try {
+      var mo = new (DOC.defaultView.MutationObserver || window.MutationObserver)(avoid);
+      /* class 变化 = 抽屉开合；childList = 弹层被动态插入（先设好 class 再 append，不会有 class 变更记录） */
+      mo.observe(DOC.body || DOC.documentElement, {
+        attributes: true, subtree: true, attributeFilter: ['class'], childList: true
+      });
+    } catch (e) {}
+    DOC.addEventListener('click', function () { setTimeout(avoid, 60); setTimeout(avoid, 360); }, true);
+    DOC.addEventListener('resize', avoid);
+    avoid();
   }
 
   function start() {

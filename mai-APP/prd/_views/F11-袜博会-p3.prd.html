@@ -49,7 +49,7 @@ details.fam[open]{padding-bottom:10px}
 <h3>0.5 状态机</h3>
 <p><strong>参观登记（6 态）</strong></p>
 <table><thead><tr><th>端上 key</th><th>后台状态</th><th>端上表现</th></tr></thead><tbody><tr><td><code>pending</code></td><td>待审核</td><td>结果页「等待审核」+ 登记编号</td></tr><tr><td><code>approved</code></td><td>已通过</td><td>生成入场码 <code>V+年+届次+4位</code>，可扫码</td></tr><tr><td><code>checkedin</code></td><td>已核销</td><td>入场证 + 资料全解锁</td></tr><tr><td><code>rejected</code></td><td>已驳回</td><td>驳回原因 + 重新登记</td></tr><tr><td><code>noshow</code></td><td>未到场</td><td>仅后台可见（端上无入口）</td></tr><tr><td><code>cancelled</code></td><td>已取消</td><td>仅后台可见</td></tr></tbody></table>
-<p><strong>展位申请（端上可见 4 态）</strong>：<code>待审核</code> → <code>已通过（待缴费）</code> → <code>已确认</code>；异常 <code>已驳回</code> / <code>已取消</code>。</p>
+<p><strong>展位申请（2026-10-28 v1.1：取消在线支付后 3 态）</strong>：<code>待审核</code> → <code>已通过（报名成功 · 参展商）</code>；异常 <code>已驳回</code> / <code>已取消</code>。<strong>缴费状态与参展资格解耦</strong>：<code>未缴费（线下转账）</code> / <code>组委会已登记到账</code>，逾期不取消展位。</p>
 <p><strong>资料访问策略</strong>：<code>public 公开</code> / <code>registered 需登记通过</code> / <code>checkedin 需现场核销</code>。</p>
 <pre class="code"><code data-lang="mermaid">stateDiagram-v2
   [*] --&gt; pending: 提交登记
@@ -60,7 +60,7 @@ details.fam[open]{padding-bottom:10px}
   approved --&gt; noshow: 截止未核销
   approved --&gt; cancelled: 后台取消</code></pre>
 <h3>0.6 口径与术语</h3>
-<table><thead><tr><th>项</th><th>口径</th></tr></thead><tbody><tr><td>入场码</td><td><code>V + 年份 + 届次 + 4 位流水</code>（示例 <code>V2026180001</code>）</td></tr><tr><td>审核时长</td><td>1 个工作日</td></tr><tr><td>核销窗口</td><td>展会期间每日开馆前 1 小时 – 闭馆；重复核销幂等</td></tr><tr><td>资料解锁</td><td>需 <code>approved</code>；<code>checkedin</code> 策略需到场核销</td></tr><tr><td>展位号</td><td>多选自选，提交时<strong>英文逗号</strong>分隔（后台 <code>boothNo</code>）</td></tr><tr><td>展位缴费</td><td>本期<strong>线下/财务手工确认</strong>，端上只显示「待缴费」与对公信息</td></tr><tr><td>我的日程</td><td>仅存本机 <code>expoMySchedule</code>，换设备不迁移</td></tr></tbody></table>
+<table><thead><tr><th>项</th><th>口径</th></tr></thead><tbody><tr><td>入场码</td><td><code>V + 年份 + 届次 + 4 位流水</code>（示例 <code>V2026180001</code>）</td></tr><tr><td>审核时长</td><td>1 个工作日</td></tr><tr><td>核销窗口</td><td>展会期间每日开馆前 1 小时 – 闭馆；重复核销幂等</td></tr><tr><td>资料解锁</td><td>需 <code>approved</code>；<code>checkedin</code> 策略需到场核销</td></tr><tr><td>展位号</td><td>多选自选，提交时<strong>英文逗号</strong>分隔（后台 <code>boothNo</code>）</td></tr><tr><td>展位缴费</td><td><strong>本期无在线支付</strong>：审核通过即报名成功并锁位，费用走线下对公转账；端上只展示缴费状态与转账指引，不阻断</td></tr><tr><td>我的日程</td><td>仅存本机 <code>expoMySchedule</code>，换设备不迁移</td></tr></tbody></table>
 <h3>0.7 导航与返回栈</h3>
 <table><thead><tr><th>场景</th><th>规则</th></tr></thead><tbody><tr><td><code>expo</code> 返回</td><td>回首页</td></tr><tr><td><code>expo-info</code> / <code>expo-schedule</code> / <code>expo-materials</code> 返回</td><td>回 <code>expo</code></td></tr><tr><td><code>expo-session-detail</code> 返回</td><td>回 <code>expo-schedule</code>（或来源页）</td></tr><tr><td><code>expo-visitor-apply</code> 返回</td><td>步骤内回上一步；结果页回 <code>expo</code></td></tr><tr><td><code>expo-booth-apply</code> 返回</td><td>回 <code>expo</code></td></tr><tr><td>底部弹层（展商详情/扫码）</td><td>点遮罩关闭，不触发页面返回</td></tr></tbody></table>
 <h3>0.8 端间落点表</h3>

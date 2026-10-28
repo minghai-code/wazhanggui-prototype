@@ -160,13 +160,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <div class="bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-3 border border-white">
 <p class="text-[10px] text-gray-400 mb-2 font-semibold">申请流程</p>
 <div class="flex items-center justify-between" id="boothFlow">
+<!-- 2026-10-28：取消在线支付，流程 3 步（与脚本 FLOW 一致，避免首屏闪现旧 4 步） -->
 <div class="text-center"><div class="w-8 h-8 rounded-full flex items-center justify-center text-white mx-auto mb-1" style="background:#EC4899"><i class="fas fa-file-pen text-[10px]"></i></div><span class="text-[8px] text-gray-500">提交申请</span></div>
 <div class="flex-1 h-1 mx-1 rounded" style="background:#F3E8F0"></div>
 <div class="text-center"><div class="w-8 h-8 rounded-full flex items-center justify-center text-white mx-auto mb-1" style="background:#A78BFA"><i class="fas fa-circle-check text-[10px]"></i></div><span class="text-[8px] text-gray-500">审核确认</span></div>
 <div class="flex-1 h-1 mx-1 rounded" style="background:#F3E8F0"></div>
-<div class="text-center"><div class="w-8 h-8 rounded-full flex items-center justify-center text-white mx-auto mb-1" style="background:#38BDF8"><i class="fas fa-money-bill-wave text-[10px]"></i></div><span class="text-[8px] text-gray-500">缴纳费用</span></div>
-<div class="flex-1 h-1 mx-1 rounded" style="background:#F3E8F0"></div>
-<div class="text-center"><div class="w-8 h-8 rounded-full flex items-center justify-center text-white mx-auto mb-1" style="background:#34D399"><i class="fas fa-warehouse text-[10px]"></i></div><span class="text-[8px] text-gray-500">确认展位</span></div>
+<div class="text-center"><div class="w-8 h-8 rounded-full flex items-center justify-center text-white mx-auto mb-1" style="background:#34D399"><i class="fas fa-circle-check text-[10px]"></i></div><span class="text-[8px] text-gray-500">报名成功</span></div>
 </div>
 </div>
 </div>
@@ -286,11 +285,11 @@ var BOOTH_KEY='expoBoothApply';
 var apply=null;
 try{apply=JSON.parse(localStorage.getItem(BOOTH_KEY)||'null')}catch(e){apply=null}
 
+/* 2026-10-28：取消在线支付 → 流程由 4 步压到 3 步（审核通过即报名成功） */
 var FLOW=[
  {t:'提交申请',icon:'fas fa-file-pen',c:'#EC4899'},
  {t:'审核确认',icon:'fas fa-circle-check',c:'#A78BFA'},
- {t:'缴纳费用',icon:'fas fa-money-bill-wave',c:'#38BDF8'},
- {t:'确认展位',icon:'fas fa-warehouse',c:'#34D399'}
+ {t:'报名成功',icon:'fas fa-circle-check',c:'#34D399'}
 ];
 function renderFlow(stage){
   var box=document.getElementById('boothFlow');
@@ -301,7 +300,7 @@ function renderFlow(stage){
     var bg=done?f.c:(cur?f.c:'#E5E7EB');
     var op=(done||cur)?'1':'.45';
     h+='<div class="text-center" style="opacity:'+op+'"><div class="w-8 h-8 rounded-full flex items-center justify-center text-white mx-auto mb-1" style="background:'+bg+'"><i class="'+f.icon+' text-[10px]"></i></div><span class="text-[8px] text-gray-500">'+f.t+'</span></div>';
-    if(i<3)h+='<div class="flex-1 h-1 mx-1 rounded" style="background:'+(i<stage-1?f.c:'#F3E8F0')+'"></div>';
+    if(i<2)h+='<div class="flex-1 h-1 mx-1 rounded" style="background:'+(i<stage-1?f.c:'#F3E8F0')+'"></div>';
   });
   box.innerHTML=h;
 }
@@ -330,28 +329,30 @@ function renderBoothStatus(){
       +'<div class="bg-red-50 rounded-xl p-3 border border-red-100 mb-3"><p class="text-[10px] text-red-700 leading-relaxed"><i class="fas fa-circle-exclamation mr-1"></i><b>驳回原因：</b>'+apply.reason+'</p></div>'
       +'<p class="text-[10px] text-gray-500 mb-3">可修改信息后重新提交申请，或联系展位咨询 0575-8742xxxx。</p>'
       +'<button onclick="resetApply()" class="w-full py-2.5 rounded-full text-white font-bold text-[12px]" style="background:linear-gradient(135deg,#FB7185,#EC4899)">重新提交申请</button></div>';
-  }else if(apply.status==='approved'){
+  }else if(apply.status==='approved'||apply.status==='confirmed'){
+    /* 审核通过 = 报名成功（参展商）；confirmed 仅表示组委会已登记线下到账 */
     renderFlow(2);
+    var paid=(apply.status==='confirmed');
     h='<div class="bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-4 border border-white">'
-      +'<div class="flex items-center gap-2.5 mb-2"><div class="w-12 h-12 rounded-full flex items-center justify-center text-white flex-shrink-0" style="background:linear-gradient(135deg,#38BDF8,#3B82F6)"><i class="fas fa-money-bill-wave text-xl"></i></div>'
-      +'<div><p class="text-[14px] font-bold text-gray-800">审核通过，待缴费</p><p class="text-[9px] text-gray-400">编号 '+apply.no+'</p></div>'
-      +'<span class="ml-auto text-[9px] px-2 py-0.5 rounded-full font-bold" style="background:#DBEAFE;color:#2563EB">待缴费</span></div>'
+      +'<div class="flex items-center gap-2.5 mb-2"><div class="w-12 h-12 rounded-full flex items-center justify-center text-white flex-shrink-0" style="background:linear-gradient(135deg,#34D399,#059669)"><i class="fas fa-circle-check text-xl"></i></div>'
+      +'<div><p class="text-[14px] font-bold text-gray-800">报名成功</p><p class="text-[9px] text-gray-400">编号 '+apply.no+' · 展位号 '+apply.boothNo+'</p></div>'
+      +'<span class="ml-auto text-[9px] px-2 py-0.5 rounded-full font-bold" style="background:#D1FAE5;color:#059669">参展商</span></div>'
+      +'<div class="bg-emerald-50 rounded-xl p-3 border border-emerald-100 mb-3"><p class="text-[10px] text-emerald-700 leading-relaxed"><i class="fas fa-circle-check mr-1"></i>审核通过即报名成功，<b>展位已为你锁定</b>，无需等待缴费。参展须知与布展时间已推送，请按时上传企业资料（厂家介绍 / 商品名录），审核通过后进入展商名录。</p></div>'
       +'<div class="bg-blue-50 rounded-xl p-3 border border-blue-100 mb-3">'
-      +'<div class="flex justify-between text-[10px] mb-1"><span class="text-gray-500">已分配展位号</span><span class="font-bold" style="color:#2563EB">'+apply.boothNo+'</span></div>'
+      +'<div class="flex justify-between text-[10px] mb-1"><span class="text-gray-500">展位号</span><span class="font-bold" style="color:#2563EB">'+apply.boothNo+'</span></div>'
       +'<div class="flex justify-between text-[10px] mb-1"><span class="text-gray-500">展位需求</span><span class="font-semibold text-gray-800">'+apply.detail+'</span></div>'
-      +'<div class="flex justify-between text-[10px]"><span class="text-gray-500">应付金额</span><span class="font-bold" style="color:#EC4899">¥'+apply.amount.toLocaleString()+'</span></div></div>'
-+'<button onclick="toPay()" class="w-full py-2.5 rounded-full text-white font-bold text-[12px] mb-2" style="background:linear-gradient(135deg,#F59E0B,#D97706)">去缴费（查看对公转账信息）</button>'
-      +'<div class="bg-amber-50 rounded-xl p-3 border border-amber-100 mb-3"><p class="text-[10px] text-amber-700 leading-relaxed"><i class="fas fa-circle-info mr-1"></i><b>缴费方式：</b>本期为<b>线下对公转账 + 财务手工确认收款</b>（暂未开通线上支付）。请在审核通过后 <b>7 个自然日内</b> 完成转账，逾期系统将自动取消并释放展位。</p></div>'
-      +'<button onclick="confirmPay()" class="w-full py-2.5 rounded-full text-white font-bold text-[12px]" style="background:linear-gradient(135deg,#34D399,#059669)">（演示）模拟财务确认收款</button></div>';
+      +'<div class="flex justify-between text-[10px] mb-1"><span class="text-gray-500">应缴金额</span><span class="font-bold" style="color:#EC4899">¥'+apply.amount.toLocaleString()+'</span></div>'
+      +'<div class="flex justify-between text-[10px]"><span class="text-gray-500">缴费状态</span><span class="font-bold" style="color:'+(paid?'#059669':'#D97706')+'">'+(paid?'组委会已登记到账':'未缴费（线下转账）')+'</span></div></div>'
+      +'<button onclick="toPay()" class="w-full py-2.5 rounded-full text-white font-bold text-[12px] mb-2" style="background:linear-gradient(135deg,#F59E0B,#D97706)">查看缴费指引（对公转账）</button>'
+      +'<div class="bg-amber-50 rounded-xl p-3 border border-amber-100 mb-3"><p class="text-[10px] text-amber-700 leading-relaxed"><i class="fas fa-circle-info mr-1"></i><b>缴费方式：</b>本期<b>不提供在线支付</b>，请按组委会通知<b>对公转账</b>，到账后由组委会登记。<b>逾期未缴不会取消展位</b>，组委会将线下联系您催缴。</p></div>'
+      +'<a href="expo-exhibitor-center.html" class="block text-center py-2.5 rounded-full text-white font-bold text-[12px] mb-2" style="background:linear-gradient(135deg,#8B5CF6,#6366F1)">进入参展商中心（维护资料）</a>'
+      +(paid?'':'<button onclick="confirmPay()" class="w-full py-2.5 rounded-full text-gray-400 font-bold text-[11px] bg-gray-100">（演示）模拟组委会登记到账</button>')
+      +'<button onclick="resetApply()" class="w-full py-2.5 rounded-full text-gray-500 font-bold text-[12px] bg-gray-100 mt-2">重新提交一份申请</button></div>';
   }else{
-    renderFlow(3);
-    h='<div class="bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-4 border border-white">'
-      +'<div class="flex items-center gap-2.5 mb-2"><div class="w-12 h-12 rounded-full flex items-center justify-center text-white flex-shrink-0" style="background:linear-gradient(135deg,#34D399,#059669)"><i class="fas fa-warehouse text-xl"></i></div>'
-      +'<div><p class="text-[14px] font-bold text-gray-800">展位已确认</p><p class="text-[9px] text-gray-400">编号 '+apply.no+' · 展位号 '+apply.boothNo+'</p></div>'
-      +'<span class="ml-auto text-[9px] px-2 py-0.5 rounded-full font-bold" style="background:#D1FAE5;color:#059669">已确认</span></div>'
-      +'<div class="bg-emerald-50 rounded-xl p-3 border border-emerald-100 mb-3"><p class="text-[10px] text-emerald-700 leading-relaxed"><i class="fas fa-circle-check mr-1"></i>财务已确认收款，展位最终锁定。参展须知与布展时间已推送，请在「资料下载」查看并按时上传企业资料（厂家介绍 / 商品名录），审核通过后进入展商名录。</p></div>'
-      +'<a href="expo-materials.html" class="block text-center py-2.5 rounded-full text-white font-bold text-[12px] mb-2" style="background:linear-gradient(135deg,#8B5CF6,#6366F1)">去上传/查看资料</a>'
-      +'<button onclick="resetApply()" class="w-full py-2.5 rounded-full text-gray-500 font-bold text-[12px] bg-gray-100">重新提交一份申请</button></div>';
+    renderFlow(0);
+    h='<div class="bg-white/85 backdrop-blur-xl rounded-2xl shadow-soft p-4 border border-white text-center">'
+      +'<p class="text-[12px] text-gray-500">申请状态异常，请重新提交</p>'
+      +'<button onclick="resetApply()" class="w-full mt-3 py-2.5 rounded-full text-white font-bold text-[12px]" style="background:linear-gradient(135deg,#FB7185,#EC4899)">重新提交申请</button></div>';
   }
   box.innerHTML=h;
 }
@@ -360,7 +361,9 @@ function submitForm(e){
   e.preventDefault();
   var c=calcAmount();
   if(c.list.length===0){toast('请先选择至少一个展位');return false;}
-  apply={status:'pending',no:'B2026'+'1800'+'21',detail:c.text,amount:c.amount,boothNo:c.list.join(','),reason:''};
+  var firstNo=c.list[0], fb=BOOTHS.filter(function(b){return b.no===firstNo})[0]||{};
+ apply={status:'pending',no:'B2026'+'1800'+'21',detail:c.text,amount:c.amount,boothNo:c.list.join(','),reason:'',
+        zone:fb.zone||'',boothType:(BOOTH_TYPES[fb.type]||{}).name||'',floor:fb.floor||''};
   saveApply();
   renderBoothStatus();
   document.getElementById('boothStatus').scrollIntoView({behavior:'smooth',block:'center'});
@@ -371,7 +374,7 @@ function approveBooth(){
   apply.status='approved';
   saveApply();
   renderBoothStatus();
-  toast('审核通过，所选展位已确认');
+  toast('审核通过：报名成功，展位已为你锁定（费用线下转账）');
 }
 function rejectBooth(){
   apply.status='rejected';
@@ -384,10 +387,10 @@ function confirmPay(){
   apply.status='confirmed';
   saveApply();
   renderBoothStatus();
-  toast('财务已确认收款，展位锁定');
+  toast('组委会已登记到账（仅记账，不影响参展资格）');
 }
 function toPay(){
-  toast('对公转账：户名「诸暨袜博会组委会」 账号 3300****8821 开户行 工行诸暨支行 金额 ¥'+apply.amount.toLocaleString()+'（审核通过后 7 日内到账有效）');
+  toast('对公转账：户名「诸暨袜博会组委会」 账号 3300****8821 开户行 工行诸暨支行 金额 ¥'+apply.amount.toLocaleString()+'（转账后由组委会登记到账，逾期不影响展位）');
 }
 function resetApply(){
   apply=null;

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>扫码核销 - 袜掌柜买家版</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#0B1220;width:393px;overflow-x:hidden;color:#fff}
+.card{transition:transform .18s}
+.card:active{transform:scale(.97)}
+/* 取景框 */
+.frame{position:relative;width:230px;height:230px;margin:0 auto}
+.frame i{position:absolute;width:26px;height:26px;border:3px solid #34D399}
+.frame i:nth-child(1){top:0;left:0;border-right:0;border-bottom:0;border-radius:8px 0 0 0}
+.frame i:nth-child(2){top:0;right:0;border-left:0;border-bottom:0;border-radius:0 8px 0 0}
+.frame i:nth-child(3){bottom:0;left:0;border-right:0;border-top:0;border-radius:0 0 0 8px}
+.frame i:nth-child(4){bottom:0;right:0;border-left:0;border-top:0;border-radius:0 0 8px 0}
+.scanline{position:absolute;left:8px;right:8px;height:2px;background:linear-gradient(90deg,transparent,#34D399,transparent);box-shadow:0 0 12px #34D399;animation:scan 2.2s linear infinite}
+@keyframes scan{0%{top:6px}50%{top:220px}100%{top:6px}}
+.mask{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;z-index:200}
+.mask.on{display:block}
+.sheet{position:fixed;left:0;right:0;bottom:0;background:#fff;color:#111;border-radius:20px 20px 0 0;z-index:201;transform:translateY(100%);transition:transform .26s;max-height:82vh;overflow-y:auto}
+.sheet.on{transform:translateY(0)}
+#toast{position:fixed;left:50%;top:22%;transform:translate(-50%,-50%);background:rgba(15,18,26,.92);color:#fff;padding:10px 16px;border-radius:12px;font-size:12px;z-index:999;opacity:0;transition:opacity .2s;max-width:280px;text-align:center;line-height:1.7}
+#toast.on{opacity:1}
+</style>
+</head>
+<body>
+
+<!-- 顶栏 -->
+<div class="flex items-center px-4 pt-4 pb-2">
+  <a href="expo.html" class="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white"><i class="fas fa-chevron-left text-[13px]"></i></a>
+  <span class="ml-3 text-[15px] font-bold">扫码核销</span>
+  <span class="ml-auto text-[10px] text-white/60" id="pointTag">核销点：A 口</span>
+</div>
+
+<!-- 无权限 -->
+<div id="noPerm" class="px-6 pt-16 text-center" style="display:none">
+  <i class="fas fa-lock text-[28px] text-white/30"></i>
+  <p class="text-[13px] font-bold mt-3">当前账号没有核销权限</p>
+  <p class="text-[10px] text-white/50 mt-1.5 leading-relaxed">核销功能仅对组委会核销员开放<br>如需开通请联系现场负责人</p>
+  <a href="expo.html" class="inline-block mt-5 px-5 py-2.5 rounded-full text-[12px] font-bold" style="background:#34D399;color:#06251B">返回袜博会</a>
+</div>
+
+<!-- 取景区 -->
+<div id="scanArea">
+  <div class="px-6 pt-2 pb-6 text-center">
+    <div class="frame" id="frame">
+      <i></i><i></i><i></i><i></i>
+      <div class="scanline"></div>
+    </div>
+    <p class="text-[12px] text-white/80 mt-5">对准对方的参展证 / 入场证二维码</p>
+    <p class="text-[10px] text-white/40 mt-1.5">扫码后需你本人确认，才算核销成功</p>
+  </div>
+
+  <div class="px-4">
+    <p class="text-[10px] text-white/40 mb-2">演示：模拟扫到</p>
+    <div class="grid grid-cols-3 gap-2">
+      <button onclick="mockScan('E2026-18-0021')" class="card bg-white/10 rounded-xl py-2.5 text-[10px] font-semibold">参展证<br><span class="text-[8px] text-white/50">E2026-18-0021</span></button>
+      <button onclick="mockScan('V2026-18-0088')" class="card bg-white/10 rounded-xl py-2.5 text-[10px] font-semibold">入场证<br><span class="text-[8px] text-white/50">V2026-18-0088</span></button>
+      <button onclick="mockScan('INVALID-0000')" class="card bg-white/10 rounded-xl py-2.5 text-[10px] font-semibold">无效码<br><span class="text-[8px] text-white/50">测试异常</span></button>
+    </div>
+  </div>
+
+  <div class="px-4 mt-3">
+    <button onclick="openManual()" class="w-full py-2.5 rounded-full bg-white/10 text-[11px] font-semibold"><i class="fas fa-keyboard mr-1"></i>扫码失败？手动输入证件号</button>
+  </div>
+
+  <div class="px-4 mt-4 flex items-center justify-between text-[10px] text-white/40">
+    <span>今日我已核销 <span class="text-white font-bold" id="myCount">0</span> 人</span>
+    <span>核销记录以后台为准</span>
+  </div>
+</div>
+
+<!-- 结果弹层 -->
+<div class="mask" id="resMask" onclick="closeRes()"></div>
+<div class="sheet" id="resSheet">
+  <div class="px-4 pt-3 pb-2 sticky top-0 bg-white border-b border-gray-50">
+    <div class="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-2"></div>
+    <p class="text-[13px] font-bold text-gray-800" id="resTitle">核对信息</p>
+  </div>
+  <div class="px-4 py-3" id="resBody"></div>
+  <div class="px-4 pb-6 pt-1" id="resFoot"></div>
+</div>
+
+<!-- 手动输入 -->
+<div class="mask" id="manMask" onclick="closeManual()"></div>
+<div class="sheet" id="manSheet">
+  <div class="px-4 pt-3 pb-2 sticky top-0 bg-white border-b border-gray-50">
+    <div class="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-2"></div>
+    <p class="text-[13px] font-bold text-gray-800">手动输入证件号</p>
+  </div>
+  <div class="px-4 py-3">
+    <input id="manInput" placeholder="如 E2026-18-0021 或 V2026-18-0088" class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-[12px] outline-none">
+    <p class="text-[9px] text-gray-400 mt-2">用于码破损/反光扫不出时兜底；后台会记录「手工补录」方式</p>
+  </div>
+  <div class="px-4 pb-6"><button onclick="submitManual()" class="w-full py-2.5 rounded-full text-white text-[12px] font-bold" style="background:linear-gradient(135deg,#34D399,#059669)">查询并核销</button></div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* 仅核销员可用（角色由后台下发；?staff=1 演示） */
+var role='';
+try{
+  if(new URLSearchParams(location.search).get('staff')==='1')localStorage.setItem('expoStaffRole','checker');
+  role=localStorage.getItem('expoStaffRole')||'';
+}catch(e){}
+
+/* 模拟码库（真实由核销接口返回） */
+var CODES={
+  'E2026-18-0021':{type:'exhibitor',name:'丹吉娅',company:'浙江丹吉娅袜业有限公司',no:'E2026-18-0021',ext:'展位 A01-A02 · 品牌展商',checked:''},
+  'V2026-18-0088':{type:'visitor',name:'张**',company:'诸暨市纺织贸易有限公司',no:'V2026-18-0088',ext:'采购商 · 关注袜品',checked:''}
+};
+var CUR=null,COUNT=0;
+
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('on');clearTimeout(window._t);window._t=setTimeout(function(){t.classList.remove('on')},1900)}
+
+function mockScan(code){
+  if(code==='INVALID-0000'){toast('无效码：非本届证件或签名校验失败');return}
+  var d=CODES[code];
+  if(!d){toast('未找到该证件，请确认是否本届');return}
+  CUR=code;openRes(d);
+}
+
+function openRes(d){
+  var isEx=d.type==='exhibitor';
+  document.getElementById('resTitle').textContent=d.checked?'该证件已核销':'核对信息后确认核销';
+  document.getElementById('resBody').innerHTML=
+     '<div class="flex items-center gap-2.5 mb-3">'
+    +'<div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background:'+(isEx?'#FFF1F2':'#EFF6FF')+'">'
+    +'<i class="fas '+(isEx?'fa-store':'fa-id-card')+' text-[15px]" style="color:'+(isEx?'#E11D48':'#2563EB')+'"></i></div>'
+    +'<div><div class="flex items-center gap-1.5"><p class="text-[13px] font-bold text-gray-800">'+(d.name||'-')+'</p>'
+    +'<span class="text-[8px] px-1.5 py-0.5 rounded-full font-bold" style="background:'+(isEx?'#FFE4E6;color:#BE123C':'#DBEAFE;color:#1D4ED8')+'">'+(isEx?'参展商':'观众')+'</span></div>'
+    +'<p class="text-[9px] text-gray-400 mt-0.5">'+d.no+'</p></div></div>'
+    +'<div class="bg-gray-50 rounded-xl p-2.5 space-y-1.5 text-[10px]">'
+    +'<div class="flex justify-between"><span class="text-gray-400">单位</span><span class="font-semibold text-gray-800">'+(d.company||'-')+'</span></div>'
+    +'<div class="flex justify-between"><span class="text-gray-400">'+(isEx?'展位':'身份')+'</span><span class="font-semibold text-gray-800">'+d.ext+'</span></div>'
+    +'<div class="flex justify-between"><span class="text-gray-400">核销状态</span><span class="font-bold" style="color:'+(d.checked?'#D97706':'#059669')+'">'+(d.checked?'已核销（'+d.checked+'）':'未核销')+'</span></div>'
+    +'</div>';
+  document.getElementById('resFoot').innerHTML=d.checked
+    ? '<button onclick="closeRes()" class="w-full py-2.5 rounded-full bg-gray-100 text-gray-400 text-[12px] font-bold">该证件已核销</button>'
+    : '<button onclick="doCheck()" class="w-full py-2.5 rounded-full text-white text-[12px] font-bold" style="background:linear-gradient(135deg,#34D399,#059669)">确认核销</button>'
+      +'<button onclick="closeRes()" class="w-full py-2 mt-1 text-[11px] text-gray-400">取消</button>';
+  document.getElementById('resMask').classList.add('on');
+  document.getElementById('resSheet').classList.add('on');
+}
+function closeRes(){document.getElementById('resMask').classList.remove('on');document.getElementById('resSheet').classList.remove('on')}
+
+function doCheck(){
+  if(!CUR)return;
+  var now=new Date();
+  var t=(now.getMonth()+1)+'-'+String(now.getDate()).padStart(2,'0')+' '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  CODES[CUR].checked=t;COUNT++;
+  document.getElementById('myCount').textContent=COUNT;
+  document.getElementById('resTitle').textContent='核销成功';
+  document.getElementById('resBody').innerHTML=
+     '<div class="text-center py-2"><div class="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-2" style="background:#F0FDF4">'
+    +'<i class="fas fa-check text-[22px]" style="color:#059669"></i></div>'
+    +'<p class="text-[13px] font-bold text-gray-800">已核销</p>'
+    +'<p class="text-[10px] text-gray-400 mt-1">'+CODES[CUR].no+' · '+t+' · 核销点 A 口</p>'
+    +'<p class="text-[9px] text-gray-400 mt-2 leading-relaxed">该证件再次扫码会提示本次核销时间<br>记录已回传后台「签到管理」</p></div>';
+  document.getElementById('resFoot').innerHTML='<button onclick="closeRes()" class="w-full py-2.5 rounded-full text-white text-[12px] font-bold" style="background:linear-gradient(135deg,#34D399,#059669)">继续扫下一张</button>';
+}
+
+function openManual(){document.getElementById('manMask').classList.add('on');document.getElementById('manSheet').classList.add('on');document.getElementById('manInput').focus()}
+function closeManual(){document.getElementById('manMask').classList.remove('on');document.getElementById('manSheet').classList.remove('on')}
+function submitManual(){
+  var v=(document.getElementById('manInput').value||'').trim().toUpperCase();
+  if(!v){toast('请输入证件号');return}
+  if(!CODES[v]){toast('未找到该证件：'+v);return}
+  closeManual();CUR=v;openRes(CODES[v]);
+}
+
+/* 初始化：无权限则整页拦截 */
+(function init(){
+  if(role!=='checker'){
+    document.getElementById('scanArea').style.display='none';
+    document.getElementById('noPerm').style.display='block';
+  }
+})();
+</script>
+<script src="../shared/page-prd.js?v=20261028b"></script>
+</body>
+</html>
