@@ -248,7 +248,7 @@ function render(){
       ops=(x.jbNo?'<span class="lk" onclick="toast(\'已定位到交办单 '+x.jbNo+'\')">查看交办单</span>'
         :'<span class="lk" onclick="toast(\'已加入待采购池：'+x.no+'（当前共 '+noJb+' 单待组批）\')">去建交办单</span>')+' · '+ops;
     }else if(x.state==='待确认'){
-      ops='<span class="lk-gray" onclick="toast(\'已代商户确认完成：'+x.no+'\')">代确认</span> · '+ops;
+      ops='<span class="lk" onclick="backToDoing(\''+x.no+'\')">商户退回</span> · <span class="lk-gray" onclick="toast(\'已代商户确认完成：'+x.no+'\')">代确认</span> · '+ops;
     }
     var ph='';
     for(var i=0;i<x.photos;i++) ph+='<div class="thumb" onclick="toast(\'查看原图（水印：'+x.createdAt+' · '+x.unit+' · '+x.no+'）\')" style="margin-right:4px">照片</div>';
@@ -355,6 +355,8 @@ function openDetail(no){
     +'<button class="btn btn-ghost" onclick="closeAll()">关闭</button>'
     +(x.state==='待受理'?'<button class="btn btn-primary" onclick="openAccept(\''+x.no+'\')">受理派单</button>':'')
     +((x.state==='已派单'||x.state==='处理中')?'<button class="btn btn-primary" onclick="openResult(\''+x.no+'\')">提交处理结果</button>':'')
+    +(x.state==='待确认'?'<button class="btn btn-ghost" style="color:#DC2626;border-color:#FECACA" onclick="backToDoing(\''+x.no+'\')">商户未修好 · 退回</button>'
+      +'<button class="btn btn-primary" onclick="toast(\'已代商户确认完成：'+x.no+'\')">代确认</button>':'')
     +'</div>';
 
   document.getElementById('drawer').innerHTML=h;
@@ -558,6 +560,20 @@ function saveResult(no){
   wPhoto=0;
   curRows=BX.slice();
   renderStats();render();closeAll();
+}
+
+/* 商户端「未修好」回写：待确认 → 处理中（留痕，不算新单）
+   对应商户端 shanghu-APP/repair-records.html 的「未修好」按钮 */
+function backToDoing(no){
+  var x=bOf(no);
+  if(x.state!=='待确认'){toast('仅「待确认」状态可退回');return;}
+  if(!confirm('将 '+no+' 退回「处理中」？\n\n适用于商户在端上点了「未修好」。退回后：\n· 本次处理结果保留留痕\n· 需重新处理并再次提交结果\n· 不计入完成量、不产生新单')) return;
+  x.state='处理中';x.hours=0;
+  x.logs.push(['2026-10-28 '+new Date().toTimeString().slice(0,5),
+    '商户反馈「未修好」→ 退回处理中，已通知 '+x.worker+' 与物业主管（原处理结果保留留痕）']);
+  curRows=BX.slice();
+  renderStats();render();closeAll();
+  toast('已退回处理中：'+no+'　已通知维修工与主管重新处理（原结果留痕，不重复计完成）');
 }
 </script>
 <script src="../shared/op-guard.js"></script>

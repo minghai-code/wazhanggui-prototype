@@ -19,6 +19,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 .urgent-card.active{border-color:#EF4444;background:#FEF2F2}
 .urgent-card.active .urgent-radio{background:#EF4444;border-color:#EF4444}
 .urgent-radio{width:16px;height:16px;border:2px solid #d1d5db;border-radius:50%}
+.tp{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 0;border-radius:8px;border:1.5px solid transparent;background:#F8FAFC;transition:.15s}
+.tp.on{background:#FFFBEB;border-color:#F59E0B}
+.tp.on i,.tp.on span{color:#D97706}
+.tp i{color:#94A3B8;font-size:14px}
+.tp span{font-size:10px;color:#64748B}
+.toast{position:fixed;left:50%;top:22%;transform:translate(-50%,-8px);max-width:300px;background:rgba(31,36,48,.94);color:#fff;font-size:12px;line-height:1.5;padding:10px 14px;border-radius:12px;opacity:0;pointer-events:none;transition:.22s;z-index:300;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.ph-item{width:74px;height:74px;border-radius:10px;position:relative;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.st{font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px}
 </style>
 <!-- Tailwind 静态样式：本地引用（不再依赖 cdn.tailwindcss.com）；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
 <link rel="stylesheet" href="tailwind.css">
@@ -39,92 +48,192 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
     <h1 class="text-white font-extrabold text-[20px]" style="text-shadow:0 2px 10px rgba(0,0,0,.18)">报修工单</h1>
     <a href="repair-records.html" class="text-white text-[12px]">我的工单</a>
   </div>
-  <p class="relative text-white/80 text-[11px] mt-2"><i class="fas fa-screwdriver-wrench"></i> 拍照报修 · 进度跟踪</p>
+  <p class="relative text-white/80 text-[11px] mt-2"><i class="fas fa-screwdriver-wrench"></i> 拍照报修 · 进度跟踪 · 完成后确认</p>
 </div>
 
 <!-- 提交报修 -->
 <div class="px-3 mt-3">
   <p class="text-[12px] font-bold text-gray-800 mb-2 px-1"><i class="fas fa-paper-plane text-primary text-xs"></i> 提交报修</p>
   <div class="bg-white rounded-2xl shadow-soft p-3.5">
-    <!-- 报修类型 -->
-    <p class="text-[11px] font-semibold text-gray-700 mb-2">报修类型 <span class="text-red-500">*</span></p>
-    <div class="grid grid-cols-4 gap-2 mb-3">
-      <button class="flex flex-col items-center gap-1 py-2 rounded-lg" style="background:#FFFBEB;border:1.5px solid #F59E0B"><i class="fas fa-bolt text-primary"></i><span class="text-[10px] text-primary font-medium">电气</span></button>
-      <button class="flex flex-col items-center gap-1 py-2 rounded-lg bg-gray-50"><i class="fas fa-faucet-drip text-gray-400"></i><span class="text-[10px] text-gray-500">水管</span></button>
-      <button class="flex flex-col items-center gap-1 py-2 rounded-lg bg-gray-50"><i class="fas fa-wifi text-gray-400"></i><span class="text-[10px] text-gray-500">网络</span></button>
-      <button class="flex flex-col items-center gap-1 py-2 rounded-lg bg-gray-50"><i class="fas fa-door-open text-gray-400"></i><span class="text-[10px] text-gray-500">门窗</span></button>
-    </div>
 
-    <!-- 报修位置 -->
+    <!-- 位置：档口只读 + 具体位置手填 -->
     <p class="text-[11px] font-semibold text-gray-700 mb-2">报修位置 <span class="text-red-500">*</span></p>
-    <input type="text" id="repairAddr" value="1F-A08 商铺内 照明灯故障" class="w-full text-[12px] bg-gray-50 rounded-lg px-3 py-2.5 mb-3 outline-none">
-
-    <!-- 问题照片 -->
-    <p class="text-[11px] font-semibold text-gray-700 mb-2">问题照片 <span class="text-red-500">*</span> <span class="text-gray-400 font-normal text-[10px]">至少1张</span></p>
-    <div class="flex gap-2 mb-3">
-      <div class="w-20 h-20 rounded-lg bg-amber-50 flex items-center justify-center relative flex-shrink-0" style="border:2px solid #F59E0B"><i class="fas fa-lightbulb text-amber-500 text-2xl"></i><span class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white text-[9px]"><i class="fas fa-xmark"></i></span></div>
-      <button class="w-20 h-20 rounded-lg border-2 border-dashed border-blue-200 flex flex-col items-center justify-center text-primary flex-shrink-0"><i class="fas fa-camera text-xl"></i><span class="text-[9px] mt-1">拍照</span></button>
+    <div class="flex items-center gap-2 mb-2">
+      <div class="flex-1 flex items-center gap-1.5 bg-gray-100 rounded-lg px-2.5 py-2 text-[11px] text-gray-500">
+        <i class="fas fa-location-dot text-[10px]"></i><span data-sh="shop">1F-A08</span><span data-sh="floor">A区1层</span>
+        <span class="ml-auto text-[9px] text-gray-400">档案带出</span>
+      </div>
     </div>
+    <input type="text" id="repairAddr" placeholder="具体位置，如：商铺内东侧 / 卷帘门内侧" class="w-full text-[12px] bg-gray-50 rounded-lg px-3 py-2.5 mb-3 outline-none">
 
-    <!-- 问题描述 -->
-    <p class="text-[11px] font-semibold text-gray-700 mb-2">问题描述</p>
-    <textarea placeholder="请描述故障情况…" class="w-full text-[12px] bg-gray-50 rounded-lg p-2.5 outline-none resize-none mb-3" rows="2">商铺内3盏照明灯不亮，影响正常营业，请尽快维修。</textarea>
+    <!-- 故障类型（后台字典 6 项） -->
+    <p class="text-[11px] font-semibold text-gray-700 mb-2">故障类型 <span class="text-red-500">*</span></p>
+    <div class="grid grid-cols-3 gap-2 mb-3" id="typeBox"></div>
+
+    <!-- 照片 -->
+    <p class="text-[11px] font-semibold text-gray-700 mb-2">现场照片 <span class="text-red-500">*</span> <span class="text-gray-400 font-normal text-[10px]">至少 1 张，自动带时间与位置水印</span></p>
+    <div class="flex gap-2 mb-3 flex-wrap" id="phBox"></div>
+
+    <!-- 描述 -->
+    <p class="text-[11px] font-semibold text-gray-700 mb-2">问题描述 <span class="text-red-500">*</span> <span class="text-gray-400 font-normal text-[10px]">至少 5 个字</span></p>
+    <textarea id="repairDesc" placeholder="请描述故障情况，如：商铺内 3 盏照明灯不亮，影响正常营业" class="w-full text-[12px] bg-gray-50 rounded-lg p-2.5 outline-none resize-none mb-3" rows="2"></textarea>
 
     <!-- 紧急程度 -->
     <p class="text-[11px] font-semibold text-gray-700 mb-2">紧急程度</p>
     <div class="flex gap-2 mb-3">
-      <label class="urgent-card active flex-1 flex items-center gap-2 bg-white border-2 border-transparent rounded-lg p-2.5">
+      <label class="urgent-card active flex-1 flex items-center gap-2 bg-white border-2 border-transparent rounded-lg p-2.5" onclick="setUrg(this,'紧急')">
         <div class="urgent-radio"></div>
         <span class="text-[11px] font-medium text-gray-800">紧急</span>
         <span class="text-[9px] text-red-500">影响营业</span>
       </label>
-      <label class="urgent-card flex-1 flex items-center gap-2 bg-white border-2 border-transparent rounded-lg p-2.5">
+      <label class="urgent-card flex-1 flex items-center gap-2 bg-white border-2 border-transparent rounded-lg p-2.5" onclick="setUrg(this,'一般')">
         <div class="urgent-radio"></div>
         <span class="text-[11px] text-gray-600">一般</span>
       </label>
     </div>
 
-    <button class="w-full py-3 rounded-xl text-white text-[13px] font-bold" style="background:linear-gradient(135deg,#F59E0B,#D97706)"><i class="fas fa-paper-plane text-[11px]"></i> 提交报修</button>
+    <div class="rounded-xl p-2.5 mb-3" style="background:#FFFBEB;border:1px solid #FDE68A">
+      <p class="text-[10px] text-amber-700 leading-relaxed"><i class="fas fa-circle-info mr-1"></i>提交后 <b>2 小时</b>内未受理将提醒物业主管；处理完成需你确认，<b>3 天未确认自动完成</b>。</p>
+    </div>
+
+    <button onclick="submitRepair()" class="w-full py-3 rounded-xl text-white text-[13px] font-bold" style="background:linear-gradient(135deg,#F59E0B,#D97706)"><i class="fas fa-paper-plane text-[11px]"></i> 提交报修</button>
   </div>
 </div>
 
 <!-- 我的工单 -->
 <div class="px-3 mt-4 mb-6">
   <div class="flex items-center justify-between mb-2">
-    <p class="text-[12px] font-bold text-gray-800 px-1">我的工单</p>
+    <p class="text-[12px] font-bold text-gray-800 px-1">最近工单</p>
     <a href="repair-records.html" class="text-[10px] text-primary">全部 ›</a>
   </div>
-  <div class="bg-white rounded-2xl shadow-soft overflow-hidden">
-    <!-- 处理中 -->
-    <div class="px-3.5 py-3 border-b border-gray-50">
-      <div class="flex items-center justify-between mb-1.5">
-        <span class="text-[11px] text-gray-400 num">RO20260718-01</span>
-        <span class="bg-amber-100 text-amber-600 text-[9px] font-bold px-1.5 py-0.5 rounded">维修中</span>
-      </div>
-      <p class="text-[12px] font-medium text-gray-800"><i class="fas fa-faucet-drip text-blue-400 text-[10px]"></i> 水管漏水</p>
-      <div class="flex items-center gap-1 mt-1.5 text-[10px] text-gray-400">
-        <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-        <span>维修师傅已到场 · 13:20</span>
-      </div>
-    </div>
-    <!-- 已完成 -->
-    <div class="px-3.5 py-3">
-      <div class="flex items-center justify-between mb-1.5">
-        <span class="text-[11px] text-gray-400 num">RO20260710-03</span>
-        <span class="bg-emerald-100 text-emerald-600 text-[9px] font-bold px-1.5 py-0.5 rounded">已完成</span>
-      </div>
-      <p class="text-[12px] font-medium text-gray-800"><i class="fas fa-wifi text-gray-400 text-[10px]"></i> 网络不通</p>
-      <p class="text-[10px] text-gray-400 mt-1">已修复 · 待评价 <a href="repair-records.html" class="text-primary font-bold">去评价 ›</a></p>
-    </div>
-  </div>
+  <div class="bg-white rounded-2xl shadow-soft overflow-hidden" id="recent"></div>
 </div>
 
+<div class="toast" id="toast"></div>
 <script>
-// 商户档案（只读回显，模拟 04 商户管理主档；本端不建后端同步）
+/* ================= 商户档案（只读回显，模拟 04 商户管理主档） ================= */
 var SH_PROFILE={type:'线上兼档口商户',shop:'1F-A08',area:'50㎡',floor:'A区1层',leaseEnd:'2028.08.31',category:'男袜专营'};
 function shFill(){document.querySelectorAll('[data-sh]').forEach(function(el){var k=el.getAttribute('data-sh');if(SH_PROFILE[k]!=null)el.textContent=SH_PROFILE[k];});}
 shFill();
-var ra=document.getElementById('repairAddr');if(ra)ra.value=SH_PROFILE.shop+' 商铺内 照明灯故障';
+
+var toastTimer;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},2400);}
+
+/* ================= 字典（与后台 P1 一致） ================= */
+var TYPES=[
+  {n:'照明',i:'fa-lightbulb'},{n:'水电',i:'fa-faucet-drip'},{n:'门窗',i:'fa-door-closed'},
+  {n:'地砖',i:'fa-border-all'},{n:'空调',i:'fa-wind'},{n:'其他',i:'fa-ellipsis'}
+];
+var STC={'待受理':'text-amber-600 bg-amber-50','已派单':'text-blue-600 bg-blue-50','处理中':'text-blue-600 bg-blue-50',
+  '待采购':'text-orange-600 bg-orange-50','待确认':'text-purple-600 bg-purple-50','已完成':'text-green-600 bg-green-50',
+  '已驳回':'text-gray-500 bg-gray-100'};
+
+var curType='照明', urg='紧急', photos=0;
+
+function renderTypes(){
+  document.getElementById('typeBox').innerHTML=TYPES.map(function(t){
+    return '<button class="tp '+(t.n===curType?'on':'')+'" onclick="pickType(\''+t.n+'\')">'
+      +'<i class="fas '+t.i+'"></i><span>'+t.n+'</span></button>';
+  }).join('');
+}
+function pickType(n){curType=n;renderTypes();}
+function setUrg(el,v){
+  document.querySelectorAll('.urgent-card').forEach(function(x){x.classList.remove('active');});
+  el.classList.add('active');urg=v;
+}
+function renderPhotos(){
+  var h='';
+  for(var i=0;i<photos;i++){
+    h+='<div class="ph-item" style="background:#FFFBEB;border:1.5px solid #F59E0B">'
+      +'<i class="fas fa-image text-amber-500 text-lg"></i>'
+      +'<span class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white text-[9px]" onclick="delPhoto()"><i class="fas fa-xmark"></i></span></div>';
+  }
+  if(photos<4){
+    h+='<button class="ph-item" style="border:2px dashed #FCD34D;background:#FFFBEB" onclick="addPhoto()">'
+      +'<i class="fas fa-camera text-amber-500 text-lg"></i><span class="text-[9px] text-amber-600 mt-1">拍照</span></button>';
+  }
+  document.getElementById('phBox').innerHTML=h;
+}
+function addPhoto(){
+  photos++;
+  renderPhotos();
+  toast('已拍摄第 '+photos+' 张（水印：2026-10-28 10:20 · '+SH_PROFILE.shop+'）');
+}
+function delPhoto(){photos=Math.max(0,photos-1);renderPhotos();}
+
+/* ================= 工单数据（localStorage，与 repair-records 同源） ================= */
+var SEED=[
+  {no:'BX202610-0031', type:'照明', icon:'fa-lightbulb', unit:'1F-A08', addr:'商铺内东侧',
+   desc:'商铺内主照明灯不亮，影响营业', urg:'紧急', photos:1, state:'待确认',
+   createdAt:'2026-10-27 08:40', acceptBy:'物业 张××', worker:'维修工 李××', arriveAt:'2026-10-27 11:30',
+   resultDesc:'已更换 LED 灯管 2 支并测试正常', before:1, after:1, staffConfirmed:false, star:0},
+  {no:'BX202610-0028', type:'空调', icon:'fa-wind', unit:'1F-A08', addr:'商铺内',
+   desc:'出风口风量明显变小', urg:'一般', photos:1, state:'处理中',
+   createdAt:'2026-10-26 16:30', acceptBy:'物业 张××', worker:'维修工 赵××', arriveAt:'2026-10-27 09:00',
+   resultDesc:'', before:1, after:0, staffConfirmed:false, star:0},
+  {no:'BX202610-0024', type:'门窗', icon:'fa-door-closed', unit:'1F-A08', addr:'卷帘门内侧',
+   desc:'卷帘门把手断裂', urg:'一般', photos:1, state:'已完成',
+   createdAt:'2026-10-25 09:10', acceptBy:'物业 张××', worker:'维修工 赵××', arriveAt:'2026-10-25 10:00',
+   resultDesc:'更换把手 1 套，开关正常', before:1, after:1, staffConfirmed:true, star:5},
+  {no:'BX202610-0023', type:'其他', icon:'fa-ellipsis', unit:'1F-A08', addr:'商铺内',
+   desc:'店内自有货架损坏', urg:'一般', photos:1, state:'已驳回',
+   createdAt:'2026-10-24 15:20', rejectWhy:'属商户自有设施，非平台物业维修范围，请自行处理',
+   before:1, after:0, staffConfirmed:false, star:0}
+];
+function getBX(){
+  try{var s=localStorage.getItem('sh_bx_v2');if(s)return JSON.parse(s);}catch(e){}
+  localStorage.setItem('sh_bx_v2',JSON.stringify(SEED));
+  return SEED.slice();
+}
+function saveBX(list){localStorage.setItem('sh_bx_v2',JSON.stringify(list));}
+
+/* ================= 提交 ================= */
+function submitRepair(){
+  var addr=document.getElementById('repairAddr').value.trim();
+  var desc=document.getElementById('repairDesc').value.trim();
+  if(!addr){toast('请填写具体位置（如：商铺内东侧）');return;}
+  if(!curType){toast('请选择故障类型');return;}
+  if(desc.length<5){toast('问题描述至少 5 个字（当前 '+desc.length+' 字）');return;}
+  if(!photos){toast('请上传现场照片（至少 1 张）');return;}
+
+  var list=getBX();
+  var seq=32+list.length;
+  var no='BX202610-00'+seq;
+  var icon=(TYPES.filter(function(t){return t.n===curType;})[0]||{}).i||'fa-ellipsis';
+  var now=new Date();
+  var hh=('0'+now.getHours()).slice(-2), mm=('0'+now.getMinutes()).slice(-2);
+  list.unshift({no:no, type:curType, icon:icon, unit:SH_PROFILE.shop, addr:addr, desc:desc, urg:urg,
+    photos:photos, state:'待受理', createdAt:'2026-10-28 '+hh+':'+mm,
+    acceptBy:'', worker:'', arriveAt:'', resultDesc:'', before:photos, after:0, staffConfirmed:false, star:0});
+  saveBX(list);
+
+  document.getElementById('repairAddr').value='';
+  document.getElementById('repairDesc').value='';
+  photos=0;renderPhotos();renderRecent();
+  toast('已提交报修 '+no+'　物业将在 2 小时内受理，超时系统会提醒主管');
+}
+
+/* ================= 最近工单 ================= */
+function renderRecent(){
+  var list=getBX().slice(0,3);
+  if(!list.length){document.getElementById('recent').innerHTML='<div class="text-center text-[12px] text-gray-400 py-8">暂无工单</div>';return;}
+  document.getElementById('recent').innerHTML=list.map(function(o){
+    var line=o.state==='待确认'?'<span style="color:#7C3AED">维修已完成，请确认 ›</span>'
+      :(o.state==='处理中'||o.state==='已派单'?'<span style="color:#F59E0B">'+o.worker+' 处理中</span>'
+      :(o.state==='待采购'?'<span style="color:#EA580C">需采购物料</span>'
+      :(o.state==='已驳回'?'<span style="color:#DC2626">已驳回</span>'
+      :(o.state==='已完成'?'<span style="color:#10B981">已修复'+(o.star?' · 已评价':' · 待评价')+'</span>'
+      :'<span style="color:#B45309">等待物业受理</span>'))));
+    return '<a href="repair-records.html" class="block px-3.5 py-3 border-b border-gray-50 last:border-0">'
+      +'<div class="flex items-center justify-between mb-1.5">'
+      +'<span class="text-[11px] text-gray-400 num">'+o.no+'</span>'
+      +'<span class="st '+STC[o.state]+'">'+o.state+'</span></div>'
+      +'<p class="text-[12px] font-medium text-gray-800"><i class="fas '+o.icon+' text-amber-400 text-[10px]"></i> '+o.type+' · '+o.addr+'</p>'
+      +'<p class="text-[10px] mt-1">'+line+'</p></a>';
+  }).join('');
+}
+
+renderTypes();renderPhotos();renderRecent();
 </script>
 </body>
 </html>

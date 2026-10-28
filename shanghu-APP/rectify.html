@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>整改任务 - 袜掌柜商户版</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--p:#E11D48;--bg:#FFF5F6}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,40,80,.06)}
+.num{font-variant-numeric:tabular-nums}
+.card{transition:transform .16s ease}
+.card:active{transform:scale(.98)}
+.no-bar::-webkit-scrollbar{display:none}
+.chip{font-size:11px;padding:5px 11px;border-radius:999px;background:#fff;color:#64748B;white-space:nowrap;box-shadow:0 1px 6px rgba(20,40,80,.06)}
+.chip.on{background:linear-gradient(135deg,#FB7185,#E11D48);color:#fff;font-weight:700}
+.st{font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;white-space:nowrap}
+.sheet{position:fixed;inset:0;z-index:200;display:none;align-items:flex-end}
+.sheet.on{display:flex}
+.sheet-bg{position:absolute;inset:0;background:rgba(15,23,42,.45)}
+.sheet-body{position:relative;width:100%;background:#fff;border-radius:24px 24px 0 0;padding:12px 16px 28px;max-height:90vh;overflow-y:auto}
+.sheet-bar{width:38px;height:4px;border-radius:2px;background:#E2E8F0;margin:0 auto 12px}
+.ph{border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:10px;color:#fff;position:relative;overflow:hidden}
+.ph.before{background:linear-gradient(135deg,#F87171,#DC2626)}
+.ph.add{border:2px dashed #FDA4AF;background:#FFF5F6;color:#E11D48}
+.ph .cap{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);padding:2px 5px;font-size:9px}
+.toast{position:fixed;left:50%;top:22%;transform:translate(-50%,-8px);max-width:300px;background:rgba(31,36,48,.94);color:#fff;font-size:12px;line-height:1.5;padding:10px 14px;border-radius:12px;opacity:0;pointer-events:none;transition:.22s;z-index:300;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<!-- 顶部 -->
+<div class="relative px-4 pt-2 pb-5 overflow-hidden" style="background:linear-gradient(135deg,#FB7185 0%,#E11D48 50%,#BE123C 100%)">
+  <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-50" style="background:#FDA4AF"></div>
+  <div class="absolute -top-6 right-[-30px] w-48 h-48 rounded-full blur-3xl opacity-40" style="background:#FB7185"></div>
+  <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+  </div>
+  <div class="relative flex items-center gap-3 mt-1">
+    <a href="property.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+    <div><span class="text-white font-extrabold text-[18px]">整改任务</span>
+    <p class="text-white/85 text-[10px] mt-0.5">现场问题整改 · 提交整改照片待复核</p></div>
+  </div>
+  <div class="relative grid grid-cols-3 gap-2 mt-3" id="topStat"></div>
+</div>
+
+<div class="px-3 pt-4 pb-16">
+  <div class="flex gap-1.5 mb-3 overflow-x-auto no-bar" id="chips"></div>
+  <div class="space-y-2.5" id="list"></div>
+</div>
+
+<!-- 详情弹层 -->
+<div class="sheet" id="dtSheet">
+  <div class="sheet-bg" onclick="closeSheet('dtSheet')"></div>
+  <div class="sheet-body" id="dtBody"></div>
+</div>
+
+<!-- 提交弹层 -->
+<div class="sheet" id="sbSheet">
+  <div class="sheet-bg" onclick="closeSheet('sbSheet')"></div>
+  <div class="sheet-body" id="sbBody"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script>
+var toastTimer;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},2600);}
+
+var STC={'待整改':'text-rose-600 bg-rose-50','待复核':'text-blue-600 bg-blue-50',
+  '已通过':'text-green-600 bg-green-50','已退回':'text-orange-600 bg-orange-50'};
+var TABS=['全部','待整改','待复核','已通过','已退回'];
+
+var SEED=[
+  {no:'ZG202610-0031', wt:'WT202610-0061', type:'占道',
+   desc:'商铺货物堆放到消防通道，宽约 1.2m，影响疏散',
+   req:'清理消防通道堆放货物，保证净宽 ≥1.5m，并签署不占用承诺',
+   unit:'1F-A08', deadline:'2026-10-29', state:'待整改', over:0, rejectTimes:0,
+   createdAt:'2026-10-26 10:20', submit:null, rejectWhy:'',
+   logs:[['2026-10-26 10:20','物业下发整改单（限期 2026-10-29）']]},
+  {no:'ZG202610-0030', wt:'WT202610-0054', type:'卫生',
+   desc:'店门口油污未清理，地面黏脚',
+   req:'清理门前油污并铺设防滑垫',
+   unit:'1F-A08', deadline:'2026-10-30', state:'待整改', over:0, rejectTimes:0,
+   createdAt:'2026-10-25 09:30', submit:null, rejectWhy:'',
+   logs:[['2026-10-25 09:30','物业下发整改单（限期 2026-10-30）']]},
+  {no:'ZG202610-0029', wt:'WT202610-0052', type:'占道',
+   desc:'门前纸箱与包装物长期堆放，占用通道',
+   req:'清空门前堆放物，日后不得超边线摆放',
+   unit:'1F-A08', deadline:'2026-10-22', state:'待整改', over:6, rejectTimes:0,
+   createdAt:'2026-10-18 10:20', submit:null, rejectWhy:'',
+   logs:[['2026-10-18 10:20','物业下发整改单（限期 2026-10-22）'],['2026-10-23 09:00','已超期 6 天 · 物业已催办并抄送主管']]},
+  {no:'ZG202610-0028', wt:'WT202610-0049', type:'安全',
+   desc:'店外违规设置广告立牌，遮挡消防栓',
+   req:'撤除广告立牌，消防栓前 1m 内不得摆放任何物品',
+   unit:'1F-A08', deadline:'2026-10-26', state:'待复核', over:0, rejectTimes:0,
+   createdAt:'2026-10-24 09:20', rejectWhy:'',
+   submit:{desc:'已撤除广告立牌，消防栓前已清空', photos:1, at:'2026-10-26 15:20'},
+   logs:[['2026-10-24 09:20','物业下发整改单'],['2026-10-26 15:20','你已提交整改（照片 1 张）→ 待物业复核']]},
+  {no:'ZG202610-0027', wt:'WT202610-0046', type:'卫生',
+   desc:'后厨排烟口油渍滴落至通道，地面有污迹',
+   req:'清洗排烟口并加装接油盘，清理地面污迹',
+   unit:'1F-A08', deadline:'2026-10-28', state:'已退回', over:0, rejectTimes:1,
+   createdAt:'2026-10-22 10:15',
+   submit:{desc:'已清洗排烟口，地面已清洁', photos:2, at:'2026-10-24 16:00'},
+   rejectWhy:'只清洗了地面，排烟口未处理，接油盘未安装',
+   logs:[['2026-10-22 10:15','物业下发整改单'],['2026-10-24 16:00','你已提交整改（照片 2 张）'],
+     ['2026-10-24 17:30','物业退回（第 1 次）：只清洗了地面，排烟口未处理，接油盘未安装']]},
+  {no:'ZG202610-0026', wt:'WT202610-0043', type:'卫生',
+   desc:'门前垃圾桶满溢，周边散落垃圾',
+   req:'清运垃圾并每日定时清倒',
+   unit:'1F-A08', deadline:'2026-10-20', state:'已通过', over:0, rejectTimes:0,
+   createdAt:'2026-10-17 09:20',
+   submit:{desc:'已清运垃圾，安排每日 17:00 清倒', photos:2, at:'2026-10-19 16:00'},
+   rejectWhy:'',
+   logs:[['2026-10-17 09:20','物业下发整改单'],['2026-10-19 16:00','你已提交整改（照片 2 张）'],
+     ['2026-10-19 17:00','物业复核通过 → 整改完成']]}
+];
+function getZG(){
+  try{var s=localStorage.getItem('sh_zg');if(s)return JSON.parse(s);}catch(e){}
+  localStorage.setItem('sh_zg',JSON.stringify(SEED));
+  return SEED.slice();
+}
+function saveZG(l){localStorage.setItem('sh_zg',JSON.stringify(l));}
+
+var filter='全部', curIdx=-1, sbPhotos=0;
+
+function chipsRender(){
+  document.getElementById('chips').innerHTML=TABS.map(function(c){
+    return '<a onclick="setF(\''+c+'\')" class="chip'+(c===filter?' on':'')+'">'+c+'</a>';
+  }).join('');
+}
+function setF(c){filter=c;chipsRender();render();}
+
+function renderTop(){
+  var all=getZG();
+  var t=all.filter(function(o){return o.state==='待整改';}).length;
+  var r=all.filter(function(o){return o.state==='待复核';}).length;
+  var p=all.filter(function(o){return o.state==='已通过';}).length;
+  var cards=[[t,'待整改'],[r,'待复核'],[p,'已通过']];
+  document.getElementById('topStat').innerHTML=cards.map(function(c){
+    return '<div class="rounded-xl px-2 py-2 text-center" style="background:rgba(255,255,255,.18)">'
+      +'<p class="text-white font-extrabold text-[17px] num">'+c[0]+'</p>'
+      +'<p class="text-white/80 text-[9px] mt-0.5">'+c[1]+'</p></div>';
+  }).join('');
+}
+
+function render(){
+  var all=getZG();
+  var arr=all.filter(function(o){return filter==='全部'||o.state===filter;});
+  if(!arr.length){
+    document.getElementById('list').innerHTML='<div class="text-center text-[12px] text-gray-400 py-12">'
+      +'<i class="fas fa-clipboard-check text-xl text-gray-300 block mb-2"></i>暂无整改任务</div>';
+    return;
+  }
+  document.getElementById('list').innerHTML=arr.map(function(o){
+    var idx=all.indexOf(o);
+    var over=o.over>0?'<span class="text-[9px] font-bold" style="color:#DC2626">超期 '+o.over+' 天</span>':'';
+    var rej=o.rejectTimes>0?'<span class="text-[9px]" style="color:#EA580C">退回 '+o.rejectTimes+' 次</span>':'';
+    var act='';
+    if(o.state==='待整改'||o.state==='已退回'){
+      act='<div class="mt-2.5"><button onclick="event.stopPropagation();openSubmit('+idx+')" class="w-full py-2 rounded-lg text-white text-[11px] font-bold" style="background:linear-gradient(135deg,#FB7185,#E11D48)">'
+        +'<i class="fas fa-camera text-[10px] mr-1"></i>'+(o.state==='已退回'?'重新提交整改':'提交整改')+'</button></div>';
+    }else if(o.state==='待复核'){
+      act='<p class="text-[10px] mt-2" style="color:#2563EB">已提交，等待物业复核</p>';
+    }else if(o.state==='已通过'){
+      act='<p class="text-[10px] mt-2" style="color:#10B981">复核通过，整改完成</p>';
+    }
+    var rejLine=(o.state==='已退回'&&o.rejectWhy)
+      ?'<div class="rounded-lg p-2 mt-2" style="background:#FEF2F2"><p class="text-[10px] leading-relaxed" style="color:#B91C1C"><b>退回原因：</b>'+o.rejectWhy+'</p></div>':'';
+    return '<div class="card bg-white rounded-2xl shadow-soft px-3.5 py-3" onclick="openDetail('+idx+')">'
+      +'<div class="flex items-center justify-between mb-1.5">'
+      +'<span class="text-[10px] text-gray-400 num">'+o.no+' · '+o.wt+'</span>'
+      +'<span class="st '+STC[o.state]+'">'+o.state+'</span></div>'
+      +'<p class="text-[13px] font-bold text-gray-800">'+o.type+' · '+o.desc.slice(0,18)+'…</p>'
+      +'<p class="text-[10px] text-gray-400 mt-1">限期 '+o.deadline+'　'+over+' '+rej+'</p>'
+      +rejLine+act+'</div>';
+  }).join('');
+}
+
+/* ================= 详情 ================= */
+function closeSheet(id){document.getElementById(id).classList.remove('on');}
+function openDetail(idx){
+  var o=getZG()[idx];
+  var h='<div class="sheet-bar"></div>'
+    +'<div class="flex items-center justify-between mb-3">'
+    +'<div><p class="text-[15px] font-extrabold text-gray-900">'+o.type+' 问题整改</p>'
+    +'<p class="text-[10px] text-gray-400 num mt-0.5">'+o.no+'　来源 '+o.wt+'</p></div>'
+    +'<span class="st '+STC[o.state]+'">'+o.state+'</span></div>';
+
+  h+='<p class="text-[11px] font-semibold text-gray-700 mb-2">问题与要求</p>'
+    +'<div class="grid grid-cols-2 gap-2 mb-3">'
+    +'<div class="ph before" style="height:96px"><i class="fas fa-image text-base"></i>问题现场<span class="cap">物业巡检拍摄</span></div>'
+    +'<div class="rounded-xl p-2.5" style="background:#F8FAFC">'
+    +'<p class="text-[10px] text-gray-500 leading-relaxed"><b>问题：</b>'+o.desc+'</p>'
+    +'<p class="text-[10px] text-gray-500 leading-relaxed mt-1"><b>要求：</b>'+o.req+'</p></div></div>';
+
+  h+='<div class="rounded-xl p-3 mb-3" style="background:#FFF5F6;border:1px solid #FECDD3">'
+    +'<div class="flex justify-between text-[11px] py-0.5"><span class="text-gray-400">整改位置</span><span>'+o.unit+'</span></div>'
+    +'<div class="flex justify-between text-[11px] py-0.5"><span class="text-gray-400">限期完成</span>'
+    +'<span style="'+(o.over>0?'color:#DC2626;font-weight:700':'')+'">'+o.deadline+(o.over>0?'（超期 '+o.over+' 天）':'')+'</span></div>'
+    +(o.rejectTimes>0?'<div class="flex justify-between text-[11px] py-0.5"><span class="text-gray-400">退回次数</span><span style="color:#EA580C">'+o.rejectTimes+' 次'+(o.rejectTimes>=3?'（已升级主管）':'')+'</span></div>':'')
+    +'</div>';
+
+  if(o.submit){
+    h+='<p class="text-[11px] font-semibold text-gray-700 mb-2">你提交的整改</p>'
+      +'<div class="grid grid-cols-2 gap-2 mb-2">'
+      +'<div class="ph before" style="height:92px"><i class="fas fa-image text-base"></i>问题现场<span class="cap">整改前</span></div>'
+      +'<div class="ph" style="height:92px;background:linear-gradient(135deg,#34D399,#059669)"><i class="fas fa-image text-base"></i>整改后<span class="cap">'+o.submit.at.slice(5)+'</span></div></div>'
+      +'<div class="rounded-xl p-2.5 mb-3" style="background:#F0FDF4;border:1px solid #BBF7D0">'
+      +'<p class="text-[11px] text-green-800 leading-relaxed"><b>整改说明：</b>'+o.submit.desc+'</p></div>';
+  }
+  if(o.rejectWhy){
+    h+='<div class="rounded-xl p-2.5 mb-3" style="background:#FEF2F2;border:1px solid #FECACA">'
+      +'<p class="text-[11px] leading-relaxed" style="color:#B91C1C"><b>物业退回原因：</b>'+o.rejectWhy+'</p></div>';
+  }
+
+  h+='<p class="text-[11px] font-semibold text-gray-700 mb-2">处理记录</p>'
+    +'<div style="padding-left:14px;position:relative">'
+    +o.logs.map(function(l){
+      return '<div style="position:relative;padding-bottom:9px;font-size:11px;color:#64748B;line-height:1.55">'
+        +'<span style="position:absolute;left:-14px;top:5px;width:6px;height:6px;border-radius:50%;background:#E11D48"></span>'
+        +'<b style="color:#1F2430">'+l[0]+'</b>　'+l[1]+'</div>';
+    }).join('')+'</div>';
+
+  if(o.state==='待整改'||o.state==='已退回'){
+    h+='<button onclick="closeSheet(\'dtSheet\');openSubmit('+idx+')" class="w-full mt-3 py-3 rounded-xl text-white text-[12px] font-bold" style="background:linear-gradient(135deg,#FB7185,#E11D48)">'
+      +'<i class="fas fa-camera text-[11px] mr-1"></i>'+(o.state==='已退回'?'重新提交整改':'提交整改')+'</button>';
+  }else{
+    h+='<button onclick="closeSheet(\'dtSheet\')" class="w-full mt-3 py-3 rounded-xl text-[12px] font-semibold text-gray-500" style="background:#F1F5F9">关闭</button>';
+  }
+  document.getElementById('dtBody').innerHTML=h;
+  document.getElementById('dtSheet').classList.add('on');
+}
+
+/* ================= 提交整改 ================= */
+function openSubmit(idx){
+  curIdx=idx;sbPhotos=0;
+  var o=getZG()[idx];
+  var h='<div class="sheet-bar"></div>'
+    +'<p class="text-[15px] font-extrabold text-gray-900 text-center">'+(o.state==='已退回'?'重新提交整改':'提交整改')+'</p>'
+    +'<p class="text-[10px] text-gray-400 text-center mt-1 num">'+o.no+'</p>';
+  if(o.rejectWhy){
+    h+='<div class="rounded-xl p-2.5 mt-3" style="background:#FEF2F2;border:1px solid #FECACA">'
+      +'<p class="text-[10px] leading-relaxed" style="color:#B91C1C"><b>上次退回原因：</b>'+o.rejectWhy+'</p></div>';
+  }
+  h+='<div class="rounded-xl p-2.5 mt-3" style="background:#F8FAFC">'
+    +'<p class="text-[10px] text-gray-500 leading-relaxed"><b>整改要求：</b>'+o.req+'</p></div>'
+    +'<p class="text-[11px] font-semibold text-gray-700 mt-3 mb-2">整改说明 <span class="text-red-500">*</span> <span class="text-gray-400 font-normal text-[10px]">至少 5 个字</span></p>'
+    +'<textarea id="sbDesc" rows="2" placeholder="如：已清空门前堆放物，日后不超边线摆放" class="w-full text-[12px] bg-gray-50 rounded-xl p-3 outline-none"></textarea>'
+    +'<p class="text-[11px] font-semibold text-gray-700 mt-3 mb-2">整改后照片 <span class="text-red-500">*</span> <span class="text-gray-400 font-normal text-[10px]">至少 1 张，无照片不能提交</span></p>'
+    +'<div class="flex gap-2 flex-wrap" id="sbPh"></div>'
+    +'<button onclick="submitZG()" class="w-full mt-4 py-3 rounded-xl text-white text-[13px] font-bold" style="background:linear-gradient(135deg,#FB7185,#E11D48)">提交整改</button>';
+  document.getElementById('sbBody').innerHTML=h;
+  renderSbPh();
+  document.getElementById('sbSheet').classList.add('on');
+}
+function renderSbPh(){
+  var h='';
+  for(var i=0;i<sbPhotos;i++){
+    h+='<div class="ph" style="width:74px;height:74px;background:linear-gradient(135deg,#34D399,#059669)">'
+      +'<i class="fas fa-image text-base"></i><span class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white text-[9px]" onclick="delSb()"><i class="fas fa-xmark"></i></span></div>';
+  }
+  if(sbPhotos<3){
+    h+='<div class="ph add" style="width:74px;height:74px" onclick="addSb()"><i class="fas fa-camera text-base"></i><span class="text-[9px] mt-1">拍照</span></div>';
+  }
+  document.getElementById('sbPh').innerHTML=h;
+}
+function addSb(){sbPhotos++;renderSbPh();toast('已拍摄整改后照片 '+sbPhotos+' 张');}
+function delSb(){sbPhotos=Math.max(0,sbPhotos-1);renderSbPh();}
+function submitZG(){
+  var desc=document.getElementById('sbDesc').value.trim();
+  if(desc.length<5){toast('整改说明至少 5 个字（当前 '+desc.length+' 字）');return;}
+  if(!sbPhotos){toast('无照片不能提交：请至少上传 1 张整改后照片');return;}
+  var list=getZG();var o=list[curIdx];
+  o.submit={desc:desc, photos:sbPhotos, at:'2026-10-28 10:30'};
+  o.state='待复核';o.over=0;o.rejectWhy='';
+  o.logs.push(['2026-10-28 10:30','你已提交整改（照片 '+sbPhotos+' 张）→ 待物业复核']);
+  saveZG(list);
+  closeSheet('sbSheet');renderTop();render();
+  toast('已提交整改，物业将现场复核（不通过会退回并说明原因）');
+}
+
+renderTop();chipsRender();render();
+</script>
+</body>
+</html>
