@@ -64,9 +64,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
         <h1 class="text-[20px] font-bold text-[#1F2430]">维修资金台账</h1>
         <span class="tag" style="background:#DBEAFE;color:#2563EB">07 物业服务</span>
         <span class="tag" style="background:#F1F5F9;color:#64748B">额度周期 4.1–次年 3.31</span>
-        <span class="tag" style="background:#FFEDE7;color:#E63E20">跨期不结转</span>
+        <span class="tag" style="background:#DCFCE7;color:#15803D">未用完结转下年</span>
       </div>
-      <p class="text-[12px] text-gray-400 mt-1">一眼看清「今年 25 万花了多少、还剩多少、花在哪」。<b>只有核销成功才计入已核销</b>，审批通过只算在途；额度不足时 P2 核销被阻断，引导到这里申请追加。历史采购导入<b>不影响额度</b>，会同时归并出<b>物资与供应商主数据</b>，供交办单下拉选择。</p>
+      <p class="text-[12px] text-gray-400 mt-1">一眼看清「今年 25 万花了多少、还剩多少、花在哪」。<b>只有核销成功才计入已核销</b>，审批通过只算在途；<b>年度结束时没用完的额度结转下一年继续用</b>（在途单跨年核销时扣核销当年）。额度不足时 P2 核销被阻断，引导到这里申请追加。历史采购导入<b>不影响额度</b>，会同时归并出<b>物资与供应商主数据</b>，供交办单下拉选择。</p>
     </div>
     <div class="flex items-center gap-2">
       <select id="f-year" class="px-3 py-1.5 text-[13px] bg-white rounded-lg border border-gray-200 outline-none text-gray-600" onchange="switchYear()">
@@ -81,7 +81,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
   </div>
 
   <!-- 额度看板 -->
-  <div class="grid grid-cols-5 gap-3 mb-5" id="stats"></div>
+  <div class="grid grid-cols-6 gap-3 mb-5" id="stats"></div>
 
   <!-- 额度进度条 -->
   <div class="bg-white rounded-xl border border-gray-100 p-4 mb-5">
@@ -172,8 +172,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 <script>
 /* ================= 数据 ================= */
 var BUDGET={
-  '2026':{base:250000, extra:8000, year:'2026.04–2027.03'},
-  '2025':{base:250000, extra:0, year:'2025.04–2026.03'}
+  /* carry = 上年未用完结转额；extra = 本年额外申请追加额 */
+  '2026':{base:250000, carry:18400, carryFrom:'2025.04–2026.03', extra:8000, year:'2026.04–2027.03'},
+  '2025':{base:250000, carry:0,     carryFrom:'',                 extra:0,    year:'2025.04–2026.03'}
 };
 var curYear='2026';
 
@@ -214,9 +215,9 @@ var BLD={'2026':[
 
 /* 待核销（与 P2 一致：已通过/部分核销） */
 var PEND=[
-  {no:'JB202610-0007', name:'B 栋 1F 通道灯管更换', amount:784, done:592, at:'2026-10-22 09:30', days:5},
-  {no:'JB202610-0005', name:'C 栋 1F 消防栓箱更换', amount:1260, done:0, at:'2026-10-11 14:20', days:16},
-  {no:'JB202610-0004', name:'A 栋 3F 卫生间下水改造', amount:3200, done:1800, at:'2026-10-08 10:00', days:19}
+  {no:'JB202610-0007', y:'2026', name:'B 栋 1F 通道灯管更换', amount:784, done:592, at:'2026-10-22 09:30', days:5},
+  {no:'JB202610-0005', y:'2026', name:'C 栋 1F 消防栓箱更换', amount:1260, done:0, at:'2026-10-11 14:20', days:16},
+  {no:'JB202610-0004', y:'2026', name:'A 栋 3F 卫生间下水改造', amount:3200, done:1800, at:'2026-10-08 10:00', days:19}
 ];
 
 /* 额外申请 */
@@ -233,9 +234,10 @@ var curNo=null, tid;
 function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},3200);}
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function money(n){return Number(Math.round(n)).toLocaleString('en-US');}
-function total(){var b=BUDGET[curYear];return b.base+b.extra;}
+function total(){var b=BUDGET[curYear];return b.base+b.carry+b.extra;}
 function used(){var s=0;MONTH[curYear].forEach(function(x){s+=x.v;});return s;}
-function inTransit(){var s=0;PEND.forEach(function(p){s+=p.amount-p.done;});return s;}
+/* 在途按年度归集：跨年未核销的单子算到核销当年，不重复占上年结转 */
+function inTransit(){var s=0;PEND.forEach(function(p){if(p.y===curYear)s+=p.amount-p.done;});return s;}
 function remain(){return total()-used()-inTransit();}
 function pctOf(a,b){return b?Math.round(a/b*1000)/10:0;}
 
@@ -245,17 +247,21 @@ function renderStats(){
   var rmColor=rm<0?'#DC2626':(leftPct<20?'#EA580C':'#15803D');
   var rmBadge=rm<0?'<span class="text-[10px] font-normal" style="color:#DC2626">已超支</span>'
     :(leftPct<20?'<span class="text-[10px] font-normal" style="color:#EA580C">低于 20%</span>':'');
+  var b=BUDGET[curYear];
+  var pendCnt=PEND.filter(function(p){return p.y===curYear;}).length;
   var cards=[
-    ['年度总额度','¥'+money(t),'#1F2430','含追加 ¥'+money(BUDGET[curYear].extra)],
-    ['已核销','¥'+money(u),'#FF4D2D','占额度 '+pctOf(u,t)+'%'],
-    ['在途','¥'+money(it),'#B45309',PEND.length+' 张待核销'],
-    ['剩余可用','¥'+money(rm),rmColor,rmBadge||('占额度 '+leftPct+'%')],
-    ['额外追加','¥'+money(BUDGET[curYear].extra),'#2563EB',APPLY.filter(function(a){return a.state==='已通过';}).length+' 笔已通过']
+    ['年度总额度','¥'+money(t),'#1F2430','基础 '+money(b.base)+(b.carry?' + 结转 '+money(b.carry):'')+(b.extra?' + 追加 '+money(b.extra):''),''],
+    ['上年结转','¥'+money(b.carry),b.carry?'#2563EB':'#94A3B8',b.carry?('来自 '+b.carryFrom):'上年已用完，无结转','helpCarry()'],
+    ['已核销','¥'+money(u),'#FF4D2D','占额度 '+pctOf(u,t)+'%',''],
+    ['在途','¥'+money(it),'#B45309',pendCnt+' 张待核销',''],
+    ['剩余可用','¥'+money(rm),rmColor,rmBadge||('占额度 '+leftPct+'%'),''],
+    ['额外追加','¥'+money(b.extra),'#2563EB',APPLY.filter(function(a){return a.state==='已通过';}).length+' 笔已通过','']
   ];
   document.getElementById('stats').innerHTML=cards.map(function(x){
-    return '<div class="stat-card bg-white rounded-lg border border-gray-100 p-3.5">'
-      +'<p class="text-[11px] text-gray-400">'+x[0]+'</p>'
-      +'<p class="text-xl font-bold mt-1" style="color:'+x[2]+'">'+x[1]+'</p>'
+    return '<div class="stat-card bg-white rounded-lg border border-gray-100 p-3.5"'
+      +(x[4]?' style="cursor:pointer" onclick="'+x[4]+'" title="点击查看结转口径"':'')+'>'
+      +'<p class="text-[11px] text-gray-400">'+x[0]+(x[4]?' <i class="fas fa-circle-question text-[9px]"></i>':'')+'</p>'
+      +'<p class="text-lg font-bold mt-1" style="color:'+x[2]+'">'+x[1]+'</p>'
       +'<p class="text-[10px] text-[#94A3B8] mt-1">'+x[3]+'</p></div>';
   }).join('');
   var uP=pctOf(u,t), iT=pctOf(it,t);
@@ -296,9 +302,44 @@ function jumpSup(n){
   toast('已定位供应商「'+n+'」：查看成交笔数 / 金额占比 / 关联物资（供应商库 · 采购明细）');
 }
 
+/* 额度结转口径说明 */
+function helpCarry(){
+  var b=BUDGET[curYear];
+  var prevY=curYear==='2026'?'2025':'';
+  var prev=prevY?BUDGET[prevY]:null;
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">额度结转口径</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">当年没用完的钱，结转到下一年继续用</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-calculator text-[#2563EB]"></i>怎么算</div>'
+    +'<p class="text-[12px] leading-6" style="color:#475569"><b>结转额 = 上年年度总额度 − 上年已核销 − 上年跨年未核销在途</b></p>'
+    +(prev?'<div class="kv"><span class="k">上年总额度</span><span class="v">¥'+money(prev.base+prev.carry+prev.extra)+'</span></div>'
+      +'<div class="kv"><span class="k">− 上年已核销</span><span class="v">¥'+money(usedOf(prevY))+'</span></div>'
+      +'<div class="kv"><span class="k">− 上年在途</span><span class="v">¥'+money(pendOf(prevY))+'</span></div>'
+      +'<div class="kv"><span class="k">= 结转下年</span><span class="v" style="color:#15803D;font-weight:700">¥'+money(prev.base+prev.carry+prev.extra-usedOf(prevY)-pendOf(prevY))+'</span></div>'
+      :'<div class="kv"><span class="k">本年度结转</span><span class="v">¥'+money(b.carry)+'</span></div>')
+    +'</div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-circle-info text-[#B45309]"></i>为什么在途要先扣掉</div>'
+    +'<p class="text-[12px] leading-6" style="color:#475569">上年审批通过、今年才核销的单子，<b>核销时扣的是核销当年的额度</b>。如果上年不做扣减、整笔结转过来，这笔钱会被算两次（既结转、又在新年度占额）。</p></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-layer-group text-[#6D28D9]"></i>能攒几年</div>'
+    +'<div class="kv"><span class="k">当前实现</span><span class="v">逐年累计：本年总额 = 基础 25 万 + 上年结转 + 本年追加</span></div>'
+    +'<div class="kv"><span class="k">是否设上限</span><span class="v" style="color:#B45309">待客户确认（累计不封顶 / 最多结转 1 年 / 不超过年度额度 1 倍）</span></div></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-eye text-[#15803D]"></i>在哪里看</div>'
+    +'<div class="kv"><span class="k">看板</span><span class="v">第 2 张卡「上年结转」，副标题显示来源年度</span></div>'
+    +'<div class="kv"><span class="k">剩余可用</span><span class="v">已包含结转额（总额度含结转）</span></div>'
+    +'<div class="kv"><span class="k">切换年度</span><span class="v">上年视图的「剩余可用」＝ 结转出去的金额</span></div></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-primary" onclick="closeAll()">知道了</button></div>';
+  document.getElementById('drawer').innerHTML=h;show();
+}
+function usedOf(y){var s=0;(MONTH[y]||[]).forEach(function(x){s+=x.v;});return s;}
+function pendOf(y){var s=0;PEND.forEach(function(p){if(p.y===y)s+=p.amount-p.done;});return s;}
+
 function renderPend(){
   var h='';
-  PEND.forEach(function(p){
+  var rows=PEND.filter(function(p){return p.y===curYear;});
+  rows.forEach(function(p){
     var left=p.amount-p.done;
     h+='<tr>'
       +'<td class="font-medium">'+esc(p.no)+'</td>'
@@ -310,8 +351,8 @@ function renderPend(){
       +'<td class="text-[12px]">'+(p.days>15?'<span style="color:#DC2626;font-weight:600">'+p.days+' 天 · 久悬</span>':p.days+' 天')+'</td>'
       +'<td class="text-center"><span class="lk" onclick="toast(\'已跳转到交办单 '+p.no+'（在 P2 交办单与核销页打开）\')">去核销</span></td></tr>';
   });
-  document.getElementById('tbPend').innerHTML=h||'<tr><td colspan="8"><div class="empty"><i class="fas fa-check-circle"></i>无待核销交办单</div></td></tr>';
-  document.getElementById('pendCnt').textContent='共 '+PEND.length+' 条';
+  document.getElementById('tbPend').innerHTML=h||'<tr><td colspan="8"><div class="empty"><i class="fas fa-check-circle"></i>该年度无待核销交办单</div></td></tr>';
+  document.getElementById('pendCnt').textContent='共 '+rows.length+' 条';
 }
 
 function renderApply(){
@@ -345,7 +386,7 @@ function renderAll(){
 function switchYear(){
   curYear=document.getElementById('f-year').value;
   renderAll();
-  toast('已切换到额度年度 '+BUDGET[curYear].year+'（4.1–次年 3.31，跨期不结转）');
+  toast('已切换到额度年度 '+BUDGET[curYear].year+'（4.1–次年 3.31，未用完结转下年）');
 }
 
 /* ================= 额外申请 ================= */
@@ -359,7 +400,7 @@ function openApply(){
     +'<div><label class="fl"><i>*</i>用途说明（≥10 字）</label><input class="fi" id="ap_use" placeholder="如：Q4 消防设施专项整改，A/B 栋消防栓箱与灭火器批量更换"></div>'
     +'<div><label class="fl">依据附件</label><div class="fi" style="cursor:pointer;color:#94A3B8" onclick="pickApAtt()" id="apAttBox">点击上传（报价单 / 说明文件）</div></div>'
     +'<div class="rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFBEB">'
-    +'<p class="text-[11px] text-[#64748B]">通过后<b>追加到当年总额度</b>并留痕（申请人 / 审批人 / 金额 / 原因）；跨期不结转。</p></div>';
+    +'<p class="text-[11px] text-[#64748B]">通过后<b>追加到当年总额度</b>并留痕（申请人 / 审批人 / 金额 / 原因）；当年度没用完的部分<b>结转下一年继续用</b>。</p></div>';
   h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
     +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
     +'<button class="btn btn-primary" onclick="saveApply()">提交申请</button></div>';
