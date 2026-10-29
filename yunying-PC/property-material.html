@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>物业服务 - 物资与供应商库</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.stat-card{transition:box-shadow .2s ease,transform .2s ease;cursor:pointer}
+.stat-card:hover{box-shadow:0 4px 20px rgba(0,0,0,.08);transform:translateY(-1px)}
+.tb th{font-size:12px;font-weight:600;color:#64748B;background:#F8FAFC;padding:10px 12px;text-align:left;white-space:nowrap}
+.tb td{font-size:13px;color:#1F2430;padding:10px 12px;border-bottom:1px solid #F1F5F9;white-space:nowrap}
+.tb tbody tr:hover{background:#FFF7F5}
+.tb tr.hl{background:#FFF7F5}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}
+.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}
+.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}
+.lk:hover{text-decoration:underline}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}
+.lk-gray:hover{color:#1F2430}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:40}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:600px;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:50;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.fl{display:block;font-size:12px;color:#64748B;margin-bottom:5px}
+.fl i{color:#FF4D2D;font-style:normal;margin-right:2px}
+.fi{width:100%;padding:8px 11px;font-size:13px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;outline:none;transition:.15s}
+.fi:focus{border-color:#FF4D2D;background:#fff}
+.blk{border:1px solid #F1F5F9;border-radius:12px;padding:13px 15px}
+.blk-t{font-size:12px;font-weight:700;color:#1F2430;display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.kv{display:flex;gap:10px;font-size:12px;padding:4px 0;line-height:1.6}
+.kv .k{color:#94A3B8;width:92px;flex-shrink:0}
+.kv .v{color:#1F2430;flex:1}
+.empty{padding:50px 0;text-align:center;color:#CBD5E1;font-size:12px}
+.empty i{font-size:26px;display:block;margin-bottom:8px}
+.tab-on{color:#FF4D2D;border-bottom:2px solid #FF4D2D;font-weight:600}
+.pg{height:6px;border-radius:3px;background:#F1F5F9;overflow:hidden}
+.pg>i{display:block;height:100%}
+.warn{font-size:11px;color:#B45309;background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;padding:7px 10px}
+.danger{font-size:11px;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;padding:7px 10px}
+.ok{font-size:11px;color:#15803D;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:7px 10px}
+.mrow{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid #E2E8F0;border-radius:9px;margin-bottom:7px;font-size:12px;cursor:pointer}
+.mrow.on{border-color:#FF7849;background:#FFF7F5}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+<div class="p-6">
+
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">物资与供应商库</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">07 物业服务</span>
+        <span class="tag" style="background:#EDE9FE;color:#6D28D9">物业公司维护</span>
+        <span class="tag" style="background:#FFEDE7;color:#E63E20">申报只可下拉选</span>
+      </div>
+      <p class="text-[12px] text-gray-400 mt-1">交办单的物资明细<b>只能从这里选</b>，不再手工打字。库由<b>物业公司</b>维护、运营可覆写参考价；<b>停用不删除</b>，历史交办单与核销记录始终可追溯。参考价用于判断核销单价是否偏高；供应商成交额用于判断是否过度依赖单一供应商。</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="openInit()"><i class="fas fa-wand-magic-sparkles text-[10px] mr-1"></i>初始化向导</button>
+      <button class="btn btn-ghost" onclick="navBudget()"><i class="fas fa-chart-pie text-[10px] mr-1"></i>看年度台账</button>
+      <button class="btn btn-primary" onclick="openMat(null,'mat')"><i class="fas fa-plus mr-1"></i>新增</button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-5 gap-3 mb-5" id="stats"></div>
+
+  <div class="flex items-center gap-5 mb-3 border-b border-gray-200" id="tabs">
+    <span id="tab-mat" class="py-2.5 text-[13px] cursor-pointer tab-on" onclick="switchTab('mat',this)">物资库 <span class="text-[11px] text-[#94A3B8]" id="c-mat"></span></span>
+    <span id="tab-sup" class="py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600" onclick="switchTab('sup',this)">供应商库 <span class="text-[11px]" id="c-sup"></span></span>
+    <span id="tab-log" class="py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600" onclick="switchTab('log',this)">变更留痕 <span class="text-[11px]" id="c-log"></span></span>
+  </div>
+
+  <!-- 物资库 -->
+  <div id="pane-mat">
+    <div class="bg-white rounded-xl border border-gray-100 p-3 mb-4 flex items-center gap-3 flex-wrap">
+      <input id="f-kw" type="text" placeholder="物资名称 / 规格 / 编码" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none w-56">
+      <select id="f-cat" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+        <option value="">全部类别</option>
+      </select>
+      <select id="f-state" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+        <option value="">全部状态</option><option>启用</option><option>停用</option>
+      </select>
+      <select id="f-src" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+        <option value="">全部来源</option><option>预置基础库</option><option>历史导入</option><option>申报新增</option>
+      </select>
+      <button class="btn btn-primary" onclick="doSearchMat()">查询</button>
+      <button class="btn btn-ghost" onclick="resetMat()">重置</button>
+      <button class="btn btn-ghost" onclick="quickFilter('pending')"><i class="fas fa-code-merge text-[10px] mr-1"></i>待合并重复</button>
+      <button class="btn btn-ghost" onclick="quickFilter('noprice')"><i class="fas fa-yen-sign text-[10px] mr-1"></i>待补参考价</button>
+      <button class="btn btn-ghost" onclick="helpMerge()"><i class="fas fa-circle-question text-[10px] mr-1"></i>什么是待合并</button>
+      <span class="text-[11px] text-[#94A3B8] ml-auto"><i class="fas fa-circle-info mr-1"></i>名称 + 规格 组合唯一；同名不同规格算两条</span>
+    </div>
+
+    <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+      <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-[13px] font-bold text-[#1F2430]">物资清单</span>
+          <span class="text-[12px] text-[#94A3B8]" id="matCnt">共 0 条</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="btn btn-ghost" onclick="toggleBatch()" id="batchBtn"><i class="fas fa-list-check text-[10px] mr-1"></i>批量操作</button>
+          <button class="btn btn-ghost" onclick="exportMat()"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+        </div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full tb" style="min-width:1300px">
+          <thead><tr>
+            <th style="width:34px" id="thChk"></th>
+            <th>编码</th><th>物资名称</th><th>规格型号</th><th>单位</th><th>类别</th>
+            <th>来源</th><th>状态</th><th class="text-center">操作</th>
+          </tr></thead>
+          <tbody id="tbMat"></tbody>
+        </table>
+      </div>
+      <div class="px-5 py-3 border-t border-gray-100 flex items-center justify-between" id="batchBar" style="display:none">
+        <span class="text-[12px] text-[#64748B]">已选 <b id="selCnt">0</b> 条</span>
+        <div class="flex items-center gap-2">
+          <button class="btn btn-ghost" onclick="batchState('启用')">批量启用</button>
+          <button class="btn btn-ghost" onclick="batchState('停用')">批量停用</button>
+          <button class="btn btn-ghost" onclick="batchCat()">批量改类别</button>
+          <button class="btn btn-ghost" onclick="cancelBatch()">取消</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 供应商库 -->
+  <div id="pane-sup" style="display:none">
+    <div class="bg-white rounded-xl border border-gray-100 p-3 mb-4 flex items-center gap-3 flex-wrap">
+      <input id="f-skw" type="text" placeholder="供应商名称 / 联系人" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none w-56">
+      <select id="f-scat" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+        <option value="">全部类别</option>
+      </select>
+      <select id="f-sst" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+        <option value="">全部状态</option><option>启用</option><option>停用</option>
+      </select>
+      <button class="btn btn-primary" onclick="doSearchSup()">查询</button>
+      <button class="btn btn-ghost" onclick="resetSup()">重置</button>
+      <span class="text-[11px] text-[#94A3B8] ml-auto"><i class="fas fa-circle-info mr-1"></i>成交额与占比由核销记录自动汇总，不手填</span>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+      <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-[13px] font-bold text-[#1F2430]">供应商清单</span>
+          <span class="text-[12px] text-[#94A3B8]" id="supCnt">共 0 条</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="btn btn-primary" onclick="openMat(null,'sup')"><i class="fas fa-plus mr-1"></i>新增供应商</button>
+        </div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full tb" style="min-width:1200px">
+          <thead><tr>
+            <th>编码</th><th>供应商名称</th><th>主营类别</th><th>联系人</th><th>电话</th>
+            <th>成交笔数</th><th>成交金额</th><th style="min-width:150px">金额占比 <i class="fas fa-circle-question text-[10px] cursor-pointer" style="color:#94A3B8" onclick="helpR6()" title="占比超 70% 是什么意思"></i></th><th>首次合作</th><th>状态</th><th class="text-center">操作</th>
+          </tr></thead>
+          <tbody id="tbSup"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 变更留痕 -->
+  <div id="pane-log" style="display:none">
+    <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+      <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-[13px] font-bold text-[#1F2430]">近 30 天变更留痕</span>
+          <span class="text-[12px] text-[#94A3B8]" id="logCnt">共 0 条</span>
+        </div>
+        <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>改价、新增、停用、合并全部留痕；运营覆写参考价优先于物业录入</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full tb" style="min-width:1100px">
+          <thead><tr>
+            <th>时间</th><th>对象类型</th><th>对象</th><th>变更项</th><th>原值</th><th>新值</th><th>操作人</th><th>来源</th>
+          </tr></thead>
+          <tbody id="tbLog"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mask" id="mask" onclick="closeAll()"></div>
+<div class="drawer" id="drawer"></div>
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
+
+<script>
+/* ================= 字典 ================= */
+var CATS=['地砖 / 石材','照明灯具','电气元件','门窗五金','给排水管件','涂料 / 腻子','人工费','消防器材','锁具','其他'];
+var UNITS=['块','只','支','套','米','袋','桶','kg','人天','项'];
+var STATE={'启用':'background:#DCFCE7;color:#15803D','停用':'background:#F1F5F9;color:#64748B'};
+var SRC={'预置基础库':'background:#EDE9FE;color:#6D28D9','历史导入':'background:#DBEAFE;color:#2563EB','申报新增':'background:#FEF3C7;color:#B45309'};
+
+/* ================= 物资数据 ================= */
+/* pending=true 表示「待合并」：申报时新建，名称/规格疑似与已有物资是同一件东西，等人确认合并 */
+var MAT=[
+  {code:'WL0001', name:'防滑地砖 600×600', spec:'灰色 / 通体 / 哑光', unit:'块', cat:'地砖 / 石材',
+   price:98, lastPrice:98, lastVendor:'诸暨××建材', lastDate:'2026-10-24', cnt:6, src:'历史导入', state:'启用', defVendor:'诸暨××建材'},
+  {code:'WL0002', name:'水泥砂浆', spec:'25kg/袋 · M10', unit:'袋', cat:'地砖 / 石材',
+   price:30, lastPrice:30, lastVendor:'诸暨××建材', lastDate:'2026-10-24', cnt:9, src:'历史导入', state:'启用', defVendor:'诸暨××建材'},
+  {code:'WL0003', name:'LED 灯管 T8 18W', spec:'1.2m / 白光 / 6500K', unit:'支', cat:'照明灯具',
+   price:68, lastPrice:80, lastVendor:'诸暨××灯具', lastDate:'2026-10-24', cnt:14, src:'预置基础库', state:'启用', defVendor:'诸暨××灯具'},
+  {code:'WL0004', name:'灯管支架', spec:'T8 单管 / 铁质', unit:'套', cat:'照明灯具',
+   price:60, lastPrice:60, lastVendor:'诸暨××灯具', lastDate:'2026-10-24', cnt:3, src:'预置基础库', state:'启用', defVendor:'诸暨××灯具'},
+  {code:'WL0005', name:'小型断路器', spec:'DZ47-63 C25 · 2P / 25A', unit:'只', cat:'电气元件',
+   price:280, lastPrice:280, lastVendor:'诸暨××机电', lastDate:'2026-10-25', cnt:5, src:'历史导入', state:'启用', defVendor:'诸暨××机电'},
+  {code:'WL0006', name:'漏电保护器', spec:'DZ47LE 2P / 32A', unit:'只', cat:'电气元件',
+   price:165, lastPrice:158, lastVendor:'诸暨××机电', lastDate:'2026-09-18', cnt:2, src:'预置基础库', state:'启用', defVendor:'诸暨××机电'},
+  {code:'WL0007', name:'辅材（线鼻子/绝缘胶带）', spec:'配套', unit:'项', cat:'电气元件',
+   price:0, lastPrice:160, lastVendor:'诸暨××五交化', lastDate:'2026-10-25', cnt:4, src:'申报新增', state:'启用', defVendor:'诸暨××五交化'},
+  {code:'WL0008', name:'卷帘门导轨', spec:'3m / 镀锌', unit:'根', cat:'门窗五金',
+   price:480, lastPrice:468, lastVendor:'诸暨××门业', lastDate:'2026-10-19', cnt:2, src:'历史导入', state:'启用', defVendor:'诸暨××门业'},
+  {code:'WL0009', name:'润滑脂', spec:'500g / 通用型', unit:'桶', cat:'门窗五金',
+   price:40, lastPrice:40, lastVendor:'诸暨××门业', lastDate:'2026-10-19', cnt:3, src:'历史导入', state:'启用', defVendor:'诸暨××门业'},
+  {code:'WL0010', name:'门把手', spec:'不锈钢 / 通用', unit:'套', cat:'门窗五金',
+   price:45, lastPrice:0, lastVendor:'—', lastDate:'—', cnt:0, src:'申报新增', state:'启用', defVendor:''},
+  {code:'WL0011', name:'PPR 水管家件', spec:'DN25 / 弯头三通', unit:'只', cat:'给排水管件',
+   price:0, lastPrice:35, lastVendor:'诸暨××管材', lastDate:'2026-08-30', cnt:2, src:'申报新增', state:'启用', defVendor:'诸暨××管材'},
+  {code:'WL0012', name:'内墙腻子粉', spec:'20kg/袋', unit:'袋', cat:'涂料 / 腻子',
+   price:28, lastPrice:26, lastVendor:'诸暨××建材', lastDate:'2026-09-02', cnt:3, src:'历史导入', state:'启用', defVendor:'诸暨××建材'},
+  {code:'WL0013', name:'乳胶漆', spec:'18L / 白色', unit:'桶', cat:'涂料 / 腻子',
+   price:260, lastPrice:0, lastVendor:'—', lastDate:'—', cnt:0, src:'预置基础库', state:'启用', defVendor:''},
+  {code:'WL0014', name:'干粉灭火器', spec:'MFZ/ABC4 · 4kg', unit:'只', cat:'消防器材',
+   price:85, lastPrice:82, lastVendor:'义乌××消防', lastDate:'2026-07-15', cnt:2, src:'历史导入', state:'启用', defVendor:'义乌××消防'},
+  {code:'WL0015', name:'消防水带', spec:'DN65 / 20m', unit:'盘', cat:'消防器材',
+   price:190, lastPrice:0, lastVendor:'—', lastDate:'—', cnt:0, src:'预置基础库', state:'停用', defVendor:''},
+  {code:'WL0016', name:'门锁芯', spec:'AB 锁芯 / 70mm', unit:'只', cat:'锁具',
+   price:55, lastPrice:52, lastVendor:'诸暨××五交化', lastDate:'2026-09-26', cnt:4, src:'历史导入', state:'启用', defVendor:'诸暨××五交化'},
+  {code:'WL0017', name:'人工费', spec:'1 人 × 1 天', unit:'人天', cat:'人工费',
+   price:200, lastPrice:200, lastVendor:'—', lastDate:'2026-10-24', cnt:11, src:'预置基础库', state:'启用', defVendor:''},
+  {code:'WL0018', name:'人工费（电工）', spec:'持证电工 / 1 人天', unit:'人天', cat:'人工费',
+   price:320, lastPrice:300, lastVendor:'—', lastDate:'2026-10-25', cnt:5, src:'预置基础库', state:'启用', defVendor:''},
+  {code:'WL0019', name:'地砖 600*600', spec:'灰色通体', unit:'块', cat:'地砖 / 石材',
+   price:96, lastPrice:96, lastVendor:'诸暨××建材', lastDate:'2026-10-26', cnt:1, src:'申报新增', state:'启用', defVendor:'诸暨××建材', pending:true, dupOf:'WL0001'},
+  {code:'WL0020', name:'LED灯管', spec:'T8-18W-1.2M', unit:'支', cat:'照明灯具',
+   price:70, lastPrice:70, lastVendor:'义乌××照明', lastDate:'2026-10-27', cnt:1, src:'申报新增', state:'启用', defVendor:'义乌××照明', pending:true, dupOf:'WL0003'}
+];
+
+/* ================= 供应商数据 ================= */
+var SUP=[
+  {code:'GYS0001', name:'诸暨××建材有限公司', short:'××建材', cat:['地砖 / 石材','涂料 / 腻子'], contact:'陈××', phone:'138****6721',
+   cnt:45, amt:125000, since:'2023-04-12', state:'启用', note:'地砖、砂浆、腻子主供'},
+  {code:'GYS0002', name:'诸暨××灯具经营部', short:'××灯具', cat:['照明灯具'], contact:'李××', phone:'139****3058',
+   cnt:12, amt:15000, since:'2024-01-08', state:'启用', note:''},
+  {code:'GYS0003', name:'诸暨××机电设备商行', short:'××机电', cat:['电气元件'], contact:'王××', phone:'137****9942',
+   cnt:9, amt:13000, since:'2023-09-20', state:'启用', note:'空开、漏保、配电辅件'},
+  {code:'GYS0004', name:'诸暨××门业', short:'××门业', cat:['门窗五金'], contact:'赵××', phone:'136****1180',
+   cnt:7, amt:9000, since:'2024-06-15', state:'启用', note:'卷帘门、导轨、门锁'},
+  {code:'GYS0005', name:'诸暨××五交化', short:'××五交化', cat:['门窗五金','锁具','电气元件'], contact:'钱××', phone:'135****7723',
+   cnt:11, amt:7000, since:'2023-11-03', state:'启用', note:'零散五金、辅材'},
+  {code:'GYS0006', name:'义乌××消防器材', short:'××消防', cat:['消防器材'], contact:'孙××', phone:'133****4417',
+   cnt:4, amt:4000, since:'2025-03-11', state:'启用', note:'灭火器年检与更换'},
+  {code:'GYS0007', name:'诸暨××管材', short:'××管材', cat:['给排水管件'], contact:'周××', phone:'132****6639',
+   cnt:3, amt:3000, since:'2025-08-22', state:'启用', note:''},
+  {code:'GYS0008', name:'义乌××照明电器', short:'××照明', cat:['照明灯具'], contact:'吴××', phone:'131****2205',
+   cnt:2, amt:2000, since:'2026-10-27', state:'启用', note:'申报时新增，待观察'}
+];
+
+/* ================= 变更留痕 ================= */
+var LOG=[
+  {at:'2026-10-27 16:42', type:'物资', obj:'WL0020 LED灯管', field:'新增建档', from:'—', to:'T8-18W-1.2M / ¥70', by:'物业 张××', src:'申报时新增（待合并）'},
+  {at:'2026-10-27 16:40', type:'供应商', obj:'GYS0008 义乌××照明电器', field:'新增建档', from:'—', to:'主营：照明灯具', by:'物业 张××', src:'申报时新增'},
+  {at:'2026-10-26 15:08', type:'物资', obj:'WL0019 地砖 600*600', field:'新增建档', from:'—', to:'灰色通体 / ¥96', by:'物业 张××', src:'申报时新增（待合并）'},
+  {at:'2026-10-25 10:12', type:'物资', obj:'WL0003 LED 灯管 T8 18W', field:'市场参考价', from:'¥68', to:'¥72', by:'市场管理部 何××', src:'运营覆写'},
+  {at:'2026-10-24 09:30', type:'物资', obj:'WL0005 小型断路器', field:'默认供应商', from:'—', to:'诸暨××机电', by:'物业 张××', src:'手工维护'},
+  {at:'2026-10-22 14:20', type:'物资', obj:'WL0015 消防水带', field:'状态', from:'启用', to:'停用', by:'物业 张××', src:'手工维护'},
+  {at:'2026-10-20 11:05', type:'物资', obj:'WL0013 乳胶漆', field:'市场参考价', from:'¥248', to:'¥260', by:'物业 张××', src:'手工维护'},
+  {at:'2026-10-15 09:00', type:'物资', obj:'批次导入 186 条', field:'历史导入', from:'—', to:'归并生成 132 条物资 / 8 家供应商', by:'物业 张××', src:'初始化向导'}
+];
+
+/* ================= 状态 ================= */
+var curTab='mat', matRows=MAT.slice(), supRows=SUP.slice(), batch=false, picked={}, editingCode=null;
+
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(window.__tid);window.__tid=setTimeout(function(){t.style.opacity='0'},3400);}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function money(n){return Number(n||0).toLocaleString('en-US');}
+function tag(txt,map){return '<span class="tag" style="'+(map[txt]||'background:#F1F5F9;color:#64748B')+'">'+esc(txt)+'</span>';}
+function supAmtTotal(){var s=0;SUP.forEach(function(x){if(x.state==='启用')s+=x.amt;});return s;}
+
+/* ================= 统计 ================= */
+function renderStats(){
+  var enable=MAT.filter(function(m){return m.state==='启用';}).length;
+  var pend=MAT.filter(function(m){return m.pending;}).length;
+  var nop=MAT.filter(function(m){return !m.price;}).length;
+  var supOn=SUP.filter(function(s){return s.state==='启用';}).length;
+  var total=supAmtTotal();
+  var r6=SUP.filter(function(s){return total&&s.amt/total>0.7;}).length;
+  var cards=[
+    ['启用物资',enable,'#2563EB','quickFilter("all")'],
+    ['待合并重复',pend,'#B45309','quickFilter("pending")'],
+    ['待补参考价',nop,'#E63E20','quickFilter("noprice")'],
+    ['启用供应商',supOn,'#6D28D9','switchTab("sup",null)'],
+    ['供应商集中预警',r6>=1?r6+' 家':'无','#B91C1C','helpR6()']
+  ];
+  document.getElementById('stats').innerHTML=cards.map(function(c){
+    return '<div class="stat-card bg-white rounded-lg border border-gray-100 p-3.5" onclick=\''+c[3]+'\'>'
+      +'<p class="text-[11px] text-gray-400">'+c[0]+'</p>'
+      +'<p class="text-xl font-bold mt-1" style="color:'+c[2]+'">'+c[1]+'</p></div>';
+  }).join('');
+  document.getElementById('c-mat').textContent='('+MAT.length+')';
+  document.getElementById('c-sup').textContent='('+SUP.length+')';
+  document.getElementById('c-log').textContent='('+LOG.length+')';
+}
+
+/* ================= 渲染物资 ================= */
+function priceCell(m){
+  if(!m.price) return '<span class="tag" style="background:#FEF3C7;color:#B45309"><i class="fas fa-triangle-exclamation"></i>待补</span>';
+  var t='¥'+money(m.price);
+  if(m.lastPrice){
+    var dev=Math.round((m.price/m.lastPrice-1)*100);
+    if(dev>=20) t+=' <span class="text-[11px]" style="color:#E63E20">较上次 +'+dev+'%</span>';
+    else if(dev<=-20) t+=' <span class="text-[11px]" style="color:#15803D">较上次 '+dev+'%</span>';
+  }
+  return t;
+}
+/* 「待合并」行：找出系统提示的疑似同物是哪一条 */
+function dupName(m){
+  if(!m.dupOf) return '';
+  var t=null;
+  MAT.forEach(function(x){if(x.code===m.dupOf) t=x;});
+  return t?t.name:'';
+}
+function renderMat(){
+  var h='';
+  matRows.forEach(function(m){
+    var cls=m.pending?'hl':'';
+    var ops='<span class="lk" onclick="openMat(\''+m.code+'\',\'mat\')">编辑</span> · '
+      +'<span class="lk-gray" onclick="toggleState(\''+m.code+'\')">'+(m.state==='启用'?'停用':'启用')+'</span>';
+    if(m.pending) ops='<span class="lk" style="color:#B45309" onclick="openMerge(\''+m.code+'\')">合并重复</span> · '+ops;
+    h+='<tr class="'+cls+'">'
+      +'<td>'+(batch?'<input type="checkbox" '+(picked[m.code]?'checked':'')+' onclick="pickOne(\''+m.code+'\',this)">':'')+'</td>'
+      +'<td class="text-[12px] text-[#64748B]">'+esc(m.code)+'</td>'
+      +'<td class="font-medium">'+esc(m.name)
+        +(m.pending?' <span class="tag" style="background:#FEF3C7;color:#B45309">待合并</span>'
+          +'<div class="text-[11px] mt-0.5" style="color:#B45309">疑似与 '+esc(m.dupOf||'')+'「'+esc(dupName(m))+'」是同一物资</div>':'')
+        +(!m.price?'<div class="text-[11px] mt-0.5" style="color:#E63E20"><i class="fas fa-triangle-exclamation mr-1"></i>待补参考价</div>':'')+'</td>'
+      +'<td class="text-[12px] text-[#64748B]">'+esc(m.spec)+'</td>'
+      +'<td class="text-[12px]">'+esc(m.unit)+'</td>'
+      +'<td class="text-[12px] text-[#64748B]">'+esc(m.cat)+'</td>'
+      +'<td>'+tag(m.src,SRC)+'</td>'
+      +'<td>'+tag(m.state,STATE)+'</td>'
+      +'<td class="text-center whitespace-nowrap">'+ops+'</td></tr>';
+  });
+  document.getElementById('tbMat').innerHTML=h||'<tr><td colspan="9"><div class="empty"><i class="fas fa-box-open"></i>无匹配物资</div></td></tr>';
+  document.getElementById('matCnt').textContent='共 '+matRows.length+' 条';
+  document.getElementById('thChk').innerHTML=batch?'<input type="checkbox" onclick="pickAll(this)">':'';
+  document.getElementById('batchBar').style.display=batch?'':'none';
+  document.getElementById('selCnt').textContent=Object.keys(picked).filter(function(k){return picked[k];}).length;
+}
+
+/* ================= 渲染供应商 ================= */
+function renderSup(){
+  var total=supAmtTotal();
+  var h='';
+  supRows.forEach(function(s){
+    var pct=total?Math.round(s.amt/total*1000)/10:0;
+    var r6=pct>70;
+    h+='<tr'+(r6?' class="hl"':'')+'>'
+      +'<td class="text-[12px] text-[#64748B]">'+esc(s.code)+'</td>'
+      +'<td class="font-medium">'+esc(s.name)+(r6?' <span class="tag" style="background:#FEE2E2;color:#B91C1C">占比超 70%</span>':'')+'</td>'
+      +'<td class="text-[12px] text-[#64748B]">'+esc(s.cat.join(' / '))+'</td>'
+      +'<td class="text-[12px]">'+esc(s.contact)+'</td>'
+      +'<td class="text-[12px] text-[#64748B]">'+esc(s.phone)+'</td>'
+      +'<td class="text-[12px]">'+s.cnt+' 笔</td>'
+      +'<td class="font-medium">¥'+money(s.amt)+'</td>'
+      +'<td><div class="flex items-center gap-2"><div class="pg" style="flex:1"><i style="width:'+Math.min(pct,100)+'%;background:'+(r6?'#E63E20':'#FF7849')+'"></i></div>'
+      +'<span class="text-[11px]" style="color:'+(r6?'#E63E20':'#64748B')+';width:42px;text-align:right">'+pct+'%</span></div></td>'
+      +'<td class="text-[12px] text-[#64748B]">'+esc(s.since)+'</td>'
+      +'<td>'+tag(s.state,STATE)+'</td>'
+      +'<td class="text-center whitespace-nowrap"><span class="lk" onclick="openMat(\''+s.code+'\',\'sup\')">编辑</span> · '
+      +'<span class="lk-gray" onclick="toggleSup(\''+s.code+'\')">'+(s.state==='启用'?'停用':'启用')+'</span> · '
+      +'<span class="lk-gray" onclick="openSupDetail(\''+s.code+'\')">采购明细</span></td></tr>';
+  });
+  document.getElementById('tbSup').innerHTML=h||'<tr><td colspan="11"><div class="empty"><i class="fas fa-truck"></i>无匹配供应商</div></td></tr>';
+  document.getElementById('supCnt').textContent='共 '+supRows.length+' 条';
+}
+
+/* ================= 渲染留痕 ================= */
+function renderLog(){
+  document.getElementById('tbLog').innerHTML=LOG.map(function(l){
+    return '<tr><td class="text-[12px] text-[#64748B]">'+esc(l.at)+'</td>'
+      +'<td>'+tag(l.type,{'物资':'background:#EDE9FE;color:#6D28D9','供应商':'background:#DBEAFE;color:#2563EB'})+'</td>'
+      +'<td class="text-[12px]">'+esc(l.obj)+'</td>'
+      +'<td class="text-[12px] text-[#64748B]">'+esc(l.field)+'</td>'
+      +'<td class="text-[12px] text-[#94A3B8]">'+esc(l.from)+'</td>'
+      +'<td class="text-[12px] font-medium">'+esc(l.to)+'</td>'
+      +'<td class="text-[12px]">'+esc(l.by)+'</td>'
+      +'<td class="text-[12px] text-[#64748B]">'+esc(l.src)+'</td></tr>';
+  }).join('');
+  document.getElementById('logCnt').textContent='共 '+LOG.length+' 条';
+}
+
+/* ================= 筛选 ================= */
+function fillSelects(){
+  var opts='<option value="">全部类别</option>'+CATS.map(function(c){return '<option>'+c+'</option>';}).join('');
+  document.getElementById('f-cat').innerHTML=opts;
+  document.getElementById('f-scat').innerHTML=opts;
+}
+function doSearchMat(){
+  var kw=document.getElementById('f-kw').value.trim();
+  var cat=document.getElementById('f-cat').value;
+  var st=document.getElementById('f-state').value;
+  var src=document.getElementById('f-src').value;
+  matRows=MAT.filter(function(m){
+    var hit=!kw||m.name.indexOf(kw)>-1||m.spec.indexOf(kw)>-1||m.code.toUpperCase().indexOf(kw.toUpperCase())>-1;
+    return hit&&(!cat||m.cat===cat)&&(!st||m.state===st)&&(!src||m.src===src);
+  });
+  renderMat();toast('已查询，共 '+matRows.length+' 条');
+}
+function resetMat(){
+  document.getElementById('f-kw').value='';
+  document.getElementById('f-cat').value='';document.getElementById('f-state').value='';document.getElementById('f-src').value='';
+  matRows=MAT.slice();renderMat();toast('已重置');
+}
+function quickFilter(k){
+  switchTab('mat',document.querySelector('#tabs span'));
+  if(k==='pending'){matRows=MAT.filter(function(m){return m.pending;});toast('待合并重复 '+matRows.length+' 条：申报时新建、与库内已有物资疑似同物，确认后合并即可');}
+  else if(k==='noprice'){matRows=MAT.filter(function(m){return !m.price;});toast('待补参考价 '+matRows.length+' 条：缺参考价无法做价格偏离校验');}
+  else{matRows=MAT.filter(function(m){return m.state==='启用';});toast('已筛选启用物资 '+matRows.length+' 条');}
+  renderMat();
+}
+function doSearchSup(){
+  var kw=document.getElementById('f-skw').value.trim();
+  var cat=document.getElementById('f-scat').value;
+  var st=document.getElementById('f-sst').value;
+  supRows=SUP.filter(function(s){
+    var hit=!kw||s.name.indexOf(kw)>-1||s.contact.indexOf(kw)>-1||s.code.toUpperCase().indexOf(kw.toUpperCase())>-1;
+    return hit&&(!cat||s.cat.indexOf(cat)>-1)&&(!st||s.state===st);
+  });
+  renderSup();toast('已查询，共 '+supRows.length+' 条');
+}
+function resetSup(){
+  document.getElementById('f-skw').value='';document.getElementById('f-scat').value='';document.getElementById('f-sst').value='';
+  supRows=SUP.slice();renderSup();toast('已重置');
+}
+
+/* ================= 批量 ================= */
+function toggleBatch(){batch=!batch;picked={};renderMat();toast(batch?'已进入批量模式，勾选后可批量启停/改类别':'已退出批量模式');}
+function cancelBatch(){batch=false;picked={};renderMat();}
+function pickOne(code,el){picked[code]=el.checked;renderMat();}
+function pickAll(el){matRows.forEach(function(m){picked[m.code]=el.checked;});renderMat();}
+function batchState(st){
+  var keys=Object.keys(picked).filter(function(k){return picked[k];});
+  if(!keys.length){toast('请先勾选物资');return;}
+  keys.forEach(function(k){
+    MAT.forEach(function(m){
+      if(m.code===k&&m.state!==st){
+        LOG.unshift({at:'2026-10-29 '+new Date().toTimeString().slice(0,5),type:'物资',obj:m.code+' '+m.name,
+          field:'状态',from:m.state,to:st,by:'物业 张××',src:'批量操作'});
+        m.state=st;
+      }
+    });
+  });
+  matRows=MAT.slice();picked={};batch=false;
+  renderStats();renderMat();renderLog();
+  toast('已批量'+st+' '+keys.length+' 条（停用不删除，历史单据保留引用）');
+}
+function batchCat(){
+  var keys=Object.keys(picked).filter(function(k){return picked[k];});
+  if(!keys.length){toast('请先勾选物资');return;}
+  var cat=prompt('输入目标类别（'+CATS.join(' / ')+'）','照明灯具');
+  if(!cat||CATS.indexOf(cat)<0){toast('类别不合法，未修改');return;}
+  keys.forEach(function(k){MAT.forEach(function(m){if(m.code===k)m.cat=cat;});});
+  matRows=MAT.slice();picked={};batch=false;
+  renderMat();toast('已改类别：'+keys.length+' 条 → '+cat);
+}
+
+/* ================= 物资编辑抽屉 ================= */
+function openMat(code,kind){
+  kind=kind||'mat';editingCode=code;
+  var isSup=(kind==='sup');
+  var m=null;
+  if(code){ m=isSup?SUP.filter(function(x){return x.code===code;})[0]:MAT.filter(function(x){return x.code===code;})[0]; }
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+(code?'编辑':'新增')+(isSup?'供应商':'物资')+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+(isSup?'成交笔数与金额由核销自动汇总，不手填':'名称 + 规格 组合唯一；参考价用于核销时的价格偏离校验')+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">';
+  if(!isSup){
+    h+='<div class="grid grid-cols-2 gap-3">'
+      +'<div><label class="fl"><i>*</i>物资名称</label><input class="fi" id="m_name" value="'+esc(m?m.name:'')+'" placeholder="如：防滑地砖 600×600"></div>'
+      +'<div><label class="fl"><i>*</i>规格型号</label><input class="fi" id="m_spec" value="'+esc(m?m.spec:'')+'" placeholder="如：灰色 / 通体 / 哑光"></div>'
+      +'<div><label class="fl"><i>*</i>类别</label><select class="fi" id="m_cat">'
+        +CATS.map(function(c){return '<option '+(m&&m.cat===c?'selected':'')+'>'+c+'</option>';}).join('')+'</select></div>'
+      +'<div><label class="fl"><i>*</i>单位</label><select class="fi" id="m_unit">'
+        +UNITS.map(function(u){return '<option '+(m&&m.unit===u?'selected':'')+'>'+u+'</option>';}).join('')+'</select></div>'
+      +'<div><label class="fl"><i>*</i>市场参考价（元）</label><input class="fi" id="m_price" type="number" value="'+(m?m.price:'')+'" placeholder="不含运费，运费记其他费用"></div>'
+      +'<div><label class="fl">默认供应商</label><select class="fi" id="m_vendor">'
+        +'<option value="">不指定</option>'
+        +SUP.filter(function(s){return s.state==='启用';}).map(function(s){return '<option '+(m&&m.defVendor===s.name?'selected':'')+'>'+esc(s.name)+'</option>';}).join('')+'</select></div>'
+      +'</div>';
+    h+='<div class="warn"><i class="fas fa-circle-info mr-1"></i>参考价由物业维护、运营可覆写；改价会写入变更留痕，但<b>不追溯</b>已提交的单据。停用后不影响历史交办单与核销记录。</div>';
+    if(m&&m.pending){
+      h+='<div class="danger"><i class="fas fa-code-merge mr-1"></i>该物资为申报时新增，与 <b>'+esc(m.dupOf||'')+'</b> 疑似重复，建议处理后停用本条件下引用。</div>';
+    }
+  }else{
+    h+='<div class="grid grid-cols-2 gap-3">'
+      +'<div class="col-span-2"><label class="fl"><i>*</i>供应商名称</label><input class="fi" id="s_name" value="'+esc(m?m.name:'')+'" placeholder="工商全称"></div>'
+      +'<div><label class="fl">简称</label><input class="fi" id="s_short" value="'+esc(m?m.short:'')+'" placeholder="列表与单据显示用"></div>'
+      +'<div><label class="fl">联系人</label><input class="fi" id="s_contact" value="'+esc(m?m.contact:'')+'" placeholder="姓 + 称谓"></div>'
+      +'<div><label class="fl">联系电话</label><input class="fi" id="s_phone" value="'+esc(m?m.phone:'')+'" placeholder="中间四位可脱敏"></div>'
+      +'<div><label class="fl">首次合作日期</label><input class="fi" id="s_since" type="date" value="'+(m?m.since:'2026-10-29')+'"></div>'
+      +'</div>';
+    h+='<div><label class="fl">主营类别（多选，用于比价时推荐）</label><div class="grid grid-cols-3 gap-1.5" id="s_cats">'
+      +CATS.map(function(c){
+        var on=m&&m.cat.indexOf(c)>-1;
+        return '<label class="flex items-center gap-1.5 text-[12px] px-2 py-1.5 rounded-lg border cursor-pointer" style="border-color:'+(on?'#FF7849':'#E2E8F0')+';background:'+(on?'#FFF7F5':'#fff')+'">'
+          +'<input type="checkbox" value="'+c+'" '+(on?'checked':'')+' class="accent-[#FF4D2D]">'+c+'</label>';
+      }).join('')+'</div></div>';
+    h+='<div><label class="fl">备注（资质说明 / 供货范围，选填）</label><input class="fi" id="s_note" value="'+esc(m?m.note:'')+'" placeholder="如：地砖、砂浆、腻子主供"></div>';
+    if(m){
+      var total=supAmtTotal();
+      var pct=total?Math.round(m.amt/total*1000)/10:0;
+      h+='<div class="blk"><div class="blk-t"><i class="fas fa-chart-simple text-[#94A3B8]"></i>成交汇总（系统自动，只读）</div>'
+        +'<div class="kv"><span class="k">成交笔数</span><span class="v">'+m.cnt+' 笔</span></div>'
+        +'<div class="kv"><span class="k">成交金额</span><span class="v">¥'+money(m.amt)+'</span></div>'
+        +'<div class="kv"><span class="k">金额占比</span><span class="v" style="color:'+(pct>70?'#E63E20':'#1F2430')+'">'+pct+'%'+(pct>70?'　已超 70%，属供应商集中':'')+'</span></div></div>';
+    }
+  }
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +(code&&!isSup?'<button class="btn btn-ghost" style="color:#B91C1C;border-color:#FECACA" onclick="doStop(\''+code+'\')">停用</button>':'')
+    +'<button class="btn btn-primary" onclick="saveMat('+(isSup?'true':'false')+')">保存</button></div>';
+  document.getElementById('drawer').innerHTML=h;show();
+}
+function saveMat(isSup){
+  if(isSup){
+    var name=document.getElementById('s_name').value.trim();
+    if(!name){toast('请填写供应商名称');return;}
+    var cats=[].slice.call(document.querySelectorAll('#s_cats input:checked')).map(function(x){return x.value;});
+    if(!cats.length){toast('请至少选 1 个主营类别');return;}
+    var dupe=SUP.filter(function(s){return s.name===name&&s.code!==editingCode;}).length;
+    if(dupe){toast('供应商「'+name+'」已存在，请勿重复建档');return;}
+    if(editingCode){
+      var s=SUP.filter(function(x){return x.code===editingCode;})[0];
+      s.name=name;s.short=document.getElementById('s_short').value.trim();
+      s.cat=cats;s.contact=document.getElementById('s_contact').value.trim();
+      s.phone=document.getElementById('s_phone').value.trim();s.since=document.getElementById('s_since').value;
+      s.note=document.getElementById('s_note').value.trim();
+      LOG.unshift({at:'2026-10-29 '+new Date().toTimeString().slice(0,5),type:'供应商',obj:s.code+' '+s.short,
+        field:'信息修改',from:'—',to:'主营：'+cats.join('/'),by:'物业 张××',src:'手工维护'});
+      toast('已保存供应商：'+s.name);
+    }else{
+      var code='GYS000'+(SUP.length+1);
+      SUP.unshift({code:code,name:name,short:document.getElementById('s_short').value.trim()||name.slice(0,4),
+        cat:cats,contact:document.getElementById('s_contact').value.trim(),phone:document.getElementById('s_phone').value.trim(),
+        cnt:0,amt:0,since:document.getElementById('s_since').value,state:'启用',note:document.getElementById('s_note').value.trim()});
+      LOG.unshift({at:'2026-10-29 '+new Date().toTimeString().slice(0,5),type:'供应商',obj:code+' '+name,
+        field:'新增建档',from:'—',to:'主营：'+cats.join('/'),by:'物业 张××',src:'手工维护'});
+      toast('已新增供应商：'+name+'（'+code+'），交办单比价时可选');
+    }
+    supRows=SUP.slice();renderStats();renderSup();renderLog();closeAll();
+  }else{
+    var mname=document.getElementById('m_name').value.trim();
+    var mspec=document.getElementById('m_spec').value.trim();
+    var mprice=parseFloat(document.getElementById('m_price').value);
+    if(!mname){toast('请填写物资名称');return;}
+    if(!mspec){toast('请填写规格型号（名称+规格 才是唯一标识）');return;}
+    if(!(mprice>0)){toast('请填写市场参考价，缺参考价无法做价格偏离校验');return;}
+    var same=MAT.filter(function(m){return m.name===mname&&m.spec===mspec&&m.code!==editingCode;});
+    if(same.length){toast('该物资已存在（'+same[0].code+'），请直接选用，避免重复建档');return;}
+    var cat=document.getElementById('m_cat').value;
+    var unit=document.getElementById('m_unit').value;
+    var dv=document.getElementById('m_vendor').value;
+    if(editingCode){
+      var mt=MAT.filter(function(x){return x.code===editingCode;})[0];
+      if(mt.price!==mprice){
+        LOG.unshift({at:'2026-10-29 '+new Date().toTimeString().slice(0,5),type:'物资',obj:mt.code+' '+mt.name,
+          field:'市场参考价',from:mt.price?'¥'+mt.price:'待补',to:'¥'+mprice,by:'物业 张××',src:'手工维护'});
+      }
+      mt.name=mname;mt.spec=mspec;mt.cat=cat;mt.unit=unit;mt.price=mprice;mt.defVendor=dv;
+      toast('已保存物资：'+mt.code+'　参考价 ¥'+mprice+'（已留痕）');
+    }else{
+      var ncode='WL00'+(MAT.length+1);
+      MAT.unshift({code:ncode,name:mname,spec:mspec,unit:unit,cat:cat,price:mprice,
+        lastPrice:0,lastVendor:'',lastDate:'—',cnt:0,src:'预置基础库',state:'启用',defVendor:dv});
+      LOG.unshift({at:'2026-10-29 '+new Date().toTimeString().slice(0,5),type:'物资',obj:ncode+' '+mname,
+        field:'新增建档',from:'—',to:mspec+' / ¥'+mprice,by:'物业 张××',src:'手工维护'});
+      toast('已新增物资：'+ncode+'　'+mname+'　交办单里可下拉选到');
+    }
+    matRows=MAT.slice();renderStats();renderMat();renderLog();closeAll();
+  }
+}
+function toggleState(code){
+  var m=MAT.filter(function(x){return x.code===code;})[0];
+  var to=m.state==='启用'?'停用':'启用';
+  LOG.unshift({at:'2026-10-29 '+new Date().toTimeString().slice(0,5),type:'物资',obj:m.code+' '+m.name,
+    field:'状态',from:m.state,to:to,by:'物业 张××',src:'手工维护'});
+  m.state=to;matRows=MAT.slice();
+  renderStats();renderMat();renderLog();
+  toast(to==='停用'?'已停用：'+m.name+'（历史单据保留，新单不再可选）':'已启用：'+m.name);
+}
+function toggleSup(code){
+  var s=SUP.filter(function(x){return x.code===code;})[0];
+  s.state=s.state==='启用'?'停用':'启用';
+  supRows=SUP.slice();renderSup();renderStats();
+  toast('供应商「'+s.short+'」已'+s.state+'（历史核销记录不受影响）');
+}
+function doStop(code){
+  var m=MAT.filter(function(x){return x.code===code;})[0];
+  toast('已提交停用：'+m.name+'　停用后新单不可选，历史交办单与核销记录完整保留');
+  closeAll();
+}
+
+/* ================= 供应商集中预警（原 R6） ================= */
+function helpR6(){
+  var total=supAmtTotal();
+  var hit=SUP.filter(function(s){return total&&s.amt/total>0.7;});
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">什么是「供应商集中预警」</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">一家供应商吃了七成以上的采购额，就要提醒一句</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-percent text-[#B91C1C]"></i>怎么算</div>'
+    +'<p class="text-[12px] leading-6" style="color:#475569">某家供应商的<b>年度成交金额 ÷ 全部供应商成交金额合计</b>。数据来自每一笔核销，<b>系统自动汇总，不用手填</b>。</p>'
+    +'<div class="kv"><span class="k">当前口径</span><span class="v">占比 &gt; 70% → 标记「占比超 70%」</span></div></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-triangle-exclamation text-[#B45309]"></i>为什么要提醒</div>'
+    +'<div class="kv"><span class="k">议价能力</span><span class="v">只此一家，价格谈不下来，参考价容易被单方拉高</span></div>'
+    +'<div class="kv"><span class="k">断供风险</span><span class="v">对方不供货时，维修立刻停摆</span></div>'
+    +'<div class="kv"><span class="k">关联交易</span><span class="v">长期单一供应商是陪标、返点的常见土壤</span></div></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-circle-check text-[#15803D]"></i>触发后要做什么</div>'
+    +'<p class="text-[12px] leading-6" style="color:#475569">这不是报错，<b>不阻断任何单据</b>，只是提示运营去看一眼：</p>'
+    +'<div class="kv"><span class="k">比价时</span><span class="v">至少让第二家有真实报价机会，别走形式</span></div>'
+    +'<div class="kv"><span class="k">长线</span><span class="v">同类物资培养 2–3 家备选，半年复盘一次占比</span></div>'
+    +'<div class="kv"><span class="k">核销时</span><span class="v">高占比供应商的单价偏离会重点看（与参考价对比）</span></div></div>';
+  if(hit.length){
+    h+='<div class="blk"><div class="blk-t"><i class="fas fa-flag text-[#B91C1C]"></i>当前命中（'+hit.length+' 家）</div>'
+      +hit.map(function(s){
+        return '<div class="kv"><span class="k">'+esc(s.code)+'</span><span class="v">'+esc(s.name)+'　<b style="color:#E63E20">'+Math.round(s.amt/total*1000)/10+'%</b>（¥'+money(s.amt)+'）</span></div>';
+      }).join('')+'</div>';
+  }
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll();switchTab(\'sup\',null)">去看供应商清单</button>'
+    +'<button class="btn btn-primary" onclick="closeAll()">知道了</button></div>';
+  document.getElementById('drawer').innerHTML=h;show();
+}
+
+/* ================= 待合并（重复物资合并） ================= */
+function helpMerge(){
+  var n=MAT.filter(function(m){return m.pending;}).length;
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">什么是「待合并」</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">一个物资在库里只应该有一条；出现了两条，就要合并成一条</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-question text-[#B45309]"></i>它是什么</div>'
+    +'<p class="text-[12px] leading-6" style="color:#475569">同一个物资在库里出现了<b>两种写法</b>，库就不干净。比如库里已有「防滑地砖 600×600」，物业申报时又新建一条「地砖 600*600」——<b>东西一样，名字不一样</b>。</p>'
+    +'<p class="text-[12px] leading-6 mt-2" style="color:#475569">系统不敢自动判定（怕判错），所以先给这条新写法打「<b>待合并</b>」标记，等人确认一次。</p></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-clock-rotate-left text-[#2563EB]"></i>为什么不当场拦住</div>'
+    +'<p class="text-[12px] leading-6" style="color:#475569">申报时若因为「库里没这个物资」就卡住提交，物业会嫌麻烦，转头填「其他」糊过去，库反而更乱。所以设计成<b>当场放行、事后合并</b>。</p></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-code-merge text-[#6D28D9]"></i>怎么处理（3 步）</div>'
+    +'<div class="kv"><span class="k">第 1 步</span><span class="v">点顶部「待合并重复」筛出这些条目</span></div>'
+    +'<div class="kv"><span class="k">第 2 步</span><span class="v">点行首「合并重复」，页面会告诉你它疑似和哪条是同一物资</span></div>'
+    +'<div class="kv"><span class="k">第 3 步</span><span class="v">选保留哪一条（一般保留信息更全、采购次数多的那条）</span></div>'
+    +'<div class="kv"><span class="k">确认不是重复</span><span class="v">点「稍后处理」关掉即可，不必强行合并</span></div></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-circle-check text-[#15803D]"></i>合并后会发生什么</div>'
+    +'<div class="kv"><span class="k">被合并的那条</span><span class="v">置停用、标「已合并」，新建交办单的下拉里不再出现</span></div>'
+    +'<div class="kv"><span class="k">保留的那条</span><span class="v">采购次数 + 上次成交价并入，报价基准更准</span></div>'
+    +'<div class="kv"><span class="k">历史单据</span><span class="v"><b>不改写</b>，旧交办单与核销记录照常可查</span></div>'
+    +'<div class="kv"><span class="k">留痕</span><span class="v">写入「变更留痕」，谁合的、合到哪条都查得到</span></div></div>';
+  h+='<div class="warn"><i class="fas fa-circle-info mr-1"></i>不着急也没关系：待合并只是提醒，<b>不影响任何提交与核销</b>。攒几条一起处理更省事。</div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll();quickFilter(\'pending\')">去看这 '+n+' 条</button>'
+    +'<button class="btn btn-primary" onclick="closeAll()">知道了</button></div>';
+  document.getElementById('drawer').innerHTML=h;show();
+}
+function openMerge(code){
+  var m=MAT.filter(function(x){return x.code===code;})[0];
+  var cands=MAT.filter(function(x){return x.code!==code&&!x.pending&&(x.name===m.dupOf||x.code===m.dupOf);});
+  if(!cands.length) cands=MAT.filter(function(x){return x.code!==code&&!x.pending&&x.cat===m.cat;}).slice(0,3);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">合并重复物资</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">下面这条是物业申报时新建的，可能和库里已有的物资是同一件东西。选一条保留，另一条并入后停用。</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-triangle-exclamation text-[#B45309]"></i>要处理的这条（申报时新建）</div>'
+    +'<div class="kv"><span class="k">编码</span><span class="v">'+esc(m.code)+'</span></div>'
+    +'<div class="kv"><span class="k">名称 / 规格</span><span class="v">'+esc(m.name)+'　'+esc(m.spec)+'</span></div>'
+    +'<div class="kv"><span class="k">参考价</span><span class="v">¥'+money(m.price)+'</span></div>'
+    +'<div class="kv"><span class="k">已发生</span><span class="v">'+m.cnt+' 次采购（并入后历史单据指向保留项）</span></div></div>';
+  h+='<div><label class="fl"><i>*</i>并入到（保留这一条）</label><div id="mergeBox">'
+    +cands.map(function(c,i){
+      return '<div class="mrow'+(i===0?' on':'')+'" onclick="pickMerge(this,\''+c.code+'\')" data-code="'+c.code+'">'
+        +'<input type="radio" name="mg" '+(i===0?'checked':'')+' class="accent-[#FF4D2D]">'
+        +'<span style="flex:1">'+esc(c.name)+'　<span class="text-[11px] text-[#94A3B8]">'+esc(c.spec)+' · '+c.code+'</span></span>'
+        +'<span class="text-[12px] text-[#64748B]">¥'+money(c.price)+'　'+c.cnt+' 次</span></div>';
+    }).join('')
+    +'</div></div>';
+  h+='<div><label class="fl">合并说明（写入留痕）</label><input class="fi" id="mg_note" placeholder="如：与 WL0001 同一物资，写法不同"></div>';
+  h+='<div class="warn"><i class="fas fa-circle-info mr-1"></i>合并后：<b>「'+esc(m.name)+'」置为停用并标记「已合并」</b>，不再出现在新建交办单的下拉里；历史交办单与核销记录<b>不改写</b>；采购次数、上次成交价并入保留项；本次操作写入变更留痕。</div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">稍后处理</button>'
+    +'<button class="btn btn-primary" onclick="doMerge(\''+code+'\')">确认合并</button></div>';
+  document.getElementById('drawer').innerHTML=h;show();
+  window.__mg=cands.length?cands[0].code:'';
+}
+function pickMerge(el,code){
+  document.querySelectorAll('#mergeBox .mrow').forEach(function(x){x.className='mrow';x.querySelector('input').checked=false;});
+  el.className='mrow on';el.querySelector('input').checked=true;window.__mg=code;
+}
+function doMerge(code){
+  var m=MAT.filter(function(x){return x.code===code;})[0];
+  var t=MAT.filter(function(x){return x.code===window.__mg;})[0];
+  if(!t||t.code===m.code){toast('请选择保留的物资');return;}
+  t.cnt=(t.cnt||0)+(m.cnt||0);
+  if(m.lastPrice&&(!t.lastPrice||m.lastDate>t.lastDate)){t.lastPrice=m.lastPrice;t.lastVendor=m.lastVendor;t.lastDate=m.lastDate;}
+  m.pending=false;m.state='停用';m.mergedTo=t.code;
+  var note=document.getElementById('mg_note').value.trim();
+  LOG.unshift({at:'2026-10-29 '+new Date().toTimeString().slice(0,5),type:'物资',obj:m.code+' '+m.name,
+    field:'合并重复',from:'独立条目',to:'并入 '+t.code+' '+t.name,by:'物业 张××',src:'合并处理'+(note?'（'+note+'）':'')});
+  matRows=MAT.slice();renderStats();renderMat();renderLog();closeAll();
+  toast('已合并：'+m.code+' 并入 '+t.code+'，采购次数与上次成交价已合并计算');
+}
+
+/* ================= 初始化向导 ================= */
+function openInit(){
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">初始化向导</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">三步把库建起来，不需要物业一条条从零录入</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-boxes-stacked text-[#6D28D9]"></i>① 核对预置基础库（已内置 18 条）</div>'
+    +'<p class="text-[12px] text-[#64748B] leading-6">系统已按袜业城常见采购预置 18 条物资（地砖、LED 灯管、空开、卷帘门导轨、给排水管件、消防器材、人工费…），带类别、规格、单位、参考价。</p>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">物业只需：改一下不合适的参考价、停用用不到的。不用新增。</p>'
+    +'<button class="btn btn-ghost mt-2" onclick="closeAll();quickFilter(\'all\')">去核对</button></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-file-import text-[#2563EB]"></i>② 导入历史采购台账（推荐，一次性）</div>'
+    +'<p class="text-[12px] text-[#64748B] leading-6">上传以往采购记录的 Excel（物资 / 规格 / 数量 / 单价 / 供应商 / 日期 / 发票号），系统按「名称 + 规格」自动归并生成物资、按名称归并生成供应商。</p>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">已导入过 1 次：186 行 → 归并出 132 条物资、8 家供应商。</p>'
+    +'<button class="btn btn-ghost mt-2" onclick="navBudget()">去台账页导入</button></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-plus text-[#FF4D2D]"></i>③ 以后靠申报时顺手新增</div>'
+    +'<p class="text-[12px] text-[#64748B] leading-6">库里没有的长尾物资，在交办单里点「新增物资」，填 5 个字段即可当次使用，同时入库并标记「待合并」。物业主管定期看一眼待合并清单，把重复写法合成一条即可。</p>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">业务口零摩擦，重复写法靠事后合并，不卡申报。</p></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-primary" onclick="closeAll();toast(\'已了解初始化流程：预置库核对 → 历史导入 → 申报时新增\')">知道了</button></div>';
+  document.getElementById('drawer').innerHTML=h;show();
+}
+function navBudget(){location.href='property-budget.html';}
+
+/* ================= 导出（真实 CSV） ================= */
+function exportMat(){
+  var head=['编码','物资名称','规格型号','单位','类别','市场参考价','上次成交价','上次供应商','采购次数','来源','状态'];
+  var rows=matRows.map(function(m){
+    return [m.code,m.name,m.spec,m.unit,m.cat,m.price||'',m.lastPrice||'',m.lastVendor||'',m.cnt||0,m.src,m.state];
+  });
+  var csv=[head].concat(rows).map(function(r){
+    return r.map(function(c){return '"'+String(c==null?'':c).replace(/"/g,'""')+'"';}).join(',');
+  }).join('\r\n');
+  var blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='物资库_'+matRows.length+'条.csv';
+  document.body.appendChild(a);a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},600);
+  toast('已导出 '+matRows.length+' 条物资（CSV，Excel 可直接打开）');
+}
+
+/* ================= 供应商采购明细 ================= */
+var RECDATES=['2026-10-28','2026-10-24','2026-10-19','2026-10-12','2026-09-30'];
+function row2(k,v){return '<div class="kv"><span class="k">'+k+'</span><span class="v">'+v+'</span></div>';}
+function openSupDetail(code){
+  var s=SUP.filter(function(x){return x.code===code;})[0];
+  var total=supAmtTotal();
+  var pct=total?Math.round(s.amt/total*1000)/10:0;
+  var rel=MAT.filter(function(m){return m.lastVendor===s.name;});
+  var recs=[];
+  for(var i=0;i<Math.min(s.cnt,5);i++){
+    var m=rel.length?rel[i%rel.length]:{name:'其他物资',price:0};
+    var q=(i+1)*2;
+    recs.push({at:RECDATES[i]||'2026-09-30', no:'JB202610-000'+(9-i),
+      item:m.name, qty:q, price:m.price, amt:q*m.price});
+  }
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+esc(s.name)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(s.code)+'　'+tag(s.state,STATE)+'　主营：'+esc(s.cat.join(' / '))+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-address-card text-[#2563EB]"></i>基本信息</div>'
+    +row2('联系人',esc(s.contact||'—'))+row2('电话',esc(s.phone||'—'))
+    +row2('首次合作',esc(s.since))+row2('备注',esc(s.note||'—'))+'</div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-chart-simple text-[#6D28D9]"></i>成交汇总（自动，只读）</div>'
+    +row2('成交笔数',s.cnt+' 笔')+row2('成交金额','¥'+money(s.amt))
+    +row2('金额占比','<span style="color:'+(pct>70?'#E63E20':'#1F2430')+'">'+pct+'%'+(pct>70?'　已超 70%，属供应商集中':'')+'</span>')+'</div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-boxes-stacked text-[#FF4D2D]"></i>关联物资（'+rel.length+'）</div>'
+    +(rel.length?'<table class="w-full" style="font-size:12px"><thead><tr style="background:#F8FAFC">'
+      +'<th style="padding:6px 8px;text-align:left;color:#64748B">编码</th><th style="padding:6px 8px;text-align:left;color:#64748B">物资</th>'
+      +'<th style="padding:6px 8px;text-align:left;color:#64748B">参考价</th><th style="padding:6px 8px;text-align:left;color:#64748B">上次成交</th>'
+      +'<th style="padding:6px 8px;text-align:left;color:#64748B">次数</th></tr></thead><tbody>'
+      +rel.map(function(m){return '<tr style="border-bottom:1px solid #F1F5F9"><td style="padding:6px 8px;color:#64748B">'+esc(m.code)+'</td>'
+        +'<td style="padding:6px 8px">'+esc(m.name)+'</td><td style="padding:6px 8px">'+(m.price?'¥'+money(m.price):'待补')+'</td>'
+        +'<td style="padding:6px 8px">'+(m.lastPrice?'¥'+money(m.lastPrice):'—')+'</td><td style="padding:6px 8px">'+(m.cnt||0)+'</td></tr>';}).join('')
+      +'</tbody></table>':'<p class="text-[12px] text-[#94A3B8]">暂无关联物资（可能通过其他供应商采购）</p>')+'</div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-receipt text-[#B45309]"></i>近期成交（近 '+recs.length+' 笔）</div>'
+    +'<table class="w-full" style="font-size:12px"><thead><tr style="background:#F8FAFC">'
+    +'<th style="padding:6px 8px;text-align:left;color:#64748B">日期</th><th style="padding:6px 8px;text-align:left;color:#64748B">交办单</th>'
+    +'<th style="padding:6px 8px;text-align:left;color:#64748B">物资</th><th style="padding:6px 8px;text-align:left;color:#64748B">数量</th>'
+    +'<th style="padding:6px 8px;text-align:left;color:#64748B">单价</th><th style="padding:6px 8px;text-align:left;color:#64748B">小计</th></tr></thead><tbody>'
+    +recs.map(function(r){return '<tr style="border-bottom:1px solid #F1F5F9"><td style="padding:6px 8px;color:#64748B">'+esc(r.at)+'</td>'
+      +'<td style="padding:6px 8px"><span class="lk-gray" data-no="'+esc(r.no)+'" data-item="'+esc(r.item)+'" data-qty="'+r.qty+'" data-price="'+r.price+'" onclick="showRec(this)">'+esc(r.no)+'</span></td>'
+      +'<td style="padding:6px 8px">'+esc(r.item)+'</td><td style="padding:6px 8px">'+r.qty+'</td>'
+      +'<td style="padding:6px 8px">¥'+money(r.price)+'</td><td style="padding:6px 8px">¥'+money(r.amt)+'</td></tr>';}).join('')
+    +'</tbody></table><div id="recBox"></div></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">关闭</button>'
+    +'<button class="btn btn-ghost" onclick="closeAll();openMat(\''+s.code+'\',\'sup\')">编辑供应商</button></div>';
+  document.getElementById('drawer').innerHTML=h;show();
+}
+/* 近期成交 → 展开该笔核销明细 */
+function showRec(el){
+  var box=document.getElementById('recBox');
+  if(!box) return;
+  var q=Number(el.getAttribute('data-qty'))||0, p=Number(el.getAttribute('data-price'))||0;
+  box.innerHTML='<div class="blk" style="margin-top:8px"><div class="blk-t"><i class="fas fa-receipt text-[#B45309]"></i>核销明细</div>'
+    +row2('交办单',esc(el.getAttribute('data-no')))
+    +row2('物资',esc(el.getAttribute('data-item')))
+    +row2('数量 × 单价',q+' × ¥'+money(p))
+    +row2('小计','¥'+money(q*p))
+    +row2('对应核销','HX202610-0011　发票 INV-20261024-007')
+    +row2('异常','无（单价与供应商集中度均在阈值内）')+'</div>';
+  toast('已展开 '+el.getAttribute('data-no')+' 的核销明细');
+}
+
+/* ================= 基础 ================= */
+function show(){document.getElementById('mask').className='mask on';document.getElementById('drawer').className='drawer on';}
+function closeAll(){document.getElementById('mask').className='mask';document.getElementById('drawer').className='drawer';}
+function switchTab(t,el){
+  curTab=t;
+  document.querySelectorAll('#tabs span').forEach(function(x){x.className='py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600';});
+  var target=el||document.getElementById('tab-'+t);
+  if(target) target.className='py-2.5 text-[13px] cursor-pointer tab-on';
+  document.getElementById('pane-mat').style.display=(t==='mat')?'':'none';
+  document.getElementById('pane-sup').style.display=(t==='sup')?'':'none';
+  document.getElementById('pane-log').style.display=(t==='log')?'':'none';
+}
+
+fillSelects();renderStats();renderMat();renderSup();renderLog();
+</script>
+<script src="../shared/op-guard.js"></script>
+<script src="../shared/page-prd.js"></script>
+</body>
+</html>

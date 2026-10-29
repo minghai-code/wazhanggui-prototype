@@ -175,7 +175,8 @@ var SLOTS=[
   {id:'B-HOME-TOP', end:'买家端 App', page:'首页', pos:'顶部轮播', max:5, spec:'1080×540 / ≤500KB / JPG·PNG', on:true},
   {id:'B-MARKET-ON', end:'买家端 App', page:'袜子市场', pos:'线上视图 Banner', max:3, spec:'1080×480 / ≤500KB', on:true},
   {id:'B-MARKET-OFF', end:'买家端 App', page:'袜子市场', pos:'线下市场视图 Banner', max:3, spec:'1080×480 / ≤500KB', on:true},
-  {id:'B-CHAMBER', end:'买家端 App', page:'协会页', pos:'协会 Banner', max:2, spec:'1080×420 / ≤500KB', on:true},
+  {id:'B-CHAMBER', end:'买家端 App', page:'协会页', pos:'协会 Banner（轮播位）', max:2, spec:'1080×420 / ≤500KB', on:true},
+  {id:'B-CHAMBER-HEAD', end:'买家端 App', page:'协会页', pos:'页面头部（协会头图，全页唯一）', max:1, spec:'750×260 / ≤300KB / JPG·PNG', on:true},
   {id:'B-SH-HOME', end:'商户端 App', page:'首页', pos:'顶部轮播（2026-10-09 新增位）', max:3, spec:'1080×540 / ≤500KB', on:true},
   {id:'B-SH-WORK', end:'商户端 App', page:'工作台', pos:'信息条 Banner', max:2, spec:'1080×300 / ≤400KB', on:false}
 ];
@@ -190,7 +191,7 @@ var BN=[
    start:'2026-09-01 00:00', end:'2026-10-31 23:59', state:'生效中', imp:128460, clk:9432, by:'内容运营 何静'},
   {id:'BN2026-0032', title:'源头工厂直供 · 一件代发', color:'linear-gradient(135deg,#2563EB,#0EA5E9)', slot:'B-HOME-TOP', sort:2, click:'店铺 · 大唐袜业旗舰',
    start:'2026-09-15 00:00', end:'2026-12-31 23:59', state:'生效中', imp:96510, clk:6120, by:'内容运营 何静'},
-  {id:'BN2026-0033', title:'袜业协会会员招募', color:'linear-gradient(135deg,#7C3AED,#C084FC)', slot:'B-CHAMBER', sort:1, click:'外链 · 袜业协会官网',
+  {id:'BN2026-0033', title:'袜业协会会员招募', sub:'入会即享展会优先选位', color:'linear-gradient(135deg,#7C3AED,#C084FC)', slot:'B-CHAMBER', sort:1, click:'外链 · 袜业协会官网',
    start:'2026-08-01 00:00', end:'2026-12-31 23:59', state:'生效中', imp:28400, clk:2210, by:'内容运营 何静'},
   {id:'BN2026-0034', title:'10 月原料行情速递', color:'linear-gradient(135deg,#059669,#34D399)', slot:'B-MARKET-ON', sort:1, click:'资讯详情 · 秋冬趋势',
    start:'2026-10-15 00:00', end:'2026-11-15 23:59', state:'待发布', imp:0, clk:0, by:'内容运营 何静'},
@@ -206,7 +207,10 @@ var BN=[
   {id:'BN2026-0039', title:'商户端工作台通知条（草稿）', color:'linear-gradient(135deg,#475569,#94A3B8)', slot:'B-SH-WORK', sort:1, click:'无跳转（纯展示）',
    start:'2026-10-20 00:00', end:'2026-11-30 23:59', state:'草稿', imp:0, clk:0, by:'内容运营 何静'},
   {id:'BN2026-0040', title:'袜博会预告（多端投放）', color:'linear-gradient(135deg,#0369A1,#38BDF8)', slot:'B-HOME-TOP', sort:5, click:'活动页 · 秋冬新品季',
-   start:'2026-10-01 00:00', end:'2026-11-30 23:59', state:'部分发布', imp:10230, clk:840, by:'内容运营 何静', err:'商户端下发失败（端未接入取数接口）'}
+   start:'2026-10-01 00:00', end:'2026-11-30 23:59', state:'部分发布', imp:10230, clk:840, by:'内容运营 何静', err:'商户端下发失败（端未接入取数接口）'},
+  {id:'BN2026-0041', title:'大唐袜业协会', sub:'凝聚行业力量 · 共谋产业发展', img:'../mai-APP/images/scene_04.jpg',
+   color:'linear-gradient(135deg,#3D1F1F,#7C3A3A)', slot:'B-CHAMBER-HEAD', sort:1, click:'无跳转（纯展示）',
+   start:'2026-01-01 00:00', end:'2026-12-31 23:59', state:'生效中', imp:41200, clk:0, by:'内容运营 何静'}
 ];
 var curRows=BN.slice(),curId=null;
 var tid;
@@ -217,8 +221,9 @@ function bOf(id){return BN.filter(function(x){return x.id===id;})[0];}
 function slotOf(id){return SLOTS.filter(function(s){return s.id===id;})[0];}
 function slotName(id){var s=slotOf(id);return s?s.end+' · '+s.page+' · '+s.pos:id;}
 function st(s,c){return '<span class="st" style="'+(c||STC[s]||'background:#F1F5F9;color:#64748B')+'">'+esc(s)+'</span>';}
-/* 同一投放位 + 同时段位次是否超过上限（简化：按投放位统计"生效中/待发布"条数） */
-function slotUsed(id){return BN.filter(function(b){return b.slot===id&&(b.state==='生效中'||b.state==='待发布'||b.state==='部分发布');}).length;}
+/* 同一投放位 + 同时段位次是否超过上限（简化：按投放位统计"生效中/待发布"条数）
+   exceptId：编辑时排除自身，否则 max=1 的位（如协会头图）永远判"已满"、改不动 */
+function slotUsed(id,exceptId){return BN.filter(function(b){return b.slot===id&&b.id!==exceptId&&(b.state==='生效中'||b.state==='待发布'||b.state==='部分发布');}).length;}
 
 function renderStats(){
   var live=0,wait=0,audit=0,exp=0;
@@ -267,6 +272,7 @@ function render(){
     h+='<tr class="hover:bg-gray-50 transition">'
       +'<td class="px-4 py-3"><div class="thumb" style="background:'+b.color+'">BANNER</div></td>'
       +'<td class="px-4 py-3"><div class="font-medium text-[#1F2430]">'+esc(b.title)+'</div>'
+        +(b.sub?'<div class="text-[11px] text-[#64748B] mt-0.5">'+esc(b.sub)+'</div>':'')
         +'<div class="text-[11px] text-[#94A3B8]">'+esc(b.id)+'　'+esc(b.by)+'</div>'
         +(b.err?'<div class="text-[11px]" style="color:#E63E20"><i class="fas fa-triangle-exclamation mr-1"></i>'+esc(b.err)+'</div>':'')+'</td>'
       +'<td class="px-4 py-3"><span class="tag" style="'+((s.end.indexOf('商户端')>-1)?'background:#EDE9FE;color:#6D28D9':'background:#DBEAFE;color:#2563EB')+'">'+esc(s.end)+'</span>'
@@ -339,6 +345,7 @@ function openDetail(id){
   h+='<div class="blk"><div class="blk-t"><i class="fas fa-image text-[#FF4D2D]"></i>素材与投放位</div>'
     +'<div class="flex gap-4 items-start"><div class="thumb" style="width:200px;height:100px;background:'+b.color+'">BANNER</div>'
     +'<div class="flex-1"><div class="grid grid-cols-1">'
+    +'<div class="kv"><span class="k">端上文案</span><span class="v">'+esc(b.title)+(b.sub?'　<span class="text-[#94A3B8]">/ '+esc(b.sub)+'</span>':'')+'</span></div>'
     +'<div class="kv"><span class="k">投放端</span><span class="v">'+esc(s.end)+'</span></div>'
     +'<div class="kv"><span class="k">页面 / 位置</span><span class="v">'+esc(s.page)+' · '+esc(s.pos)+'</span></div>'
     +'<div class="kv"><span class="k">位次 / 上限</span><span class="v">第 '+b.sort+' 位（位次上限 '+s.max+'，当前在用 '+slotUsed(b.slot)+'）</span></div>'
@@ -355,7 +362,7 @@ function openDetail(id){
     +'<div class="grid grid-cols-2 gap-4">'
     +'<div><p class="text-[11px] text-[#94A3B8] mb-1 text-center">'+esc(s.end)+' · '+esc(s.page)+'</p>'
     +'<div class="pv">'
-    +'<div class="pvtop" style="background:'+b.color+'">'+esc(b.title)+'</div>'
+    +'<div class="pvtop" style="background:'+b.color+'">'+esc(b.title)+(b.sub?'<div style="font-size:9px;opacity:.85;margin-top:2px;font-weight:400">'+esc(b.sub)+'</div>':'')+'</div>'
     +'<div class="pvdots"><i class="on"></i><i></i><i></i><i></i><i></i></div>'
     +'<div class="mt-2 grid grid-cols-2 gap-1"><span class="block h-5 rounded" style="background:#E2E8F0"></span><span class="block h-5 rounded" style="background:#E2E8F0"></span></div>'
     +'</div></div></div>'
@@ -392,6 +399,7 @@ function openEdit(id){
     +'<p class="text-[11px] text-[#94A3B8] mt-2"><i class="fas fa-circle-info mr-1"></i>规格由投放位决定（如买家端首页轮播：1080×540 / ≤500KB / JPG·PNG）；不合规上传即拦截</p></div>';
   h+='<div class="blk"><div class="blk-t"><i class="fas fa-pen-to-square text-[#2563EB]"></i>基本信息</div>'
     +'<div class="mb-3"><label class="fl">标题（用于列表与内部识别）</label><input class="fi" id="e-title" value="'+(b?esc(b.title):'')+'" placeholder="例：2026 大唐袜业秋冬新品季"></div>'
+    +'<div class="mb-3"><label class="fl">副标题（头图位必填，端上显示在标题下方）</label><input class="fi" id="e-sub" value="'+(b&&b.sub?esc(b.sub):'')+'" placeholder="例：凝聚行业力量 · 共谋产业发展"></div>'
     +'<div class="grid grid-cols-2 gap-3">'
     +'<div><label class="fl">点击行为</label><select class="sel" id="e-click">'+CLICKS.map(function(c){return '<option'+(b&&b.click===c?' selected':'')+'>'+c+'</option>';}).join('')+'</select></div>'
     +'<div><label class="fl">跳转目标（外链时填 URL）</label><input class="fi" id="e-url" placeholder="https://…（选“外链”时必填）"></div>'
@@ -421,19 +429,24 @@ function openEdit(id){
 }
 function saveBanner(){
   var title=document.getElementById('e-title').value.trim();
+  var sub=document.getElementById('e-sub').value.trim();
   var picked=SLOTS.filter(function(s){return document.getElementById('sl-'+s.id).checked;});
   var sort=parseInt(document.getElementById('e-sort').value,10)||1;
   if(!title){toast('请填写标题');return;}
   if(!picked.length){toast('请至少选择一个投放位（发布必须绑定投放位）');return;}
-  var full=picked.filter(function(s){return slotUsed(s.id)>=s.max;});
+  /* 头图位是全页唯一大图，必须有副标题（端上标题下方那行文案） */
+  if(picked.some(function(s){return s.id==='B-CHAMBER-HEAD';}) && !sub){
+    toast('协会头图位的副标题必填（端上展示在标题下方）');return;
+  }
+  var full=picked.filter(function(s){return slotUsed(s.id,curId)>=s.max;});
   if(full.length){toast('投放位已满：'+full.map(function(s){return s.end+'·'+s.page+'·'+s.pos;}).join('、')+'（位次上限已达上限，需调整位次或走主管强制替换审批）');return;}
   var main=picked[0];
   var b=curId?bOf(curId):null;
   if(b){
-    b.title=title;b.slot=main.id;b.sort=sort;b.click=document.getElementById('e-click').value;b.state='待审核';
+    b.title=title;b.sub=sub;b.slot=main.id;b.sort=sort;b.click=document.getElementById('e-click').value;b.state='待审核';
     b.err='';
   }else{
-    b={id:'BN2026-00'+(41+BN.length), title:title, color:'linear-gradient(135deg,#FF6B35,#FF2D78)', slot:main.id, sort:sort,
+    b={id:'BN2026-00'+(42+BN.length), title:title, sub:sub, color:'linear-gradient(135deg,#FF6B35,#FF2D78)', slot:main.id, sort:sort,
        click:document.getElementById('e-click').value, start:'2026-10-15 00:00', end:'2026-11-30 23:59', state:'待审核', imp:0, clk:0, by:'内容运营 何静'};
     BN.unshift(b);
   }
@@ -469,6 +482,12 @@ function auditBanner(act){
     renderStats();render();renderTl();closeAll();
     toast('已驳回：'+b.id+' 回「草稿」并通知内容运营（原因已留痕）');
   }else{
+    /* 通过前再校验一次位次：待审核阶段不限量，若不校验，max=1 的头图位会出现多条同时上线 */
+    var s=slotOf(b.slot), used=slotUsed(b.slot,b.id);
+    if(used>=s.max){
+      toast('该投放位已满：'+s.end+'·'+s.page+'·'+s.pos+'（在用 '+used+'/'+s.max+'），请先下线或替换现有内容再通过');
+      return;
+    }
     b.state='待发布';
     renderStats();render();renderTl();closeAll();
     toast('审核通过：'+b.id+' 置「待发布」；'+esc2(b.start)+' 起定时自动上线（多端同步）');

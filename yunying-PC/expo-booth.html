@@ -168,7 +168,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
           <td><span class="tag" style="background:#DBEAFE;color:#2563EB">标准展位</span></td><td>1 个</td><td>设计包装</td>
           <td class="font-semibold">¥8,800</td>
           <td><span class="tag" style="background:#DCFCE7;color:#059669">已通过（参展商）</span></td><td>2026-09-04 15:32</td>
-          <td><span class="lk" onclick="openD('audit')">详情</span> · <span class="lk" onclick="openPay()">登记缴费</span> · <span class="lk" style="color:#64748B" onclick="toast('已发送线下催缴提醒（站内 + 短信），不影响参展资格')">催缴</span></td>
+          <td><span class="lk" onclick="openPass('BA20260006')">参展证</span> · <span class="lk" onclick="openD('audit')">详情</span> · <span class="lk" onclick="openPay()">登记缴费</span> · <span class="lk" style="color:#64748B" onclick="toast('已发送线下催缴提醒（站内 + 短信），不影响参展资格')">催缴</span></td>
         </tr>
       </tbody>
     </table>
@@ -201,9 +201,30 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[60]"></div>
 
 <script>
+/* ===== 参展证发码（Y-5）=====
+   审核通过即发码，一企业一证：
+     证号   E2026-18-NNNNNN   长，内部/打印/跨届检索，按届次流水（与申请单号脱钩）
+     签到码 5 位               短，给现场手工输入；字符集去掉 0/1/I/O，末位为校验位 */
+var CS='23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+function genCode(seed){
+  var h=0,i;
+  for(i=0;i<seed.length;i++) h=(h*31+seed.charCodeAt(i))>>>0;
+  var c='';
+  for(i=0;i<4;i++){ c+=CS[h%32]; h=Math.floor(h/32)+7; }
+  var w=[3,5,7,11],s=0;
+  for(i=0;i<4;i++) s+=CS.indexOf(c[i])*w[i];
+  return c+CS[s%32];
+}
+var ISSUED={
+  'BA20260006':{m:'杭州锦程包装设计有限公司',no:'E2026-18-000004',booth:'A06',at:'2026-09-04 15:32',by:'运营 张'}
+};
+Object.keys(ISSUED).forEach(function(k){ ISSUED[k].code=genCode(ISSUED[k].m); });
+var SEQ=6;   /* 000001-000006 已发给前序批次；新通过的从 000007 起 */
+function nextNo(){ SEQ++; return 'E2026-18-'+('000000'+SEQ).slice(-6); }
+
 /* 演示开关：?noBooth=1 → 模拟"展商未选展位号"，用于验证 E-15 拦截 */
 var NO_BOOTH=/[?&]noBooth=1/.test(location.search);
-/* 终审通过：必须先确认展位号（E-15） */
+/* 终审通过：必须先确认展位号（E-15）→ 通过即发码 */
 function doPass(){
   var body=document.getElementById('d-body');
   var txt=(body?body.textContent:'')||'';
@@ -213,7 +234,17 @@ function doPass(){
     toast('请先确认展位号（买家端自选，随申请单携带）');
     return;
   }
-  closeD();toast('审核通过：展位 '+no+' 已锁定，该企业即为参展商（费用按组委会通知线下转账，可在本页「登记缴费」补录）');
+  var sub=document.getElementById('d-sub').textContent||'';
+  var idm=/BA\d+/.exec(sub);
+  var id=idm?idm[0]:'';
+  var ent=(sub.split('·')[1]||'').trim();
+  if(!ISSUED[id]){
+    ISSUED[id]={m:ent,no:nextNo(),booth:no,at:'2026-09-08 10:12',by:'运营 张'};
+    ISSUED[id].code=genCode(ent||id);
+  }
+  var it=ISSUED[id];
+  closeD();
+  toast('审核通过：展位 '+no+' 已锁定　已发码 → 证号 '+it.no+'　签到码 '+it.code+'（一企业一证，可在「详情」查看或补发）');
 }
 /* 驳回：原因必填 */
 function doReject(){
@@ -301,6 +332,39 @@ function openD(k){
 function closeD(){
   document.getElementById('mask').classList.remove('on');
   document.getElementById('drawer').classList.remove('on');
+}
+/* 参展证详情（已发码）：查看证号与签到码、补发 */
+function openPass(id){
+  var it=ISSUED[id];
+  if(!it){ toast('该申请尚未发码（审核通过后自动生成）'); return; }
+  document.getElementById('d-title').textContent='参展证 · 已发码';
+  document.getElementById('d-sub').textContent=it.m+' · '+it.no;
+  document.getElementById('d-body').innerHTML=
+     '<div class="ftitle" style="margin-top:0">参展证</div>'
+    +'<div class="bg-gray-50 rounded-xl px-4 py-2">'
+    +'<div class="ir"><span>企业名称</span><span>'+it.m+'</span></div>'
+    +'<div class="ir"><span>参展证号</span><span class="mono" style="letter-spacing:1px">'+it.no+'</span></div>'
+    +'<div class="ir"><span>签到码</span><span><b class="mono" style="background:#1F2430;color:#fff;padding:2px 9px;border-radius:6px;letter-spacing:2px">'+it.code+'</b></span></div>'
+    +'<div class="ir"><span>展位号</span><span>'+it.booth+'</span></div>'
+    +'<div class="ir"><span>发码时间</span><span>'+it.at+'　'+it.by+'</span></div>'
+    +'</div>'
+    +'<div class="mt-3 flex items-start gap-2 px-3 py-2 rounded-lg bg-orange-50 border border-orange-100">'
+    +'<i class="fas fa-circle-info text-[12px] mt-0.5" style="color:#F97316"></i>'
+    +'<p class="text-[11px] text-[#64748B]">一企业一证：证号用于系统内部与跨届检索，<b>签到码 5 位</b>供现场手工输入（同届内唯一，末位是校验位，输错会直接报格式不对）。展商在买家端「参展商中心 → 我的参展证」看到同一张证。</p></div>'
+    +'<div class="mt-3 flex items-start gap-2 px-3 py-2 rounded-lg bg-gray-50 border border-gray-100">'
+    +'<i class="fas fa-people-group text-[12px] mt-0.5" style="color:#64748B"></i>'
+    +'<p class="text-[11px] text-[#64748B]">到场统计按<b>企业</b>计（核销一次即该企业到场），不按展位或人数；两个展位（如 A01-A02）共用一张证。</p></div>';
+  document.getElementById('d-foot').innerHTML=
+     '<button class="btn btn-ghost py-2.5" onclick="closeD()">关闭</button>'
+    +'<button class="btn btn-primary py-2.5 px-6" onclick="reissue(\''+id+'\')">补发（重生成签到码）</button>';
+  document.getElementById('mask').classList.add('on');
+  document.getElementById('drawer').classList.add('on');
+}
+function reissue(id){
+  var it=ISSUED[id]; if(!it) return;
+  it.code=genCode(it.m+Date.now());
+  closeD(); openPass(id);
+  toast('已补发：旧签到码作废，新码 '+it.code+'（现场扫旧码会提示「签到码已失效」）');
 }
 var tid;
 function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},2200);}

@@ -27,6 +27,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .lk:hover{text-decoration:underline}
 .bar{height:7px;border-radius:4px;background:#F1F5F9;overflow:hidden}
 .bar>i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,#FF7849,#FF4D2D)}
+.ck-tab{padding:6px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;color:#64748B;transition:.15s;display:inline-flex;align-items:center;gap:5px}
+.ck-tab:hover{background:#F8FAFC;color:#1F2430}
+.ck-tab.on{background:#FFF1ED;color:#FF4D2D;font-weight:600}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:1px}
+.code-chip{display:inline-block;padding:2px 9px;border-radius:6px;background:#1F2430;color:#fff;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;font-weight:700;letter-spacing:2px}
 .mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:40}
 .mask.on{opacity:1;pointer-events:auto}
 .drawer{position:fixed;top:0;right:0;height:100%;width:600px;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:50;display:flex;flex-direction:column}
@@ -101,6 +106,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
     </div>
   </div>
 
+  <!-- Tab：观众 / 参展商 -->
+  <div class="bg-white rounded-xl border border-gray-100 mb-4">
+    <div class="px-5 py-2.5 flex items-center gap-2 flex-wrap">
+      <div class="ck-tab on" data-t="v" onclick="switchTab('v')">观众签到 <span class="tag" style="background:#FFF1ED;color:#FF4D2D">3,265</span></div>
+      <div class="ck-tab" data-t="e" onclick="switchTab('e')">参展商签到 <span class="tag" style="background:#FEF3C7;color:#B45309" id="exBadge">—</span></div>
+      <button class="btn btn-ghost ml-auto" onclick="openStaff()"><i class="fas fa-user-shield mr-1"></i>核销员与核销点</button>
+    </div>
+  </div>
+
+  <!-- ① 观众签到 -->
+  <div id="pane-v">
   <!-- 筛选 -->
   <div class="bg-white rounded-xl border border-gray-100 mb-4 px-5 py-4 flex items-center gap-3 flex-wrap">
     <select class="px-3 py-1.5 text-[13px] bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-primary">
@@ -110,7 +126,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
       <option>核销状态：全部</option><option>已核销</option><option>未核销</option>
     </select>
     <select class="px-3 py-1.5 text-[13px] bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-primary">
-      <option>身份类型：全部</option><option>采购商</option><option>经销商</option><option>电商卖家</option><option>设计师</option><option>媒体记者</option>
+      <option>身份类型：全部</option><option>采购商</option><option>经销商</option><option>电商卖家</option><option>设计师</option><option>媒体记者</option><option>参展商（见「参展商签到」页签）</option>
     </select>
     <input type="text" placeholder="姓名 / 企业 / 入场编号" class="px-3 py-1.5 text-[13px] bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-primary w-56">
     <button class="btn btn-ghost" onclick="toast('查询')"><i class="fas fa-search mr-1"></i>查询</button>
@@ -180,6 +196,47 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
       <button class="px-3 py-1.5 bg-white border border-gray-200 rounded-lg" onclick="toast('下一页')">下一页</button>
     </div>
   </div>
+  </div><!-- /pane-v -->
+
+  <!-- ② 参展商签到 -->
+  <div id="pane-e" class="hidden">
+    <div class="bg-white rounded-xl border border-gray-100 mb-4 px-5 py-4 flex items-center gap-3 flex-wrap">
+      <input id="exKw" type="text" placeholder="展位号 / 企业名称 / 签到码" class="px-3 py-1.5 text-[13px] bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-primary w-64">
+      <select id="exState" class="px-3 py-1.5 text-[13px] bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-primary text-gray-600">
+        <option value="">签到状态：全部</option><option value="pending">未签到</option><option value="done">已签到</option>
+      </select>
+      <button class="btn btn-ghost" onclick="doExSearch()"><i class="fas fa-search mr-1"></i>查询</button>
+      <button class="btn btn-ghost" onclick="resetEx()">重置</button>
+      <button class="btn btn-ghost" onclick="toast('已导出参展商到场名单（企业 · 展位号 · 参展证号 · 签到时间 · 签到方式 · 核销人）')"><i class="fas fa-download mr-1"></i>导出到场名单</button>
+    </div>
+
+    <!-- 后台手工核销 -->
+    <div class="bg-white rounded-xl border border-gray-100 mb-4 px-5 py-4">
+      <div class="flex items-center gap-2">
+        <span class="section-label mb-0" style="font-size:14px">后台手工核销</span>
+        <span class="tag" style="background:#F1F5F9;color:#64748B">现场只有电脑时用</span>
+      </div>
+      <p class="text-[11px] text-[#94A3B8] mt-1 mb-3">输入 <b>展位号 / 企业名称 / 5 位签到码</b> 任一即可 —— 展位牌上就写着 A01，比让人掏证念码快得多。</p>
+      <div class="flex items-center gap-2 flex-wrap">
+        <input id="mzKw" type="text" placeholder="如 A01、丹吉娅、K7M2P" class="px-3 py-2 text-[13px] bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-primary w-72 mono" oninput="mzLookup()">
+        <span class="text-[11px] text-[#94A3B8]">输满 5 位会先校验签到码格式；不足 5 位按展位号 / 企业名模糊匹配</span>
+      </div>
+      <div id="mzResult" class="mt-3"></div>
+    </div>
+
+    <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+      <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+        <div class="section-label mb-0">参展商签到台账（<span id="exCount">0</span>）</div>
+        <div class="text-[12px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>一企业一证；重复签到幂等，返回首次签到时间</div>
+      </div>
+      <table class="w-full tb">
+        <thead><tr>
+          <th>参展证号</th><th>签到码</th><th>企业名称</th><th>展位号</th><th>签到时间</th><th>签到方式</th><th>核销人</th><th>操作</th>
+        </tr></thead>
+        <tbody id="exTbody"></tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
 <div class="mask" id="mask" onclick="closeD()"></div>
@@ -221,6 +278,162 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 
 <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[60]"></div>
 <script>
+/* ================= 参展商签到（Y-5） =================
+   一企业一证：证号 E2026-18-NNNNNN（长，内部/打印/跨届检索）
+               签到码 5 位（短，给人手工输入）
+   签到码字符集去掉易混字符（0/O、1/I），末位是校验位：
+   输错立刻报「格式不对」，而不是「查无此证」——现场最怕分不清是输错还是没报名 */
+var CS='23456789ABCDEFGHJKLMNPQRSTUVWXYZ';   /* 32 个，去掉 0 1 I O */
+var NOW='2026-10-18 10:05';                  /* 原型基准时刻 */
+
+function genCode(seed){
+  var h=0,i;
+  for(i=0;i<seed.length;i++) h=(h*31+seed.charCodeAt(i))>>>0;
+  var c='';
+  for(i=0;i<4;i++){ c+=CS[h%32]; h=Math.floor(h/32)+7; }
+  var w=[3,5,7,11],s=0;
+  for(i=0;i<4;i++) s+=CS.indexOf(c[i])*w[i];
+  return c+CS[s%32];
+}
+function normCode(v){return (v||'').toUpperCase().replace(/[\s-]/g,'');}
+function codeValid(v){
+  var c=normCode(v);
+  if(!/^[2-9A-HJ-NP-Z]{5}$/.test(c)) return false;
+  var w=[3,5,7,11],s=0,i;
+  for(i=0;i<4;i++) s+=CS.indexOf(c[i])*w[i];
+  return CS[s%32]===c[4];
+}
+
+var EX=[
+  {no:'E2026-18-000001',m:'浙江丹吉娅袜业有限公司',booth:'A01-A02',at:'2026-10-18 08:32',way:'扫码核销',by:'A 口 · 李核销',state:'done'},
+  {no:'E2026-18-000002',m:'诸暨步人堂袜机科技有限公司',booth:'C05',at:'2026-10-18 08:47',way:'扫码核销',by:'A 口 · 李核销',state:'done'},
+  {no:'E2026-18-000003',m:'义乌情怡袜业有限公司',booth:'B12',at:'',way:'',by:'',state:'pending'},
+  {no:'E2026-18-000004',m:'杭州锦程包装设计有限公司',booth:'A06',at:'2026-10-18 09:10',way:'后台手工核销',by:'运营 张（后台）',state:'done'},
+  {no:'E2026-18-000005',m:'绍兴华欣纱线有限公司',booth:'D03',at:'',way:'',by:'',state:'pending'},
+  {no:'E2026-18-000006',m:'浙江宝娜斯袜业股份有限公司',booth:'B01-B03',at:'2026-10-18 09:26',way:'手工补录',by:'B 口 · 王核销',state:'done'}
+];
+EX.forEach(function(x){ x.code=genCode(x.m); });
+var exRows=EX.slice();
+
+function switchTab(k){
+  document.querySelectorAll('.ck-tab').forEach(function(x){
+    x.classList.toggle('on', x.getAttribute('data-t')===k);
+  });
+  document.getElementById('pane-v').classList.toggle('hidden', k!=='v');
+  document.getElementById('pane-e').classList.toggle('hidden', k!=='e');
+  if(k==='e') renderEx();
+}
+
+function renderEx(){
+  var done=EX.filter(function(x){return x.state==='done';}).length;
+  document.getElementById('exBadge').textContent='已到 '+done+' / '+EX.length;
+  document.getElementById('exCount').textContent=exRows.length;
+  var h=exRows.map(function(x){
+    var i=EX.indexOf(x);
+    return '<tr>'
+      +'<td class="mono text-[12px]">'+x.no+'</td>'
+      +'<td><span class="code-chip">'+x.code+'</span></td>'
+      +'<td class="font-medium">'+x.m+'</td>'
+      +'<td>'+x.booth+'</td>'
+      +'<td class="'+(x.state==='done'?'text-green-600':'text-[#94A3B8]')+'">'+(x.at||'未签到')+'</td>'
+      +'<td>'+(x.way||'—')+'</td>'
+      +'<td>'+(x.by||'—')+'</td>'
+      +'<td>'+(x.state==='done'
+          ? '<span class="lk" onclick="exDetail('+i+')">详情</span>'
+          : '<span class="lk" onclick="doMzCheckin('+i+')">核销</span>')+'</td></tr>';
+  }).join('');
+  document.getElementById('exTbody').innerHTML=h||'<tr><td colspan="8" class="px-4 py-14 text-center text-[#94A3B8]">暂无匹配的参展商</td></tr>';
+}
+function doExSearch(){
+  var kw=(document.getElementById('exKw').value||'').trim().toUpperCase();
+  var st=document.getElementById('exState').value;
+  exRows=EX.filter(function(x){
+    if(kw && x.booth.toUpperCase().indexOf(kw)<0 && x.m.toUpperCase().indexOf(kw)<0 && x.code.indexOf(normCode(kw))<0 && x.no.indexOf(kw)<0) return false;
+    if(st && x.state!==st) return false;
+    return true;
+  });
+  renderEx();
+  toast('已筛选：'+exRows.length+' 家参展商');
+}
+function resetEx(){
+  document.getElementById('exKw').value='';
+  document.getElementById('exState').value='';
+  exRows=EX.slice(); renderEx(); toast('已重置筛选条件');
+}
+
+/* 后台手工核销：展位号 / 企业名 / 签到码 三合一 */
+function mzLookup(){
+  var raw=document.getElementById('mzKw').value||'';
+  var q=raw.trim().toUpperCase();
+  var box=document.getElementById('mzResult');
+  if(!q){ box.innerHTML=''; return; }
+  if(normCode(q).length>=5 && /^[0-9A-Z]{5}$/.test(normCode(q)) && !codeValid(q)){
+    box.innerHTML='<div class="px-3 py-2 rounded-lg" style="background:#FEF2F2;border:1px solid #FECACA">'
+      +'<p class="text-[12px]" style="color:#DC2626"><i class="fas fa-triangle-exclamation mr-1"></i>签到码格式不对（5 位，不含 0 / 1 / I / O），请核对后重输</p></div>';
+    return;
+  }
+  var hits=EX.filter(function(x){
+    return x.booth.toUpperCase().indexOf(q)>=0
+      || x.m.toUpperCase().indexOf(q)>=0
+      || x.code.indexOf(normCode(q))===0
+      || x.no.toUpperCase().indexOf(q)>=0;
+  });
+  if(!hits.length){
+    box.innerHTML='<p class="text-[12px]" style="color:#B45309"><i class="fas fa-circle-question mr-1"></i>没有匹配的展商（可用展位号 / 企业名 / 签到码再试）</p>';
+    return;
+  }
+  box.innerHTML=hits.slice(0,6).map(function(x){
+    var i=EX.indexOf(x);
+    return '<div class="flex items-center gap-3 px-3 py-2 rounded-lg border border-gray-100 mb-2" style="background:#F8FAFC">'
+      +'<div class="flex-1"><p class="text-[13px] font-medium">'+x.m+'</p>'
+      +'<p class="text-[11px] text-[#94A3B8] mt-0.5">展位 '+x.booth+'　·　'+x.no+'　·　签到码 <b class="mono">'+x.code+'</b></p></div>'
+      +(x.state==='done'
+        ? '<span class="tag" style="background:#DCFCE7;color:#059669">已签到 '+x.at+'</span>'
+        : '<button class="btn btn-primary" onclick="doMzCheckin('+i+')">确认核销</button>')
+      +'</div>';
+  }).join('');
+}
+function doMzCheckin(i){
+  var x=EX[i]; if(!x) return;
+  if(x.state==='done'){
+    toast('该展商已于 '+x.at+' 签到（'+x.way+'），幂等不重复记账');
+    return;
+  }
+  x.state='done'; x.at=NOW; x.way='后台手工核销'; x.by='运营 张（后台）';
+  renderEx(); mzLookup();
+  toast('已核销：'+x.m+'（展位 '+x.booth+'）· 签到方式记为「后台手工核销」');
+}
+function exDetail(i){
+  var x=EX[i]; if(!x) return;
+  toast('签到详情：'+x.m+' · 展位 '+x.booth+' · '+x.at+' · '+x.way+' · '+x.by);
+}
+
+/* 核销员与核销点（复用统一账号体系，只绑权限与点位，不新建账号） */
+function openStaff(){
+  var h='<div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">核销员与核销点</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-0.5">复用统一用户体系 —— 只给「袜博会核销员」角色与核销点，不新建账号</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeD()"><i class="fas fa-xmark text-lg"></i></button></div>'
+    +'<div class="flex-1 overflow-y-auto px-6 py-5">'
+    +'<div class="rounded-xl px-4 py-3 mb-4" style="background:#F8FBFF;border:1px solid #BFDBFE">'
+    +'<p class="text-[12px] text-[#64748B] leading-6">角色「<b>袜博会核销员</b>」只含核销权限，<b>不给任何后台业务菜单</b>；'
+    +'同一账号可同时是买家 / 商户 / 核销员。核销点决定扫码记录归属哪个入口，用于分流与到场统计。</p></div>'
+    +'<table class="w-full tb"><thead><tr><th>账号</th><th>姓名</th><th>核销点</th><th>今日已核销</th><th>状态</th></tr></thead><tbody>'
+    +'<tr><td class="font-medium">li.checker</td><td>李敏</td><td>A 口</td><td>128</td><td><span class="tag" style="background:#DCFCE7;color:#059669">启用</span></td></tr>'
+    +'<tr><td class="font-medium">wang.checker</td><td>王强</td><td>B 口</td><td>96</td><td><span class="tag" style="background:#DCFCE7;color:#059669">启用</span></td></tr>'
+    +'<tr><td class="font-medium">zhang.ops</td><td>张运营</td><td>后台（无点位）</td><td>12</td><td><span class="tag" style="background:#DCFCE7;color:#059669">启用</span></td></tr>'
+    +'<tr><td class="font-medium">chen.temp</td><td>陈临时</td><td>C 口</td><td>0</td><td><span class="tag" style="background:#F1F5F9;color:#64748B">已停用</span></td></tr>'
+    +'</tbody></table>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-3"><i class="fas fa-circle-info mr-1"></i>停用后该账号扫码会提示「当前账号没有核销权限」，历史核销记录保留。</p>'
+    +'</div>'
+    +'<div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost py-2.5" onclick="closeD()">关闭</button>'
+    +'<button class="btn btn-primary py-2.5 px-6" onclick="closeD();toast(\'已打开账号权限配置（复用平台用户角色管理，本页只做「核销员」角色与核销点绑定）\')">配置核销员</button></div>';
+  document.getElementById('drawer').innerHTML=h;
+  document.getElementById('mask').classList.add('on');
+  document.getElementById('drawer').classList.add('on');
+}
+
 /* 手工补签：核销幂等（E-34）——已核销则提示首次核销时间，不产生第二条记录 */
 function signIn(el){
   var tr=el.closest('tr');
@@ -237,6 +450,7 @@ function openD(){document.getElementById('mask').classList.add('on');document.ge
 function closeD(){document.getElementById('mask').classList.remove('on');document.getElementById('drawer').classList.remove('on');}
 var tid;
 function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},2200);}
+renderEx();
 </script>
 <script src="../shared/op-guard.js"></script>
 <script src="../shared/page-prd.js"></script>

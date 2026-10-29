@@ -86,9 +86,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
     <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
       <span class="text-[12px] text-gray-400" id="page-info">共 6 条记录，第 1-6 条</span>
       <div class="flex items-center gap-1">
-        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100"><i class="fas fa-chevron-left text-[10px]"></i></button>
-        <button class="w-7 h-7 flex items-center justify-center text-white text-[12px] rounded" style="background:#FF4D2D">1</button>
-        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100"><i class="fas fa-chevron-right text-[10px]"></i></button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100" onclick="toast('已是第一页')"><i class="fas fa-chevron-left text-[10px]"></i></button>
+        <button class="w-7 h-7 flex items-center justify-center text-white text-[12px] rounded" style="background:#FF4D2D" onclick="toast('当前为第 1 页')">1</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100" onclick="toast('仅一页（原型演示 6 条数据）')"><i class="fas fa-chevron-right text-[10px]"></i></button>
       </div>
     </div>
   </div>
@@ -136,6 +136,31 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
         </div>
       </div>
     </div>
+    <div class="mb-4 hidden" id="brand-box">
+      <label class="fl"><i>*</i>品牌资质　<span class="text-[11px] text-gray-400 font-normal">商标注册证 或 品牌授权书（二者之一）</span></label>
+      <div class="rounded-xl border border-gray-200 p-3" style="background:#F8FAFC">
+        <div id="brand-cur" class="text-[12px] text-[#64748B] mb-2">—</div>
+        <div class="grid grid-cols-2 gap-2 mb-2">
+          <select id="b-kind" class="fi">
+            <option>商标注册证</option>
+            <option>品牌授权书</option>
+          </select>
+          <input id="b-no" class="fi" placeholder="证书编号">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <input id="b-exp" class="fi" placeholder="有效期至（如 2029-12-31）">
+          <label class="flex items-center justify-center gap-2 h-9 rounded-lg border border-dashed border-gray-300 cursor-pointer text-[12px] text-gray-500 hover:border-primary hover:text-primary">
+            <i class="fas fa-cloud-arrow-up"></i>上传证件（≤3 张）
+            <input type="file" class="hidden" multiple onchange="pickBrand(this)">
+          </label>
+        </div>
+        <p class="text-[11px] text-gray-400 mt-2" id="b-files">未上传附件</p>
+        <div class="flex items-center gap-2 mt-2">
+          <button class="btn btn-ghost" onclick="submitBrand()"><i class="fas fa-paper-plane mr-1"></i>提交资质审核</button>
+          <span class="text-[11px] text-gray-400">通过后即可把店铺类型改为「品牌店铺」</span>
+        </div>
+      </div>
+    </div>
     <div class="mb-4">
       <label class="fl"><i>*</i>所属商户</label>
       <div class="flex items-center gap-2">
@@ -156,13 +181,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[70]"></div>
 
 <script>
+/* brand = 品牌资质（2026-10-28 Y-8）：只对「品牌店铺」生效，缺了就等于普通店铺改个名
+   state 由到期日与审核结果共同决定：expEnd < 今天 → 已过期；审核未通过 → 待审核/已驳回 */
 var shops=[
-  {id:1,name:'大唐袜业城官方旗舰店',logo:{bg:'linear-gradient(135deg,#FF8A4C,#FF4D2D)',ch:'大'},type:'自营店铺',merchant:'大唐袜业集团（已认证）',account:'datang',goods:268,state:'营业中'},
-  {id:2,name:'丹吉娅品牌专营店',logo:{bg:'linear-gradient(135deg,#A78BFA,#7C3AED)',ch:'丹'},type:'品牌店铺',merchant:'丹吉娅袜业（已认证）',account:'danjya',goods:192,state:'营业中'},
-  {id:3,name:'步人堂智能袜机店',logo:{bg:'linear-gradient(135deg,#38BDF8,#3B82F6)',ch:'步'},type:'普通店铺',merchant:'步人堂针织（已认证）',account:'burentang',goods:87,state:'营业中'},
-  {id:4,name:'花间舞时尚女袜馆',logo:{bg:'linear-gradient(135deg,#FB7185,#EC4899)',ch:'花'},type:'品牌店铺',merchant:'花间舞袜业（已认证）',account:'huajianwu',goods:134,state:'营业中'},
-  {id:5,name:'棉田有机纱线原料铺',logo:{bg:'linear-gradient(135deg,#34D399,#10B981)',ch:'棉'},type:'普通店铺',merchant:'棉田纱线厂（已认证）',account:'miantian',goods:56,state:'已关闭'},
-  {id:6,name:'宝娜斯丝袜体验店',logo:{bg:'linear-gradient(135deg,#FBBF24,#F59E0B)',ch:'宝'},type:'普通店铺',merchant:'宝娜斯袜业（认证已过期）',account:'baonasi',goods:73,state:'营业中'}
+  {id:1,name:'大唐袜业城官方旗舰店',logo:{bg:'linear-gradient(135deg,#FF8A4C,#FF4D2D)',ch:'大'},type:'自营店铺',merchant:'大唐袜业集团（已认证）',account:'datang',goods:268,state:'营业中',brand:null},
+  {id:2,name:'丹吉娅品牌专营店',logo:{bg:'linear-gradient(135deg,#A78BFA,#7C3AED)',ch:'丹'},type:'品牌店铺',merchant:'丹吉娅袜业（已认证）',account:'danjya',goods:192,state:'营业中',
+   brand:{kind:'商标注册证',no:'TM-2021-08812',exp:'2021-03-01 ~ 2031-02-28',expEnd:'2031-02-28',files:2,state:'已通过'}},
+  {id:3,name:'步人堂智能袜机店',logo:{bg:'linear-gradient(135deg,#38BDF8,#3B82F6)',ch:'步'},type:'普通店铺',merchant:'步人堂针织（已认证）',account:'burentang',goods:87,state:'营业中',brand:null},
+  {id:4,name:'花间舞时尚女袜馆',logo:{bg:'linear-gradient(135deg,#FB7185,#EC4899)',ch:'花'},type:'品牌店铺',merchant:'花间舞袜业（已认证）',account:'huajianwu',goods:134,state:'营业中',
+   brand:{kind:'品牌授权书',no:'AUTH-2024-0012',exp:'2024-01-01 ~ 2026-09-30',expEnd:'2026-09-30',files:1,state:'已通过'}},
+  {id:5,name:'棉田有机纱线原料铺',logo:{bg:'linear-gradient(135deg,#34D399,#10B981)',ch:'棉'},type:'普通店铺',merchant:'棉田纱线厂（已认证）',account:'miantian',goods:56,state:'已关闭',brand:null},
+  {id:6,name:'宝娜斯丝袜体验店',logo:{bg:'linear-gradient(135deg,#FBBF24,#F59E0B)',ch:'宝'},type:'普通店铺',merchant:'宝娜斯袜业（认证已过期）',account:'baonasi',goods:73,state:'营业中',brand:null}
 ];
 var merchants=['大唐袜业集团（已认证）','丹吉娅袜业（已认证）','步人堂针织（已认证）','花间舞袜业（已认证）','棉田纱线厂（已认证）','宝娜斯袜业（认证已过期）'];
 var editId=null,pickMerchant=merchants[0],logoName='';
@@ -183,7 +212,7 @@ function render(list){
     h+='<tr class="hover:bg-gray-50 transition">'
       +'<td class="px-4 py-3"><div class="flex items-center gap-2"><div class="logo-box" style="background:'+s.logo.bg+'">'+s.logo.ch+'</div><span class="font-medium text-gray-800">'+s.name+'</span></div></td>'
       +'<td class="px-4 py-3"><div class="logo-box" style="background:'+s.logo.bg+'">'+s.logo.ch+'</div></td>'
-      +'<td class="px-4 py-3">'+typeBadge[s.type]+'</td>'
+      +'<td class="px-4 py-3">'+typeBadge[s.type]+brandHint(s)+'</td>'
       +'<td class="px-4 py-3 text-gray-600">'+s.merchant+'</td>'
       +'<td class="px-4 py-3 text-gray-600">'+s.account+'</td>'
       +'<td class="px-4 py-3 text-gray-600">'+s.goods+'</td>'
@@ -213,12 +242,65 @@ function openEdit(id){
   document.getElementById('e-merchant').value=s.merchant;
   pickMerchant=s.merchant;
   document.querySelectorAll('#type-box .type-radio').forEach(function(r){r.classList.toggle('on',r.getAttribute('data-t')===s.type);});
+  /* 品牌资质回填（Y-8） */
+  var b=s.brand||null;
+  document.getElementById('b-kind').value=b?b.kind:'商标注册证';
+  document.getElementById('b-no').value=b?b.no:'';
+  document.getElementById('b-exp').value=b?b.expEnd:'';
+  document.getElementById('b-files').textContent=b?('已上传 '+b.files+' 张证件'):'未上传附件';
+  document.getElementById('brand-cur').innerHTML=b
+    ? ('当前状态：'+bstateTag(b)+'　编号 '+b.no+'　有效期至 '+b.expEnd+(brandExpired(b)?'　<b style="color:#B91C1C">已过期，请重传</b>':''))
+    : '<span style="color:#B45309">该店铺尚无品牌资质；选「品牌店铺」需先提交并审核通过</span>';
+  syncBrandBox();
   document.getElementById('mask').classList.add('on');
   document.getElementById('drawer').classList.add('on');
+}
+/* ===== 品牌资质（Y-8）：品牌店铺准入 = type=品牌店铺 且 资质已通过 且 未过期 ===== */
+var TODAY='2026-10-28';
+function brandExpired(b){return !!(b&&b.expEnd&&b.expEnd<TODAY);}
+function brandOk(b){return !!b&&b.state==='已通过'&&!brandExpired(b);}
+function bstateTag(b){
+  if(brandExpired(b)) return '<span class="status-badge" style="background:#FFEDE7;color:#E63E20">已过期</span>';
+  var m={'已通过':'background:#DCFCE7;color:#15803D','待审核':'background:#FEF3C7;color:#B45309','已驳回':'background:#FEE2E2;color:#B91C1C'};
+  return '<span class="status-badge" style="'+(m[b.state]||'background:#F1F5F9;color:#64748B')+'">'+b.state+'</span>';
+}
+function brandHint(s){
+  var b=s.brand;
+  if(s.type==='品牌店铺'){
+    if(!b) return '<div class="text-[10px] mt-0.5" style="color:#B91C1C">缺品牌资质</div>';
+    if(brandExpired(b)) return '<div class="text-[10px] mt-0.5" style="color:#B91C1C">资质已过期</div>';
+    if(b.state!=='已通过') return '<div class="text-[10px] mt-0.5" style="color:#B45309">资质'+b.state+'</div>';
+    return '<div class="text-[10px] mt-0.5" style="color:#15803D">'+b.kind+' · 有效至 '+b.expEnd+'</div>';
+  }
+  /* 已被降级的原品牌店：留痕，方便运营发现并催重传 */
+  if(b&&brandExpired(b)) return '<div class="text-[10px] mt-0.5" style="color:#94A3B8">品牌资质过期，已降级</div>';
+  return '';
 }
 function pickType(el){
   document.querySelectorAll('#type-box .type-radio').forEach(function(r){r.classList.remove('on')});
   el.classList.add('on');
+  syncBrandBox();
+}
+function syncBrandBox(){
+  var t=document.querySelector('#type-box .type-radio.on').getAttribute('data-t');
+  document.getElementById('brand-box').classList.toggle('hidden', t!=='品牌店铺');
+}
+function pickBrand(input){
+  if(input.files.length>3){toast('品牌资质最多上传 3 张');input.value='';return;}
+  document.getElementById('b-files').textContent='已选 '+input.files.length+' 个文件：'+Array.prototype.map.call(input.files,function(f){return f.name;}).join('、');
+}
+function submitBrand(){
+  if(editId==='new'){toast('请先保存店铺，再提交品牌资质');return;}
+  var s=shops.find(function(x){return x.id===editId;}); if(!s) return;
+  var kind=document.getElementById('b-kind').value;
+  var no=document.getElementById('b-no').value.trim();
+  var exp=document.getElementById('b-exp').value.trim();
+  if(!no){toast('请填写证书编号');return;}
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(exp)){toast('有效期格式应为 YYYY-MM-DD');return;}
+  s.brand={kind:kind,no:no,exp:'— ~ '+exp,expEnd:exp,files:2,state:'待审核'};
+  document.getElementById('brand-cur').innerHTML='当前状态：'+bstateTag(s.brand)+'　编号 '+no+'　有效期至 '+exp;
+  render();
+  toast('品牌资质已提交审核（'+kind+' '+no+'）；审核通过后再把店铺类型改为「品牌店铺」');
 }
 function pickLogo(input){
   if(input.files[0]){logoName=input.files[0].name;document.getElementById('logo-preview').innerHTML='<i class="fas fa-check text-green-500 text-lg"></i><span class="text-[10px] mt-0.5 text-green-500" style="max-width:56px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+logoName+'</span>';toast('LOGO 已选择：'+logoName);}
@@ -241,8 +323,17 @@ function saveShop(){
   var name=document.getElementById('e-name').value.trim(),type=document.querySelector('#type-box .type-radio.on').getAttribute('data-t'),merchant=document.getElementById('e-merchant').value.trim();
   if(!name){toast('请输入店铺名称');return;}
   if(!merchant){toast('请选择所属商户');return;}
-  if(editId==='new'){shops.unshift({id:Date.now(),name:name,logo:{bg:'linear-gradient(135deg,#FF8A4C,#FF4D2D)',ch:name.charAt(0)},type:type,merchant:merchant,account:'shop'+(shops.length+1),goods:0,state:'营业中'});toast('店铺「'+name+'」已创建（'+type+'）');}
-  else{var s=shops.find(function(x){return x.id===editId;});if(s){s.name=name;s.type=type;s.merchant=merchant;toast('已保存修改');}}
+  var s=editId==='new'?null:shops.find(function(x){return x.id===editId;});
+  /* Y-8：品牌店铺 = 商标注册证/品牌授权书 已通过且未过期，否则一律按普通店铺经营 */
+  if(type==='品牌店铺'&&!brandOk(s?s.brand:null)){
+    toast('请先完成品牌资质审核，或先按普通店铺经营');
+    return;
+  }
+  if(editId==='new'){
+    shops.unshift({id:Date.now(),name:name,logo:{bg:'linear-gradient(135deg,#FF8A4C,#FF4D2D)',ch:name.charAt(0)},type:type,merchant:merchant,account:'shop'+(shops.length+1),goods:0,state:'营业中',brand:null});
+    toast('店铺「'+name+'」已创建（'+type+'）');
+  }
+  else{if(s){s.name=name;s.type=type;s.merchant=merchant;toast('已保存修改');}}
   closeAll();render();
 }
 function detail(id){var s=shops.find(function(x){return x.id===id;});toast('店铺详情：'+s.name+' · '+s.type+' · '+s.state);}
@@ -252,6 +343,21 @@ function closeAll(){
   document.getElementById('drawer').classList.remove('on');
   closeMerchant();
 }
+/* 加载时执行到期降级（Y-8）：品牌资质过期 → 店铺类型自动降为普通店铺并从品牌馆下架
+   店铺本身与商品不删；商户端提示重传，重传审核通过后手动改回品牌店铺 */
+(function brandDowngrade(){
+  var hit=[];
+  shops.forEach(function(s){
+    if(s.type==='品牌店铺'&&s.brand&&brandExpired(s.brand)){
+      s.type='普通店铺';s.brand.state='已过期';hit.push(s.name);
+    }
+  });
+  if(hit.length){
+    setTimeout(function(){
+      toast(hit.length+' 家品牌店铺因品牌资质过期已自动降级为普通店铺并从品牌馆下架（店铺与商品保留，重传并审核通过后可改回）');
+    },700);
+  }
+})();
 render();
 </script>
 

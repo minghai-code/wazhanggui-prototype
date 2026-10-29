@@ -63,17 +63,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
       <div class="flex items-center gap-2">
         <h1 class="text-[20px] font-bold text-[#1F2430]">维修资金台账</h1>
         <span class="tag" style="background:#DBEAFE;color:#2563EB">07 物业服务</span>
-        <span class="tag" style="background:#F1F5F9;color:#64748B">额度周期 9.1–8.31</span>
+        <span class="tag" style="background:#F1F5F9;color:#64748B">额度周期 4.1–次年 3.31</span>
         <span class="tag" style="background:#FFEDE7;color:#E63E20">跨期不结转</span>
       </div>
-      <p class="text-[12px] text-gray-400 mt-1">一眼看清「今年 30 万花了多少、还剩多少、花在哪」。<b>只有核销成功才计入已核销</b>，审批通过只算在途；额度不足时 P2 核销被阻断，引导到这里申请追加。历史采购导入<b>不影响额度</b>，仅写入历史成交价库作价格基准。</p>
+      <p class="text-[12px] text-gray-400 mt-1">一眼看清「今年 25 万花了多少、还剩多少、花在哪」。<b>只有核销成功才计入已核销</b>，审批通过只算在途；额度不足时 P2 核销被阻断，引导到这里申请追加。历史采购导入<b>不影响额度</b>，会同时归并出<b>物资与供应商主数据</b>，供交办单下拉选择。</p>
     </div>
     <div class="flex items-center gap-2">
       <select id="f-year" class="px-3 py-1.5 text-[13px] bg-white rounded-lg border border-gray-200 outline-none text-gray-600" onchange="switchYear()">
-        <option value="2026">租赁年度 2026.09–2027.08</option>
-        <option value="2025">租赁年度 2025.09–2026.08</option>
+        <option value="2026">额度年度 2026.04–2027.03</option>
+        <option value="2025">额度年度 2025.04–2026.03</option>
       </select>
-      <button class="btn btn-ghost" onclick="openImport()"><i class="fas fa-file-import text-[10px] mr-1"></i>历史采购导入</button>
+      <button class="btn btn-ghost" onclick="location.href='property-material.html'"><i class="fas fa-boxes-stacked text-[10px] mr-1"></i>物资与供应商库</button>
+      <button class="btn btn-ghost" onclick="openImport()"><i class="fas fa-file-import text-[10px] mr-1"></i>历史采购导入 / 建库</button>
       <button class="btn btn-ghost" onclick="toast('已导出额度台账 Excel（含月度消耗、类别/供应商/楼栋结构、待核销清单）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
       <button class="btn btn-primary" onclick="openApply()"><i class="fas fa-plus mr-1"></i>额外申请</button>
     </div>
@@ -121,7 +122,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
     <div class="bg-white rounded-xl border border-gray-100 p-4">
       <div class="text-[13px] font-bold text-[#1F2430] mb-2">供应商 TOP5（金额占比）</div>
       <div id="supList"></div>
-      <p class="text-[11px] text-[#94A3B8] mt-2"><i class="fas fa-circle-info mr-1"></i>单一供应商占比 &gt;70% 会命中风控规则 R6（供应商集中）</p>
+      <p class="text-[11px] text-[#94A3B8] mt-2"><i class="fas fa-circle-info mr-1"></i>单一供应商占比 &gt;70% 会触发<b>供应商集中预警</b>（议价能力与断供风险）</p>
     </div>
     <div class="bg-white rounded-xl border border-gray-100 p-4">
       <div class="text-[13px] font-bold text-[#1F2430] mb-2">楼栋维度消耗</div>
@@ -171,44 +172,44 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 <script>
 /* ================= 数据 ================= */
 var BUDGET={
-  '2026':{base:300000, extra:20000, year:'2026.09–2027.08'},
-  '2025':{base:300000, extra:0, year:'2025.09–2026.08'}
+  '2026':{base:250000, extra:8000, year:'2026.04–2027.03'},
+  '2025':{base:250000, extra:0, year:'2025.04–2026.03'}
 };
 var curYear='2026';
 
-/* 月度核销（与 P2 同口径：核销成功才计入） */
+/* 月度核销（与 P2 同口径：核销成功才计入）　周期 4 月–次年 3 月 */
 var MONTH={'2026':[
-  {m:'26-09', v:18400},{m:'26-10', v:26520},{m:'26-11', v:0},{m:'26-12', v:0},
-  {m:'27-01', v:0},{m:'27-02', v:0},{m:'27-03', v:0},{m:'27-04', v:0},
-  {m:'27-05', v:0},{m:'27-06', v:0},{m:'27-07', v:0},{m:'27-08', v:0}
+  {m:'26-04', v:5200},{m:'26-05', v:6480},{m:'26-06', v:7100},{m:'26-07', v:8340},
+  {m:'26-08', v:4100},{m:'26-09', v:6900},{m:'26-10', v:6800},{m:'26-11', v:0},
+  {m:'26-12', v:0},{m:'27-01', v:0},{m:'27-02', v:0},{m:'27-03', v:0}
 ],'2025':[
-  {m:'25-09', v:22300},{m:'25-10', v:31200},{m:'25-11', v:17800},{m:'25-12', v:26400},
-  {m:'26-01', v:15200},{m:'26-02', v:9800},{m:'26-03', v:24100},{m:'26-04', v:19600},
-  {m:'26-05', v:21300},{m:'26-06', v:28700},{m:'26-07', v:33100},{m:'26-08', v:19300}
+  {m:'25-04', v:16800},{m:'25-05', v:18400},{m:'25-06', v:22600},{m:'25-07', v:26300},
+  {m:'25-08', v:21500},{m:'25-09', v:17200},{m:'25-10', v:19800},{m:'25-11', v:15600},
+  {m:'25-12', v:24100},{m:'26-01', v:13900},{m:'26-02', v:9800},{m:'26-03', v:25600}
 ]};
 
 var CAT={'2026':[
-  {n:'地砖 / 石材', v:18600},{n:'照明灯具', v:12400},{n:'电气元件', v:9200},
-  {n:'门窗五金', v:7100},{n:'给排水管件', v:5400},{n:'涂料 / 腻子', v:3600},
-  {n:'人工费', v:2900},{n:'消防器材', v:1800},{n:'锁具', v:1200},{n:'其他', v:900}
+  {n:'地砖 / 石材', v:14200},{n:'照明灯具', v:9800},{n:'电气元件', v:7400},
+  {n:'门窗五金', v:5600},{n:'给排水管件', v:3900},{n:'涂料 / 腻子', v:1800},
+  {n:'人工费', v:1200},{n:'消防器材', v:500},{n:'锁具', v:300},{n:'其他', v:220}
 ],'2025':[
-  {n:'地砖 / 石材', v:26400},{n:'照明灯具', v:21800},{n:'电气元件', v:15600},
-  {n:'门窗五金', v:12300},{n:'给排水管件', v:9800},{n:'涂料 / 腻子', v:7400},
-  {n:'人工费', v:6100},{n:'消防器材', v:4200},{n:'锁具', v:2600},{n:'其他', v:1900}
+  {n:'地砖 / 石材', v:62400},{n:'照明灯具', v:48200},{n:'电气元件', v:36800},
+  {n:'门窗五金', v:27100},{n:'给排水管件', v:19400},{n:'涂料 / 腻子', v:14600},
+  {n:'人工费', v:11200},{n:'消防器材', v:6800},{n:'锁具', v:3100},{n:'其他', v:2000}
 ]};
 
 var SUP={'2026':[
-  {n:'诸暨××建材', v:16800},{n:'诸暨××灯具', v:11200},{n:'诸暨××机电', v:8600},
-  {n:'浙勤安顺物业（自营）', v:6200},{n:'义乌××五交化', v:3900}
+  {n:'诸暨××建材', v:17400},{n:'诸暨××灯具', v:11400},{n:'诸暨××机电', v:8800},
+  {n:'浙勤安顺物业（自营）', v:4420},{n:'义乌××五交化', v:2900}
 ],'2025':[
-  {n:'诸暨××建材', v:38200},{n:'诸暨××灯具', v:29400},{n:'诸暨××机电', v:18600},
-  {n:'浙勤安顺物业（自营）', v:12100},{n:'义乌××五交化', v:8900}
+  {n:'诸暨××建材', v:78400},{n:'诸暨××灯具', v:56200},{n:'诸暨××机电', v:41800},
+  {n:'浙勤安顺物业（自营）', v:31200},{n:'义乌××五交化', v:24000}
 ]};
 
 var BLD={'2026':[
-  {n:'A 栋（主市场）', v:24800},{n:'B 栋（原料馆）', v:12600},{n:'C 栋（配套楼）', v:5400},{n:'原料市场 D 栋', v:3600}
+  {n:'A 栋（主市场）', v:21800},{n:'B 栋（原料馆）', v:13600},{n:'C 栋（配套楼）', v:5400},{n:'原料市场 D 栋', v:4120}
 ],'2025':[
-  {n:'A 栋（主市场）', v:96200},{n:'B 栋（原料馆）', v:58400},{n:'C 栋（配套楼）', v:21600},{n:'原料市场 D 栋', v:14800}
+  {n:'A 栋（主市场）', v:108400},{n:'B 栋（原料馆）', v:62800},{n:'C 栋（配套楼）', v:34200},{n:'原料市场 D 栋', v:26200}
 ]};
 
 /* 待核销（与 P2 一致：已通过/部分核销） */
@@ -279,14 +280,20 @@ function renderBar(){
   document.getElementById('barMax').textContent=mx?(mx.m+'　¥'+money(max)):'—';
 }
 
-function rankList(el,arr,unit){
+function rankList(el,arr,unit,link){
   var max=Math.max.apply(null,arr.map(function(x){return x.v;}))||1;
   document.getElementById(el).innerHTML=arr.slice(0,10).map(function(x,i){
     var w=Math.round(x.v/max*100);
-    return '<div class="rank"><span class="n">'+(i+1)+'</span><span class="nm">'+esc(x.n)+'</span>'
+    var nm=link
+      ? '<span class="nm" style="cursor:pointer;color:#FF4D2D" onclick="jumpSup(this.getAttribute(\'data-nm\'))" data-nm="'+esc(x.n)+'">'+esc(x.n)+'</span>'
+      : '<span class="nm">'+esc(x.n)+'</span>';
+    return '<div class="rank"><span class="n">'+(i+1)+'</span>'+nm
       +'<span class="bar2"><i style="width:'+w+'%"></i></span>'
       +'<span class="amt">'+(unit==='%'?x.v+'%':'¥'+money(x.v))+'</span></div>';
   }).join('');
+}
+function jumpSup(n){
+  toast('已定位供应商「'+n+'」：查看成交笔数 / 金额占比 / 关联物资（供应商库 · 采购明细）');
 }
 
 function renderPend(){
@@ -331,14 +338,14 @@ function renderApply(){
 function renderAll(){
   renderStats();renderBar();
   rankList('catList',CAT[curYear]);
-  rankList('supList',SUP[curYear]);
+  rankList('supList',SUP[curYear],null,true);
   rankList('bldList',BLD[curYear]);
   renderPend();renderApply();
 }
 function switchYear(){
   curYear=document.getElementById('f-year').value;
   renderAll();
-  toast('已切换到租赁年度 '+BUDGET[curYear].year+'（额度按年度独立，跨期不结转）');
+  toast('已切换到额度年度 '+BUDGET[curYear].year+'（4.1–次年 3.31，跨期不结转）');
 }
 
 /* ================= 额外申请 ================= */
@@ -446,13 +453,14 @@ function openImport(){
   ];
   var okN=impRows.filter(function(r){return r.ok;}).length, badN=impRows.length-okN;
   var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
-    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">历史采购导入</h3>'
-    +'<p class="text-[11px] text-[#94A3B8] mt-1">写入<b>历史成交价库</b>（价格偏离校验基准）　·　<b>不影响额度</b>（历史年度已花掉）</p></div>'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">历史采购导入（初始化物资库）</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">按「名称 + 规格」归并生成<b>物资主数据</b>、按名称归并生成<b>供应商主数据</b>　·　<b>不影响额度</b>（历史年度已花掉）</p></div>'
     +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
   h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">';
   h+='<div class="blk"><div class="blk-t"><i class="fas fa-table-columns text-[#7C3AED]"></i>模板列</div>'
     +'<p class="text-[11px] text-[#64748B] leading-6">物资名称 / 规格 / 数量 / 单价 / 供应商 / 采购日期 / 发票号（可空）<br>'
-    +'校验：物资名称与单价必填；日期格式 YYYY-MM-DD；<b>整批回滚</b>（任一行失败则全部不入库，失败行给清单）</p></div>';
+    +'校验：物资名称与单价必填；日期格式 YYYY-MM-DD；<b>整批回滚</b>（任一行失败则全部不入库，失败行给清单）<br>'
+    +'导入后：同时写入<b>历史成交价库</b>（价格基准）与<b>物资 / 供应商主数据</b>（供交办单下拉选择）</p></div>';
   h+='<div class="flex items-center gap-2"><div class="fi" style="cursor:pointer;color:#94A3B8;flex:1" onclick="toast(\'已选择 历史采购台账2026H1.xlsx（6 行）\')">历史采购台账2026H1.xlsx（6 行）</div>'
     +'<button class="btn btn-ghost" onclick="toast(\'已下载导入模板（含示例行与字段说明）\')"><i class="fas fa-download text-[10px] mr-1"></i>模板</button></div>';
   h+='<div class="blk"><div class="blk-t"><i class="fas fa-list-check text-[#B45309]"></i>预校验结果：'
@@ -473,9 +481,16 @@ function openImport(){
     +'</tbody></table>'
     +'<div class="mt-2 rounded-lg p-2.5" style="background:#FEF2F2;border:1px solid #FECACA"><p class="text-[11px]" style="color:#B91C1C">'
     +'<i class="fas fa-triangle-exclamation mr-1"></i>存在 '+badN+' 行失败：<b>整批回滚</b>，本次 0 行入库。请修正后重新上传。</p></div></div>';
+  var mergeRows=[['物资 · 新增',okN+' 条（按「名称 + 规格」去重）'],
+    ['物资 · 与库内合并','1 条：LED 灯管 T8 18W → WL0003（规格写法归一）'],
+    ['供应商 · 新增','1 家：义乌××五交化'],
+    ['供应商 · 与库内合并','4 家：××灯具 / ××建材 / ××机电 / ××门业 → 已建档全称']];
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-code-merge text-[#6D28D9]"></i>归并预览<span class="text-[11px] font-normal text-[#94A3B8]">（按修正后可导入 '+okN+' 行测算）</span></div>'
+    +mergeRows.map(function(r){return '<div style="display:flex;gap:10px;font-size:12px;padding:3px 0"><span style="color:#94A3B8;width:132px;flex-shrink:0">'+r[0]+'</span><span style="color:#1F2430">'+r[1]+'</span></div>';}).join('')
+    +'<p class="text-[11px] text-[#94A3B8] mt-1"><i class="fas fa-circle-info mr-1"></i>归并后这 '+okN+' 条物资与 5 家供应商直接可在交办单里下拉选择；规格写法差异过大、无法判定的行进「待归一」清单人工确认。</p></div>';
   h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
     +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
-    +'<button class="btn btn-primary" onclick="doImport()">确认导入</button></div>';
+    +'<button class="btn btn-primary" onclick="doImport()">确认导入并建库</button></div>';
   document.getElementById('drawer').innerHTML=h;show();
 }
 function doImport(){
@@ -485,7 +500,7 @@ function doImport(){
     return;
   }
   closeAll();
-  toast('已导入 '+okN+' 行到历史成交价库（不影响额度，仅作价格偏离基准）');
+  toast('已导入 '+okN+' 行：写入历史成交价库 + 归并出 '+okN+' 条物资 / 5 家供应商（不影响额度），可去「物资与供应商库」查看');
 }
 
 /* ================= 基础 ================= */

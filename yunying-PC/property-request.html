@@ -69,9 +69,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
         <span class="tag" style="background:#FEF3C7;color:#B45309">审批链 1000 元分档</span>
         <span class="tag" style="background:#FFEDE7;color:#E63E20">逐行核销</span>
       </div>
-      <p class="text-[12px] text-gray-400 mt-1">攒批建<b>任务工作交办单</b>（附比价单 + 物资明细）→ 审批（<b>&lt;1000：市场管理部 → 市场部负责人；≥1000：+ 分管领导 → 董事长</b>）→ 通过后采购，<b>分次上传发票逐行核销</b>；数量/单价/金额超审批<b>只标异常不硬拦</b>，<b>发票号重复硬拦</b>。</p>
+      <p class="text-[12px] text-gray-400 mt-1">攒批建<b>任务工作交办单</b>（附比价单 + 物资明细）→ 审批（<b>&lt;1000：市场管理部 → 市场部负责人；≥1000：+ 分管领导 → 董事长</b>）→ 通过后采购，<b>分次上传发票逐行核销</b>；数量/单价/金额超审批<b>只标异常不硬拦</b>，<b>发票号重复硬拦</b>。物资与供应商<b>只能从库里下拉选</b>，不支持自由输入。</p>
     </div>
     <div class="flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="location.href='property-material.html'"><i class="fas fa-boxes-stacked text-[10px] mr-1"></i>物资库</button>
       <button class="btn btn-ghost" onclick="toast('已导出交办单台账（含审批链、物资明细、核销记录）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
       <button class="btn btn-primary" onclick="openCreate()"><i class="fas fa-plus mr-1"></i>新建交办单</button>
     </div>
@@ -92,7 +93,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
       <label class="flex items-center gap-1.5 text-[12px] text-gray-600"><input type="checkbox" id="f-slow" class="accent-[#FF4D2D]">仅看停留 &gt;7 天</label>
       <button class="btn btn-primary" onclick="doSearchPool()">查询</button>
       <button class="btn btn-ghost" onclick="resetPool()">重置</button>
-      <span class="text-[11px] text-[#94A3B8] ml-auto"><i class="fas fa-circle-info mr-1"></i>勾选后可「合并建交办单」，一次审批覆盖多张报修</span>
+      <span class="text-[11px] text-[#94A3B8] ml-auto"><i class="fas fa-circle-info mr-1"></i>先勾选多张 →「合并建交办单」一键带入；不勾也能点右上「新建交办单」，在弹窗里自己挑　<span class="lk" onclick="helpCreate()">两者区别</span></span>
     </div>
     <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
       <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
@@ -100,7 +101,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
           <span class="text-[13px] font-bold text-[#1F2430]">待采购报修单</span>
           <span class="text-[12px] text-[#94A3B8]" id="poolCnt">共 0 条</span>
         </div>
-        <button class="btn btn-ghost" onclick="buildFromPool()"><i class="fas fa-layer-group mr-1"></i>合并建交办单</button>
+        <button class="btn btn-ghost" onclick="buildFromPool()" title="先把左侧要合并的报修单勾上，再点这里，勾中的单会直接带入新建弹窗"><i class="fas fa-layer-group mr-1"></i>合并建交办单</button>
       </div>
       <div class="overflow-x-auto">
         <table class="w-full tb" style="min-width:1080px">
@@ -177,7 +178,26 @@ var EXTC={'超核':'background:#FEE2E2;color:#B91C1C','单价偏高':'background
   '换供应商':'background:#EDE9FE;color:#6D28D9','金额与发票不符':'background:#F1F5F9;color:#64748B'};
 var FLOW={'<1000':['市场管理部','市场部负责人'],'>=1000':['市场管理部','市场部负责人','分管领导','董事长']};
 
-/* ================= 数据 ================= */
+/* ================= 主数据（来自 物资与供应商库 property-material.html） ================= */
+/* 只取「启用」的物资与供应商；交办单物资行只能从这里选，不允许自由输入 */
+var MATLIB=[
+  {code:'WL0001', name:'防滑地砖 600×600', spec:'灰色 / 通体 / 哑光', unit:'块', cat:'地砖 / 石材', price:98,  vendor:'诸暨××建材有限公司'},
+  {code:'WL0002', name:'水泥砂浆', spec:'25kg/袋 · M10', unit:'袋', cat:'地砖 / 石材', price:30,  vendor:'诸暨××建材有限公司'},
+  {code:'WL0003', name:'LED 灯管 T8 18W', spec:'1.2m / 白光 / 6500K', unit:'支', cat:'照明灯具', price:72,  vendor:'诸暨××灯具经营部'},
+  {code:'WL0004', name:'灯管支架', spec:'T8 单管 / 铁质', unit:'套', cat:'照明灯具', price:60,  vendor:'诸暨××灯具经营部'},
+  {code:'WL0005', name:'小型断路器', spec:'DZ47-63 C25 · 2P / 25A', unit:'只', cat:'电气元件', price:280, vendor:'诸暨××机电设备商行'},
+  {code:'WL0006', name:'漏电保护器', spec:'DZ47LE 2P / 32A', unit:'只', cat:'电气元件', price:165, vendor:'诸暨××机电设备商行'},
+  {code:'WL0008', name:'卷帘门导轨', spec:'3m / 镀锌', unit:'根', cat:'门窗五金', price:480, vendor:'诸暨××门业'},
+  {code:'WL0009', name:'润滑脂', spec:'500g / 通用型', unit:'桶', cat:'门窗五金', price:40,  vendor:'诸暨××门业'},
+  {code:'WL0012', name:'内墙腻子粉', spec:'20kg/袋', unit:'袋', cat:'涂料 / 腻子', price:28, vendor:'诸暨××建材有限公司'},
+  {code:'WL0016', name:'门锁芯', spec:'AB 锁芯 / 70mm', unit:'只', cat:'锁具', price:55, vendor:'诸暨××五交化'},
+  {code:'WL0017', name:'人工费', spec:'1 人 × 1 天', unit:'人天', cat:'人工费', price:200, vendor:''},
+  {code:'WL0018', name:'人工费（电工）', spec:'持证电工 / 1 人天', unit:'人天', cat:'人工费', price:320, vendor:''}
+];
+var SUPPLIER=['诸暨××建材有限公司','诸暨××灯具经营部','诸暨××机电设备商行','诸暨××门业','诸暨××五交化','义乌××消防器材','诸暨××管材','义乌××照明电器'];
+var CATS=['地砖 / 石材','照明灯具','电气元件','门窗五金','给排水管件','涂料 / 腻子','人工费','消防器材','锁具','其他'];
+var UNITS=['块','只','支','套','米','袋','桶','kg','人天','项'];
+
 /* 待采购池（来自报修单「需物料」） */
 var POOL=[
   {no:'BX202610-0027', pl:'大唐袜业城', b:'C 栋', f:'1F', unit:'1F-C05', type:'地砖',
@@ -193,30 +213,30 @@ var JB=[
   {no:'JB202610-0009', name:'C 栋 1F 地砖更换', content:'1F-C05 门口地砖破损 2 块，采购同规格地砖后更换',
    amount:1560, unit:'浙勤安顺物业', due:'2026-11-05', reqBy:'物业 张××', reqAt:'2026-10-19 14:00',
    state:'草稿', node:'—', ver:1, bx:['BX202610-0027'], att:'', quotes:[], logs:[],
-   items:[{id:1, name:'防滑地砖 600×600', spec:'灰色 / 通体', qty:12, price:98, vendor:'诸暨××建材', done:0},
-          {id:2, name:'水泥砂浆', spec:'25kg/袋', qty:4, price:30, vendor:'诸暨××建材', done:0},
-          {id:3, name:'人工费', spec:'2 人 × 1 天', qty:1, price:200, vendor:'—', done:0}],
+   items:[{id:1, name:'防滑地砖 600×600', spec:'灰色 / 通体 / 哑光', unit:'块', qty:12, price:98, vendor:'诸暨××建材有限公司', matCode:'WL0001', refPrice:98, done:0},
+          {id:2, name:'水泥砂浆', spec:'25kg/袋 · M10', unit:'袋', qty:4, price:30, vendor:'诸暨××建材有限公司', matCode:'WL0002', refPrice:30, done:0},
+          {id:3, name:'人工费', spec:'1 人 × 1 天', unit:'人天', qty:1, price:200, vendor:'—', matCode:'WL0017', refPrice:200, done:0}],
    entries:[]},
   {no:'JB202610-0008', name:'A 栋 2F 配电箱空开更换', content:'2F-A18 配电箱空开烧毁，采购同规格空开 3 只并更换',
    amount:1120, unit:'浙勤安顺物业', due:'2026-11-02', reqBy:'物业 张××', reqAt:'2026-10-24 17:10',
    state:'待审核', node:'市场部负责人', ver:1, bx:['BX202610-0033'], att:'比价单-空开.pdf',
-   quotes:[{vendor:'诸暨××机电', price:280},{vendor:'义乌××电气', price:295},{vendor:'诸暨××五交化', price:310}],
+   quotes:[{vendor:'诸暨××机电设备商行', price:280},{vendor:'义乌××电气', price:295},{vendor:'诸暨××五交化', price:310}],
    logs:[['2026-10-24 17:10','提交审核（预申请 ¥1,120）'],['2026-10-25 09:20','市场管理部 通过（初审）']],
-   items:[{id:1, name:'小型断路器 DZ47-63 C25', spec:'2P / 25A', qty:3, price:280, vendor:'诸暨××机电', done:0},
-          {id:2, name:'辅材（线鼻子/绝缘胶带）', spec:'—', qty:1, price:160, vendor:'诸暨××五交化', done:0},
-          {id:3, name:'人工费', spec:'1 人 × 1 天', qty:1, price:120, vendor:'—', done:0}],
+   items:[{id:1, name:'小型断路器', spec:'DZ47-63 C25 · 2P / 25A', unit:'只', qty:3, price:280, vendor:'诸暨××机电设备商行', matCode:'WL0005', refPrice:280, done:0},
+          {id:2, name:'辅材（线鼻子/绝缘胶带）', spec:'配套', unit:'项', qty:1, price:160, vendor:'诸暨××五交化', matCode:'WL0007', refPrice:0, done:0},
+          {id:3, name:'人工费（电工）', spec:'持证电工 / 1 人天', unit:'人天', qty:1, price:120, vendor:'—', matCode:'WL0018', refPrice:320, done:0}],
    entries:[]},
   {no:'JB202610-0007', name:'B 栋 1F 通道灯管更换', content:'东侧公共通道灯管闪烁，采购 LED 灯管 8 支更换',
    amount:640, unit:'浙勤安顺物业', due:'2026-10-30', reqBy:'物业 张××', reqAt:'2026-10-22 09:30',
    state:'部分核销', node:'已通过 · 可采购', ver:1, bx:['BX202610-0026'], att:'比价单-灯管.pdf',
-   quotes:[{vendor:'诸暨××灯具', price:68},{vendor:'义乌××照明', price:72},{vendor:'诸暨××五交化', price:75}],
+   quotes:[{vendor:'诸暨××灯具经营部', price:68},{vendor:'义乌××照明', price:72},{vendor:'诸暨××五交化', price:75}],
    logs:[['2026-10-22 09:30','提交审核（预申请 ¥640）'],['2026-10-22 11:00','市场管理部 通过'],
      ['2026-10-23 10:15','市场部负责人 通过（<1000 元终审）→ 可采购'],
      ['2026-10-24 15:30','第 1 次核销：发票 INV-20261024-007，¥340（灯管 5 支）']],
-   items:[{id:1, name:'LED 灯管 T8 18W', spec:'1.2m / 白光', qty:8, price:68, vendor:'诸暨××灯具', done:5},
-          {id:2, name:'灯管支架', spec:'T8 单管', qty:2, price:60, vendor:'诸暨××灯具', done:0},
-          {id:3, name:'人工费', spec:'1 人 × 半天', qty:1, price:120, vendor:'—', done:0}],
-   entries:[{no:'HX202610-0011', invoice:'INV-20261024-007', date:'2026-10-24', vendor:'诸暨××灯具',
+   items:[{id:1, name:'LED 灯管 T8 18W', spec:'1.2m / 白光 / 6500K', unit:'支', qty:8, price:68, vendor:'诸暨××灯具经营部', matCode:'WL0003', refPrice:72, done:5},
+          {id:2, name:'灯管支架', spec:'T8 单管 / 铁质', unit:'套', qty:2, price:60, vendor:'诸暨××灯具经营部', matCode:'WL0004', refPrice:60, done:0},
+          {id:3, name:'人工费', spec:'1 人 × 半天', unit:'人天', qty:1, price:120, vendor:'—', matCode:'WL0017', refPrice:200, done:0}],
+   entries:[{no:'HX202610-0011', invoice:'INV-20261024-007', date:'2026-10-24', vendor:'诸暨××灯具经营部',
      amount:340, other:0, at:'2026-10-24 15:30', abn:[],
      detail:[{itemId:1, qty:5, price:68}]}]},
   {no:'JB202610-0006', name:'A 栋 1F 卷帘门维修', content:'1F-A02 卷帘门导轨磨损，更换导轨并润滑',
@@ -226,8 +246,8 @@ var JB=[
    logs:[['2026-10-16 10:00','提交审核（预申请 ¥880）'],['2026-10-16 15:20','市场管理部 通过'],
      ['2026-10-17 09:40','市场部负责人 通过 → 可采购'],
      ['2026-10-19 14:10','第 1 次核销：发票 INV-20261019-003，¥880（全额）→ 核销完成']],
-   items:[{id:1, name:'卷帘门导轨', spec:'3m / 镀锌', qty:2, price:480, vendor:'诸暨××门业', done:2},
-          {id:2, name:'润滑脂', spec:'500g', qty:1, price:40, vendor:'诸暨××门业', done:1}],
+   items:[{id:1, name:'卷帘门导轨', spec:'3m / 镀锌', unit:'根', qty:2, price:480, vendor:'诸暨××门业', matCode:'WL0008', refPrice:480, done:2},
+          {id:2, name:'润滑脂', spec:'500g / 通用型', unit:'桶', qty:1, price:40, vendor:'诸暨××门业', matCode:'WL0009', refPrice:40, done:1}],
    entries:[{no:'HX202610-0010', invoice:'INV-20261019-003', date:'2026-10-19', vendor:'诸暨××门业',
      amount:880, other:-120, at:'2026-10-19 14:10', abn:[],
      detail:[{itemId:1, qty:2, price:480},{itemId:2, qty:1, price:40}]}]}
@@ -408,16 +428,25 @@ function saveEx(no){
 /* ================= 新建交办单 ================= */
 var draftItems=[], draftBx=[];
 function openCreate(bxList){
-  draftBx=bxList||sel||[];
-  if(!draftBx.length){toast('请先在待采购池勾选报修单');return;}
-  draftItems=[{name:'',spec:'',qty:1,price:0,vendor:''}];
+  draftBx=(bxList||sel||[]).slice();
+  draftItems=[{label:'',name:'',spec:'',unit:'',qty:1,price:0,vendor:'',matCode:'',refPrice:0}];
   var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
     +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">新建交办单</h3>'
-    +'<p class="text-[11px] text-[#94A3B8] mt-1">关联 '+draftBx.length+' 张报修单　·　<b>物资明细合计必须等于预申请金额</b>　·　比价单至少 2 家</p></div>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">关联 '+draftBx.length+' 张报修单　·　<b>物资明细合计必须等于预申请金额</b>　·　比价单 3 家</p></div>'
     +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
   h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">';
-  h+='<div class="blk"><div class="blk-t"><i class="fas fa-link text-[#2563EB]"></i>关联报修单</div>'
-    +'<p class="text-[12px] text-[#64748B] leading-6">'+draftBx.map(function(x){return esc(x);}).join('、')+'</p></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-link text-[#2563EB]"></i>① 关联报修单 <span class="text-[11px] text-[#94A3B8] font-normal" id="bxCnt">已选 '+draftBx.length+' 张</span></div>'
+    +'<p class="text-[11px] text-[#94A3B8] mb-2">从待采购池勾选，可跨楼栋、跨日期合成一张单，<b>一次审批覆盖多张报修</b>。至少 1 张。</p>'
+    +'<div id="bxBox">'
+    +POOL.map(function(p){
+        return '<label class="flex items-center gap-2 py-1.5 text-[12px] cursor-pointer" style="border-bottom:1px dashed #F1F5F9">'
+          +'<input type="checkbox" class="accent-[#FF4D2D]" '+(draftBx.indexOf(p.no)>-1?'checked':'')+' onclick="pickBx(\''+p.no+'\',this)">'
+          +'<span class="font-medium">'+esc(p.no)+'</span>'
+          +'<span class="text-[#94A3B8]">'+esc(p.pl+' '+p.b+' '+p.f+' '+p.unit)+'　'+esc(p.type)+'</span>'
+          +'<span class="text-[#94A3B8] ml-auto">停留 '+p.days+' 天</span></label>';
+      }).join('')
+    +(POOL.length?'':'<p class="text-[12px] text-[#94A3B8] py-3">待采购池暂无报修单</p>')
+    +'</div></div>';
   h+='<div class="grid grid-cols-2 gap-3">'
     +'<div><label class="fl"><i>*</i>项目名称</label><input class="fi" id="n_name" placeholder="如：C 栋 1F 地砖更换"></div>'
     +'<div><label class="fl">实施单位或部门</label><input class="fi" id="n_unit" value="浙勤安顺物业"></div>'
@@ -426,11 +455,17 @@ function openCreate(bxList){
     +'<div><label class="fl"><i>*</i>预申请金额（元）</label><input class="fi" id="n_amount" placeholder="须等于明细合计"></div>'
     +'</div>';
   h+='<div class="blk"><div class="blk-t"><i class="fas fa-list text-[#7C3AED]"></i>物资明细 <span class="text-[11px] text-[#94A3B8] font-normal" id="itemSum">合计 ¥0</span></div>'
+    +'<p class="text-[11px] text-[#94A3B8] mb-2">物资<b>从物资库下拉选择</b>，自动带出规格 / 单位 / 参考价 / 默认供应商；库里没有的点行末「新建」当场建档并入库。</p>'
     +'<div id="itemBox"></div>'
     +'<button class="btn btn-ghost mt-2" onclick="addItem()"><i class="fas fa-plus mr-1"></i>加一行</button></div>';
-  h+='<div class="blk"><div class="blk-t"><i class="fas fa-file-invoice-dollar text-[#B45309]"></i>比价单（≥2 家）</div>'
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-file-invoice-dollar text-[#B45309]"></i>比价单（≥3 家）</div>'
+    +'<p class="text-[11px] text-[#94A3B8] mb-2">填 3 家供应商名称即可，各家报价以上传的比价单附件为准，不在这里重复录入。</p>'
     +'<div class="grid grid-cols-3 gap-2">'
-    +'<input class="fi" id="q1" placeholder="供应商 1 + 单价"><input class="fi" id="q2" placeholder="供应商 2 + 单价"><input class="fi" id="q3" placeholder="供应商 3（可空）"></div>'
+    +[1,2,3].map(function(k){
+      return '<div><label class="fl"><i>*</i>供应商 '+k+'</label>'
+        +'<select class="fi" id="qv'+k+'"><option value="">选择供应商</option>'
+        +SUPPLIER.map(function(s){return '<option>'+esc(s)+'</option>';}).join('')+'</select></div>';
+    }).join('')+'</div>'
     +'<div class="mt-2"><label class="fl"><i>*</i>比价单附件</label>'
     +'<div class="fi" style="cursor:pointer;color:#94A3B8" onclick="pickAtt()" id="attBox">点击上传（PDF / 图片 / Excel / Word）</div></div></div>';
   h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
@@ -440,6 +475,35 @@ function openCreate(bxList){
   document.getElementById('drawer').innerHTML=h;
   show();renderItems();
 }
+/* 抽屉内勾选报修单 */
+function pickBx(no,el){
+  if(el.checked){ if(draftBx.indexOf(no)<0) draftBx.push(no); }
+  else { draftBx=draftBx.filter(function(x){return x!==no;}); }
+  var c=document.getElementById('bxCnt');
+  if(c) c.textContent='已选 '+draftBx.length+' 张';
+}
+/* 「新建交办单」与「合并建交办单」的区别 */
+function helpCreate(){
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">两个入口什么区别</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">不是两种单，是同一种交办单的两个入口</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-code-compare text-[#2563EB]"></i>区别只有一处：报修单怎么带进来</div>'
+    +'<div class="kv"><span class="k">顶部「新建交办单」</span><span class="v" style="text-align:left">从零开始建，<b>在弹窗第 ① 步自己勾</b>要关联哪几张报修单</span></div>'
+    +'<div class="kv"><span class="k">待采购池「合并建交办单」</span><span class="v" style="text-align:left">先在外面把要合并的勾好，点按钮<b>自动带入</b>，少点两步</span></div></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-equals text-[#15803D]"></i>完全一样的地方</div>'
+    +'<div class="kv"><span class="k">产出</span><span class="v">都是同一种交办单（JB 开头），审批链、核销、额度扣减都一样</span></div>'
+    +'<div class="kv"><span class="k">一张单可带多张报修</span><span class="v">这是"攒批"的意义：一次审批覆盖多张报修，不用一张张报</span></div>'
+    +'<div class="kv"><span class="k">建单后</span><span class="v">被关联的报修单从待采购池移出，状态转「待采购」</span></div></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-lightbulb text-[#B45309]"></i>什么时候用哪个</div>'
+    +'<div class="kv"><span class="k">攒了几张同类的</span><span class="v">如一栋楼 3 张灯管报修 → 勾选后「合并建交办单」</span></div>'
+    +'<div class="kv"><span class="k">手上已有采购计划</span><span class="v">直接点「新建交办单」，弹窗里挑对应报修单</span></div>'
+    +'<div class="kv"><span class="k">忘了先勾</span><span class="v">进弹窗再勾也行，两种入口最终落到同一个表单</span></div></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-primary" onclick="closeAll();openCreate()">那就新建一张</button></div>';
+  document.getElementById('drawer').innerHTML=h;show();
+}
 var attPicked=false;
 function pickAtt(){
   attPicked=true;
@@ -447,39 +511,161 @@ function pickAtt(){
   document.getElementById('attBox').style.color='#1F2430';
   toast('已上传比价单附件');
 }
+function matLabel(m){return m.name+' · '+m.spec;}
+function findMat(label){var r=null;MATLIB.forEach(function(m){if(matLabel(m)===label)r=m;});return r;}
 function renderItems(){
-  var h='<table class="w-full itb"><thead><tr><th>物资名称</th><th>规格</th><th style="width:64px">数量</th><th style="width:80px">单价</th><th style="width:78px">小计</th><th>供应商</th><th style="width:40px"></th></tr></thead><tbody>';
+  var h='<table class="w-full itb"><thead><tr>'
+    +'<th style="width:200px">物资（库内选择）</th><th style="width:130px">规格</th><th style="width:46px">单位</th>'
+    +'<th style="width:56px">数量</th><th style="width:92px">单价</th><th style="width:72px">小计</th>'
+    +'<th style="width:150px">供应商</th><th style="width:54px"></th></tr></thead><tbody>';
   draftItems.forEach(function(it,i){
+    var dev=(it.price&&it.refPrice)?(it.price/it.refPrice-1)*100:0;
+    var devTxt=it.refPrice?('参考价 ¥'+it.refPrice+(Math.abs(dev)>=20?(dev>0?'　偏高 '+Math.round(dev)+'%':'　偏低 '+Math.round(dev)+'%'):'')):'';
     h+='<tr>'
-      +'<td><input class="fi" style="padding:4px 7px;font-size:12px" id="it_n'+i+'" value="'+esc(it.name)+'" placeholder="物资名"></td>'
-      +'<td><input class="fi" style="padding:4px 7px;font-size:12px" id="it_s'+i+'" value="'+esc(it.spec)+'" placeholder="规格"></td>'
+      +'<td><input class="fi" style="padding:4px 7px;font-size:12px" id="it_n'+i+'" list="matDL" value="'+esc(it.label||'')+'" placeholder="输入关键字搜索" oninput="pickMat('+i+',this.value)" onblur="blurMat('+i+',this.value)"></td>'
+      +'<td class="text-[11px] text-[#64748B]" style="white-space:normal">'+(esc(it.spec)||'—')+'</td>'
+      +'<td class="text-[11px] text-[#64748B]">'+(esc(it.unit)||'—')+'</td>'
       +'<td><input class="fi" style="padding:4px 7px;font-size:12px" id="it_q'+i+'" value="'+it.qty+'" oninput="calcSum()"></td>'
-      +'<td><input class="fi" style="padding:4px 7px;font-size:12px" id="it_p'+i+'" value="'+it.price+'" oninput="calcSum()"></td>'
+      +'<td><input class="fi" style="padding:4px 7px;font-size:12px" id="it_p'+i+'" value="'+it.price+'" oninput="calcSum()">'
+        +'<div class="text-[10px]" id="it_dv'+i+'" style="color:'+(Math.abs(dev)>=20?'#E63E20':'#94A3B8')+';line-height:1.3;margin-top:2px">'+devTxt+'</div></td>'
       +'<td class="text-[12px]">¥'+money((it.qty||0)*(it.price||0))+'</td>'
-      +'<td><input class="fi" style="padding:4px 7px;font-size:12px" id="it_v'+i+'" value="'+esc(it.vendor)+'" placeholder="供应商"></td>'
-      +'<td>'+(draftItems.length>1?'<span class="lk-gray" onclick="delItem('+i+')"><i class="fas fa-trash"></i></span>':'')+'</td></tr>';
+      +'<td><input class="fi" style="padding:4px 7px;font-size:12px" id="it_v'+i+'" list="supDL" value="'+esc(it.vendor||'')+'" placeholder="选择供应商"></td>'
+      +'<td class="whitespace-nowrap">'
+        +'<span class="lk-gray" title="库中没有？当场新建并入库" onclick="openNewMat('+i+')"><i class="fas fa-plus-circle"></i></span>'
+        +(draftItems.length>1?' <span class="lk-gray" onclick="delItem('+i+')"><i class="fas fa-trash"></i></span>':'')
+      +'</td></tr>';
   });
-  h+='</tbody></table>';
+  h+='</tbody></table>'
+    +'<datalist id="matDL">'+MATLIB.map(function(m){return '<option value="'+esc(matLabel(m))+'">'+esc(m.cat)+'　¥'+m.price+'/'+esc(m.unit)+'</option>';}).join('')+'</datalist>'
+    +'<datalist id="supDL">'+SUPPLIER.map(function(s){return '<option value="'+esc(s)+'"></option>';}).join('')+'</datalist>';
   document.getElementById('itemBox').innerHTML=h;
   calcSum();
 }
 function readItems(){
   draftItems.forEach(function(it,i){
-    it.name=document.getElementById('it_n'+i).value.trim();
-    it.spec=document.getElementById('it_s'+i).value.trim();
-    it.qty=parseFloat(document.getElementById('it_q'+i).value)||0;
-    it.price=parseFloat(document.getElementById('it_p'+i).value)||0;
-    it.vendor=document.getElementById('it_v'+i).value.trim();
+    var nEl=document.getElementById('it_n'+i),qEl=document.getElementById('it_q'+i),
+        pEl=document.getElementById('it_p'+i),vEl=document.getElementById('it_v'+i);
+    if(nEl) it.label=nEl.value.trim();
+    if(qEl) it.qty=parseFloat(qEl.value)||0;
+    if(pEl) it.price=parseFloat(pEl.value)||0;
+    if(vEl) it.vendor=vEl.value.trim();
   });
+}
+/* 选中库内物资 → 带出规格/单位/参考价/默认供应商 */
+function pickMat(i,val){
+  readItems();
+  var it=draftItems[i];
+  var m=findMat(val);
+  if(m){
+    it.label=matLabel(m);
+    it.name=m.name;it.spec=m.spec;it.unit=m.unit;it.matCode=m.code;it.refPrice=m.price;
+    if(!it.price) it.price=m.price;
+    if(!it.vendor&&m.vendor) it.vendor=m.vendor;
+    renderItems();
+    toast('已带出：'+m.name+'（'+m.code+'）　参考价 ¥'+m.price+'/'+m.unit);
+  }else if(!val){
+    it.label='';it.name='';it.spec='';it.unit='';it.matCode='';it.refPrice=0;
+    renderItems();
+  }else{
+    /* 输入了但没从下拉里选中 → 立刻作废该行已带出的库信息（不重渲染，避免打断输入） */
+    it.matCode='';it.refPrice=0;
+  }
+}
+/* 失焦时纠正显示：没选中库内物资的行清空规格，提示重新选 */
+function blurMat(i,val){
+  readItems();
+  var it=draftItems[i];
+  if(val&&!findMat(val)){
+    it.matCode='';it.spec='';it.unit='';it.refPrice=0;
+    renderItems();
+    toast('「'+val+'」不在物资库中，请从下拉选中，或点行末「+」建档');
+  }
 }
 function calcSum(){
   readItems();
-  var s=0;draftItems.forEach(function(it){s+=it.qty*it.price;});
+  var s=0;
+  draftItems.forEach(function(it,i){
+    s+=it.qty*it.price;
+    var dv=document.getElementById('it_dv'+i);
+    if(dv&&it.refPrice){
+      var dev=(it.price/it.refPrice-1)*100;
+      dv.textContent='参考价 ¥'+it.refPrice+(Math.abs(dev)>=20?(dev>0?'　偏高 '+Math.round(dev)+'%':'　偏低 '+Math.round(dev)+'%'):'');
+      dv.style.color=Math.abs(dev)>=20?'#E63E20':'#94A3B8';
+    }
+  });
   document.getElementById('itemSum').textContent='合计 ¥'+money(s);
   return s;
 }
-function addItem(){readItems();draftItems.push({name:'',spec:'',qty:1,price:0,vendor:''});renderItems();}
+function addItem(){readItems();draftItems.push({label:'',name:'',spec:'',unit:'',qty:1,price:0,vendor:'',matCode:'',refPrice:0});renderItems();}
 function delItem(i){readItems();draftItems.splice(i,1);renderItems();}
+
+/* ================= 库中没有 → 当场新建并入库 ================= */
+var newMatRow=0, __jbSnap=null;
+function fv(id){var e=document.getElementById(id);return e?e.value:'';}
+function openNewMat(i){
+  newMatRow=i;readItems();
+  /* 快照当前交办单表单，供「取消」时原样返回 */
+  __jbSnap={bx:draftBx.slice(), items:JSON.parse(JSON.stringify(draftItems)),
+    f:{n_name:fv('n_name'),n_unit:fv('n_unit'),n_content:fv('n_content'),n_due:fv('n_due'),n_amount:fv('n_amount'),
+       qv1:fv('qv1'),qv2:fv('qv2'),qv3:fv('qv3')}};
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">新建物资（入库）</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">填完即可继续提交，不卡单；该物资同时写入物资库，标记「待合并」</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">';
+  h+='<div class="grid grid-cols-2 gap-3">'
+    +'<div class="col-span-2"><label class="fl"><i>*</i>物资名称</label><input class="fi" id="nm_name" placeholder="如：防滑地砖 600×600"></div>'
+    +'<div><label class="fl"><i>*</i>规格型号</label><input class="fi" id="nm_spec" placeholder="如：灰色 / 通体 / 哑光"></div>'
+    +'<div><label class="fl"><i>*</i>类别</label><select class="fi" id="nm_cat">'
+      +CATS.map(function(c){return '<option>'+c+'</option>';}).join('')+'</select></div>'
+    +'<div><label class="fl"><i>*</i>单位</label><select class="fi" id="nm_unit">'
+      +UNITS.map(function(u){return '<option>'+u+'</option>';}).join('')+'</select></div>'
+    +'<div><label class="fl"><i>*</i>市场参考价（元）</label><input class="fi" id="nm_price" type="number" placeholder="缺参考价无法做偏离校验"></div>'
+    +'</div>';
+  h+='<div class="warn"><i class="fas fa-circle-info mr-1"></i>保存后本行自动带出规格/单位/参考价；供应商标记为默认供应商。后续由物业主管在物资库把重复写法合并。</div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="backToCreate()"><i class="fas fa-arrow-left mr-1"></i>返回交办单</button>'
+    +'<button class="btn btn-primary" onclick="saveNewMat()">保存并回填本行</button></div>';
+  document.getElementById('drawer').innerHTML=h;show();
+}
+function saveNewMat(){
+  var name=document.getElementById('nm_name').value.trim();
+  var spec=document.getElementById('nm_spec').value.trim();
+  var price=parseFloat(document.getElementById('nm_price').value);
+  var cat=document.getElementById('nm_cat').value;
+  var unit=document.getElementById('nm_unit').value;
+  if(!name){toast('请填写物资名称');return;}
+  if(!spec){toast('请填写规格型号（名称 + 规格 才是唯一标识）');return;}
+  if(!(price>0)){toast('请填写市场参考价');return;}
+  var dup=null;
+  MATLIB.forEach(function(m){if(m.name===name&&m.spec===spec)dup=m;});
+  if(dup){toast('库中已有「'+dup.name+'」同规格（'+dup.code+'），已直接回填');}
+  else{
+    var code='WL00'+(MATLIB.length+1);
+    MATLIB.push({code:code,name:name,spec:spec,unit:unit,cat:cat,price:price,vendor:draftItems[newMatRow].vendor||''});
+    toast('已入库：'+code+'　'+name+'（待合并：如与库内已有物资是同一件，可在物资库合并）');
+  }
+  var it=draftItems[newMatRow];
+  var m=dup||MATLIB[MATLIB.length-1];
+  it.label=matLabel(m);it.name=m.name;it.spec=m.spec;it.unit=m.unit;it.matCode=m.code;it.refPrice=m.price;
+  if(!it.price) it.price=m.price;
+  if(!it.vendor&&m.vendor) it.vendor=m.vendor;
+  if(__jbSnap) __jbSnap.items=JSON.parse(JSON.stringify(draftItems));
+  backToCreate();
+}
+/* 从「新建物资」返回交办单新建页，已填内容原样保留 */
+function backToCreate(){
+  var snap=__jbSnap;
+  if(!snap){closeAll();return;}
+  openCreate(snap.bx);
+  draftItems=snap.items;
+  renderItems();calcSum();
+  Object.keys(snap.f).forEach(function(id){
+    var el=document.getElementById(id);
+    if(el&&snap.f[id]!==''&&snap.f[id]!=null) el.value=snap.f[id];
+  });
+  __jbSnap=null;
+}
 
 function saveCreate(isDraft){
   var sum=calcSum();
@@ -487,14 +673,24 @@ function saveCreate(isDraft){
   var content=document.getElementById('n_content').value.trim();
   var due=document.getElementById('n_due').value;
   var amount=parseFloat(document.getElementById('n_amount').value)||0;
-  var q1=document.getElementById('q1').value.trim(),q2=document.getElementById('q2').value.trim(),q3=document.getElementById('q3').value.trim();
+  var qs=[1,2,3].map(function(k){
+    return {vendor:(document.getElementById('qv'+k)||{}).value||'', price:parseFloat((document.getElementById('qp'+k)||{}).value)||0};
+  }).filter(function(q){return q.vendor;});
+  if(!draftBx.length){toast('请至少勾选 1 张报修单（第 ① 步）');return;}
   if(!name||!content){toast('请填写项目名称与工作内容');return;}
-  if(draftItems.length===0||!draftItems[0].name){toast('请至少填写 1 行物资明细');return;}
+  if(draftItems.length===0){toast('请至少选择 1 行物资明细');return;}
+  var bad=-1;
+  draftItems.forEach(function(it,i){
+    if(bad>-1) return;
+    var m=null;
+    MATLIB.forEach(function(x){if(x.code===it.matCode) m=x;});
+    if(!m||matLabel(m)!==(it.label||'')) bad=i;
+  });
+  if(bad>-1){toast('第 '+(bad+1)+' 行物资未从物资库选择，请下拉选中，或点行末「+」当场建档');return;}
   if(!isDraft){
     if(!amount){toast('请填写预申请金额');return;}
     if(Math.abs(amount-sum)>0.01){toast('物资明细合计 ¥'+money(sum)+' 与预申请金额 ¥'+money(amount)+' 不一致');return;}
-    var qn=[q1,q2,q3].filter(function(x){return x;}).length;
-    if(qn<2){toast('比价单需至少 2 家供应商报价（当前 '+qn+' 家）');return;}
+    if(qs.length<3){toast('比价单需 3 家供应商（当前 '+qs.length+' 家），报价金额以附件为准');return;}
     if(!attPicked){toast('请上传比价单附件（PDF / 图片 / Excel / Word）');return;}
   }
   var no='JB202610-00'+(10+JB.length);
@@ -502,9 +698,9 @@ function saveCreate(isDraft){
   var j={no:no, name:name, content:content, amount:amount||sum, unit:document.getElementById('n_unit').value.trim()||'浙勤安顺物业',
     due:due||'—', reqBy:'物业 张××', reqAt:'2026-10-27 '+new Date().toTimeString().slice(0,5),
     state:isDraft?'草稿':'待审核', node:isDraft?'—':flow[0], ver:1, bx:draftBx.slice(),
-    att:attPicked?'比价单.pdf':'', quotes:[[q1,q2,q3].filter(function(x){return x;})].map(function(x){return {vendor:x,price:0};}),
+    att:attPicked?'比价单.pdf':'', quotes:qs,
     logs:isDraft?[]:[['2026-10-27 '+new Date().toTimeString().slice(0,5),'提交审核（预申请 ¥'+money(amount||sum)+'）｜审批链：'+flow.join(' → ')]],
-    items:draftItems.map(function(it,i){return {id:i+1,name:it.name,spec:it.spec,qty:it.qty,price:it.price,vendor:it.vendor,done:0};}),
+    items:draftItems.map(function(it,i){return {id:i+1,name:it.name,spec:it.spec,unit:it.unit,qty:it.qty,price:it.price,vendor:it.vendor||'—',matCode:it.matCode,refPrice:it.refPrice,done:0};}),
     entries:[]};
   JB.unshift(j);
   /* 从待采购池移除已建单的报修 */
@@ -543,16 +739,19 @@ function openAudit(no){
   h+='<div class="blk"><div class="blk-t"><i class="fas fa-camera text-[#2563EB]"></i>报修真实性（关联 '+j.bx.length+' 张）</div>'
     +'<p class="text-[12px] text-[#64748B]">'+j.bx.map(function(x){return '<span class="lk" onclick="toast(\'已定位到报修单 '+x+'\')">'+esc(x)+'</span>';}).join('　')+'</p>'
     +'<p class="text-[11px] text-[#94A3B8] mt-1"><i class="fas fa-info-circle mr-1"></i>报修单已含现场照片与处理后照片，可点单号查看</p></div>';
-  h+='<div class="blk"><div class="blk-t"><i class="fas fa-list text-[#7C3AED]"></i>物资明细与价格参考</div>'
-    +'<table class="w-full itb"><thead><tr><th>物资</th><th>数量</th><th>审批单价</th><th>小计</th><th>历史中位</th><th>偏离</th></tr></thead><tbody>'
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-list text-[#7C3AED]"></i>物资明细与价格参考 <span class="text-[11px] font-normal text-[#94A3B8]">参考价取自物资库</span></div>'
+    +'<table class="w-full itb"><thead><tr><th>物资（库编码）</th><th>规格</th><th>数量</th><th>审批单价</th><th>库参考价</th><th>偏离</th></tr></thead><tbody>'
     +j.items.map(function(it){
-      var hist=[62,65,70][it.id%3];
-      var dev=Math.round((it.price/hist-1)*100);
-      return '<tr><td>'+esc(it.name)+'</td><td>'+it.qty+'</td><td>¥'+money(it.price)+'</td><td>¥'+money(it.qty*it.price)+'</td>'
-        +'<td class="text-[#64748B]">¥'+hist+'</td>'
-        +'<td style="color:'+(dev>30?'#E63E20':'#15803D')+'">'+(dev>0?'+':'')+dev+'%</td></tr>';
+      var ref=it.refPrice||0;
+      var dev=ref?Math.round((it.price/ref-1)*100):0;
+      return '<tr><td>'+esc(it.name)+'<div class="text-[10px] text-[#94A3B8]">'+esc(it.matCode||'—')+'</div></td>'
+        +'<td class="text-[11px] text-[#64748B]" style="white-space:normal">'+esc(it.spec)+'</td>'
+        +'<td>'+it.qty+' '+esc(it.unit||'')+'</td><td>¥'+money(it.price)+'</td>'
+        +'<td class="text-[#64748B]">'+(ref?'¥'+money(ref):'—')+'</td>'
+        +'<td style="color:'+(!ref?'#94A3B8':(Math.abs(dev)>=20?'#E63E20':'#15803D'))+'">'+(ref?(dev>0?'+':'')+dev+'%':'无基准')+'</td></tr>';
     }).join('')
-    +'</tbody></table></div>';
+    +'</tbody></table>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-2"><i class="fas fa-circle-info mr-1"></i>审批单价偏离库参考价 ±20% 以上高亮提示；核销阶段按 R-13 以 max(审批价, 库参考价)×1.1 为异常线。</p></div>';
   h+='<div class="blk"><div class="blk-t"><i class="fas fa-scale-balanced text-[#B45309]"></i>比价充分性</div>'
     +'<div class="text-[12px] text-[#64748B] leading-6">'+(j.quotes.length?j.quotes.map(function(q){return esc(q.vendor);}).join('　vs　'):'<span style="color:#B91C1C">未录入比价行</span>')
     +'<br>附件：'+(j.att?'<span class="lk" onclick="toast(\'已下载 '+esc(j.att)+'\')">'+esc(j.att)+'</span>':'<span style="color:#B91C1C">未上传</span>')+'</div></div>';
@@ -607,7 +806,8 @@ function openEntry(no){
   h+='<div class="grid grid-cols-2 gap-3">'
     +'<div><label class="fl"><i>*</i>发票号</label><input class="fi" id="e_inv" placeholder="如 INV-20261027-001"></div>'
     +'<div><label class="fl"><i>*</i>开票日期</label><input class="fi" id="e_date" type="date" value="2026-10-27"></div>'
-    +'<div><label class="fl"><i>*</i>供应商</label><input class="fi" id="e_vendor" placeholder="如 诸暨××灯具"></div>'
+    +'<div><label class="fl"><i>*</i>供应商（库内）</label><select class="fi" id="e_vendor"><option value="">选择供应商</option>'
+      +SUPPLIER.map(function(s){return '<option>'+esc(s)+'</option>';}).join('')+'</select></div>'
     +'<div><label class="fl"><i>*</i>发票金额</label><input class="fi" id="e_amount" placeholder="含运费/税费" oninput="calcEntry()"></div>'
     +'<div><label class="fl">其他费用（运费/税费/折扣）</label><input class="fi" id="e_other" value="0" oninput="calcEntry()"></div>'
     +'<div><label class="fl">凭证附件</label><div class="fi" style="cursor:pointer;color:#94A3B8" onclick="pickInv()" id="invBox">点击上传发票（PDF / 图片）</div></div>'
@@ -696,11 +896,13 @@ function doEntry(no){
       EX.unshift({no:'YC202610-00'+(10+EX.length), jb:j.no, item:it.name, type:'超核',
         diff:'累计 '+it.done+' 超出审批 '+it.qty, state:'待处置', who:'—', note:'核销时累计数量超出审批数量'});
     }
-    /* C5 单价超 10% → 标异常 */
-    if(p>it.price*1.1){
-      abn.push({type:'单价偏高',item:it.name,diff:'¥'+p+' vs 审批 ¥'+it.price});
+    /* R-13 单价超基准 10% → 标异常（基准 = max(审批单价, 物资库参考价)） */
+    var base=Math.max(it.price, it.refPrice||0);
+    if(p>base*1.1){
+      abn.push({type:'单价偏高',item:it.name,diff:'¥'+p+' vs 基准 ¥'+base});
       EX.unshift({no:'YC202610-00'+(11+EX.length), jb:j.no, item:it.name, type:'单价偏高',
-        diff:'¥'+p+' 高于审批 ¥'+it.price, state:'待处置', who:'—', note:'核销单价高于审批单价 10% 以上'});
+        diff:'¥'+p+' 高于基准 ¥'+base, state:'待处置', who:'—',
+        note:'核销单价高于「审批单价 / 库参考价 取高」的 110%（审批 ¥'+it.price+(it.refPrice?'，库参考 ¥'+it.refPrice:'')+'）'});
     }
   });
   if(!detail.length){toast('本次数量均为 0，请填写');return;}
@@ -787,13 +989,16 @@ function openJb(no){
     +'<div class="kv"><span class="k">经办人</span><span class="v">'+esc(j.reqBy)+'　'+esc(j.reqAt)+'</span></div>'
     +'<div class="kv"><span class="k">关联报修</span><span class="v">'+j.bx.map(function(x){return '<span class="lk" onclick="toast(\'已定位到报修单 '+x+'\')">'+esc(x)+'</span>';}).join('　')+'</span></div></div>';
   h+='<div class="blk"><div class="blk-t"><i class="fas fa-list text-[#7C3AED]"></i>物资明细（逐行核销状态）</div>'
-    +'<table class="w-full itb"><thead><tr><th>物资</th><th>规格</th><th>审批</th><th>已核</th><th>单价</th><th>供应商</th><th>状态</th></tr></thead><tbody>'
+    +'<table class="w-full itb"><thead><tr><th>物资（库编码）</th><th>规格</th><th>审批</th><th>已核</th><th>单价</th><th>库参考价</th><th>供应商</th><th>状态</th></tr></thead><tbody>'
     +j.items.map(function(it){
       var stt=it.done>=it.qty?'<span class="tag" style="background:#DCFCE7;color:#15803D">已核销</span>'
         :(it.done>0?'<span class="tag" style="background:#FFEDE7;color:#E63E20">部分 '+it.done+'/'+it.qty+'</span>'
         :'<span class="tag" style="background:#F1F5F9;color:#64748B">未核销</span>');
-      return '<tr><td>'+esc(it.name)+'</td><td class="text-[#64748B]">'+esc(it.spec)+'</td><td>'+it.qty+'</td>'
-        +'<td>'+it.done+'</td><td>¥'+money(it.price)+'</td><td class="text-[#64748B]">'+esc(it.vendor)+'</td><td>'+stt+'</td></tr>';
+      return '<tr><td>'+esc(it.name)+'<div class="text-[10px] text-[#94A3B8]">'+esc(it.matCode||'—')+'</div></td>'
+        +'<td class="text-[#64748B]" style="white-space:normal">'+esc(it.spec)+'</td><td>'+it.qty+' '+esc(it.unit||'')+'</td>'
+        +'<td>'+it.done+'</td><td>¥'+money(it.price)+'</td>'
+        +'<td class="text-[#94A3B8]">'+(it.refPrice?'¥'+money(it.refPrice):'—')+'</td>'
+        +'<td class="text-[#64748B]">'+esc(it.vendor)+'</td><td>'+stt+'</td></tr>';
     }).join('')
     +'</tbody></table></div>';
   h+='<div class="blk"><div class="blk-t"><i class="fas fa-receipt text-[#B45309]"></i>核销记录（'+j.entries.length+' 次）</div>';

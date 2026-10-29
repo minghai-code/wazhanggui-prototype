@@ -55,10 +55,12 @@
     'property-issue.html':      [{ re: /判定|派整改|转报修/, perm: 'audit' }],
     'property-rectify.html':    [{ re: /派发|复核|批量通过/, perm: 'audit' }],
     'property-complaint.html':  [{ re: /受理|回复/, perm: 'audit' }],
+    'property-material.html':   [{ re: /归一|合并|批量/, perm: 'audit' }],
     'mall-inquiry.html':        [{ re: /下架|导出/, perm: 'audit' }],
     'mall-order-inquiry.html':  [{ re: /取消|备注/, perm: 'audit' }],
     'mall-custom-demand.html': [{ re: /下架|强制关闭/, perm: 'audit' }],
     'mall-order-group.html':   [{ re: /异常标记|取消订单/, perm: 'audit' }],
+    'mall-group-manage.html':  [{ re: /取消全团|重试/, perm: 'audit' }],
     'mall-order-sample.html':  [{ re: /导出/, perm: 'write' }],
     'mall-order-custom.html':  [{ re: /创建|导出/, perm: 'write' }],
     'mall-recommend.html':     [{ re: /新增|编辑|删除|上架|下架|保存|预览/, perm: 'write' }]

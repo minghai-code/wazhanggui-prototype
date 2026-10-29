@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>14b-10b-06 拼单团管理 · 运营端页面说明 · 页面 PRD</title><style>
+:root{--fg:#1F2430;--muted:#64748B;--line:#E9EDF3}
+*{box-sizing:border-box}
+body{margin:0;padding:26px 32px 90px;background:#fff;color:var(--fg);
+ font:14px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif}
+h1{font-size:20px;margin:0 0 6px}
+h2{font-size:17px;margin:34px 0 12px;padding-top:12px;border-top:1px solid var(--line)}
+h3{font-size:15px;margin:22px 0 10px}
+h4{font-size:14px;margin:18px 0 8px;color:#334155}
+p{margin:8px 0}
+table{border-collapse:collapse;width:100%;margin:10px 0 16px;font-size:12.5px}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:#F8FAFC;font-weight:700}
+tr:nth-child(even) td{background:#FCFDFE}
+code{background:#F1F5F9;padding:1px 5px;border-radius:4px;font-size:12px;
+ font-family:ui-monospace,Menlo,Consolas,monospace;color:#B91C1C}
+pre.code{background:#0F172A;color:#E2E8F0;padding:14px 16px;border-radius:10px;overflow:auto;font-size:12px}
+pre.code code{background:none;color:inherit;padding:0}
+blockquote{margin:10px 0;padding:10px 14px;background:#EFF6FF;border-left:3px solid #60A5FA;
+ border-radius:0 8px 8px 0;color:#334155;font-size:13px}
+ul,ol{margin:8px 0;padding-left:22px}
+li{margin:3px 0}
+hr{border:0;border-top:1px dashed var(--line);margin:22px 0}
+a{color:#2563EB;text-decoration:none}
+.meta{font-size:12px;color:var(--muted);margin:0 0 20px}
+.vtitle{font-size:18px;font-weight:800;margin:0 0 4px}
+details.fam{margin:12px 0 20px;border:1px solid var(--line);border-radius:10px;background:#F8FAFC;padding:0 14px}
+details.fam summary{cursor:pointer;padding:10px 0;font-size:13px;font-weight:700;color:#334155}
+details.fam[open]{padding-bottom:10px}
+.vnav{display:flex;justify-content:space-between;margin-top:34px;padding-top:14px;border-top:1px dashed var(--line);font-size:13px}
+</style></head><body>
+<div class="meta">由 <code>yunying-PC/prd/10b-商城运营/06-拼单团管理.md</code> 生成，勿手改；改文档请改 md 后重跑 build-prd。</div>
+<h1>14b-10b-06 拼单团管理 · 运营端页面说明</h1>
+<blockquote>端：运营端 PC　｜　模块：10 商城运营　｜　页面：<code>mall-group-manage.html</code> 页面版本：v1.0（2026-10-28）　｜　业务分册：<code>开发PRD/运营管理端分册PRD/10-商城运营.md</code> <strong>§5</strong> 规则权威 = 分册 §5；买家端 <code>M01-采购询价与拼单集采.md</code> §8 为端上投影。</blockquote>
+<hr>
+<h2 id="p1">1. 拼单团管理 <code>mall-group-manage.html</code></h2>
+<h3>1.1 页面说明</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>页面目标</td><td><strong>团维度</strong>监管拼单活动：团状态、进度、取消全团、退款记录与重试</td></tr><tr><td>使用角色</td><td>商城运营专员、运营主管</td></tr><tr><td>入口</td><td>菜单 → 商城运营 → 订单管理 → 拼单团管理</td></tr><tr><td>前置</td><td>商户商品已配置 <code>groupEnabled</code> 与阶梯价（Y-1：配置主体是商户，运营监管）</td></tr><tr><td>后置</td><td>取消 → 全员退款 3 个工作日；成团 → 逐笔生成 GB 订单（跳「拼单集采订单」页）</td></tr></tbody></table>
+<blockquote><strong>与「拼单集采订单」页的分界</strong>：那一页是<strong>逐笔订单</strong>（每个参团人一条），本页是<strong>团</strong>（一条团一行）。订单页可跳团详情，本页取消/退款影响整团。</blockquote>
+<h3>1.2 本页端间关系</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>本页数据来源</td><td>买家端拼单发起 / 参团（本页<strong>无新建入口</strong>——拼单只由买家发起，M01 BR-1）</td></tr><tr><td>本页操作的跨端影响</td><td>取消全团 → 全部参团人收到通知 + 全额原路退款；端上参团记录置「已退款」</td></tr><tr><td>依赖的其他端页面</td><td>买家端拼单详情页 / 拼单集采订单页（10b）</td></tr><tr><td>不涉及的端</td><td>商户端（拼单配置在「新增商品」页，Y-1）</td></tr><tr><td>一致性要求</td><td>成团判定以后台为准（累计达任一档即成团）；<strong>已成团不可取消</strong></td></tr></tbody></table>
+<h3>1.3 页面结构</h3>
+<table><thead><tr><th>区块</th><th>内容</th></tr></thead><tbody><tr><td><strong>统计卡（4）</strong></td><td>进行中 / 已成团（逐笔生单）/ 已失效（已退款）/ 已取消（退款中或已退）</td></tr><tr><td>筛选区</td><td>状态（四态）+ 团号 / 商品名称 + 查询 + 重置</td></tr><tr><td>团列表</td><td><strong>10 列</strong>：团号 · 商品 · 档位 · 起拼档 · 团长下单 · 累计/人数 · 进度（达起拼档%）· 截止时间 · 状态 · 操作</td></tr><tr><td>抽屉</td><td>团信息 + 成团结算说明 / 取消全团记录 + 退款记录（失败可重试）</td></tr></tbody></table>
+<h3>1.4 团状态机（分册 §5.1，含 M01 §8.3 缺失的「已取消」）</h3>
+<pre class="code"><code data-lang="">进行中 ──(累计达任一档)──→ 已成团 ──(锁档结算，逐笔 GB 订单)──→ 终局
+   ├──(到期未达起拼档)──→ 已失效 ──→ 全额退款 3 个工作日
+   └──(团长取消 / 平台强制)──→ 已取消 ──→ 全员全额退款 3 个工作日</code></pre>
+<h3>1.5 字段规格</h3>
+<table><thead><tr><th>列</th><th>字段</th><th>说明</th></tr></thead><tbody><tr><td>团号</td><td><code>groupId</code></td><td><code>T</code> + 年月日 + 3 位流水</td></tr><tr><td>商品 / 档位</td><td><code>goods</code> / <code>tier</code></td><td>档位 = 起始–结束数量 · 单价</td></tr><tr><td>起拼档</td><td><code>minTier</code></td><td>达到即成团（最小档起始数量）</td></tr><tr><td>团长下单</td><td><code>leadQty</code></td><td>支付首笔即进入「进行中」（BR-4：支付 ≠ 成团）</td></tr><tr><td>累计 / 人数</td><td><code>cum</code> / <code>people</code></td><td>进度 = <code>cum ÷ minTier</code>（达 100% 即成团）</td></tr><tr><td>状态</td><td><code>state</code></td><td>四态</td></tr><tr><td>退款</td><td><code>refund</code></td><td>涉及人数 · 金额 · 状态（成功 / 失败挂起可重试）</td></tr></tbody></table>
+<h3>1.6 主要操作</h3>
+<table><thead><tr><th>操作</th><th>可用条件</th><th>说明</th></tr></thead><tbody><tr><td><strong>取消全团</strong></td><td>状态 = 进行中</td><td>原因必填（通知全部参团人）→ 全员全额退款 3 个工作日；已成团<strong>拦截</strong>（M-06）</td></tr><tr><td>退款重试</td><td>退款记录有失败项</td><td>重试后失败清零，状态转「已退」</td></tr><tr><td>详情</td><td>全部</td><td>团信息 + 结算/取消/退款记录</td></tr></tbody></table>
+<h3>1.7 业务规则</h3>
+<table><thead><tr><th>编号</th><th>规则</th><th>依据</th></tr></thead><tbody><tr><td>R-G1</td><td>取消全团仅限「进行中」；已成团不可取消</td><td>分册裁决一 / M-06</td></tr><tr><td>R-G2</td><td>团长退出 ≠ 取消全团：退出份额保留、不解散（FR-24）</td><td>分册裁决一</td></tr><tr><td>R-G3</td><td>退款 SLA：3 个工作日原路退回</td><td>M01 Q4 / FR-23</td></tr><tr><td>R-G4</td><td>参团下限 = <code>ceil(minQty × 20%)</code>，10 的倍数；与 <code>tier[0].min</code> 无关</td><td>分册裁决二</td></tr><tr><td>R-G5</td><td>成团 → 逐笔生成 GB 订单（<code>sourceGroupId</code> 溯源）</td><td>M01 FR-22</td></tr><tr><td>R-G6</td><td>本页无新建入口（拼单只由买家发起）</td><td>M01 BR-1</td></tr></tbody></table>
+<h3>1.8 异常与边界</h3>
+<table><thead><tr><th>类型</th><th>场景</th><th>系统行为</th><th>提示文案</th></tr></thead><tbody><tr><td>交互</td><td>成团后点取消</td><td>拦截</td><td>【已实现】该团已成团并锁定结算，不可取消；如需处理请走售后（M-06）</td></tr><tr><td>交互</td><td>取消原因未填</td><td>拦截</td><td>取消原因必填（会通知全部参团人）</td></tr><tr><td>数据</td><td>退款失败</td><td>挂起，可重试</td><td>失败原因：{原因}；重试后状态清零</td></tr></tbody></table>
+<h3>1.9 验收标准</h3>
+<table><thead><tr><th>编号</th><th>前置</th><th>操作</th><th>预期</th><th>级别</th></tr></thead><tbody><tr><td>AC-G1</td><td>团进行中</td><td>取消全团（填原因）</td><td>状态转已取消，产生退款记录，badge 更新</td><td>P0</td></tr><tr><td>AC-G2</td><td>团已成团</td><td>尝试取消</td><td>拦截 M-06</td><td>P0</td></tr><tr><td>AC-G3</td><td>退款有失败项</td><td>点重试</td><td>失败清零，状态转「已退」</td><td>P0</td></tr><tr><td>AC-G4</td><td>输入团号 / 商品关键字</td><td>查询</td><td>精确过滤；重置恢复全量</td><td>P1</td></tr></tbody></table>
+</body></html>

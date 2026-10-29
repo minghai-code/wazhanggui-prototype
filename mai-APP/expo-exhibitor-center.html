@@ -106,6 +106,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
       <div id="passQRBig" class="flex justify-center mb-3"></div>
       <div class="border-t border-gray-100 pt-2.5 text-left">
         <div class="flex justify-between text-[10px] mb-1"><span class="text-gray-400">证件编号</span><span class="font-semibold text-gray-800" id="passNoBig">-</span></div>
+        <div class="flex justify-between text-[10px] mb-1"><span class="text-gray-400">签到码</span><span class="font-extrabold" style="color:#7C3AED;letter-spacing:2px" id="passCodeBig">-</span></div>
         <div class="flex justify-between text-[10px] mb-1"><span class="text-gray-400">展位号</span><span class="font-semibold text-gray-800" id="passBoothBig">-</span></div>
         <div class="flex justify-between text-[10px]"><span class="text-gray-400">状态</span><span class="font-semibold" id="passStateBig" style="color:#059669">已发码 · 未核销</span></div>
       </div>
@@ -163,11 +164,12 @@ var DOC_DEFS=[
   {k:'booth',name:'展位效果图',hint:'特装展位请上传设计图'}
 ];
 
-/* ===== 参展证（审核通过即发码，与参观入场证同机制） ===== */
-function boothCode(){
-  var seq=(apply&&apply.no)?apply.no.replace(/\D/g,'').slice(-4):'0001';
-  return 'E2026-18-'+seq;
-}
+/* ===== 参展证（审核通过即发码，与参观入场证同机制） =====
+   由后台「14b 袜博会 → 展位申请管理」审核通过时签发，一企业一证：
+     证号   E2026-18-000001   长，系统内部/打印/跨届检索，按届次流水
+     签到码 2EEHP             5 位，给现场工作人员手工输入（末位是校验位） */
+var BADGE={no:'E2026-18-000001', code:'2EEHP'};
+function boothCode(){ return BADGE.no; }
 function isBoothChecked(){try{return localStorage.getItem('expoBoothCheckin')==='1'}catch(e){return false}}
 function drawQR(el,px,seed){
   if(!el)return;
@@ -194,6 +196,7 @@ function renderPass(){
     +'<span class="text-[8px] px-1.5 py-0.5 rounded-full font-bold" style="background:'+(done?'#DBEAFE;color:#2563EB':'#D1FAE5;color:#059669')+'">'+(done?'已核销':'已发码')+'</span></div>'
     +'<div class="flex items-center gap-3"><div id="passQR"></div>'
     +'<div class="flex-1"><p class="text-[10px] text-gray-400">证件编号</p><p class="text-[12px] font-bold text-gray-800">'+code+'</p>'
+    +'<p class="text-[10px] text-gray-400 mt-1.5">签到码</p><p class="text-[13px] font-extrabold" style="letter-spacing:3px;color:#7C3AED">'+BADGE.code+'</p>'
     +'<p class="text-[9px] text-gray-400 mt-1">展位 '+(apply.boothNo||'-')+' · 展期 10.18-10.20</p></div></div>'
     +'<button onclick="openPass()" class="mt-2.5 w-full py-2 rounded-full text-white text-[11px] font-bold" style="background:linear-gradient(135deg,#34D399,#059669)">放大出示</button>'
     +'</div>';
@@ -202,6 +205,7 @@ function renderPass(){
 function openPass(){
   var code=boothCode(),done=isBoothChecked();
   document.getElementById('passNoBig').textContent=code;
+  document.getElementById('passCodeBig').textContent=BADGE.code;
   document.getElementById('passBoothBig').textContent=(apply&&apply.boothNo)||'-';
   var st=document.getElementById('passStateBig');
   st.textContent=done?'已核销 · 已完成入场':'已发码 · 未核销';
