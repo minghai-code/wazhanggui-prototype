@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>物业问题上报 - 袜掌柜商户版</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--p:#F59E0B;--bg:#FFFBF3}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+::-webkit-scrollbar{width:2px;height:2px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#f6e3c4;border-radius:1px}
+.shadow-soft{box-shadow:0 2px 12px rgba(80,50,10,.06)}
+.num{font-variant-numeric:tabular-nums}
+.card{transition:transform .16s ease}
+.card:active{transform:scale(.985)}
+.grad-h{background:linear-gradient(135deg,#FBBF24 0%,#F59E0B 55%,#D97706 100%)}
+.chip{font-size:11px;padding:5px 11px;border-radius:999px;background:#fff;color:#64748B;white-space:nowrap;box-shadow:0 1px 6px rgba(80,50,10,.06)}
+.chip.on{background:linear-gradient(135deg,#FBBF24,#D97706);color:#fff;font-weight:700}
+.no-bar::-webkit-scrollbar{display:none}
+.sheet{position:fixed;inset:0;z-index:200;display:none;align-items:flex-end}
+.sheet.on{display:flex}
+.sheet-bg{position:absolute;inset:0;background:rgba(15,23,42,.45)}
+.sheet-body{position:relative;width:100%;background:#fff;border-radius:24px 24px 0 0;padding:12px 16px 28px;max-height:90vh;overflow-y:auto}
+.sheet-bar{width:38px;height:4px;border-radius:2px;background:#E2E8F0;margin:0 auto 12px}
+.toast{position:fixed;left:50%;top:22%;transform:translate(-50%,-8px);max-width:300px;background:rgba(31,36,48,.94);color:#fff;font-size:12px;line-height:1.5;padding:10px 14px;border-radius:12px;opacity:0;pointer-events:none;transition:.22s;z-index:300;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.inp{width:100%;background:#F8F9FA;border:1px solid #F0F0F0;border-radius:12px;padding:10px 12px;font-size:12px;color:#1F2430;outline:none}
+.lbl{font-size:10px;color:#6B7080;font-weight:500;display:block;margin-bottom:5px}
+.lbl b{color:#D97706}
+.tag-opt{font-size:11px;color:#64748B;background:#fff;border:1px solid #ECEEF0;border-radius:10px;padding:6px 11px;cursor:pointer}
+.tag-opt.on{border-color:#F59E0B;color:#B45309;background:#FFFBEB;font-weight:600}
+.ph{border-radius:8px;display:flex;align-items:center;justify-content:center;height:52px;background:linear-gradient(135deg,#FCD34D,#F59E0B);color:#fff;font-size:9px}
+.ph.after{background:linear-gradient(135deg,#6EE7B7,#10B981)}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<div class="px-3.5 pt-2 pb-4 grad-h">
+  <div class="flex justify-between items-center text-white text-sm font-semibold" style="height:36px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-quarter text-sm"></i></div>
+  </div>
+  <div class="flex items-center gap-3 mt-1">
+    <a id="backBtn" href="wuye-home.html" class="w-9 h-9 rounded-full bg-white/25 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+    <div class="flex-1">
+      <span class="text-white font-extrabold text-[17px]">问题上报</span>
+      <p class="text-white/85 text-[9px] mt-0.5" id="subTitle">照片必传 · 处置由物业在后台完成</p>
+    </div>
+    <a onclick="openNew()" class="w-9 h-9 rounded-full bg-white/25 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-plus text-sm"></i></a>
+  </div>
+</div>
+
+<div class="px-3 pt-3 pb-28">
+  <div class="flex gap-1.5 overflow-x-auto no-bar mb-3" id="chips"></div>
+  <div class="space-y-2.5" id="list"></div>
+  <p class="text-[9px] text-gray-400 text-center mt-4 leading-relaxed">端上只负责“报”和“看”：<br>处置（当场解决关闭 / 转报修）由物业在后台完成</p>
+</div>
+
+<div id="wuyeTab"></div>
+<div class="toast" id="toast"></div>
+
+<div class="sheet" id="dtSheet"><div class="sheet-bg" onclick="closeSheet('dtSheet')"></div><div class="sheet-body" id="dtBody"></div></div>
+<div class="sheet" id="nwSheet"><div class="sheet-bg" onclick="closeSheet('nwSheet')"></div><div class="sheet-body" id="nwBody"></div></div>
+
+<script src="wuye-tab.js"></script>
+<script src="wuye-data.js"></script>
+<script>
+/* 本页允许两种身份进入：物业人员（随手报）+ 商户（物业问题反馈），不强制切身份 */
+var isStaff = wuyeIsStaff();
+
+/* v1.5：问题只有 3 态，且端上无处置动作 */
+var TABS = ['待处理', '已转报修', '已关闭'];
+var filter = '待处理';
+var curNo = '', nwPhotos = 0, nwType = '消防', nwSev = '一般', nwOwner = '物业责任';
+
+function tabOf(o){
+  if (o.state === '已转报修') return '已转报修';
+  if (o.state === '已关闭' || o.state === '已解决') return '已关闭';
+  return '待处理';
+}
+function paintChips(){
+  var db = wuyeDB();
+  document.getElementById('chips').innerHTML = TABS.map(function(c){
+    var n = (db.wt || []).filter(function(o){ return tabOf(o) === c; }).length;
+    return '<a onclick="setF(\'' + c + '\')" class="chip' + (c === filter ? ' on' : '') + '">' + c + (n ? ' ' + n : '') + '</a>';
+  }).join('');
+}
+function setF(c){ filter = c; paintChips(); paintList(); }
+
+function paintList(){
+  var arr = (wuyeDB().wt || []).filter(function(o){ return tabOf(o) === filter; });
+  if (!arr.length) {
+    document.getElementById('list').innerHTML = '<div class="text-center py-14"><i class="fas fa-camera-retro text-xl text-gray-300 block mb-2"></i><p class="text-[11px] text-gray-400">该分组暂无问题</p></div>';
+    return;
+  }
+  document.getElementById('list').innerHTML = arr.map(function(o){
+    var sevC = o.sev === '严重' ? 'background:#DC2626' : o.sev === '一般' ? 'background:#F59E0B' : 'background:#94A3B8';
+    var ownC = o.owner === '物业责任' ? '#2563EB' : '#DC2626';
+    return '<div class="card bg-white rounded-2xl shadow-soft px-3.5 py-3" onclick="openDetail(\'' + o.no + '\')">'
+      + '<div class="flex items-center justify-between mb-1">'
+      + '<span class="text-[10px] text-gray-400 num">' + o.no + '</span>'
+      + '<div class="flex items-center gap-1.5"><span class="text-[8px] font-bold text-white px-1.5 py-0.5 rounded" style="' + sevC + '">' + o.sev + '</span>'
+      + '<span class="st text-[9px] font-bold px-1.5 py-0.5 rounded ' + stc(tabOf(o)) + '">' + tabOf(o) + '</span></div></div>'
+      + '<p class="text-[13px] font-bold text-gray-800">' + o.type + ' · ' + o.desc.slice(0, 16) + (o.desc.length > 16 ? '…' : '') + '</p>'
+      + '<div class="flex items-center gap-2 mt-1.5 text-[9px] text-gray-400 flex-wrap">'
+      + '<span><i class="fas fa-location-dot mr-0.5"></i>' + o.area + '</span>'
+      + '<span class="font-bold" style="color:' + ownC + '">' + o.owner + '</span>'
+      + (o.bxNo ? '<span style="color:#2563EB">· 转报修 ' + o.bxNo + '</span>' : '') + '</div>'
+      + '<div class="flex items-center justify-between mt-1.5"><span class="text-[9px] text-gray-400">' + o.reporter + ' · ' + o.at + '</span>'
+      + '<span class="text-[9px] text-gray-400">' + (tabOf(o) === '待处理' ? '物业处理中' : tabOf(o) === '已转报修' ? '已生成报修单' : '已处置') + '</span></div>'
+      + '</div>';
+  }).join('');
+}
+
+/* ---------- 详情（只读跟踪） ---------- */
+function openDetail(no){
+  curNo = no;
+  var o = (wuyeDB().wt || []).filter(function(x){ return x.no === no; })[0];
+  if (!o) return;
+  var logs = (o.logs || []).map(function(l){
+    return '<div class="flex gap-2"><div class="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style="background:#FCD34D"></div>'
+      + '<div class="flex-1"><p class="text-[10px] text-gray-500">' + l[0] + '</p><p class="text-[11px] text-gray-700 mt-0.5 leading-relaxed">' + l[1] + '</p></div></div>';
+  }).join('');
+  var ph = '';
+  for (var i = 0; i < o.photos; i++) ph += '<div class="ph">现场照片 ' + (i + 1) + '</div>';
+
+  /* 后台回填区：已关闭 → 处理结果；已转报修 → BX 号 */
+  var back = '';
+  if (tabOf(o) === '已关闭') {
+    var r = o.result || {};
+    var rPh = '';
+    for (var k = 0; k < (r.photos || 0); k++) rPh += '<div class="ph after">处理后照片 ' + (k + 1) + '</div>';
+    back = '<div class="mt-3 rounded-xl p-3" style="background:#F0FDF4">'
+      + '<p class="text-[10px] font-bold" style="color:#047857"><i class="fas fa-circle-check mr-1"></i>物业处理结果</p>'
+      + '<p class="text-[11px] text-gray-700 mt-1 leading-relaxed">' + (r.desc || '已处置完成') + '</p>'
+      + (rPh ? '<div class="grid grid-cols-3 gap-2 mt-2">' + rPh + '</div>' : '')
+      + '<p class="text-[9px] text-gray-400 mt-1.5">' + (r.by || '物业') + ' · ' + (r.at || o.at) + '</p></div>';
+  } else if (tabOf(o) === '已转报修') {
+    back = '<div class="mt-3 rounded-xl p-3" style="background:#EFF6FF">'
+      + '<p class="text-[10px] font-bold" style="color:#1D4ED8"><i class="fas fa-share mr-1"></i>已转报修</p>'
+      + '<p class="text-[11px] text-gray-700 mt-1">已生成报修单 <b class="num">' + (o.bxNo || 'BX…') + '</b>，后续维修进度由物业跟进；本问题不再变更状态。</p></div>';
+  } else {
+    back = '<div class="mt-3 rounded-xl p-3" style="background:#FFFBEB">'
+      + '<p class="text-[10px]" style="color:#92400E"><i class="fas fa-hourglass-half mr-1"></i>物业处理中：能当场解决会提交处理结果并关闭，需要维修会转报修。端上无需操作。</p></div>';
+  }
+
+  document.getElementById('dtBody').innerHTML =
+    '<div class="sheet-bar"></div>'
+    + '<div class="flex items-start justify-between"><div>'
+    + '<p class="text-[15px] font-extrabold text-gray-900">' + o.type + ' · ' + o.sev + '</p>'
+    + '<p class="text-[10px] text-gray-400 mt-1 num">' + o.no + '</p></div>'
+    + '<span class="st text-[10px] font-bold px-2 py-1 rounded ' + stc(tabOf(o)) + '">' + tabOf(o) + '</span></div>'
+    + '<div class="mt-3 rounded-xl p-3" style="background:#F8FAFC">'
+    + '<div class="flex justify-between text-[11px]"><span class="text-gray-400">区域</span><span class="text-gray-800 font-medium">' + o.area + '</span></div>'
+    + '<div class="flex justify-between text-[11px] mt-1.5"><span class="text-gray-400">责任方（归因）</span><span class="font-bold" style="color:' + (o.owner === '物业责任' ? '#2563EB' : '#DC2626') + '">' + o.owner + '</span></div>'
+    + '<div class="flex justify-between text-[11px] mt-1.5"><span class="text-gray-400">上报人 / 时间</span><span class="text-gray-800 num">' + o.reporter + ' · ' + o.at + '</span></div>'
+    + '<div class="flex justify-between text-[11px] mt-1.5"><span class="text-gray-400">来源</span><span class="text-gray-800">' + o.from + '</span></div>'
+    + '</div>'
+    + '<p class="text-[11px] text-gray-700 leading-relaxed mt-3">' + o.desc + '</p>'
+    + (ph ? '<div class="grid grid-cols-2 gap-2 mt-2.5">' + ph + '</div>' : '')
+    + back
+    + '<p class="text-[11px] font-bold text-gray-800 mt-4 mb-2">流转记录</p>'
+    + '<div class="space-y-2.5">' + logs + '</div>'
+    + '<button class="w-full mt-4 py-2.5 rounded-xl text-[12px] font-bold text-gray-500 bg-gray-100" onclick="closeSheet(\'dtSheet\')">返回</button>';
+  openSheet('dtSheet');
+}
+
+/* ---------- 上报 ---------- */
+function openNew(){
+  nwPhotos = 0; nwType = '消防'; nwSev = '一般'; nwOwner = '物业责任';
+  var types = ['消防', '卫生', '占道', '设备', '安全'];
+  document.getElementById('nwBody').innerHTML =
+    '<div class="sheet-bar"></div>'
+    + '<p class="text-[15px] font-extrabold text-gray-900 text-center">上报物业问题</p>'
+    + '<p class="text-[10px] text-gray-400 text-center mt-1">照片必传 · 提交后进入物业问题清单</p>'
+    + '<div class="mt-3"><label class="lbl">区域 / 档口 <b>*</b></label><input id="nwArea" class="inp" value="' + (isStaff ? 'A 栋 3F 通道' : 'A 栋 3F A3-118 门前') + '" placeholder="楼栋 + 楼层 + 档口"></div>'
+    + '<div class="mt-3"><label class="lbl">问题类型 <b>*</b></label><div class="flex flex-wrap gap-1.5" id="nwTypes">'
+    + types.map(function (t) { return '<span class="tag-opt' + (t === types[0] ? ' on' : '') + '" onclick="pickType(this)">' + t + '</span>'; }).join('') + '</div></div>'
+    + '<div class="mt-3"><label class="lbl">问题描述 <b>*</b>（≥5 字）</label><textarea id="nwDesc" class="inp" rows="3" placeholder="例：通道堆放纸箱约 1.5m 宽，消防栓被遮挡"></textarea></div>'
+    + '<div class="mt-3"><p class="lbl">现场照片 <b>*</b>（≥1 张，带时间位置水印）</p><div class="grid grid-cols-3 gap-2" id="nwPh"></div></div>'
+    + '<div class="mt-3"><label class="lbl">严重程度</label><div class="flex gap-1.5"><span class="tag-opt" onclick="pickSev(this)">严重</span><span class="tag-opt on" onclick="pickSev(this)">一般</span><span class="tag-opt" onclick="pickSev(this)">轻微</span></div></div>'
+    + '<div class="mt-3"><label class="lbl">责任方 <b>*</b>（用于归因统计与通知，不影响流程）</label><div class="flex flex-wrap gap-1.5">'
+    + '<span class="tag-opt" onclick="pickOwner(this)">商户责任</span><span class="tag-opt on" onclick="pickOwner(this)">物业责任</span></div>'
+    + '<p class="text-[9px] text-gray-400 mt-1.5">记录该问题归谁，不改变处理方式；处置统一由物业在后台完成。</p></div>'
+    + '<button onclick="doNew()" class="w-full mt-3 py-3 rounded-xl text-white text-[13px] font-bold" style="background:linear-gradient(135deg,#FBBF24,#D97706)">提交</button>'
+    + '<button class="w-full mt-2 py-2.5 rounded-xl text-[12px] font-bold text-gray-500 bg-gray-100" onclick="closeSheet(\'nwSheet\')">取消</button>';
+  paintNwPh(); openSheet('nwSheet');
+}
+function paintNwPh(){
+  var h = '';
+  for (var i = 0; i < nwPhotos; i++) h += '<div class="ph">照片 ' + (i + 1) + '</div>';
+  if (nwPhotos < 3) h += '<div onclick="addNwPh()" class="rounded-xl flex items-center justify-center" style="height:52px;border:1.5px dashed #FCD34D;background:#FFFBEB;color:#B45309;font-size:9px"><i class="fas fa-camera mr-1"></i>拍照</div>';
+  document.getElementById('nwPh').innerHTML = h;
+}
+function addNwPh(){ nwPhotos++; paintNwPh(); }
+function pickType(el){
+  var c = document.getElementById('nwTypes').children;
+  for (var i = 0; i < c.length; i++) c[i].className = 'tag-opt';
+  el.className = 'tag-opt on'; nwType = el.textContent;
+}
+function pickSev(el){
+  var p = el.parentNode.children;
+  for (var i = 0; i < p.length; i++) p[i].className = 'tag-opt';
+  el.className = 'tag-opt on'; nwSev = el.textContent;
+}
+function pickOwner(el){
+  var p = el.parentNode.children;
+  for (var i = 0; i < p.length; i++) p[i].className = 'tag-opt';
+  el.className = 'tag-opt on'; nwOwner = el.textContent;
+}
+function doNew(){
+  var area = (document.getElementById('nwArea').value || '').trim();
+  var desc = (document.getElementById('nwDesc').value || '').trim();
+  if (!area) { toast('请填写区域 / 档口'); return; }
+  if (desc.length < 5) { toast('描述至少 5 个字'); return; }
+  if (!nwPhotos) { toast('请上传现场照片（至少 1 张）'); return; }
+  var db = wuyeDB();
+  var no = 'WT202610-0' + (70 + (db.wt || []).length);
+  var who = isStaff ? wuyeMe().name : '商户（本档口）';
+  db.wt.unshift({
+    no: no, area: area, type: nwType, sev: nwSev, desc: desc, owner: nwOwner,
+    state: '待处理', reporter: who, at: nowStr(), photos: nwPhotos,
+    from: isStaff ? '随手报问题' : '商户端反馈', unit: area.split(' ').pop(),
+    rectNo: '', bxNo: '', result: null,
+    logs: [[nowStr(), who + ' 提交（照片 ' + nwPhotos + ' 张）· 责任方=' + nwOwner + ' · 待物业处置']]
+  });
+  wuyeSave(db); closeSheet('nwSheet');
+  toast('已提交 ' + no + '，物业会在后台处置');
+  filter = '待处理'; paintChips(); paintList();
+}
+
+/* ---------- init ---------- */
+(function init(){
+  var q = new URLSearchParams(location.search);
+  document.getElementById('backBtn').href = isStaff ? 'wuye-home.html' : 'property.html';
+  document.getElementById('subTitle').textContent = isStaff
+    ? '照片必传 · 处置由物业在后台完成'
+    : '你反馈的问题会进入物业清单，处置进度在此查看';
+  paintChips(); paintList();
+  renderWuyeTab(isStaff ? 'wuye' : 'prop');
+  var no = q.get('no');
+  if (no) setTimeout(function(){ openDetail(no); }, 120);
+})();
+</script>
+</body>
+</html>

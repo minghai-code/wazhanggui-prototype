@@ -74,16 +74,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
       <p class="text-[12px] font-bold text-gray-800">对外展示信息（买家端「市场导览」展示）</p>
     </div>
     <div class="mb-3"><label class="lbl">店铺名称（对外展示） <b>*</b></label><input class="inp" id="fName" placeholder="如：大唐袜业旗舰"></div>
-    <div class="mb-3"><label class="lbl">主营品类 <b>*</b>（可多选）</label>
-      <div class="flex flex-wrap gap-1.5" id="catBox">
-        <span class="tag-opt" onclick="this.classList.toggle('on')">男袜</span>
-        <span class="tag-opt" onclick="this.classList.toggle('on')">女袜</span>
-        <span class="tag-opt" onclick="this.classList.toggle('on')">童袜</span>
-        <span class="tag-opt" onclick="this.classList.toggle('on')">运动袜</span>
-        <span class="tag-opt" onclick="this.classList.toggle('on')">保暖袜</span>
-        <span class="tag-opt" onclick="this.classList.toggle('on')">功能袜</span>
-        <span class="tag-opt" onclick="this.classList.toggle('on')">原料·辅料</span>
+    <div class="mb-3"><label class="lbl">主营品类 <span class="text-[9px] text-gray-400 font-normal">（引用商户档案 · 只读）</span></label>
+      <div class="flex flex-wrap gap-1.5" id="catRoBox"></div>
+      <!-- 所属市场（按品类大类推导，只读；待办 #48 / F05-R2） -->
+      <div class="mt-2.5 rounded-xl px-3 py-2.5" style="background:#F8FAFC">
+        <div class="flex items-start gap-2">
+          <span class="text-[10px] text-gray-500 flex-shrink-0 pt-0.5">所属市场</span>
+          <div class="flex flex-wrap gap-1.5" id="marketBox"></div>
+        </div>
+        <p class="text-[9px] text-gray-400 mt-1.5 leading-relaxed">按品类「大类」推导，不可手改：袜品 → 袜子市场；原料纱线 → 原料市场；<b class="text-gray-500">混营会同时出现在两个市场</b>；袜机设备 / 设计包装 / 其他暂不归属市场。</p>
       </div>
+      <p class="text-[9px] text-gray-400 mt-1.5"><i class="fas fa-circle-info mr-1"></i>品类以「商户档案」为准，本页不再单独维护；如需变更请到「资料更新」提交变更申请，审批通过后此处自动更新</p>
     </div>
     <div class="mb-3"><label class="lbl">商铺简介 <b>*</b></label><textarea class="inp" id="fDesc" rows="3" placeholder="介绍您的店铺与主营优势，将展示在买家端市场导览"></textarea></div>
     <div class="mb-3"><label class="lbl">门店图片（最多 5 张）</label>
@@ -128,9 +129,9 @@ function toast(m){var t=document.getElementById('toast');document.getElementById
 function pickOne(sel,el){document.querySelectorAll(sel+' .tag-opt').forEach(function(a){a.classList.remove('on')});el.classList.add('on');}
 // 实体台账（来自 02 资源台账，只读）
 var UNITS={
- '1F-A08':{code:'1F-A08',loc:'大唐袜业城 A栋 1F',type:'档口',grade:'精品摊',area:'50㎡',term:'2026.09.01–2027.08.31',contract:'HT2026-0002',rating:'★5.0',orders:'1280单',name:'大唐袜业旗舰',cat:['男袜','女袜'],desc:'本商铺主营男女袜品批发，经营多年，品质稳定，支持小批量起批，量大从优。',hours:'9:00–18:00',phone:'138****8000',status:'营业中'},
+ '1F-A08':{code:'1F-A08',loc:'大唐袜业城 A栋 1F',type:'档口',grade:'精品摊',area:'50㎡',term:'2026.09.01–2027.08.31',contract:'HT2026-0002',rating:'★5.0',orders:'1280单',name:'大唐袜业旗舰',cat:['男袜','女袜','棉纱'],desc:'本商铺主营男女袜品批发，自有纺纱产能对外供纱，经营多年，品质稳定，支持小批量起批，量大从优。',hours:'9:00–18:00',phone:'138****8000',status:'营业中'},
  '2F-B12':{code:'2F-B12',loc:'大唐袜业城 B栋 2F',type:'档口',grade:'普通摊',area:'40㎡',term:'2025.09.01–2026.08.31',contract:'HT2025-0088',rating:'★4.9',orders:'860单',name:'大唐袜业旗舰·品牌馆',cat:['运动袜','功能袜'],desc:'品牌馆，主营运动与功能袜品，支持 OEM/ODM。',hours:'9:00–18:00',phone:'138****8000',status:'营业中'},
- 'YLSC-S08':{code:'YLSC-S08',loc:'原料市场 沿街店面',type:'店面',grade:'—',area:'80㎡',term:'2027.06.01–2032.05.31',contract:'HT2026-0010',rating:'★4.8',orders:'320单',name:'大唐袜业·原料仓店',cat:['原料·辅料'],desc:'原料辅料供应，自用兼仓储。',hours:'8:30–17:30',phone:'138****8000',status:'休息中'},
+ 'YLSC-S08':{code:'YLSC-S08',loc:'原料市场 沿街店面',type:'店面',grade:'—',area:'80㎡',term:'2027.06.01–2032.05.31',contract:'HT2026-0010',rating:'★4.8',orders:'320单',name:'大唐袜业·原料仓店',cat:['棉纱','氨纶包覆纱','包装设计'],desc:'原料辅料供应，自用兼仓储。',hours:'8:30–17:30',phone:'138****8000',status:'休息中'},
  'XZFW-3F-06':{code:'XZFW-3F-06',loc:'行政服务中心 3F',type:'办公室',grade:'—',area:'45㎡',term:'2026.10.01–2029.09.30',contract:'HT2026-0012',rating:'—',orders:'—',name:'大唐袜业·办公',cat:[],desc:'行政办公场所。',hours:'9:00–17:00',phone:'138****8000',status:'营业中'}
 };
 function getParam(k){var m=location.search.match(new RegExp('[?&]'+k+'=([^&]+)'));return m?decodeURIComponent(m[1]):null;}
@@ -153,6 +154,40 @@ function saveInfo(){
   toast('已保存，买家端「市场导览」将展示最新信息');
 }
 function backCancel(){toast('已取消，未保存修改');setTimeout(function(){location.href='my-shops.html'},600);}
+</script>
+<script src="category-dict.js"></script>
+<script>
+/* 主营品类（待办 #47）：只读引用商户档案（02 台账里的档案品类），不再单独维护第三套选项 */
+(function(){
+  var box=document.getElementById('catRoBox');if(!box)return;
+  var unit=(function(){var m=location.search.match(/[?&]unit=([^&]+)/);return m?decodeURIComponent(m[1]):'1F-A08';})();
+  var rec=(typeof UNITS!=='undefined'&&UNITS[unit])?UNITS[unit]:null;
+  var sel=(rec&&rec.cat&&rec.cat.length)?rec.cat:[];
+  if(!sel.length){
+    box.innerHTML='<span class="text-[10px] text-gray-400">档案未设置经营品类，请到「资料更新」提交变更申请</span>';
+    return;
+  }
+  // 档案里的品类若已被后台停用/合并，照常回显并标注（只读场景不可勾选）
+  box.innerHTML=sel.map(function(n){
+    var on=catIsOn(n);
+    return '<span class="cat-ro"'+(on?'':' style="color:#B0B6C3;background:#F8FAFC;text-decoration:line-through" title="该品类已被后台停用，仅保留历史回显"')+'>'+n+(on?'':' · 已停用')+'</span>';
+  }).join('')+'<span class="text-[9px] text-gray-400 self-center ml-1">共 '+sel.length+' 项</span>';
+
+  /* 所属市场：按品类大类推导，可多归属 */
+  var mb=document.getElementById('marketBox');
+  var mk=catMarkets(sel);
+  if(!mk.length){
+    mb.innerHTML='<span class="text-[10px] px-2 py-1 rounded-lg" style="background:#F1F5F9;color:#94A3B8">暂未归属市场</span>'
+      +'<span class="text-[9px] text-gray-400 self-center ml-1">（袜机设备 / 设计包装 / 其他不参与市场分流）</span>';
+  }else{
+    mb.innerHTML=mk.map(function(m){
+      var isMat=m==='原料市场';
+      var bg=isMat?'#FEF3C7':'#EFF6FF',fg=isMat?'#B45309':'#1D4ED8';
+      return '<span class="text-[10px] font-bold px-2 py-1 rounded-lg" style="background:'+bg+';color:'+fg+'">'
+        +'<i class="fas '+(isMat?'fa-flask':'fa-socks')+' mr-1" style="font-size:8px"></i>'+m+'</span>';
+    }).join('')+(mk.length>1?'<span class="text-[9px] text-gray-400 self-center ml-1">混营 · 两边都展示</span>':'');
+  }
+})();
 </script>
 </body>
 </html>

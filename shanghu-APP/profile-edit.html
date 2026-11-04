@@ -60,13 +60,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
     <div class="mb-3"><label class="lbl">营业执照</label>
       <div class="border-[1.5px] border-dashed border-gray-300 rounded-xl p-4 text-center" onclick="toast('重新上传营业执照')"><i class="fas fa-image text-gray-300 text-xl"></i><p class="text-[10px] text-gray-400 mt-1">点击重新上传</p></div>
     </div>
-    <div><label class="lbl">经营类目 <b>*</b></label>
-      <div class="flex flex-wrap gap-1.5">
-        <span class="tag on" style="font-size:11px;color:#2563EB;background:#EFF6FF;border:1px solid #2563EB;border-radius:10px;padding:6px 12px">男袜</span>
-        <span class="tag on" style="font-size:11px;color:#2563EB;background:#EFF6FF;border:1px solid #2563EB;border-radius:10px;padding:6px 12px">女袜</span>
-        <span class="tag" style="font-size:11px;color:#6b7080;background:#fff;border:1px solid #eceef0;border-radius:10px;padding:6px 12px">童袜</span>
-        <span class="tag" style="font-size:11px;color:#6b7080;background:#fff;border:1px solid #eceef0;border-radius:10px;padding:6px 12px">运动袜</span>
-      </div>
+    <div><label class="lbl">经营类目 <b>*</b> <span class="text-[9px] text-gray-400 font-normal">后台品类字典下发 · 多选</span></label>
+      <div class="flex flex-wrap gap-1.5" id="catTagBox"></div>
+      <p class="text-[9px] text-gray-400 mt-1.5">如需修改请在此提交变更申请；选项与「企业资质认证」同一份字典，停用品类不再出现</p>
     </div>
   </div>
 </div>
@@ -87,9 +83,36 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 </div>
 
 <div class="toast" id="toast"><span id="toastTxt">操作成功</span></div>
+<script src="category-dict.js"></script>
 <script>
 var toastTimer;function toast(m){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=m;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},1800)}
-function submitForm(){document.getElementById('formBox').style.display='none';document.getElementById('footBar').style.display='none';document.getElementById('doneBox').style.display='block';window.scrollTo(0,0);}
+
+/* 经营类目（待办 #47）：与「企业资质认证」同一份字典，提交为数组（新旧值都是数组） */
+var CAT_SEL=(function(){
+  try{var s=JSON.parse(localStorage.getItem('sh_cat_sel')||'null');if(s&&s.length)return s;}catch(e){}
+  return ['男袜','女袜'];
+})();
+function renderCats(){
+  var box=document.getElementById('catTagBox');if(!box)return;
+  box.innerHTML=catChipsHtml(CAT_SEL);
+}
+function submitForm(){
+  var cats=catSelected('catTagBox');
+  if(!cats.length){toast('请至少选择一个经营类目');return;}
+  if(cats.length>5){toast('经营类目最多选择 5 项');return;}
+  localStorage.setItem('sh_cat_sel',JSON.stringify(cats));
+  // 提交链路：后台「资料变更审核」merchant-change.html，变更项「经营类目」新旧值均为数组
+  try{
+    var a=JSON.parse(localStorage.getItem('sh_change_apply')||'[]');
+    a.unshift({id:'CH'+Date.now(),field:'经营类目',newVal:cats,oldVal:CAT_SEL,at:new Date().toISOString().slice(0,10),state:'待审核'});
+    localStorage.setItem('sh_change_apply',JSON.stringify(a.slice(0,20)));
+  }catch(e){}
+  document.getElementById('formBox').style.display='none';
+  document.getElementById('footBar').style.display='none';
+  document.getElementById('doneBox').style.display='block';
+  window.scrollTo(0,0);
+}
+renderCats();
 </script>
 </body>
 </html>

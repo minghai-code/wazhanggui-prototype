@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>巡检任务 - 物业管理</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--p:#059669;--bg:#F3FBF7}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+::-webkit-scrollbar{width:2px;height:2px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#c7ecdd;border-radius:1px}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,60,40,.06)}
+.num{font-variant-numeric:tabular-nums}
+.card{transition:transform .16s ease}
+.card:active{transform:scale(.985)}
+.grad-h{background:linear-gradient(135deg,#34D399 0%,#10B981 50%,#059669 100%)}
+.chip{font-size:11px;padding:5px 11px;border-radius:999px;background:#fff;color:#64748B;white-space:nowrap;box-shadow:0 1px 6px rgba(20,60,40,.06)}
+.chip.on{background:linear-gradient(135deg,#34D399,#059669);color:#fff;font-weight:700}
+.no-bar::-webkit-scrollbar{display:none}
+.sheet{position:fixed;inset:0;z-index:200;display:none;align-items:flex-end}
+.sheet.on{display:flex}
+.sheet-bg{position:absolute;inset:0;background:rgba(15,23,42,.45)}
+.sheet-body{position:relative;width:100%;background:#fff;border-radius:24px 24px 0 0;padding:12px 16px 28px;max-height:90vh;overflow-y:auto}
+.sheet-bar{width:38px;height:4px;border-radius:2px;background:#E2E8F0;margin:0 auto 12px}
+.toast{position:fixed;left:50%;top:22%;transform:translate(-50%,-8px);max-width:300px;background:rgba(31,36,48,.94);color:#fff;font-size:12px;line-height:1.5;padding:10px 14px;border-radius:12px;opacity:0;pointer-events:none;transition:.22s;z-index:300;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.geo{border-radius:12px;padding:10px 12px;border:1px solid #E2E8F0;background:#F8FAFC;font-size:11px;color:#475569;line-height:1.5}
+.geo.ok{border-color:#A7F3D0;background:#F0FDF4;color:#047857}
+.geo.fail{border-color:#FECACA;background:#FEF2F2;color:#B91C1C}
+.ph{border-radius:8px;display:flex;align-items:center;justify-content:center;height:44px;background:linear-gradient(135deg,#6EE7B7,#10B981);color:#fff;font-size:9px}
+.prog{height:5px;border-radius:3px;background:#E6F7EF;overflow:hidden}
+.prog i{display:block;height:100%;background:linear-gradient(90deg,#34D399,#059669)}
+.inp{width:100%;background:#F8F9FA;border:1px solid #F0F0F0;border-radius:12px;padding:10px 12px;font-size:12px;color:#1F2430;outline:none}
+.lbl{font-size:10px;color:#6B7080;font-weight:500;display:block;margin-bottom:5px}
+.lbl b{color:#059669}
+.res{display:flex;gap:6px}
+.res span{font-size:10px;padding:4px 10px;border-radius:8px;border:1px solid #ECEEF0;color:#64748B;background:#fff}
+.res span.n{background:#ECFDF5;border-color:#6EE7B7;color:#047857;font-weight:700}
+.res span.y{background:#FEF2F2;border-color:#FCA5A5;color:#B91C1C;font-weight:700}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+<div style="position:fixed;left:0;right:0;top:0;z-index:999;background:#111827;color:#fff;font-size:11px;line-height:1.5;padding:6px 12px;text-align:center">本页已下线（07 物业服务 v1.5 招标范围收敛：巡检 / 整改不在范围），仅作存档，不参与演示</div><div style="height:34px"></div>
+
+<div class="px-3.5 pt-2 pb-4 grad-h">
+  <div class="flex justify-between items-center text-white text-sm font-semibold" style="height:36px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+  </div>
+  <div class="flex items-center gap-3 mt-1">
+    <a href="javascript:void(0)" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+    <div class="flex-1">
+      <span class="text-white font-extrabold text-[17px]">巡检任务</span>
+      <p class="text-white/80 text-[9px] mt-0.5">按点位逐项检查 · 开工需定位拍照</p>
+    </div>
+    <a onclick="scan()" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-qrcode text-sm"></i></a>
+  </div>
+</div>
+
+<div class="px-3 pt-3 pb-28">
+  <div class="flex gap-1.5 overflow-x-auto no-bar mb-3" id="chips"></div>
+  <div class="space-y-2.5" id="list"></div>
+</div>
+
+<div id="wuyeTab"></div>
+<div class="toast" id="toast"></div>
+
+<div class="sheet" id="dtSheet"><div class="sheet-bg" onclick="closeSheet('dtSheet')"></div><div class="sheet-body" id="dtBody"></div></div>
+<div class="sheet" id="stSheet"><div class="sheet-bg" onclick="closeSheet('stSheet')"></div><div class="sheet-body" id="stBody"></div></div>
+<div class="sheet" id="ptSheet"><div class="sheet-bg" onclick="closeSheet('ptSheet')"></div><div class="sheet-body" id="ptBody"></div></div>
+
+<script src="../wuye-tab.js"></script>
+<script src="../wuye-data.js"></script>
+<script>
+wuyeEnsureStaff();
+
+var TABS = ['今日', '本周', '已逾期'];
+var filter = '今日';
+var curNo = '', curPt = -1, stGeo = null, stPhoto = 0, ptRes = {}, ptPhotos = 0, ptNote = '';
+
+function tabOf(o){
+  if (o.state === '逾期') return '已逾期';
+  if (o.state === '已完成') return '本周';
+  return '今日';
+}
+function done(o){ return o.points.filter(function(p){ return p.status !== '待检'; }).length; }
+function abn(o){ return o.points.filter(function(p){ return p.status === '异常'; }).length; }
+
+function paintChips(){
+  var db = wuyeDB();
+  document.getElementById('chips').innerHTML = TABS.map(function(c){
+    var n = db.xj.filter(function(o){ return tabOf(o) === c; }).length;
+    return '<a onclick="setF(\'' + c + '\')" class="chip' + (c === filter ? ' on' : '') + '">' + c + (n ? ' ' + n : '') + '</a>';
+  }).join('');
+}
+function setF(c){ filter = c; paintChips(); paintList(); }
+
+function paintList(){
+  var arr = wuyeDB().xj.filter(function(o){ return tabOf(o) === filter; });
+  if (!arr.length) {
+    document.getElementById('list').innerHTML = '<div class="text-center py-14"><i class="fas fa-list-check text-xl text-gray-300 block mb-2"></i><p class="text-[11px] text-gray-400">该分组暂无巡检任务</p></div>';
+    return;
+  }
+  document.getElementById('list').innerHTML = arr.map(function(o){
+    var d = done(o), total = o.points.length, pct = Math.round(d / total * 100);
+    var btn = '';
+    if (o.state === '待执行') btn = '<button onclick="event.stopPropagation();openStart(\'' + o.no + '\')" class="mt-2 w-full py-2 rounded-lg text-white text-[11px] font-bold" style="background:linear-gradient(135deg,#34D399,#059669)"><i class="fas fa-location-dot text-[10px] mr-1"></i>开始巡检（定位打卡）</button>';
+    else if (o.state === '执行中') btn = '<button onclick="event.stopPropagation();openDetail(\'' + o.no + '\')" class="mt-2 w-full py-2 rounded-lg text-white text-[11px] font-bold" style="background:linear-gradient(135deg,#3B82F6,#2563EB)"><i class="fas fa-clipboard-list text-[10px] mr-1"></i>继续巡检（剩 ' + (total - d) + ' 个点位）</button>';
+    else if (o.state === '逾期') btn = '<button onclick="event.stopPropagation();openStart(\'' + o.no + '\')" class="mt-2 w-full py-2 rounded-lg text-white text-[11px] font-bold" style="background:linear-gradient(135deg,#F87171,#DC2626)"><i class="fas fa-triangle-exclamation text-[10px] mr-1"></i>补执行（已逾期）</button>';
+    else btn = '<p class="text-[10px] mt-2" style="color:#059669"><i class="fas fa-circle-check mr-1"></i>已完成 ' + d + '/' + total + ' 点位' + (abn(o) ? ' · 发现 ' + abn(o) + ' 处异常' : ' · 未发现异常') + '</p>';
+    return '<div class="card bg-white rounded-2xl shadow-soft px-3.5 py-3" onclick="openDetail(\'' + o.no + '\')">'
+      + '<div class="flex items-center justify-between mb-1">'
+      + '<span class="text-[10px] text-gray-400 num">' + o.no + '</span>'
+      + '<span class="st text-[9px] font-bold px-1.5 py-0.5 rounded ' + stc(o.state) + '">' + o.state + '</span></div>'
+      + '<p class="text-[13px] font-bold text-gray-800">' + o.name + '</p>'
+      + '<div class="flex items-center gap-2 mt-1 text-[9px] text-gray-400">'
+      + '<span><i class="fas fa-location-dot mr-0.5"></i>' + o.area + '</span><span>·</span><span>' + o.plan + '</span></div>'
+      + '<div class="flex items-center gap-2 mt-2"><div class="prog flex-1"><i style="width:' + pct + '%"></i></div>'
+      + '<span class="text-[9px] num" style="color:#059669">' + d + '/' + total + '</span>'
+      + (abn(o) ? '<span class="text-[9px] font-bold" style="color:#DC2626">异常 ' + abn(o) + '</span>' : '') + '</div>'
+      + btn + '</div>';
+  }).join('');
+}
+
+/* ---------- 任务详情 ---------- */
+function openDetail(no){
+  curNo = no;
+  var o = wuyeDB().xj.filter(function(x){ return x.no === no; })[0];
+  if (!o) return;
+  var d = done(o), total = o.points.length;
+  var rows = o.points.map(function(p, i){
+    var cnt = p.items.filter(function(it){ return it.r !== '待检'; }).length;
+    var right = p.status === '待检'
+      ? '<span class="text-[9px] text-gray-400">待检</span>'
+      : '<span class="st text-[9px] font-bold px-1.5 py-0.5 rounded ' + stc(p.status) + '">' + p.status + '</span>';
+    return '<div onclick="openPoint(' + i + ')" class="flex items-center gap-2.5 py-2.5 border-b border-gray-50">'
+      + '<div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style="background:' + (p.status === '异常' ? '#FEF2F2' : p.status === '正常' ? '#ECFDF5' : '#F1F5F9') + '">'
+      + '<i class="fas ' + (p.status === '异常' ? 'fa-triangle-exclamation' : p.status === '正常' ? 'fa-check' : 'fa-location-crosshairs') + ' text-[11px]" style="color:' + (p.status === '异常' ? '#DC2626' : p.status === '正常' ? '#059669' : '#94A3B8') + '"></i></div>'
+      + '<div class="flex-1 min-w-0"><p class="text-[12px] text-gray-800 font-medium truncate">' + p.name + '</p>'
+      + '<p class="text-[9px] text-gray-400 mt-0.5">' + p.type + ' · 检查项 ' + cnt + '/' + p.items.length + (p.items[0] && p.items[0].r === '待检' ? '' : ' · 已检') + '</p></div>'
+      + right + '<i class="fas fa-chevron-right text-gray-300 text-[9px]"></i></div>';
+  }).join('');
+  var ops = '';
+  if (o.state === '待执行' || o.state === '逾期') ops = '<button onclick="closeSheet(\'dtSheet\');openStart(\'' + o.no + '\')" class="w-full py-2.5 rounded-xl text-white text-[12px] font-bold" style="background:linear-gradient(135deg,#34D399,#059669)">开始巡检（定位打卡）</button>';
+  else if (o.state === '执行中') ops = '<button onclick="doFinish()" class="w-full py-2.5 rounded-xl text-white text-[12px] font-bold" style="background:linear-gradient(135deg,#3B82F6,#2563EB)">完成巡检（' + d + '/' + total + '）</button>';
+
+  document.getElementById('dtBody').innerHTML =
+    '<div class="sheet-bar"></div>'
+    + '<div class="flex items-start justify-between"><div>'
+    + '<p class="text-[15px] font-extrabold text-gray-900">' + o.name + '</p>'
+    + '<p class="text-[10px] text-gray-400 mt-1 num">' + o.no + ' · ' + o.area + ' · ' + o.plan + '</p></div>'
+    + '<span class="st text-[10px] font-bold px-2 py-1 rounded ' + stc(o.state) + '">' + o.state + '</span></div>'
+    + (o.startGeo ? '<div class="geo ok mt-2.5"><i class="fas fa-location-dot mr-1"></i>开工打卡：' + o.startGeo + ' · ' + o.startedAt + '</div>' : '')
+    + '<div class="flex items-center gap-2 mt-3 mb-1"><p class="text-[11px] font-bold text-gray-800">点位清单</p>'
+    + '<span class="text-[9px] text-gray-400">必检点位未完成不能结束巡检</span></div>'
+    + '<div>' + rows + '</div>'
+    + '<button onclick="scan()" class="w-full mt-3 py-2 rounded-xl text-[11px] font-bold" style="background:#ECFDF5;color:#047857"><i class="fas fa-qrcode mr-1"></i>扫码定位点位</button>'
+    + (ops ? '<div class="mt-2">' + ops + '</div>' : '')
+    + '<button class="w-full mt-2 py-2.5 rounded-xl text-[12px] font-bold text-gray-500 bg-gray-100" onclick="closeSheet(\'dtSheet\')">关闭</button>';
+  openSheet('dtSheet');
+}
+
+/* ---------- 开始巡检 ---------- */
+function openStart(no){
+  curNo = no; stGeo = null; stPhoto = 0;
+  paintStart(true);
+}
+function paintStart(loading){
+  var geoHtml = loading
+    ? '<div class="geo"><i class="fas fa-spinner fa-spin mr-1"></i>正在获取定位…</div>'
+    : (stGeo ? '<div class="geo ok"><i class="fas fa-location-dot mr-1"></i>' + stGeo + '</div>'
+      : '<div class="geo fail"><i class="fas fa-triangle-exclamation mr-1"></i>定位失败：请重试；连续失败可标记「定位异常」提交，PC 侧会打标</div>');
+  var ph = '';
+  for (var i = 0; i < stPhoto; i++) ph += '<div class="ph" style="height:54px">照片 ' + (i + 1) + ' · 水印</div>';
+  if (stPhoto < 2) ph += '<div onclick="addStPh()" class="rounded-xl flex items-center justify-center" style="height:54px;border:1.5px dashed #6EE7B7;background:#F3FBF7;color:#059669;font-size:9px"><i class="fas fa-plus mr-1"></i>拍照</div>';
+  document.getElementById('stBody').innerHTML =
+    '<div class="sheet-bar"></div>'
+    + '<p class="text-[15px] font-extrabold text-gray-900 text-center">开始巡检</p>'
+    + '<p class="text-[10px] text-gray-400 text-center mt-1 num">' + curNo + ' · 开工需定位 + 现场拍照（水印）</p>'
+    + '<div class="mt-3"><p class="lbl">① 定位 <b>*</b></p>' + geoHtml + '</div>'
+    + '<div class="flex gap-2 mt-2"><button onclick="locate()" class="flex-1 py-2 rounded-xl text-[11px] font-bold" style="background:#ECFDF5;color:#047857"><i class="fas fa-crosshairs mr-1"></i>重新定位</button>'
+    + '<button onclick="markFail()" class="flex-1 py-2 rounded-xl text-[11px] font-bold" style="background:#FFF7ED;color:#EA580C">标记定位异常</button></div>'
+    + '<div class="mt-3"><p class="lbl">② 现场照片 <b>*</b></p><div class="grid grid-cols-2 gap-2" id="stPh">' + ph + '</div></div>'
+    + '<div class="rounded-xl p-3 mt-3" style="background:#ECFDF5"><p class="text-[10px] leading-relaxed" style="color:#047857"><i class="fas fa-circle-info mr-1"></i>开始后任务转「执行中」，按点位逐项检查；检查项判「异常」可一键生成问题单。</p></div>'
+    + '<button onclick="doStart()" class="w-full mt-3 py-3 rounded-xl text-white text-[13px] font-bold" style="background:linear-gradient(135deg,#34D399,#059669)">确认开始</button>'
+    + '<button class="w-full mt-2 py-2.5 rounded-xl text-[12px] font-bold text-gray-500 bg-gray-100" onclick="closeSheet(\'stSheet\')">取消</button>';
+  openSheet('stSheet');
+}
+function addStPh(){ stPhoto++; paintStart(false); }
+function locate(){
+  stGeo = null; paintStart(true);
+  setTimeout(function(){ stGeo = wuyeGeo(false); paintStart(false); toast('定位成功'); }, 900);
+}
+function markFail(){
+  stGeo = '定位异常（已手动标记，位置：A 栋 1F 附近）';
+  paintStart(false);
+  toast('已标记定位异常，PC 侧将显示「定位缺失」');
+}
+function doStart(){
+  if (!stGeo) { toast('请先获取定位（或标记定位异常）'); return; }
+  if (!stPhoto) { toast('请拍摄现场照片（至少 1 张）'); return; }
+  var db = wuyeDB();
+  var o = db.xj.filter(function(x){ return x.no === curNo; })[0];
+  o.state = '执行中'; o.startedAt = nowStr(); o.startGeo = stGeo;
+  wuyeSave(db); closeSheet('stSheet');
+  toast('已开始巡检，请按点位逐项检查');
+  filter = '今日'; paintChips(); paintList();
+  setTimeout(function(){ openDetail(curNo); }, 200);
+}
+
+/* ---------- 点位检查 ---------- */
+function openPoint(idx){
+  curPt = idx; ptRes = {}; ptPhotos = 0; ptNote = '';
+  var o = wuyeDB().xj.filter(function(x){ return x.no === curNo; })[0];
+  var p = o.points[idx];
+  p.items.forEach(function(it, i){ ptRes[i] = it.r === '待检' ? '' : it.r; });
+  ptNote = (p.items.filter(function(it){ return it.note; })[0] || {}).note || '';
+  paintPoint();
+}
+function paintPoint(){
+  var ta = document.getElementById('ptNote');
+  if (ta) ptNote = ta.value;
+  var o = wuyeDB().xj.filter(function(x){ return x.no === curNo; })[0];
+  var p = o.points[curPt];
+  var rows = p.items.map(function(it, i){
+    var v = ptRes[i] || '';
+    return '<div class="py-2.5 border-b border-gray-50">'
+      + '<p class="text-[12px] text-gray-800">' + (i + 1) + '. ' + it.n + '</p>'
+      + '<div class="res mt-1.5">'
+      + '<span class="' + (v === '正常' ? 'n' : '') + '" onclick="setRes(' + i + ',\'正常\')"><i class="fas fa-check mr-1"></i>正常</span>'
+      + '<span class="' + (v === '异常' ? 'y' : '') + '" onclick="setRes(' + i + ',\'异常\')"><i class="fas fa-xmark mr-1"></i>异常</span>'
+      + '</div></div>';
+  }).join('');
+  var hasAbn = Object.keys(ptRes).some(function(k){ return ptRes[k] === '异常'; });
+  var ph = '';
+  for (var j = 0; j < ptPhotos; j++) ph += '<div class="ph">照片 ' + (j + 1) + '</div>';
+  document.getElementById('ptBody').innerHTML =
+    '<div class="sheet-bar"></div>'
+    + '<p class="text-[15px] font-extrabold text-gray-900">' + p.name + '</p>'
+    + '<p class="text-[10px] text-gray-400 mt-1">' + p.id + ' · ' + p.type + ' · 扫码已定位</p>'
+    + '<div class="mt-2">' + rows + '</div>'
+    + (hasAbn ? '<div class="mt-3 rounded-xl p-3" style="background:#FEF2F2">'
+      + '<p class="text-[10px] font-bold" style="color:#B91C1C">异常项需填说明并拍照</p>'
+      + '<textarea id="ptNote" class="inp mt-2" rows="2" placeholder="描述异常情况，例：2 号灭火器有效期 2026-09 已过期">' + esc(ptNote) + '</textarea>'
+      + '<div class="grid grid-cols-3 gap-2 mt-2" id="ptPh">' + ph
+      + (ptPhotos < 3 ? '<div onclick="addPtPh()" class="rounded-xl flex items-center justify-center" style="height:44px;border:1.5px dashed #FCA5A5;background:#FFF5F5;color:#DC2626;font-size:9px"><i class="fas fa-camera mr-1"></i>拍照</div>' : '')
+      + '</div></div>' : '')
+    + '<button onclick="savePoint()" class="w-full mt-3 py-2.5 rounded-xl text-white text-[12px] font-bold" style="background:linear-gradient(135deg,#34D399,#059669)">保存该点位</button>'
+    + (hasAbn ? '<button onclick="genWT()" class="w-full mt-2 py-2.5 rounded-xl text-[12px] font-bold" style="background:#FEF2F2;color:#B91C1C"><i class="fas fa-share mr-1"></i>保存并生成问题单</button>' : '')
+    + '<button class="w-full mt-2 py-2.5 rounded-xl text-[12px] font-bold text-gray-500 bg-gray-100" onclick="closeSheet(\'ptSheet\')">取消</button>';
+  openSheet('ptSheet');
+}
+function setRes(i, v){ ptRes[i] = v; paintPoint(); }
+function addPtPh(){ ptPhotos++; paintPoint(); }
+function commitPoint(){
+  var db = wuyeDB();
+  var o = db.xj.filter(function(x){ return x.no === curNo; })[0];
+  var p = o.points[curPt];
+  var anyAbn = false;
+  p.items.forEach(function(it, i){
+    var v = ptRes[i] || '待检';
+    it.r = v;
+    if (v === '异常') anyAbn = true;
+  });
+  var noteEl = document.getElementById('ptNote');
+  var note = noteEl ? noteEl.value.trim() : '';
+  if (anyAbn && note.length < 2) { toast('有异常项，请填写异常说明'); return false; }
+  if (anyAbn && !ptPhotos) { toast('异常项必须拍照（至少 1 张）'); return false; }
+  p.status = anyAbn ? '异常' : '正常';
+  p.items.forEach(function(it){ if (it.r === '异常') { it.note = note; it.photo = ptPhotos; } });
+  wuyeSave(db);
+  return true;
+}
+function savePoint(){
+  if (!commitPoint()) return;
+  closeSheet('ptSheet'); toast('点位已保存');
+  paintChips(); paintList(); openDetail(curNo);
+}
+function genWT(){
+  if (!commitPoint()) return;
+  var db = wuyeDB();
+  var o = db.xj.filter(function(x){ return x.no === curNo; })[0];
+  var p = o.points[curPt];
+  var noteEl = document.getElementById('ptNote');
+  var note = noteEl ? noteEl.value.trim() : '';
+  var no = 'WT202610-00' + (69 + db.wt.length);
+  db.wt.unshift({
+    no: no, area: o.area + ' ' + p.name.replace('A 栋 ', ''),
+    type: p.type === '公共卫生间' ? '卫生' : p.type === '灭火器' || p.type === '消防通道' ? '消防' : p.type === '配电箱' ? '设备' : '占道',
+    sev: '一般', desc: note, owner: '待判定', state: '待处理',
+    reporter: wuyeMe().name, at: nowStr(), photos: ptPhotos,
+    from: '巡检 ' + o.no + ' · ' + p.id, unit: '公共区域', rectNo: '', bxNo: '',
+    logs: [[nowStr(), wuyeMe().name + ' 移动端上报（巡检 ' + p.id + '，照片 ' + ptPhotos + ' 张）· 责任方待判定']]
+  });
+  wuyeSave(db); closeSheet('ptSheet');
+  toast('已生成问题单 ' + no + '，责任方待主管判定');
+  paintChips(); paintList(); openDetail(curNo);
+}
+
+/* ---------- 扫码 ---------- */
+function scan(){
+  var db = wuyeDB();
+  var o = db.xj.filter(function(x){ return x.no === curNo; })[0];
+  if (!o) {
+    o = db.xj.filter(function(x){ return x.state === '执行中'; })[0];
+    if (!o) { toast('请先选择一条巡检任务'); return; }
+    curNo = o.no;
+  }
+  var idx = -1;
+  for (var i = 0; i < o.points.length; i++) if (o.points[i].status === '待检') { idx = i; break; }
+  if (idx < 0) { toast('该任务点位已全部检查完毕'); return; }
+  closeSheet('dtSheet');
+  toast('扫码成功：' + o.points[idx].id + ' ' + o.points[idx].name);
+  curPt = idx; openPoint(idx);
+}
+
+/* ---------- 完成巡检 ---------- */
+function doFinish(){
+  var db = wuyeDB();
+  var o = db.xj.filter(function(x){ return x.no === curNo; })[0];
+  var left = o.points.filter(function(p){ return p.status === '待检'; });
+  if (left.length) {
+    toast('还有 ' + left.length + ' 个必检点位未检：' + left[0].name + ' 等，不能完成巡检');
+    return;
+  }
+  o.state = '已完成';
+  wuyeSave(db);
+  closeSheet('dtSheet');
+  toast('巡检已完成' + (abn(o) ? '，发现 ' + abn(o) + ' 处异常' : '，未发现异常'));
+  filter = '本周'; paintChips(); paintList();
+}
+
+/* ---------- init ---------- */
+(function init(){
+  var q = new URLSearchParams(location.search);
+  paintChips(); paintList(); renderWuyeTab('wuye');
+  var no = q.get('no');
+  if (no) setTimeout(function(){ openDetail(no); }, 120);
+})();
+</script>
+</body>
+</html>

@@ -61,6 +61,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
       <select id="f-type" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
         <option value="">全部类型</option><option>普通店铺</option><option>品牌店铺</option><option>自营店铺</option>
       </select>
+      <select id="f-cat" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部主营品类</option>
+      </select>
+      <select id="f-market" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部所属市场</option><option>袜子市场</option><option>原料市场</option><option>两个市场</option><option>未归类</option>
+      </select>
       <button class="btn btn-primary" onclick="doSearch()">搜索</button>
       <button class="btn btn-ghost" onclick="resetSearch()">重置</button>
     </div>
@@ -74,6 +80,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
           <th class="px-4 py-3 text-left font-medium">店铺名称</th>
           <th class="px-4 py-3 text-left font-medium">店铺LOGO</th>
           <th class="px-4 py-3 text-left font-medium">店铺类型</th>
+          <th class="px-4 py-3 text-left font-medium">主营品类 / 所属市场</th>
           <th class="px-4 py-3 text-left font-medium">商户名称</th>
           <th class="px-4 py-3 text-left font-medium">主账号</th>
           <th class="px-4 py-3 text-left font-medium">在售商品</th>
@@ -168,6 +175,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
         <button class="btn btn-primary" onclick="openMerchant()">选择商户</button>
       </div>
     </div>
+    <div class="mb-4">
+      <label class="fl">主营品类　<span class="text-[11px] text-gray-400 font-normal">只读 · 变更走商户资料变更审核</span></label>
+      <div id="e-cats" class="rounded-lg border border-gray-200 px-3 py-2 text-[12px]" style="background:#F8FAFC;color:#64748B"></div>
+    </div>
   </div>
   <div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">
     <button class="btn btn-ghost" onclick="closeAll()">取消</button>
@@ -180,6 +191,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 
 <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[70]"></div>
 
+<script src="category-dict.js"></script>
 <script>
 /* brand = 品牌资质（2026-10-28 Y-8）：只对「品牌店铺」生效，缺了就等于普通店铺改个名
    state 由到期日与审核结果共同决定：expEnd < 今天 → 已过期；审核未通过 → 待审核/已驳回 */
@@ -193,6 +205,44 @@ var shops=[
   {id:5,name:'棉田有机纱线原料铺',logo:{bg:'linear-gradient(135deg,#34D399,#10B981)',ch:'棉'},type:'普通店铺',merchant:'棉田纱线厂（已认证）',account:'miantian',goods:56,state:'已关闭',brand:null},
   {id:6,name:'宝娜斯丝袜体验店',logo:{bg:'linear-gradient(135deg,#FBBF24,#F59E0B)',ch:'宝'},type:'普通店铺',merchant:'宝娜斯袜业（认证已过期）',account:'baonasi',goods:73,state:'营业中',brand:null}
 ];
+/* 店铺主营品类（2026-11-03 Y-12）：店铺必备属性，引用品类字典；写入来源 = 开店申请审核通过 / 资料变更审核
+   这里用映射表挂在 mock 数据上，避免改动上面每行的字面量 */
+var SHOP_CATS={
+  1:['男袜','女袜','包装物料'],   /* 混营：袜子 + 原料 → 两个市场都展示 */
+  2:['女袜','丝袜/打底裤'],
+  3:['纺机配件'],                 /* 原料类（纺机配件属「原料纱线」大类） */
+  4:['女袜','保暖袜'],
+  5:['纱线'],
+  6:[]                            /* 未归类：两个市场都不展示，需运营催补 */
+};
+shops.forEach(function(s){s.cats=SHOP_CATS[s.id]||[];});
+
+/* 所属市场推导（F05-R2）：含原料纱线大类 → 原料市场；其余类别 → 袜子市场；混营 → 两个都算；空 → 未归类 */
+function marketsOf(s){
+  var cats=s.cats||[];
+  if(!cats.length)return [];
+  var sock=false,mat=false;
+  cats.forEach(function(n){
+    var d=(window.CAT_DICT||[]).filter(function(c){return c.name===n;})[0];
+    if(!d)return;
+    if(d.group==='原料纱线')mat=true;else sock=true;
+  });
+  var r=[];
+  if(sock)r.push('袜子市场');
+  if(mat)r.push('原料市场');
+  return r;
+}
+function catCells(s){
+  var cats=s.cats||[];
+  if(!cats.length)return '<span class="status-badge" style="background:#FEE2E2;color:#B91C1C">未归类</span><div class="text-[10px] text-gray-400 mt-0.5">需运营催补</div>';
+  var shown=cats.slice(0,2).map(function(n){
+    return '<span class="status-badge" style="background:#EFF6FF;color:#2563EB;margin-right:3px">'+n+'</span>';
+  }).join('')+(cats.length>2?'<span class="status-badge bg-gray-100 text-gray-500">+'+(cats.length-2)+'</span>':'');
+  var m=marketsOf(s);
+  var mtxt=m.length===2?'两个市场':(m[0]==='原料市场'?'原料市场':'袜子市场');
+  return shown+'<div class="text-[10px] mt-0.5" style="color:'+(m.length===2?'#7C3AED':(mtxt==='原料市场'?'#15803D':'#64748B'))+'">'+mtxt+'</div>';
+}
+
 var merchants=['大唐袜业集团（已认证）','丹吉娅袜业（已认证）','步人堂针织（已认证）','花间舞袜业（已认证）','棉田纱线厂（已认证）','宝娜斯袜业（认证已过期）'];
 var editId=null,pickMerchant=merchants[0],logoName='';
 var tid;
@@ -213,6 +263,7 @@ function render(list){
       +'<td class="px-4 py-3"><div class="flex items-center gap-2"><div class="logo-box" style="background:'+s.logo.bg+'">'+s.logo.ch+'</div><span class="font-medium text-gray-800">'+s.name+'</span></div></td>'
       +'<td class="px-4 py-3"><div class="logo-box" style="background:'+s.logo.bg+'">'+s.logo.ch+'</div></td>'
       +'<td class="px-4 py-3">'+typeBadge[s.type]+brandHint(s)+'</td>'
+      +'<td class="px-4 py-3">'+catCells(s)+'</td>'
       +'<td class="px-4 py-3 text-gray-600">'+s.merchant+'</td>'
       +'<td class="px-4 py-3 text-gray-600">'+s.account+'</td>'
       +'<td class="px-4 py-3 text-gray-600">'+s.goods+'</td>'
@@ -223,16 +274,29 @@ function render(list){
         +(s.state==='营业中'?'<span class="lk-gray" onclick="toggleState('+s.id+')">关闭店铺</span>':'<span class="lk" onclick="toggleState('+s.id+')">重新开启</span>')
       +'</td></tr>';
   });
-  if(!rows.length){h='<tr><td colspan="8" class="px-4 py-16 text-center text-gray-300"><i class="fas fa-inbox text-3xl block mb-2"></i><span class="text-[12px]">暂无数据</span></td></tr>';}
+  if(!rows.length){h='<tr><td colspan="9" class="px-4 py-16 text-center text-gray-300"><i class="fas fa-inbox text-3xl block mb-2"></i><span class="text-[12px]">暂无数据</span></td></tr>';}
   document.getElementById('tb').innerHTML=h;
   document.getElementById('page-info').textContent='共 '+rows.length+' 条记录';
 }
 function doSearch(){
   var n=document.getElementById('f-name').value.trim(),a=document.getElementById('f-account').value.trim(),m=document.getElementById('f-merchant').value.trim(),t=document.getElementById('f-type').value;
-  var r=shops.filter(function(s){return (!n||s.name.indexOf(n)>-1)&&(!a||s.account.indexOf(a)>-1)&&(!m||s.merchant.indexOf(m)>-1)&&(!t||s.type===t);});
+  var cat=document.getElementById('f-cat').value,mk=document.getElementById('f-market').value;
+  var r=shops.filter(function(s){
+    var okCat=!cat||(s.cats||[]).indexOf(cat)>-1;
+    var mks=marketsOf(s);
+    var okMk=!mk||(mk==='未归类'?mks.length===0:(mk==='两个市场'?mks.length===2:mks.indexOf(mk)>-1));
+    return (!n||s.name.indexOf(n)>-1)&&(!a||s.account.indexOf(a)>-1)&&(!m||s.merchant.indexOf(m)>-1)&&(!t||s.type===t)&&okCat&&okMk;
+  });
   render(r);
 }
-function resetSearch(){document.getElementById('f-name').value='';document.getElementById('f-account').value='';document.getElementById('f-merchant').value='';document.getElementById('f-type').value='';render();}
+function resetSearch(){document.getElementById('f-name').value='';document.getElementById('f-account').value='';document.getElementById('f-merchant').value='';document.getElementById('f-type').value='';document.getElementById('f-cat').value='';document.getElementById('f-market').value='';render();}
+/* 主营品类筛选项 = 品类字典启用项（Y-12） */
+(function initCatFilter(){
+  var sel=document.getElementById('f-cat');
+  (window.CAT_DICT||[]).filter(function(c){return c.on;}).forEach(function(c){
+    var o=document.createElement('option');o.value=c.name;o.textContent=c.name+'（'+c.group+'）';sel.appendChild(o);
+  });
+})();
 
 function openEdit(id){
   editId=id;
@@ -241,6 +305,10 @@ function openEdit(id){
   document.getElementById('e-name').value=s.name;
   document.getElementById('e-merchant').value=s.merchant;
   pickMerchant=s.merchant;
+  /* 主营品类回填（Y-12）：只读展示，写入走开店申请/资料变更审核，不在此编辑 */
+  document.getElementById('e-cats').innerHTML=id==='new'
+    ? '<span style="color:#B45309">新店铺由「开店申请」审核通过后带入主营品类；也可在商户资料变更中维护</span>'
+    : catChips(s);
   document.querySelectorAll('#type-box .type-radio').forEach(function(r){r.classList.toggle('on',r.getAttribute('data-t')===s.type);});
   /* 品牌资质回填（Y-8） */
   var b=s.brand||null;
@@ -329,6 +397,11 @@ function saveShop(){
     toast('请先完成品牌资质审核，或先按普通店铺经营');
     return;
   }
+  /* Y-12：品牌馆按品类分流展示，无主营品类无法进馆 → 阻断 */
+  if(type==='品牌店铺'&&!(s&&(s.cats||[]).length)){
+    toast('选「品牌店铺」前请先补店铺主营品类（走商户资料变更审核）');
+    return;
+  }
   if(editId==='new'){
     shops.unshift({id:Date.now(),name:name,logo:{bg:'linear-gradient(135deg,#FF8A4C,#FF4D2D)',ch:name.charAt(0)},type:type,merchant:merchant,account:'shop'+(shops.length+1),goods:0,state:'营业中',brand:null});
     toast('店铺「'+name+'」已创建（'+type+'）');
@@ -336,7 +409,14 @@ function saveShop(){
   else{if(s){s.name=name;s.type=type;s.merchant=merchant;toast('已保存修改');}}
   closeAll();render();
 }
-function detail(id){var s=shops.find(function(x){return x.id===id;});toast('店铺详情：'+s.name+' · '+s.type+' · '+s.state);}
+function detail(id){var s=shops.find(function(x){return x.id===id;});var c=(s.cats||[]).join('、')||'未归类';toast('店铺详情：'+s.name+' · '+s.type+' · 主营品类：'+c+' · '+s.state);}
+/* 主营品类 chips（Y-12）：编辑抽屉只读块用 */
+function catChips(s){
+  var cats=s.cats||[];
+  if(!cats.length)return '<span style="color:#B91C1C">未归类（两个市场都不展示，建议运营催补）</span>';
+  return cats.map(function(n){return '<span class="status-badge" style="background:#EFF6FF;color:#2563EB;margin-right:4px">'+n+'</span>';}).join('')
+    +'<div class="text-[10px] text-gray-400 mt-1">所属市场：'+(marketsOf(s).join('、')||'未归类')+'</div>';
+}
 function toggleState(id){var s=shops.find(function(x){return x.id===id;});s.state=s.state==='营业中'?'已关闭':'营业中';toast(s.state==='营业中'?'店铺已重新开启':'店铺已关闭，前端不再展示');render();}
 function closeAll(){
   document.getElementById('mask').classList.remove('on');
@@ -384,7 +464,8 @@ var NOTE_EXT=[
   '外采列表操作栏中的按钮与按钮的二级页面，开发请直接打开外采系统对照实现；本原型仅作占位示意，不代表最终页面。'
 ];
 var NOTE_MOD=[
-  '新增店铺时，需增加「店铺类型」三项单选：普通店铺 / 品牌店铺 / 自营店铺（原型新增 / 编辑店铺抽屉中已标注该字段）。'
+  '新增店铺时，需增加「店铺类型」三项单选：普通店铺 / 品牌店铺 / 自营店铺（原型新增 / 编辑店铺抽屉中已标注该字段）。',
+  '店铺新增「主营品类」字段（Y-12，2026-11-03）：多选、引用品类字典；由开店申请审核通过 / 资料变更审核写入，本页只读展示（编辑抽屉已标注）。列表加「主营品类 / 所属市场」列与两个筛选项；所属市场按品类自动推导（含原料纱线大类 → 原料市场，其余 → 袜子市场，混营两个都展示，空 → 未归类）。'
 ];
 function noteItems(arr,color,empty){
   if(!arr||!arr.length){return '<div class="mn-li" style="color:#94A3B8">'+empty+'</div>';}

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>我的 - 物业管理</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--p:#2563EB;--bg:#F5F8FF}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+::-webkit-scrollbar{width:2px;height:2px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#cfe0f8;border-radius:1px}
+.grad-h{background:linear-gradient(135deg,#3B82F6 0%,#2563EB 48%,#1D4ED8 100%)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,40,80,.06)}
+.num{font-variant-numeric:tabular-nums}
+.card{transition:transform .16s ease}
+.card:active{transform:scale(.985)}
+.toast{position:fixed;left:50%;top:22%;transform:translate(-50%,-8px);max-width:300px;background:rgba(31,36,48,.94);color:#fff;font-size:12px;line-height:1.5;padding:10px 14px;border-radius:12px;opacity:0;pointer-events:none;transition:.22s;z-index:300;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.sw{width:44px;height:24px;border-radius:999px;background:#CBD5E1;position:relative;transition:.2s;flex-shrink:0}
+.sw.on{background:#10B981}
+.sw i{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.sw.on i{left:22px}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<div class="px-3.5 pt-2 pb-8 grad-h">
+  <div class="flex justify-between items-center text-white text-sm font-semibold" style="height:36px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+  </div>
+  <div class="flex items-center gap-3 mt-3">
+    <div class="w-14 h-14 rounded-2xl flex items-center justify-center" style="background:rgba(255,255,255,.22)"><i class="fas fa-user-shield text-white text-xl"></i></div>
+    <div class="flex-1">
+      <p class="text-white font-extrabold text-[17px]" id="uName">—</p>
+      <p class="text-white/80 text-[10px] mt-1" id="uMeta">—</p>
+      <p class="text-white/60 text-[9px] mt-0.5" id="uArea">—</p>
+    </div>
+    <a href="wuye-home.html" class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white"><i class="fas fa-house text-xs"></i></a>
+  </div>
+</div>
+
+<!-- 工作量 -->
+<div class="px-3 -mt-5 relative z-10">
+  <div class="bg-white rounded-2xl shadow-soft p-3.5">
+    <div class="flex items-center justify-between mb-3">
+      <div class="flex items-center gap-1.5"><div class="w-1 h-3.5 rounded-full" style="background:#7C3AED"></div><span class="text-[13px] font-bold text-gray-800">本月工作量</span></div>
+      <span class="text-[9px] text-gray-400">口径：本人 + 负责区域</span>
+    </div>
+    <div class="grid grid-cols-4 gap-1.5" id="statBox"></div>
+    <div class="mt-3 rounded-xl p-2.5" style="background:#F6F9FF">
+      <div class="flex items-center justify-between mb-1.5"><span class="text-[10px] text-gray-500">本月完成率</span><span class="text-[10px] font-bold" style="color:#2563EB" id="rateTxt">96%</span></div>
+      <div style="height:6px;border-radius:3px;background:#E2ECFB;overflow:hidden"><i id="rateBar" style="display:block;height:100%;width:96%;background:linear-gradient(90deg,#60A5FA,#2563EB)"></i></div>
+    </div>
+  </div>
+</div>
+
+<!-- 排班 -->
+<div class="px-3 mt-3">
+  <div class="bg-white rounded-2xl shadow-soft p-3.5">
+    <div class="flex items-center justify-between mb-2.5">
+      <div class="flex items-center gap-1.5"><div class="w-1 h-3.5 rounded-full" style="background:#0EA5E9"></div><span class="text-[13px] font-bold text-gray-800">本周排班</span></div>
+      <span class="text-[9px] text-gray-400">由 PC「物业人员」维护</span>
+    </div>
+    <div class="grid grid-cols-7 gap-1" id="weekBox"></div>
+  </div>
+</div>
+
+<!-- 身份切换 -->
+<div class="px-3 mt-3">
+  <div class="bg-white rounded-2xl shadow-soft p-3.5">
+    <div class="flex items-center gap-1.5 mb-2.5"><div class="w-1 h-3.5 rounded-full" style="background:#F59E0B"></div><span class="text-[13px] font-bold text-gray-800">演示身份</span><span class="text-[9px] text-gray-400">（原型切换用）</span></div>
+    <div class="space-y-2" id="idList"></div>
+    <p class="text-[9px] text-gray-400 mt-2 leading-relaxed"><i class="fas fa-circle-info mr-1"></i>真实系统按统一用户体系账号返回身份与岗位，端上不允许自行注册或切换为物业人员。</p>
+  </div>
+</div>
+
+<!-- 设置 -->
+<div class="px-3 mt-3 mb-28">
+  <div class="bg-white rounded-2xl shadow-soft overflow-hidden">
+    <div class="flex items-center gap-3 px-3.5 py-3 border-b border-gray-50">
+      <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:#ECFDF5"><i class="fas fa-bell text-[13px]" style="color:#059669"></i></div>
+      <div class="flex-1"><p class="text-[12px] font-medium text-gray-800">派单 / 超时提醒</p><p class="text-[9px] text-gray-400 mt-0.5">新派单、整改退回、超时未处理</p></div>
+      <div class="sw on" onclick="toggleSw(this,'msg')"><i></i></div>
+    </div>
+    <div class="flex items-center gap-3 px-3.5 py-3 border-b border-gray-50">
+      <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:#FFF7ED"><i class="fas fa-moon text-[13px]" style="color:#EA580C"></i></div>
+      <div class="flex-1"><p class="text-[12px] font-medium text-gray-800">休息时段免打扰</p><p class="text-[9px] text-gray-400 mt-0.5">22:00–07:00 仅紧急报修提醒</p></div>
+      <div class="sw" onclick="toggleSw(this,'quiet')"><i></i></div>
+    </div>
+    <a href="messages.html" class="flex items-center gap-3 px-3.5 py-3 border-b border-gray-50">
+      <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:#EFF6FF"><i class="fas fa-envelope text-[13px]" style="color:#2563EB"></i></div>
+      <div class="flex-1"><p class="text-[12px] font-medium text-gray-800">消息中心</p><p class="text-[9px] text-gray-400 mt-0.5">派单通知 / 超时提醒 / 系统公告</p></div>
+      <i class="fas fa-chevron-right text-gray-300 text-[10px]"></i>
+    </a>
+    <a onclick="resetDemo()" class="flex items-center gap-3 px-3.5 py-3">
+      <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:#FEF2F2"><i class="fas fa-rotate-left text-[13px]" style="color:#DC2626"></i></div>
+      <div class="flex-1"><p class="text-[12px] font-medium text-gray-800">重置演示数据</p><p class="text-[9px] text-gray-400 mt-0.5">恢复报修 / 巡检 / 问题 / 整改 / 投诉初始数据</p></div>
+      <i class="fas fa-chevron-right text-gray-300 text-[10px]"></i>
+    </a>
+  </div>
+  <p class="text-center text-[9px] text-gray-400 mt-4">袜掌柜 · 物业管理（原型 v1.0 · 2026-10-30）</p>
+</div>
+
+<div id="wuyeTab"></div>
+<div class="toast" id="toast"></div>
+
+<script src="wuye-tab.js"></script>
+<script src="wuye-data.js"></script>
+<script>
+wuyeEnsureStaff();
+
+function paintUser(){
+  var me = wuyeMe();
+  document.getElementById('uName').textContent = me.name;
+  document.getElementById('uMeta').textContent = me.posts.join(' / ') + ' · 上级 ' + me.leader + ' · ' + me.phone;
+  document.getElementById('uArea').textContent = '负责区域：' + me.area;
+}
+
+function paintStat(){
+  var db = wuyeDB(), s = db.stat;
+  var cards = [
+    [s.monthDone, '完成单数'],
+    [s.avgResp, '平均响应'],
+    [(db.wt || []).length, '问题上报数'],
+    [s.todayDone, '今日完成']
+  ];
+  document.getElementById('statBox').innerHTML = cards.map(function(c){
+    return '<div class="rounded-xl py-2 text-center" style="background:#F6F9FF"><p class="text-[13px] font-extrabold num" style="color:#2563EB">' + c[0] + '</p><p class="text-[8px] text-gray-500 mt-0.5">' + c[1] + '</p></div>';
+  }).join('');
+  document.getElementById('rateTxt').textContent = s.monthRate + '%';
+  document.getElementById('rateBar').style.width = s.monthRate + '%';
+}
+
+function paintWeek(){
+  var days = [['一', '巡检 A', '巡检'], ['二', '巡检 A', '巡检'], ['三', '巡检 B', '巡检'], ['四', '巡检 A', '巡检'], ['五', '巡检 A', '巡检'], ['六', '值班', '值班'], ['日', '休', '休']];
+  var t = new Date().getDay(); // 0=Sun
+  var idx = t === 0 ? 6 : t - 1;
+  document.getElementById('weekBox').innerHTML = days.map(function(d, i){
+    var on = i === idx;
+    var rest = d[2] === '休';
+    return '<div class="rounded-lg py-1.5 text-center" style="background:' + (on ? '#EFF6FF' : '#F8FAFC') + ';border:1px solid ' + (on ? '#BFDBFE' : 'transparent') + '">'
+      + '<p class="text-[9px] ' + (on ? 'font-bold' : 'text-gray-400') + '" style="' + (on ? 'color:#2563EB' : '') + '">' + d[0] + '</p>'
+      + '<p class="text-[8px] mt-0.5" style="color:' + (rest ? '#94A3B8' : '#0F766E') + '">' + d[1] + '</p></div>';
+  }).join('');
+}
+
+function paintIdList(){
+  var cur = wuyeIdentity();
+  var opts = [
+    ['property', '物业人员', '维修工 / 巡检员 · 只能看本人与负责区域的单'],
+    ['manager', '物业主管', '可派单、改派；投诉升级处置'],
+    ['both', '双身份', '同时是商户：物业服务 + 物业管理 并存'],
+    ['merchant', '纯商户', '看不到「物业管理」，回到商户 5 Tab']
+  ];
+  document.getElementById('idList').innerHTML = opts.map(function(o){
+    var on = o[0] === cur;
+    return '<div onclick="wuyeSetIdentity(\'' + o[0] + '\')" class="rounded-xl p-2.5 flex items-center gap-2.5" style="border:1.5px solid ' + (on ? '#2563EB' : '#EEF0F3') + ';background:' + (on ? '#EFF6FF' : '#fff') + '">'
+      + '<div class="flex-1"><p class="text-[12px] font-bold" style="color:' + (on ? '#2563EB' : '#1F2430') + '">' + o[1] + '</p>'
+      + '<p class="text-[9px] text-gray-400 mt-0.5">' + o[2] + '</p></div>'
+      + (on ? '<i class="fas fa-circle-check" style="color:#2563EB"></i>' : '<i class="fas fa-chevron-right text-gray-300 text-[10px]"></i>')
+      + '</div>';
+  }).join('');
+}
+
+function toggleSw(el, k){
+  el.classList.toggle('on');
+  toast(el.classList.contains('on') ? '已开启' : '已关闭');
+}
+
+function resetDemo(){
+  if (!confirm('重置演示数据？\n\n报修 / 巡检 / 问题 / 整改 / 投诉将恢复初始状态。')) return;
+  wuyeReset();
+}
+
+paintUser(); paintStat(); paintWeek(); paintIdList();
+renderWuyeTab('mine');
+</script>
+</body>
+</html>

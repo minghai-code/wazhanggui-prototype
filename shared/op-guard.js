@@ -51,11 +51,12 @@
     'property-repair.html':     [{ re: /驳回|改派/, perm: 'audit' }],
     'property-request.html':    [{ re: /审核|驳回/, perm: 'audit' }],
     'property-budget.html':     [{ re: /额外申请|审批|导入/, perm: 'audit' }],
-    'property-inspect.html':    [{ re: /新增巡检计划|停用|启用/, perm: 'audit' }],
+    /* property-inspect.html 已于 2026-11-03 下线（招标范围收敛），守卫映射移除 */
     'property-issue.html':      [{ re: /判定|派整改|转报修/, perm: 'audit' }],
-    'property-rectify.html':    [{ re: /派发|复核|批量通过/, perm: 'audit' }],
+    /* property-rectify.html 已于 2026-11-03 下线（招标范围收敛），守卫映射移除 */
     'property-complaint.html':  [{ re: /受理|回复/, perm: 'audit' }],
-    'property-material.html':   [{ re: /归一|合并|批量/, perm: 'audit' }],
+    'property-material.html':   [{ re: /合并|批量/, perm: 'audit' }],
+    'property-staff.html':      [{ re: /停用|转派|建档/, perm: 'audit' }],
     'mall-inquiry.html':        [{ re: /下架|导出/, perm: 'audit' }],
     'mall-order-inquiry.html':  [{ re: /取消|备注/, perm: 'audit' }],
     'mall-custom-demand.html': [{ re: /下架|强制关闭/, perm: 'audit' }],

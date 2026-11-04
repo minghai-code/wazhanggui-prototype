@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>实体商户管理 - 品类字典</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}.lk:hover{text-decoration:underline}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}.lk-gray:hover{color:#1F2430;text-decoration:underline}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:60}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:560px;max-width:96vw;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:70;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.blk{border:1px solid #E2E8F0;border-radius:12px;padding:14px 16px}
+.blk-t{font-size:12.5px;font-weight:700;color:#1F2430;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.kv{display:flex;gap:8px;font-size:12px;line-height:1.9}
+.kv .k{width:110px;flex-shrink:0}
+.fi{width:100%;padding:6px 10px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none;background:#fff}
+.fi:focus{border-color:#FF4D2D}
+.fl{display:block;font-size:11px;color:#94A3B8;margin-bottom:4px}
+.sel{width:100%;padding:6px 8px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none}
+button{cursor:pointer}
+.warn{background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:10px 12px;font-size:11px;color:#92400E;line-height:1.7}
+.ok{background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;padding:10px 12px;font-size:11px;color:#15803D;line-height:1.7}
+#toast{position:fixed;left:50%;bottom:40px;transform:translateX(-50%) translateY(20px);background:rgba(31,36,48,.94);color:#fff;padding:10px 20px;border-radius:10px;font-size:12.5px;opacity:0;pointer-events:none;transition:.25s;z-index:99;max-width:80vw}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<div class="p-6">
+
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">品类字典</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">04 实体商户管理</span>
+        <span class="tag" style="background:#FEF3C7;color:#B45309">经营品类唯一来源</span>
+        <span class="tag" style="background:#F1F5F9;color:#94A3B8">只停用不删除</span>
+      </div>
+      <p class="text-[12px] text-gray-400 mt-1">「主营品类」的<b>唯一字典</b>：商户档案、商户端认证、资料变更审核、展商主营品类统一从这里取值，<b>不允许自由文本</b>；停用品类不进新选择项、历史数据保留；同义写法用「合并」归并</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="toast('已导出品类字典（含大类、关联商户数、使用状态）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+      <button class="btn btn-primary" onclick="openEdit(null)"><i class="fas fa-plus mr-1"></i>新增品类</button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-4 gap-3 mb-4" id="stats"></div>
+
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+    <div class="flex items-center gap-3 flex-wrap">
+      <input id="f-kw" type="text" placeholder="品类名称 / 编号" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary w-48">
+      <select id="f-group" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+        <option value="">全部大类</option>
+      </select>
+      <select id="f-on" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+        <option value="">全部状态</option><option value="1">启用</option><option value="0">停用</option>
+      </select>
+      <button class="btn btn-primary" onclick="doSearch()">查询</button>
+      <button class="btn btn-ghost" onclick="resetSearch()">重置</button>
+      <span class="text-[11px] text-[#94A3B8] ml-auto"><i class="fas fa-circle-info mr-1"></i>改品类名称会影响所有已引用商户的展示，<b>同义项请用「合并」</b>而不是改名</span>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-[13px] font-bold text-[#1F2430]">品类清单</span>
+        <span class="text-[12px] text-[#94A3B8]" id="cnt">共 0 个</span>
+      </div>
+      <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-link mr-1"></i>关联商户数 = 商户档案「主营品类」包含该品类的商户数（去重）</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-[13px]" style="min-width:980px">
+        <thead>
+          <tr class="bg-gray-50 text-gray-500 text-[12px]">
+            <th class="px-4 py-3 text-left font-medium">品类编号</th>
+            <th class="px-4 py-3 text-left font-medium">品类名称</th>
+            <th class="px-4 py-3 text-left font-medium">所属大类</th>
+            <th class="px-4 py-3 text-left font-medium">排序</th>
+            <th class="px-4 py-3 text-left font-medium">关联商户</th>
+            <th class="px-4 py-3 text-left font-medium">状态</th>
+            <th class="px-4 py-3 text-center font-medium">操作</th>
+          </tr>
+        </thead>
+        <tbody id="tb" class="divide-y divide-gray-50"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div id="mask" class="mask" onclick="closeAll()"></div>
+<div id="drawer" class="drawer"></div>
+<div id="toast"></div>
+
+<script src="category-dict.js"></script>
+<script>
+/* ================== 数据 ================== */
+/* 品类大类（固定四类 + 其他），不是业务分类，只用于筛选与排序分组 */
+var GROUPS=['袜品','原料纱线','袜机设备','设计包装','其他'];
+
+/* 品类字典：全平台唯一来源，数据在 category-dict.js（与商户档案共用） */
+var CATS=window.CAT_DICT;
+
+/* 关联商户（精简自 04 商户档案，用于计算关联数与合并影响；真实系统 join 商户档案 categories） */
+var MB=[
+  {id:'MB2026000041', name:'大唐旗舰精梳棉',   cats:['男袜','运动袜']},
+  {id:'MB2026000098', name:'棉田纱线直营',     cats:['棉纱']},
+  {id:'MB2026000123', name:'晓琳袜业经营部',   cats:['女袜','丝袜/打底裤']},
+  {id:'MB2026000124', name:'王建国（档口租户）', cats:['男袜']},
+  {id:'MB2026000125', name:'周雅琴（档口租户）', cats:['女袜']},
+  {id:'MB2026000126', name:'李海涛（档口租户）', cats:['运动袜']},
+  {id:'MB2025000315', name:'大唐××针织厂',    cats:['棉袜']}
+];
+
+var curRows=CATS.slice(), curId=null, mergeFrom=null;
+
+/* ================== 工具 ================== */
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+var toastTimer=null;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.className='on';clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.className='';},3000);}
+function show(){document.getElementById('mask').className='mask on';document.getElementById('drawer').className='drawer on';}
+function closeAll(){document.getElementById('mask').className='mask';document.getElementById('drawer').className='drawer';}
+function useCount(name){return MB.filter(function(m){return m.cats.indexOf(name)>-1;}).length;}
+function catOf(name){return CATS.filter(function(c){return c.name===name;})[0];}
+function catById(id){return CATS.filter(function(c){return c.id===id;})[0];}
+
+/* ================== 统计卡 ================== */
+function renderStats(){
+  var on=CATS.filter(function(c){return c.on;}).length;
+  var off=CATS.length-on;
+  var used=CATS.filter(function(c){return c.on&&useCount(c.name)>0;}).length;
+  var zero=CATS.filter(function(c){return c.on&&useCount(c.name)===0;}).length;
+  var cards=[['启用品类',on,'#2563EB'],['已停用',off,'#94A3B8'],
+             ['有商户在用',used,'#15803D'],['零使用品类',zero,'#B45309']];
+  document.getElementById('stats').innerHTML=cards.map(function(x){
+    return '<div class="bg-white rounded-lg border border-gray-100 p-3.5">'
+      +'<p class="text-[11px] text-gray-400">'+x[0]+'</p>'
+      +'<p class="text-xl font-bold mt-1" style="color:'+x[2]+'">'+x[1]+'</p></div>';
+  }).join('');
+}
+
+/* ================== 列表 ================== */
+function render(){
+  var h='';
+  curRows.slice().sort(function(a,b){
+    if(a.group!==b.group)return GROUPS.indexOf(a.group)-GROUPS.indexOf(b.group);
+    return a.sort-b.sort;
+  }).forEach(function(c){
+    var n=useCount(c.name);
+    h+='<tr class="hover:bg-gray-50">'
+      +'<td class="px-4 py-3 text-[#94A3B8] text-[12px]">'+esc(c.id)+'</td>'
+      +'<td class="px-4 py-3 font-medium">'+esc(c.name)+'</td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(c.group)+'</td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+c.sort+'</td>'
+      +'<td class="px-4 py-3 text-[12px]">'+(n?'<span class="lk" onclick="showUsers(\''+esc(c.name)+'\')">'+n+' 家</span>':'<span class="text-[#94A3B8]">0</span>')+'</td>'
+      +'<td class="px-4 py-3">'+(c.on?'<span class="tag" style="background:#DCFCE7;color:#15803D">启用</span>':'<span class="tag" style="background:#F1F5F9;color:#64748B">停用</span>')
+        +(c.note?'<div class="text-[11px] text-[#94A3B8] mt-0.5" style="max-width:180px;white-space:normal">'+esc(c.note)+'</div>':'')+'</td>'
+      +'<td class="px-4 py-3 text-center whitespace-nowrap">'
+        +'<span class="lk" onclick="openEdit(\''+c.id+'\')">编辑</span>'
+        +(c.name==='其他'?'':' · <span class="lk-gray" onclick="openMerge(\''+c.id+'\')">合并到…</span>')
+        +(c.name==='其他'?'':' · <span class="lk-gray" onclick="toggleCat(\''+c.id+'\')">'+(c.on?'停用':'启用')+'</span>')
+      +'</td></tr>';
+  });
+  document.getElementById('tb').innerHTML=h||'<tr><td colspan="7" class="px-4 py-16 text-center text-gray-300"><i class="fas fa-inbox text-3xl block mb-2"></i><span class="text-[12px]">暂无匹配品类</span></td></tr>';
+  document.getElementById('cnt').textContent='共 '+curRows.length+' 个';
+  renderStats();
+}
+
+function showUsers(name){
+  var list=MB.filter(function(m){return m.cats.indexOf(name)>-1;});
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">使用「'+esc(name)+'」的商户</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">共 '+list.length+' 家（来自商户档案「主营品类」）</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4">';
+  if(!list.length){h+='<p class="text-[12px] text-[#94A3B8]">暂无商户使用该品类</p>';}
+  list.forEach(function(m){
+    h+='<div class="flex items-center justify-between py-2.5 border-b border-gray-50 last:border-0">'
+      +'<div><p class="text-[13px] text-[#1F2430] font-medium">'+esc(m.name)+'</p>'
+      +'<p class="text-[11px] text-[#94A3B8] mt-0.5">'+esc(m.id)+'</p></div>'
+      +'<button class="btn btn-ghost" onclick="location.href=\'merchant-profile.html\'">去档案</button></div>';
+  });
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end"><button class="btn btn-ghost" onclick="closeAll()">关闭</button></div>';
+  document.getElementById('drawer').innerHTML=h;show();
+}
+
+/* ================== 新增 / 编辑 ================== */
+function openEdit(id){
+  curId=id;
+  var c=id?catOf(id):null;
+  var cid=id||('CT-'+String(CATS.length+1).padStart(3,'0'));
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+(id?'编辑品类':'新增品类')+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+cid+'　保存后立即进入商户档案 / 商户端认证 / 变更审核的选择项</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div><label class="fl"><i style="color:#EF4444">*</i> 品类名称（唯一，商户端展示此名称）</label>'
+    +'<input class="fi" id="c-name" value="'+(c?esc(c.name):'')+'" placeholder="如：运动袜"></div>'
+    +'<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl"><i style="color:#EF4444">*</i> 所属大类</label><select class="sel" id="c-group">'
+      +GROUPS.map(function(g){return '<option'+(c&&c.group===g?' selected':'')+'>'+g+'</option>';}).join('')+'</select></div>'
+    +'<div><label class="fl">排序（同大类内越小越靠前）</label><input class="fi" id="c-sort" type="number" min="1" value="'+(c?c.sort:9)+'"></div>'
+    +'</div>'
+    +'<div><label class="fl">状态</label><select class="sel" id="c-on">'
+      +'<option value="1"'+(!c||c.on?' selected':'')+'>启用</option><option value="0"'+(c&&!c.on?' selected':'')+'>停用</option></select></div>'
+    +'<div><label class="fl">备注</label><input class="fi" id="c-note" value="'+(c?esc(c.note):'')+'" placeholder="如：2026-08 起无商户使用，暂时停用"></div>'
+    +'<div class="warn"><i class="fas fa-circle-info mr-1"></i>改名称会影响<b>所有已引用该品类的商户展示</b>。若只是同一品类的不同写法（如「男式袜」与「男袜」），请用列表里的「<b>合并到…</b>」，不要新增或改名。</div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveCat()">保存</button></div>';
+  document.getElementById('drawer').innerHTML=h;show();
+}
+
+function saveCat(){
+  var name=document.getElementById('c-name').value.trim();
+  var group=document.getElementById('c-group').value;
+  var sort=Number(document.getElementById('c-sort').value)||1;
+  var on=document.getElementById('c-on').value==='1';
+  var note=document.getElementById('c-note').value.trim();
+  if(!name){toast('请填写品类名称');return;}
+  var dup=CATS.filter(function(c){return c.name===name&&c.id!==curId;});
+  if(dup.length){toast('品类「'+name+'」已存在（'+dup[0].id+'），同义项请用「合并」');return;}
+  if(curId){
+    var c=catById(curId);
+    var oldName=c.name;
+    c.name=name;c.group=group;c.sort=sort;c.on=on;c.note=note;
+    if(oldName!==name){
+      MB.forEach(function(m){var i=m.cats.indexOf(oldName);if(i>-1)m.cats[i]=name;});
+      toast('已保存：「'+oldName+'」→「'+name+'」，已同步 '+MB.filter(function(m){return m.cats.indexOf(name)>-1;}).length+' 家商户');
+    }else{toast('已保存品类：'+name);}
+  }else{
+    CATS.push({id:'CT-'+String(CATS.length+1).padStart(3,'0'), name:name, group:group, sort:sort, on:on, note:note});
+    toast('已新增品类：'+name+'（已进入商户档案与端上选择项）');
+  }
+  curRows=CATS.slice();
+  closeAll();render();
+}
+
+function toggleCat(id){
+  var c=catById(id);
+  if(!c)return;
+  var n=useCount(c.name);
+  if(c.on&&n){
+    toast('「'+c.name+'」还有 '+n+' 家商户在用：停用后这些商户的选择保留，但新选择里不再出现');
+  }
+  c.on=c.on?0:1;
+  if(!c.on&&n)c.note='2026-11 停用（仍关联 '+n+' 家商户）';
+  curRows=CATS.slice();render();
+  if(c.on)toast('已启用品类：'+c.name);
+}
+
+/* ================== 合并同义项 ================== */
+function openMerge(id){
+  mergeFrom=id;
+  var c=catById(id), n=useCount(c.name);
+  var targets=CATS.filter(function(x){return x.id!==id&&x.on;});
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">合并品类</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">把「'+esc(c.name)+'」并入另一个品类（影响 '+n+' 家商户）</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div class="blk"><div class="kv"><span class="k">待合并品类</span><span class="v">'+esc(c.name)+'（'+esc(c.group)+'）</span></div>'
+    +'<div class="kv"><span class="k">关联商户</span><span class="v">'+n+' 家</span></div></div>'
+    +'<div><label class="fl"><i style="color:#EF4444">*</i> 并入到</label><select class="sel" id="m-to">'
+      +targets.map(function(t){return '<option value="'+t.id+'">'+esc(t.name)+'（'+esc(t.group)+' · '+useCount(t.name)+' 家）</option>';}).join('')+'</select></div>'
+    +'<div><label class="fl"><i style="color:#EF4444">*</i> 合并原因</label><input class="fi" id="m-note" placeholder="如：现场核对，「商务袜」等同「男袜」，归并统一口径"></div>'
+    +'<div class="warn"><i class="fas fa-triangle-exclamation mr-1"></i>合并后：'+n+' 家商户的主营品类自动改为目标品类；「'+esc(c.name)+'」<b>置为停用并标注已并入</b>（不删除，历史留痕）。此操作会写入商户档案变更留痕。</div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="doMerge()">确认合并</button></div>';
+  document.getElementById('drawer').innerHTML=h;show();
+}
+
+function doMerge(){
+  var from=catById(mergeFrom);
+  var toId=document.getElementById('m-to').value;
+  var note=document.getElementById('m-note').value.trim();
+  var to=catById(toId);
+  if(!to){toast('请选择要并入的品类');return;}
+  if(!note||note.length<4){toast('请填写合并原因（至少 4 个字）');return;}
+  var n=0;
+  MB.forEach(function(m){
+    var i=m.cats.indexOf(from.name);
+    if(i>-1){
+      m.cats.splice(i,1);
+      if(m.cats.indexOf(to.name)<0)m.cats.push(to.name);
+      n++;
+    }
+  });
+  from.on=0;
+  from.note='2026-11 已并入「'+to.name+'」（'+n+' 家商户改挂）';
+  curRows=CATS.slice();
+  closeAll();render();
+  toast('已合并：「'+from.name+'」→「'+to.name+'」，'+n+' 家商户已改挂（品类已停用，可追溯）');
+}
+
+/* ================== 筛选 ================== */
+function doSearch(){
+  var kw=document.getElementById('f-kw').value.trim();
+  var g=document.getElementById('f-group').value;
+  var on=document.getElementById('f-on').value;
+  curRows=CATS.filter(function(c){
+    return (!kw||c.name.indexOf(kw)>-1||c.id.indexOf(kw)>-1)
+      &&(!g||c.group===g)
+      &&(on===''||String(c.on)===on);
+  });
+  render();toast('已按条件查询，共 '+curRows.length+' 个品类');
+}
+function resetSearch(){
+  ['f-kw','f-group','f-on'].forEach(function(k){document.getElementById(k).value='';});
+  curRows=CATS.slice();render();toast('已重置筛选条件');
+}
+
+/* ================== 初始化 ================== */
+document.getElementById('f-group').innerHTML='<option value="">全部大类</option>'+GROUPS.map(function(g){return '<option>'+g+'</option>';}).join('');
+render();
+</script>
+<script src="page-prd.js"></script>
+<script src="op-guard.js"></script>
+</body>
+</html>

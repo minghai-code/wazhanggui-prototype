@@ -102,6 +102,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
         <option value="">全部紧急度</option><option>紧急</option><option>一般</option>
       </select>
       <label class="flex items-center gap-1.5 text-[12px] text-gray-600"><input type="checkbox" id="f-slow" class="accent-[#FF4D2D]">仅看超时</label>
+      <label class="flex items-center gap-1.5 text-[12px] text-gray-600"><input type="checkbox" id="f-nogeo" class="accent-[#FF4D2D]">仅看定位缺失</label>
       <button class="btn btn-primary" onclick="doSearch()">查询</button>
       <button class="btn btn-ghost" onclick="resetSearch()">重置</button>
       <span class="text-[11px] text-[#94A3B8] ml-auto"><i class="fas fa-circle-info mr-1"></i>超时基线：待受理 <b>2 小时</b> · 待采购 <b>30 天</b> 未核销</span>
@@ -120,7 +121,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
     <div class="overflow-x-auto">
       <table class="w-full text-[13px] tb" style="min-width:1240px">
         <thead><tr>
-          <th>报修编号</th><th>位置</th><th>报修人</th><th>故障类型</th><th>紧急度</th><th>照片</th><th>状态</th><th>停留时长</th><th class="text-center">操作</th>
+          <th>报修编号</th><th>位置</th><th>报修人</th><th>故障类型</th><th>紧急度</th><th>照片</th><th>处理人</th><th>状态</th><th>停留时长</th><th class="text-center">操作</th>
         </tr></thead>
         <tbody id="tb"></tbody>
       </table>
@@ -154,17 +155,17 @@ var BX=[
    createdAt:'2026-10-27 10:15', expect:'2026-10-27 14:00', logs:[['2026-10-27 10:15','巡逻发现并上报（照片 2 张）']]},
   {no:'BX202610-0029', src:'商户端', reporter:'义乌××针织（陈××）', pl:'原料市场', b:'D 栋', f:'1F', unit:'1F-D03',
    type:'门窗', desc:'卷帘门卡住，无法正常关闭', urg:'一般', state:'已派单', hours:5, photos:1, doubt:false,
-   acceptBy:'物业 张××', worker:'维修工 李××', arriveAt:'2026-10-27 12:30',
+   acceptBy:'物业 张××', worker:'李国强', arriveAt:'2026-10-27 12:30',
    createdAt:'2026-10-27 07:20', expect:'2026-10-27 18:00',
-   logs:[['2026-10-27 07:20','商户端提交报修'],['2026-10-27 09:10','物业受理并派单（维修工 李××，预计 12:30 到场）']]},
+   logs:[['2026-10-27 07:20','商户端提交报修'],['2026-10-27 09:10','物业受理并派单（李国强，预计 12:30 到场）']]},
   {no:'BX202610-0028', src:'商户端', reporter:'浙江××服饰（李××）', pl:'大唐袜业城', b:'A 栋', f:'3F', unit:'3F-A21',
    type:'空调', desc:'中央空调出风小，店内闷热', urg:'一般', state:'处理中', hours:8, photos:1, doubt:false,
-   acceptBy:'物业 张××', worker:'维修工 赵××', arriveAt:'2026-10-27 09:00',
+   acceptBy:'物业 张××', worker:'赵伟', arriveAt:'2026-10-27 09:00', arriveGeo:'大唐袜业城 A 栋 3F（移动端 · 精度 8m）',
    createdAt:'2026-10-26 16:30', expect:'2026-10-27 12:00',
    logs:[['2026-10-26 16:30','商户端提交报修'],['2026-10-27 08:10','受理并派单'],['2026-10-27 09:00','维修工到场，排查中']]},
   {no:'BX202610-0027', src:'商户端', reporter:'诸暨××袜业（钱××）', pl:'大唐袜业城', b:'C 栋', f:'1F', unit:'1F-C05',
    type:'地砖', desc:'门口地砖破损 2 块，需更换', urg:'一般', state:'待采购', hours:744, photos:1, doubt:false,
-   acceptBy:'物业 张××', worker:'维修工 李××', arriveAt:'2026-10-19 10:00',
+   acceptBy:'物业 张××', worker:'李国强', arriveAt:'2026-10-19 10:00', arriveGeo:'大唐袜业城 C 栋 1F（移动端 · 精度 6m）',
    resultDesc:'已清理破损地砖并做临时围挡，需采购同规格地砖 12 块后更换',
    needMat:true, jbNo:'',
    createdAt:'2026-10-19 08:10', expect:'2026-10-26 18:00',
@@ -172,7 +173,7 @@ var BX=[
      ['2026-10-19 11:20','提交处理结果：需采购地砖 12 块 → 进入待采购池']]},
   {no:'BX202610-0026', src:'巡检转单', reporter:'巡检员 周××', pl:'大唐袜业城', b:'B 栋', f:'1F', unit:'1F-B01',
    type:'照明', desc:'东侧公共通道 2 支灯管闪烁（来源：巡检问题 WT202610-0045）', urg:'一般', state:'待采购', hours:480, photos:1, doubt:false,
-   acceptBy:'物业 张××', worker:'维修工 赵××', arriveAt:'2026-10-21 14:00',
+   acceptBy:'物业 张××', worker:'赵伟', arriveAt:'2026-10-21 14:00',
    resultDesc:'灯管支架氧化，需更换 LED 灯管 8 支', needMat:true, jbNo:'JB202610-0007',
    createdAt:'2026-10-21 11:00', expect:'2026-10-28 18:00',
    logs:[['2026-10-21 11:00','由巡检问题 WT202610-0045 转报修'],['2026-10-21 13:20','受理并派单'],
@@ -180,14 +181,14 @@ var BX=[
      ['2026-10-22 09:30','已并入交办单 JB202610-0007（待审批）']]},
   {no:'BX202610-0025', src:'商户端', reporter:'诸暨××针织（赵××）', pl:'大唐袜业城', b:'A 栋', f:'2F', unit:'2F-A12',
    type:'水电', desc:'卫生间下水缓慢，怀疑管道堵塞', urg:'一般', state:'待确认', hours:6, photos:2, doubt:false,
-   acceptBy:'物业 张××', worker:'维修工 李××', arriveAt:'2026-10-26 15:00',
+   acceptBy:'物业 张××', worker:'李国强', arriveAt:'2026-10-26 15:00', arriveGeo:'大唐袜业城 A 栋 2F（移动端 · 精度 5m）',
    resultDesc:'已疏通主管道并更换存水弯，排水恢复正常', needMat:false,
    createdAt:'2026-10-26 13:40', expect:'2026-10-27 12:00',
    logs:[['2026-10-26 13:40','商户端提交报修'],['2026-10-26 14:10','受理并派单'],
      ['2026-10-26 15:00','到场处理'],['2026-10-26 17:30','提交处理结果（含处理后照片 1 张），待商户确认']]},
   {no:'BX202610-0024', src:'商户端', reporter:'义乌××袜业（孙××）', pl:'原料市场', b:'D 栋', f:'2F', unit:'2F-D08',
    type:'门窗', desc:'窗户把手断裂', urg:'一般', state:'已完成', hours:0, photos:1, doubt:false,
-   acceptBy:'物业 张××', worker:'维修工 赵××', arriveAt:'2026-10-25 10:00',
+   acceptBy:'物业 张××', worker:'赵伟', arriveAt:'2026-10-25 10:00', arriveGeo:'大唐袜业城 A 栋 2F（移动端 · 精度 9m）',
    resultDesc:'更换窗户把手 1 套，开关正常', needMat:false, confirmState:'已确认', rating:5,
    createdAt:'2026-10-25 09:10', expect:'2026-10-25 18:00',
    logs:[['2026-10-25 09:10','商户端提交报修'],['2026-10-25 09:40','受理并派单'],
@@ -206,6 +207,30 @@ var tid;
 function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},3000);}
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function bOf(no){return BX.filter(function(x){return x.no===no;})[0];}
+
+/* 在岗人员（来源：物业人员 P11 /property-staff.html，与商户端 wuye-data.js 同源） */
+var WORKERS=[
+  {n:'张建国', a:['A 栋 1F','A 栋 2F','A 栋 3F'], s:'在岗', p:['维修工','巡检员']},
+  {n:'李国强', a:['A 栋 1F','B 栋 1F','B 栋 2F'], s:'在岗', p:['维修工']},
+  {n:'赵伟',   a:['C 栋 1F','C 栋 2F','原料市场 D 栋'], s:'在岗', p:['维修工']},
+  {n:'周敏',   a:['B 栋 1F','B 栋 2F'], s:'休假', p:['巡检员']},
+  {n:'陈志强', a:['全部区域'], s:'在岗', p:['保洁']},
+  {n:'孙立',   a:['A 栋 2F','A 栋 3F'], s:'停用', p:['维修工']}
+];
+function areaOf(x){return x.b+' '+x.f;}
+/* 按工单位置过滤在岗维修工；无匹配时兜底返回全部在岗维修工 */
+function workersFor(x){
+  var all=WORKERS.filter(function(w){return w.s==='在岗'&&w.p.indexOf('维修工')>=0;});
+  var hit=all.filter(function(w){return w.a.indexOf(areaOf(x))>=0||w.a.indexOf('全部区域')>=0;});
+  return hit.length?hit:all;
+}
+function workerOpts(x){
+  var list=workersFor(x), exact=list.filter(function(w){return w.a.indexOf(areaOf(x))>=0;});
+  return list.map(function(w){
+    var mark=exact.length&&w.a.indexOf(areaOf(x))<0?'（跨区）':'';
+    return '<option>'+esc(w.n)+mark+'</option>';
+  }).join('');
+}
 function st(s){return '<span class="tag" style="'+(STC[s]||'background:#F1F5F9;color:#64748B')+'">'+esc(s)+'</span>';}
 function isSlow(x){return (x.state==='待受理'&&x.hours>2)||(x.state==='待采购'&&x.hours>720);}
 function tabOf(x){return (x.state==='已派单'||x.state==='处理中')?'处理中':x.state;}
@@ -241,7 +266,9 @@ function render(){
     var ops='<span class="lk-gray" onclick="openDetail(\''+x.no+'\')">查看</span>';
     if(x.state==='待受理'){
       ops='<span class="lk" onclick="openAccept(\''+x.no+'\')">受理派单</span> · <span class="lk-gray" onclick="openReject(\''+x.no+'\')">驳回</span> · '+ops;
-    }else if(x.state==='已派单'||x.state==='处理中'){
+    }else if(x.state==='已派单'){
+      ops='<span class="lk" onclick="doArrive(\''+x.no+'\')">到场打卡</span> · <span class="lk-gray" onclick="openReassign(\''+x.no+'\')">改派</span> · '+ops;
+    }else if(x.state==='处理中'){
       ops='<span class="lk" onclick="openResult(\''+x.no+'\')">提交处理结果</span> · <span class="lk-gray" onclick="openReassign(\''+x.no+'\')">改派</span> · '+ops;
     }else if(x.state==='待采购'){
       var noJb=BX.filter(function(y){return y.state==='待采购'&&!y.jbNo;}).length;
@@ -259,11 +286,14 @@ function render(){
       +'<td>'+esc(x.type)+'</td>'
       +'<td>'+(x.urg==='紧急'?'<span class="tag" style="background:#FEE2E2;color:#B91C1C">紧急</span>':'<span class="tag" style="background:#F1F5F9;color:#64748B">一般</span>')+'</td>'
       +'<td><div class="flex">'+ph+'</div></td>'
+      +'<td class="text-[12px]">'+(x.worker?esc(x.worker):'<span class="text-[#94A3B8]">未派单</span>')
+        +(x.arriveAt?'<div class="text-[11px] text-[#94A3B8]">到场 '+esc(x.arriveAt.slice(5))+'</div>':'')
+        +(isNoGeo(x)?'<div class="text-[11px]" style="color:#B45309">定位缺失</div>':'')+'</td>'
       +'<td>'+st(x.state)+'</td>'
       +'<td class="text-[12px]">'+(x.state==='已完成'||x.state==='已驳回'?'<span class="text-[#94A3B8]">—</span>':'<span style="'+(isSlow(x)?'color:#E63E20;font-weight:600':'')+'">'+(x.hours>=24?(x.hours/24).toFixed(0)+' 天':x.hours+' 小时')+(isSlow(x)?' · 超时':'')+'</span>')+'</td>'
       +'<td class="text-center whitespace-nowrap">'+ops+'</td></tr>';
   });
-  document.getElementById('tb').innerHTML=h||'<tr><td colspan="9"><div class="empty"><i class="fas fa-inbox"></i>暂无符合条件的报修单</div></td></tr>';
+  document.getElementById('tb').innerHTML=h||'<tr><td colspan="10"><div class="empty"><i class="fas fa-inbox"></i>暂无符合条件的报修单</div></td></tr>';
   document.getElementById('cnt').textContent='共 '+curRows.length+' 条';
   document.getElementById('pageInfo').textContent='共 '+curRows.length+' 条记录，第 1-'+curRows.length+' 条';
 }
@@ -278,18 +308,21 @@ function switchTab(s,el){
 function doSearch(){
   var kw=document.getElementById('f-kw').value.trim(),src=document.getElementById('f-src').value,
       type=document.getElementById('f-type').value,urg=document.getElementById('f-urg').value,
-      slow=document.getElementById('f-slow').checked;
+      slow=document.getElementById('f-slow').checked,nogeo=document.getElementById('f-nogeo').checked;
   curRows=BX.filter(function(x){
     return (!kw||x.no.indexOf(kw)>-1||x.unit.indexOf(kw)>-1||x.reporter.indexOf(kw)>-1||x.desc.indexOf(kw)>-1)
       &&(!src||x.src===src)&&(!type||x.type===type)&&(!urg||x.urg===urg)
-      &&(!slow||isSlow(x))&&(!curTab||tabOf(x)===curTab);
+      &&(!slow||isSlow(x))&&(!nogeo||isNoGeo(x))&&(!curTab||tabOf(x)===curTab);
   });
   render();
   toast('已按条件查询，共 '+curRows.length+' 条');
 }
+/* 定位缺失：已到场之后（处理中及其后）没有到场定位记录 */
+function isNoGeo(x){return !x.arriveGeo&&['处理中','待采购','待确认','已完成'].indexOf(x.state)>=0;}
 function resetSearch(){
   ['f-kw','f-src','f-type','f-urg'].forEach(function(k){document.getElementById(k).value='';});
   document.getElementById('f-slow').checked=false;
+  document.getElementById('f-nogeo').checked=false;
   curTab='';curRows=BX.slice();
   document.querySelectorAll('#tabs span').forEach(function(x,i){x.className=i===0?'py-2.5 text-[13px] cursor-pointer tab-on':'py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600';});
   render();toast('已重置筛选条件');
@@ -354,7 +387,8 @@ function openDetail(no){
   h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
     +'<button class="btn btn-ghost" onclick="closeAll()">关闭</button>'
     +(x.state==='待受理'?'<button class="btn btn-primary" onclick="openAccept(\''+x.no+'\')">受理派单</button>':'')
-    +((x.state==='已派单'||x.state==='处理中')?'<button class="btn btn-primary" onclick="openResult(\''+x.no+'\')">提交处理结果</button>':'')
+    +(x.state==='已派单'?'<button class="btn btn-primary" onclick="doArrive(\''+x.no+'\')">到场打卡</button>':'')
+    +(x.state==='处理中'?'<button class="btn btn-primary" onclick="openResult(\''+x.no+'\')">提交处理结果</button>':'')
     +(x.state==='待确认'?'<button class="btn btn-ghost" style="color:#DC2626;border-color:#FECACA" onclick="backToDoing(\''+x.no+'\')">商户未修好 · 退回</button>'
       +'<button class="btn btn-primary" onclick="toast(\'已代商户确认完成：'+x.no+'\')">代确认</button>':'')
     +'</div>';
@@ -422,6 +456,39 @@ function saveNew(){
   toast('已提交报修：'+no+'　已通知物业受理（超 2 小时未受理将提醒主管）');
 }
 
+/* ================= 到场（已派单 → 处理中） ================= */
+function hm(){var d=new Date();function p(n){return n<10?'0'+n:''+n;}return p(d.getHours())+':'+p(d.getMinutes());}
+function doArrive(no){
+  curNo=no;var x=bOf(no);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">到场打卡</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(x.no)+'　'+esc(x.unit)+'　执行人 <b>'+esc(x.worker||'—')+'</b>　预计 '+esc(x.arriveAt||'—')+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div><label class="fl"><i>*</i>到场时间</label><input class="fi" id="ar_t" type="datetime-local" value="2026-10-30T'+hm()+'"></div>'
+    +'<div><label class="fl">到场定位</label><input class="fi" id="ar_geo" value="大唐袜业城 '+esc(areaOf(x))+'（后台补录）"></div>'
+    +'<div class="warn"><i class="fas fa-circle-info mr-1"></i>正常流程由维修工在<b>移动端打卡</b>：自动带 GPS + 拍照水印 + 时间，后台只读。<br>这里用于<b>补录</b>（移动端没信号/忘了打卡）。定位留空会被标记「<b>定位缺失</b>」，可在列表筛选出来复核。</div>'
+    +'<div class="blk"><div class="blk-t"><i class="fas fa-list-check text-[#2563EB]"></i>到场后会发生什么</div>'
+    +'<div class="kv"><span class="k">状态</span><span class="v">已派单 → <b>处理中</b></span></div>'
+    +'<div class="kv"><span class="k">商户端</span><span class="v">可见「师傅已到场」进度</span></div>'
+    +'<div class="kv"><span class="k">计时</span><span class="v">停留时长从 0 重新计算（响应时长按受理→到场算）</span></div></div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveArrive(\''+no+'\')">确认到场</button></div>';
+  document.getElementById('drawer').innerHTML=h;show();
+}
+function saveArrive(no){
+  var x=bOf(no);
+  var t=document.getElementById('ar_t').value.replace('T',' ');
+  var geo=document.getElementById('ar_geo').value.trim();
+  var now='2026-10-30 '+hm();
+  if(!t){toast('请填写到场时间');return;}
+  x.state='处理中';x.hours=0;x.arriveAt=t;x.arriveGeo=geo;
+  x.logs.push([now,'到场打卡（后台补录'+(geo?' · 定位 '+geo:' · 未取到定位')+'）']);
+  curRows=BX.slice();renderStats();render();closeAll();
+  toast('已记录到场：'+no+'　状态转「处理中」'+(geo?'':'（已标记定位缺失）'));
+}
+
 /* ================= 受理 / 改派 / 驳回 ================= */
 function openAccept(no){
   curNo=no;var x=bOf(no);
@@ -431,10 +498,11 @@ function openAccept(no){
     +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
   h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
     +'<div class="blk"><div class="kv"><span class="k">问题描述</span><span class="v">'+esc(x.desc)+'</span></div></div>'
-    +'<div><label class="fl"><i>*</i>指派维修工</label><select class="fi" id="a_worker">'
-      +['维修工 李××','维修工 赵××','维修工 王××'].map(function(w){return '<option>'+w+'</option>';}).join('')+'</select></div>'
+    +'<div><label class="fl"><i>*</i>指派维修工 <span class="text-[11px] text-[#94A3B8]">（在岗 · 按 '+esc(areaOf(x))+' 过滤）</span></label><select class="fi" id="a_worker">'
+      +workerOpts(x)+'</select>'
+      +(workersFor(x).length?'':'<p class="text-[11px] mt-1" style="color:#E63E20">该区域无在岗维修工，已列出全部在岗人员；请到「物业人员」调整区域或在岗状态</p>')+'</div>'
     +'<div><label class="fl"><i>*</i>预计到场时间</label><input class="fi" id="a_arrive" type="datetime-local" value="2026-10-27T14:00"></div>'
-    +'<div class="rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B]">受理后状态转「已派单」，商户端可看到维修工与预计到场时间；<b>超 2 小时未受理会提醒物业主管</b>。</p></div>';
+    +'<div class="rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B]">受理后状态转「<b>已派单</b>」，商户端可看到维修工与预计到场时间；维修工在移动端<b>到场打卡</b>后才转「处理中」，后台只做补录。<b>超 2 小时未受理会提醒物业主管</b>。</p></div>';
   h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
     +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
     +'<button class="btn btn-primary" onclick="saveAccept(\''+no+'\')">确认受理</button></div>';
@@ -459,8 +527,8 @@ function openReassign(no){
     +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">改派维修工</h3>'
     +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(x.no)+'　当前：'+esc(x.worker||'—')+'</p></div>'
     +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
-  h+='<div class="flex-1 overflow-y-auto px-5 py-4"><div><label class="fl"><i>*</i>改派给</label><select class="fi" id="a_worker2">'
-    +['维修工 李××','维修工 赵××','维修工 王××'].map(function(w){return '<option>'+w+'</option>';}).join('')
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4"><div><label class="fl"><i>*</i>改派给 <span class="text-[11px] text-[#94A3B8]">（在岗 · 按 '+esc(areaOf(x))+' 过滤）</span></label><select class="fi" id="a_worker2">'
+    +workerOpts(x)
     +'</select></div></div>'
     +'<div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
     +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'

@@ -86,6 +86,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
     <div class="tab-item" id="tab2" onclick="switchTab(2)">
       <i class="fas fa-store text-[12px] mr-1"></i>关注店铺<span class="tab-count">3</span>
     </div>
+    <div class="tab-item" id="tab3" onclick="switchTab(3)">
+      <i class="fas fa-video text-[12px] mr-1"></i>收藏视频<span class="tab-count">3</span>
+    </div>
   </div>
 </div>
 
@@ -136,6 +139,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
   </div>
 </div>
 
+<!-- ===== 面板3：收藏视频 ===== -->
+<div class="panel" id="panel3">
+  <div class="px-3 pt-3 pb-2">
+    <div class="grid grid-cols-2 gap-2.5" id="videoGrid">
+      <!-- JS动态渲染 -->
+    </div>
+  </div>
+  <!-- 空状态(隐藏) -->
+  <div class="hidden text-center py-16 px-8" id="emptyVideo">
+    <div class="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
+      <i class="far fa-circle-play text-3xl text-gray-300"></i>
+    </div>
+    <p class="text-[14px] text-gray-400 font-medium">还没有收藏的视频</p>
+    <p class="text-[11px] text-gray-300 mt-1">在视频看货里点右侧星标即可收藏</p>
+    <a href="video.html" class="inline-block mt-4 text-[12px] text-white px-5 py-2 rounded-full" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)">去看视频</a>
+  </div>
+</div>
+
 <div class="mt-6 mb-28 text-center">
   <p class="text-[10px] text-gray-300"><i class="fas fa-check-circle text-[9px] mr-1"></i>已加载全部内容</p>
 </div>
@@ -155,6 +176,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <!-- Toast -->
 <div class="toast" id="toast"><i class="fas fa-circle-check"></i><span id="toastMsg">操作成功</span></div>
 
+<script src="shop-follow.js"></script>
 <script>
 // ===== 商品数据 =====
 var products = [
@@ -172,12 +194,26 @@ var products = [
   {id:12,name:'商务暗纹绅士袜 礼盒装',price:'15.80',oldPrice:'22.00',sold:760,shop:'袜语工坊',prompt:'商务暗纹绅士袜子,深蓝色,高端礼盒装,产品摄影,白色背景',fav:true,time:12}
 ];
 
-// ===== 店铺数据 =====
-var shops = [
-  {id:1,name:'袜语工坊',cat:'主营:纯棉袜·商务袜',rating:'4.9',fans:'12.6万',goods:168,grad:'linear-gradient(135deg,#FF6B35,#FF4D2D)',icon:'fa-socks',followed:true},
-  {id:2,name:'冰丝世家',cat:'主营:冰丝袜·夏季凉感袜',rating:'4.8',fans:'8.9万',goods:96,grad:'linear-gradient(135deg,#38BDF8,#3B82F6)',icon:'fa-snowflake',followed:true},
-  {id:3,name:'运动达人袜业',cat:'主营:运动袜·压缩袜',rating:'4.9',fans:'15.2万',goods:203,grad:'linear-gradient(135deg,#34D399,#10B981)',icon:'fa-person-running',followed:true}
-];
+// ===== 关注店铺：统一由 shop-follow.js 提供（与 video.html 共用同一份关系） =====
+function followedShops(){
+  return FOLLOW_SHOPS.list().map(function(name){
+    var i = FOLLOW_SHOPS.info(name);
+    return {name:name,cat:i.cat,rating:i.rating,fans:i.fans,goods:i.goods,grad:i.grad,icon:i.icon};
+  });
+}
+
+// ===== 收藏视频（与 video.html 的星标收藏共用 localStorage：sh_fav_videos） =====
+var videos = (function(){
+  try{
+    var a = JSON.parse(localStorage.getItem('sh_fav_videos')||'null');
+    if(a && a.length) return a;
+  }catch(e){}
+  return [
+    {id:'v1',title:'防臭透气商务男袜工厂直供',shop:'大唐自有品牌旗舰店',img:'images/sock_01.jpg',plays:23400},
+    {id:'v6',title:'女士花色棉袜生产全过程',shop:'大唐自有品牌旗舰店',img:'images/sock_06.jpg',plays:18200},
+    {id:'v9',title:'精梳棉纱开箱验货',shop:'恒源棉纱直营',img:'images/sock_07.jpg',plays:6400}
+  ];
+})();
 
 var currentSort = 'latest';
 
@@ -232,7 +268,7 @@ function renderProducts(){
 
 // ===== 渲染店铺 =====
 function renderShops(){
-  var list = shops.filter(function(s){return s.followed;});
+  var list = followedShops();
   var container = document.getElementById('shopList');
   if(list.length===0){
     container.innerHTML='';
@@ -242,7 +278,7 @@ function renderShops(){
   document.getElementById('emptyShop').classList.add('hidden');
   var html='';
   list.forEach(function(s,idx){
-    html += '<a href="shop-detail.html" class="card bg-white rounded-2xl overflow-hidden shadow-soft fade-up block" style="animation-delay:'+(idx*0.05)+'s">';
+    html += '<a href="shop-detail.html?shop='+encodeURIComponent(s.name)+'" class="card bg-white rounded-2xl overflow-hidden shadow-soft fade-up block" style="animation-delay:'+(idx*0.05)+'s">';
     html += '<div class="flex items-center gap-3 p-3">';
     html += '<div class="shop-logo w-14 h-14 rounded-2xl flex-shrink-0" style="background:'+s.grad+'">';
     html += '<i class="fas '+s.icon+' text-lg"></i>';
@@ -261,19 +297,44 @@ function renderShops(){
     html += '<span class="text-[10px] text-gray-500">'+s.goods+'件商品</span>';
     html += '</div>';
     html += '</div>';
-    html += '<button class="flex-shrink-0 text-white text-[11px] font-semibold px-3.5 py-1.5 rounded-full shadow-soft" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)" onclick="event.preventDefault();event.stopPropagation();location.href=\'shop-detail.html\'">进店</button>';
+    html += '<button class="flex-shrink-0 text-white text-[11px] font-semibold px-3.5 py-1.5 rounded-full shadow-soft" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)" onclick="event.preventDefault();event.stopPropagation();location.href=\'shop-detail.html?shop='+encodeURIComponent(s.name)+'\'">进店</button>';
     html += '</div>';
     html += '</a>';
   });
   container.innerHTML=html;
 }
 
+// ===== 渲染收藏视频 =====
+function renderVideos(){
+  var grid = document.getElementById('videoGrid');
+  if(!videos.length){
+    grid.innerHTML='';
+    document.getElementById('emptyVideo').classList.remove('hidden');
+    updateTabCount();
+    return;
+  }
+  document.getElementById('emptyVideo').classList.add('hidden');
+  var html='';
+  videos.forEach(function(v,idx){
+    html += '<a href="video.html?v='+v.id+'" class="card bg-white rounded-2xl overflow-hidden shadow-soft fade-up block" style="animation-delay:'+(idx*0.04)+'s">';
+    html += '<div class="relative"><img src="'+v.img+'" class="w-full" style="height:120px;object-fit:cover" onerror="this.style.display=\'none\'">';
+    html += '<div class="absolute top-1/2 left-1/2" style="transform:translate(-50%,-50%);width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center"><i class="fas fa-play text-white text-[11px]" style="margin-left:2px"></i></div>';
+    html += '<span class="absolute bottom-1.5 right-1.5 bg-black/60 text-white text-[9px] px-1.5 py-0.5 rounded">'+formatSold(v.plays)+'播放</span>';
+    html += '</div>';
+    html += '<div class="p-2">';
+    html += '<p class="text-[11px] text-gray-800 font-medium leading-tight line-clamp-1">'+v.title+'</p>';
+    html += '<p class="text-[9px] text-gray-400 mt-1 line-clamp-1"><i class="fas fa-store text-[8px] mr-0.5"></i>'+v.shop+'</p>';
+    html += '</div></a>';
+  });
+  grid.innerHTML=html;
+}
+
 // ===== Tab切换 =====
 function switchTab(n){
-  document.getElementById('tab1').classList.remove('on');
-  document.getElementById('tab2').classList.remove('on');
-  document.getElementById('panel1').classList.remove('on');
-  document.getElementById('panel2').classList.remove('on');
+  [1,2,3].forEach(function(i){
+    document.getElementById('tab'+i).classList.remove('on');
+    document.getElementById('panel'+i).classList.remove('on');
+  });
   document.getElementById('tab'+n).classList.add('on');
   document.getElementById('panel'+n).classList.add('on');
   // 排序栏仅商品Tab显示
@@ -325,9 +386,10 @@ function toggleFav(id,e){
 // ===== 更新Tab计数 =====
 function updateTabCount(){
   var prodCount = products.filter(function(p){return p.fav;}).length;
-  var shopCount = shops.filter(function(s){return s.followed;}).length;
+  var shopCount = FOLLOW_SHOPS.count();
   document.getElementById('tab1').innerHTML = '<i class="fas fa-heart text-[12px] mr-1"></i>收藏商品<span class="tab-count">'+prodCount+'</span>';
   document.getElementById('tab2').innerHTML = '<i class="fas fa-store text-[12px] mr-1"></i>关注店铺<span class="tab-count">'+shopCount+'</span>';
+  document.getElementById('tab3').innerHTML = '<i class="fas fa-video text-[12px] mr-1"></i>收藏视频<span class="tab-count">'+videos.length+'</span>';
 }
 
 // ===== Toast =====
@@ -351,6 +413,8 @@ function formatSold(n){
 // ===== 初始化 =====
 renderProducts();
 renderShops();
+renderVideos();
+updateTabCount();
 </script>
 
 </body>

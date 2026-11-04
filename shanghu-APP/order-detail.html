@@ -152,6 +152,39 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
   </div>
 </div>
 
+<!-- 拼单团信息（仅拼单订单显示：?type=group，待办 #37） -->
+<div id="groupBlock" style="display:none" class="px-3 mb-3">
+  <div class="bg-white rounded-2xl shadow-soft p-3.5 border border-indigo-100">
+    <div class="flex items-center justify-between mb-2.5">
+      <div class="flex items-center gap-2"><i class="fas fa-users text-indigo-500 text-xs"></i><span class="text-[12px] font-bold text-gray-800">拼单团信息</span><span class="bg-indigo-100 text-indigo-600 text-[9px] font-bold px-1.5 py-0.5 rounded">拼单订单</span></div>
+      <span class="text-[10px] text-gray-400 num">GB20261028-006</span>
+    </div>
+    <div class="space-y-1.5">
+      <div class="flex justify-between text-[11px]"><span class="text-gray-500">我的身份</span><span class="text-gray-800">参团商户（非团长）</span></div>
+      <div class="flex justify-between text-[11px]"><span class="text-gray-500">拼单档位</span><span class="text-gray-800 num">1000 双 · ¥3.2/双</span></div>
+      <div class="flex justify-between text-[11px]"><span class="text-gray-500">团内成员</span><span class="text-gray-800">4 人（团长：杭州XX贸易）</span></div>
+      <div class="flex justify-between text-[11px]"><span class="text-gray-500">我的参团量</span><span class="text-gray-800 num">300 双</span></div>
+    </div>
+    <div id="groupCancelTip" style="display:none;background:#FEF2F2" class="rounded-xl p-2.5 mt-2.5">
+      <p class="text-[10px] leading-relaxed" style="color:#B91C1C"><i class="fas fa-circle-exclamation mr-1"></i>团长已取消本团，全团款项原路退回。本订单<b>不可发货</b>，无需处理。</p>
+    </div>
+    <p class="text-[9px] text-gray-400 mt-2">拼单订单由后台按团成团生成，团取消时全团订单一并置「已取消 · 已退款」（M03 BR-14）。</p>
+  </div>
+</div>
+
+<!-- 发货运批次（分批发货，待办 #39） -->
+<div id="shipBatchBlock" class="px-3 mb-3">
+  <div class="bg-white rounded-2xl shadow-soft p-3.5">
+    <div class="flex items-center justify-between mb-2">
+      <div class="flex items-center gap-2"><i class="fas fa-boxes-packing text-primary text-xs"></i><span class="text-[12px] font-bold text-gray-800">发货进度</span></div>
+      <span class="text-[10px] font-bold text-primary num" id="batchProgress">已发 60/100</span>
+    </div>
+    <div class="h-1.5 rounded-full overflow-hidden mb-2.5" style="background:#E6EFFC"><i id="batchBar" style="display:block;height:100%;width:60%;background:linear-gradient(90deg,#60A5FA,#2563EB)"></i></div>
+    <div class="space-y-2" id="batchList"></div>
+    <p class="text-[9px] text-gray-400 mt-2"><i class="fas fa-circle-info mr-1"></i>未发完仍为「待发货」；全部发完才转「待收货」（买家端显示「已发 n/m」）</p>
+  </div>
+</div>
+
 <!-- 底部操作栏 -->
 <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-3 py-2.5 flex gap-2" style="z-index:100;width:393px;padding-bottom:18px">
   <a href="tel:13800138000" class="px-4 py-2.5 rounded-xl border border-gray-200 text-[12px] text-gray-600 font-medium flex items-center gap-1"><i class="fas fa-phone text-[10px]"></i>联系买家</a>
@@ -161,11 +194,47 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 
 <script>
 // 询价订单变体：orders.html 询价卡以 order-detail.html?type=inquiry 进入
-if(new URLSearchParams(location.search).get('type')==='inquiry'){
+var _q=new URLSearchParams(location.search);
+if(_q.get('type')==='inquiry'){
   document.getElementById('traceBlock').style.display='block';
   document.getElementById('inquiryBadge').style.display='inline-block';
   var sb=document.getElementById('shipBtn');if(sb)sb.href='shipping.html?type=inquiry';
 }
+
+/* ===== 拼单订单变体（?type=group，待办 #37） ===== */
+if(_q.get('type')==='group'){
+  document.getElementById('groupBlock').style.display='block';
+  if(_q.get('state')==='cancelled'){
+    document.getElementById('groupCancelTip').style.display='block';
+    document.getElementById('shipBatchBlock').style.display='none';
+    var sbtn=document.getElementById('shipBtn');
+    if(sbtn){sbtn.removeAttribute('href');sbtn.textContent='本团已取消 · 不可发货';sbtn.style.background='#E5E7EB';sbtn.style.color='#9CA3AF';sbtn.onclick=function(){toast('团长已取消本团，款项原路退回，无需发货');};}
+  }
+}
+
+/* ===== 分批发货（待办 #39）：读本机发货批次 ===== */
+function renderBatches(){
+  var box=document.getElementById('batchList');if(!box)return;
+  var no=_q.get('no')||'SO20260720-001';
+  var recs=[];
+  try{recs=JSON.parse(localStorage.getItem('sh_ship_'+no)||'[]');}catch(e){}
+  if(!recs.length){
+    recs=[{qty:60,carrier:'顺丰速运',no:'SF1234567890',at:'2026-07-20 16:10',note:'第 1 批 · 现货 60 双'}];
+  }
+  var total=+(_q.get('qty')||100);
+  var shipped=recs.reduce(function(a,b){return a+(+b.qty||0);},0);
+  var pct=Math.min(100,Math.round(shipped/total*100));
+  document.getElementById('batchProgress').textContent='已发 '+shipped+'/'+total;
+  document.getElementById('batchBar').style.width=pct+'%';
+  box.innerHTML=recs.map(function(r,i){
+    return '<div class="flex items-center gap-2 rounded-xl px-2.5 py-2" style="background:#F8FAFC">'
+      +'<span class="w-5 h-5 rounded-md flex items-center justify-center text-[9px] font-bold text-white" style="background:linear-gradient(135deg,#60A5FA,#2563EB)">'+(i+1)+'</span>'
+      +'<div class="flex-1 min-w-0"><p class="text-[11px] text-gray-800 font-medium">'+r.carrier+' · <span class="num">'+r.no+'</span></p>'
+      +'<p class="text-[9px] text-gray-400 mt-0.5 num">'+r.at+(r.note?' · '+r.note:'')+'</p></div>'
+      +'<span class="text-[11px] font-bold text-primary num">'+r.qty+' 件</span></div>';
+  }).join('');
+}
+renderBatches();
 </script>
 </body>
 </html>

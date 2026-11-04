@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>整改 - 物业管理</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--p:#E11D48;--bg:#FFF6F7}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+::-webkit-scrollbar{width:2px;height:2px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#f8d4da;border-radius:1px}
+.shadow-soft{box-shadow:0 2px 12px rgba(90,20,30,.06)}
+.num{font-variant-numeric:tabular-nums}
+.card{transition:transform .16s ease}
+.card:active{transform:scale(.985)}
+.grad-h{background:linear-gradient(135deg,#FB7185 0%,#E11D48 55%,#BE123C 100%)}
+.chip{font-size:11px;padding:5px 11px;border-radius:999px;background:#fff;color:#64748B;white-space:nowrap;box-shadow:0 1px 6px rgba(90,20,30,.06)}
+.chip.on{background:linear-gradient(135deg,#FB7185,#E11D48);color:#fff;font-weight:700}
+.no-bar::-webkit-scrollbar{display:none}
+.sheet{position:fixed;inset:0;z-index:200;display:none;align-items:flex-end}
+.sheet.on{display:flex}
+.sheet-bg{position:absolute;inset:0;background:rgba(15,23,42,.45)}
+.sheet-body{position:relative;width:100%;background:#fff;border-radius:24px 24px 0 0;padding:12px 16px 28px;max-height:90vh;overflow-y:auto}
+.sheet-bar{width:38px;height:4px;border-radius:2px;background:#E2E8F0;margin:0 auto 12px}
+.toast{position:fixed;left:50%;top:22%;transform:translate(-50%,-8px);max-width:300px;background:rgba(31,36,48,.94);color:#fff;font-size:12px;line-height:1.5;padding:10px 14px;border-radius:12px;opacity:0;pointer-events:none;transition:.22s;z-index:300;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.ph{border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:9px;color:#fff;position:relative;overflow:hidden;height:88px}
+.ph.before{background:linear-gradient(135deg,#F87171,#DC2626)}
+.ph.after{background:linear-gradient(135deg,#6EE7B7,#10B981)}
+.ph .cap{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.35);padding:2px 5px;font-size:8px}
+.inp{width:100%;background:#F8F9FA;border:1px solid #F0F0F0;border-radius:12px;padding:10px 12px;font-size:12px;color:#1F2430;outline:none}
+.lbl{font-size:10px;color:#6B7080;font-weight:500;display:block;margin-bottom:5px}
+.lbl b{color:#E11D48}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+<div style="position:fixed;left:0;right:0;top:0;z-index:999;background:#111827;color:#fff;font-size:11px;line-height:1.5;padding:6px 12px;text-align:center">本页已下线（07 物业服务 v1.5 招标范围收敛：巡检 / 整改不在范围），仅作存档，不参与演示</div><div style="height:34px"></div>
+
+<div class="px-3.5 pt-2 pb-4 grad-h">
+  <div class="flex justify-between items-center text-white text-sm font-semibold" style="height:36px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+  </div>
+  <div class="flex items-center gap-3 mt-1">
+    <a href="javascript:void(0)" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+    <div class="flex-1">
+      <span class="text-white font-extrabold text-[17px]">整改</span>
+      <p class="text-white/85 text-[9px] mt-0.5" id="subTitle">商户责任问题 · 派发 → 复核</p>
+    </div>
+    <a onclick="batch()" class="text-white text-base"><i class="fas fa-layer-group"></i></a>
+  </div>
+</div>
+
+<div class="px-3 pt-3 pb-28">
+  <div class="flex gap-1.5 overflow-x-auto no-bar mb-3" id="chips"></div>
+  <div class="space-y-2.5" id="list"></div>
+</div>
+
+<div id="wuyeTab"></div>
+<div class="toast" id="toast"></div>
+
+<div class="sheet" id="dtSheet"><div class="sheet-bg" onclick="closeSheet('dtSheet')"></div><div class="sheet-body" id="dtBody"></div></div>
+<div class="sheet" id="rvSheet"><div class="sheet-bg" onclick="closeSheet('rvSheet')"></div><div class="sheet-body" id="rvBody"></div></div>
+
+<script src="../wuye-tab.js"></script>
+<script src="../wuye-data.js"></script>
+<script>
+wuyeEnsureStaff();
+
+var TABS = ['待派发', '整改中', '待复核', '已关闭'];
+var filter = '待派发';
+var curNo = '';
+
+function zgTab(o){
+  if (o.state === '待复核') return '待复核';
+  if (o.state === '已通过') return '已关闭';
+  return '整改中';
+}
+function countTab(c){
+  var db = wuyeDB();
+  if (c === '待派发') return db.wt.filter(function(w){ return w.owner === '商户责任' && w.state === '待处理'; }).length;
+  return db.zg.filter(function(o){ return zgTab(o) === c; }).length;
+}
+function paintChips(){
+  document.getElementById('chips').innerHTML = TABS.map(function(c){
+    var n = countTab(c);
+    return '<a onclick="setF(\'' + c + '\')" class="chip' + (c === filter ? ' on' : '') + '">' + c + (n ? ' ' + n : '') + '</a>';
+  }).join('');
+}
+function setF(c){ filter = c; paintChips(); paintList(); }
+
+function paintList(){
+  var db = wuyeDB();
+  if (filter === '待派发') {
+    var arr = db.wt.filter(function(w){ return w.owner === '商户责任' && w.state === '待处理'; });
+    if (!arr.length) { empty('暂无待派发的整改'); return; }
+    document.getElementById('list').innerHTML = arr.map(function(w){
+      return '<div class="card bg-white rounded-2xl shadow-soft px-3.5 py-3" onclick="location.href=\'wuye-issue.html?no=' + w.no + '\'">'
+        + '<div class="flex items-center justify-between mb-1"><span class="text-[10px] text-gray-400 num">' + w.no + '（问题）</span>'
+        + '<span class="st text-[9px] font-bold px-1.5 py-0.5 rounded ' + stc(w.state) + '">' + w.state + '</span></div>'
+        + '<p class="text-[13px] font-bold text-gray-800">' + w.type + ' · ' + w.desc.slice(0, 16) + (w.desc.length > 16 ? '…' : '') + '</p>'
+        + '<p class="text-[9px] text-gray-400 mt-1"><i class="fas fa-location-dot mr-0.5"></i>' + w.area + ' · 商户责任 · 待派整改</p>'
+        + '<button class="mt-2 w-full py-2 rounded-lg text-white text-[11px] font-bold" style="background:linear-gradient(135deg,#FB7185,#E11D48)"><i class="fas fa-paper-plane text-[10px] mr-1"></i>去派整改</button></div>';
+    }).join('');
+    return;
+  }
+  var arr2 = db.zg.filter(function(o){ return zgTab(o) === filter; });
+  if (!arr2.length) { empty('该分组暂无整改单'); return; }
+  document.getElementById('list').innerHTML = arr2.map(function(o){
+    var over = o.over > 0 && o.state !== '已通过' ? '<span class="text-[9px] font-bold" style="color:#DC2626">超期 ' + o.over + ' 天</span>' : '';
+    var rej = o.rejectTimes > 0 ? '<span class="text-[9px]" style="color:#EA580C">退回 ' + o.rejectTimes + ' 次</span>' : '';
+    var btn = '';
+    if (o.state === '待复核' && wuyeIsManager()) btn = '<button onclick="event.stopPropagation();openReview(\'' + o.no + '\')" class="mt-2 w-full py-2 rounded-lg text-white text-[11px] font-bold" style="background:linear-gradient(135deg,#A78BFA,#7C3AED)"><i class="fas fa-clipboard-check text-[10px] mr-1"></i>去复核（前后照片对比）</button>';
+    else if (o.state === '待复核') btn = '<p class="text-[10px] mt-2" style="color:#7C3AED"><i class="fas fa-hourglass-half mr-1"></i>商户已提交，等待主管复核</p>';
+    else if (o.state === '整改中') btn = '<p class="text-[10px] mt-2" style="color:#64748B"><i class="fas fa-hourglass-half mr-1"></i>等待商户提交整改（限期 ' + o.deadline + '）</p>';
+    else if (o.state === '已通过') btn = '<p class="text-[10px] mt-2" style="color:#059669"><i class="fas fa-circle-check mr-1"></i>复核通过，已关闭</p>';
+    return '<div class="card bg-white rounded-2xl shadow-soft px-3.5 py-3" onclick="openDetail(\'' + o.no + '\')">'
+      + '<div class="flex items-center justify-between mb-1"><span class="text-[10px] text-gray-400 num">' + o.no + ' · ' + o.wt + '</span>'
+      + '<span class="st text-[9px] font-bold px-1.5 py-0.5 rounded ' + stc(o.state) + '">' + o.state + '</span></div>'
+      + '<p class="text-[13px] font-bold text-gray-800">' + o.unit + ' · ' + o.req.slice(0, 16) + (o.req.length > 16 ? '…' : '') + '</p>'
+      + '<div class="flex items-center gap-2 mt-1.5 text-[9px] text-gray-400 flex-wrap"><span><i class="fas fa-calendar-day mr-0.5"></i>限期 ' + o.deadline + '</span>' + over + rej + '</div>'
+      + btn + '</div>';
+  }).join('');
+}
+function empty(t){
+  document.getElementById('list').innerHTML = '<div class="text-center py-14"><i class="fas fa-clipboard-check text-xl text-gray-300 block mb-2"></i><p class="text-[11px] text-gray-400">' + t + '</p></div>';
+}
+
+/* ---------- 详情 ---------- */
+function openDetail(no){
+  curNo = no;
+  var o = wuyeDB().zg.filter(function(x){ return x.no === no; })[0];
+  if (!o) return;
+  var before = '<div class="ph before"><i class="fas fa-image text-base"></i><span>问题原照片</span><span class="cap">巡检/上报时</span></div>';
+  var after = o.submit
+    ? '<div class="ph after"><i class="fas fa-image text-base"></i><span>整改后照片</span><span class="cap">商户提交 · ' + o.submit.at.slice(5) + '</span></div>'
+    : '<div class="ph" style="background:#F1F5F9;color:#94A3B8;height:88px"><i class="fas fa-image text-base"></i><span>商户尚未提交</span></div>';
+  var ops = '';
+  if (o.state === '待复核' && wuyeIsManager()) ops = '<button onclick="closeSheet(\'dtSheet\');openReview(\'' + o.no + '\')" class="w-full py-2.5 rounded-xl text-white text-[12px] font-bold" style="background:linear-gradient(135deg,#A78BFA,#7C3AED)">去复核</button>';
+  var logs = o.logs.map(function(l){
+    return '<div class="flex gap-2"><div class="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style="background:#FDA4AF"></div>'
+      + '<div class="flex-1"><p class="text-[10px] text-gray-500">' + l[0] + '</p><p class="text-[11px] text-gray-700 mt-0.5 leading-relaxed">' + l[1] + '</p></div></div>';
+  }).join('');
+  document.getElementById('dtBody').innerHTML =
+    '<div class="sheet-bar"></div>'
+    + '<div class="flex items-start justify-between"><div><p class="text-[15px] font-extrabold text-gray-900">' + o.unit + ' 整改单</p>'
+    + '<p class="text-[10px] text-gray-400 mt-1 num">' + o.no + ' · 关联 ' + o.wt + '</p></div>'
+    + '<span class="st text-[10px] font-bold px-2 py-1 rounded ' + stc(o.state) + '">' + o.state + '</span></div>'
+    + '<div class="mt-3 rounded-xl p-3" style="background:#F8FAFC">'
+    + '<div class="flex justify-between text-[11px]"><span class="text-gray-400">整改要求</span><span class="text-gray-800 text-right" style="max-width:230px">' + o.req + '</span></div>'
+    + '<div class="flex justify-between text-[11px] mt-1.5"><span class="text-gray-400">限期完成</span><span class="' + (o.over > 0 ? 'text-red-600 font-bold' : 'text-gray-800') + ' num">' + o.deadline + (o.over > 0 ? '（超期 ' + o.over + ' 天）' : '') + '</span></div>'
+    + '<div class="flex justify-between text-[11px] mt-1.5"><span class="text-gray-400">退回次数</span><span class="' + (o.rejectTimes >= 3 ? 'text-red-600 font-bold' : 'text-gray-800') + '">' + o.rejectTimes + ' 次' + (o.rejectTimes >= 3 ? '（已升级主管）' : '') + '</span></div>'
+    + '</div>'
+    + '<p class="text-[11px] font-bold text-gray-800 mt-4 mb-2">前后照片对比</p>'
+    + '<div class="grid grid-cols-2 gap-2">' + before + after + '</div>'
+    + (o.submit ? '<div class="mt-2.5 rounded-xl p-3" style="background:#F0FDF4"><p class="text-[10px] font-bold" style="color:#047857">整改说明</p><p class="text-[11px] text-gray-700 mt-1 leading-relaxed">' + o.submit.desc + '</p><p class="text-[9px] text-gray-400 mt-1">提交人：' + o.unit + ' · ' + o.submit.at + ' · 照片 ' + o.submit.photos + ' 张</p></div>' : '')
+    + (o.rejectWhy ? '<div class="mt-2.5 rounded-xl p-3" style="background:#FEF2F2"><p class="text-[10px] font-bold" style="color:#B91C1C">上次退回原因</p><p class="text-[11px] text-gray-700 mt-1 leading-relaxed">' + o.rejectWhy + '</p></div>' : '')
+    + '<p class="text-[11px] font-bold text-gray-800 mt-4 mb-2">流转记录</p><div class="space-y-2.5">' + logs + '</div>'
+    + (ops ? '<div class="mt-4">' + ops + '</div>' : '')
+    + '<button class="w-full mt-2 py-2.5 rounded-xl text-[12px] font-bold text-gray-500 bg-gray-100" onclick="closeSheet(\'dtSheet\')">关闭</button>';
+  openSheet('dtSheet');
+}
+
+/* ---------- 复核（前后照片并排） ---------- */
+function openReview(no){
+  if (!wuyeIsManager()) { toast('仅物业主管可复核整改'); return; }
+  curNo = no;
+  var o = wuyeDB().zg.filter(function(x){ return x.no === no; })[0];
+  document.getElementById('rvBody').innerHTML =
+    '<div class="sheet-bar"></div>'
+    + '<p class="text-[15px] font-extrabold text-gray-900 text-center">整改复核</p>'
+    + '<p class="text-[10px] text-gray-400 text-center mt-1 num">' + o.no + ' · ' + o.unit + '</p>'
+    + '<div class="mt-3 rounded-xl p-3" style="background:#FFF7ED"><p class="text-[10px] leading-relaxed" style="color:#92400E"><b>整改要求：</b>' + o.req + '</p></div>'
+    + '<p class="text-[11px] font-bold text-gray-800 mt-3 mb-2">前后照片并排对比</p>'
+    + '<div class="grid grid-cols-2 gap-2">'
+    + '<div class="ph before"><i class="fas fa-image text-base"></i><span>整改前</span><span class="cap">问题现场</span></div>'
+    + '<div class="ph after"><i class="fas fa-image text-base"></i><span>整改后</span><span class="cap">' + (o.submit ? o.submit.photos + ' 张 · ' + o.submit.at : '未提交') + '</span></div>'
+    + '</div>'
+    + (o.submit ? '<div class="mt-2.5 rounded-xl p-3" style="background:#F8FAFC"><p class="text-[10px] text-gray-400">商户说明</p><p class="text-[11px] text-gray-700 mt-1 leading-relaxed">' + o.submit.desc + '</p></div>' : '')
+    + '<div class="mt-3"><label class="lbl">退回原因（仅退回时必填）</label><textarea id="rvWhy" class="inp" rows="2" placeholder="例：通道深处仍有纸箱未清，净宽不足 0.5m"></textarea></div>'
+    + '<div class="flex gap-2 mt-3">'
+    + '<button onclick="doReview(1)" class="flex-1 py-3 rounded-xl text-white text-[12px] font-bold" style="background:linear-gradient(135deg,#FB7185,#E11D48)">退回整改</button>'
+    + '<button onclick="doReview(0)" class="flex-1 py-3 rounded-xl text-white text-[12px] font-bold" style="background:linear-gradient(135deg,#34D399,#059669)">通过并关闭</button></div>'
+    + '<button class="w-full mt-2 py-2.5 rounded-xl text-[12px] font-bold text-gray-500 bg-gray-100" onclick="closeSheet(\'rvSheet\')">取消</button>';
+  openSheet('rvSheet');
+}
+function doReview(isReject){
+  var db = wuyeDB();
+  var o = db.zg.filter(function(x){ return x.no === curNo; })[0];
+  if (isReject) {
+    var why = (document.getElementById('rvWhy').value || '').trim();
+    if (why.length < 3) { toast('退回原因必填（≥3 字）'); return; }
+    o.state = '已退回'; o.rejectTimes = (o.rejectTimes || 0) + 1; o.rejectWhy = why;
+    o.logs.push([nowStr(), '王海涛 复核退回（第 ' + o.rejectTimes + ' 次）：' + why]);
+    var wt = db.wt.filter(function(w){ return w.no === o.wt; })[0];
+    if (wt) { wt.state = '整改中'; wt.logs.push([nowStr(), '整改被退回（第 ' + o.rejectTimes + ' 次）']); }
+    wuyeSave(db); closeSheet('rvSheet'); closeSheet('dtSheet');
+    toast('已退回，商户端状态回「整改中」' + (o.rejectTimes >= 3 ? '（已升级主管）' : ''));
+  } else {
+    o.state = '已通过';
+    o.logs.push([nowStr(), '王海涛 移动端复核通过 → 已通过关闭']);
+    var wt2 = db.wt.filter(function(w){ return w.no === o.wt; })[0];
+    if (wt2) { wt2.state = '已解决'; wt2.logs.push([nowStr(), '整改复核通过 → 已解决']); }
+    wuyeSave(db); closeSheet('rvSheet'); closeSheet('dtSheet');
+    toast('已通过关闭，关联问题置「已解决」');
+  }
+  paintChips(); paintList();
+}
+
+/* ---------- 批量通过 ---------- */
+function batch(){
+  if (!wuyeIsManager()) { toast('仅物业主管可批量复核'); return; }
+  var db = wuyeDB();
+  var arr = db.zg.filter(function(o){ return o.state === '待复核'; });
+  if (!arr.length) { toast('当前没有待复核的整改单'); return; }
+  if (!confirm('将同区域同类的 ' + arr.length + ' 张待复核整改单批量通过？\n\n（批量操作会留痕：操作人 + 时间）')) return;
+  arr.forEach(function(o){
+    o.state = '已通过';
+    o.logs.push([nowStr(), '王海涛 批量复核通过（留痕）']);
+    var wt = db.wt.filter(function(w){ return w.no === o.wt; })[0];
+    if (wt) { wt.state = '已解决'; }
+  });
+  wuyeSave(db);
+  toast('已批量通过 ' + arr.length + ' 张');
+  paintChips(); paintList();
+}
+
+/* ---------- init ---------- */
+(function init(){
+  var q = new URLSearchParams(location.search);
+  paintChips(); paintList(); renderWuyeTab('wuye');
+  document.getElementById('subTitle').textContent = wuyeIsManager() ? '主管视角 · 可复核 / 批量通过' : '商户责任问题 · 等待商户提交';
+  var no = q.get('no');
+  if (no) setTimeout(function(){ openDetail(no); }, 120);
+})();
+</script>
+</body>
+</html>

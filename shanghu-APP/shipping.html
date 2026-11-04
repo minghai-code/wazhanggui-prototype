@@ -53,6 +53,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
       </div>
       <p class="text-[10px] text-gray-400 num" id="osSub">SO20260720-001 · x100双 · ¥340</p>
       <p id="osTrace" style="display:none" class="text-[10px] text-sky-600 mt-0.5"><i class="fas fa-link text-[9px]"></i> 关联需求单 XQ20260718-009 · 成交 ¥3.5/双 · 交期 7 天</p>
+      <!-- 已发进度（分批发货，待办 #39） -->
+      <div class="mt-1.5">
+        <div class="flex items-center gap-2">
+          <div class="h-1 flex-1 rounded-full overflow-hidden" style="background:#E6EFFC"><i id="osBar" style="display:block;height:100%;width:60%;background:linear-gradient(90deg,#60A5FA,#2563EB)"></i></div>
+          <span class="text-[9px] font-bold text-primary num" id="osProg">已发 60/100</span>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -92,15 +99,42 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
   </div>
 </div>
 
+<!-- 本次发货数量（分批，待办 #39） -->
+<div class="px-3 mb-3">
+  <p class="text-[12px] font-bold text-gray-800 mb-2 px-1">本次发货数量 <span class="text-red-500">*</span></p>
+  <div class="bg-white rounded-2xl shadow-soft p-3.5">
+    <div class="flex items-center gap-3">
+      <button onclick="stepQty(-10)" class="w-9 h-9 rounded-lg flex items-center justify-center text-primary font-bold" style="background:#EFF6FF"><i class="fas fa-minus text-xs"></i></button>
+      <div class="flex-1 text-center">
+        <input id="qtyInput" type="number" value="40" class="w-full text-center text-[20px] font-extrabold text-gray-900 outline-none num" style="background:transparent;border:0">
+        <p class="text-[9px] text-gray-400 mt-0.5">剩余未发 <span id="qtyLeft" class="num">40</span> 件 · 分批发货</p>
+      </div>
+      <button onclick="stepQty(10)" class="w-9 h-9 rounded-lg flex items-center justify-center text-primary font-bold" style="background:#EFF6FF"><i class="fas fa-plus text-xs"></i></button>
+    </div>
+    <div class="flex gap-2 mt-2.5">
+      <span onclick="fillAll()" class="text-[10px] px-2.5 py-1 rounded-lg cursor-pointer" style="background:#EFF6FF;color:#2563EB">全部发出（<span id="qtyAll" class="num">40</span>）</span>
+      <span class="text-[9px] text-gray-400 self-center">未发完订单仍为「待发货」，买家端显示「已发 n/m」</span>
+    </div>
+  </div>
+</div>
+
 <!-- 物流单号 -->
 <div class="px-3 mb-3">
   <p class="text-[12px] font-bold text-gray-800 mb-2 px-1">物流单号 <span class="text-red-500">*</span></p>
   <div class="bg-white rounded-2xl shadow-soft p-3.5">
     <div class="flex items-center gap-2">
-      <input type="text" placeholder="请输入或扫码物流单号" class="flex-1 text-[13px] bg-gray-50 rounded-lg px-3 py-2.5 outline-none num" value="">
-      <button class="w-10 h-10 rounded-lg flex items-center justify-center text-white flex-shrink-0" style="background:linear-gradient(135deg,#3B82F6,#2563EB)"><i class="fas fa-qrcode text-sm"></i></button>
+      <input id="waybill" type="text" placeholder="请输入或扫码物流单号" class="flex-1 text-[13px] bg-gray-50 rounded-lg px-3 py-2.5 outline-none num" value="SF1234567891">
+      <button onclick="scanWB()" class="w-10 h-10 rounded-lg flex items-center justify-center text-white flex-shrink-0" style="background:linear-gradient(135deg,#3B82F6,#2563EB)"><i class="fas fa-qrcode text-sm"></i></button>
     </div>
     <p class="text-[10px] text-gray-400 mt-2"><i class="fas fa-circle-info"></i> 点击扫码图标，扫描快递条码自动填充单号</p>
+  </div>
+</div>
+
+<!-- 已有发货批次 -->
+<div class="px-3 mb-3">
+  <p class="text-[12px] font-bold text-gray-800 mb-2 px-1">发货记录 <span class="text-gray-400 text-[10px] font-normal">（按批次）</span></p>
+  <div class="bg-white rounded-2xl shadow-soft p-3">
+    <div class="space-y-2" id="shipRecs"></div>
   </div>
 </div>
 
@@ -124,14 +158,38 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 
 <div style="height:80px"></div>
 
+<!-- Toast -->
+<div id="toast" style="position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:rgba(20,25,40,.92);color:#fff;font-size:12px;padding:10px 16px;border-radius:20px;z-index:300;opacity:0;transition:.2s;pointer-events:none;max-width:320px;text-align:center;line-height:1.5"></div>
+
 <!-- 底部确认发货 -->
 <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-3 py-2.5" style="z-index:100;width:393px;padding-bottom:18px">
-  <button class="w-full py-3 rounded-xl text-white text-[14px] font-bold" style="background:linear-gradient(135deg,#3B82F6,#2563EB)"><i class="fas fa-paper-plane text-[12px]"></i> 确认发货</button>
+  <button id="shipBtn" onclick="doShip()" class="w-full py-3 rounded-xl text-white text-[14px] font-bold" style="background:linear-gradient(135deg,#3B82F6,#2563EB)"><i class="fas fa-paper-plane text-[12px]"></i> 确认发货</button>
 </div>
 
 <script>
+/* ===== 入参 =====
+   ?no=订单号 & qty=订单总件数 & shipped=已发件数 & type=inquiry & group=cancelled
+   ===== */
+var _tt;
+function toast(m){
+  var t=document.getElementById('toast');
+  if(!t){alert(m);return;}
+  t.textContent=m;t.style.opacity=1;
+  clearTimeout(_tt);_tt=setTimeout(function(){t.style.opacity=0;},1900);
+}
+
+var _q=new URLSearchParams(location.search);
+var orderNo=_q.get('no')||'SO20260720-001';
+var total=+(_q.get('qty')||100);
+var recs=[];
+try{recs=JSON.parse(localStorage.getItem('sh_ship_'+orderNo)||'[]');}catch(e){}
+if(!recs.length&&(+_q.get('shipped')||0)>0){
+  recs=[{qty:+_q.get('shipped'),carrier:'顺丰速运',no:'SF1234567890',at:'2026-07-20 16:10',note:'第 1 批 · 现货'}];
+}
+function shippedQty(){return recs.reduce(function(a,b){return a+(+b.qty||0);},0);}
+
 // 询价订单发货：order-detail.html?type=inquiry → shipping.html?type=inquiry
-if(new URLSearchParams(location.search).get('type')==='inquiry'){
+if(_q.get('type')==='inquiry'){
   document.getElementById('osIcon').className='fas fa-file-signature text-sky-500';
   document.getElementById('osBadge').style.display='inline-block';
   document.getElementById('osName').textContent='秋季男士商务袜（询价成交）';
@@ -140,6 +198,77 @@ if(new URLSearchParams(location.search).get('type')==='inquiry'){
   document.getElementById('recvNote').style.display='block';
   document.getElementById('shipSub').innerHTML='<i class="fas fa-truck-fast"></i> 询价订单发货 · 收货信息以买家下单填写为准';
 }
+
+/* 拼单团取消：不可发货（待办 #37 / M03 BR-14） */
+if(_q.get('group')==='cancelled'){
+  var sbtn=document.getElementById('shipBtn');
+  sbtn.textContent='本团已取消 · 不可发货';
+  sbtn.style.background='#E5E7EB';sbtn.style.color='#9CA3AF';
+  sbtn.onclick=function(){toast('团长已取消本团，全团款项原路退回，无需发货');};
+  var tip=document.createElement('div');
+  tip.className='mx-3 mb-3 rounded-2xl p-3';
+  tip.style.cssText='margin:12px;border-radius:16px;padding:12px;background:#FEF2F2;border:1px solid #FECACA;font-size:11px;line-height:1.6;color:#B91C1C';
+  tip.innerHTML='<b>团长已取消本团</b>：全团款项原路退回，订单已置「已取消 · 已退款」，不可发货。';
+  document.body.insertBefore(tip,document.querySelector('.px-3.mt-3'));
+}
+
+/* ===== 进度 / 批次渲染 ===== */
+function renderShip(){
+  var s=shippedQty(),left=Math.max(0,total-s),pct=Math.min(100,Math.round(s/total*100));
+  document.getElementById('osProg').textContent='已发 '+s+'/'+total;
+  document.getElementById('osBar').style.width=pct+'%';
+  document.getElementById('qtyLeft').textContent=left;
+  document.getElementById('qtyAll').textContent=left;
+  var qi=document.getElementById('qtyInput');
+  if(!qi.dataset.touched)qi.value=left||0;
+  if(!left){qi.value=0;}
+  document.getElementById('shipRecs').innerHTML=recs.length?recs.map(function(r,i){
+    return '<div class="flex items-center gap-2 rounded-xl px-2.5 py-2" style="background:#F8FAFC">'
+      +'<span class="w-5 h-5 rounded-md flex items-center justify-center text-[9px] font-bold text-white" style="background:linear-gradient(135deg,#60A5FA,#2563EB)">'+(i+1)+'</span>'
+      +'<div class="flex-1 min-w-0"><p class="text-[11px] text-gray-800 font-medium">'+r.carrier+' · <span class="num">'+r.no+'</span></p>'
+      +'<p class="text-[9px] text-gray-400 mt-0.5 num">'+r.at+(r.note?' · '+r.note:'')+'</p></div>'
+      +'<span class="text-[11px] font-bold text-primary num">'+r.qty+' 件</span></div>';
+  }).join(''):'<p class="text-[11px] text-gray-400 text-center py-2">尚未发货</p>';
+}
+function stepQty(d){
+  var qi=document.getElementById('qtyInput');qi.dataset.touched='1';
+  var v=Math.max(0,Math.min(Math.max(0,total-shippedQty()),(+qi.value||0)+d));
+  qi.value=v;
+}
+function fillAll(){
+  var qi=document.getElementById('qtyInput');qi.dataset.touched='1';
+  qi.value=Math.max(0,total-shippedQty());
+}
+function scanWB(){
+  var el=document.getElementById('waybill');
+  el.value='SF'+(9000000000+Math.floor(Math.random()*99999999));
+  toast('已扫描快递条码，单号自动填入');
+}
+function nowT(){var d=new Date();function p(n){return n<10?'0'+n:''+n}return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());}
+
+function doShip(){
+  var wb=(document.getElementById('waybill').value||'').trim();
+  var n=+document.getElementById('qtyInput').value||0;
+  var left=Math.max(0,total-shippedQty());
+  if(!left){toast('该订单已全部发完，无需继续发货');return;}
+  if(!n||n<=0){toast('请填写本次发货数量');return;}
+  if(n>left){toast('本次最多可发 '+left+' 件（超出订单总数）');return;}
+  if(!wb){toast('请填写物流单号');return;}
+  recs.push({qty:n,carrier:'顺丰速运',no:wb,at:nowT(),note:'第 '+recs.length+1+' 批'});
+  try{localStorage.setItem('sh_ship_'+orderNo,JSON.stringify(recs));}catch(e){}
+  document.getElementById('qtyInput').dataset.touched='';
+  document.getElementById('waybill').value='';
+  renderShip();
+  var s=shippedQty();
+  if(s>=total){
+    toast('已全部发完（'+s+'/'+total+'），订单转「待收货」');
+    setTimeout(function(){location.href='orders.html';},1400);
+  }else{
+    toast('已发 '+s+'/'+total+' 件，订单仍为「待发货」');
+  }
+}
+
+renderShip();
 </script>
 </body>
 </html>

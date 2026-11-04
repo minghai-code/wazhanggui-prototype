@@ -51,6 +51,6 @@
 - `mall-dispute.html` 纠纷仲裁 → 商城运营 / 订单管理（售后）
 - `activity-stats.html` 效果统计 → 活动运营 / 活动列表（效果）
 - `report-cockpit.html` 领导驾驶舱数据 → 运营总览 / 产业专题分析
-- `ai-audit.html` / `ai-video.html` / `ai-violation.html` → 商城运营 / 商品管理（AI 自动审核）、视频管理
+- `ai-audit.html` / `ai-video.html` / `ai-violation.html` → 商城运营 / 商品管理（AI 自动审核）、视频看货管理
 - `procurement.html` / `procurement-group.html` → 商城运营 / 订单管理（拼单集采）
 - `investment-vacancy.html` 空置资源管理 → 市场资源管理 / 资源状态看板

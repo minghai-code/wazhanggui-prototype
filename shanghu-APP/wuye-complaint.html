@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>投诉处置 - 物业管理</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--p:#0D9488;--bg:#F2FBFA}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+::-webkit-scrollbar{width:2px;height:2px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#c9ece7;border-radius:1px}
+.shadow-soft{box-shadow:0 2px 12px rgba(10,60,55,.06)}
+.num{font-variant-numeric:tabular-nums}
+.card{transition:transform .16s ease}
+.card:active{transform:scale(.985)}
+.grad-h{background:linear-gradient(135deg,#2DD4BF 0%,#14B8A6 45%,#0D9488 100%)}
+.chip{font-size:11px;padding:5px 11px;border-radius:999px;background:#fff;color:#64748B;white-space:nowrap;box-shadow:0 1px 6px rgba(10,60,55,.06)}
+.chip.on{background:linear-gradient(135deg,#2DD4BF,#0D9488);color:#fff;font-weight:700}
+.no-bar::-webkit-scrollbar{display:none}
+.sheet{position:fixed;inset:0;z-index:200;display:none;align-items:flex-end}
+.sheet.on{display:flex}
+.sheet-bg{position:absolute;inset:0;background:rgba(15,23,42,.45)}
+.sheet-body{position:relative;width:100%;background:#fff;border-radius:24px 24px 0 0;padding:12px 16px 28px;max-height:90vh;overflow-y:auto}
+.sheet-bar{width:38px;height:4px;border-radius:2px;background:#E2E8F0;margin:0 auto 12px}
+.toast{position:fixed;left:50%;top:22%;transform:translate(-50%,-8px);max-width:300px;background:rgba(31,36,48,.94);color:#fff;font-size:12px;line-height:1.5;padding:10px 14px;border-radius:12px;opacity:0;pointer-events:none;transition:.22s;z-index:300;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.inp{width:100%;background:#F8F9FA;border:1px solid #F0F0F0;border-radius:12px;padding:10px 12px;font-size:12px;color:#1F2430;outline:none}
+.lbl{font-size:10px;color:#6B7080;font-weight:500;display:block;margin-bottom:5px}
+.lbl b{color:#0D9488}
+.tpl{font-size:10px;color:#0D9488;background:#F0FDFA;border:1px solid #99F6E4;border-radius:8px;padding:5px 9px;cursor:pointer;display:inline-block;margin:0 5px 5px 0}
+.ph{border-radius:8px;display:flex;align-items:center;justify-content:center;height:56px;background:linear-gradient(135deg,#5EEAD4,#0D9488);color:#fff;font-size:9px}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<div class="px-3.5 pt-2 pb-4 grad-h">
+  <div class="flex justify-between items-center text-white text-sm font-semibold" style="height:36px">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+  </div>
+  <div class="flex items-center gap-3 mt-1">
+    <a href="wuye-home.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+    <div class="flex-1">
+      <span class="text-white font-extrabold text-[17px]">投诉处置</span>
+      <p class="text-white/85 text-[9px] mt-0.5">受理 → 回复 → 转单 / 回访</p>
+    </div>
+    <a href="messages.html" class="text-white text-base"><i class="fas fa-bell"></i></a>
+  </div>
+</div>
+
+<div class="px-3 pt-3 pb-28">
+  <div class="flex gap-1.5 overflow-x-auto no-bar mb-3" id="chips"></div>
+  <div class="space-y-2.5" id="list"></div>
+</div>
+
+<div id="wuyeTab"></div>
+<div class="toast" id="toast"></div>
+
+<div class="sheet" id="dtSheet"><div class="sheet-bg" onclick="closeSheet('dtSheet')"></div><div class="sheet-body" id="dtBody"></div></div>
+<div class="sheet" id="rpSheet"><div class="sheet-bg" onclick="closeSheet('rpSheet')"></div><div class="sheet-body" id="rpBody"></div></div>
+
+<script src="wuye-tab.js"></script>
+<script src="wuye-data.js"></script>
+<script>
+wuyeEnsureStaff();
+
+var TABS = ['待受理', '处理中', '已回复', '已关闭'];
+var filter = '待受理';
+var curNo = '';
+
+function tabOf(o){ return o.state === '已升级' ? '处理中' : o.state; }
+function paintChips(){
+  var db = wuyeDB();
+  document.getElementById('chips').innerHTML = TABS.map(function(c){
+    var n = db.ts.filter(function(o){ return tabOf(o) === c; }).length;
+    return '<a onclick="setF(\'' + c + '\')" class="chip' + (c === filter ? ' on' : '') + '">' + c + (n ? ' ' + n : '') + '</a>';
+  }).join('');
+}
+function setF(c){ filter = c; paintChips(); paintList(); }
+
+function paintList(){
+  var arr = wuyeDB().ts.filter(function(o){ return tabOf(o) === filter; });
+  if (!arr.length) {
+    document.getElementById('list').innerHTML = '<div class="text-center py-14"><i class="fas fa-comment-dots text-xl text-gray-300 block mb-2"></i><p class="text-[11px] text-gray-400">该分组暂无投诉</p></div>';
+    return;
+  }
+  document.getElementById('list').innerHTML = arr.map(function(o){
+    var flag = o.over ? '<span class="text-[8px] font-bold text-white px-1.5 py-0.5 rounded" style="background:#DC2626">超时升级</span>' : '';
+    var rate = o.rating ? '<span class="text-[9px] font-bold" style="color:#F59E0B">' + '★'.repeat(o.rating) + '</span>' : '';
+    return '<div class="card bg-white rounded-2xl shadow-soft px-3.5 py-3" onclick="openDetail(\'' + o.no + '\')">'
+      + '<div class="flex items-center justify-between mb-1"><span class="text-[10px] text-gray-400 num">' + o.no + ' · ' + o.src + '</span>'
+      + '<div class="flex items-center gap-1.5">' + flag + '<span class="st text-[9px] font-bold px-1.5 py-0.5 rounded ' + stc(o.state) + '">' + o.state + '</span></div></div>'
+      + '<p class="text-[13px] font-bold text-gray-800">' + o.cat + ' · ' + o.desc.slice(0, 16) + (o.desc.length > 16 ? '…' : '') + '</p>'
+      + '<div class="flex items-center gap-2 mt-1.5 text-[9px] text-gray-400"><span><i class="fas fa-user mr-0.5"></i>' + o.who + '</span><span>·</span><span>对象：' + o.target + '</span>' + rate + '</div>'
+      + (o.reply ? '<p class="text-[10px] text-gray-500 mt-1.5 truncate" style="background:#F0FDFA;padding:5px 8px;border-radius:8px">回复：' + o.reply.slice(0, 22) + '…</p>' : '')
+      + '</div>';
+  }).join('');
+}
+
+/* ---------- 详情 ---------- */
+function openDetail(no){
+  curNo = no;
+  var o = wuyeDB().ts.filter(function(x){ return x.no === no; })[0];
+  if (!o) return;
+  var logs = o.logs.map(function(l){
+    return '<div class="flex gap-2"><div class="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style="background:#5EEAD4"></div>'
+      + '<div class="flex-1"><p class="text-[10px] text-gray-500">' + l[0] + '</p><p class="text-[11px] text-gray-700 mt-0.5 leading-relaxed">' + l[1] + '</p></div></div>';
+  }).join('');
+  var ph = '';
+  for (var i = 0; i < o.photos; i++) ph += '<div class="ph">照片 ' + (i + 1) + '</div>';
+
+  var ops = '';
+  if (o.state === '待受理' || o.state === '已升级') {
+    ops = '<button onclick="doAccept()" class="flex-1 py-2.5 rounded-xl text-white text-[12px] font-bold" style="background:linear-gradient(135deg,#2DD4BF,#0D9488)">受理（指派处理人）</button>';
+  } else if (o.state === '处理中') {
+    ops = '<button onclick="closeSheet(\'dtSheet\');openReply()" class="flex-1 py-2.5 rounded-xl text-white text-[12px] font-bold" style="background:linear-gradient(135deg,#2DD4BF,#0D9488)">回复投诉人</button>';
+    if (o.cat === '维修质量') ops += '<button onclick="toBX()" class="px-3 py-2.5 rounded-xl text-[12px] font-bold" style="background:#EFF6FF;color:#2563EB">转报修</button>';
+    if (o.cat === '秩序问题') ops += '<button onclick="toZG()" class="px-3 py-2.5 rounded-xl text-[12px] font-bold" style="background:#FEF2F2;color:#B91C1C">转整改</button>';
+  } else if (o.state === '已回复') {
+    ops = '<div class="flex-1 text-center text-[11px] text-gray-400 py-2">已回复，等待投诉人评价' + (o.over ? ' · 已超 3 工作日' : '') + '</div>';
+    if (o.over) ops += '<button onclick="escalate()" class="px-3 py-2.5 rounded-xl text-[12px] font-bold" style="background:#FEF2F2;color:#B91C1C">升级运营主管</button>';
+  }
+
+  document.getElementById('dtBody').innerHTML =
+    '<div class="sheet-bar"></div>'
+    + '<div class="flex items-start justify-between"><div><p class="text-[15px] font-extrabold text-gray-900">' + o.cat + '</p>'
+    + '<p class="text-[10px] text-gray-400 mt-1 num">' + o.no + ' · 来源 ' + o.src + '</p></div>'
+    + '<span class="st text-[10px] font-bold px-2 py-1 rounded ' + stc(o.state) + '">' + o.state + '</span></div>'
+    + '<div class="mt-3 rounded-xl p-3" style="background:#F8FAFC">'
+    + '<div class="flex justify-between text-[11px]"><span class="text-gray-400">投诉人</span><span class="text-gray-800">' + o.who + (o.phone ? ' · ' + o.phone : '') + '</span></div>'
+    + '<div class="flex justify-between text-[11px] mt-1.5"><span class="text-gray-400">被投诉对象</span><span class="text-gray-800">' + o.target + '</span></div>'
+    + '<div class="flex justify-between text-[11px] mt-1.5"><span class="text-gray-400">投诉时间</span><span class="text-gray-800 num">' + o.at + '</span></div>'
+    + (o.rating ? '<div class="flex justify-between text-[11px] mt-1.5"><span class="text-gray-400">满意度</span><span class="font-bold" style="color:#F59E0B">' + '★'.repeat(o.rating) + ' ' + o.rating + ' 星</span></div>' : '')
+    + '</div>'
+    + '<p class="text-[11px] text-gray-700 leading-relaxed mt-3">' + o.desc + '</p>'
+    + (ph ? '<div class="grid grid-cols-3 gap-2 mt-2.5">' + ph + '</div>' : '')
+    + (o.reply ? '<div class="mt-3 rounded-xl p-3" style="background:#F0FDFA"><p class="text-[10px] font-bold" style="color:#0F766E">物业回复 · ' + o.replyBy + '</p><p class="text-[11px] text-gray-700 mt-1 leading-relaxed">' + o.reply + '</p></div>' : '')
+    + '<p class="text-[11px] font-bold text-gray-800 mt-4 mb-2">流转记录</p><div class="space-y-2.5">' + logs + '</div>'
+    + (ops ? '<div class="flex gap-2 mt-4">' + ops + '</div>' : '')
+    + '<button class="w-full mt-2 py-2.5 rounded-xl text-[12px] font-bold text-gray-500 bg-gray-100" onclick="closeSheet(\'dtSheet\')">关闭</button>';
+  openSheet('dtSheet');
+}
+
+function doAccept(){
+  var db = wuyeDB();
+  var o = db.ts.filter(function(x){ return x.no === curNo; })[0];
+  o.state = '处理中'; o.over = false;
+  o.logs.push([nowStr(), '受理 → 指派 ' + wuyeMe().name + ' 处理']);
+  wuyeSave(db); closeSheet('dtSheet');
+  toast('已受理，指派给 ' + wuyeMe().name);
+  paintChips(); paintList();
+}
+
+/* ---------- 回复 ---------- */
+function openReply(){
+  var tpls = ['已安排人员到场处理，预计今日内完成', '已联系被投诉方核实，处理结果将同步告知', '该问题已转维修工单，进度可在「我的工单」查看', '已现场清理完毕，感谢您的反馈'];
+  document.getElementById('rpBody').innerHTML =
+    '<div class="sheet-bar"></div>'
+    + '<p class="text-[15px] font-extrabold text-gray-900 text-center">回复投诉人</p>'
+    + '<p class="text-[10px] text-gray-400 text-center mt-1 num">' + curNo + '</p>'
+    + '<div class="mt-3"><p class="lbl">常用回复模板</p><div>'
+    + tpls.map(function(t, i){ return '<span class="tpl" onclick="useTpl(' + i + ')">' + t + '</span>'; }).join('')
+    + '</div></div>'
+    + '<div class="mt-2"><label class="lbl">回复内容 <b>*</b>（≥5 字）</label>'
+    + '<textarea id="rpTxt" class="inp" rows="4" placeholder="说明处理措施与完成时间"></textarea></div>'
+    + '<div class="rounded-xl p-3 mt-3" style="background:#F0FDFA"><p class="text-[10px] leading-relaxed" style="color:#0F766E"><i class="fas fa-circle-info mr-1"></i>回复后状态转「已回复」，投诉人可评价 1–5 星；≤3 星系统自动回访（回「处理中」）。</p></div>'
+    + '<button onclick="doReply()" class="w-full mt-3 py-3 rounded-xl text-white text-[13px] font-bold" style="background:linear-gradient(135deg,#2DD4BF,#0D9488)">提交回复</button>'
+    + '<button class="w-full mt-2 py-2.5 rounded-xl text-[12px] font-bold text-gray-500 bg-gray-100" onclick="closeSheet(\'rpSheet\')">取消</button>';
+  window._tpls = tpls;
+  openSheet('rpSheet');
+}
+function useTpl(i){ document.getElementById('rpTxt').value = window._tpls[i]; }
+function doReply(){
+  var t = (document.getElementById('rpTxt').value || '').trim();
+  if (t.length < 5) { toast('回复内容至少 5 个字'); return; }
+  var db = wuyeDB();
+  var o = db.ts.filter(function(x){ return x.no === curNo; })[0];
+  o.state = '已回复'; o.reply = t; o.replyBy = wuyeMe().name;
+  o.logs.push([nowStr(), '已回复：「' + t.slice(0, 20) + '…」']);
+  wuyeSave(db); closeSheet('rpSheet'); closeSheet('dtSheet');
+  toast('已回复，等待投诉人评价');
+  filter = '已回复'; paintChips(); paintList();
+}
+
+/* ---------- 转单 ---------- */
+function toBX(){
+  var db = wuyeDB();
+  var o = db.ts.filter(function(x){ return x.no === curNo; })[0];
+  var bno = 'BX202610-00' + (43 + db.bx.length - 6);
+  db.bx.unshift({
+    no: bno, unit: '投诉转单', area: 'A 栋 3F', type: '其他', desc: o.desc,
+    urg: '一般', state: '待受理', worker: '', createdAt: nowStr(), acceptAt: '',
+    arriveAt: '', arriveGeo: '', photoBefore: o.photos > 0, resultDesc: '', photoAfter: 0,
+    needMat: null, matNote: '', rating: 0, merchant: o.who,
+    logs: [[nowStr(), '由投诉 ' + o.no + ' 转报修']]
+  });
+  o.logs.push([nowStr(), '转报修 → 生成 ' + bno + '（投诉单保留，状态仍为已回复）']);
+  o.state = '已回复';
+  if (!o.reply) { o.reply = '已转维修工单，进度可在「我的工单」查看'; o.replyBy = wuyeMe().name; }
+  wuyeSave(db); closeSheet('dtSheet');
+  toast('已生成报修单 ' + bno + '，投诉单保留');
+  paintChips(); paintList();
+}
+function toZG(){
+  var db = wuyeDB();
+  var o = db.ts.filter(function(x){ return x.no === curNo; })[0];
+  var wtNo = 'WT202610-00' + (69 + db.wt.length);
+  db.wt.unshift({
+    no: wtNo, area: '按投诉核实（待补区域）', type: '占道', sev: '一般', desc: o.desc,
+    owner: '商户责任', state: '待处理', reporter: wuyeMe().name, at: nowStr(),
+    photos: o.photos || 1, from: '投诉转单 ' + o.no, unit: '待核实', rectNo: '', bxNo: '',
+    logs: [[nowStr(), '由投诉 ' + o.no + ' 转整改（原投诉保留）']]
+  });
+  o.logs.push([nowStr(), '转整改 → 生成问题 ' + wtNo + '，待派发整改单']);
+  o.state = '已回复';
+  if (!o.reply) { o.reply = '已转整改流程，现场核实后要求责任方整改'; o.replyBy = wuyeMe().name; }
+  wuyeSave(db); closeSheet('dtSheet');
+  toast('已转整改（生成问题 ' + wtNo + '，待派发）');
+  paintChips(); paintList();
+}
+function escalate(){
+  var db = wuyeDB();
+  var o = db.ts.filter(function(x){ return x.no === curNo; })[0];
+  o.state = '已升级';
+  o.logs.push([nowStr(), '超时未评价 → 升级运营主管']);
+  wuyeSave(db); closeSheet('dtSheet');
+  toast('已升级至袜业城运营主管');
+  paintChips(); paintList();
+}
+
+/* ---------- init ---------- */
+(function init(){
+  var q = new URLSearchParams(location.search);
+  paintChips(); paintList(); renderWuyeTab('wuye');
+  var no = q.get('no');
+  if (no) setTimeout(function(){ openDetail(no); }, 120);
+})();
+</script>
+</body>
+</html>

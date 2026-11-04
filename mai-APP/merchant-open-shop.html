@@ -90,15 +90,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
     </div>
     <div class="mb-3">
       <label class="lbl">主营品类 <b>*</b></label>
-      <div class="flex flex-wrap gap-1.5" id="cateBox">
-        <span class="tag-opt on" onclick="tagToggle(this)">男袜</span>
-        <span class="tag-opt" onclick="tagToggle(this)">女袜</span>
-        <span class="tag-opt" onclick="tagToggle(this)">童袜</span>
-        <span class="tag-opt" onclick="tagToggle(this)">运动袜</span>
-        <span class="tag-opt" onclick="tagToggle(this)">保暖袜</span>
-        <span class="tag-opt" onclick="tagToggle(this)">功能袜</span>
-        <span class="tag-opt" onclick="tagToggle(this)">其他</span>
-      </div>
+      <div class="flex flex-wrap gap-1.5" id="cateBox"></div>
+      <p class="text-[10px] text-gray-400 mt-1.5">选项来自平台「品类字典」；<b>审核通过后将写入店铺属性</b>，作为您在袜子市场 / 原料市场归属的依据，请如实勾选</p>
     </div>
     <div class="mb-3">
       <label class="lbl">营业执照号 <b>*</b></label>
@@ -186,11 +179,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 
 <div class="toast" id="toast"><i class="fas fa-circle-check text-[#4ADE80]"></i><span id="toastTxt">操作成功</span></div>
 
+<script src="category-dict.js"></script>
 <script>
 var toastTimer;
 function toast(msg){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},1600)}
 function tagSelect(el){document.querySelectorAll('#subjectBox .tag-opt').forEach(function(x){x.classList.remove('on')});el.classList.add('on')}
 function tagToggle(el){el.classList.toggle('on')}
+
+/* ===== 主营品类：取后台「品类字典」启用项，默认不预选（M08 / 04 §8.5b） ===== */
+var CAT_GROUP_ORDER=['袜品','原料纱线','袜机设备','设计包装','其他'];
+function renderCats(){
+  var box=document.getElementById('cateBox');if(!box||!window.CAT_DICT)return;
+  var list=CAT_DICT.filter(function(c){return c.on===1}).sort(function(a,b){
+    var ga=CAT_GROUP_ORDER.indexOf(a.group),gb=CAT_GROUP_ORDER.indexOf(b.group);
+    if(ga<0)ga=99;if(gb<0)gb=99;
+    return ga===gb?a.sort-b.sort:ga-gb;
+  });
+  box.innerHTML=list.map(function(c){return '<span class="tag-opt" onclick="tagToggle(this)">'+c.name+'</span>'}).join('');
+}
 
 /* ===== 档口：系统按「真实姓名 + 身份证」查 02 市场资源管理台账（只读，不可手填） ===== */
 var shopHit=false; /* 默认：竞拍新商户系统内无合同 → 未命中（正常状态） */
@@ -216,8 +222,16 @@ function toggleShopDemo(){shopHit=!shopHit;renderShop();toast(shopHit?'（演示
 function requeryShop(){toast('已按「姓名 + 身份证」重新查询档口台账'+(shopHit?'：识别到 1 个在租档口 1F-A08':'：未查询到关联档口（不影响提交）'))}
 
 /* ===== 提交 ===== */
+var PENDING_KEY='mShopApplyPending'; /* 在途申请（本机模拟；接口期按身份证查重） */
 function submitForm(){
+  /* M08 BR-7b：同一身份证在途申请只能有一笔（接口期按身份证查重，原型按本账号） */
+  if(localStorage.getItem(PENDING_KEY)){
+    toast('您有一笔在途申请（'+localStorage.getItem(PENDING_KEY)+'）正在审核，请勿重复提交');
+    return;
+  }
   var n=document.getElementById('fShopName').value.trim();
+  var cats=[].slice.call(document.querySelectorAll('#cateBox .tag-opt.on')).map(function(x){return x.textContent.trim()});
+  if(!cats.length){toast('请至少选择一个主营品类');return}
   var lic=document.getElementById('fLicense').value.trim();
   var c=document.getElementById('fContact').value.trim();
   var p=document.getElementById('fPhone').value.trim();
@@ -226,6 +240,7 @@ function submitForm(){
   if(!c||!p){toast('请填写联系人与电话');return}
   if(!/^1\d{10}$/.test(p)){toast('请输入正确的手机号');return}
   if(!document.getElementById('agreeBox').checked){toast('请先勾选同意协议');return}
+  localStorage.setItem(PENDING_KEY,APPLY_NO);
   document.getElementById('successMask').style.display='flex';
 }
 function closeSuccess(){document.getElementById('successMask').style.display='none'}
@@ -263,16 +278,21 @@ function showRejected(){
     +'<div class="flex items-center justify-between mb-2"><span class="text-[13px] font-bold text-gray-800"><i class="fas fa-list-check mr-1" style="color:#FF4D2D"></i>我的开店申请</span>'
     +'<span class="text-[10px] px-2 py-0.5 rounded-full font-bold" style="background:#FEE2E2;color:#EF4444">已驳回</span></div>'
     +'<div class="bg-red-50 rounded-xl p-3 mt-1 border border-red-100"><p class="text-[10px] text-red-700 font-bold mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>驳回原因</p><p class="text-[11px] text-red-600 leading-relaxed">上传的营业执照照片模糊不清，且店铺名称与营业执照主体名称不一致，请核对后重新提交。</p></div>'
+    +'<p class="text-[10px] text-gray-400 mt-2 leading-relaxed">驳回后 <b>30 天内</b>可修改重新提交；<b>补件不计驳回次数</b>。超过 30 天需重新提交完整资料。</p>'
     +'<button onclick="resubmit()" class="card w-full mt-3 py-2.5 rounded-xl text-white text-[12px] font-bold" style="background:linear-gradient(135deg,#F59E0B,#D97706)"><i class="fas fa-rotate-right mr-1"></i>修改后重新提交</button>'
     +'</div>';
 }
 function resubmit(){
+  localStorage.removeItem(PENDING_KEY); /* 重提视为新一笔，补件不计驳回次数 */
   document.getElementById('applyStatus').style.display='none';
   document.querySelector('.px-3.pt-4').scrollIntoView({behavior:'smooth',block:'start'});
   toast('请修改材料后重新提交');
 }
 
+renderCats();
 renderShop();
+/* 打开页面时若有在途申请，直接回显「待审核」，避免重复提交 */
+if(localStorage.getItem(PENDING_KEY)){showPending();}
 </script>
 </body>
 </html>

@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>物业服务 - 物业人员</title>
+<link rel="stylesheet" href="tailwind.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.stat-card{transition:box-shadow .2s ease,transform .2s ease;cursor:pointer}
+.stat-card:hover{box-shadow:0 4px 20px rgba(0,0,0,.08);transform:translateY(-1px)}
+.tb th{font-size:12px;font-weight:600;color:#64748B;background:#F8FAFC;padding:10px 12px;text-align:left;white-space:nowrap}
+.tb td{font-size:13px;color:#1F2430;padding:10px 12px;border-bottom:1px solid #F1F5F9;white-space:nowrap}
+.tb tbody tr:hover{background:#FFF7F5}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}
+.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}
+.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}
+.lk:hover{text-decoration:underline}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}
+.lk-gray:hover{color:#1F2430}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:40}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:600px;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:50;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.fl{display:block;font-size:12px;color:#64748B;margin-bottom:5px}
+.fl i{color:#FF4D2D;font-style:normal;margin-right:2px}
+.fi{width:100%;padding:8px 11px;font-size:13px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;outline:none;transition:.15s}
+.fi:focus{border-color:#FF4D2D;background:#fff}
+.blk{border:1px solid #F1F5F9;border-radius:12px;padding:13px 15px}
+.blk-t{font-size:12px;font-weight:700;color:#1F2430;display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.kv{display:flex;gap:10px;font-size:12px;padding:4px 0;line-height:1.6}
+.kv .k{color:#94A3B8;width:92px;flex-shrink:0}
+.kv .v{color:#1F2430;flex:1}
+.warn{border:1px solid #FDE68A;background:#FFFBEB;border-radius:10px;padding:10px 12px;font-size:12px;color:#92400E;line-height:1.7}
+.ok{border:1px solid #BBF7D0;background:#F0FDF4;border-radius:10px;padding:10px 12px;font-size:12px;color:#166534;line-height:1.7}
+.chk{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#475569;padding:5px 9px;border:1px solid #E2E8F0;border-radius:7px;cursor:pointer;margin:0 6px 6px 0}
+.chk input{accent-color:#FF4D2D}
+.tab-on{color:#FF4D2D;font-weight:600;border-bottom:2px solid #FF4D2D}
+.sch-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid #F1F5F9;border-radius:8px;cursor:pointer;margin-bottom:6px}
+.sch-item:hover{border-color:#FFD6C9;background:#FFF7F5}
+#toast{position:fixed;left:50%;bottom:38px;transform:translate(-50%,16px);background:rgba(31,36,48,.94);color:#fff;font-size:13px;padding:9px 18px;border-radius:8px;opacity:0;pointer-events:none;transition:.22s;z-index:99;max-width:80vw;text-align:center;line-height:1.5}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+
+<div class="p-6">
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[19px] font-bold text-[#1F2430]">物业人员</h1>
+        <span class="tag" style="background:#EFF6FF;color:#2563EB">07 物业服务</span>
+        <span class="tag" style="background:#F0FDF4;color:#15803D">移动端接单对象</span>
+      </div>
+      <p class="text-[12px] text-gray-400 mt-1">这里维护的是<b>物业员工的业务档案</b>（岗位、负责区域、上级、在岗状态），<b>不建账号、不管密码</b>——账号来自统一用户体系，搜到即建档。移动端派单、巡检分配都从这里取在岗人员。</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="location.href='property-repair.html'"><i class="fas fa-screwdriver-wrench text-[10px] mr-1"></i>报修工单</button>
+      <button class="btn btn-primary" onclick="openStaff(null)"><i class="fas fa-plus text-[10px] mr-1"></i>新增人员</button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-5 gap-3 mb-5" id="stats"></div>
+
+  <div class="bg-white rounded-xl border border-gray-100 p-3 mb-4 flex items-center gap-2 flex-wrap">
+    <input id="f-kw" type="text" placeholder="姓名 / 手机号 / 负责区域" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none w-56" oninput="render()">
+    <select id="f-post" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600" onchange="render()">
+      <option value="">全部岗位</option><option>主管</option><option>维修工</option><option>巡检员</option><option>保洁</option>
+    </select>
+    <select id="f-state" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600" onchange="render()">
+      <option value="">全部状态</option><option>在岗</option><option>休假</option><option>停用</option>
+    </select>
+    <button class="btn btn-ghost" onclick="resetFilter()">重置</button>
+    <span class="text-[11px] text-[#94A3B8] ml-auto"><i class="fas fa-circle-info mr-1"></i>只有「在岗」人员会出现在派单与巡检分配的下拉里</span>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+      <span class="text-[13px] font-bold text-[#1F2430]">人员清单 <span class="text-[12px] text-[#94A3B8]" id="cnt">共 0 人</span></span>
+      <span class="text-[11px] text-[#94A3B8]">姓名 + 岗位组合不唯一，同一人可兼多岗</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="tb w-full">
+        <thead><tr>
+          <th style="width:38px"><input type="checkbox" id="chkAll" onclick="toggleAll(this)" style="accent-color:#FF4D2D"></th>
+          <th>姓名</th><th>手机号</th><th>岗位</th><th>负责区域</th><th>在岗状态</th><th>名下未完成</th><th>上级主管</th><th class="text-center">操作</th>
+        </tr></thead>
+        <tbody id="tbStaff"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="mask" id="mask" onclick="closeAll()"></div>
+<div class="drawer" id="drawer"></div>
+<div id="toast"></div>
+
+<script>
+/* 区域字典：来自「02 市场资源管理 → 楼栋楼层维护」（resource-unit.html），本页只读引用，不在此新增区域 */
+var AREAS=['A 栋 1F','A 栋 2F','A 栋 3F','B 栋 1F','B 栋 2F','C 栋 1F','D 栋 1F'];
+var POSTS=['维修工','巡检员','主管','保洁'];
+
+/* 与商户端（shanghu-APP/wuye-data.js）同源的人员口径 */
+var STAFF=[
+  {code:'WY001', name:'王海涛', phone:'139****3088', posts:['主管'], areas:['全部区域'], leader:'—',
+   state:'在岗', todo:0, since:'2023-03-01', acct:'13900003088', note:'物业主管，派单与复核权限'},
+  {code:'WY002', name:'张建国', phone:'138****6621', posts:['维修工','巡检员'], areas:['A 栋 1F','A 栋 2F','A 栋 3F'], leader:'王海涛',
+   state:'在岗', todo:3, since:'2023-05-12', acct:'13800006621', note:'移动端当前演示账号'},
+  {code:'WY003', name:'李国强', phone:'137****9045', posts:['维修工'], areas:['A 栋 1F','B 栋 1F','B 栋 2F'], leader:'王海涛',
+   state:'在岗', todo:1, since:'2024-02-19', acct:'13700009045', note:''},
+  {code:'WY004', name:'赵伟', phone:'136****2277', posts:['维修工'], areas:['C 栋 1F','D 栋 1F'], leader:'王海涛',
+   state:'在岗', todo:2, since:'2024-07-01', acct:'13600002277', note:''},
+  {code:'WY005', name:'周敏', phone:'135****8834', posts:['巡检员'], areas:['B 栋 1F','B 栋 2F'], leader:'王海涛',
+   state:'休假', todo:0, since:'2025-01-06', acct:'13500008834', note:'休假中；巡检模块已下线，仅保留档案属性'},
+  {code:'WY006', name:'陈志强', phone:'134****5512', posts:['保洁'], areas:['全部区域'], leader:'王海涛',
+   state:'在岗', todo:0, since:'2025-04-15', acct:'13400005512', note:'保洁本期只做档案，不派单'},
+  {code:'WY007', name:'孙立', phone:'133****7719', posts:['维修工'], areas:['A 栋 2F','A 栋 3F'], leader:'王海涛',
+   state:'停用', todo:0, since:'2024-11-08', acct:'13300007719', note:'2026-09-30 离职，单已转派赵伟'},
+  {code:'WY008', name:'吴海燕', phone:'132****4416', posts:['巡检员'], areas:['A 栋 1F','B 栋 1F','B 栋 2F'], leader:'王海涛',
+   state:'在岗', todo:0, since:'2025-03-03', acct:'13200004416', note:'巡检主力，日常巡检计划 JH-002'},
+  {code:'WY009', name:'郑小军', phone:'131****9928', posts:['巡检员'], areas:['A 栋 1F','A 栋 2F','A 栋 3F'], leader:'王海涛',
+   state:'在岗', todo:0, since:'2025-06-18', acct:'13100009928', note:'兼消防通道专项巡检'}
+];
+
+/* 名下未完成单明细（条数与 STAFF.todo 严格一致，停用转派弹层按此渲染） */
+var TODO_POOL={
+  WY001:[],
+  WY002:[['报修','BX202610-0042 空调不制冷（处理中）'],['报修','BX202610-0036 卷帘门卡住（待确认）'],
+         ['报修','BX202610-0045 A 栋 2F 照明不亮（已派单）']],
+  WY003:[['报修','BX202610-0048 消防栓渗水（处理中）']],
+  WY004:[['报修','BX202610-0051 C 栋照明不亮（处理中）'],['报修','BX202610-0044 门禁失灵（待确认）']],
+  WY005:[],
+  WY006:[],WY007:[],WY008:[],WY009:[]
+};
+
+var STATE={'在岗':'background:#F0FDF4;color:#15803D','休假':'background:#FEF3C7;color:#B45309','停用':'background:#F1F5F9;color:#94A3B8'};
+var POSTC={'主管':'background:#EDE9FE;color:#6D28D9','维修工':'background:#EFF6FF;color:#2563EB','巡检员':'background:#F0FDFA;color:#0D9488','保洁':'background:#FFF7ED;color:#C2410C'};
+
+var rows=STAFF.slice(), cur=null;
+
+function money(n){return (Number(n)||0).toLocaleString('zh-CN');}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function tag(t,map){var s=map[t]||'background:#F1F5F9;color:#64748B';return '<span class="tag" style="'+s+'">'+esc(t)+'</span>';}
+var _tt;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('on');clearTimeout(_tt);_tt=setTimeout(function(){t.classList.remove('on');},2600);}
+function show(){document.getElementById('mask').classList.add('on');document.getElementById('drawer').classList.add('on');}
+function closeAll(){document.getElementById('mask').classList.remove('on');document.getElementById('drawer').classList.remove('on');}
+function resetFilter(){document.getElementById('f-kw').value='';document.getElementById('f-post').value='';document.getElementById('f-state').value='';render();}
+
+function renderStats(){
+  var on=0,off=0,stop=0,todo=0;
+  STAFF.forEach(function(s){
+    if(s.state==='在岗')on++; else if(s.state==='休假')off++; else stop++;
+    if(s.state!=='停用')todo+=s.todo;
+  });
+  var cards=[
+    ['在岗人员',on+' 人','#15803D'],
+    ['休假',off+' 人','#B45309'],
+    ['停用',stop+' 人','#94A3B8'],
+    ['名下未完成单',todo+' 张','#FF4D2D'],
+    ['未配上级',STAFF.filter(function(s){return s.posts.indexOf('主管')<0&&(!s.leader||s.leader==='—');}).length+' 人','#6D28D9']
+  ];
+  document.getElementById('stats').innerHTML=cards.map(function(c){
+    return '<div class="stat-card bg-white rounded-lg border border-gray-100 p-3.5">'
+      +'<p class="text-[11px] text-gray-400">'+c[0]+'</p>'
+      +'<p class="text-xl font-bold mt-1" style="color:'+c[2]+'">'+c[1]+'</p></div>';
+  }).join('');
+}
+
+function render(){
+  var kw=document.getElementById('f-kw').value.trim();
+  var fp=document.getElementById('f-post').value;
+  var fs=document.getElementById('f-state').value;
+  rows=STAFF.filter(function(s){
+    if(kw&&(s.name+s.phone+s.areas.join('')+s.code).indexOf(kw)<0)return false;
+    if(fp&&s.posts.indexOf(fp)<0)return false;
+    if(fs&&s.state!==fs)return false;
+    return true;
+  });
+  document.getElementById('cnt').textContent='共 '+rows.length+' 人';
+  var h=rows.map(function(s){
+    var ops='<span class="lk" onclick="openStaff(\''+s.code+'\')">编辑</span>';
+    if(s.state==='停用'){
+      ops+=' · <span class="lk" onclick="restore(\''+s.code+'\')">启用</span>';
+    }else{
+      ops+=' · <span class="lk-gray" onclick="toggleDuty(\''+s.code+'\')">'+(s.state==='休假'?'恢复在岗':'设为休假')+'</span>'
+        +' · <span class="lk" onclick="openStop(\''+s.code+'\')" style="color:#94A3B8">停用</span>';
+    }
+    return '<tr>'
+      +'<td><input type="checkbox" class="rowchk" style="accent-color:#FF4D2D"></td>'
+      +'<td class="font-medium">'+esc(s.name)+' <span class="text-[11px] text-[#94A3B8]">'+esc(s.code)+'</span>'
+        +(s.code==='WY002'?'<div class="text-[11px] mt-0.5" style="color:#2563EB">移动端演示账号</div>':'')+'</td>'
+      +'<td class="text-[12px] text-[#64748B]">'+esc(s.phone)+'</td>'
+      +'<td>'+s.posts.map(function(p){return tag(p,POSTC);}).join(' ')+'</td>'
+      +'<td class="text-[12px] text-[#64748B]">'+esc(s.areas.join('、'))+'</td>'
+      +'<td>'+tag(s.state,STATE)+'</td>'
+      +'<td class="text-[12px]">'+(s.state==='停用'?'—':('<b style="color:'+(s.todo>0?'#FF4D2D':'#94A3B8')+'">'+s.todo+'</b> 张'))+'</td>'
+      +'<td class="text-[12px] text-[#64748B]">'+esc(s.leader)+'</td>'
+      +'<td class="text-center whitespace-nowrap">'+ops+'</td></tr>';
+  }).join('');
+  document.getElementById('tbStaff').innerHTML=h||'<tr><td colspan="9"><div class="text-center py-10 text-[12px] text-[#94A3B8]"><i class="fas fa-user-slash text-xl block mb-2"></i>无匹配人员</div></td></tr>';
+}
+function toggleAll(el){
+  document.querySelectorAll('.rowchk').forEach(function(c){c.checked=el.checked;});
+}
+
+/* ---------- 新增 / 编辑 ---------- */
+function openStaff(code){
+  cur=code;
+  var s=code?STAFF.filter(function(x){return x.code===code;})[0]:null;
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+(s?'编辑人员档案':'新增物业人员')+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+(s?esc(s.code)+'　建档于 '+esc(s.since):'先从统一用户体系搜到账号，再补业务属性')+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">';
+
+  /* 账号绑定 */
+  if(s){
+    h+='<div class="blk"><div class="blk-t"><i class="fas fa-id-card text-[#2563EB]"></i>账号（来自统一用户体系，只读）</div>'
+      +'<div class="kv"><span class="k">姓名</span><span class="v">'+esc(s.name)+'</span></div>'
+      +'<div class="kv"><span class="k">手机号</span><span class="v">'+esc(s.phone)+'（脱敏显示）</span></div>'
+      +'<div class="kv"><span class="k">账号 ID</span><span class="v">'+esc(s.acct)+'</span></div>'
+      +'<p class="text-[11px] text-[#94A3B8] mt-1">本页<b>不建账号、不改密码</b>；账号状态由统一用户体系管，停用这里只影响派单</p></div>';
+  }else{
+    h+='<div class="blk"><div class="blk-t"><i class="fas fa-magnifying-glass text-[#2563EB]"></i>① 搜索账号 <span class="text-[11px] text-[#94A3B8] font-normal">姓名或手机号</span></div>'
+      +'<div class="flex gap-2"><input class="fi" id="sKw" placeholder="输入姓名 / 手机号后四位"><button class="btn btn-ghost" onclick="searchAcct()" style="white-space:nowrap">搜索</button></div>'
+      +'<div id="sResult" class="mt-2"></div>'
+      +'<p class="text-[11px] text-[#94A3B8] mt-1">只显示<b>尚未建立物业档案</b>的账号；已建档的请直接编辑，避免一人两档</p></div>';
+  }
+
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-user-tie text-[#6D28D9]"></i>② 岗位（可多选）</div><div>'
+    +POSTS.map(function(p){
+        var on=s?s.posts.indexOf(p)>=0:false;
+        return '<label class="chk"><input type="checkbox" class="pst" value="'+p+'" '+(on?'checked':'')+' onchange="syncAreaLimit()">'+p+'</label>';
+      }).join('')
+    +'</div><p class="text-[11px] text-[#94A3B8] mt-1">岗位决定能接什么单：维修工接报修；巡检员·保洁当前仅保留档案属性（巡检、保洁模块不在本期范围）</p></div>';
+
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-map-location-dot text-[#15803D]"></i>③ 负责区域（可多选）</div><div>'
+    +'<label class="chk" style="margin-bottom:8px"><input type="checkbox" class="ar" value="全部区域" '+(s&&s.areas.indexOf('全部区域')>=0?'checked':'')+' onclick="allArea(this)">全部区域（仅主管）</label>'
+    +'<div>'+areaGroupsHtml(s)+'</div>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1"><i class="fas fa-circle-info mr-1"></i>区域字典来自「02 市场资源管理 · 楼栋楼层维护」，本页<b>只读引用</b>，新增楼栋/楼层请到 02 维护；派单时按<b>工单位置</b>过滤可选人员</p></div>';
+
+  h+='<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl"><i>*</i>上级主管</label><select class="fi" id="fLeader">'
+      +'<option value="—">—（本人即主管）</option>'
+      +STAFF.filter(function(x){return x.posts.indexOf('主管')>=0;}).map(function(x){
+        return '<option '+(s&&s.leader===x.name?'selected':'')+'>'+esc(x.name)+'</option>';
+      }).join('')+'</select></div>'
+    +'<div><label class="fl"><i>*</i>在岗状态</label><select class="fi" id="fState">'
+      +['在岗','休假'].map(function(x){return '<option '+(s&&s.state===x?'selected':'')+'>'+x+'</option>';}).join('')
+      +'</select><p class="text-[11px] text-[#94A3B8] mt-1">停用请用列表「停用」（必须先转派未完成单）</p></div>'
+    +'</div>'
+    +'<div><label class="fl">入职日期</label><input class="fi" type="date" id="fSince" value="'+(s?esc(s.since):'2026-10-30')+'"></div>';
+
+  h+='<div><label class="fl">备注</label><input class="fi" id="fNote" placeholder="如：只接白班 / 有电工证" value="'+(s?esc(s.note):'')+'"></div>';
+
+  h+='<div class="warn"><i class="fas fa-circle-info mr-1"></i>岗位或区域变更会<b>写入变更留痕</b>；已派出去的单不自动改派，需要人工处理。</div>';
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveStaff()">'+(s?'保存':'建档并启用')+'</button></div>';
+  document.getElementById('drawer').innerHTML=h;show();
+}
+
+function areaGroupsHtml(s){
+  var map={};
+  AREAS.forEach(function(a){var b=a.split(' ')[0];(map[b]=map[b]||[]).push(a);});
+  return Object.keys(map).map(function(b){
+    var all=map[b].every(function(a){return s&&s.areas.indexOf(a)>=0;});
+    return '<div class="mb-2"><label class="chk" style="font-weight:600"><input type="checkbox" '
+      +'onclick="toggleBuildingStaff(\''+b+'\',this)" '+(all?'checked':'')+'>'+esc(b)+' 栋 整栋</label>'
+      +map[b].map(function(a){
+        return '<label class="chk"><input type="checkbox" class="ar" value="'+esc(a)+'" '+(s&&s.areas.indexOf(a)>=0?'checked':'')+'>'+esc(a)+'</label>';
+      }).join('')
+      +'</div>';
+  }).join('');
+}
+function toggleBuildingStaff(b,el){
+  var list=AREAS.filter(function(a){return a.indexOf(b+' ')===0;});
+  document.querySelectorAll('.ar').forEach(function(c){
+    if(list.indexOf(c.value)>=0)c.checked=el.checked;
+  });
+}
+function isSupervisorChecked(){
+  return Array.prototype.some.call(document.querySelectorAll('.pst'),function(c){return c.checked&&c.value==='主管';});
+}
+function allArea(el){
+  if(el.checked){
+    if(!isSupervisorChecked()){
+      el.checked=false;
+      toast('「全部区域」只有岗位含「主管」的人可选；请先勾选主管，或改为选择具体楼栋');
+      return;
+    }
+    document.querySelectorAll('.ar').forEach(function(c){if(c.value!=='全部区域')c.checked=false;});
+  }
+}
+function syncAreaLimit(){
+  if(isSupervisorChecked())return;
+  var all=document.querySelector('.ar[value="全部区域"]');
+  if(all&&all.checked){
+    all.checked=false;
+    toast('已取消「全部区域」：只有主管可选全部区域');
+  }
+}
+function searchAcct(){
+  var kw=document.getElementById('sKw').value.trim();
+  var box=document.getElementById('sResult');
+  if(!kw){box.innerHTML='<p class="text-[11px] text-[#E63E20]">请输入姓名或手机号</p>';return;}
+  var pool=[
+    {name:'吴建平',acct:'13600001112',phone:'136****1112'},
+    {name:'刘芳',acct:'13500002223',phone:'135****2223'},
+    {name:'郑海',acct:'13800003334',phone:'138****3334'}
+  ];
+  var hit=pool.filter(function(x){return x.name.indexOf(kw)>=0||x.acct.indexOf(kw)>=0;});
+  if(!hit.length){box.innerHTML='<p class="text-[11px] text-[#E63E20]">未找到账号：请确认该员工已在统一用户体系注册（本页不建账号）</p>';return;}
+  box.innerHTML=hit.map(function(x,i){
+    return '<div class="sch-item" onclick="pickAcct(this,'+i+')" data-n="'+x.name+'" data-a="'+x.acct+'" data-p="'+x.phone+'">'
+      +'<i class="fas fa-user-check text-[#15803D]"></i>'
+      +'<div class="flex-1"><p class="text-[12px] font-medium">'+x.name+'</p><p class="text-[11px] text-[#94A3B8]">'+x.phone+' · 账号 '+x.acct+'</p></div>'
+      +'<span class="text-[11px] text-[#2563EB]">选择</span></div>';
+  }).join('');
+}
+var picked=null;
+function pickAcct(el,i){
+  document.querySelectorAll('.sch-item').forEach(function(x){x.style.borderColor='#F1F5F9';x.style.background='#fff';});
+  el.style.borderColor='#FFD6C9';el.style.background='#FFF7F5';
+  picked={name:el.getAttribute('data-n'),acct:el.getAttribute('data-a'),phone:el.getAttribute('data-p')};
+  toast('已选账号：'+picked.name+'（'+picked.phone+'）');
+}
+function saveStaff(){
+  var posts=[];document.querySelectorAll('.pst').forEach(function(c){if(c.checked)posts.push(c.value);});
+  var areas=[];document.querySelectorAll('.ar').forEach(function(c){if(c.checked)areas.push(c.value);});
+  var leader=document.getElementById('fLeader').value;
+  var state=document.getElementById('fState').value;
+  var note=document.getElementById('fNote').value.trim();
+  var sinceEl=document.getElementById('fSince');
+  var since=sinceEl?sinceEl.value:'';
+  if(!cur&&!picked){toast('请先搜索并选择账号（第 ① 步）');return;}
+  if(!posts.length){toast('请至少选择 1 个岗位');return;}
+  if(!areas.length){toast('请至少选择 1 个负责区域');return;}
+  if(areas.length>1&&areas.indexOf('全部区域')>=0){toast('勾了「全部区域」就不能再选具体楼栋');return;}
+  if(areas.indexOf('全部区域')>=0&&posts.indexOf('主管')<0){toast('「全部区域」只有岗位含主管的人可选');return;}
+  if(posts.indexOf('主管')<0&&leader==='—'){toast('非主管岗位必须指定上级主管');return;}
+  if(cur){
+    var s=STAFF.filter(function(x){return x.code===cur;})[0];
+    var oldP=s.posts.join('/'),oldA=s.areas.join('、');
+    s.posts=posts;s.areas=areas;s.leader=leader;s.state=state;s.note=note;
+    if(since)s.since=since;
+    closeAll();renderStats();render();
+    toast('已保存：'+s.name+'（岗位 '+(oldP!==posts.join('/')?'变更 → '+posts.join('/'):posts.join('/'))+'）');
+  }else{
+    var code='WY0'+(STAFF.length+1);
+    STAFF.push({code:code,name:picked.name,phone:picked.phone,posts:posts,areas:areas,leader:leader,
+      state:state,todo:0,since:since||'2026-10-30',acct:picked.acct,note:note});
+    picked=null;closeAll();renderStats();render();
+    toast('已建档：'+code+'　'+STAFF[STAFF.length-1].name+'（'+state+'，可接派单）');
+  }
+}
+function toggleDuty(code){
+  var s=STAFF.filter(function(x){return x.code===code;})[0];
+  if(s.state==='在岗'){s.state='休假';toast('已设为休假：'+s.name+'（不再接新派单，已派单不撤回）');}
+  else{s.state='在岗';toast('已恢复在岗：'+s.name+'（开始接新派单）');}
+  renderStats();render();
+}
+function restore(code){
+  var s=STAFF.filter(function(x){return x.code===code;})[0];
+  s.state='在岗';renderStats();render();
+  toast('已启用：'+s.name+'，可重新接收派单');
+}
+
+/* ---------- 停用（必须转派） ---------- */
+function openStop(code){
+  var s=STAFF.filter(function(x){return x.code===code;})[0];
+  /* 接手人 = 在岗 + 与该人员岗位有交集（巡检员的单不能转给纯维修工） */
+  var alts=STAFF.filter(function(x){
+    if(x.code===code||x.state!=='在岗')return false;
+    return x.posts.some(function(p){return s.posts.indexOf(p)>=0;});
+  });
+  var pend=(TODO_POOL[code]||[]).slice(0,s.todo);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">停用人员</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(s.name)+'　'+esc(s.code)+'　名下还有 <b style="color:#E63E20">'+s.todo+'</b> 张未完成单</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">';
+  if(s.todo>0){
+    h+='<div class="blk"><div class="blk-t"><i class="fas fa-list-check text-[#B45309]"></i>待转派的单（'+pend.length+' 张）</div>'
+      +pend.map(function(d){return '<div class="kv"><span class="k">'+esc(d[0])+'</span><span class="v">'+esc(d[1])+'</span></div>';}).join('')
+      +'<p class="text-[11px] text-[#94A3B8] mt-1">转派后接手人从「我的单」继续处理；原处理留痕保留</p></div>';
+    if(alts.length){
+      h+='<div><label class="fl"><i>*</i>转派给（在岗同岗位人员）</label><select class="fi" id="sTo">'
+        +alts.map(function(a){return '<option value="'+esc(a.name)+'">'+esc(a.name)+'（'+esc(a.posts.join('/'))+' · '+esc(a.areas.slice(0,2).join('、'))+'）</option>';}).join('')
+        +'</select></div>';
+      h+='<div class="warn"><i class="fas fa-triangle-exclamation mr-1"></i>不转派就无法停用：单子会失去责任人。转派后<b>双方与主管都会收到通知</b>。</div>';
+    }else{
+      h+='<div class="warn"><i class="fas fa-triangle-exclamation mr-1"></i>当前没有<b>在岗且岗位匹配</b>的人员可接手（岗位：'+esc(s.posts.join('/'))+'）。请先把同岗位人员设为在岗，否则无法停用——否则 '+s.todo+' 张单会失去责任人。</div>';
+    }
+  }else{
+    h+='<div class="ok"><i class="fas fa-circle-check mr-1"></i>名下没有未完成单，可以直接停用。</div>';
+    h+='<div><label class="fl">停用原因</label><input class="fi" id="sTo" placeholder="如：离职 / 调岗（可不填）"></div>';
+  }
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="doStop(\''+code+'\')">确认停用</button></div>';
+  document.getElementById('drawer').innerHTML=h;show();
+}
+function doStop(code){
+  var s=STAFF.filter(function(x){return x.code===code;})[0];
+  var el=document.getElementById('sTo');
+  var to=el?el.value:'';
+  if(s.todo>0&&!to){toast('请选择转派人（无在岗同岗位人员时无法停用）');return;}
+  var n=s.todo;
+  s.state='停用';s.todo=0;
+  closeAll();renderStats();render();
+  toast(n>0?('已停用 '+s.name+'　'+n+' 张单已转派给 '+to):('已停用 '+s.name));
+}
+
+renderStats();render();
+</script>
+<script src="../shared/page-prd.js"></script>
+<script src="../shared/op-guard.js"></script>
+</body>
+</html>

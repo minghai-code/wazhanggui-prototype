@@ -230,11 +230,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 
 <!-- ===== 我的展会（登记/审核/核销状态读本地登记单） ===== -->
 <div class="px-3 mt-3" id="myRegCard"></div>
-<!-- 我的参展（报名成功后在此处显示，与参观登记并列） -->
-<div class="px-3 mt-2.5" id="myBoothCard"></div>
-
-<!-- 工作人员专属：扫码核销（仅核销员角色可见，?staff=1 演示） -->
-<div class="px-3 mt-2.5" id="staffBar"></div>
 
 <!-- ===== 功能入口 ===== -->
 <div class="px-3 mt-4">
@@ -554,57 +549,6 @@ function renderMyReg(){
     +'<i class="fas fa-chevron-right text-gray-300 text-sm"></i></div></a>';
 }
 
-/* 我的参展：报名成功后展示展位与缴费状态，点击进「参展商中心」 */
-var EXPO_BOOTH_KEY='expoBoothApply';
-function getBoothApply(){try{return JSON.parse(localStorage.getItem(EXPO_BOOTH_KEY)||'null')}catch(e){return null}}
-function renderMyBooth(){
-  var box=document.getElementById('myBoothCard');
-  if(!box)return;
-  var b=getBoothApply();
-  if(!b){box.innerHTML='';return;}
-  var title='',badge='',desc='',icon='fas fa-store',bg='#FFF1F2',color='#E11D48',href='expo-exhibitor-center.html';
-  var paid=(b.status==='confirmed');
-  if(b.status==='pending'){
-    title='展位申请审核中';badge='<span class="text-[8px] px-1.5 py-0.5 rounded-full font-bold" style="background:#FEF3C7;color:#D97706">待审核</span>';
-    desc='编号 '+(b.no||'-')+' · 已选展位 '+(b.boothNo||'-')+'，审核通过即报名成功';
-    href='expo-booth-apply.html';bg='#FFFBEB';color='#D97706';icon='fas fa-hourglass-half';
-  }else if(b.status==='rejected'){
-    title='展位申请未通过';badge='<span class="text-[8px] px-1.5 py-0.5 rounded-full font-bold" style="background:#FEE2E2;color:#DC2626">已驳回</span>';
-    desc='编号 '+(b.no||'-')+' · 可修改信息后重新提交';
-    href='expo-booth-apply.html';bg='#FEF2F2';color='#DC2626';icon='fas fa-circle-xmark';
-  }else{
-    title='已报名参展';badge='<span class="text-[8px] px-1.5 py-0.5 rounded-full font-bold" style="background:#D1FAE5;color:#059669">参展商</span>';
-    desc='展位 '+(b.boothNo||'-')+' · '+(paid?'缴费已登记到账':'未缴费（线下转账）')+' · 待完善企业资料';
-    icon='fas fa-store';bg='#F0FDF4';color='#059669';
-  }
-  box.innerHTML='<a href="'+href+'" class="card block bg-white rounded-2xl p-3 shadow-soft border border-white fade-up" style="animation-delay:.15s">'
-    +'<div class="flex items-center gap-3"><div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background:'+bg+'">'
-    +'<i class="'+icon+' text-[16px]" style="color:'+color+'"></i></div>'
-    +'<div class="flex-1"><div class="flex items-center gap-1.5"><p class="text-[13px] font-bold text-gray-800">'+title+'</p>'+badge+'</div>'
-    +'<p class="text-[9px] text-gray-400 mt-0.5">'+desc+'</p></div>'
-    +'<i class="fas fa-chevron-right text-gray-300 text-sm"></i></div></a>';
-}
-
-/* 工作人员入口：仅「袜博会核销员」角色可见。
-   角色来自统一用户体系·角色管理（同一账号可同时是买家/商户/核销员），端上只认后台下发的角色标记；?staff=1 演示 */
-function isChecker(){
-  try{
-    if(new URLSearchParams(location.search).get('staff')==='1'){localStorage.setItem('expoStaffRole','checker');return true}
-    return localStorage.getItem('expoStaffRole')==='checker';
-  }catch(e){return false}
-}
-function renderStaffBar(){
-  var box=document.getElementById('staffBar');
-  if(!box)return;
-  if(!isChecker()){box.innerHTML='';return;}
-  box.innerHTML='<a href="expo-checkin-scan.html" class="card flex items-center gap-3 bg-white rounded-2xl p-3 shadow-soft border border-emerald-100 fade-up">'
-    +'<div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,#34D399,#059669)"><i class="fas fa-qrcode text-white text-[15px]"></i></div>'
-    +'<div class="flex-1"><div class="flex items-center gap-1.5"><p class="text-[13px] font-bold text-gray-800">扫码核销</p>'
-    +'<span class="text-[8px] px-1.5 py-0.5 rounded-full font-bold" style="background:#D1FAE5;color:#059669">核销员</span></div>'
-    +'<p class="text-[9px] text-gray-400 mt-0.5">扫参展证 / 入场证完成签到，扫完需本人确认</p></div>'
-    +'<i class="fas fa-chevron-right text-gray-300 text-sm"></i></a>';
-}
-
 /* 展位平面图：格子状态随后台排布变化 */
 var BOOTH_STYLE={
   free:{bg:'#fff',color:'#9CA3AF',border:'1px solid #E5E7EB',label:'可选'},
@@ -690,7 +634,7 @@ function openExhibitorList(){
       +'<p class="text-[9px] text-gray-400">'+e.booth+' · '+e.cat+'</p></div>'
       +'<i class="fas fa-chevron-right text-gray-300 text-[10px]"></i></div>';
   });
-  h+='<p class="text-[9px] text-gray-400 mt-1">名录含全部参展商（来自后台「参展商管理」）；首页橱窗只展示「展示管理」中勾选并排序的精选展商。</p>';
+  h+='<p class="text-[9px] text-gray-400 mt-1">仅展示后台「参展商管理」中设为精选的展商，完整名录请在资料下载页获取。</p>';
   h+='<button onclick="closeSheet()" class="block w-full text-center text-[12px] text-gray-500 py-2.5 rounded-full font-bold bg-gray-100 mt-3">关闭</button>';
   showSheet(h);
 }
@@ -754,7 +698,7 @@ function openScan(){
 function doCheckin(){
   try{localStorage.setItem(CHECKIN_KEY,'1')}catch(e){}
   closeSheet();
-  renderMyReg();renderMyBooth();renderStaffBar();
+  renderMyReg();
   toast('核销成功，资料下载已解锁');
 }
 
@@ -771,7 +715,7 @@ function closeSheet(){
 document.getElementById('overlay').onclick=function(){closeSheet()};
 
 renderScale();
-renderMyReg();renderMyBooth();renderStaffBar();
+renderMyReg();
 renderBooths();
 renderExhibitors();
 renderArchives();

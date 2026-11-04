@@ -120,6 +120,79 @@ details.fam[open]{padding-bottom:10px}
 .vnav{display:flex;justify-content:space-between;margin-top:34px;padding-top:14px;border-top:1px dashed var(--line);font-size:13px}
 `;
 
+/* ===== 移动端单页视图（--views）：{族}.md 的 §0 + §N → prd/_views/{族}-p{N}.prd.html =====
+ * page-prd.js 的 PRD_MAP 指向这些文件，抽屉只显示「本页那一节」，不带全族内容。 */
+const sectionRange = (md, sec) => {
+  const L = md.split(/\r?\n/);
+  const re = new RegExp('^##\\s+' + sec + '\\.\\s');
+  let s = -1, e = L.length;
+  for (let i = 0; i < L.length; i++) {
+    if (s < 0 && re.test(L[i])) { s = i; continue; }
+    if (s >= 0 && /^##\s+\d+\.\s/.test(L[i])) { e = i; break; }
+  }
+  return s < 0 ? null : { s, e };
+};
+
+function renderView(endDir, manifest, famId, file, page, allPages) {
+  const fam = (manifest.families || {})[famId] || {};
+  const mdFile = path.join(endDir, fam.doc || '');
+  if (!fam.doc || !fs.existsSync(mdFile)) return { file: page.view, err: '族文档缺失：' + fam.doc };
+  const md = fs.readFileSync(mdFile, 'utf8');
+  const L = md.split(/\r?\n/);
+  const pageSec = sectionRange(md, page.sec);
+  if (!pageSec) return { file: page.view, err: famId + ' 缺 §' + page.sec };
+
+  const famCss = sectionRange(md, 0);
+  const famText = famCss ? L.slice(famCss.s, famCss.e).join('\n') : '';
+  const pageText = L.slice(pageSec.s, pageSec.e).join('\n');
+
+  const famPages = allPages.filter((p) => p.fam === famId).sort((a, b) => a.sec - b.sec);
+  const idx = famPages.findIndex((p) => p.file === file);
+  const prev = idx > 0 ? famPages[idx - 1] : null;
+  const next = idx >= 0 && idx < famPages.length - 1 ? famPages[idx + 1] : null;
+  const docRel = path.relative(ROOT, mdFile).replace(/\\/g, '/');
+  const endName = path.basename(endDir);
+
+  return {
+    file: page.view,
+    html: `<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${esc(page.title || '')} · 页面说明</title><style>${CSS}</style></head><body>
+<div class="meta">由 <code>${esc(docRel)}</code> 的 §${page.sec} 生成，勿手改；改文档请改 md 后重跑 build-prd --views。</div>
+<div class="vtitle">${esc(famId + ' ' + (fam.name || ''))} · ${esc(endName)} 页面说明（功能族） · ${esc(page.title || '')} <code>${esc(file)}</code></div>
+<details class="fam"><summary>所属功能族通用说明（§0）</summary><blockquote>端：${esc(endName)}　｜　功能族：<strong>${esc(famId + ' ' + (fam.name || ''))}</strong>（${famPages.length} 页）　族版本：${esc(manifest.version || '')}　｜　本文件是族通用说明（§0）+ ${famPages.length} 个页面的<strong>唯一源</strong>；<code>_views/</code> 下的单页视图由 <code>tools/build-prd.mjs --views</code> 生成，勿手改。</blockquote>
+${md2html(famText)}</details>
+<hr>
+${md2html(pageText)}
+<div class="vnav"><span>${prev ? '← ' + esc(prev.title || '') : '—'}</span><span>${next ? esc(next.title || '') + ' →' : '—'}</span></div>
+</body></html>`,
+  };
+}
+
+function buildViews(famFilter) {
+  const ends = fs.readdirSync(ROOT, { withFileTypes: true })
+    .filter((d) => d.isDirectory() && fs.existsSync(path.join(ROOT, d.name, 'prd', 'manifest.json')));
+  let n = 0;
+  for (const d of ends) {
+    const endDir = path.join(ROOT, d.name);
+    const manifest = JSON.parse(fs.readFileSync(path.join(endDir, 'prd', 'manifest.json'), 'utf8'));
+    const allPages = Object.entries(manifest.pages || {}).map(([file, p]) => Object.assign({ file }, p));
+    for (const p of allPages) {
+      if (famFilter && p.fam !== famFilter) continue;
+      if (!p.view) continue;
+      const r = renderView(endDir, manifest, p.fam, p.file, p, allPages);
+      if (r.err) { console.log('SKIP ' + r.file + '（' + r.err + '）'); continue; }
+      const outFile = path.join(endDir, p.view);
+      fs.mkdirSync(path.dirname(outFile), { recursive: true });
+      fs.writeFileSync(outFile, r.html, 'utf8');
+      console.log('VIEW ' + path.relative(ROOT, outFile).replace(/\\/g, '/'));
+      n++;
+    }
+  }
+  console.log(`\n单页视图：${n} 个`);
+}
+
 const render = (mdFile, md) => {
   const rel = path.relative(ROOT, mdFile).replace(/\\/g, '/');
   const title = (md.match(/^#\s+(.*)$/m) || [])[1] || path.basename(mdFile, '.md');
@@ -154,71 +227,15 @@ else {
 
 if (!targets.length) { console.error('未找到 md（--root 是否指向代码根目录？）'); process.exit(1); }
 
-/* ---------- 移动端功能族：按 `## N. 页面名 `file.html`` 切出单页视图 ----------
- * 源文档一功能族一篇；抽屉只加载本页视图（_views/族-pN.prd.html）。
- * 视图 = 页头 + 可折叠的 §0 族通用说明 + 本页 10 节 + 上/下一页。
- */
-function writeViews(mdFile, md) {
-  const L = md.split(/\r?\n/);
-  const heads = [];
-  L.forEach((line, idx) => {
-    const m = line.match(/^##\s+(\d+)\.\s+(.+?)\s*`([^`]+\.html)`\s*$/);
-    if (m) heads.push({ idx, num: m[1], title: m[2].trim(), file: m[3] });
-  });
-  if (!heads.length) return 0;
-
-  const prdDir = path.dirname(mdFile);
-  const outDir = path.join(prdDir, '_views');
-  fs.mkdirSync(outDir, { recursive: true });
-
-  const base = path.basename(mdFile, '.md');
-  const h1 = (md.match(/^#\s+(.*)$/m) || [])[1] || base;
-  const zeroMd = L.slice(0, heads[0].idx).join('\n').replace(/^#\s+.*$/m, '');
-  const zeroHtml = md2html(zeroMd);
-
-  const appIdx = L.findIndex((l) => /^##\s+附录/.test(l));
-
-  let k = 0;
-  heads.forEach((h, i) => {
-    const end = i + 1 < heads.length ? heads[i + 1].idx : (appIdx > h.idx ? appIdx : L.length);
-    const body = L.slice(h.idx, end).join('\n');
-    const prev = heads[i - 1], next = heads[i + 1];
-    const nav = '<div class="vnav">'
-      + (prev ? `<a href="${base}-p${prev.num}.prd.html">&larr; ${esc(prev.title)}</a>` : '<span></span>')
-      + (next ? `<a href="${base}-p${next.num}.prd.html">${esc(next.title)} &rarr;</a>` : '<span></span>')
-      + '</div>';
-
-    const html = `<!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${esc(h.title)} · 页面说明</title><style>${CSS}</style></head><body>
-<div class="meta">由 <code>${esc(path.relative(ROOT, mdFile).replace(/\\/g, '/'))}</code> 的 §${h.num} 生成，勿手改；改文档请改 md 后重跑 build-prd --views。</div>
-<div class="vtitle">${esc(h1)} · ${esc(h.title)} <code>${esc(h.file)}</code></div>
-<details class="fam"><summary>所属功能族通用说明（§0）</summary>${zeroHtml}</details>
-${md2html(body)}
-${nav}
-</body></html>`;
-    fs.writeFileSync(path.join(outDir, `${base}-p${h.num}.prd.html`), html, 'utf8');
-    k++;
-  });
-  return k;
-}
-
-const VIEWS = argv.includes('--views');
-let n = 0, v = 0;
+let n = 0;
 for (const mdFile of targets) {
   if (!fs.existsSync(mdFile)) { console.error('不存在：' + mdFile); continue; }
-  const md = fs.readFileSync(mdFile, 'utf8');
   const outFile = mdFile.replace(/\.md$/, '.prd.html');
-  fs.writeFileSync(outFile, render(mdFile, md), 'utf8');
+  fs.writeFileSync(outFile, render(mdFile, fs.readFileSync(mdFile, 'utf8')), 'utf8');
   console.log('OK  ' + path.relative(ROOT, outFile).replace(/\\/g, '/'));
   n++;
-  if (VIEWS) {
-    const c = writeViews(mdFile, md);
-    if (c) {
-      v += c;
-      console.log('    views  ' + c + ' 个 → ' + path.relative(ROOT, path.join(path.dirname(mdFile), '_views')).replace(/\\/g, '/'));
-    }
-  }
 }
-console.log(`\n生成完成：${n} 个 prd.html${VIEWS ? `，${v} 个单页视图` : ''}`);
+console.log(`\n生成完成：${n} 个 prd.html`);
+
+/* --views：重建移动端单页视图；可加 --fam F01 只重建指定族 */
+if (argv.includes('--views')) buildViews(arg('--fam', ''));

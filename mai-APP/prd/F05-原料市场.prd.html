@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>F05 · 原料市场 · 页面 PRD</title><style>
+:root{--fg:#1F2430;--muted:#64748B;--line:#E9EDF3}
+*{box-sizing:border-box}
+body{margin:0;padding:26px 32px 90px;background:#fff;color:var(--fg);
+ font:14px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif}
+h1{font-size:20px;margin:0 0 6px}
+h2{font-size:17px;margin:34px 0 12px;padding-top:12px;border-top:1px solid var(--line)}
+h3{font-size:15px;margin:22px 0 10px}
+h4{font-size:14px;margin:18px 0 8px;color:#334155}
+p{margin:8px 0}
+table{border-collapse:collapse;width:100%;margin:10px 0 16px;font-size:12.5px}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:#F8FAFC;font-weight:700}
+tr:nth-child(even) td{background:#FCFDFE}
+code{background:#F1F5F9;padding:1px 5px;border-radius:4px;font-size:12px;
+ font-family:ui-monospace,Menlo,Consolas,monospace;color:#B91C1C}
+pre.code{background:#0F172A;color:#E2E8F0;padding:14px 16px;border-radius:10px;overflow:auto;font-size:12px}
+pre.code code{background:none;color:inherit;padding:0}
+blockquote{margin:10px 0;padding:10px 14px;background:#EFF6FF;border-left:3px solid #60A5FA;
+ border-radius:0 8px 8px 0;color:#334155;font-size:13px}
+ul,ol{margin:8px 0;padding-left:22px}
+li{margin:3px 0}
+hr{border:0;border-top:1px dashed var(--line);margin:22px 0}
+a{color:#2563EB;text-decoration:none}
+.meta{font-size:12px;color:var(--muted);margin:0 0 20px}
+.vtitle{font-size:18px;font-weight:800;margin:0 0 4px}
+details.fam{margin:12px 0 20px;border:1px solid var(--line);border-radius:10px;background:#F8FAFC;padding:0 14px}
+details.fam summary{cursor:pointer;padding:10px 0;font-size:13px;font-weight:700;color:#334155}
+details.fam[open]{padding-bottom:10px}
+.vnav{display:flex;justify-content:space-between;margin-top:34px;padding-top:14px;border-top:1px dashed var(--line);font-size:13px}
+</style></head><body>
+<div class="meta">由 <code>mai-APP/prd/F05-原料市场.md</code> 生成，勿手改；改文档请改 md 后重跑 build-prd。</div>
+<h1>F05 · 原料市场</h1>
+<blockquote><strong>依据等级</strong>：业务口径为 <strong>2026-11-03 业务确认</strong>（原料市场三条数据源 + 按品类区分市场）+ 后台分册 <code>02-市场资源管理</code>（场所「原料市场」）、<code>04-商户管理</code>（商户档案 / 品类字典）、<code>10-商城运营</code>（店铺）。凡后台缺依据的都标了「缺口 → 运营端待办」，<strong>不当已定规则用</strong>。  <strong>范围</strong>：原料市场首页、市场介绍、原料商户、筛选结果、商铺详情 5 页；<strong>打样 / 仓储 / 大宗集采入口本期下架</strong>（招标书未包含），对应页面暂留不进入口。</blockquote>
+<hr>
+<h2 id="p0">0.1 定位</h2>
+<p>袜子厂买原料的地方：找料（纱线 / 化纤 / 染料助剂 / 辅料橡筋 / 包装 / 纺配）→ 看商户与商铺 → 看店铺在售商品 → 进商品详情下单。</p>
+<p>与「袜子市场」是<strong>同一套后台、不同品类</strong>：后台模块（场所、商户档案、店铺、商品）全部共用，靠<strong>主营品类</strong>把两类市场分开，不另建一套原料专用后台。</p>
+<h2 id="p0">0.2 三条数据源（核心口径，2026-11-03 定）</h2>
+<table><thead><tr><th>区块</th><th>数据源</th><th>判定条件</th><th>后台落点</th></tr></thead><tbody><tr><td><strong>原料品牌馆</strong></td><td>店铺（外采店铺属性）</td><td><code>店铺类型 = 品牌店铺</code> <strong>且</strong> 店铺主档 <code>主营品类</code> 含原料大类</td><td>外采店铺属性（<code>categories[]</code>）+ 我方店铺管理（类型/资质）</td></tr><tr><td><strong>原料商户</strong></td><td>后台实体商户管理（04 商户档案）</td><td>商户<strong>主营品类含原料大类</strong>，且商户状态 = 正常经营（可对外展示）</td><td><code>04-商户管理</code> 商户档案；档口/店面信息取 <code>02</code> 资源单元</td></tr><tr><td><strong>原料商品</strong></td><td>店铺在售商品</td><td>该店铺属原料市场（<code>店铺主营品类含原料大类</code>）→ 取该店铺在售商品</td><td>外采商品库（按店铺 ID 反查）</td></tr></tbody></table>
+<p><strong>三条都靠同一个开关：店铺/商户的「主营品类」是否命中原料大类</strong>。所以品类字典是这套区分机制的<strong>唯一支点</strong>（见 §0.5 缺口）。</p>
+<blockquote>✅ <strong>2026-11-03 决策（业务已定）</strong>：<strong>「主营品类」要成为店铺的必备属性，外采店铺表也要加这个字段。</strong>  | 数据源 | 现状 | 决策 | |---|---|---| | 04 实体商户档案 | <strong>已有</strong>主营品类 | 不动 | | 买家端「申请线上开店」 | <strong>已收</strong>店铺主营品类（<code>merchant-open-shop.html</code>，字典多选、必选 ≥1） | 保留，作为店铺品类的<strong>写入来源</strong> | | <strong>外采店铺属性</strong> | <strong>没有</strong>主营品类，只有商品有分类 | <strong>新增 <code>categories[]</code> 字段</strong>（改造项，见 §0.10） |  原因：袜子市场与原料市场<strong>都要同时展示线下店铺与线上商品</strong>，必须有一个字段能区分"卖袜子还是卖原料"。店铺没有这个字段，两个市场就分不开。  商品<strong>不加业务品类字段</strong>：原料商品 = 原料店铺的在售商品（按店铺反查）；外采自带的商品分类只用于<strong>超范围校验</strong>。</blockquote>
+<h2 id="p0">0.3 市场区分机制</h2>
+<pre class="code"><code data-lang="">后台一套数据
+   ├─ 02 场所：大唐袜业城 / 原料市场 / 行政服务中心   ← 物理位置
+   ├─ 04 商户档案：categories[] 主营品类（引用品类字典）
+   ├─ 10 店铺：店铺类型（普通/品牌/自营）+ 所属商户
+   └─ 外采商品库：商品（挂在店铺下）
+        ↓ 按「主营品类是否属原料大类」分流
+买家端：袜子市场（market-socks / market-map） ｜ 原料市场（market-material 系列）</code></pre>
+<table><thead><tr><th>规则</th><th>内容</th></tr></thead><tbody><tr><td>F05-R1</td><td>原料大类集合 = 品类字典「<strong>原料纱线</strong>」大类下的全部品类项（含定案后补入的纱线/化纤长丝/染料助剂/辅料橡筋/包装物料/纺机配件 6 项，Y-11）；集合由<strong>运营端字典</strong>决定，端上不写死</td></tr><tr><td>F05-R2</td><td>市场归属按品类大类推导，<strong>可多归属</strong>：主营品类含原料大类 → 进原料市场；含袜品大类 → 进袜子市场；混营（两类都有）→ <strong>两边都展示</strong>（2026-11-03 业务确认）；品类为空 → 两边都不展示（运营端可筛「未归类」）</td></tr><tr><td>F05-R3</td><td>商户状态非「正常经营」（暂停/冻结/清退）→ 不出现在原料商户与商品列表</td></tr><tr><td>F05-R4</td><td>店铺未开线上店（仅线下）→ 出现在「原料商户」，但<strong>没有商品</strong>，商铺详情只展示资料与联系</td></tr><tr><td>F05-R5</td><td>品牌馆仅收「品牌店铺 + 品牌资质通过」的原料店铺（与 F03 品牌馆同规则，只多一层品类过滤）</td></tr></tbody></table>
+<h2 id="p0">0.4 页面清单</h2>
+<table><thead><tr><th>#</th><th>页面</th><th>文件</th><th>状态</th><th>说明</th></tr></thead><tbody><tr><td>1</td><td>原料市场首页</td><td><code>market-material.html</code></td><td>🟡 界面在；<strong>顶部三服务图标已下架（2026-11-03）</strong></td><td>品牌馆 / 原料商户 / 热销推荐 / 团购秒杀 / 新品横滑 / 筛选项 / 地图找店</td></tr><tr><td>2</td><td>原料市场介绍</td><td><code>material-intro.html</code></td><td>🟡 界面在；<strong>打样中心 / 智能仓储两卡已下架</strong></td><td>市场概况、六大品类、商户构成</td></tr><tr><td>3</td><td>原料商户</td><td><code>material-merchants.html</code></td><td>🟡 界面在</td><td>商户列表 + 地图两种视图</td></tr><tr><td>4</td><td>筛选结果</td><td><code>material-filter.html</code></td><td>🟡 界面在</td><td>品类 / 产地 / 供货方式 / 认证</td></tr><tr><td>5</td><td>商铺详情</td><td><code>material-shop-detail.html</code></td><td>🟡 界面在；品类已改多标签（#43）</td><td>商铺资料 + 在售商品 + 主营品类多标签</td></tr></tbody></table>
+<h3>0.4.1 本期下架（招标书未包含）</h3>
+<table><thead><tr><th>项</th><th>位置</th><th>处置</th></tr></thead><tbody><tr><td>大宗集采 / 打样预约 / 仓储服务 三图标</td><td><code>market-material.html</code> 顶部</td><td><strong>已下架</strong>（2026-11-03）</td></tr><tr><td>打样中心 / 智能仓储 两卡</td><td><code>material-intro.html</code> 配套服务</td><td><strong>已下架</strong>（2026-11-03）</td></tr><tr><td><code>material-sample.html</code></td><td>打样预约</td><td>页面暂留，<strong>无入口</strong>；招标确认后再定归族或归档</td></tr><tr><td><code>material-warehouse.html</code></td><td>仓储服务</td><td>同上</td></tr><tr><td><code>material-group-buy.html</code> / <code>-create</code> / <code>-join</code></td><td>原料大宗集采</td><td>页面暂留，<strong>仅「团购秒杀」卡片仍可进入</strong>；入口是否保留见 OQ-02</td></tr></tbody></table>
+<blockquote>注意：下架的是<strong>入口</strong>，不是删除页面。后续要么按招标重开、要么移入 <code>_legacy/</code>，但不能长期"有页面没入口"。</blockquote>
+<h2 id="p0">0.5 后台缺口（已登记运营端待办）</h2>
+<table><thead><tr><th>编号</th><th>缺口</th><th>影响</th><th>待办</th></tr></thead><tbody><tr><td><strong>G-1</strong></td><td><strong>品类字典缺原料细类</strong>：字典 13 项里原料只有「棉纱 / 氨纶包覆纱」，而原料市场对外展示 6 类（纱线 / 化纤长丝 / 染料助剂 / 辅料橡筋 / 包装物料 / 纺机配件）</td><td>原料商户与品牌馆无法按品类正确归集，端上只能保留字典外叫法</td><td>运营端 <strong>Y-11</strong></td></tr><tr><td><strong>G-2</strong></td><td><strong>外采店铺没有「主营品类」字段</strong>（改造项）：04 档案已有、开店申请已收，但店铺本体没有这个属性，<code>mall-shop-list.html</code> 8 列也没有品类</td><td>两个市场都无法按店铺分流</td><td>运营端 <strong>Y-12</strong>（外采加字段 + 我方同步链路 + 列表展示与筛选）。外采电商为<strong>源码整合</strong>，统一放在后台「商城运营」模块下，改造所需的后台原型页面由运营端窗口补充</td></tr><tr><td><strong>G-3</strong></td><td><strong>商品未按店铺归属</strong>：外采只有「商品分类」，无「按店铺集合查商品」的既定口径</td><td>原料市场「热销推荐 / 新品」出不了原料商品</td><td>并入 <strong>Y-12</strong>（按店铺 ID 反查 + 分类超范围校验）</td></tr><tr><td><strong>G-4</strong></td><td>原料市场 6 个品类名与字典叫法不一致（如「纱线」vs「棉纱」）</td><td>端上、后台、招商页三套叫法</td><td>并入 <strong>Y-11</strong></td></tr></tbody></table>
+<h2 id="p0">0.6 待定（OQ）</h2>
+<table><thead><tr><th>编号</th><th>问题</th><th>现状</th><th>我的建议</th></tr></thead><tbody><tr><td>~~OQ-01~~</td><td>原料品类是<strong>扩充 04 字典</strong>，还是<strong>单独一套「原料品类字典」</strong>（归 02 市场资源）</td><td>04 字典 5 个大类里已有「原料纱线」，扩项即可</td><td>✅ <strong>已关闭（2026-11-03 业务拍板）</strong>：扩 04 字典，6 个原料品类项<strong>并入现有「原料纱线」大类</strong>，不新增大类（Y-11）</td></tr><tr><td>~~OQ-02~~</td><td>「团购秒杀」卡片（仍链 <code>material-group-buy.html</code>）是否保留</td><td>三图标已下架，但卡片还在</td><td>✅ <strong>已关闭（2026-11-03 业务拍板）</strong>：<strong>保留</strong>，原料集采属拼单能力（复用 M01 §8 规则）</td></tr><tr><td>~~OQ-03~~</td><td>混营店铺（既卖袜子又卖棉纱）归哪个市场</td><td>无规则</td><td>✅ <strong>已关闭（2026-11-03 业务拍板）</strong>：<strong>两边都展示</strong>（多归属，见 F05-R2）；运营端「所属市场」推导为"袜子 / 原料 / 两个都算"</td></tr><tr><td>~~OQ-04~~</td><td>原料商品按什么判定</td><td>—</td><td>✅ <strong>已关闭（2026-11-03）</strong>：店铺主营品类为准，商品按店铺反查；商品分类只做超范围校验</td></tr><tr><td>~~OQ-05~~</td><td>外采能否按店铺查商品</td><td>—</td><td>✅ <strong>已关闭方向</strong>：外采店铺加 <code>主营品类</code> 字段（Y-12），商品按店铺查；接口能力落地时验证</td></tr></tbody></table>
+<h2 id="p0">0.7 端间协同（四问）</h2>
+<table><thead><tr><th>#</th><th>问题</th><th>结论</th></tr></thead><tbody><tr><td>1</td><td>另一端入口在哪</td><td>运营端：02 场所/资源单元、04 商户档案+品类字典、10 店铺管理；商户端：店铺设置（名称/主营品类/品牌资质）</td></tr><tr><td>2</td><td>另一端展示什么字段</td><td>商户端展示本店 <code>categories[]</code> 与「所属市场」；运营端店铺列表需展示主营品类（G-2）</td></tr><tr><td>3</td><td>异常谁兜底</td><td>字典项被停用 → 端上保留历史值展示、不进筛选；商户被暂停 → 双方同时下线；品类为空 → 不归任何市场并在运营端可筛「未归类」</td></tr><tr><td>4</td><td>每块内容谁维护</td><td>品牌馆 = 店铺类型 + 品类（运营端/商户端）；商户 = 04 档案；商品 = 店铺 + 外采商品库；<strong>页面三个服务入口已下架，无内容需维护</strong></td></tr></tbody></table>
+<h2 id="p0">0.8 验收</h2>
+<table><thead><tr><th>编号</th><th>场景</th><th>预期</th></tr></thead><tbody><tr><td>AC-01</td><td>打开原料市场首页</td><td>顶部<strong>无</strong>三服务图标；依次为 市场介绍 → 品牌馆 → 原料商户 → 热销 → 团购 → 新品</td></tr><tr><td>AC-02</td><td>后台把某店铺类型改为「品牌店铺」且主营品类含原料</td><td>该店铺出现在原料品牌馆（品牌资质需通过）</td></tr><tr><td>AC-03</td><td>后台把某品牌店铺的主营品类去掉原料项</td><td>该店铺从原料品牌馆消失，仍出现在袜子市场</td></tr><tr><td>AC-04</td><td>仅线下原料商户（未开线上店）</td><td>出现在原料商户列表，商铺详情无商品区，有联系方式</td></tr><tr><td>AC-05</td><td>商户状态改「暂停」</td><td>原料商户与商品列表同时不再展示</td></tr><tr><td>AC-06</td><td>访问 <code>material-sample.html</code> / <code>material-warehouse.html</code></td><td>页面本身可开（暂留），但全站无入口可达</td></tr></tbody></table>
+<h2 id="p0">0.9 不做（本期）</h2>
+<table><thead><tr><th>编号</th><th>不做</th><th>理由</th></tr></thead><tbody><tr><td>ND-1</td><td>打样预约</td><td>招标书未包含</td></tr><tr><td>ND-2</td><td>仓储服务</td><td>招标书未包含</td></tr><tr><td>ND-3</td><td>原料市场独立后台</td><td>后台共用，按品类区分</td></tr><tr><td>ND-4</td><td>给商品<strong>新增业务品类字段</strong></td><td>商品归属走店铺维度；外采自带「商品分类」只用于<strong>校验/兜底</strong>，不复制成第二套业务品类（OQ-04）</td></tr></tbody></table>
+<hr>
+<h2 id="p0">0.10 落地要求（2026-11-03 业务已定）</h2>
+<h3>0.10.1 决策一句话</h3>
+<p><strong>「主营品类」升级为店铺的必备属性：04 商户档案已有、开店申请已在收，外采店铺表也要加这个字段。</strong> 袜子市场与原料市场都靠它分流，不许再出现"没有字段可区分"的情况。</p>
+<h3>0.10.2 字段规格（三处同名同义）</h3>
+<table><thead><tr><th>位置</th><th>字段</th><th>必填</th><th>来源</th><th>说明</th></tr></thead><tbody><tr><td>04 商户档案</td><td>categories[]</td><td>是</td><td>线下建档 / 资料变更审核</td><td><strong>已有</strong>，字典取值</td></tr><tr><td>买家端 开店申请</td><td>categories[]</td><td>是（≥1）</td><td>商户勾选，字典下发</td><td><strong>已有</strong>（#43 已改字典渲染、不预选）</td></tr><tr><td><strong>外采店铺属性</strong></td><td>categories[]</td><td>是</td><td><strong>审批通过写入</strong>；此后变更走资料变更审核</td><td><strong>新增（Y-12）</strong>；外采为源码整合（商城运营模块下），后台原型由运营端补</td></tr></tbody></table>
+<ul><li><strong>取值</strong>：一律引用品类字典（04 §8.5b），端上不写死</li><li><strong>写入时机</strong>：开店审核通过 → 申请单 categories[] 写入店铺记录；线下商户自动建档时由 04 档案带过来</li><li><strong>变更</strong>：只能走「资料变更审核」，店长不能自改（防止品类被拿来刷市场曝光）</li><li><strong>空值处理</strong>：店铺无品类 → 两个市场都不展示，运营端「未归类」可筛（Y-12 已含）</li></ul>
+<h3>0.10.3 商品侧口径（依赖店铺字段，不需给商品加品类）</h3>
+<table><thead><tr><th>项</th><th>口径</th></tr></thead><tbody><tr><td>原料商品</td><td>取<strong>店铺品类含原料大类</strong>的店铺 → <strong>按店铺 ID 反查在售商品</strong></td></tr><tr><td>商品分类</td><td>外采自带，只用于<strong>超范围校验</strong>，不复制成第二套业务品类</td></tr><tr><td>兜底</td><td>若外采暂不支持按店铺 ID 过滤 → 按 goods.shopId 在我方过滤；若连 shopId 都没有 → 临时用「商品分类→市场」映射顶，但<strong>必须限期补店铺字段</strong></td></tr></tbody></table>
+<p><strong>仍需向外采确认的 2 个实现细节</strong>（不影响口径，只影响工期）：</p>
+<table><thead><tr><th>#</th><th>问题</th><th>影响</th></tr></thead><tbody><tr><td>E1</td><td>商品查询能否按店铺 ID（集合）过滤</td><td>不能则先在我方过滤，性能有差异</td></tr><tr><td>E2</td><td>商品分类是否有多级字典可导出</td><td>没有则超范围校验先不做，只保留店铺维度</td></tr></tbody></table>
+<h3>0.10.4 治理规则</h3>
+<table><thead><tr><th>编号</th><th>规则</th></tr></thead><tbody><tr><td>F05-10-R1</td><td>店铺 categories[] 来源 = <strong>开店申请单审批通过后写入</strong>；变更走「资料变更审核」，店长不能自改</td></tr><tr><td>F05-10-R2</td><td>商品上架/同步时校验：商品分类映射的品类 ⊂ 店铺 categories[]；不满足<strong>不拦截上架</strong>，但打标「超范围」，<strong>原料市场不展示该商品</strong></td></tr><tr><td>F05-10-R3</td><td>店铺 categories[] 为空 → 不进任何市场，运营端可筛「未归类」并催补</td></tr><tr><td>F05-10-R4</td><td>纯线上原料店铺不必有 04 档口档案，<strong>以店铺品类为准</strong>；有 04 档案时两者必须一致，不一致以<strong>审核通过的那次变更</strong>为准并留痕</td></tr></tbody></table>
+<hr>
+<h2 id="p1">1. 原料市场首页 <code>market-material.html</code></h2>
+<h3>1.1 页面说明</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>目标</td><td>一屏看清原料市场在卖什么、谁在卖、现在什么价</td></tr><tr><td>角色</td><td>全部（游客可看）</td></tr><tr><td>入口</td><td>首页原料市场卡、<code>market-socks.html</code> 切换</td></tr><tr><td>后置</td><td>品牌馆 → <code>brand-detail.html</code>；商户 → <code>material-merchants.html</code>；商品 → <code>product-detail.html</code></td></tr></tbody></table>
+<h3>1.2 页面结构（自上而下）</h3>
+<table><thead><tr><th>区块</th><th>内容</th><th>数据来源</th></tr></thead><tbody><tr><td>顶部</td><td>返回、标题、搜索、拍照找货</td><td>—</td></tr><tr><td>市场介绍卡</td><td>封面、4 个市场指标、六大品类、地址、查看详情 → <code>material-intro.html</code></td><td>02 场所「原料市场」</td></tr><tr><td>品牌馆横滑</td><td>4 张品牌卡（logo / 名称 / 主营 / 评级）</td><td><strong>店铺类型=品牌店铺 且 品类含原料</strong>（§0.2）</td></tr><tr><td>原料商户</td><td>商户卡横滑 + 地图找店 + 查看全部</td><td><strong>04 商户档案 且 品类含原料</strong></td></tr><tr><td>热销推荐</td><td>4 个商品（图 / 名 / 价 / 起批）</td><td><strong>原料店铺的在售商品</strong></td></tr><tr><td>团购秒杀</td><td>倒计时 + 2 个团购商品 → <code>material-group-buy.html</code></td><td>拼单（复用 M01 §8）</td></tr><tr><td>新品横滑</td><td>新品商品卡</td><td>原料店铺的在售商品</td></tr><tr><td>筛选项</td><td>品类 / 供应商 / 产地 / 供货方式 / 认证</td><td>品类取字典，其余取商品/店铺字段</td></tr></tbody></table>
+<blockquote><strong>2026-11-03</strong>：原顶部「大宗集采 / 打样预约 / 仓储服务」三个服务图标已下架（招标书未包含），见 §0.4.1。</blockquote>
+<h3>1.3 规则</h3>
+<table><thead><tr><th>编号</th><th>规则</th></tr></thead><tbody><tr><td>F05-1-R1</td><td>品牌馆、商户、商品三块各自独立取数，任一为空显示对应空态，不整页报错</td></tr><tr><td>F05-1-R2</td><td>团购秒杀区无进行中团时整块隐藏（不留空框）</td></tr><tr><td>F05-1-R3</td><td>筛选项的品类清单由品类字典启用项下发，端上不写死</td></tr></tbody></table>
+<h3>1.4 验收</h3>
+<table><thead><tr><th>编号</th><th>场景</th><th>预期</th></tr></thead><tbody><tr><td>AC-01</td><td>打开首页</td><td>无三服务图标；区块顺序同 §1.2</td></tr><tr><td>AC-02</td><td>后台无原料品牌店铺</td><td>品牌馆整块隐藏</td></tr><tr><td>AC-03</td><td>团购全部结束</td><td>团购区隐藏，其余正常</td></tr></tbody></table>
+<hr>
+<h2 id="p2">2. 原料市场介绍 <code>material-intro.html</code></h2>
+<h3>2.1 页面说明</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>目标</td><td>让采购商了解原料市场规模、品类与配套，产生信任</td></tr><tr><td>入口</td><td>首页市场介绍卡、<code>material-merchants.html</code></td></tr><tr><td>后置</td><td>查看商户 → <code>material-merchants.html</code>；供应链金融 → <code>finance-service.html</code></td></tr></tbody></table>
+<h3>2.2 页面结构</h3>
+<table><thead><tr><th>区块</th><th>内容</th></tr></thead><tbody><tr><td>市场概况</td><td>封面、简介、4 个指标（供应商 / 品类 / 年交易额 / 面积）</td></tr><tr><td>六大品类</td><td>纱线 / 化纤长丝 / 染料助剂 / 辅料橡筋 / 包装物料 / 纺机配件</td></tr><tr><td>商户构成</td><td>生产企业直营 / 一级代理占比等</td></tr><tr><td>配套服务</td><td><strong>供应链金融、检测中心</strong>（打样中心 / 智能仓储已于 2026-11-03 下架）</td></tr><tr><td>入驻引导</td><td>招商说明 → <code>merchant-join.html</code></td></tr></tbody></table>
+<h3>2.3 规则与验收</h3>
+<table><thead><tr><th>编号</th><th>内容</th></tr></thead><tbody><tr><td>F05-2-R1</td><td>六大品类名称与品类字典逐字一致，字典改则页面改</td></tr><tr><td>AC-04</td><td>页面无「打样中心 / 智能仓储」入口；金融与检测仍可点</td></tr></tbody></table>
+<hr>
+<h2 id="p3">3. 原料商户 <code>material-merchants.html</code></h2>
+<h3>3.1 页面说明</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>目标</td><td>按品类找原料供应商，支持列表与地图两种找法</td></tr><tr><td>数据来源</td><td><strong>04 商户档案（状态=正常经营）且主营品类含原料大类</strong></td></tr><tr><td>入口</td><td>首页「查看全部」、介绍页</td></tr><tr><td>后置</td><td>商铺详情 <code>material-shop-detail.html?id=</code></td></tr></tbody></table>
+<h3>3.2 结构</h3>
+<table><thead><tr><th>视图</th><th>内容</th></tr></thead><tbody><tr><td>列表</td><td>商户卡：名称、主营品类多标签、档口/店面位置、评分、在售商品数 → 商铺详情</td></tr><tr><td>地图</td><td>市场平面 + 商户点位，点点位弹商户卡（与列表同一数据）</td></tr><tr><td>筛选</td><td>品类 / 产地 / 供货方式 / 认证，结果页 <code>material-filter.html</code></td></tr></tbody></table>
+<h3>3.3 规则与验收</h3>
+<table><thead><tr><th>编号</th><th>内容</th></tr></thead><tbody><tr><td>F05-3-R1</td><td>仅「正常经营」商户可见；暂停/冻结/清退不进列表</td></tr><tr><td>F05-3-R2</td><td>仅线下商户也展示（不因无线上店被过滤），详情页无商品区</td></tr><tr><td>AC-05</td><td>商户状态改暂停后，列表与地图同时消失</td></tr></tbody></table>
+<hr>
+<h2 id="p4">4. 筛选结果 <code>material-filter.html</code></h2>
+<h3>4.1 页面说明</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>目标</td><td>承接首页筛选项，输出符合条件的商品/商户</td></tr><tr><td>数据来源</td><td>同首页三源；筛选项取字典 + 商品/店铺字段</td></tr></tbody></table>
+<h3>4.2 规则与验收</h3>
+<table><thead><tr><th>编号</th><th>内容</th></tr></thead><tbody><tr><td>F05-4-R1</td><td>品类为多选 AND 语义：商品需<strong>全部</strong>命中已选品类</td></tr><tr><td>F05-4-R2</td><td>重置 = 清空全部条件回到默认；结果为空给空态 + 引导放宽条件</td></tr><tr><td>AC-06</td><td>选「纱线 + 染料助剂」→ 只出同时涉及两类的商品；无结果时空态可见</td></tr></tbody></table>
+<hr>
+<h2 id="p5">5. 商铺详情 <code>material-shop-detail.html</code></h2>
+<h3>5.1 页面说明</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>目标</td><td>看单家原料商铺的资质、主营与在售商品</td></tr><tr><td>数据来源</td><td>04 商户档案 + 02 资源单元（位置）+ 店铺（品牌/评分）+ 商品</td></tr><tr><td>入口</td><td>商户列表、地图点位、集采详情</td></tr></tbody></table>
+<h3>5.2 字段</h3>
+<table><thead><tr><th>区块</th><th>字段</th></tr></thead><tbody><tr><td>头部</td><td>商铺名、横幅、评分、经营年限、距离、位置</td></tr><tr><td>商户信息</td><td>商户名称、经营地址、入驻时间、<strong>主营品类（多标签）</strong>、联系电话</td></tr><tr><td>在售商品</td><td>商品卡：图、名、价、单位、起批量、销量</td></tr><tr><td>服务承诺</td><td>假一赔十、支持打样、当日发货等（取店铺服务项）</td></tr></tbody></table>
+<h3>5.3 规则与验收</h3>
+<table><thead><tr><th>编号</th><th>内容</th></tr></thead><tbody><tr><td>F05-5-R1</td><td>主营品类为数组，多标签平铺；单品类时不显示 <code>+N</code></td></tr><tr><td>F05-5-R2</td><td>无线上店或无商品时，商品区显示「该商户暂未开通线上商品」</td></tr><tr><td>AC-07</td><td>多品类商户显示全部标签，无 <code>undefined</code></td></tr><tr><td>AC-08</td><td>仅线下商户进详情 → 有资料与电话，商品区为空态</td></tr></tbody></table>
+</body></html>

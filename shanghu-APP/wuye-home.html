@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>物业管理 - 袜掌柜商户版</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--p:#2563EB;--bg:#F5F8FF}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+::-webkit-scrollbar{width:2px;height:2px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#cfe0f8;border-radius:1px}
+.grad-h{background:linear-gradient(135deg,#3B82F6 0%,#2563EB 48%,#1D4ED8 100%)}
+.shadow-soft{box-shadow:0 2px 12px rgba(20,40,80,.06)}
+.num{font-variant-numeric:tabular-nums}
+.card{transition:transform .16s ease}
+.card:active{transform:scale(.98)}
+.fade-up{animation:fadeUp .4s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.sheet{position:fixed;inset:0;z-index:200;display:none;align-items:flex-end}
+.sheet.on{display:flex}
+.sheet-bg{position:absolute;inset:0;background:rgba(15,23,42,.45)}
+.sheet-body{position:relative;width:100%;background:#fff;border-radius:24px 24px 0 0;padding:12px 16px 28px;max-height:88vh;overflow-y:auto}
+.sheet-bar{width:38px;height:4px;border-radius:2px;background:#E2E8F0;margin:0 auto 12px}
+.toast{position:fixed;left:50%;top:22%;transform:translate(-50%,-8px);max-width:300px;background:rgba(31,36,48,.94);color:#fff;font-size:12px;line-height:1.5;padding:10px 14px;border-radius:12px;opacity:0;pointer-events:none;transition:.22s;z-index:300;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.sw{width:44px;height:24px;border-radius:999px;background:#CBD5E1;position:relative;transition:.2s;flex-shrink:0}
+.sw.on{background:#10B981}
+.sw i{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.sw.on i{left:22px}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<!-- iOS 状态栏 -->
+<div class="flex justify-between items-center px-6 text-white text-sm font-semibold grad-h" style="height:44px;padding-top:8px">
+<span>9:41</span>
+<div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
+</div>
+
+<!-- 头部 -->
+<div class="grad-h px-3.5 pb-7">
+  <div class="flex items-center justify-between mb-3">
+    <div class="flex items-center gap-2">
+      <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:rgba(255,255,255,.2)"><i class="fas fa-screwdriver-wrench text-white text-sm"></i></div>
+      <div>
+        <p class="text-white font-bold text-[16px] leading-tight">物业管理</p>
+        <p class="text-white/70 text-[9px]">物业人员现场作业台</p>
+      </div>
+    </div>
+    <a href="messages.html" class="text-white text-base relative"><i class="fas fa-bell"></i><span class="absolute -top-1 -right-1.5 bg-red-500 text-white text-[7px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center">3</span></a>
+  </div>
+
+  <!-- 身份卡 -->
+  <div class="bg-white/15 backdrop-blur rounded-2xl p-3.5 border border-white/15">
+    <div class="flex items-center gap-2.5">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-300 to-blue-600 flex items-center justify-center"><i class="fas fa-user-shield text-white text-sm"></i></div>
+      <div class="flex-1 min-w-0">
+        <p class="text-white text-[13px] font-semibold" id="meName">—</p>
+        <p class="text-white/65 text-[10px] mt-0.5" id="meMeta">—</p>
+      </div>
+      <div class="flex flex-col items-end gap-1">
+        <div class="sw on" id="dutySw" onclick="toggleDuty()"><i></i></div>
+        <span class="text-white/70 text-[8px]" id="dutyTxt">在岗 · 接单中</span>
+      </div>
+    </div>
+    <div class="grid grid-cols-4 gap-1.5 mt-3" id="quadStat"></div>
+  </div>
+</div>
+
+<!-- 待办 -->
+<div class="px-3 -mt-4 relative z-10">
+  <div class="bg-white rounded-2xl shadow-soft p-3.5">
+    <div class="flex items-center justify-between mb-2.5">
+      <div class="flex items-center gap-1.5"><div class="w-1 h-3.5 rounded-full" style="background:#2563EB"></div><span class="text-[13px] font-bold text-gray-800">今日待办</span></div>
+      <span class="text-[10px] text-gray-400" id="todoHint">紧急报修 → 投诉 → 问题</span>
+    </div>
+    <div class="space-y-1.5" id="todoList"></div>
+  </div>
+</div>
+
+<!-- 快捷 -->
+<div class="px-3 mt-3">
+  <div class="bg-white rounded-2xl shadow-soft px-2.5 py-4">
+    <div class="flex items-center gap-1.5 mb-3"><div class="w-1 h-3.5 rounded-full" style="background:#0EA5E9"></div><span class="text-[12px] font-bold text-gray-800">快捷操作</span></div>
+    <div class="grid grid-cols-4 gap-y-4">
+      <a href="wuye-repair.html" class="flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#38BDF8,#0EA5E9)"><i class="fas fa-screwdriver-wrench text-lg"></i></div><span class="text-[10px] text-gray-700 font-medium">我的报修单</span></a>
+      <a href="wuye-issue.html" class="flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)"><i class="fas fa-camera-retro text-lg"></i></div><span class="text-[10px] text-gray-700 font-medium">随手报问题</span></a>
+      <a href="wuye-complaint.html" class="flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#2DD4BF,#0D9488)"><i class="fas fa-comment-dots text-lg"></i></div><span class="text-[10px] text-gray-700 font-medium">投诉处置</span></a>
+      <a href="wuye-mine.html" class="flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#A78BFA,#7C3AED)"><i class="fas fa-chart-simple text-lg"></i></div><span class="text-[10px] text-gray-700 font-medium">我的工作量</span></a>
+    </div>
+  </div>
+</div>
+
+<!-- 工作量 -->
+<div class="px-3 mt-3 mb-28">
+  <div class="bg-white rounded-2xl shadow-soft p-3.5">
+    <div class="flex items-center justify-between mb-3">
+      <div class="flex items-center gap-1.5"><div class="w-1 h-3.5 rounded-full" style="background:#7C3AED"></div><span class="text-[13px] font-bold text-gray-800">我的工作量</span></div>
+      <a href="wuye-mine.html" class="text-[10px] text-gray-400">明细 <i class="fas fa-chevron-right text-[8px]"></i></a>
+    </div>
+    <div class="grid grid-cols-3 gap-2" id="statBox"></div>
+    <p class="text-[9px] text-gray-400 mt-2.5"><i class="fas fa-circle-info mr-1"></i>数据统计口径：本人 + 负责区域；不含他人经手单据</p>
+  </div>
+</div>
+
+<div id="wuyeTab"></div>
+<div class="toast" id="toast"></div>
+
+<!-- 身份切换 -->
+<div class="sheet" id="idSheet">
+  <div class="sheet-bg" onclick="closeSheet('idSheet')"></div>
+  <div class="sheet-body">
+    <div class="sheet-bar"></div>
+    <p class="text-[15px] font-extrabold text-gray-900 text-center">切换演示身份</p>
+    <p class="text-[11px] text-gray-400 text-center mt-1">真实系统按统一用户体系账号返回身份，此处仅原型演示</p>
+    <div class="mt-4 space-y-2" id="idList"></div>
+    <button class="w-full mt-4 py-2.5 rounded-xl text-[12px] font-bold text-gray-600 bg-gray-100" onclick="closeSheet('idSheet')">关闭</button>
+  </div>
+</div>
+
+<script src="wuye-tab.js"></script>
+<script src="wuye-data.js"></script>
+<script>
+wuyeEnsureStaff();
+
+var duty = localStorage.getItem('wuye_onduty') !== '0';
+
+function toggleDuty(){
+  duty = !duty;
+  localStorage.setItem('wuye_onduty', duty ? '1' : '0');
+  paintMe();
+  toast(duty ? '已切回在岗，将接收新派单' : '已设为休假，不再接收新派单（已派单不撤回）');
+}
+
+function paintMe(){
+  var me = wuyeMe();
+  document.getElementById('meName').textContent = me.name + ' · ' + me.posts.join(' / ');
+  document.getElementById('meMeta').textContent = '负责 ' + me.area + ' · 上级 ' + me.leader;
+  var sw = document.getElementById('dutySw');
+  sw.className = 'sw' + (duty ? ' on' : '');
+  document.getElementById('dutyTxt').textContent = duty ? '在岗 · 接单中' : '休假 · 不接单';
+}
+
+/* v1.5：巡检、整改已下线，只统计 报修 / 问题 / 投诉 */
+function counts(){
+  var db = wuyeDB(), mgr = wuyeIsManager();
+  var wait = 0, doing = 0, wt = 0, ts = 0;
+  db.bx.forEach(function(o){
+    if (mgr) { if (o.state === '待受理') wait++; }
+    else { if (o.state === '待受理' || o.state === '已派单') wait++; }
+    if (o.state === '处理中') doing++;
+  });
+  (db.wt || []).forEach(function(o){ if (o.state === '待处理') wt++; });
+  (db.ts || []).forEach(function(o){ if (o.state === '待受理' || o.state === '处理中' || o.state === '已升级') ts++; });
+  return { wait: wait, doing: doing, wt: wt, ts: ts };
+}
+
+function paintQuad(){
+  var c = counts();
+  var cards = [
+    [c.wait, wuyeIsManager() ? '待派单' : '待接单', 'wuye-repair.html?tab=待受理'],
+    [c.doing, '处理中', 'wuye-repair.html?tab=处理中'],
+    [c.wt, '待处理问题', 'wuye-issue.html'],
+    [c.ts, '待受理投诉', 'wuye-complaint.html']
+  ];
+  document.getElementById('quadStat').innerHTML = cards.map(function(x){
+    return '<a href="' + x[2] + '" class="rounded-xl px-1 py-2 text-center block" style="background:rgba(255,255,255,.18)">'
+      + '<p class="text-white font-extrabold text-[17px] num">' + x[0] + '</p>'
+      + '<p class="text-white/75 text-[8px] mt-0.5">' + x[1] + '</p></a>';
+  }).join('');
+}
+
+/* 待办排序（v1.5）：紧急报修 > 待回复投诉 > 待处理问题 > 普通报修 */
+function paintTodo(){
+  var db = wuyeDB(), arr = [];
+  db.bx.forEach(function(o){
+    var open = (o.state === '待受理' || o.state === '已派单' || o.state === '处理中');
+    if (!open) return;
+    if (o.urg === '紧急') {
+      arr.push({ p: 1, icon: 'fa-fire', color: '#DC2626', bg: '#FEF2F2', t: '紧急报修 · ' + o.no, s: o.area + ' ' + o.unit + ' · ' + o.type, tag: o.state, h: 'wuye-repair.html?no=' + o.no });
+    } else {
+      arr.push({ p: 4, icon: 'fa-screwdriver-wrench', color: '#2563EB', bg: '#EFF6FF', t: '报修待处理 · ' + o.no, s: o.area + ' ' + o.unit + ' · ' + o.type, tag: o.state, h: 'wuye-repair.html?no=' + o.no });
+    }
+  });
+  (db.ts || []).forEach(function(o){
+    if (o.state === '待受理' || o.state === '处理中' || o.state === '已升级') {
+      arr.push({ p: 2, icon: 'fa-comment-dots', color: '#0D9488', bg: '#F0FDFA', t: (o.state === '待受理' ? '投诉待受理 · ' : '投诉待回复 · ') + o.no, s: o.cat + ' · ' + o.who, tag: o.state === '已升级' ? '已升级' : o.state, h: 'wuye-complaint.html?no=' + o.no });
+    }
+  });
+  (db.wt || []).forEach(function(o){
+    if (o.state === '待处理') {
+      arr.push({ p: 3, icon: 'fa-camera-retro', color: '#F59E0B', bg: '#FFFBEB', t: '问题上待处置 · ' + o.no, s: o.area + ' · ' + o.type + '（' + o.owner + '）', tag: '待处理', h: 'wuye-issue.html?no=' + o.no });
+    }
+  });
+
+  arr.sort(function(a, b){ return a.p - b.p; });
+  if (!arr.length) {
+    document.getElementById('todoList').innerHTML = '<div class="text-center py-8"><i class="fas fa-mug-hot text-xl text-gray-300 block mb-2"></i><p class="text-[11px] text-gray-400">今日暂无待办，可去报修或上报问题</p></div>';
+    document.getElementById('todoHint').textContent = '暂无待办';
+    return;
+  }
+  document.getElementById('todoHint').textContent = '共 ' + arr.length + ' 条';
+  document.getElementById('todoList').innerHTML = arr.map(function(x){
+    return '<a href="' + x.h + '" class="flex items-center gap-2.5 rounded-xl px-2.5 py-2.5" style="background:' + x.bg + '">'
+      + '<div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background:#fff"><i class="fas ' + x.icon + ' text-[13px]" style="color:' + x.color + '"></i></div>'
+      + '<div class="flex-1 min-w-0"><p class="text-[12px] font-semibold text-gray-800 truncate">' + x.t + '</p>'
+      + '<p class="text-[9px] text-gray-500 mt-0.5 truncate">' + x.s + '</p></div>'
+      + '<span class="st text-[9px] font-bold px-1.5 py-0.5 rounded ' + stc(x.tag) + '">' + x.tag + '</span></a>';
+  }).join('');
+}
+
+function paintStat(){
+  var s = wuyeDB().stat;
+  var cards = [
+    [s.todayDone + ' / ' + s.todayAccept, '今日完成/接单'],
+    [s.avgResp, '平均响应'],
+    [s.monthRate + '%', '本月完成率'],
+    [s.monthDone, '本月完成单']
+  ];
+  document.getElementById('statBox').innerHTML = cards.map(function(c){
+    return '<div class="rounded-xl py-2.5 text-center" style="background:#F6F9FF"><p class="text-[15px] font-extrabold num" style="color:#2563EB">' + c[0] + '</p><p class="text-[9px] text-gray-500 mt-0.5">' + c[1] + '</p></div>';
+  }).join('');
+}
+
+function paintIdList(){
+  var cur = wuyeIdentity();
+  var opts = [
+    ['property', '物业人员', '维修工 / 巡检员 · 只看本人与负责区域的单'],
+    ['manager', '物业主管', '可派单、改派；投诉升级处置'],
+    ['both', '双身份', '同时是商户：物业服务 + 物业管理 并存'],
+    ['merchant', '纯商户', '看不到「物业管理」，回到商户 5 Tab']
+  ];
+  document.getElementById('idList').innerHTML = opts.map(function(o){
+    var on = o[0] === cur;
+    return '<div onclick="wuyeSetIdentity(\'' + o[0] + '\')" class="rounded-xl p-3 flex items-center gap-2.5" style="border:1.5px solid ' + (on ? '#2563EB' : '#EEF0F3') + ';background:' + (on ? '#EFF6FF' : '#fff') + '">'
+      + '<div class="flex-1"><p class="text-[12px] font-bold" style="color:' + (on ? '#2563EB' : '#1F2430') + '">' + o[1] + '</p>'
+      + '<p class="text-[9px] text-gray-400 mt-0.5">' + o[2] + '</p></div>'
+      + (on ? '<i class="fas fa-circle-check" style="color:#2563EB"></i>' : '<i class="fas fa-chevron-right text-gray-300 text-[10px]"></i>')
+      + '</div>';
+  }).join('');
+}
+
+function init(){
+  paintMe(); paintQuad(); paintTodo(); paintStat(); paintIdList();
+  renderWuyeTab('wuye');
+}
+init();
+</script>
+</body>
+</html>

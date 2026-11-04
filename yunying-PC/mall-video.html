@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>商城运营 - 视频看货管理</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}
+.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}
+.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}
+.lk:hover{text-decoration:underline}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}
+.lk-gray:hover{color:#1F2430;text-decoration:underline}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:40}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:560px;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:50;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.drawer.pv{width:400px;background:#0F172A}
+.fl{display:block;font-size:11px;color:#94A3B8;margin-bottom:4px}
+.fl i{color:#FF4D2D;font-style:normal;margin-right:2px}
+.fi{width:100%;padding:7px 10px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none;background:#fff}
+.fi:focus{border-color:#FF4D2D}
+.status-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500}
+.stab{padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer;color:#64748B;border:1px solid transparent}
+.stab:hover{color:#1F2430}
+.stab.on{background:#FFEDE7;color:#E63E20;font-weight:600}
+.cover{width:64px;height:40px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;position:relative;flex-shrink:0;overflow:hidden}
+.cover .dur{position:absolute;right:3px;bottom:2px;font-size:9px;background:rgba(0,0,0,.45);padding:0 3px;border-radius:3px}
+.pv-stage{position:relative;flex:1;display:flex;align-items:center;justify-content:center;padding:14px}
+.pv-phone{width:300px;height:520px;border-radius:22px;position:relative;overflow:hidden;background:#111;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+.pv-right{position:absolute;right:10px;bottom:120px;display:flex;flex-direction:column;gap:14px;color:#fff;font-size:11px;text-align:center}
+.pv-left{position:absolute;left:12px;right:56px;bottom:16px;color:#fff}
+.pv-goods{background:rgba(255,255,255,.94);border-radius:10px;padding:7px;display:flex;gap:7px;align-items:center;margin-top:8px;cursor:pointer}
+.goods-thumb{width:34px;height:34px;border-radius:6px;background:#E2E8F0;display:flex;align-items:center;justify-content:center;color:#94A3B8;font-size:12px;flex-shrink:0}
+.gmodal{position:fixed;inset:0;background:rgba(15,23,42,.5);opacity:0;pointer-events:none;transition:.2s;z-index:60;display:flex;align-items:center;justify-content:center}
+.gmodal.on{opacity:1;pointer-events:auto}
+</style>
+<!-- Tailwind 静态样式：本地引用（不再依赖 cdn.tailwindcss.com）；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+<div class="p-6">
+
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">视频看货管理</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">10 商城运营 · 商品管理</span>
+      </div>
+      <p class="text-[12px] text-gray-400 mt-1">商户上传 / 平台代发的看货短视频审核与监管；一条视频最多关联 1 个在售商品，买家端视频流直接挂商品卡下单</p>
+    </div>
+    <button class="btn btn-primary" onclick="openEdit('new')"><i class="fas fa-plus mr-1"></i>新增视频（平台代发）</button>
+  </div>
+
+  <!-- 统计卡（4） -->
+  <div class="grid grid-cols-4 gap-3 mb-4">
+    <div class="stat-card bg-white rounded-xl border border-gray-100 p-3.5">
+      <p class="text-[11px] text-gray-400">已上架</p>
+      <p class="text-xl font-bold text-green-600 mt-1" id="st-on">—</p>
+    </div>
+    <div class="stat-card bg-white rounded-xl border border-gray-100 p-3.5">
+      <p class="text-[11px] text-gray-400">待审核</p>
+      <p class="text-xl font-bold text-amber-500 mt-1" id="st-wait">—</p>
+    </div>
+    <div class="stat-card bg-white rounded-xl border border-gray-100 p-3.5">
+      <p class="text-[11px] text-gray-400">待处理（关联商品失效）</p>
+      <p class="text-xl font-bold text-red-500 mt-1" id="st-bad">—</p>
+    </div>
+    <div class="stat-card bg-white rounded-xl border border-gray-100 p-3.5">
+      <p class="text-[11px] text-gray-400">精选视频</p>
+      <p class="text-xl font-bold text-[#7C3AED] mt-1" id="st-pick">—</p>
+    </div>
+  </div>
+
+  <!-- 筛选 -->
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+    <div class="flex items-center gap-3 flex-wrap mb-3">
+      <div class="relative">
+        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[11px]"></i>
+        <input id="f-kw" type="text" placeholder="视频标题 / 商品名 / 店铺名" class="w-60 pl-8 pr-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary">
+      </div>
+      <select id="f-shop" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部店铺</option>
+      </select>
+      <select id="f-source" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">全部来源</option><option>商户上传</option><option>平台代发</option>
+      </select>
+      <select id="f-pick" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
+        <option value="">精选 / 全部</option><option value="1">仅精选</option><option value="0">非精选</option>
+      </select>
+      <button class="btn btn-primary" onclick="doSearch()">查询</button>
+      <button class="btn btn-ghost" onclick="resetSearch()">重置</button>
+    </div>
+    <div class="flex items-center gap-1.5 flex-wrap" id="tabs"></div>
+  </div>
+
+  <!-- 列表 -->
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <table class="w-full text-[13px]">
+      <thead>
+        <tr class="bg-gray-50 text-gray-500 text-[12px]">
+          <th class="px-4 py-3 text-left font-medium">视频</th>
+          <th class="px-4 py-3 text-left font-medium">归属店铺</th>
+          <th class="px-4 py-3 text-left font-medium">关联商品（1 个）</th>
+          <th class="px-4 py-3 text-left font-medium">品类<span class="text-[10px] text-gray-400 font-normal">（随商品）</span></th>
+          <th class="px-4 py-3 text-left font-medium">精选</th>
+          <th class="px-4 py-3 text-left font-medium">播放 / 收藏 / 点赞 / 分享</th>
+          <th class="px-4 py-3 text-left font-medium">状态</th>
+          <th class="px-4 py-3 text-left font-medium">发布时间</th>
+          <th class="px-4 py-3 text-center font-medium">操作</th>
+        </tr>
+      </thead>
+      <tbody id="tb" class="divide-y divide-gray-50"></tbody>
+    </table>
+    <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+      <span class="text-[12px] text-gray-400" id="page-info">共 0 条</span>
+      <div class="flex items-center gap-1">
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100" onclick="toast('已是第一页')"><i class="fas fa-chevron-left text-[10px]"></i></button>
+        <button class="w-7 h-7 flex items-center justify-center text-white text-[12px] rounded" style="background:#FF4D2D" onclick="toast('当前为第 1 页')">1</button>
+        <button class="w-7 h-7 flex items-center justify-center text-gray-400 rounded hover:bg-gray-100" onclick="toast('原型演示：单页展示全部数据')"><i class="fas fa-chevron-right text-[10px]"></i></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="mask" class="mask" onclick="closeAll()"></div>
+
+<!-- 编辑 / 审核 抽屉 -->
+<div id="drawer" class="drawer">
+  <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+    <h3 class="text-[15px] font-bold text-[#1F2430]" id="drawer-title">编辑视频</h3>
+    <button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button>
+  </div>
+  <div class="flex-1 overflow-y-auto px-5 py-4" id="drawer-body"></div>
+  <div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2" id="drawer-foot"></div>
+</div>
+
+<!-- 预览抽屉（复刻买家端竖屏流） -->
+<div id="pv" class="drawer pv">
+  <div class="flex items-center justify-between px-5 py-4 border-b" style="border-color:rgba(255,255,255,.1)">
+    <div>
+      <h3 class="text-[14px] font-bold text-white">买家端效果预览</h3>
+      <p class="text-[11px] mt-0.5" style="color:#94A3B8">沉浸式播放流 · 商品卡可点击</p>
+    </div>
+    <button class="text-gray-400 hover:text-white" onclick="closeAll()"><i class="fas fa-xmark"></i></button>
+  </div>
+  <div class="pv-stage"><div class="pv-phone" id="pv-phone"></div></div>
+</div>
+
+<!-- 商品选择弹层 -->
+<div id="gmodal" class="gmodal" onclick="closeGoods(event)"></div>
+
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[70]"></div>
+
+<script>
+/* ============================================================
+   视频看货管理（10 商城运营 · 商品管理）
+   2026-11-04 三点裁决：
+   ① 视频品类 = 关联商品的品类，页面只读（不单独维护品类字典）
+   ② 一条视频最多关联 1 个商品（0 个 = 纯内容，仅平台代发可）
+   ③ 上传入口：后台（本页）+ 商户端 App（shanghu-APP 待办 #49），同一份数据
+   ============================================================ */
+
+/* 店铺（与 10 商城运营 · 店铺列表同源）
+   CLOSED_SHOPS = 店铺列表中状态为「已关闭」的店铺：其视频由系统自动下架（不是运营手工操作），留原因备查 */
+var SHOPS=['大唐袜业城官方旗舰店','丹吉娅品牌专营店','步人堂智能袜机店','花间舞时尚女袜馆','棉田有机纱线原料铺','宝娜斯丝袜体验店'];
+var CLOSED_SHOPS=['棉田有机纱线原料铺'];
+function shopClosed(n){return CLOSED_SHOPS.indexOf(n)>-1;}
+
+/* 商城商品库（外采 igshop 商品；品类由商品自带，视频页不另建字典） */
+var GOODS=[
+  {id:'SP-1001',name:'精梳棉商务男袜 透气防臭 中筒袜 10双装',price:'3.50',unit:'双',spec:'黑/藏青/深灰 · 39-44 · 100双起批',cat:'男袜',shop:'大唐袜业城官方旗舰店',state:'在售'},
+  {id:'SP-1002',name:'100%精梳棉抗菌中筒袜（银离子）',price:'4.20',unit:'双',spec:'白/浅灰 · 39-44 · 200双起批',cat:'男袜',shop:'大唐袜业城官方旗舰店',state:'在售'},
+  {id:'SP-1003',name:'女士纯棉薄款船袜 5双装',price:'2.60',unit:'双',spec:'肤色/黑/白 · 35-40 · 100双起批',cat:'女袜',shop:'大唐袜业城官方旗舰店',state:'在售'},
+  {id:'SP-1004',name:'提花复古格纹中筒袜（女款）',price:'3.20',unit:'双',spec:'4色可选 · 35-40 · 100双起批',cat:'女袜',shop:'花间舞时尚女袜馆',state:'在售'},
+  {id:'SP-1005',name:'32支精梳棉纱（针织用）',price:'21.80',unit:'公斤',spec:'本白 · 25kg/包 · 1吨起批',cat:'纱线',shop:'棉田有机纱线原料铺',state:'在售'},
+  {id:'SP-1006',name:'婴儿A类纯棉无骨缝袜（0-3岁）',price:'2.80',unit:'双',spec:'粉/黄/蓝 · 5码 · 50双起批',cat:'童袜',shop:'丹吉娅品牌专营店',state:'在售'},
+  {id:'SP-1007',name:'专业跑步毛巾底运动袜（减震加压）',price:'5.60',unit:'双',spec:'黑/白 · 39-45 · 100双起批',cat:'运动袜',shop:'丹吉娅品牌专营店',state:'在售'},
+  {id:'SP-1008',name:'168针电脑提花袜机（二手九成新）',price:'3.60',unit:'万元',spec:'单针筒 · 3.5寸 · 含安装调试',cat:'袜机',shop:'步人堂智能袜机店',state:'在售'},
+  {id:'SP-1009',name:'氨纶包覆纱 4075（袜用）',price:'28.50',unit:'公斤',spec:'白/黑 · 20kg/箱 · 500kg起批',cat:'纱线',shop:'棉田有机纱线原料铺',state:'已下架'},
+  {id:'SP-1010',name:'加厚毛圈保暖袜（秋冬款）',price:'4.80',unit:'双',spec:'5色 · 均码 · 100双起批',cat:'保暖袜',shop:'宝娜斯丝袜体验店',state:'在售'},
+  {id:'SP-1011',name:'棉袜礼盒装（5双装）',price:'6.50',unit:'盒',spec:'3色 · 均码 · 50盒起批',cat:'棉袜',shop:'宝娜斯丝袜体验店',state:'已下架'}
+];
+function goodsOf(id){return GOODS.filter(function(g){return g.id===id;})[0]||null;}
+
+var COVERS={a:'linear-gradient(135deg,#FF8A4C,#FF4D2D)',b:'linear-gradient(135deg,#38BDF8,#3B82F6)',c:'linear-gradient(135deg,#FB7185,#EC4899)',d:'linear-gradient(135deg,#34D399,#10B981)',e:'linear-gradient(135deg,#A78BFA,#7C3AED)',f:'linear-gradient(135deg,#FBBF24,#F59E0B)'};
+
+/* 视频数据：状态 = 草稿 / 待审核 / 已上架 / 已驳回 / 已下架；商品失效是标记，不是状态 */
+var VIDEOS=[
+  {id:'VD-0009',title:'防臭透气商务男袜工厂直供',desc:'车间实拍：精梳棉+银离子抗菌，10双装现货，支持代发贴牌',dur:'00:32',shop:'大唐袜业城官方旗舰店',source:'商户上传',goodsId:'SP-1001',pick:true,state:'已上架',date:'2026-11-02 09:18',submitBy:'商户（大唐袜业城官方旗舰店）',submitAt:'2026-11-02 09:10',auditBy:'admin',auditAt:'2026-11-02 09:18',plays:23400,likes:2340,favs:1860,shares:342,cover:'a'},
+  {id:'VD-0008',title:'女士薄款船袜生产全过程',desc:'精梳棉 + 氨纶包覆纱，不掉跟不起球，5双装可代发',dur:'01:15',shop:'大唐袜业城官方旗舰店',source:'商户上传',goodsId:'SP-1003',pick:true,state:'已上架',date:'2026-11-01 16:40',submitBy:'商户（大唐袜业城官方旗舰店）',submitAt:'2026-11-01 16:32',auditBy:'admin',auditAt:'2026-11-01 16:40',plays:18200,likes:1820,favs:1420,shares:268,cover:'c'},
+  {id:'VD-0007',title:'氨纶包覆纱拉伸测试',desc:'包覆均匀不起毛，弹性回复率 95% 以上',dur:'00:41',shop:'棉田有机纱线原料铺',source:'商户上传',goodsId:'SP-1009',pick:false,state:'已上架',date:'2026-10-31 11:05',submitBy:'商户（棉田有机纱线原料铺）',submitAt:'2026-10-31 10:58',auditBy:'admin',auditAt:'2026-10-31 11:05',plays:5200,likes:498,favs:390,shares:36,cover:'f'},
+  {id:'VD-0006',title:'婴儿袜A类标准车间实拍',desc:'A类婴幼儿标准，无骨缝工艺，可来样定制图案',dur:'00:55',shop:'丹吉娅品牌专营店',source:'商户上传',goodsId:'SP-1006',pick:false,state:'待审核',date:'2026-11-03 10:22',submitBy:'商户（丹吉娅品牌专营店）',submitAt:'2026-11-03 10:22',plays:0,likes:0,favs:0,shares:0,cover:'d'},
+  {id:'VD-0005',title:'走进大唐袜业城 · 8 层市场实景',desc:'2600+ 档口，买菜顺便看厂，线上直接对接档口老板',dur:'02:30',shop:'大唐袜业城官方旗舰店',source:'平台代发',goodsId:'SP-1002',pick:false,state:'待审核',date:'2026-11-03 09:10',submitBy:'运营（admin，平台代发）',submitAt:'2026-11-03 09:10',plays:0,likes:0,favs:0,shares:0,cover:'e'},
+  {id:'VD-0004',title:'提花袜工艺展示（含报价）',desc:'电脑提花机 168 针，单双独立配色；有意向加微信详聊报价',dur:'00:38',shop:'花间舞时尚女袜馆',source:'商户上传',goodsId:'SP-1004',pick:false,state:'已驳回',date:'2026-11-02 15:33',submitBy:'商户（花间舞时尚女袜馆）',submitAt:'2026-11-02 15:20',auditBy:'admin',auditAt:'2026-11-02 15:33',reject:'视频内含外部联系方式（微信），请移除后重新提交',plays:0,likes:0,favs:0,shares:0,cover:'b'},
+  {id:'VD-0003',title:'运动袜压力测试全过程',desc:'5万次耐磨 + 300% 拉伸测试，毛巾底减震结构',dur:'01:45',shop:'丹吉娅品牌专营店',source:'商户上传',goodsId:'SP-1007',pick:false,state:'已下架',date:'2026-10-28 14:12',submitBy:'商户（丹吉娅品牌专营店）',submitAt:'2026-10-28 11:30',auditBy:'admin',auditAt:'2026-10-28 14:12',offBy:'admin',offAt:'2026-11-01 10:05',offReason:'运营强制下架：视频画面含未授权品牌 LOGO',plays:12600,likes:1260,favs:940,shares:154,cover:'b'},
+  {id:'VD-0002',title:'袜机车间 24 小时运转（草稿）',desc:'168 针电脑袜机 60 台，日产 3 万双，可代工',dur:'01:52',shop:'步人堂智能袜机店',source:'商户上传',goodsId:'SP-1008',pick:false,state:'草稿',date:'—',submitBy:'商户（步人堂智能袜机店）',plays:0,likes:0,favs:0,shares:0,cover:'e'},
+  {id:'VD-0001',title:'袜业工厂全景巡礼',desc:'从棉纱进厂到成品出库，一条视频看懂大唐袜业产业链',dur:'03:20',shop:'大唐袜业城官方旗舰店',source:'平台代发',goodsId:null,pick:false,state:'已上架',date:'2026-10-26 10:00',submitBy:'运营（admin，平台代发）',submitAt:'2026-10-26 09:50',auditBy:'admin',auditAt:'2026-10-26 10:00',plays:45200,likes:4520,favs:3240,shares:886,cover:'d'},
+  /* 关联商品已下架（SP-1011）→ 已上架但打「待处理」标记，买家端商品卡置灰 */
+  {id:'VD-0010',title:'棉袜礼盒装开箱（中秋款）',desc:'5 双装礼盒，3 色可选，50 盒起批可代发',dur:'00:44',shop:'宝娜斯丝袜体验店',source:'商户上传',goodsId:'SP-1011',pick:false,state:'已上架',date:'2026-10-30 15:20',submitBy:'商户（宝娜斯丝袜体验店）',submitAt:'2026-10-30 15:10',auditBy:'admin',auditAt:'2026-10-30 15:20',plays:3100,likes:260,favs:190,shares:22,cover:'c'}
+];
+
+var curTab='全部',curId=null,editId=null,pickGoodsId=null,pickGoodsShop='',pvList=[],pvIdx=0;
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},2200);}
+function catOf(v){var g=v.goodsId?goodsOf(v.goodsId):null;return g?g.cat:'—';}
+function goodsInvalid(v){var g=v.goodsId?goodsOf(v.goodsId):null;return !!(g&&g.state!=='在售');}
+function pending(v){return v.state==='已上架'&&goodsInvalid(v);}
+function fmt(n){return n>=10000?(n/10000).toFixed(1)+'万':n;}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+var STATE_STYLE={
+  '草稿':'background:#F1F5F9;color:#64748B',
+  '待审核':'background:#FEF3C7;color:#B45309',
+  '已上架':'background:#DCFCE7;color:#15803D',
+  '已驳回':'background:#FEE2E2;color:#B91C1C',
+  '已下架':'background:#F1F5F9;color:#94A3B8'
+};
+function stateTag(s){return '<span class="status-badge" style="'+STATE_STYLE[s]+'">'+s+'</span>';}
+
+function tabs(){
+  var all=VIDEOS.length,wait=VIDEOS.filter(function(v){return v.state==='待审核';}).length,
+      bad=VIDEOS.filter(pending).length,on=VIDEOS.filter(function(v){return v.state==='已上架';}).length,
+      rej=VIDEOS.filter(function(v){return v.state==='已驳回';}).length,
+      off=VIDEOS.filter(function(v){return v.state==='已下架';}).length;
+  return [['全部',all],['待审核',wait],['待处理',bad],['已上架',on],['已驳回',rej],['已下架',off]];
+}
+function renderTabs(){
+  document.getElementById('tabs').innerHTML=tabs().map(function(t){
+    var on=curTab===t[0]?' on':'';
+    var red=(t[0]==='待处理'&&t[1]>0)?' style="color:#B91C1C"':'';
+    return '<span class="stab'+on+'"'+red+' onclick="pickTab(\''+t[0]+'\')">'+t[0]+' <span class="text-[11px] opacity-70">'+t[1]+'</span></span>';
+  }).join('');
+}
+function pickTab(t){curTab=t;render();}
+
+function filtered(){
+  var kw=document.getElementById('f-kw').value.trim().toLowerCase();
+  var shop=document.getElementById('f-shop').value,src=document.getElementById('f-source').value,pk=document.getElementById('f-pick').value;
+  return VIDEOS.filter(function(v){
+    var g=v.goodsId?goodsOf(v.goodsId):null;
+    var okTab=curTab==='全部'||(curTab==='待处理'?pending(v):v.state===curTab);
+    var okKw=!kw||v.title.toLowerCase().indexOf(kw)>-1||v.shop.toLowerCase().indexOf(kw)>-1||(g&&g.name.toLowerCase().indexOf(kw)>-1);
+    var okShop=!shop||v.shop===shop;
+    var okSrc=!src||v.source===src;
+    var okPick=pk===''||(pk==='1'?!!v.pick:!v.pick);
+    return okTab&&okKw&&okShop&&okSrc&&okPick;
+  });
+}
+
+function goodsCell(v){
+  if(!v.goodsId)return '<span class="status-badge" style="background:#F1F5F9;color:#94A3B8">纯内容（未关联商品）</span><div class="text-[10px] text-gray-400 mt-0.5">买家端显示兜底卡</div>';
+  var g=goodsOf(v.goodsId);
+  if(!g)return '<span class="status-badge" style="background:#FEE2E2;color:#B91C1C">商品已删除</span>';
+  var bad=g.state!=='在售';
+  return '<div class="text-[12px] font-medium '+(bad?'text-gray-400 line-through':'text-gray-700')+'">'+esc(g.name)+'</div>'
+    +'<div class="text-[10px] mt-0.5 '+(bad?'text-red-500':'text-gray-400')+'">¥'+g.price+'/'+g.unit+' · '+esc(g.spec)+(bad?' · <b>商品已下架，需换品</b>':'')+'</div>';
+}
+
+/* 状态单元格：状态 + 异常/原因 + 审核留痕（避免"下架了不知道为什么""谁审的查不到"） */
+function stateCell(v){
+  var h=stateTag(v.state);
+  if(pending(v))h+='<div class="text-[10px] mt-0.5" style="color:#B91C1C">待处理：关联商品已失效</div>';
+  else if(v.state==='已驳回')h+='<div class="text-[10px] mt-0.5 text-red-500 max-w-[150px] truncate" title="'+esc(v.reject||'')+'">驳回：'+esc(v.reject||'')+'</div>';
+  else if(v.state==='已下架'&&v.offReason)h+='<div class="text-[10px] mt-0.5 text-gray-400 max-w-[160px] truncate" title="'+esc(v.offReason)+'">'+esc(v.offReason)+'</div>';
+  if(v.state==='已上架'&&v.auditBy)h+='<div class="text-[10px] text-gray-300 mt-0.5">审核 '+esc(v.auditBy)+' · '+v.auditAt+'</div>';
+  return h;
+}
+
+function render(){
+  var rows=filtered(),h='';
+  rows.forEach(function(v){
+    var bad=goodsInvalid(v),pend=pending(v);
+    h+='<tr class="hover:bg-gray-50 transition'+(pend?' bg-red-50/40':'')+'">'
+      +'<td class="px-4 py-3"><div class="flex items-center gap-2"><div class="cover" style="background:'+COVERS[v.cover]+'"><i class="fas fa-play text-[11px] opacity-80"></i><span class="dur">'+v.dur+'</span></div>'
+        +'<div><div class="font-medium text-gray-800 max-w-[210px] truncate">'+esc(v.title)+'</div><div class="text-[10px] text-gray-400 mt-0.5">'+v.id+' · '+v.dur+'</div></div></div></td>'
+      +'<td class="px-4 py-3 text-gray-600">'+esc(v.shop)+'<div class="text-[10px] mt-0.5" style="color:'+(v.source==='平台代发'?'#7C3AED':'#64748B')+'">'+v.source+'</div></td>'
+      +'<td class="px-4 py-3">'+goodsCell(v)+'</td>'
+      +'<td class="px-4 py-3"><span class="status-badge" style="background:'+(catOf(v)==='—'?'#F1F5F9;color:#94A3B8':'#EFF6FF;color:#2563EB')+'">'+catOf(v)+'</span></td>'
+      +'<td class="px-4 py-3">'+(v.pick?'<span class="status-badge" style="background:#F3E8FF;color:#7C3AED"><i class="fas fa-star text-[9px]"></i>精选</span>':'<span class="text-[11px] text-gray-300">—</span>')+'</td>'
+      +'<td class="px-4 py-3 text-[12px] text-gray-500">'+fmt(v.plays)+' / '+fmt(v.favs)+' / '+fmt(v.likes)+' / '+fmt(v.shares)+'</td>'
+      +'<td class="px-4 py-3">'+stateCell(v)+'</td>'
+      +'<td class="px-4 py-3 text-[12px] text-gray-400">'+v.date+'</td>'
+      +'<td class="px-4 py-3 text-center whitespace-nowrap">'+ops(v)+'</td></tr>';
+  });
+  if(!rows.length){h='<tr><td colspan="9" class="px-4 py-16 text-center text-gray-300"><i class="fas fa-inbox text-3xl block mb-2"></i><span class="text-[12px]">暂无数据</span></td></tr>';}
+  document.getElementById('tb').innerHTML=h;
+  document.getElementById('page-info').textContent='共 '+rows.length+' 条记录';
+  document.getElementById('st-on').textContent=VIDEOS.filter(function(v){return v.state==='已上架';}).length;
+  document.getElementById('st-wait').textContent=VIDEOS.filter(function(v){return v.state==='待审核';}).length;
+  document.getElementById('st-bad').textContent=VIDEOS.filter(pending).length;
+  document.getElementById('st-pick').textContent=VIDEOS.filter(function(v){return v.pick;}).length;
+  renderTabs();
+}
+function ops(v){
+  var a='<span class="lk" onclick="openPreview(\''+v.id+'\')">预览</span>';
+  if(v.state==='待审核')return a+' · <span class="lk" onclick="openReview(\''+v.id+'\')">审核</span>';
+  if(v.state==='已上架'){
+    a+=' · <span class="lk-gray" onclick="openEdit(\''+v.id+'\')">编辑</span>';
+    a+=' · <span class="lk-gray" onclick="togglePick(\''+v.id+'\')">'+(v.pick?'取消精选':'设为精选')+'</span>';
+    if(goodsInvalid(v))a+=' · <span class="lk" onclick="openEdit(\''+v.id+'\',1)">换品</span>';
+    a+=' · <span class="lk-gray" onclick="offShelf(\''+v.id+'\')">强制下架</span>';
+    return a;
+  }
+  if(v.state==='已驳回')return a+' · <span class="lk" onclick="openEdit(\''+v.id+'\')">编辑重提</span>';
+  if(v.state==='已下架')return a+' · <span class="lk" onclick="onShelf(\''+v.id+'\')">重新上架</span> · <span class="lk-gray" onclick="openEdit(\''+v.id+'\')">编辑</span>';
+  /* 草稿 */
+  return a+' · <span class="lk" onclick="openEdit(\''+v.id+'\')">编辑</span> · <span class="lk-gray" onclick="submitDraft(\''+v.id+'\')">提交审核</span> · <span class="lk-gray" onclick="delVideo(\''+v.id+'\')">删除</span>';
+}
+
+function doSearch(){render();}
+function resetSearch(){
+  document.getElementById('f-kw').value='';document.getElementById('f-shop').value='';
+  document.getElementById('f-source').value='';document.getElementById('f-pick').value='';
+  curTab='全部';render();
+}
+(function initShopFilter(){
+  var sel=document.getElementById('f-shop');
+  SHOPS.forEach(function(s){var o=document.createElement('option');o.value=s;o.textContent=s;sel.appendChild(o);});
+})();
+
+/* ===== 操作 ===== */
+function togglePick(id){
+  var v=VIDEOS.filter(function(x){return x.id===id;})[0];if(!v)return;
+  if(v.state!=='已上架'){toast('仅「已上架」视频可设精选');return;}
+  v.pick=!v.pick;
+  toast(v.pick?'已设为精选：买家端综合分 +5000，排序前移':'已取消精选');
+  render();
+}
+function offShelf(id){
+  var v=VIDEOS.filter(function(x){return x.id===id;})[0];if(!v)return;
+  v.state='已下架';v.offReason='运营强制下架';v.pick=false;
+  v.offBy='admin';v.offAt='2026-11-04 11:05';
+  toast('已强制下架，买家端立即不可见');
+  render();
+}
+function onShelf(id){
+  var v=VIDEOS.filter(function(x){return x.id===id;})[0];if(!v)return;
+  if(shopClosed(v.shop)){toast('店铺已关闭，不能重新上架');return;}
+  if(v.goodsId&&goodsInvalid(v)){toast('关联商品已下架，请先换品再上架');return;}
+  v.state='已上架';v.offReason='';v.offBy='';v.offAt='';
+  toast('已重新上架');
+  render();
+}
+function submitDraft(id){
+  var v=VIDEOS.filter(function(x){return x.id===id;})[0];if(!v)return;
+  if(v.source==='商户上传'&&!v.goodsId){toast('商户上传的视频必须关联 1 个本店在售商品');return;}
+  v.state='待审核';v.date='2026-11-04 10:30';
+  toast('已提交审核，待平台审核通过后上架');
+  render();
+}
+function delVideo(id){
+  var v=VIDEOS.filter(function(x){return x.id===id;})[0];if(!v)return;
+  if(v.state!=='草稿'){toast('仅草稿可删除；已上架请用「强制下架」');return;}
+  if(!confirm('删除后不可恢复（视频文件与记录一并删除），确认删除草稿「'+v.title+'」？'))return;
+  VIDEOS.splice(VIDEOS.indexOf(v),1);
+  toast('草稿已删除');
+  render();
+}
+
+/* ===== 预览（买家端竖屏流） ===== */
+function openPreview(id){
+  pvList=filtered().length?filtered():VIDEOS.slice();
+  pvIdx=Math.max(0,pvList.findIndex(function(v){return v.id===id;}));
+  drawPreview();
+  document.getElementById('mask').classList.add('on');
+  document.getElementById('pv').classList.add('on');
+}
+function pvStep(d){
+  pvIdx=Math.min(pvList.length-1,Math.max(0,pvIdx+d));drawPreview();
+}
+function drawPreview(){
+  var v=pvList[pvIdx];if(!v)return;
+  var g=v.goodsId?goodsOf(v.goodsId):null;
+  var bad=g&&g.state!=='在售';
+  var goodsHtml;
+  if(g){
+    goodsHtml='<div class="pv-goods" onclick="toast(\''+(bad?'商品已下架，买家端不可下单':'预览：跳转商品详情（product-detail.html?from=video）')+'\')">'
+      +'<div class="goods-thumb"'+(bad?' style="opacity:.5"':'')+'><i class="fas fa-image"></i></div>'
+      +'<div style="flex:1;min-width:0">'
+      +'<div class="text-[11px] font-semibold truncate" style="color:#1F2430'+(bad?';text-decoration:line-through':'')+'">'+esc(g.name)+'</div>'
+      +'<div class="text-[10px] mt-0.5" style="color:'+(bad?'#B91C1C':'#E63E20')+'">'+(bad?'商品已下架':'¥'+g.price+'/'+g.unit+' · 去下单')+'</div></div>'
+      +'<i class="fas fa-chevron-right text-[10px]" style="color:#CBD5E1"></i></div>';
+  }else{
+    goodsHtml='<div class="pv-goods" style="background:rgba(255,255,255,.75)" onclick="toast(\'无关联商品：买家端显示兜底卡，跳转对应市场\')">'
+      +'<div class="goods-thumb"><i class="fas fa-store"></i></div>'
+      +'<div class="text-[10px]" style="color:#64748B">该视频未关联商品 · 去逛袜子市场</div></div>';
+  }
+  document.getElementById('pv-phone').innerHTML=
+    '<div style="position:absolute;inset:0;background:'+COVERS[v.cover]+';opacity:.92"></div>'
+    +'<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.35),transparent 30%,transparent 55%,rgba(0,0,0,.65))"></div>'
+    +'<div style="position:absolute;top:12px;left:12px;right:12px;display:flex;align-items:center;justify-content:space-between;color:#fff">'
+      +'<i class="fas fa-chevron-left text-[13px]" onclick="closeAll()"></i>'
+      +'<div class="text-[11px]">推荐 · '+(pvIdx+1)+'/'+pvList.length+'</div>'
+      +'<i class="fas fa-xmark text-[13px]" onclick="closeAll()"></i></div>'
+    +'<div style="position:absolute;top:44%;left:50%;transform:translate(-50%,-50%);width:46px;height:46px;border-radius:50%;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;color:#fff" onclick="toast(\'原型以封面模拟播放\')"><i class="fas fa-play"></i></div>'
+    +'<div class="pv-right">'
+      +'<div><i class="fas fa-heart text-[18px]"></i><div>'+fmt(v.likes)+'</div></div>'
+      +'<div><i class="fas fa-star text-[18px]"></i><div>'+fmt(v.favs)+'</div></div>'
+      +'<div><i class="fas fa-share text-[18px]"></i><div>'+fmt(v.shares)+'</div></div></div>'
+    +'<div class="pv-left">'
+      +'<div class="text-[12px] font-bold">@'+esc(v.shop)+'</div>'
+      +'<div class="text-[11px] mt-1" style="opacity:.92">'+esc(v.desc)+'</div>'
+      +'<div class="text-[10px] mt-1" style="opacity:.7"><i class="fas fa-music mr-1"></i>原声 · '+v.dur+'</div>'
+      +goodsHtml+'</div>'
+    +'<div style="position:absolute;right:0;top:30%;bottom:30%;width:40%" onclick="pvStep(1)" title="查看下一条"></div>';
+}
+
+/* ===== 审核 ===== */
+function openReview(id){
+  curId=id;
+  var v=VIDEOS.filter(function(x){return x.id===id;})[0];if(!v)return;
+  var g=v.goodsId?goodsOf(v.goodsId):null;
+  document.getElementById('drawer-title').textContent='视频审核';
+  document.getElementById('drawer-body').innerHTML=
+    '<div class="flex gap-3 mb-4">'
+      +'<div class="cover" style="background:'+COVERS[v.cover]+';width:88px;height:56px"><i class="fas fa-play"></i><span class="dur">'+v.dur+'</span></div>'
+      +'<div class="flex-1 min-w-0"><div class="text-[13px] font-bold text-[#1F2430]">'+esc(v.title)+'</div>'
+      +'<div class="text-[11px] text-gray-400 mt-1">'+esc(v.shop)+' · '+v.source+' · 品类 '+catOf(v)+'</div></div></div>'
+    +'<div class="bg-gray-50 rounded-xl p-4 mb-4">'
+      +'<div class="grid grid-cols-2 gap-y-2.5 text-[12px]">'
+      +'<span class="text-gray-400">视频编号</span><span class="text-gray-700">'+v.id+'</span>'
+      +'<span class="text-gray-400">时长</span><span class="text-gray-700">'+v.dur+'</span>'
+      +'<span class="text-gray-400">提交时间</span><span class="text-gray-700">'+v.date+'</span>'
+      +'</div>'
+      +'<div class="mt-3 pt-3 border-t border-gray-200"><p class="text-[11px] text-gray-400 mb-1">视频描述</p><p class="text-[12px] text-gray-700">'+esc(v.desc)+'</p></div>'
+      +'<div class="mt-3 pt-3 border-t border-gray-200"><p class="text-[11px] text-gray-400 mb-1">关联商品（1 个）</p>'
+        +(g?'<div class="flex items-center gap-2"><div class="goods-thumb"><i class="fas fa-image"></i></div><div><div class="text-[12px] text-gray-700">'+esc(g.name)+'</div><div class="text-[10px] text-gray-400 mt-0.5">¥'+g.price+'/'+g.unit+' · '+esc(g.spec)+' · '+(g.state==='在售'?'<span style="color:#15803D">在售</span>':'<span style="color:#B91C1C">已下架</span>')+'</div></div></div>'
+          :'<span class="status-badge" style="background:#F1F5F9;color:#94A3B8">纯内容（未关联商品，买家端走兜底卡）</span>')
+      +'</div></div>'
+    +'<div class="rounded-xl border p-3 mb-4" style="border-color:#FDE68A;background:#FFFBEB">'
+      +'<p class="text-[11.5px]" style="color:#B45309"><i class="fas fa-triangle-exclamation mr-1"></i>审核要点：是否含外部联系方式 / 未授权品牌 LOGO / 违规话术；商品与视频内容是否一致；商户上传必须已关联本店在售商品</p></div>'
+    +'<label class="fl">审核意见（驳回必填，将展示给商户）</label>'
+    +'<textarea id="r-note" rows="4" class="w-full px-3 py-2 text-[12px] border border-gray-200 rounded-lg outline-none focus:border-primary" placeholder="如：视频内含外部联系方式，请移除后重新提交"></textarea>';
+  document.getElementById('drawer-foot').innerHTML=
+    '<button class="btn btn-ghost" onclick="review(0)">驳回</button>'
+    +'<button class="btn btn-primary" onclick="review(1)">审核通过并上架</button>';
+  document.getElementById('mask').classList.add('on');
+  document.getElementById('drawer').classList.add('on');
+}
+function review(pass){
+  var v=VIDEOS.filter(function(x){return x.id===curId;})[0];if(!v)return;
+  var note=document.getElementById('r-note').value.trim();
+  if(!pass&&!note){toast('驳回需填写审核意见');return;}
+  if(pass){
+    if(v.goodsId&&goodsInvalid(v)){toast('关联商品已下架，请先让商户换品或驳回');return;}
+    v.state='已上架';v.date='2026-11-04 11:00';
+    v.auditBy='admin';v.auditAt='2026-11-04 11:00';v.reject='';
+    toast('已通过并上架，买家端可见');
+  }else{
+    v.state='已驳回';v.reject=note;
+    v.auditBy='admin';v.auditAt='2026-11-04 11:00';
+    toast('已驳回，原因已回传商户端');
+  }
+  closeAll();render();
+}
+
+/* ===== 编辑 / 新增 ===== */
+function openEdit(id,forGoods){
+  editId=id;
+  var isNew=id==='new';
+  var v=isNew
+    ? {id:'',title:'',desc:'',dur:'00:00',shop:SHOPS[0],source:'平台代发',goodsId:null,pick:false,state:'草稿',date:'—',plays:0,likes:0,favs:0,shares:0,cover:'a'}
+    : VIDEOS.filter(function(x){return x.id===id;})[0];
+  if(!v)return;
+  pickGoodsId=v.goodsId||null;pickGoodsShop=v.shop;
+  document.getElementById('drawer-title').textContent=isNew?'新增视频（平台代发）':'编辑视频 · '+v.id;
+  document.getElementById('drawer-body').innerHTML=
+    '<div class="mb-4"><label class="fl"><i>*</i>视频文件</label>'
+      +'<div class="flex items-center gap-3">'
+      +'<span class="cover" style="background:'+COVERS[v.cover]+';width:96px;height:60px"><i class="fas fa-video"></i><span class="dur">'+v.dur+'</span></span>'
+      +'<div class="flex flex-col gap-1.5">'
+      +'<label class="text-[12px] text-gray-500 border border-dashed border-gray-300 rounded-lg px-3 py-2 hover:border-primary hover:text-primary cursor-pointer w-fit"><i class="fas fa-cloud-arrow-up mr-1"></i>上传 / 替换视频'
+      +'<input type="file" accept="video/*" class="hidden" onchange="pickVideo(this)"></label>'
+      +'<button class="text-[11px] text-gray-500 border border-dashed border-gray-300 rounded-lg px-3 py-1.5 hover:border-primary hover:text-primary w-fit" onclick="pickCover()"><i class="fas fa-image mr-1"></i>更换封面</button>'
+      +'</div></div>'
+      +'<p class="text-[11px] text-gray-400 mt-1.5">mp4 / mov，≤200MB，时长 ≤3 分钟；上传后系统自动转码，<b>转码完成才可提交审核</b>；封面默认取首帧、可自传替换（建议 9:16）；时长自动读取</p></div>'
+    +'<div class="mb-4"><label class="fl"><i>*</i>视频标题</label><input id="e-title" class="fi" maxlength="30" value="'+esc(v.title)+'" placeholder="≤30 字，如：防臭透气商务男袜工厂直供"></div>'
+    +'<div class="mb-4"><label class="fl">视频描述</label><textarea id="e-desc" rows="3" class="fi" maxlength="100" placeholder="≤100 字，买家端展示 2 行">'+esc(v.desc)+'</textarea></div>'
+    +'<div class="mb-4"><label class="fl"><i>*</i>归属店铺</label>'
+      +'<select id="e-shop" class="fi" onchange="onShopChange()">'+SHOPS.map(function(s){var cl=shopClosed(s);return '<option value="'+s+'"'+(s===v.shop?' selected':'')+(cl?' disabled':'')+'>'+s+(cl?'（已关闭，不可选）':'')+'</option>';}).join('')+'</select>'
+      +'<p class="text-[11px] text-gray-400 mt-1.5">商户账号登录时锁定为本店；店铺关闭后其视频由系统自动下架（不删除）</p></div>'
+    +'<div class="mb-4"><label class="fl">关联商品<span class="text-[11px] text-gray-400 font-normal">　一条视频最多 1 个</span></label>'
+      +'<div class="flex items-center gap-2">'
+      +'<input id="e-goods" class="fi flex-1" readonly style="cursor:pointer;background:#F8FAFC" value="'+(pickGoodsId?esc((goodsOf(pickGoodsId)||{}).name||''):'未关联（纯内容）')+'" onclick="openGoods()">'
+      +'<button class="btn btn-ghost" onclick="clearGoods()">清空</button></div>'
+      +'<p class="text-[11px] text-gray-400 mt-1.5" id="e-goods-hint">只列所选店铺的在售商品；商户上传必填，平台代发可不填（纯内容走买家端兜底卡）</p></div>'
+    +'<div class="mb-4"><label class="fl">品类<span class="text-[11px] text-gray-400 font-normal">　随关联商品自动带入，不可单独修改</span></label>'
+      +'<div class="rounded-lg border border-gray-200 px-3 py-2 text-[12px]" style="background:#F8FAFC;color:#64748B" id="e-cat">'+(pickGoodsId?catOf({goodsId:pickGoodsId}):'—（未关联商品，无品类）')+'</div></div>'
+    +recordBlock(v)
+    +(v.state==='已驳回'&&v.reject?'<div class="rounded-xl border p-3 mt-3" style="border-color:#FECACA;background:#FEF2F2"><p class="text-[11.5px]" style="color:#B91C1C"><i class="fas fa-circle-exclamation mr-1"></i>驳回原因：'+esc(v.reject)+'</p></div>':'')
+    +(forGoods?'<div class="rounded-xl border p-3 mt-3" style="border-color:#FDB4A3;background:#FFF6F3"><p class="text-[11.5px]" style="color:#E63E20"><i class="fas fa-arrows-rotate mr-1"></i>换品模式：重新选择在售商品后，视频将回到「待审核」重新过审</p></div>':'');
+  var draftLabel=(isNew||v.state==='草稿')?'保存草稿':'保存修改（需重新审核）';
+  document.getElementById('drawer-foot').innerHTML=
+    '<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-ghost" onclick="saveVideo(0)">'+draftLabel+'</button>'
+    +'<button class="btn btn-primary" onclick="saveVideo(1)">提交审核</button>';
+  document.getElementById('mask').classList.add('on');
+  document.getElementById('drawer').classList.add('on');
+}
+function pickVideo(input){
+  if(!input.files[0])return;
+  toast('视频已选择：'+input.files[0].name+'（原型不实际上传；真实系统需转码完成后才可提交审核）');
+}
+function pickCover(){
+  toast('选择封面图（建议 9:16 竖版）；不选则默认取视频首帧');
+}
+/* 操作记录（提交 / 审核 / 下架）：解决"谁审的、为什么下架查不到" */
+function recordBlock(v){
+  if(!v.submitBy&&!v.auditBy&&!v.offBy)return '';
+  var rows=[];
+  if(v.submitBy){rows.push(['提交人',esc(v.submitBy)]);rows.push(['提交时间',v.submitAt||'—']);}
+  if(v.auditBy){rows.push(['审核人',esc(v.auditBy)]);rows.push(['审核时间',v.auditAt||'—']);}
+  if(v.offBy){rows.push(['下架操作',esc(v.offBy)+' · '+(v.offAt||'—')]);}
+  return '<div class="mt-3 rounded-xl border border-gray-200 p-3"><p class="text-[11px] text-gray-400 mb-1.5">操作记录（只读）</p>'
+    +'<div class="grid grid-cols-2 gap-y-1 text-[11.5px] text-gray-600">'
+    +rows.map(function(r){return '<span class="text-gray-400">'+r[0]+'</span><span>'+r[1]+'</span>';}).join('')
+    +'</div>'+(v.offReason?'<p class="text-[11px] text-gray-500 mt-1.5">下架原因：'+esc(v.offReason)+'</p>':'')+'</div>';
+}
+function onShopChange(){
+  var s=document.getElementById('e-shop').value;
+  pickGoodsShop=s;
+  if(pickGoodsId){
+    var g=goodsOf(pickGoodsId);
+    if(g&&g.shop!==s){pickGoodsId=null;document.getElementById('e-goods').value='未关联（纯内容）';document.getElementById('e-cat').textContent='—（未关联商品，无品类）';toast('归属店铺已变更，原关联商品已清空，请重新选择');}
+  }
+}
+function clearGoods(){
+  pickGoodsId=null;
+  document.getElementById('e-goods').value='未关联（纯内容）';
+  document.getElementById('e-cat').textContent='—（未关联商品，无品类）';
+}
+function openGoods(){
+  var shop=document.getElementById('e-shop').value;
+  pickGoodsShop=shop;
+  var list=GOODS.filter(function(g){return g.shop===shop&&g.state==='在售';});
+  var h='<div class="bg-white rounded-xl w-[520px] max-h-[80vh] overflow-hidden flex flex-col" onclick="stopBubble(event)">'
+    +'<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100"><div><h3 class="text-[14px] font-bold text-[#1F2430]">选择关联商品</h3>'
+    +'<p class="text-[11px] text-gray-400 mt-0.5">'+esc(shop)+' · 只列在售商品（共 '+list.length+' 个）</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeGoods()"><i class="fas fa-xmark"></i></button></div>'
+    +'<div class="flex-1 overflow-y-auto py-2">';
+  if(!list.length){h+='<div class="px-5 py-10 text-center text-[12px] text-gray-400">该店铺暂无在售商品，请先到「商品列表」上架商品</div>';}
+  list.forEach(function(g){
+    h+='<div class="px-5 py-2.5 hover:bg-gray-50 cursor-pointer flex items-center gap-3'+(g.id===pickGoodsId?' bg-orange-50':'')+'" onclick="chooseGoods(\''+g.id+'\')">'
+      +'<div class="goods-thumb"><i class="fas fa-image"></i></div>'
+      +'<div class="flex-1 min-w-0"><div class="text-[12.5px] text-gray-800 truncate">'+esc(g.name)+'</div>'
+      +'<div class="text-[10px] text-gray-400 mt-0.5">'+g.id+' · ¥'+g.price+'/'+g.unit+' · '+esc(g.spec)+' · 品类 '+g.cat+'</div></div>'
+      +(g.id===pickGoodsId?'<i class="fas fa-check text-primary text-[12px]"></i>':'')+'</div>';
+  });
+  h+='</div><div class="px-5 py-3 border-t border-gray-100 flex justify-end"><button class="btn btn-ghost" onclick="closeGoods()">取消</button></div></div>';
+  var m=document.getElementById('gmodal');m.innerHTML=h;m.classList.add('on');
+}
+function chooseGoods(gid){
+  pickGoodsId=gid;
+  var g=goodsOf(gid);
+  document.getElementById('e-goods').value=g.name;
+  document.getElementById('e-cat').textContent=g.cat;
+  closeGoods();
+}
+function closeGoods(e){if(e&&e.target&&e.target.id!=='gmodal')return;document.getElementById('gmodal').classList.remove('on');}
+function stopBubble(e){if(e&&e.stopPropagation)e.stopPropagation();}
+
+function saveVideo(submit){
+  var title=document.getElementById('e-title').value.trim();
+  var desc=document.getElementById('e-desc').value.trim();
+  var shop=document.getElementById('e-shop').value;
+  if(!title){toast('请填写视频标题');return;}
+  var isNew=editId==='new';
+  var v=isNew?null:VIDEOS.filter(function(x){return x.id===editId;})[0];
+  var src=isNew?'平台代发':v.source;
+  if(shopClosed(shop)){toast('该店铺已关闭，不能新增或编辑其视频');return;}
+  if(submit&&src==='商户上传'&&!pickGoodsId){toast('商户上传的视频必须关联 1 个本店在售商品');return;}
+  if(pickGoodsId){
+    var g=goodsOf(pickGoodsId);
+    if(!g||g.state!=='在售'){toast('关联商品不在售，请重新选择');return;}
+    if(g.shop!==shop){toast('关联商品不属于所选店铺，请重新选择');return;}
+  }
+  if(isNew){
+    var n=VIDEOS.length+1;
+    VIDEOS.unshift({id:'VD-'+String(n).padStart(4,'0'),title:title,desc:desc,dur:'00:00',shop:shop,source:'平台代发',goodsId:pickGoodsId,pick:false,
+      state:submit?'待审核':'草稿',date:submit?'2026-11-04 11:20':'—',
+      submitBy:submit?'运营（admin，平台代发）':'',submitAt:submit?'2026-11-04 11:20':'',
+      plays:0,likes:0,favs:0,shares:0,cover:'a'});
+    toast(submit?'已创建并提交审核（来源：平台代发）':'已保存草稿');
+  }else{
+    var wasBad=v.goodsId&&goodsInvalid(v);
+    v.title=title;v.desc=desc;v.shop=shop;v.goodsId=pickGoodsId;
+    if(submit||v.state==='已上架'){
+      /* 已上架视频一旦被修改（含换品），必须重新审核：先下架回待审核，避免未审核内容外露 */
+      var reopen=v.state==='已上架';
+      v.state='待审核';v.date='2026-11-04 11:20';v.pick=false;v.reject='';v.offReason='';v.offBy='';v.offAt='';
+      v.submitBy=v.source==='平台代发'?'运营（admin，平台代发）':('商户（'+v.shop+'）');
+      v.submitAt='2026-11-04 11:20';
+      toast(reopen?'已上架视频修改后需重新审核，已转「待审核」（买家端暂时不可见）':(wasBad&&pickGoodsId?'已换品并重新提交审核':'已提交审核，待平台审核'));
+    }else{
+      toast('已保存草稿');
+    }
+  }
+  closeAll();render();
+}
+
+function closeAll(){
+  document.getElementById('mask').classList.remove('on');
+  document.getElementById('drawer').classList.remove('on');
+  document.getElementById('pv').classList.remove('on');
+  closeGoods();
+}
+
+/* 店铺关闭联动：店铺列表里状态为「已关闭」的店铺，其视频由系统自动下架（不删除、留原因）
+   恢复路径：店铺重新开启后，由运营逐条「重新上架」（需复审） */
+(function closedShopOffShelf(){
+  var hit=[];
+  VIDEOS.forEach(function(v){
+    if(shopClosed(v.shop)&&v.state==='已上架'){
+      v.state='已下架';v.pick=false;
+      v.offReason='店铺已关闭，系统自动下架';
+      v.offBy='系统';v.offAt='2026-11-04 08:00';
+      hit.push(v.id);
+    }
+  });
+  window.__closedHit=hit.length;
+})();
+
+render();
+if(window.__closedHit){
+  setTimeout(function(){toast(window.__closedHit+' 条视频因所属店铺已关闭，已自动下架（恢复需店铺重新开启并逐条复审上架）');},700);
+}
+</script>
+
+<!-- 页面说明挂载器：说明内容在 prd/10b-商城运营/07-视频看货管理.md，删掉本行即完全还原 -->
+<script src="page-prd.js"></script>
+</body>
+</html>

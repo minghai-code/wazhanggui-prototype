@@ -34,6 +34,7 @@
     'yunying-PC/merchant-auto.html':      ['04-商户管理/01-线下自动建档与同步', '', '线下自动建档与同步'],
     'yunying-PC/merchant-change.html':    ['04-商户管理/02-资料变更审核', '', '资料变更审核'],
     'yunying-PC/merchant-profile.html':   ['04-商户管理/03-商户档案', '', '商户档案'],
+    'yunying-PC/merchant-category.html':  ['04-商户管理/05-品类字典', '', '品类字典'],
     'yunying-PC/merchant-rating.html':    ['04-商户管理/04-信用评级', '', '信用评级'],
     'yunying-PC/merchant-qual.html':      ['04-商户管理/05-资质与到期管理', '', '资质与到期管理'],
     'yunying-PC/merchant-exit.html':      ['04-商户管理/06-清退商户', '', '清退商户'],
@@ -71,11 +72,10 @@
     'yunying-PC/property-repair.html':     ['07-物业服务/01-报修工单', '', '报修工单'],
     'yunying-PC/property-request.html':    ['07-物业服务/02-交办单与核销', '', '交办单与核销'],
     'yunying-PC/property-budget.html':     ['07-物业服务/03-维修资金台账', '', '维修资金台账'],
-    'yunying-PC/property-inspect.html':    ['07-物业服务/04-巡检管理', '', '巡检管理'],
     'yunying-PC/property-issue.html':      ['07-物业服务/05-问题上报', '', '问题上报'],
-    'yunying-PC/property-rectify.html':    ['07-物业服务/06-整改管理', '', '整改管理'],
     'yunying-PC/property-complaint.html':  ['07-物业服务/07-投诉建议', '', '投诉建议'],
     'yunying-PC/property-material.html':   ['07-物业服务/08-物资与供应商库', '', '物资与供应商库'],
+    'yunying-PC/property-staff.html':      ['07-物业服务/09-物业人员', '', '物业人员'],
     'yunying-PC/mall-inquiry.html':       ['10a-采购询价/01-采购询价需求管理', '', '采购询价需求管理'],
     'yunying-PC/mall-order-inquiry.html': ['10a-采购询价/02-采购询价订单', '', '采购询价订单'],
     'yunying-PC/mall-custom-demand.html': ['10b-商城运营/01-个性定制需求管理', '', '个性定制需求管理'],
@@ -84,6 +84,7 @@
     'yunying-PC/mall-order-sample.html':  ['10b-商城运营/03-样品打样订单', '', '样品打样订单'],
     'yunying-PC/mall-order-custom.html':  ['10b-商城运营/04-定制订单', '', '定制订单'],
     'yunying-PC/mall-recommend.html':     ['10b-商城运营/05-推荐位管理', '', '推荐位管理'],
+    'yunying-PC/mall-video.html':         ['10b-商城运营/07-视频看货管理', '', '视频看货管理'],
 
     /* ===== 移动端 · 功能族（值指向 _views/ 下的单页视图，不是族文档） ===== */
     'mai-APP/home.html':              ['_views/F01-首页与导航-p1', '', '首页'],

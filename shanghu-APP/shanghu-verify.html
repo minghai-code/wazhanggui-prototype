@@ -41,8 +41,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <p class="relative text-white/80 text-[11px]"><i class="fas fa-shield-halved"></i> 认证通过后方可查看供需详情、参与询价（招标 #10）</p>
 </div>
 
+<!-- ============ 认证状态 / 主体类型（供买家端与产业链服务判断，待办 #38） ============ -->
+<div class="px-3 -mt-3 relative z-10 mb-2" id="yzMeta"></div>
+
 <!-- ============ 状态一：未认证（表单） ============ -->
-<div id="st-none" class="px-3 -mt-3 relative z-10 pb-8">
+<div id="st-none" class="px-3 mt-3 relative z-10 pb-8">
   <div class="rounded-2xl px-3.5 py-2.5 flex items-center gap-2 shadow-soft mb-3" style="background:#FFF7ED;border:1px solid #FED7AA">
     <i class="fas fa-triangle-exclamation text-orange-500 text-sm"></i>
     <p class="text-[11px] text-orange-700 flex-1">当前状态：<b>待复核</b> · 证书到期前需完成复核（报价权限随入驻默认开通）</p>
@@ -64,15 +67,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
       <span class="text-[9px] text-gray-400">支持 JPG/PNG，AI 自动识别企业信息</span>
     </a>
 
-    <p class="text-[11px] font-semibold text-gray-700 mb-1.5">经营类目（多选） <span class="text-red-500">*</span></p>
-    <div class="flex flex-wrap gap-2 mb-3">
-      <a onclick="this.classList.toggle('on')" class="cat on">男袜</a>
-      <a onclick="this.classList.toggle('on')" class="cat on">运动袜</a>
-      <a onclick="this.classList.toggle('on')" class="cat">童袜</a>
-      <a onclick="this.classList.toggle('on')" class="cat">船袜</a>
-      <a onclick="this.classList.toggle('on')" class="cat">保暖袜</a>
-      <a onclick="this.classList.toggle('on')" class="cat">原料</a>
-    </div>
+    <p class="text-[11px] font-semibold text-gray-700 mb-1.5">经营类目（多选） <span class="text-red-500">*</span> <span class="text-[9px] text-gray-400 font-normal">后台品类字典下发</span></p>
+    <div class="flex flex-wrap gap-2 mb-3" id="catBox"></div>
+    <p class="text-[9px] text-gray-400 mb-3 -mt-1">选项由运营端「品类字典」维护，端上不写死；停用的品类不再出现在选项中</p>
 
     <div class="grid grid-cols-2 gap-2 mb-4">
       <div>
@@ -91,7 +88,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </div>
 
 <!-- ============ 状态二：审核中 ============ -->
-<div id="st-reviewing" style="display:none" class="px-3 -mt-3 relative z-10 pb-8">
+<div id="st-reviewing" style="display:none" class="px-3 mt-3 relative z-10 pb-8">
   <div class="bg-white rounded-2xl shadow-soft p-5 fade-up text-center">
     <div class="w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-3" style="background:#EFF6FF"><i class="fas fa-hourglass-half text-primary text-2xl"></i></div>
     <p class="text-[16px] font-extrabold text-gray-900">资质审核中</p>
@@ -123,7 +120,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </div>
 
 <!-- ============ 状态三：已认证 ============ -->
-<div id="st-pass" style="display:none" class="px-3 -mt-3 relative z-10 pb-8">
+<div id="st-pass" style="display:none" class="px-3 mt-3 relative z-10 pb-8">
   <div class="bg-white rounded-2xl shadow-soft p-5 fade-up text-center">
     <div class="w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-3" style="background:#DCFCE7"><i class="fas fa-shield-halved text-green-600 text-2xl"></i></div>
     <p class="text-[16px] font-extrabold text-gray-900">认证通过</p>
@@ -154,7 +151,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
     <div class="space-y-1.5 text-[11px]">
       <div class="flex justify-between"><span class="text-gray-400">企业名称</span><span class="text-gray-700">大唐袜业旗舰袜业有限公司</span></div>
       <div class="flex justify-between"><span class="text-gray-400">信用代码</span><span class="text-gray-700 num">91330681MA2XXXXX0X</span></div>
-      <div class="flex justify-between"><span class="text-gray-400">经营类目</span><span class="text-gray-700">男袜 · 运动袜</span></div>
+      <div class="flex justify-between"><span class="text-gray-400">经营类目</span><span class="text-gray-700" id="passCats">男袜 · 运动袜</span></div>
       <div class="flex justify-between"><span class="text-gray-400">权限</span><span class="text-green-600 font-bold">查看供需详情 · 参与询价 ✅</span></div>
     </div>
   </div>
@@ -163,24 +160,121 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
   <a onclick="resetVerify()" class="block text-center text-[10px] text-gray-300 mt-3">重置演示状态</a>
 </div>
 
+<!-- ============ 状态四：已驳回（待办 #38） ============ -->
+<div id="st-reject" style="display:none" class="px-3 mt-3 relative z-10 pb-8">
+  <div class="bg-white rounded-2xl shadow-soft p-5 fade-up">
+    <div class="w-14 h-14 mx-auto rounded-full flex items-center justify-center mb-3" style="background:#FEF2F2"><i class="fas fa-circle-xmark text-red-500 text-xl"></i></div>
+    <p class="text-[16px] font-extrabold text-gray-900 text-center">认证未通过</p>
+    <p class="text-[11px] text-gray-400 text-center mt-1 num" id="rjAt">2026-09-22 驳回</p>
+    <div class="rounded-xl p-3 mt-3" style="background:#FEF2F2;border:1px solid #FECACA">
+      <p class="text-[10px] font-bold" style="color:#B91C1C">驳回原因</p>
+      <p class="text-[11px] text-gray-700 mt-1 leading-relaxed" id="rjWhy">营业执照照片模糊，统一社会信用代码与证件不一致</p>
+    </div>
+    <p class="text-[10px] text-gray-400 mt-2 leading-relaxed"><i class="fas fa-circle-info mr-1"></i>按驳回原因修改后可重新提交，审核通过即开通「查看供需详情 / 参与询价 / 政策申报（企业主体）」权限。</p>
+    <button onclick="backToForm()" class="w-full py-3 mt-3 rounded-xl text-white text-[13px] font-bold" style="background:linear-gradient(135deg,#3B82F6,#2563EB)"><i class="fas fa-rotate-right text-[11px]"></i> 修改资料后重新提交</button>
+  </div>
+</div>
+
 <!-- ============ 品牌资质（待办 #41；与店铺设置共用同一审核状态） ============ -->
 <div class="px-3 relative z-10 pb-10">
   <div class="bg-white rounded-2xl shadow-soft p-3.5" id="brandQualiCard"></div>
 </div>
 
+<script src="category-dict.js"></script>
 <script src="brand-quali.js"></script>
 <script>
-function getStatus(){return localStorage.getItem('sh_verify')||'none';}
+/* ===== 经营类目（待办 #47）：选项由后台品类字典下发，不写死；提交为数组 ===== */
+var CAT_DEFAULT=['男袜','运动袜'];
+function catSel(){
+  try{var s=JSON.parse(localStorage.getItem('sh_cat_sel')||'null');if(s&&s.length)return s;}catch(e){}
+  return CAT_DEFAULT.slice();
+}
+function renderCats(){
+  var box=document.getElementById('catBox');if(!box)return;
+  box.innerHTML=catChipsHtml(catSel());
+}
+function renderPassCats(sel){
+  var el=document.getElementById('passCats');
+  if(el)el.textContent=(sel&&sel.length)?sel.join(' · '):'—';
+}
+
+/* ===== 认证状态 / 主体类型（待办 #38）
+   状态唯一写入口：本页。买家端政策申报、技术共享等按 `sh_yz_state` 判断主体是否就绪。
+   state: none 未提交 / reviewing 审核中 / pass 已通过 / reject 已驳回
+   subject: personal 个人 / enterprise 企业 ===== */
+var YZ_KEY='sh_yz_state';
+var YZ_LABEL={none:'未提交',reviewing:'审核中',pass:'已通过',reject:'已驳回'};
+var YZ_COLOR={none:['#F1F5F9','#64748B'],reviewing:['#EFF6FF','#2563EB'],pass:['#ECFDF5','#059669'],reject:['#FEF2F2','#DC2626']};
+
+function getYZ(){
+  try{var s=JSON.parse(localStorage.getItem(YZ_KEY)||'null');if(s&&s.state)return s;}catch(e){}
+  // 兼容旧键 sh_verify
+  var legacy=localStorage.getItem('sh_verify');
+  return {state:legacy||'none',subject:'enterprise',why:'',at:''};
+}
+function setYZ(o){localStorage.setItem(YZ_KEY,JSON.stringify(o));localStorage.setItem('sh_verify',o.state);render();}
+function getStatus(){return getYZ().state;}
+
 function render(){
-  var s=getStatus();
+  var yz=getYZ(), s=yz.state;
   document.getElementById('st-none').style.display=(s==='none')?'block':'none';
   document.getElementById('st-reviewing').style.display=(s==='reviewing')?'block':'none';
   document.getElementById('st-pass').style.display=(s==='pass')?'block':'none';
+  document.getElementById('st-reject').style.display=(s==='reject')?'block':'none';
+  if(s==='reject'){
+    document.getElementById('rjWhy').textContent=yz.why||'营业执照照片模糊，统一社会信用代码与证件不一致';
+    document.getElementById('rjAt').textContent=(yz.at||'2026-09-22')+' 驳回';
+  }
+  paintMeta(yz);
+  renderPassCats(catSel());
 }
-function submitVerify(){localStorage.setItem('sh_verify','reviewing');render();toast('认证资料已提交，进入平台审核');window.scrollTo(0,0);}
-function passVerify(){localStorage.setItem('sh_verify','pass');render();toast('认证通过！商户类型：实力商家');window.scrollTo(0,0);}
-function resetVerify(){localStorage.removeItem('sh_verify');render();toast('演示状态已重置为未认证');}
+
+function paintMeta(yz){
+  var box=document.getElementById('yzMeta');if(!box)return;
+  var c=YZ_COLOR[yz.state]||YZ_COLOR.none;
+  var isEnt=yz.subject==='enterprise';
+  box.innerHTML='<div class="bg-white rounded-2xl shadow-soft px-3.5 py-3">'
+    +'<div class="flex items-center gap-2">'
+    +'<span class="text-[10px] font-bold px-2 py-0.5 rounded" style="background:'+c[0]+';color:'+c[1]+'">认证：'+YZ_LABEL[yz.state]+'</span>'
+    +'<span class="text-[10px] font-bold px-2 py-0.5 rounded" style="background:'+(isEnt?'#EEF2FF':'#F8FAFC')+';color:'+(isEnt?'#4F46E5':'#64748B')+'">主体：'+(isEnt?'企业':'个人')+'</span>'
+    +'<span class="flex-1"></span>'
+    +'<a onclick="toggleSubject()" class="text-[9px] font-bold" style="color:#2563EB">切换主体</a>'
+    +'</div>'
+    +'<p class="text-[9px] text-gray-400 mt-1.5 leading-relaxed">买家端政策申报、技术共享按此判断主体是否就绪：仅「企业主体 + 认证已通过」放开申报 / 查看供需详情。</p>'
+    +'<div class="flex gap-1.5 mt-2 flex-wrap">'
+    +['none','reviewing','pass','reject'].map(function(k){
+      var on=k===yz.state;
+      return '<span onclick="setDemo(\''+k+'\')" class="text-[9px] px-2 py-1 rounded-lg cursor-pointer" style="border:1px solid '+(on?'#BFDBFE':'#EEF0F3')+';background:'+(on?'#EFF6FF':'#fff')+';color:'+(on?'#2563EB':'#94A3B8')+';font-weight:'+(on?'700':'400')+'">'+YZ_LABEL[k]+'</span>';
+    }).join('')
+    +'<span class="text-[8px] text-gray-300 self-center ml-1">← 演示切换</span>'
+    +'</div></div>';
+}
+
+function setDemo(k){
+  var yz=getYZ();yz.state=k;
+  if(k==='reject'&&!yz.why){yz.why='营业执照照片模糊，统一社会信用代码与证件不一致';yz.at='2026-09-22';}
+  setYZ(yz);
+  toast('演示状态：'+YZ_LABEL[k]);
+  window.scrollTo(0,0);
+}
+function toggleSubject(){
+  var yz=getYZ();yz.subject=(yz.subject==='enterprise')?'personal':'enterprise';setYZ(yz);
+  toast('主体类型：'+(yz.subject==='enterprise'?'企业':'个人'));
+}
+
+function submitVerify(){
+  var cats=catSelected('catBox');
+  if(!cats.length){toast('请至少选择一个经营类目');return;}
+  localStorage.setItem('sh_cat_sel',JSON.stringify(cats));
+  var yz=getYZ();yz.state='reviewing';yz.at='';setYZ(yz);
+  toast('认证资料已提交（类目 '+cats.length+' 项），进入平台审核');
+  window.scrollTo(0,0);
+}
+function passVerify(){var yz=getYZ();yz.state='pass';yz.at='';setYZ(yz);toast('认证通过！商户类型：实力商家');window.scrollTo(0,0);}
+function backToForm(){var yz=getYZ();yz.state='none';setYZ(yz);toast('请按驳回原因修改资料后重新提交');window.scrollTo(0,0);}
+function resetVerify(){localStorage.removeItem(YZ_KEY);localStorage.removeItem('sh_verify');render();toast('演示状态已重置为未认证');}
 render();
+renderCats();
 function toast(msg){var d=document.createElement('div');d.style.cssText='position:fixed;left:50%;bottom:110px;transform:translateX(-50%);background:rgba(20,20,40,.85);color:#fff;font-size:12px;padding:8px 16px;border-radius:20px;z-index:999;white-space:nowrap';d.textContent=msg;document.body.appendChild(d);setTimeout(function(){d.remove()},1800);}
 </script>
 </body>

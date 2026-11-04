@@ -53,12 +53,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 <script>
 // 业主名下实体（来自 02 资源台账，只读）
 var UNITS=[
-  {code:'1F-A08',venue:'大唐袜业城',loc:'A栋 1F',type:'档口',grade:'精品摊',area:'50㎡',term:'2026.09.01–2027.08.31',contract:'HT2026-0002',name:'大唐袜业旗舰',cat:'男袜·女袜',status:'营业中'},
-  {code:'2F-B12',venue:'大唐袜业城',loc:'B栋 2F',type:'档口',grade:'普通摊',area:'40㎡',term:'2025.09.01–2026.08.31',contract:'HT2025-0088',name:'大唐袜业旗舰·品牌馆',cat:'运动袜·功能袜',status:'营业中'},
-  {code:'YLSC-S08',venue:'原料市场',loc:'沿街店面',type:'店面',grade:'—',area:'80㎡',term:'2027.06.01–2032.05.31',contract:'HT2026-0010',name:'大唐袜业·原料仓店',cat:'原料·辅料',status:'休息中'},
-  {code:'XZFW-3F-06',venue:'行政服务中心',loc:'3F',type:'办公室',grade:'—',area:'45㎡',term:'2026.10.01–2029.09.30',contract:'HT2026-0012',name:'大唐袜业·办公',cat:'办公',status:'营业中'}
+  {code:'1F-A08',venue:'大唐袜业城',loc:'A栋 1F',type:'档口',grade:'精品摊',area:'50㎡',term:'2026.09.01–2027.08.31',contract:'HT2026-0002',name:'大唐袜业旗舰',cats:['男袜','女袜'],status:'营业中'},
+  {code:'2F-B12',venue:'大唐袜业城',loc:'B栋 2F',type:'档口',grade:'普通摊',area:'40㎡',term:'2025.09.01–2026.08.31',contract:'HT2025-0088',name:'大唐袜业旗舰·品牌馆',cats:['运动袜','功能袜'],status:'营业中'},
+  {code:'YLSC-S08',venue:'原料市场',loc:'沿街店面',type:'店面',grade:'—',area:'80㎡',term:'2027.06.01–2032.05.31',contract:'HT2026-0010',name:'大唐袜业·原料仓店',cats:['棉纱','氨纶包覆纱','包装设计'],status:'休息中'},
+  {code:'XZFW-3F-06',venue:'行政服务中心',loc:'3F',type:'办公室',grade:'—',area:'45㎡',term:'2026.10.01–2029.09.30',contract:'HT2026-0012',name:'大唐袜业·办公',cats:['其他'],status:'营业中'}
 ];
 var TYPE_CLS={'档口':'bg-sky-50 text-sky-600','店面':'bg-emerald-50 text-emerald-600','办公室':'bg-violet-50 text-violet-600'};
+/* 主营品类多标签（待办 #47）：超过 2 个折叠为 +N */
+function catsHtml(cats){
+  cats=cats||[];
+  if(!cats.length)return '<span class="text-gray-400 text-[10px]">未设置</span>';
+  var show=cats.slice(0,2),more=cats.length-show.length;
+  var css='display:inline-block;font-size:10px;color:#475569;background:#F1F5F9;border-radius:8px;padding:3px 7px;margin:0 4px 2px 0';
+  return show.map(function(c){return '<span style="'+css+'">'+c+'</span>';}).join('')
+    +(more>0?'<span style="'+css+'">+'+more+'</span>':'');
+}
 function render(){
   if(!UNITS.length){document.getElementById('emptyBox').style.display='block';return;}
   document.getElementById('shopList').innerHTML=UNITS.map(function(u){
@@ -74,7 +83,7 @@ function render(){
       +'<div class="grid grid-cols-2 gap-2 bg-gray-50 rounded-lg p-2.5 text-[10px]">'
       +'<div><span class="text-gray-400">面积</span><p class="text-gray-700 font-medium num mt-0.5">'+u.area+'</p></div>'
       +'<div><span class="text-gray-400">租期</span><p class="text-gray-700 font-medium num mt-0.5">'+u.term+'</p></div>'
-      +'<div><span class="text-gray-400">主营品类</span><p class="text-gray-700 font-medium mt-0.5">'+u.cat+'</p></div>'
+      +'<div><span class="text-gray-400">主营品类</span><div class="mt-1">'+catsHtml(u.cats)+'</div></div>'
       +'<div><span class="text-gray-400">当前合同</span><p class="text-gray-700 font-medium num mt-0.5">'+u.contract+'</p></div>'
       +'</div>'
       +'<div class="flex items-center justify-between mt-2.5">'
