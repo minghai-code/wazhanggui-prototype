@@ -42,6 +42,7 @@
     'yunying-PC/contract-template.html':  ['05-合同管理/01-合同模板管理', '', '合同模板管理'],
     'yunying-PC/contract-list.html':      ['05-合同管理/02-合同台账与签署留档', '', '合同台账与签署留档'],
     'yunying-PC/contract-change.html':    ['05-合同管理/03-合同变更审核', '', '合同变更审核'],
+    'yunying-PC/contract-change-create.html': ['05-合同管理/05-合同变更办理', '', '合同变更办理'],
     'yunying-PC/contract-apply.html':     ['05-合同管理/04-合同发起与签署', '', '合同发起与签署'],
     'yunying-PC/chain-ip.html':           ['13-产业链服务/01-知识产权配置管理', '', '知识产权配置管理'],
     'yunying-PC/chain-tech-demand.html':  ['13-产业链服务/02-技术需求发布管理', '', '技术需求发布管理'],

@@ -48,11 +48,20 @@ button{cursor:pointer}
         <h1 class="text-[20px] font-bold text-[#1F2430]">合同变更审核</h1>
         <span class="tag" style="background:#DBEAFE;color:#2563EB">05 合同管理</span>
       </div>
-      <p class="text-[12px] text-gray-400 mt-1">受理并审批合同变更（<b>租金 / 租期 / 面积 / 承租人 / 主体信息 / 摊位号</b>，<b>v1.9 新增「主体信息变更」</b>）。<b>变更不改合同号</b>：通过后<b>生成新版本 + 回写留痕</b>，并<b>重推 02 / 06 / 04</b>；变更生效日默认次日。敏感字段（租金 / 租期 / 承租人 / <b>主体信息</b>）必须填写变更原因并<b>经主管审批</b>；其中 <b>主体类型切换 / 企业名称 / 统一社会信用代码</b> 为重大变更（须附<b>工商变更证明</b>）；<b>联系电话（签署匹配键）变更 → 同步签署手机号（合同在签署中则改绑重签）</b>；<b>租金 / 租期 / 面积 / 承租人 / 主体信息变更需重签变更补充协议</b>；摊位号变更仍拆「终止 + 新签」</p>
+      <p class="text-[12px] text-gray-400 mt-1"><b>变更流程（v1.13）</b>：台账点「变更」→ <b>变更办理页</b>（对着整份合同改字段，可同时改多处，提交只生成 1 条变更单）→ 商户端<b>重签变更协议</b> → 回到本页<b>合同专员审核签署</b> → 通过后<b>以签署版本为准</b>生效并重推 02 / 06 / 04；<br><b>驳回</b>（多为商户签名不合格）→ 本页点「修改后重新送签」，<b>同单号</b>回办理页修正后再送签，不用重新填一遍；<b>盖章件</b>在本页<b>审核通过后</b>上传（变更后合同下载 → 双方盖章 → 回传扫描件）。<b>不需重签的例外</b>：仅联系电话等一般项 → 直接「待审核」并同步签署手机号；<b>摊位号变更</b>拆「终止 + 新签」。</p>
     </div>
     <div class="flex items-center gap-2">
+      <button class="btn btn-primary" onclick="gotoCreate()"><i class="fas fa-plus text-[10px] mr-1"></i>发起变更</button>
       <button class="btn btn-ghost" onclick="toast('已导出变更单（含前后对比，身份证已脱敏）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
       <button class="btn btn-ghost" onclick="location.href='contract-list.html'"><i class="fas fa-table-list text-[10px] mr-1"></i>去合同台账</button>
+    </div>
+  </div>
+
+  <!-- 从合同台账「变更」跳转进来时显示（v1.12） -->
+  <div id="fromLedger" class="mb-4" style="display:none">
+    <div class="rounded-xl border p-3 flex items-center justify-between" style="border-color:#FDB4A3;background:#FFF6F3">
+      <p class="text-[12px]" style="color:#E63E20"><i class="fas fa-filter mr-1"></i>已按合同号 <b id="flNo"></b> 过滤；点「重置」查看全部变更单</p>
+      <button class="btn btn-ghost" onclick="resetSearch()">重置筛选</button>
     </div>
   </div>
 
@@ -69,7 +78,7 @@ button{cursor:pointer}
         <option value="">全部来源</option><option>运营发起</option><option>商户端申请</option>
       </select>
       <select id="f-state" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
-        <option value="">全部状态</option><option>待审核</option><option>已通过</option><option>已驳回</option>
+        <option value="">全部状态</option><option>待签署</option><option>待审核</option><option>已通过</option><option>已驳回</option><option>已撤回</option>
       </select>
       <input id="f-d1" type="date" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary text-gray-600">
       <span class="text-[12px] text-gray-400">至</span>
@@ -128,7 +137,8 @@ button{cursor:pointer}
 /* 规则：变更不改合同号；通过 → 生成新版本（v+1）+ 留痕 + 重推 02/06；生效日默认次日 */
 var CH=[
   {id:'BG2026-0017',no:'HT2026-0073',mer:'诸暨××袜业有限公司',stall:'A9-14',gate:'1F-A14',type:'主体信息变更',src:'运营发起',ptype:'企业',contact:'李海涛',phone:'138****6621',
-   from:'个人主体（李海涛）',to:'企业主体（诸暨××袜业有限公司）',eff:'2026-10-16',ver:'v1 → v2',by:'合同管理专员 何静',time:'2026-10-15 09:20',state:'待审核',
+   from:'个人主体（李海涛）',to:'企业主体（诸暨××袜业有限公司）',eff:'2026-10-16',ver:'v1 → v2',by:'合同管理专员 何静',time:'2026-10-15 09:20',state:'待签署',
+   sms:'2026-10-15 09:25 变更协议 v2 签署短信已发送（138****6621，送达 1 次）',wait:'待商户签署（已 3 天，超 7 天转人工）',
    reason:'承租人由个人变更为其名下公司（诸暨××袜业有限公司）经营；附营业执照 + 名称变更核准通知书。主体类型切换属【重大变更】，通过后需重签变更补充协议',
    fields:[['主体类型','个人（自然人）','企业'],['承租方（乙方）','李海涛','诸暨××袜业有限公司'],['统一社会信用代码','—（个人主体无）','91330681MA2D9XXXX9'],['法定代表人 / 联系人','—（本人）','李海涛'],['联系电话（签署匹配键）','138****6621','138****6621（不变）']],
    file:'营业执照 + 名称变更核准通知书.pdf'},
@@ -139,21 +149,25 @@ var CH=[
    file:'联系人变更说明.pdf',ok:'合同专员 何静 审批（2026-10-14）：一般变更（仅联系电话），同意；签署手机号已同步更新为 139****2208；合同未在签署中，无需改绑重签'},
   {id:'BG2026-0012',no:'HT2025-0231',mer:'郑强',stall:'B3-10',gate:'3F-B10',type:'租金变更',src:'商户端申请',
    from:'38,200 元/年',to:'40,110 元/年',eff:'2026-09-29',ver:'v1 → v2',by:'商户端 郑强',time:'2026-09-27 09:35',state:'待审核',
+   sign:'2026-09-28 10:12 商户端手写签名已提交（郑强 · 变更协议 v2，无需人脸）',
    reason:'周边市场租金上调，协商一致按年递增 5%',
    fields:[['年租金','38,200 元','40,110 元'],['总租金（3 年）','114,600 元','120,330 元']],
    file:'租金调整协商函.pdf'},
   {id:'BG2026-0013',no:'HT2026-0069',mer:'汤晓琳',stall:'A9-10',gate:'1F-A09',type:'租期变更',src:'运营发起',
    from:'2026.09.01~2029.08.31',to:'2026.09.01~2030.08.31',eff:'2026-09-29',ver:'v1 → v2',by:'合同管理专员 何静',time:'2026-09-27 14:20',state:'待审核',
+   sign:'2026-09-27 18:40 商户端手写签名已提交（汤晓琳 · 变更协议 v2）',
    reason:'商户申请扩期，经运营评估同意延期 1 年（租金不变）',
    fields:[['租赁期限','2026.09.01 ~ 2029.08.31','2026.09.01 ~ 2030.08.31'],['总租金','136,800 元（3 年）','182,400 元（4 年）'],['应收期次','3 期','4 期']],
    file:'扩期申请审批单.pdf'},
   {id:'BG2026-0014',no:'HT2024-0102',mer:'赵敏',stall:'A9-15',gate:'1F-A15',type:'面积变更',src:'运营发起',
-   from:'160.0 ㎡',to:'147.2 ㎡',eff:'2026-09-29',ver:'v1 → v2',by:'物业 吴海',time:'2026-09-26 11:05',state:'待审核',
+   from:'160.0 ㎡',to:'147.2 ㎡',eff:'2026-09-29',ver:'v1 → v2',by:'合同管理专员 何静',time:'2026-09-26 11:05',state:'待签署',
+   sms:'2026-09-26 11:10 变更协议 v2 签署短信已发送（送达 1 次）',wait:'待商户签署（已 2 天）',
    reason:'物业实测复尺，因隔断调整实际可用面积减少 12.8 ㎡',
    fields:[['出租面积','160.0 ㎡','147.2 ㎡']],
    file:'实测复尺记录.pdf'},
   {id:'BG2026-0015',no:'HT2025-0070',mer:'陈志强 → 周建华',stall:'A9-12',gate:'1F-A12',type:'承租人变更',src:'商户端申请',ptype:'个人',contact:'周建华',
    from:'陈志强',to:'周建华（亲属承接）',eff:'2026-09-29',ver:'v1 → v2',by:'商户端 陈志强',time:'2026-09-26 16:48',state:'待审核',
+   sign:'2026-09-27 09:05 商户端手写签名已提交（周建华 · 变更协议 v2，附承接协议）',
    reason:'原承租人不再经营，由亲属承接档口经营权（需补交新承租人身份证与承接协议）',
    fields:[['承租方（乙方）','陈志强','周建华'],['身份证号','3306811985********','3306811993********'],['历届租户','留痕：陈志强（2025.09–2026.09）','新增：周建华（承接）']],
    file:'档口承接协议.pdf'},
@@ -164,45 +178,62 @@ var CH=[
    file:'摊位调整申请.pdf',rj:'摊位号变更等同换租，按规范应拆为「退租 + 新签」两笔业务（避免租期与账单错乱），请重新提交'},
   {id:'BG2026-0008',no:'HT2026-0071',mer:'王建国',stall:'A9-11',gate:'1F-A11',type:'租金变更',src:'运营发起',
    from:'45,600 元/年',to:'43,320 元/年',eff:'2026-09-20',ver:'v1 → v2',by:'合同管理专员 何静',time:'2026-09-18 15:10',state:'已通过',
-   reason:'长期免租期折算，招商让利（主管已审批）',
+   sign:'2026-09-19 11:20 商户端手写签名已提交（王建国 · 变更协议 v2）',
+   reason:'长期免租期折算，招商让利',
    fields:[['年租金','45,600 元','43,320 元']],
-   file:'让利审批单.pdf',ok:'运营主管 张磊 已审批（2026-09-19）：同意按 43,320 元执行，已重推 02/06'},
+   file:'让利审批单.pdf',ok:'合同专员 何静 已审核签署（2026-09-19）：商户签署无误，按 43,320 元执行，已重推 02/06'},
   {id:'BG2026-0009',no:'HT2025-0070',mer:'陈志强',stall:'A9-12',gate:'1F-A12',type:'租期变更',src:'运营发起',
    from:'2025.09.01~2030.08.31',to:'2025.09.01~2031.08.31',eff:'2026-09-12',ver:'v1 → v2',by:'合同管理专员 何静',time:'2026-09-10 09:00',state:'已通过',
+   sign:'2026-09-11 15:30 商户端手写签名已提交（陈志强 · 变更协议 v2）',
    reason:'精品摊续签前置扩期 1 年，与下一租赁年度衔接',
    fields:[['租赁期限','2025.09.01 ~ 2030.08.31','2025.09.01 ~ 2031.08.31'],['应收期次','5 期','6 期']],
-   file:'扩期审批单.pdf',ok:'运营主管 张磊 已审批（2026-09-11）：同意'},
+   file:'扩期审批单.pdf',ok:'合同专员 何静 已审核签署（2026-09-11）：商户签署无误，同意'},
   {id:'BG2026-0010',no:'HT2026-0072',mer:'周雅琴',stall:'A9-13',gate:'1F-A13',type:'租金变更',src:'商户端申请',
    from:'45,600 元/年',to:'38,000 元/年',eff:'—',ver:'v1',by:'商户端 周雅琴',time:'2026-09-14 11:26',state:'已驳回',
    reason:'商户以经营困难为由申请下调年租金 16.7%',
    fields:[['年租金','45,600 元','38,000 元']],
    file:'调价申请.pdf',rj:'缺乏调价依据：请补充周边同类档口比价材料与近 3 个月经营流水，再行提交'}
 ];
-var curRows=CH.slice(),curId=null;
+/* 变更协议盖章件：审核通过后才补传（变更后合同下载 → 双方盖章 → 回传扫描件） */
+var SEAL_MAP={'BG2026-0008':'已上传','BG2026-0009':''};
+CH.forEach(function(x){if(x.seal==null)x.seal=SEAL_MAP[x.id]||'';});
+var curRows=CH.slice(),curId=null,sealId=null;
 var tid;
 function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},2800);}
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function cOf(id){return CH.filter(function(x){return x.id===id;})[0];}
-var STC={'待审核':'background:#FEF3C7;color:#B45309','已通过':'background:#DCFCE7;color:#15803D','已驳回':'background:#F1F5F9;color:#64748B'};
+var STC={'待签署':'background:#EDE9FE;color:#6D28D9','待审核':'background:#FEF3C7;color:#B45309','已通过':'background:#DCFCE7;color:#15803D','已驳回':'background:#F1F5F9;color:#64748B','已撤回':'background:#F1F5F9;color:#94A3B8'};
 var TYC={'租金变更':'background:#FFEDE7;color:#E63E20','租期变更':'background:#DBEAFE;color:#2563EB',
   '面积变更':'background:#F1F5F9;color:#475569','承租人变更':'background:#EDE9FE;color:#6D28D9','摊位号变更':'background:#FEF3C7;color:#B45309',
   '主体信息变更':'background:#CCFBF1;color:#0F766E'};
 function st(s,c){return '<span class="st" style="'+(c||'background:#F1F5F9;color:#64748B')+'">'+esc(s)+'</span>';}
 function isKey(t){return t==='租金变更'||t==='租期变更';}
-/* v1.9：敏感（需主管审批）变更类型；主体信息变更中「企业名称 / 统一社会信用代码 / 主体类型切换」为重大 */
+/* v1.11：重大变更类型（仅用于提醒"审核签署前核验材料"，**没有任何主管审批环节**：
+   合同专员一人负责发起 + 审核商户签署，与客户 2026-11-04 口径一致） */
 function isSensitive(t){return isKey(t)||t==='承租人变更'||t==='主体信息变更';}
-/* v1.9：需重签（变更补充协议 / 重签）的变更类型；摊位号变更走「终止 + 新签」不在其列 */
-function needsResign(t){return isKey(t)||t==='面积变更'||t==='承租人变更'||t==='主体信息变更';}
+/* v1.11：是否需商户重签（决定走「待签署」还是直接「待审核」）
+   · 租金 / 租期 / 面积 / 承租人 → 需重签
+   · 主体信息变更 → 看具体字段：主体类型 / 承租方名称 / 统一社会信用代码 变动 = 重大 → 需重签；
+     仅联系人 / 联系电话（签署匹配键）变动 = 一般 → 不需重签，审核通过即生效并同步签署手机号
+   · 摊位号变更 → 拆「终止 + 新签」，不走本页 */
+function needsResign(t,fields){
+  if(t==='主体信息变更'){
+    if(!fields||!fields.length)return true;
+    var keyFields=['主体类型','承租方（乙方）','统一社会信用代码'];
+    return fields.some(function(f){return keyFields.indexOf(f[0])>-1;});
+  }
+  return isKey(t)||t==='面积变更'||t==='承租人变更';
+}
 
 function renderStats(){
-  var c={wait:0,ok:0,rj:0,key:0};
+  var c={sign:0,wait:0,ok:0,rj:0};
   CH.forEach(function(x){
+    if(x.state==='待签署'){c.sign++;}
     if(x.state==='待审核'){c.wait++;}
     if(x.state==='已通过'){c.ok++;}
-    if(x.state==='已驳回'){c.rj++;}
-    if(isSensitive(x.type)&&x.state==='待审核'){c.key++;}
+    if(x.state==='已驳回'||x.state==='已撤回'){c.rj++;}
   });
-  var cards=[['待审核',c.wait,'#B45309'],['本月通过',c.ok,'#15803D'],['本月驳回',c.rj,'#64748B'],['待审中含敏感变更（含主体信息）',c.key,'#E63E20']];
+  var cards=[['待商户签署',c.sign,'#6D28D9'],['待审核（商户已签）',c.wait,'#B45309'],['本月通过',c.ok,'#15803D'],['本月驳回 / 撤回',c.rj,'#64748B']];
   document.getElementById('stats').innerHTML=cards.map(function(x){
     return '<div class="bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">'+x[0]+'</p><p class="text-xl font-bold mt-1" style="color:'+x[2]+'">'+x[1]+'</p></div>';
   }).join('');
@@ -210,9 +241,20 @@ function renderStats(){
 function render(){
   var h='';
   curRows.forEach(function(x){
-    var ops=x.state==='待审核'
-      ?'<span class="lk" onclick="openReview(\''+x.id+'\')">审核</span> · <span class="lk-gray" onclick="openReview(\''+x.id+'\')">详情</span>'
-      :'<span class="lk-gray" onclick="openReview(\''+x.id+'\')">详情</span>';
+    var ops='<span class="lk-gray" onclick="openReview(\''+x.id+'\')">详情</span>';
+    if(x.state==='待签署'){
+      ops='<span class="lk" onclick="remindSign(\''+x.id+'\')">催签</span> · <span class="lk-gray" onclick="withdrawChange(\''+x.id+'\')">撤回</span> · '+ops;
+    }else if(x.state==='待审核'){
+      ops='<span class="lk" onclick="openReview(\''+x.id+'\')">审核</span> · '+ops;
+    }else if(x.state==='已驳回'){
+      /* 驳回多为"商户签名不合格"：同单号修正后重新送签，不要求专员重新填一遍 */
+      ops='<span class="lk" onclick="resendChange(\''+x.id+'\')">修改后重新送签</span> · '+ops;
+    }else if(x.state==='已通过'){
+      ops=(x.seal==='已上传'
+        ?'<span class="lk-gray" onclick="openChangeSeal(\''+x.id+'\',1)">查看盖章件</span>'
+        :'<span class="lk" onclick="openChangeSeal(\''+x.id+'\')">上传盖章件</span>')
+        +' · '+ops;
+    }
     h+='<tr class="hover:bg-gray-50 transition">'
       +'<td class="px-4 py-3"><div class="font-medium text-[#1F2430]">'+esc(x.id)+'</div>'
         +'<div class="text-[11px] text-[#94A3B8]">'+esc(x.ver)+'</div></td>'
@@ -220,16 +262,20 @@ function render(){
         +'<div class="text-[11px] text-[#94A3B8]">'+esc(x.mer)+'　'+esc(x.stall)+' → '+esc(x.gate)+'</div>'
         +(x.ptype?'<div class="mt-0.5"><span class="tag" style="background:'+(x.ptype==='企业'?'#E0E7FF;color:#4338CA':'#F1F5F9;color:#475569')+'">'+(x.ptype==='企业'?'企业主体':'个人主体')+'</span>'+(x.contact?'<span class="tag" style="background:#F1F5F9;color:#64748B;margin-left:4px">联系人 '+esc(x.contact)+'</span>':'')+'</div>':'')+'</td>'
       +'<td class="px-4 py-3"><span class="tag" style="'+TYC[x.type]+'">'+esc(x.type)+'</span>'
-        +(isSensitive(x.type)?'<div class="text-[11px]" style="color:#E63E20">敏感字段，需主管审批</div>':'')
-        +(needsResign(x.type)?'<div class="text-[11px] text-[#94A3B8]">需重签变更补充协议</div>':'')+'</td>'
+        +(isSensitive(x.type)?'<div class="text-[11px]" style="color:#B45309">重大变更：审核签署前核验材料</div>':'')
+        +(needsResign(x.type,x.fields)?'<div class="text-[11px] text-[#94A3B8]">需重签变更补充协议</div>':'')+'</td>'
       +'<td class="px-4 py-3 text-[12px]"><span class="text-[#94A3B8] line-through">'+esc(x.from)+'</span>'
         +' <i class="fas fa-arrow-right text-[9px] text-[#94A3B8] mx-1"></i><span class="font-semibold text-[#1F2430]">'+esc(x.to)+'</span>'
         +'<div class="text-[11px] text-[#94A3B8] mt-0.5">期望生效：'+esc(x.eff)+'</div></td>'
       +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(x.src)+'<div class="text-[11px] text-[#94A3B8]">'+esc(x.by)+'</div></td>'
       +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(x.time)+'</td>'
       +'<td class="px-4 py-3">'+st(x.state,STC[x.state])
+        +(x.state==='待签署'?'<div class="text-[11px] mt-1" style="color:#6D28D9">'+(x.wait||'等商户签署变更协议')+'</div>':'')
+        +(x.state==='待审核'&&x.sign?'<div class="text-[11px] mt-1" style="color:#15803D">已签 · '+(x.sign.slice(0,10))+'</div>':'')
         +(x.state==='已驳回'&&x.rj?'<div class="text-[11px] mt-1" style="color:#B91C1C">'+esc(x.rj.slice(0,12))+'…</div>':'')
-        +(x.state==='已通过'&&x.ok?'<div class="text-[11px] mt-1" style="color:#15803D">已回写并重推 02/06</div>':'')+'</td>'
+        +(x.state==='已撤回'?'<div class="text-[11px] mt-1" style="color:#94A3B8">'+(x.wd||'专员撤回')+'</div>':'')
+        +(x.state==='已通过'&&x.ok?'<div class="text-[11px] mt-1" style="color:#15803D">已回写并重推 02/06</div>':'')
+        +(x.state==='已通过'?'<div class="text-[11px] mt-1" style="color:'+(x.seal==='已上传'?'#15803D':'#B91C1C')+'">盖章件'+(x.seal==='已上传'?'已上传':'未上传（需补）')+'</div>':'')+'</td>'
       +'<td class="px-4 py-3 text-center whitespace-nowrap">'+ops+'</td></tr>';
   });
   if(!curRows.length){h='<tr><td colspan="8" class="px-4 py-16 text-center text-gray-300"><i class="fas fa-inbox text-3xl block mb-2"></i><span class="text-[12px]">暂无匹配的变更单</span></td></tr>';}
@@ -254,12 +300,86 @@ function resetSearch(){
 }
 
 /* ================= 审核抽屉 ================= */
+/* ===== v1.13：审核时始终能看到「整份合同」 ===== */
+var CONTRACT_FULL={
+  'HT2026-0069':{vol:'69-10',stall:'A9-10',gate:'1F-A09',ptype:'个人',uscc:'',contact:'',area:'147.2',start:'2026.09.01',end:'2029.08.31',rent:'45600',dep:'20000',status:'生效中',ver:'v1'},
+  'HT2025-0231':{vol:'231-08',stall:'B3-10',gate:'3F-B10',ptype:'个人',uscc:'',contact:'',area:'86.5',start:'2025.01.15',end:'2026.11.15',rent:'38200',dep:'20000',status:'变更中',ver:'v1'},
+  'HT2026-0072':{vol:'72-10',stall:'A9-13',gate:'1F-A13',ptype:'个人',uscc:'',contact:'',area:'147.2',start:'2026.09.01',end:'2029.08.31',rent:'45600',dep:'20000',status:'待签署',ver:'v1'},
+  'HT2025-0070':{vol:'70-10',stall:'A9-12',gate:'1F-A12',ptype:'企业',uscc:'91330681MA2D2XXXX2',contact:'陈志强',area:'147.2',start:'2025.09.01',end:'2030.08.31',rent:'77900',dep:'20000',status:'生效中',ver:'v1'},
+  'HT2024-0102':{vol:'102-03',stall:'A9-15',gate:'1F-A15',ptype:'个人',uscc:'',contact:'',area:'160.0',start:'2024.01.01',end:'2026.12.20',rent:'60000',dep:'20000',status:'生效中',ver:'v1'},
+  'HT2026-0073':{vol:'73-10',stall:'A9-14',gate:'1F-A14',ptype:'企业',uscc:'91330681MA2D9XXXX9',contact:'李海涛',area:'92.0',start:'2026.09.01',end:'2031.08.31',rent:'63800',dep:'20000',status:'生效中',ver:'v1'}
+};
+/* 合并「变更办理」页提交的新变更单（localStorage 模拟跨页写入） */
+(function mergeExtra(){
+  var extra=[];
+  try{extra=JSON.parse(localStorage.getItem('sh_contract_changes_v1')||'[]');}catch(e){extra=[];}
+  if(!Array.isArray(extra))return;
+  extra.slice().reverse().forEach(function(it){
+    if(!CH.some(function(y){return y.id===it.id;}))CH.unshift(it);
+  });
+})();
+/* 发起变更：回台账并在其中弹出变更办理弹层（v1.15 不再做独立页面入口） */
+function gotoCreate(){
+  var m=/[?&]no=([^&]+)/.exec(location.search);
+  location.href='contract-list.html?open='+(m?m[1]:'new');
+}
+/* 驳回后：带单号回台账弹层修正，提交=同单号重新送签（不新建变更单） */
+function resendChange(id){
+  var x=cOf(id);
+  location.href='contract-list.html?open='+encodeURIComponent(x.no)+'&bg='+encodeURIComponent(x.id);
+}
+/* 变更协议盖章件：审核通过后才上传（变更后合同需下载盖章后回传） */
+function openChangeSeal(id,view){
+  var x=cOf(id);if(!x)return;
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+(view?'查看变更盖章件':'上传变更协议盖章件')+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(x.id)+' · '+esc(x.no)+' · 版本 '+esc(x.ver)+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>'
+    +'<div class="px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+    +(view
+      ?'<div class="blk"><div class="blk-t"><i class="fas fa-paperclip text-[#15803D]"></i>已归档文件</div>'
+        +'<p class="text-[12px] text-[#334155]"><i class="fas fa-file-pdf mr-1" style="color:#B91C1C"></i>'+esc(x.id)+'_变更协议v2_盖章件.pdf</p>'
+        +'<p class="text-[11px] text-[#94A3B8] mt-1">上传人：合同专员 何静 · 归档完整</p></div>'
+      :'<div class="blk"><div class="blk-t"><i class="fas fa-cloud-arrow-up text-[#FF4D2D]"></i>上传线下盖章件</div>'
+        +'<label class="block border border-dashed border-gray-300 rounded-lg p-5 text-center text-[12px] text-gray-500 cursor-pointer hover:border-primary"><i class="fas fa-cloud-arrow-up mr-1"></i>点击选择文件（PDF / JPG，≤20MB）'
+        +'<input type="file" accept=".pdf,image/*" class="hidden" onchange="toast(\'已选择：\'+this.files[0].name)"></label>'
+        +'<p class="text-[11px] text-[#94A3B8] mt-2">流程：商户签署 + 专员审核通过 → <b>下载变更后合同</b> → 线下双方盖章 → <b>回传扫描件</b>；上传后本单归档完整</p></div>')
+    +'</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeAll()">'+(view?'关闭':'取消')+'</button>'
+    +(view?'':'<button class="btn btn-primary" onclick="saveChangeSeal()">确认上传</button>')+'</div>';
+  sealId=id;show('modal',h);
+}
+function saveChangeSeal(){
+  var x=cOf(sealId);if(!x){toast('变更单不存在');return;}
+  x.seal='已上传';render();closeAll();
+  toast('变更盖章件已上传归档：'+x.id);
+}
+function fullOf(no){return CONTRACT_FULL[no]||null;}
+function mn(n){return n===''||n==null?'—':Number(n).toLocaleString('en-US');}
+function kv(k,v){return '<div class="kv"><span class="k">'+k+'</span><span class="v">'+v+'</span></div>';}
+/* 整份合同（变更前 = 当前生效版本），字段对齐线下《出租合同台账》 */
+function contractBaseBlock(x){
+  var f=fullOf(x.no)||{};
+  var h='<div class="blk"><div class="blk-t"><i class="fas fa-file-contract text-[#2563EB]"></i>合同基本信息（当前生效版本 · 变更前）</div>'
+    +'<div class="grid grid-cols-2 gap-x-6">'
+    +kv('合同号',esc(x.no))+kv('卷号',esc(f.vol||'—'))
+    +kv('摊位号',esc(x.stall))+kv('档口',esc(x.gate))
+    +kv('主体类型',esc(f.ptype||'—'))+kv('承租方（乙方）',esc(x.mer))
+    +kv('统一社会信用代码',esc(f.uscc||'（个人主体无）'))+kv('法定代表人 / 联系人',esc(f.contact||'—'))
+    +kv('联系电话',esc(x.phone||'—'))+kv('出租面积',esc(f.area||'—')+' ㎡')
+    +kv('租赁期限',esc(f.start||'—')+' ~ '+esc(f.end||'—'))+kv('年租金',f.rent?mn(f.rent)+' 元':'—')
+    +kv('履约保证金',f.dep?mn(f.dep)+' 元（线下已收）':'—')+kv('合同状态',esc(f.status||'—'))
+    +kv('当前版本',esc(f.ver||'v1'))+kv('租金收取方式','每年 8 月底前缴清下一年度')
+    +'</div><p class="text-[11px] text-[#94A3B8] mt-2">下方为本次变更的前后对比；其余字段保持不变</p></div>';
+  return h;
+}
+
 function openReview(id){
   curId=id;
   var x=cOf(id);
   var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
     +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+esc(x.id)+'　<span class="text-[12px] font-normal text-[#94A3B8]">'+esc(x.type)+'</span></h3>'
-    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+st(x.state,STC[x.state])+' '+st(x.ver,'background:#F1F5F9;color:#475569')+(isSensitive(x.type)?' '+st('敏感字段 · 需主管审批','background:#FFEDE7;color:#E63E20'):'')+(needsResign(x.type)?' '+st('需重签变更补充协议','background:#FEF3C7;color:#B45309'):'')+'</p></div>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+st(x.state,STC[x.state])+' '+st(x.ver,'background:#F1F5F9;color:#475569')+(isSensitive(x.type)?' '+st('重大变更 · 需核验材料','background:#FFEDE7;color:#E63E20'):'')+(needsResign(x.type,x.fields)?' '+st('需重签变更补充协议','background:#FEF3C7;color:#B45309'):'')+'</p></div>'
     +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
   h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">';
   h+='<div class="blk"><div class="blk-t"><i class="fas fa-file-signature text-[#FF4D2D]"></i>变更单信息</div>'
@@ -273,6 +393,8 @@ function openReview(id){
     +'<div class="kv"><span class="k">期望生效日</span><span class="v">'+esc(x.eff)+'（变更生效日默认次日）</span></div>'
     +'<div class="kv"><span class="k">版本</span><span class="v">'+esc(x.ver)+'（变更不改合同号，生成新版本）</span></div>'
     +'</div></div>';
+  /* v1.13：审核前先给专员看整份合同（与台账详情同字段），再往下看变更明细 */
+  h+=contractBaseBlock(x);
   h+='<div class="blk"><div class="blk-t"><i class="fas fa-code-compare text-[#B45309]"></i>变更前后对比</div>'
     +'<table class="w-full text-[12px]"><thead><tr class="text-gray-500 text-[11px]">'
     +'<th class="text-left py-1.5 font-medium">字段</th><th class="text-left py-1.5 font-medium">改前</th><th class="text-left py-1.5 font-medium">改后</th></tr></thead><tbody>';
@@ -285,12 +407,15 @@ function openReview(id){
   if(x.type==='主体信息变更'||x.type==='承租人变更'){
     h+='<div class="blk" style="border-color:#99F6E4;background:#F0FDFA"><div class="blk-t" style="color:#0F766E"><i class="fas fa-id-card"></i>主体信息组（合同乙方口径，v1.9）</div>'
       +'<p class="text-[11px] text-[#64748B] leading-6">展示字段：<b>主体类型</b> / <b>承租方名称</b>（姓名或企业名称）/ <b>统一社会信用代码</b> / <b>法定代表人·联系人</b> / <b>联系电话</b>（<b>签署匹配键</b>）—— 未变字段标「—（不变）」。'
-      +(x.type==='主体信息变更'?'<br><b>企业名称 / 统一社会信用代码 / 主体类型切换 = 重大变更</b>（主管审批 + <b>工商变更证明</b>）；<b>联系电话变更 → 同步签署手机号</b>；<b>企业主体变更后 04 档案同步（建档名称 = 企业名称 / 证件号 = 统一社会信用代码）</b>。':'')
+      +(x.type==='主体信息变更'?'<br><b>企业名称 / 统一社会信用代码 / 主体类型切换 = 重大变更</b>（合同专员核验 + <b>工商变更证明</b>）；<b>联系电话变更 → 同步签署手机号</b>；<b>企业主体变更后 04 档案同步（建档名称 = 企业名称 / 证件号 = 统一社会信用代码）</b>。':'')
       +'</p></div>';
   }
   h+='<div class="blk"><div class="blk-t"><i class="fas fa-comment-dots text-[#64748B]"></i>变更原因与附件</div>'
     +'<p class="text-[12px] text-[#334155] leading-6">'+esc(x.reason)+'</p>'
-    +'<div class="mt-2"><span class="lk" onclick="toast(\'预览附件：'+esc(x.file)+'\')"><i class="fas fa-paperclip text-[10px] mr-1"></i>'+esc(x.file)+'</span></div>'
+    +(x.file
+      ?'<div class="mt-2"><span class="lk" onclick="openFilePreview(\''+esc(x.file)+'\')"><i class="fas fa-paperclip text-[10px] mr-1"></i>'+esc(x.file)+'</span></div>'
+      :'<div class="mt-2 text-[11px] text-[#94A3B8]">发起变更时不需上传附件；<b>盖章件在审核通过后</b>上传（变更后合同下载 → 双方盖章 → 回传）</div>')
+    +(x.state==='已通过'?'<div class="mt-2 text-[12px]" style="color:'+(x.seal==='已上传'?'#15803D':'#B91C1C')+'">变更协议盖章件：'+(x.seal==='已上传'?'<span class="lk" onclick="openChangeSeal(\''+x.id+'\',1)">已上传（归档完整）</span>':'<span class="lk" onclick="openChangeSeal(\''+x.id+'\')">未上传 · 点击上传</span>')+'</div>':'')
     +(x.rj?'<div class="rounded-xl border p-3 mt-3" style="border-color:#FEE2E2;background:#FEF2F2"><p class="text-[11px]" style="color:#B91C1C"><b>驳回原因：</b>'+esc(x.rj)+'</p></div>':'')
     +(x.ok?'<div class="rounded-xl border p-3 mt-3" style="border-color:#BBF7D0;background:#F0FDF4"><p class="text-[11px] text-[#15803D]"><b>审批记录：</b>'+esc(x.ok)+'</p></div>':'')
     +'</div>';
@@ -300,22 +425,97 @@ function openReview(id){
     +'· <b>06 缴费管理</b>：'+(isKey(x.type)?'<b>年度账单将重算</b>（涉及租金 / 期次）':'年度账单金额不变，仅同步口径')+'<br>'
     +'· <b>04 商户管理</b>：'+(x.type==='承租人变更'?'承租人变更 → <b>档案更新 + 历届租户留痕</b>，新承租人需补交身份证或营业执照':(x.type==='主体信息变更'?'主体信息变更 → <b>档案同步（建档名称 = 企业名称 / 主体类型 / 证件号 = 统一社会信用代码）</b>；<b>名下授权员工关联与物业权限不受影响</b>':'档案按合同口径增量更新'))+'<br>'
     +'· <b>签署匹配键</b>：'+(x.type==='主体信息变更'?'<b>联系电话变更 → 签署手机号同步更新</b>；若合同仍在签署中（待商户签字 / 待签署审核）→ <b>改绑并重签</b><br>':'本次未涉及，签署手机号保持不变<br>')
-    +'· <b>重签要求</b>：'+(needsResign(x.type)?'<b>需生成「变更补充协议」并走签署流程</b>（乙方主体 / 租金 / 租期 / 面积等要素变更）<br>':'本次变更<b>不需重签</b>，仅留痕 + 台账更新<br>')
+    +'· <b>重签要求</b>：'+(needsResign(x.type,x.fields)?'<b>需生成「变更补充协议」并走签署流程</b>（乙方主体 / 租金 / 租期 / 面积等要素变更）<br>':'本次变更<b>不需重签</b>，仅留痕 + 台账更新<br>')
     +'· <b>商户端</b>：通知商户变更结果，商户端「我的合同」展示新版本</div></div>';
+  /* v1.11：商户重签留痕（变更协议签署是审核前置） */
+  var rs=needsResign(x.type,x.fields);
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-signature text-[#6D28D9]"></i>商户重签记录</div>'
+    +'<p class="text-[11px] text-[#64748B] leading-6">本变更属于「'+(rs?'需重签':'不需重签（一般信息变更）')+'」：'
+    +(rs?'发起后系统生成变更协议并短信通知商户 → 商户端「我的合同 → 待签署」完成手写签名 → 回到本页由合同专员审核 → 通过后<b>以签署版本为准</b>。':'审核通过即生效，仅同步台账与下游，不需要商户重签。')+'</p>'
+    +'<div class="mt-2 text-[12px] text-[#334155] leading-6">'
+    +(x.sms?'· <b>短信通知：</b>'+esc(x.sms)+'<br>':'')
+    +(x.sign?'· <b>商户签署：</b>'+esc(x.sign)+'<br>':'')
+    +(rs&&!x.sign?'· <b>当前：</b>等待商户签署（可「催签」或「撤回」）<br>':'')
+    +(x.sign?'· <b>签署版本：</b>'+esc(x.ver)+'（通过后以该版本为准，旧版本只留查）':'')
+    +'</div>'
+    /* v1.12：与新签审核对齐 —— 必须有可看的签名图（原来这里只有一行文字） */
+    +(x.sign
+      ?'<div class="mt-3" style="border:1px dashed #C7D2FE;border-radius:10px;padding:16px;text-align:center;background:#fff;cursor:zoom-in" onclick="toast(\'放大查看签名原图（含签署时间 / 设备 / IP）\')">'
+        +'<i class="fas fa-signature" style="font-size:22px;color:#6D28D9"></i>'
+        +'<p class="text-[12px] text-[#334155] mt-1">'+esc(x.mer||'承租方')+'　手写签名（模拟，点击放大）</p>'
+        +'<p class="text-[11px] text-[#94A3B8] mt-1">签署时间：'+esc(x.sign)+'</p>'
+        +'<p class="text-[11px] text-[#94A3B8]">签署人：'+esc(x.contact||x.mer||'—')+(x.phone?'　签署手机号：'+esc(x.phone):'')+'　· 无人脸识别</p></div>'
+      :'')
+    +'</div>';
   h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
     +'<button class="btn btn-ghost" onclick="closeAll()">关闭</button>'
-    +(x.state==='待审核'
-      ?'<button class="btn btn-ghost" onclick="openRejectChange(\''+x.id+'\')">驳回</button>'
-        +'<button class="btn btn-primary" onclick="openApprove(\''+x.id+'\')">审核通过</button>'
-      :'<button class="btn btn-ghost" onclick="toast(\'查看该合同的历史版本与留痕（原型）\')">查看版本留痕</button>')
+    +(x.state==='待签署'
+      ?'<button class="btn btn-ghost" onclick="withdrawChange(\''+x.id+'\')">撤回变更</button>'
+        +'<button class="btn btn-primary" onclick="remindSign(\''+x.id+'\')">催商户签署</button>'
+      :(x.state==='待审核'
+        ?'<button class="btn btn-ghost" onclick="openRejectChange(\''+x.id+'\')">驳回</button>'
+          +'<button class="btn btn-primary" onclick="openApprove(\''+x.id+'\')">审核签署并通过</button>'
+        :'<button class="btn btn-ghost" onclick="openVersion(\''+x.id+'\')">查看版本留痕</button>'))
     +'</div>';
   show('drawer',h);
+}
+
+/* ================= 附件预览 / 版本留痕（v1.12：原来这两个按钮只 toast） ================= */
+function openFilePreview(name){
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">附件预览</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(name)+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>'
+    +'<div class="px-5 py-4"><div style="border:1px solid #E2E8F0;border-radius:10px;padding:36px;text-align:center;background:#F8FAFC">'
+    +'<i class="fas fa-file-pdf" style="font-size:28px;color:#B91C1C"></i>'
+    +'<p class="text-[12px] text-[#334155] mt-2">'+esc(name)+'</p>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">原型以占位图代替文件内容；正式环境为 PDF / 图片在线预览</p></div></div>'
+    +'<div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="toast(\'已下载附件（原型）\')"><i class="fas fa-download text-[10px] mr-1"></i>下载</button>'
+    +'<button class="btn btn-primary" onclick="closeAll()">关闭</button></div>';
+  show('modal',h);
+}
+function openVersion(id){
+  var x=cOf(id);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">版本留痕　<span class="text-[12px] font-normal text-[#94A3B8]">'+esc(x.no)+'</span></h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">合同号不变；变更生成新版本，旧版本只留查</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>'
+    +'<div class="px-5 py-4" style="display:flex;flex-direction:column;gap:10px">'
+    +'<div class="blk"><div class="blk-t">v2（'+(x.state==='已通过'?'已生效 · 以签署版本为准':'待签 / 待审')+'）</div>'
+    +'<div class="text-[12px] leading-7 text-[#334155]">'+x.fields.map(function(f){return '<b>'+esc(f[0])+'</b>：'+esc(f[1])+' → '+esc(f[2]);}).join('<br>')
+    +(x.sign?'<br><span class="text-[11px] text-[#94A3B8]">商户签署：'+esc(x.sign)+'</span>':'')
+    +(x.ok?'<br><span class="text-[11px]" style="color:#15803D">'+esc(x.ok)+'</span>':'')+'</div></div>'
+    +'<div class="blk" style="opacity:.75"><div class="blk-t">v1（历史版本 · 仅供查阅，不可再用于履约）</div>'
+    +'<div class="text-[12px] leading-7 text-[#64748B]">变更前：'+x.fields.map(function(f){return esc(f[0])+' '+esc(f[1]);}).join('；')+'</div></div>'
+    +'</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end">'
+    +'<button class="btn btn-primary" onclick="closeAll()">关闭</button></div>';
+  show('modal',h);
+}
+
+/* ================= 催签 / 撤回（v1.11） ================= */
+function remindSign(id){
+  var x=cOf(id);
+  if(x.state!=='待签署'){toast('仅「待签署」变更单可催签');return;}
+  x.sms='2026-11-04 10:20 已重新发送签署短信（第 2 次）';
+  x.wait='待商户签署（最近催签 2026-11-04 10:20）';
+  render();closeAll();
+  toast('已向商户重新发送签署短信：'+x.no+'（'+x.type+' 变更协议）');
+}
+function withdrawChange(id){
+  var x=cOf(id);
+  if(x.state!=='待签署'){toast('仅「待签署」变更单可撤回（其它状态请走驳回）');return;}
+  if(!confirm('撤回后变更协议作废、商户端待签任务消失，确认撤回该变更单？')){return;}
+  x.state='已撤回';x.wd='专员撤回（2026-11-04）';
+  render();closeAll();
+  toast('变更单已撤回，商户端待签任务已取消；如需继续请重新发起');
 }
 
 /* ================= 通过 ================= */
 function openApprove(id){
   curId=id;
   var x=cOf(id);
+  if(x.state!=='待审核'){toast('商户尚未签署完成，不能审核通过（待签署 → 商户签 → 待审核）');return;}
   var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
     +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">审核通过　'+esc(x.id)+'</h3>'
     +'<p class="text-[11px] text-[#94A3B8] mt-1">回写变更 + 生成新版本 + 重推下游（合同号不变）</p></div>'
@@ -327,7 +527,7 @@ function openApprove(id){
     +'</div>'
     +'<div><label class="fl">审批意见（可选）</label><textarea class="fi" id="a-note" rows="2" placeholder="例：同意按协商结果执行，已核对附件材料"></textarea></div>'
     +'<div class="blk" style="border-color:#FDE68A;background:#FFFBEB"><div class="blk-t" style="color:#B45309"><i class="fas fa-list-check"></i>通过后自动执行</div>'
-    +'<label class="ck"><input type="checkbox" id="p1" checked><span>回写合同字段并生成新版本 '+esc(x.ver)+'（原版本仍可查）</span></label>'
+    +'<label class="ck"><input type="checkbox" id="p1" checked disabled><span><b>以商户签署版本 '+esc(x.ver)+' 为准</b>回写合同字段并生成新版本（旧版本只留查、不可再用于履约）</span></label>'
     +'<label class="ck"><input type="checkbox" id="p2" checked><span>重推 <b>02 市场资源管理</b>（档口租期 / 面积 / <b>当前租户显示名</b>口径）</span></label>'
     +'<label class="ck"><input type="checkbox" id="p3" checked><span>重推 <b>06 缴费管理</b>（年度账单重算，如涉及租金 / 期次）</span></label>'
     +'<label class="ck"><input type="checkbox" id="p4" checked><span>重推 <b>04 商户管理</b>（<b>v1.9：主体信息变更时同步档案 —— 建档名称 = 企业名称 / 主体类型 / 证件号 = 统一社会信用代码</b>；名下授权员工关联与物业权限不受影响）</span></label>'
@@ -350,13 +550,13 @@ function saveApprove(){
   if(x.type==='主体信息变更'){
     var p6=document.getElementById('p6');
     if(p6&&!p6.checked){toast('主体信息变更：请先勾选「主体变更核验」（统一社会信用代码 18 位且不重复 + 已收取工商变更证明）');return;}
-    x.ok='运营主管 张磊 已审批（'+eff+'）：'+(note||'同意主体信息变更，已核验统一社会信用代码与工商变更证明')+'；签署手机号已同步；变更补充协议已发起签署';
+    x.ok='合同专员 何静 已审核签署（'+eff+'）：'+(note||'已核验统一社会信用代码与工商变更证明，商户签署无误')+'；以签署版本 '+x.ver+' 为准；签署手机号已同步';
   }else{
-    x.ok='运营主管 张磊 已审批（'+eff+'）：'+(note||'同意，按变更单执行');
+    x.ok='合同专员 何静 已审核签署（'+eff+'）：'+(note||'已核对商户签署与变更内容，同意')+'；以签署版本 '+x.ver+' 为准';
   }
-  x.state='已通过';
+  x.state='已通过';x.seal=x.seal||'';
   renderStats();render();closeAll();
-  toast('变更已通过：'+x.no+'（'+x.type+'）→ 回写（'+x.ver+'）+ 重推 02 / 06 / 04 + 通知商户'+(x.type==='主体信息变更'?'；签署手机号已同步、变更补充协议已发起签署':'；合同状态回「生效中」'));
+  toast('变更已通过：'+x.no+'（'+x.type+'）→ 回写（'+x.ver+'）+ 重推 02 / 06 / 04 + 通知商户；<b>下一步</b>：下载变更后合同 → 双方盖章 → 在本页「上传盖章件」归档');
 }
 
 /* ================= 驳回 ================= */
@@ -396,6 +596,20 @@ function closeAll(){
   document.getElementById('modal').classList.remove('on');
 }
 renderStats();render();
+/* v1.12：从合同台账「变更」跳转（contract-change.html?no=HT2026-XXXX）→ 自动过滤到该合同 */
+(function fromLedger(){
+  var m=/[?&]no=([^&]+)/.exec(location.search);
+  if(!m)return;
+  var no=decodeURIComponent(m[1]);
+  var kw=document.getElementById('f-kw');
+  if(kw)kw.value=no;
+  curRows=CH.filter(function(x){return x.no===no;});
+  render();
+  var box=document.getElementById('fromLedger');
+  var lab=document.getElementById('flNo');
+  if(box&&lab){lab.textContent=no;box.style.display='block';}
+  if(!curRows.length){setTimeout(function(){toast('该合同暂无变更单，可在本页发起新的变更');},400);}
+})();
 </script>
 <script src="../shared/op-guard.js"></script>
 <script src="../shared/page-prd.js"></script>

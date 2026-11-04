@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>合同管理 - 合同变更办理</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}
+.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}
+.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.blk{border:1px solid #E2E8F0;border-radius:12px;padding:14px 16px;background:#fff}
+.blk-t{font-size:12.5px;font-weight:700;color:#1F2430;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.fl{display:block;font-size:11px;color:#94A3B8;margin-bottom:4px}
+.fl i{color:#FF4D2D;font-style:normal;margin-right:2px}
+.fi{width:100%;padding:6px 10px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none;background:#fff}
+.fi:focus{border-color:#FF4D2D}
+.fi[readonly]{background:#F8FAFC;color:#64748B}
+.sel{width:100%;padding:6px 8px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none;background:#fff}
+.chg{border-color:#FFB59E!important;background:#FFF8F5!important}
+.diff{font-size:12px;line-height:1.9;color:#334155}
+.diff b{color:#1F2430}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+<div class="p-6">
+
+  <div id="pageHead" class="flex items-start justify-between mb-4">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">合同变更办理</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">05 合同管理</span>
+        <span class="tag" id="vTag" style="background:#EDE9FE;color:#6D28D9">v1 → v2</span>
+      </div>
+      <p class="text-[12px] text-gray-400 mt-1">合同专员<b>对着整份合同</b>修改需要变更的字段（可同时改多处）；提交后生成<b>一条变更单</b>（多条字段差异），状态「待签署」并短信通知商户重签；商户签署后再回「变更审核」审核</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="location.href='contract-list.html'"><i class="fas fa-arrow-left text-[10px] mr-1"></i>返回台账</button>
+      <button class="btn btn-ghost" onclick="location.href='contract-change.html'"><i class="fas fa-list-check text-[10px] mr-1"></i>去变更审核</button>
+    </div>
+  </div>
+
+  <!-- 合同选择（从台账带入时可改） -->
+  <div class="blk mb-4">
+    <div class="flex items-center gap-3 flex-wrap">
+      <div style="width:340px">
+        <label class="fl">当前合同 *</label>
+        <select class="sel" id="ct-no" onchange="loadContract()"></select>
+      </div>
+      <div class="text-[12px] text-[#64748B]" id="ctMeta"></div>
+    </div>
+  </div>
+
+  <div id="inflight" style="display:none"></div>
+
+  <!-- ① 合同基本信息（可改字段高亮） -->
+  <div class="blk mb-4">
+    <div class="blk-t"><i class="fas fa-file-contract text-[#FF4D2D]"></i>① 合同基本信息（对齐线下《出租合同台账》字段）</div>
+    <p class="text-[11px] text-[#94A3B8] mb-3">只有<b>橙色底</b>字段可修改；其余字段只读（改主体/档口属另行业务：主体走主体信息变更、档口走终止+新签）</p>
+    <div class="grid grid-cols-3 gap-x-5 gap-y-3" id="fieldGrid"></div>
+  </div>
+
+  <!-- ② 本次变更摘要 -->
+  <div class="blk mb-4" id="sumBox" style="border-color:#FDB4A3;background:#FFF6F3">
+    <div class="blk-t" style="color:#E63E20"><i class="fas fa-code-compare"></i>② 本次变更摘要（自动识别，可同时改多处）</div>
+    <div id="sumBody" class="diff">尚未修改任何字段</div>
+  </div>
+
+  <!-- ③ 变更原因（附件不在发起时上传：盖章件在审核通过后补传） -->
+  <div class="blk mb-4">
+    <div class="blk-t"><i class="fas fa-comment-dots text-[#64748B]"></i>③ 变更原因</div>
+    <label class="fl"><i>*</i>变更原因（商户端可见）</label>
+    <textarea class="fi" id="ct-reason" rows="3" placeholder="如：周边市场租金上调，协商一致按年递增 5%；同时将租期延长 1 年"></textarea>
+    <p class="text-[11px] text-[#94A3B8] mt-2"><i class="fas fa-circle-info mr-1"></i>本环节<b>不需要上传附件</b>：变更协议签署并审核通过后，再在「变更审核」列表上传<b>线下盖章件</b>（变更后合同需下载盖章后回传）</p>
+  </div>
+
+  <!-- 驳回修正提示（同单号重新送签） -->
+  <div id="rejectBox" class="mb-4" style="display:none"></div>
+
+  <div class="flex items-center justify-between">
+    <p class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>提交后：需重签的变更 → 生成变更协议 v2 并短信通知商户重签（状态「待签署」）；仅联系人/电话等一般项 → 直接「待审核」，审核通过即生效</p>
+    <div class="flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="cancelChange()">取消</button>
+      <button class="btn btn-primary" onclick="submitChange()"><i class="fas fa-paper-plane text-[10px] mr-1"></i>提交变更并送签</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
+
+<script>
+/* ============================================================
+   合同变更办理（v1.13）
+   · 以"整份合同"为主体：专员看着完整合同改字段（可同时改多处）
+   · 提交 → 生成【一条】变更单，含多条字段差异 + 自动变更类型标签
+   · 数据：变更单写入 localStorage，contract-change.html 读取合并
+   ============================================================ */
+
+/* 合同主数据（与合同台账 mock 对齐；此处补足 21 字段） */
+var CONTRACTS=[
+  {no:'HT2026-0069',vol:'69-10',stall:'A9-10',gate:'1F-A09',lv:'普通摊',ptype:'个人',name:'汤晓琳',idno:'330681198807150021',phone:'138****6621',
+   uscc:'',ent:'',contact:'',area:'147.2',start:'2026.09.01',end:'2029.08.31',rent:'45600',dep:'20000',
+   addr:'诸暨市大唐轻纺原料市场 A 区',cert:'浙(2020)诸暨市不动产权第0020999号',status:'生效中',ver:'v1'},
+  {no:'HT2025-0231',vol:'231-08',stall:'B3-10',gate:'3F-B10',lv:'普通摊',ptype:'个人',name:'郑强',idno:'330681198912204455',phone:'137****3322',
+   uscc:'',ent:'',contact:'',area:'86.5',start:'2025.01.15',end:'2026.11.15',rent:'38200',dep:'20000',
+   addr:'诸暨市大唐轻纺原料市场 B 区',cert:'浙(2020)诸暨市不动产权第0021005号',status:'变更中',ver:'v1'},
+  {no:'HT2026-0072',vol:'72-10',stall:'A9-13',gate:'1F-A13',lv:'普通摊',ptype:'个人',name:'周雅琴',idno:'',phone:'135****7712',
+   uscc:'',ent:'',contact:'',area:'147.2',start:'2026.09.01',end:'2029.08.31',rent:'45600',dep:'20000',
+   addr:'诸暨市大唐轻纺原料市场 A 区',cert:'浙(2020)诸暨市不动产权第0021002号',status:'待签署',ver:'v1'},
+  {no:'HT2025-0070',vol:'70-10',stall:'A9-12',gate:'1F-A12',lv:'精品摊',ptype:'企业',name:'浙江棉田纺织有限公司',idno:'330681198503127777',phone:'139****2208',
+   uscc:'91330681MA2D2XXXX2',ent:'企业',contact:'陈志强',area:'147.2',start:'2025.09.01',end:'2030.08.31',rent:'77900',dep:'20000',
+   addr:'诸暨市大唐轻纺原料市场 A 区',cert:'浙(2020)诸暨市不动产权第0021000号',status:'生效中',ver:'v1'},
+  {no:'HT2024-0102',vol:'102-03',stall:'A9-15',gate:'1F-A15',lv:'普通摊',ptype:'个人',name:'赵敏',idno:'330681198702148888',phone:'136****8899',
+   uscc:'',ent:'',contact:'',area:'160.0',start:'2024.01.01',end:'2026.12.20',rent:'60000',dep:'20000',
+   addr:'诸暨市大唐轻纺原料市场 A 区',cert:'浙(2020)诸暨市不动产权第0021004号',status:'生效中',ver:'v1'},
+  {no:'HT2026-0073',vol:'73-10',stall:'A9-14',gate:'1F-A14',lv:'精品摊',ptype:'企业',name:'诸暨××袜业有限公司',idno:'330681198810236619',phone:'138****6621',
+   uscc:'91330681MA2D9XXXX9',ent:'企业',contact:'李海涛',area:'92.0',start:'2026.09.01',end:'2031.08.31',rent:'63800',dep:'20000',
+   addr:'诸暨市大唐轻纺原料市场 A 区',cert:'浙(2020)诸暨市不动产权第0021006号',status:'生效中',ver:'v1'}
+];
+
+/* 可编辑字段定义（决定"哪些能改" + 变更类型映射） */
+var EDITABLE={
+  rent:{label:'年租金（元）',type:'租金变更'},
+  start:{label:'租赁起始日',type:'租期变更'},
+  end:{label:'租赁终止日',type:'租期变更'},
+  area:{label:'出租面积（㎡）',type:'面积变更'},
+  name:{label:'承租方（乙方）',type:'承租人变更'},
+  ptype:{label:'主体类型',type:'主体信息变更'},
+  uscc:{label:'统一社会信用代码',type:'主体信息变更'},
+  contact:{label:'法定代表人 / 联系人',type:'主体信息变更'},
+  phone:{label:'联系电话（签署匹配键）',type:'主体信息变更'}
+};
+
+var curNo='',cur=null,bgId='',EMBED=false;
+var EXTRA_KEY='sh_contract_changes_v1';
+/* CC-7：同一合同只允许一条在途变更单（待签署 / 待审核），否则会签出两个版本 */
+var INFLIGHT={'HT2025-0231':'BG2026-0012（待审核）','HT2026-0072':'BG2026-0013（待签署）'};
+
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(window.__tid);window.__tid=setTimeout(function(){t.style.opacity='0'},2600);}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function money(n){return Number(n||0).toLocaleString('en-US');}
+
+/* 内置驳回样本（演示"同单号重新送签"；真实环境从变更单读取） */
+var MOCK_REJECTED={
+  id:'BG2026-0016',no:'HT2026-0069',state:'已驳回',
+  reject:'商户签名与承租方不一致（签署笔迹为他人代签），请修正后重新送签',
+  reason:'周边市场租金上调，协商一致按年递增 5%',
+  diff:[{key:'rent',label:'年租金（元）',type:'租金变更',from:'45600',to:'47880'}]
+};
+function findRejected(id){
+  var hit=getExtra().filter(function(x){return x.id===id;})[0];
+  if(hit)return hit;
+  if(MOCK_REJECTED.id===id)return MOCK_REJECTED;
+  return null;
+}
+function prefillDiff(rec){
+  var arr=(rec&&(rec.diff||[]))||[];
+  arr.forEach(function(d){
+    var el=document.querySelector('[data-k="'+d.key+'"]');
+    if(el)el.value=d.to;
+  });
+  onEdit();
+}
+
+/* 初始化：从 URL 带合同号；带 bg= 进入「驳回后重新送签」模式（单号复用） */
+(function init(){
+  var mNo=/[?&]no=([^&]+)/.exec(location.search);
+  var mBg=/[?&]bg=([^&]+)/.exec(location.search);
+  EMBED=/[?&]embed=1/.test(location.search);
+  if(EMBED){
+    /* 弹层内嵌：去掉本页头部与留白，避免双层标题栏 */
+    var ph=document.getElementById('pageHead');
+    if(ph)ph.style.display='none';
+    var wrap=document.querySelector('.p-6');
+    if(wrap)wrap.style.padding='16px';
+  }
+  bgId=mBg?decodeURIComponent(mBg[1]):'';
+  var rec=bgId?findRejected(bgId):null;
+  var sel=document.getElementById('ct-no');
+  sel.innerHTML=CONTRACTS.map(function(c){return '<option value="'+c.no+'">'+c.no+'　'+esc(c.name)+'　'+esc(c.stall)+'</option>';}).join('');
+  curNo=(rec&&rec.no)||(mNo?decodeURIComponent(mNo[1]):CONTRACTS[0].no);
+  if(!CONTRACTS.some(function(c){return c.no===curNo;}))curNo=CONTRACTS[0].no;
+  sel.value=curNo;
+  loadContract();
+  if(rec){
+    prefillDiff(rec);
+    document.getElementById('ct-reason').value=rec.reason||'';
+    var box=document.getElementById('rejectBox');
+    box.style.display='block';
+    box.innerHTML='<div class="rounded-xl border p-3" style="border-color:#FCA5A5;background:#FEF2F2">'
+      +'<p class="text-[12px]" style="color:#B91C1C"><i class="fas fa-rotate-left mr-1"></i>驳回后修正：<b>'+esc(rec.id)+'</b>（单号复用，不会新建变更单）</p>'
+      +'<p class="text-[11px] mt-1" style="color:#7F1D1D">驳回原因：'+esc(rec.reject||'—')+'</p>'
+      +'<p class="text-[11px] mt-1" style="color:#7F1D1D">下方已带出上次修改值，可继续修正；提交后<b>同单号重新送签</b>，商户端重新出现待签协议</p></div>';
+    var btn=document.querySelector('button[onclick="submitChange()"]');
+    if(btn)btn.innerHTML='<i class="fas fa-rotate-right text-[10px] mr-1"></i>修正后重新送签';
+    document.querySelector('h1').innerHTML='合同变更办理　<span class="text-[12px] font-normal" style="color:#B91C1C">驳回修正 · 同单号重新送签</span>';
+  }
+})();
+
+/* 渲染整份合同（可改字段给输入框，只读字段灰底） */
+function loadContract(){
+  curNo=document.getElementById('ct-no').value;
+  cur=CONTRACTS.filter(function(c){return c.no===curNo;})[0];
+  document.getElementById('ctMeta').innerHTML=
+    '<b>'+esc(cur.name)+'</b>　档口 '+esc(cur.gate)+'（'+esc(cur.stall)+'）　'+esc(cur.area)+' ㎡　'+esc(cur.start)+' ~ '+esc(cur.end)
+    +'　年租金 '+money(cur.rent)+' 元　当前状态 '+esc(cur.status);
+  document.getElementById('vTag').textContent=cur.ver+' → v'+(parseInt(cur.ver.replace('v',''),10)+1);
+  var G=[
+    ['合同号',cur.no,0],['卷号',cur.vol,0],['资产类型','商铺',0],['资产名称（摊位号）',cur.stall,0],
+    ['坐落地址',cur.addr,0],['不动产权证号',cur.cert,0],
+    ['主体类型',cur.ptype,'ptype',['个人','企业']],
+    ['承租方（乙方）',cur.name,'name'],
+    ['统一社会信用代码',cur.uscc||'（个人主体无）','uscc'],
+    ['法定代表人 / 联系人',cur.contact||'—','contact'],
+    ['联系电话（签署匹配键）',cur.phone,'phone'],
+    ['出租面积（㎡）',cur.area,'area'],
+    ['租赁起始日',cur.start,'start'],
+    ['租赁终止日',cur.end,'end'],
+    ['年租金（元）',cur.rent,'rent'],
+    ['履约保证金（元）',money(cur.dep)+'（'+cur.lv+'固定，不可改）',0],
+    ['租金收取方式','每年 8 月底前缴清下一租赁年度年租金',0],
+    ['出租依据','政府招投标成交确认书（系统外）',0],
+    ['合同状态',cur.status,0],['当前版本',cur.ver,0]
+  ];
+  document.getElementById('fieldGrid').innerHTML=G.map(function(f){
+    var key=f[2];
+    if(!key)return '<div><label class="fl">'+f[0]+'</label><input class="fi" readonly value="'+esc(f[1])+'"></div>';
+    if(Array.isArray(key)){
+      return '<div><label class="fl">'+f[0]+'</label><select class="sel chg" data-k="ptype" onchange="onEdit()">'+key.map(function(o){return '<option'+(o===f[1]?' selected':'')+'>'+o+'</option>';}).join('')+'</select></div>';
+    }
+    return '<div><label class="fl">'+f[0]+'</label><input class="fi chg" data-k="'+key+'" value="'+esc(f[1])+'" oninput="onEdit()"></div>';
+  }).join('');
+  document.getElementById('ct-reason').value='';
+  showInflight();
+  onEdit();
+}
+/* 在途变更单提示：有在途单时禁止再次发起，避免同一合同签出两个版本 */
+function inflightOf(no){
+  var hit=getExtra().filter(function(x){return x.no===no&&(x.state==='待签署'||x.state==='待审核');})[0];
+  if(hit)return hit.id+'（'+hit.state+'）';
+  return INFLIGHT[no]||'';
+}
+function showInflight(){
+  var box=document.getElementById('inflight');
+  var hit=inflightOf(curNo);
+  if(box){
+    box.style.display=hit?'block':'none';
+    if(hit)box.innerHTML='<div class="rounded-xl border p-3 mb-4" style="border-color:#FCA5A5;background:#FEF2F2"><p class="text-[12px]" style="color:#B91C1C"><i class="fas fa-triangle-exclamation mr-1"></i>该合同已有在途变更单 <b>'+esc(hit)+'</b>：请先完成审核或撤回后再发起新变更（同一合同同时只允许一条在途变更单，避免签出两个版本）</p></div>';
+  }
+  var btn=document.querySelector('button[onclick="submitChange()"]');
+  if(btn){btn.disabled=!!hit;btn.style.opacity=hit?'.5':'';btn.style.cursor=hit?'not-allowed':'';}
+}
+
+/* 实时算 diff + 变更类型
+   computeDiff(edits) 为纯函数（便于单测）：edits = {字段: 新值} */
+function computeDiff(edits){
+  var out=[];
+  Object.keys(edits).forEach(function(k){
+    if(!EDITABLE[k])return;
+    var v=String(edits[k]==null?'':edits[k]).trim();
+    var old=String(cur[k]==null?'':cur[k]).trim();
+    if(v!==old)out.push({key:k,label:EDITABLE[k].label,type:EDITABLE[k].type,from:old,to:v});
+  });
+  return out;
+}
+function diffList(){
+  var edits={};
+  document.querySelectorAll('[data-k]').forEach(function(el){edits[el.getAttribute('data-k')]=el.value;});
+  return computeDiff(edits);
+}
+/* 是否需要重签：租金/租期/面积/承租方/主体重大项 */
+function needSignFor(list){
+  var ts=typesOf(list);
+  var key=['租金变更','租期变更','面积变更','承租人变更'];
+  if(ts.some(function(t){return key.indexOf(t)>-1;}))return true;
+  return ts.indexOf('主体信息变更')>-1 && list.some(function(d){return ['ptype','name','uscc'].indexOf(d.key)>-1;});
+}
+function typesOf(list){
+  var ts=[];
+  list.forEach(function(d){if(ts.indexOf(d.type)<0)ts.push(d.type);});
+  return ts;
+}
+function onEdit(){
+  var list=diffList();
+  var ts=typesOf(list);
+  document.getElementById('sumBody').innerHTML=list.length
+    ? list.map(function(d){return '· <b>'+d.label+'</b>：<span style="color:#94A3B8;text-decoration:line-through">'+(d.from||'—')+'</span> → <span style="color:#E63E20;font-weight:600">'+(d.to||'—')+'</span>';}).join('<br>')
+      +'<div class="mt-2">变更类型（自动）：'+ts.map(function(t){return '<span class="tag" style="background:#FFEDE7;color:#E63E20;margin-right:4px">'+t+'</span>';}).join('')+'</div>'
+      +'<div class="text-[11px] text-[#64748B] mt-1">共 '+list.length+' 处修改 → 只生成 <b>1 条</b>变更单，商户签一次即可（不需要分多次发起）</div>'
+    : '尚未修改任何字段';
+}
+
+/* 提交：生成一条变更单（多条 diff）+ 状态待签署
+   驳回后再提交 = 同单号重新送签（不新建单号，不要求重新填一遍） */
+function submitChange(){
+  var hit=inflightOf(curNo);
+  if(hit){toast('该合同已有在途变更单 '+hit+'，请先完成审核或撤回');return;}
+  var list=diffList();
+  var reason=document.getElementById('ct-reason').value.trim();
+  if(!list.length){toast('请至少修改一处需要变更的字段（橙色底输入框）');return;}
+  if(!reason){toast('变更原因必填（商户端会看到）');return;}
+  var ts=typesOf(list);
+  var needSign=needSignFor(list);
+  var extra=getExtra();
+  var prevIdx=bgId?extra.findIndex(function(x){return x.id===bgId;}):-1;
+  var id=bgId||('BG2026-'+(20+(extra.length+1)));
+  var resend=bgId?(((prevIdx>-1?extra[prevIdx].resend:0)||0)+1):0;
+  var item={
+    id:id,no:cur.no,mer:cur.name,stall:cur.stall,gate:cur.gate,
+    type:ts.join(' + '),types:ts,
+    from:list[0].from||'—',to:list[0].to||'—',
+    fields:list.map(function(d){return [d.label,d.from||'—',d.to||'—'];}),diff:list,
+    eff:'2026-11-05',ver:cur.ver+' → v'+(parseInt(cur.ver.replace('v',''),10)+1),
+    by:'合同管理专员 何静',time:'2026-11-04 12:10',src:'运营发起',
+    state:needSign?'待签署':'待审核',
+    reason:reason,file:'',seal:'',resend:resend,
+    sign:'',auditBy:'',auditAt:'',reject:'',rj:'',offReason:'',
+    sms:needSign?'2026-11-04 12:10 变更协议 v'+(parseInt(cur.ver.replace('v',''),10)+1)+' 签署短信已发送（'+cur.phone+'，送达 1 次）':'',
+    wait:needSign?(resend?'待商户重新签署（第 '+resend+' 次送签）':'待商户签署（刚刚发起）'):'',
+    contact:cur.contact||cur.name,phone:cur.phone,
+    ptype:cur.ptype
+  };
+  if(prevIdx>-1)extra[prevIdx]=item;else extra.unshift(item);
+  saveExtra(extra);
+  toast(needSign
+    ? ('已'+(bgId?'重新送签':'提交')+'：变更单 '+id+'（'+ts.join(' + ')+'，共 '+list.length+' 处）→ 状态「待签署」，变更协议已重新发商户签署')
+    : ('已提交：变更单 '+id+'（'+ts.join(' + ')+'）→ 本变更不需重签，已进入「待审核」'));
+  if(EMBED){
+    /* 弹层模式：通知台账关闭弹层并刷新（不再跳页） */
+    try{parent.postMessage({type:'change-saved',id:id,no:cur.no,state:item.state,types:ts},'*');}catch(e){}
+    var btn=document.querySelector('button[onclick="submitChange()"]');
+    if(btn){btn.disabled=true;btn.style.opacity='.5';btn.style.cursor='not-allowed';btn.innerHTML='<i class="fas fa-check mr-1"></i>已提交';}
+  }else{
+    setTimeout(function(){location.href='contract-change.html?no='+encodeURIComponent(cur.no);},900);
+  }
+}
+/* 取消：弹层模式下让台账关闭弹层 */
+function cancelChange(){
+  if(EMBED){try{parent.postMessage({type:'change-cancel'},'*');}catch(e){}return;}
+  location.href='contract-list.html';
+}
+function getExtra(){
+  try{var a=JSON.parse(localStorage.getItem(EXTRA_KEY)||'[]');return Array.isArray(a)?a:[];}catch(e){return [];}
+}
+function saveExtra(a){try{localStorage.setItem(EXTRA_KEY,JSON.stringify(a));}catch(e){}}
+</script>
+<script src="../shared/op-guard.js"></script>
+<script src="../shared/page-prd.js"></script>
+</body>
+</html>

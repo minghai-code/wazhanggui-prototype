@@ -10,14 +10,17 @@
 *{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
 .shadow-soft{box-shadow:0 2px 12px rgba(20,40,80,.06)}
-.grad-h{background:linear-gradient(135deg,#3B82F6 0%,#2563EB 50%,#1D4ED8 100%)}
 .num{font-variant-numeric:tabular-nums}
 .fade-up{animation:fadeUp .4s ease both}
 @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .card{transition:transform .16s ease}
 .card:active{transform:scale(.98)}
+.diff{display:flex;gap:6px;font-size:10px;line-height:1.5}
+.diff .k{color:#9CA3AF;width:52px;flex-shrink:0}
+.diff .v{color:#6B7280;text-decoration:line-through}
+.diff .n{color:#111827;font-weight:600}
 </style>
-<!-- Tailwind 静态样式：本地引用（不再依赖 cdn.tailwindcss.com）；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
+<!-- Tailwind 静态样式：本地引用；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
 <link rel="stylesheet" href="tailwind.css">
 </head>
 <body>
@@ -26,7 +29,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <div class="relative px-4 pt-2 pb-5 overflow-hidden" style="background:linear-gradient(135deg,#6366F1 0%,#4F46E5 50%,#4338CA 100%)">
   <div class="absolute -top-12 -left-10 w-44 h-44 rounded-full blur-3xl opacity-50" style="background:#A5B4FC"></div>
   <div class="absolute -top-6 right-[-30px] w-48 h-48 rounded-full blur-3xl opacity-40" style="background:#818CF8"></div>
-  <div class="absolute -bottom-10 left-12 w-44 h-44 rounded-full blur-3xl opacity-35" style="background:#6366F1"></div>
   <div class="relative flex justify-between items-center text-white text-sm font-semibold" style="height:40px">
     <span>9:41</span>
     <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
@@ -36,78 +38,43 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
     <h1 class="text-white font-extrabold text-[20px]" style="text-shadow:0 2px 10px rgba(0,0,0,.18)">合同服务</h1>
     <div class="w-9"></div>
   </div>
-  <p class="relative text-white/80 text-[11px] mt-2"><i class="fas fa-file-contract"></i> 合同查看 · 后台发起签署</p>
+  <p class="relative text-white/80 text-[11px] mt-2"><i class="fas fa-file-contract"></i> 合同查看 · 变更由合同专员发起</p>
   <div class="relative flex gap-4 mt-3 text-[13px]">
-    <a id="ct-sign" class="text-white font-bold border-b-2 border-white pb-1.5" onclick="switchCt('sign',this)">待签署</a>
+    <a id="ct-sign" class="text-white font-bold border-b-2 border-white pb-1.5" onclick="switchCt('sign',this)">待签署 <span id="tabSignN" class="text-[10px] bg-white/25 px-1 rounded">0</span></a>
     <a id="ct-active" class="text-white/70 pb-1.5" onclick="switchCt('active',this)">生效中</a>
     <a id="ct-history" class="text-white/70 pb-1.5" onclick="switchCt('history',this)">历史合同</a>
     <a id="ct-all" class="text-white/70 pb-1.5" onclick="switchCt('all',this)">全部</a>
   </div>
 </div>
 
-<!-- 待签署（v1.9：后台发起 + 变更补充协议 + 主体变更改绑重签） -->
+<!-- 待签署 -->
 <div class="px-3 mt-2" data-ct="sign" id="signSection">
-  <p class="text-[12px] font-bold text-gray-800 mb-2 px-1">待签署合同 <span class="text-gray-400 font-normal num">2</span></p>
-
-  <div id="signList">
-    <!-- ① 变更补充协议待签（重签类变更产生） -->
-    <div class="bg-white rounded-2xl shadow-soft overflow-hidden mb-2.5 border border-indigo-100">
-      <div class="flex items-center justify-between px-3.5 py-3 border-b border-gray-50">
-        <div class="flex items-center gap-2">
-          <div class="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center"><i class="fas fa-file-pen text-indigo-500 text-sm"></i></div>
-          <div><p class="text-[13px] font-bold text-gray-800">变更补充协议 <span class="text-[9px] text-indigo-500 bg-indigo-50 px-1 py-0.5 rounded align-middle">补充协议</span></p><p class="text-[10px] text-gray-400 num">BC2026-0001（主合同 HT2026-0002）</p></div>
-        </div>
-        <span class="bg-amber-100 text-amber-600 text-[9px] font-bold px-1.5 py-0.5 rounded">待商户签字</span>
-      </div>
-      <div class="px-3.5 py-3 text-[11px] text-gray-500 leading-relaxed">变更类型：<b class="text-gray-700">租金调整</b> · 生效日 2026-10-20。重签类变更（租金 / 租期 / 面积 / 承租人 / 主体信息）需签署补充协议后生效。</div>
-      <div class="flex gap-2 px-3.5 pb-3">
-        <a href="contract-detail.html?no=BC2026-0001" class="flex-1 py-2.5 rounded-lg border border-gray-200 text-[12px] text-gray-600 text-center"><i class="fas fa-file-lines text-[10px]"></i> 查看全文</a>
-        <a onclick="openSign()" class="flex-[1.4] py-2.5 rounded-lg text-white text-[12px] font-bold text-center" style="background:linear-gradient(135deg,#6366F1,#4F46E5)">去签署（手写签名）</a>
-      </div>
-    </div>
-
-    <!-- ② 主合同新版本待签（主体信息变更后 v2，企业主体） -->
-    <div id="signCard" class="bg-white rounded-2xl shadow-soft overflow-hidden">
-      <div class="flex items-center justify-between px-3.5 py-3 border-b border-gray-50">
-        <div class="flex items-center gap-2">
-          <div class="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center"><i class="fas fa-file-signature text-indigo-500 text-sm"></i></div>
-          <div><p class="text-[13px] font-bold text-gray-800">商铺租赁合同 <span class="text-[9px] text-indigo-500 bg-indigo-50 px-1 py-0.5 rounded align-middle">v2</span></p><p class="text-[10px] text-gray-400 num">HT2026-0001 · 卷 69-10</p></div>
-        </div>
-        <span class="bg-amber-100 text-amber-600 text-[9px] font-bold px-1.5 py-0.5 rounded">待商户签字</span>
-      </div>
-      <div class="px-3.5 py-2.5 border-b border-gray-50 text-[10px] text-gray-500" style="background:#FFFBEB">
-        <p><i class="fas fa-clock-rotate-left text-[9px]"></i> 变更留痕：<b class="text-gray-700">主体信息变更</b>（个人 → 企业）· 生效 2026-10-15</p>
-      </div>
-      <div class="px-3.5 py-3 text-[11px] text-gray-500 leading-relaxed">
-        <p class="mb-1"><b class="text-gray-700">乙方（企业）</b>：大唐袜业旗舰</p>
-        <p class="mb-1">统一社会信用代码：91330681XXXXXX1234</p>
-        <p>法定代表人 / 联系人：李老板 · <b class="text-gray-700">138****8000</b>（签署手机号）</p>
-      </div>
-      <div class="px-3.5 pb-3 text-[10px] text-gray-400">请核对后手写签名提交，后台审核签字即生效（无需人脸识别）。</div>
-      <div class="flex gap-2 px-3.5 pb-3">
-        <a href="contract-detail.html?no=HT2026-0001" class="flex-1 py-2.5 rounded-lg border border-gray-200 text-[12px] text-gray-600 text-center"><i class="fas fa-file-lines text-[10px]"></i> 查看全文</a>
-        <a onclick="openSign()" class="flex-[1.4] py-2.5 rounded-lg text-white text-[12px] font-bold text-center" style="background:linear-gradient(135deg,#6366F1,#4F46E5)">去签署（手写签名）</a>
-      </div>
-    </div>
-
-    <!-- ③ 原版本已作废（签署中主体信息变更改绑） -->
-    <div class="bg-white rounded-2xl shadow-soft overflow-hidden mt-2.5 opacity-60">
-      <div class="flex items-center justify-between px-3.5 py-3">
-        <div class="flex items-center gap-2">
-          <div class="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center"><i class="fas fa-file-circle-xmark text-gray-400 text-sm"></i></div>
-          <div><p class="text-[13px] font-bold text-gray-500 line-through">商铺租赁合同 <span class="text-[9px] text-gray-400 bg-gray-100 px-1 py-0.5 rounded align-middle no-underline">v1</span></p><p class="text-[10px] text-gray-400 num">HT2026-0001 · 卷 69-10</p></div>
-        </div>
-        <span class="bg-gray-100 text-gray-500 text-[9px] font-bold px-1.5 py-0.5 rounded">已作废</span>
-      </div>
-      <div class="px-3.5 pb-3 text-[10px] text-gray-400">作废原因：主体信息变更改绑（个人 → 企业），签署手机号已同步，请签署新版本。原签署链接与短信已作废。</div>
-    </div>
-  </div>
-
+  <p class="text-[12px] font-bold text-gray-800 mb-2 px-1">待签署 <span class="text-gray-400 font-normal num" id="signCount">0</span></p>
+  <div id="signList" class="space-y-2.5"></div>
   <div id="signNone" style="display:none" class="bg-gray-50 border border-gray-100 rounded-2xl p-4 text-center">
     <i class="fas fa-circle-check text-emerald-400 text-2xl"></i>
-    <p class="text-[12px] text-gray-500 mt-2">暂无待签合同</p>
-    <p class="text-[10px] text-gray-400 mt-1">竞拍成功后合同由袜业城后台发起并短信通知；后台撤回后此处同步消失，重发将出现新版本待签</p>
+    <p class="text-[12px] text-gray-500 mt-2">暂无待签内容</p>
+    <p class="text-[10px] text-gray-400 mt-1">合同与变更协议均由袜业城后台发起并短信通知；后台撤回后此处同步消失</p>
   </div>
+</div>
+
+<!-- 生效中 -->
+<div class="px-3 mt-3 mb-6" data-ct="active" id="activeSection" style="display:none">
+  <p class="text-[12px] font-bold text-gray-800 mb-2 px-1">生效中合同</p>
+  <div id="activeList" class="space-y-2.5"></div>
+</div>
+
+<!-- 历史合同 -->
+<div class="px-3 mt-3 mb-6" data-ct="history" style="display:none">
+  <p class="text-[12px] font-bold text-gray-800 mb-2 px-1">历史合同 <span class="text-gray-400 font-normal">（已结束 · 只读）</span></p>
+  <div id="historyList" class="space-y-2.5"></div>
+  <p class="text-[10px] text-gray-400 mt-2.5 px-1 leading-relaxed"><i class="fas fa-circle-info text-[9px]"></i> <b>正常到期 ≠ 终止</b>：到期后档口重新竞拍；<b>「违约终止」仅用于违约情形</b>，其余提前结束为「已终止」。历史合同不可签署 / 变更 / 撤回。</p>
+</div>
+
+<!-- 全部：含撤回、免签留痕、存量合同 -->
+<div class="px-3 mt-3 mb-6" data-ct="all" style="display:none">
+  <p class="text-[12px] font-bold text-gray-800 mb-2 px-1">全部记录 <span class="text-gray-400 font-normal">（含变更撤回 / 免签留痕 / 存量合同）</span></p>
+  <div id="allList" class="space-y-2.5"></div>
 </div>
 
 <!-- 手写签名面板 -->
@@ -115,7 +82,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
   <div class="absolute inset-0" style="background:rgba(15,23,42,.45)" onclick="closeSign()"></div>
   <div class="relative w-full bg-white rounded-t-3xl p-4 pb-8" onclick="event.stopPropagation()">
     <div class="w-10 h-1 rounded-full bg-gray-200 mx-auto mb-3"></div>
-    <p class="text-[15px] font-extrabold text-gray-900 text-center">手写签名</p>
+    <p class="text-[15px] font-extrabold text-gray-900 text-center" id="signTitle">签署变更协议</p>
+    <p class="text-[10px] text-gray-400 text-center mt-1" id="signSub">一次签署即生效，旧版本仅供查阅</p>
     <canvas id="signPad" class="w-full h-40 bg-gray-50 border border-gray-200 rounded-xl mt-3"></canvas>
     <div class="flex gap-2 mt-3">
       <a onclick="clearSign()" class="flex-1 py-3 rounded-xl border border-gray-200 text-[13px] text-gray-600 text-center font-medium">清除</a>
@@ -124,172 +92,309 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
   </div>
 </div>
 
-<!-- 生效中（含"待审核"过渡态：签署 → 后台审核 → 生效） -->
-<div class="px-3 mt-3 mb-6" data-ct="active" id="activeSection" style="display:none">
-  <p id="activeTitle" class="text-[12px] font-bold text-gray-800 mb-2 px-1">生效中合同</p>
-
-  <!-- 已生效示例（默认展示：2F-B12 档口，老板名下多档口） -->
-  <div class="card bg-white rounded-2xl shadow-soft overflow-hidden mb-2.5" id="activeExample">
-    <div class="px-3.5 py-3">
-      <div class="flex items-center justify-between mb-2">
-        <a href="contract-detail.html?no=HT2025-0088" class="flex items-center gap-2 min-w-0">
-          <div class="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0"><i class="fas fa-file-contract text-indigo-500 text-sm"></i></div>
-          <div class="min-w-0"><p class="text-[13px] font-bold text-gray-800">商铺租赁合同 <span class="text-[9px] text-indigo-500 bg-indigo-50 px-1 py-0.5 rounded align-middle">v1</span></p><p class="text-[10px] text-gray-400 num">HT2025-0088 · 卷 69-21</p><p class="text-[10px] text-gray-400 mt-0.5">乙方：大唐袜业旗舰（企业）</p></div>
-        </a>
-        <span class="bg-emerald-100 text-emerald-600 text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0">已生效</span>
-      </div>
-      <div class="grid grid-cols-2 gap-2 bg-gray-50 rounded-lg p-2.5 text-[10px]">
-        <div><span class="text-gray-400">商铺</span><p class="text-gray-700 font-medium mt-0.5">2F-B12 档口 · 40㎡</p></div>
-        <div><span class="text-gray-400">年租金</span><p class="text-gray-700 font-medium num mt-0.5">¥122,880</p></div>
-        <div><span class="text-gray-400">租赁年度</span><p class="text-gray-700 font-medium num mt-0.5">2025.09.01–2026.08.31</p></div>
-        <div><span class="text-gray-400">剩余</span><p class="text-amber-600 font-bold num mt-0.5">T-30</p></div>
-      </div>
-      <div class="flex gap-2 mt-2.5">
-        <a href="contract-detail.html?no=HT2025-0088" class="flex-1 py-2 rounded-lg border border-gray-200 text-[11px] text-gray-600 text-center"><i class="fas fa-eye text-[9px]"></i> 查看详情</a>
-        <a onclick="toast('查看盖章件（演示）')" class="flex-1 py-2 rounded-lg text-white text-[11px] font-medium text-center" style="background:linear-gradient(135deg,#6366F1,#4F46E5)">查看盖章件</a>
-      </div>
-    </div>
-  </div>
-
-  <!-- 待审核（签署后显示） -->
-  <div id="reviewCard" style="display:none" class="bg-white rounded-2xl shadow-soft overflow-hidden border border-amber-100">
-    <div class="flex items-center justify-between px-3.5 py-3 border-b border-gray-50">
-      <div class="flex items-center gap-2">
-        <div class="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center"><i class="fas fa-file-signature text-amber-500 text-sm"></i></div>
-        <div><p class="text-[13px] font-bold text-gray-800">商铺租赁合同</p><p class="text-[10px] text-gray-400 num">HT2026-0001 · 卷 69-10</p></div>
-      </div>
-      <span class="bg-amber-100 text-amber-600 text-[9px] font-bold px-1.5 py-0.5 rounded">待审核（后台签字）</span>
-    </div>
-    <div class="px-3.5 py-3 text-[11px] text-gray-500 leading-relaxed">您已提交手写签名，等待合同专员审核签字；审核通过后合同生效，并自动开通物业模块权限。</div>
-    <div class="px-3.5 pb-3"><a onclick="mockApprove()" class="block py-2.5 rounded-lg text-white text-[12px] font-bold text-center" style="background:linear-gradient(135deg,#10B981,#059669)"><i class="fas fa-check-double text-[10px]"></i> 模拟后台审核通过（演示）</a></div>
-  </div>
-
-  <!-- 已生效（审核通过后显示） -->
-  <div id="activeCard" style="display:none" class="card bg-white rounded-2xl shadow-soft overflow-hidden">
-    <div class="px-3.5 py-3">
-      <div class="flex items-center justify-between mb-2">
-        <div class="flex items-center gap-2">
-          <div class="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center"><i class="fas fa-file-contract text-indigo-500 text-sm"></i></div>
-          <div><p class="text-[13px] font-bold text-gray-800">商铺租赁合同</p><p class="text-[10px] text-gray-400 num">HT2026-0001 · 卷 69-10</p></div>
-        </div>
-        <span class="bg-emerald-100 text-emerald-600 text-[9px] font-bold px-1.5 py-0.5 rounded">已生效</span>
-      </div>
-      <div class="grid grid-cols-2 gap-2 bg-gray-50 rounded-lg p-2.5 text-[10px]">
-        <div><span class="text-gray-400">商铺</span><p class="text-gray-700 font-medium mt-0.5"><span data-sh="shop">1F-A08</span> · <span data-sh="area">50㎡</span></p></div>
-        <div><span class="text-gray-400">年租金</span><p class="text-gray-700 font-medium num mt-0.5">¥153,600</p></div>
-        <div><span class="text-gray-400">租赁年度</span><p class="text-gray-700 font-medium num mt-0.5">2026.09.01–2027.08.31</p></div>
-        <div><span class="text-gray-400">剩余</span><p class="text-amber-600 font-bold num mt-0.5">T-30</p></div>
-      </div>
-      <div class="mt-2 bg-blue-50/60 rounded-lg p-2.5 text-[10px]">
-        <p class="text-gray-500 mb-1">履约保证金（只读，来自合同台账）</p>
-        <div class="flex justify-between"><span class="text-gray-400">应收（普通摊）</span><span class="text-gray-700 font-medium num">¥20,000</span></div>
-        <div class="flex justify-between mt-0.5"><span class="text-gray-400">已收</span><span class="text-gray-700 font-medium num">¥20,000</span></div>
-        <div class="flex justify-between mt-0.5"><span class="text-gray-400">状态</span><span class="text-emerald-600 font-bold">已缴</span></div>
-      </div>
-      <div class="flex gap-2 mt-2.5">
-        <a href="contract-detail.html?no=HT2026-0001" class="flex-1 py-2 rounded-lg border border-gray-200 text-[11px] text-gray-600 text-center"><i class="fas fa-eye text-[9px]"></i> 查看详情</a>
-        <a onclick="toast('查看盖章件（演示）')" class="flex-1 py-2 rounded-lg text-white text-[11px] font-medium text-center" style="background:linear-gradient(135deg,#6366F1,#4F46E5)">查看盖章件</a>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- 历史合同（已结束：已到期 / 已终止 / 已作废；只读，按结束时间倒序） -->
-<div class="px-3 mt-3 mb-6" data-ct="history" style="display:none">
-  <p class="text-[12px] font-bold text-gray-800 mb-2 px-1">历史合同 <span class="text-gray-400 font-normal">（已结束 · 只读）</span></p>
-
-  <div class="space-y-2.5">
-    <!-- 已到期（自然到期，重新竞拍） -->
-    <a href="contract-detail.html?no=HT2023-0518" class="card block bg-white rounded-2xl shadow-soft px-3.5 py-3">
-      <div class="flex items-center justify-between mb-1.5">
-        <div class="flex items-center gap-2 min-w-0">
-          <div class="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0"><i class="fas fa-file-contract text-gray-400 text-sm"></i></div>
-          <div class="min-w-0"><p class="text-[13px] font-bold text-gray-700">商铺租赁合同 <span class="text-[9px] text-gray-400 bg-gray-100 px-1 py-0.5 rounded align-middle">v1</span></p><p class="text-[10px] text-gray-400 num mt-0.5">HT2023-0518 · 1F-A08 档口 · A栋1层</p></div>
-        </div>
-        <span class="bg-gray-100 text-gray-500 text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0">已到期</span>
-      </div>
-      <div class="flex items-center justify-between text-[10px] text-gray-400">
-        <span class="num">2023.09.01–2024.09.01 · 年租金 ¥140,000</span>
-        <span>结束 2024.09.01</span>
-      </div>
-      <p class="text-[10px] text-gray-500 mt-1.5 bg-gray-50 rounded-lg px-2 py-1"><i class="fas fa-rotate-right text-[9px]"></i> 结束原因：<b>到期（重新竞拍）</b> —— 正常到期，非终止</p>
-    </a>
-
-    <!-- 已终止（提前终止 · 非违约） -->
-    <a href="contract-detail.html?no=HT2024-0203" class="card block bg-white rounded-2xl shadow-soft px-3.5 py-3">
-      <div class="flex items-center justify-between mb-1.5">
-        <div class="flex items-center gap-2 min-w-0">
-          <div class="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0"><i class="fas fa-file-contract text-gray-400 text-sm"></i></div>
-          <div class="min-w-0"><p class="text-[13px] font-bold text-gray-700">商铺租赁合同 <span class="text-[9px] text-gray-400 bg-gray-100 px-1 py-0.5 rounded align-middle">v1</span></p><p class="text-[10px] text-gray-400 num mt-0.5">HT2024-0203 · 2F-B12 档口 · B栋2层</p></div>
-        </div>
-        <span class="bg-rose-50 text-rose-500 text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0">已终止</span>
-      </div>
-      <div class="flex items-center justify-between text-[10px] text-gray-400">
-        <span class="num">2024.09.01–2025.08.31 · 年租金 ¥118,000</span>
-        <span>结束 2025.06.30</span>
-      </div>
-      <p class="text-[10px] text-gray-500 mt-1.5 bg-gray-50 rounded-lg px-2 py-1">结束原因：<b>协商终止</b>（租期未满提前结束）</p>
-    </a>
-
-    <!-- 已作废（后台撤回重发） -->
-    <a href="contract-detail.html?no=HT2025-0007" class="card block bg-white rounded-2xl shadow-soft px-3.5 py-3 opacity-80">
-      <div class="flex items-center justify-between mb-1.5">
-        <div class="flex items-center gap-2 min-w-0">
-          <div class="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0"><i class="fas fa-file-circle-xmark text-gray-400 text-sm"></i></div>
-          <div class="min-w-0"><p class="text-[13px] font-bold text-gray-500">商铺租赁合同 <span class="text-[9px] text-gray-400 bg-gray-100 px-1 py-0.5 rounded align-middle">v1</span></p><p class="text-[10px] text-gray-400 num mt-0.5">HT2025-0007 · 1F-A08 档口 · A栋1层</p></div>
-        </div>
-        <span class="bg-gray-100 text-gray-500 text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0">已作废</span>
-      </div>
-      <div class="flex items-center justify-between text-[10px] text-gray-400">
-        <span class="num">2025.09.01–2026.08.31 · 年租金 ¥150,000</span>
-        <span>作废 2025.10.12</span>
-      </div>
-      <p class="text-[10px] text-gray-500 mt-1.5 bg-gray-50 rounded-lg px-2 py-1">结束原因：<b>后台撤回</b>（重新发起 · v+1）</p>
-    </a>
-  </div>
-
-  <p class="text-[10px] text-gray-400 mt-2.5 px-1 leading-relaxed"><i class="fas fa-circle-info text-[9px]"></i> <b>正常到期 ≠ 终止</b>：到期后档口重新竞拍；<b>「违约终止」仅用于违约情形</b>（欠租等），其余提前结束为「已终止」。历史合同不可签署 / 变更 / 撤回。</p>
-</div>
-
 <script>
-// 商户档案（只读回显，模拟 04 商户管理主档；本端不建后端同步）
-var SH_PROFILE={type:'线上兼档口商户',shop:'1F-A08',area:'50㎡',floor:'A区1层',leaseEnd:'2028.08.31',category:'男袜专营'};
-function shFill(){document.querySelectorAll('[data-sh]').forEach(function(el){var k=el.getAttribute('data-sh');if(SH_PROFILE[k]!=null)el.textContent=SH_PROFILE[k];});}
-shFill();
-function toast(msg){var d=document.createElement('div');d.style.cssText='position:fixed;left:50%;bottom:110px;transform:translateX(-50%);background:rgba(20,20,40,.85);color:#fff;font-size:12px;padding:8px 16px;border-radius:20px;z-index:999;white-space:nowrap';d.textContent=msg;document.body.appendChild(d);setTimeout(function(){d.remove()},1800);}
-// Tab 切换（待签署 / 生效中 / 已到期 / 全部）
+function toast(msg){var d=document.createElement('div');d.style.cssText='position:fixed;left:50%;bottom:110px;transform:translateX(-50%);background:rgba(20,20,40,.85);color:#fff;font-size:12px;padding:8px 16px;border-radius:20px;z-index:999;max-width:320px;text-align:center;line-height:1.5';d.textContent=msg;document.body.appendChild(d);setTimeout(function(){d.remove()},2000);}
+
+/* ============================================================
+   合同台账（模拟后台 05 合同管理 v1.12 下发）
+   口径：
+   - 变更只由合同专员发起；商户端只做「收到 → 签署 → 等审核」
+   - 一条变更可含多处字段差异，逐行展示（一次签署即生效）
+   - 变更单号以后台为准（BG2026-xxxx）
+   - 存量导入合同（legacy）不走签署流程
+   ============================================================ */
+var DATA={
+  /* ① 变更协议待签（含两处字段差异、第 2 次送签、被催签、签名问题驳回） */
+  'HT2026-0002':{
+    no:'HT2026-0002',volume:'69-14',shop:'2F-B12 档口',area:'40㎡',floor:'B区2层',
+    rent:'¥128,000',year:'2025.09.01–2026.08.31',state:'变更中',ver:'v1',
+    signDate:'2025-08-28',subject:'enterprise',corpName:'大唐袜业旗舰',
+    change:{
+      id:'BG2026-0012',type:'租金 + 租期调整',initiator:'何静（合同专员）',
+      expect:'2026-11-15',state:'待签署',round:2,
+      fields:[['年租金','¥122,880','¥128,000'],['租期','2025.09.01–2026.08.31','2025.09.01–2027.08.31']],
+      remind:{count:1,at:'2026-11-04 10:20'},
+      reject:{type:'签名问题',why:'第 1 次签署的签名与备案笔迹差异较大，请重新签署'}
+    }
+  },
+  /* ② 主合同新版本待签（主体信息变更后 v2） */
+  'HT2026-0001':{
+    no:'HT2026-0001',volume:'69-10',shop:'1F-A08 档口',area:'50㎡',floor:'A栋1层',
+    rent:'¥153,600',year:'2026.09.01–2027.08.31',state:'待商户签字',ver:'v2',
+    signDate:'',subject:'enterprise',corpName:'大唐袜业旗舰',
+    change:{id:'',type:'主体信息变更（个人 → 企业）',initiator:'何静（合同专员）',expect:'2026-11-08',state:'待签署',round:1,
+      fields:[['承租方','李老板（个人）','大唐袜业旗舰（企业）']]}
+  },
+  /* ③ 已生效（合同变更流程中，商户已签待审） */
+  'HT2025-0102':{
+    no:'HT2025-0102',volume:'70-02',shop:'A栋 3F A3-101',area:'45㎡',floor:'A栋3层',
+    rent:'¥120,000',year:'2025.10.01–2026.09.30',state:'变更中',ver:'v1',
+    signDate:'2025-09-26',subject:'enterprise',corpName:'大唐袜业旗舰',
+    change:{id:'BG2026-0015',type:'面积调整',initiator:'何静（合同专员）',expect:'2026-11-20',state:'已签待审',round:1,
+      fields:[['出租面积','45㎡','52㎡']]}
+  },
+  /* ④ 变更已撤回（待签阶段被专员撤回 → 待签消失，全部留痕） */
+  'HT2026-0006':{
+    no:'HT2026-0006',volume:'69-31',shop:'C1-003 档口',area:'38㎡',floor:'C栋1层',
+    rent:'¥98,000',year:'2026.09.01–2027.08.31',state:'生效中',ver:'v1',
+    signDate:'2026-08-30',subject:'enterprise',corpName:'大唐袜业旗舰',
+    change:{id:'BG2026-0009',type:'租金调整',initiator:'何静（合同专员）',expect:'2026-11-10',state:'已撤回',round:1,withdrawAt:'2026-11-04',
+      fields:[['年租金','¥98,000','¥105,000']]}
+  },
+  /* ⑤ 仅联系方式变更（不需重签 → 不进待签，只在全部留痕） */
+  'HT2026-0008':{
+    no:'HT2026-0008',volume:'69-42',shop:'A2-045 档口',area:'42㎡',floor:'A栋2层',
+    rent:'¥112,000',year:'2026.09.01–2027.08.31',state:'生效中',ver:'v1',
+    signDate:'2026-08-29',subject:'enterprise',corpName:'大唐袜业旗舰',
+    quickChange:{at:'2026-11-03',by:'何静（合同专员）',items:[['联系电话','137****6677','138****8000']]}
+  },
+  /* ⑥ 存量导入合同（线下纸质录入，无签署流程） */
+  'HT2024-0912':{
+    no:'HT2024-0912',volume:'52-18',shop:'B栋 1F B1-020',area:'35㎡',floor:'B栋1层',
+    rent:'¥90,000',year:'2024.09.01–2026.08.31',state:'生效中',ver:'v1',
+    source:'legacy',signDate:'',subject:'person',name:'李老板',
+    attachName:'历史存量合同（线下盖章扫描件）.pdf'
+  },
+  /* ⑦ 变更已通过 → v2 生效（旧版本转历史版本，仅供查阅） */
+  'HT2026-0004':{
+    no:'HT2026-0004',volume:'69-22',shop:'A栋 2F A2-067',area:'46㎡',floor:'A栋2层',
+    rent:'¥118,000',year:'2026.09.01–2028.08.31',state:'生效中',ver:'v2',
+    signDate:'2026-09-28',subject:'enterprise',corpName:'大唐袜业旗舰',
+    change:{id:'BG2026-0005',type:'租金调整',initiator:'何静（合同专员）',expect:'2026-10-01',state:'已生效',round:1,
+      fields:[['年租金','¥110,000','¥118,000']],signedAt:'2026-09-28 10:12',sealUp:true}
+  },
+  /* 历史 */
+  'HT2023-0518':{no:'HT2023-0518',volume:'51-08',shop:'1F-A08 档口',area:'50㎡',floor:'A栋1层',rent:'¥140,000',year:'2023.09.01–2024.09.01',state:'已到期',ver:'v1',signDate:'2023-08-25',endReason:'到期（重新竞拍）',endDate:'2024.09.01',subject:'person',name:'李老板'},
+  'HT2024-0203':{no:'HT2024-0203',volume:'60-12',shop:'2F-B12 档口',area:'40㎡',floor:'B栋2层',rent:'¥118,000',year:'2024.09.01–2025.08.31',state:'已终止',ver:'v1',signDate:'2024-08-26',endReason:'协商终止（租期未满提前结束）',endDate:'2025.06.30',subject:'person',name:'李老板'},
+  'HT2025-0007':{no:'HT2025-0007',volume:'69-03',shop:'1F-A08 档口',area:'50㎡',floor:'A栋1层',rent:'¥150,000',year:'2025.09.01–2026.08.31',state:'已作废',ver:'v1',signDate:'—',endReason:'后台撤回（重新发起 · v+1）',endDate:'2025.10.12',subject:'person',name:'李老板'}
+};
+
+var STATE_STYLE={
+  '待商户签字':['#FEF3C7','#B45309'],
+  '变更中':['#E0E7FF','#4338CA'],
+  '生效中':['#D1FAE5','#047857'],
+  '已到期':['#F3F4F6','#6B7280'],
+  '已终止':['#FFE4E6','#BE123C'],
+  '已作废':['#F3F4F6','#6B7280']
+};
+function chip(text,fg,bg){return '<span class="text-[9px] font-bold px-1.5 py-0.5 rounded" style="background:'+bg+';color:'+fg+'">'+text+'</span>';}
+function stateChip(s){var c=STATE_STYLE[s]||['#F3F4F6','#6B7280'];return chip(s,c[1],c[0]);}
+/* 生效中但有变更流程时，卡片状态要显示"变更中 · 待我签署 / 已签待审核" */
+function effectiveStateLabel(c){
+  var ch=c.change;
+  if(!ch) return {text:'已生效',fg:'#047857',bg:'#D1FAE5'};
+  if(ch.state==='待签署') return {text:'变更中 · 待我签署',fg:'#B45309',bg:'#FEF3C7'};
+  if(ch.state==='已签待审') return {text:'已签署 · 待审核',fg:'#1D4ED8',bg:'#DBEAFE'};
+  return {text:'已生效',fg:'#047857',bg:'#D1FAE5'};
+}
+
+/* ---------- 待签署列表 ---------- */
+function signItems(){
+  var out=[];
+  Object.keys(DATA).forEach(function(k){
+    var c=DATA[k];
+    if(c.state==='待商户签字') out.push({c:c,kind:'main'});
+    else if(c.change && c.change.state==='待签署') out.push({c:c,kind:'change'});
+  });
+  return out;
+}
+function renderSign(){
+  var items=signItems();
+  document.getElementById('signCount').textContent=items.length;
+  document.getElementById('tabSignN').textContent=items.length;
+  document.getElementById('signList').innerHTML=items.map(function(it){
+    var c=it.c, ch=c.change, isChange=(it.kind==='change');
+    var head=isChange
+      ? '<p class="text-[13px] font-bold text-gray-800">变更协议 <span class="text-[9px] text-indigo-500 bg-indigo-50 px-1 py-0.5 rounded align-middle">协议</span>'
+        + (ch.round>1?'<span class="text-[9px] text-rose-500 bg-rose-50 px-1 py-0.5 rounded align-middle ml-1">第 '+ch.round+' 次送签</span>':'')+'</p>'
+        + '<p class="text-[10px] text-gray-400 num">'+ch.id+'（主合同 '+c.no+'）</p>'
+      : '<p class="text-[13px] font-bold text-gray-800">商铺租赁合同 <span class="text-[9px] text-indigo-500 bg-indigo-50 px-1 py-0.5 rounded align-middle">'+c.ver+'</span></p>'
+        + '<p class="text-[10px] text-gray-400 num">'+c.no+' · 卷 '+c.volume+'</p>';
+    var meta='<div class="px-3.5 pb-2 text-[10px] text-gray-500 flex flex-wrap gap-x-3 gap-y-1">'
+      +'<span><i class="fas fa-user-tie text-[9px] mr-0.5"></i>发起人：'+(ch.initiator||'何静（合同专员）')+'</span>'
+      +'<span><i class="fas fa-calendar-check text-[9px] mr-0.5"></i>期望生效：'+(ch.expect||'—')+'</span></div>';
+    /* 逐行字段差异 */
+    var diff=(ch.fields||[]).map(function(f){
+      return '<div class="diff"><span class="k">'+f[0]+'</span><span class="v">'+f[1]+'</span><span class="text-gray-300">→</span><span class="n">'+f[2]+'</span></div>';
+    }).join('');
+    var reject=ch.reject
+      ? '<div class="mx-3.5 mb-2 rounded-lg px-2.5 py-2" style="background:#FEF2F2">'
+        +'<p class="text-[9px] font-bold" style="color:#B91C1C">上次驳回 · '+ch.reject.type+'</p>'
+        +'<p class="text-[9.5px] text-gray-600 mt-0.5 leading-relaxed">'+ch.reject.why+'</p>'
+        +'<p class="text-[9px] mt-1" style="color:#B91C1C"><i class="fas fa-pen-nib mr-0.5"></i>请重新签名后提交（变更单号不变）</p></div>'
+      : '';
+    var remind=ch.remind
+      ? '<p class="mx-3.5 mb-2 text-[9px] text-amber-600"><i class="fas fa-bell mr-0.5"></i>专员已催签 '+ch.remind.count+' 次 · '+ch.remind.at+'</p>' : '';
+    var sealTip=isChange
+      ? '<p class="mx-3.5 mb-2 text-[9px] text-gray-400"><i class="fas fa-stamp mr-0.5"></i>盖章件：待后台盖章回传（审核通过后上传）</p>' : '';
+    var newVer='v'+(parseInt(String(c.ver).replace('v',''))+1);
+    return '<div class="bg-white rounded-2xl shadow-soft overflow-hidden border border-indigo-100">'
+      +'<div class="flex items-center justify-between px-3.5 py-3 border-b border-gray-50">'
+      +  '<div class="flex items-center gap-2 min-w-0"><div class="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0"><i class="fas '+(isChange?'fa-file-pen':'fa-file-signature')+' text-indigo-500 text-sm"></i></div><div class="min-w-0">'+head+'</div></div>'
+      +  '<span class="bg-amber-100 text-amber-600 text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0">待商户签字</span>'
+      +'</div>'
+      + meta
+      +'<div class="px-3.5 pb-2"><p class="text-[10px] text-gray-500 mb-1">变更内容 <span class="text-gray-400">（一次签署即生效，共 '+((ch.fields||[]).length)+' 处）</span></p>'
+      +  '<div class="rounded-lg px-2.5 py-2" style="background:#F8FAFC">'+diff+'</div></div>'
+      + reject + remind + sealTip
+      +'<div class="flex gap-2 px-3.5 pb-3">'
+      +  '<a href="contract-detail.html?no='+c.no+(isChange?'&bg='+ch.id:'')+'" class="flex-1 py-2.5 rounded-lg border border-gray-200 text-[12px] text-gray-600 text-center"><i class="fas fa-file-lines text-[10px]"></i> 查看全文</a>'
+      +  '<a onclick="openSign(\''+c.no+'\','+(isChange?1:0)+')" class="flex-[1.5] py-2.5 rounded-lg text-white text-[12px] font-bold text-center" style="background:linear-gradient(135deg,#6366F1,#4F46E5)">'+(isChange?'签署变更协议 '+newVer:'去签署（手写签名）')+'</a>'
+      +'</div></div>';
+  }).join('');
+  document.getElementById('signNone').style.display=items.length?'none':'block';
+}
+
+/* ---------- 生效中 ---------- */
+function renderActive(){
+  var list=Object.keys(DATA).map(function(k){return DATA[k];}).filter(function(c){
+    return c.state==='生效中'||c.state==='变更中';
+  });
+  document.getElementById('activeList').innerHTML=list.map(function(c){
+    var st=effectiveStateLabel(c);
+    var ch=c.change;
+    var quick=c.quickChange
+      ? '<p class="text-[9px] text-gray-400 mt-1"><i class="fas fa-clock-rotate-left mr-0.5"></i>'+c.quickChange.at+' 联系人/电话变更已生效（免重签）</p>' : '';
+    var chTip='';
+    if(ch&&ch.state==='待签署') chTip='<p class="text-[9px] mt-1" style="color:#B45309"><i class="fas fa-pen-nib mr-0.5"></i>变更协议 '+ch.id+' 待你签署，签署后待专员审核</p>';
+    if(ch&&ch.state==='已签待审') chTip='<p class="text-[9px] mt-1" style="color:#1D4ED8"><i class="fas fa-hourglass-half mr-0.5"></i>变更协议 '+ch.id+' 已签署，待合同专员审核签字</p>';
+    return '<div class="card bg-white rounded-2xl shadow-soft overflow-hidden">'
+      +'<div class="px-3.5 py-3">'
+      +  '<div class="flex items-center justify-between mb-2">'
+      +    '<a href="contract-detail.html?no='+c.no+'" class="flex items-center gap-2 min-w-0">'
+      +      '<div class="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0"><i class="fas fa-file-contract text-indigo-500 text-sm"></i></div>'
+      +      '<div class="min-w-0"><p class="text-[13px] font-bold text-gray-800">商铺租赁合同 <span class="text-[9px] text-indigo-500 bg-indigo-50 px-1 py-0.5 rounded align-middle">'+c.ver+'</span></p>'
+      +      '<p class="text-[10px] text-gray-400 num">'+c.no+' · '+c.shop+'</p>'
+      +      (c.source==='legacy'?'<p class="text-[9px] text-gray-400 mt-0.5">存量合同 · 线下签署归档</p>':'')+'</div>'
+      +    '</a>'
+      +    chip(st.text,st.fg,st.bg)
+      +  '</div>'
+      +  '<div class="grid grid-cols-2 gap-2 bg-gray-50 rounded-lg p-2.5 text-[10px]">'
+      +    '<div><span class="text-gray-400">商铺</span><p class="text-gray-700 font-medium mt-0.5">'+c.shop+' · '+c.area+'</p></div>'
+      +    '<div><span class="text-gray-400">年租金</span><p class="text-gray-700 font-medium num mt-0.5">'+c.rent+'</p></div>'
+      +    '<div><span class="text-gray-400">租赁年度</span><p class="text-gray-700 font-medium num mt-0.5">'+c.year+'</p></div>'
+      +    '<div><span class="text-gray-400">当前版本</span><p class="text-gray-700 font-medium num mt-0.5">'+c.ver+'</p></div>'
+      +  '</div>'
+      +  chTip + quick
+      +  '<div class="flex gap-2 mt-2.5">'
+      +    '<a href="contract-detail.html?no='+c.no+'" class="flex-1 py-2 rounded-lg border border-gray-200 text-[11px] text-gray-600 text-center"><i class="fas fa-eye text-[9px]"></i> 查看详情</a>'
+      +    (c.source==='legacy'
+              ? '<a onclick="toast(\'历史存量合同无平台盖章件，请查线下纸质件\')" class="flex-1 py-2 rounded-lg text-[11px] text-gray-500 bg-gray-100 text-center">线下纸质件</a>'
+              : '<a onclick="toast(\'查看主合同盖章件（'+c.ver+'）\')" class="flex-1 py-2 rounded-lg text-white text-[11px] font-medium text-center" style="background:linear-gradient(135deg,#6366F1,#4F46E5)">查看盖章件</a>')
+      +  '</div>'
+      +'</div></div>';
+  }).join('');
+}
+
+/* ---------- 历史 ---------- */
+function renderHistory(){
+  var list=Object.keys(DATA).map(function(k){return DATA[k];}).filter(function(c){
+    return c.state==='已到期'||c.state==='已终止'||c.state==='已作废';
+  });
+  document.getElementById('historyList').innerHTML=list.map(function(c){
+    var c2=STATE_STYLE[c.state]||['#F3F4F6','#6B7280'];
+    return '<a href="contract-detail.html?no='+c.no+'" class="card block bg-white rounded-2xl shadow-soft px-3.5 py-3">'
+      +'<div class="flex items-center justify-between mb-1.5">'
+      +'<div class="flex items-center gap-2 min-w-0"><div class="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0"><i class="fas fa-file-contract text-gray-400 text-sm"></i></div>'
+      +'<div class="min-w-0"><p class="text-[13px] font-bold text-gray-700">商铺租赁合同 <span class="text-[9px] text-gray-400 bg-gray-100 px-1 py-0.5 rounded align-middle">'+c.ver+'</span></p>'
+      +'<p class="text-[10px] text-gray-400 num mt-0.5">'+c.no+' · '+c.shop+'</p></div></div>'
+      + chip(c.state,c2[1],c2[0]) +'</div>'
+      +'<div class="flex items-center justify-between text-[10px] text-gray-400"><span class="num">'+c.year+' · 年租金 '+c.rent+'</span><span>结束 '+(c.endDate||'—')+'</span></div>'
+      +(c.endReason?'<p class="text-[10px] text-gray-500 mt-1.5 bg-gray-50 rounded-lg px-2 py-1"><i class="fas fa-rotate-right text-[9px]"></i> 结束原因：<b>'+c.endReason+'</b></p>':'')
+      +'</a>';
+  }).join('');
+}
+
+/* ---------- 全部（含撤回 / 免签留痕 / 存量） ---------- */
+function renderAll(){
+  var rows=[];
+  Object.keys(DATA).forEach(function(k){
+    var c=DATA[k];
+    rows.push({t:'contract',c:c});
+    if(c.change&&c.change.state==='已撤回') rows.push({t:'withdraw',c:c});
+    if(c.quickChange) rows.push({t:'quick',c:c});
+  });
+  rows.sort(function(a,b){
+    function tm(x){return x.t==='contract'?(x.c.signDate||'0000'):(x.t==='withdraw'?x.c.change.withdrawAt:(x.c.quickChange.at||''));}
+    return tm(b).localeCompare(tm(a));
+  });
+  document.getElementById('allList').innerHTML=rows.map(function(r){
+    var c=r.c;
+    if(r.t==='withdraw'){
+      return '<div class="bg-white rounded-2xl shadow-soft px-3.5 py-3 opacity-80">'
+        +'<div class="flex items-center justify-between mb-1"><p class="text-[12px] font-bold text-gray-600">变更已撤回 · '+(c.change.id)+'</p>'+chip('已撤回','#6B7280','#F3F4F6')+'</div>'
+        +'<p class="text-[10px] text-gray-400">主合同 '+c.no+' · '+(c.change.type)+' · 发起人 '+c.change.initiator+'</p>'
+        +'<p class="text-[10px] text-gray-500 mt-1">专员于 '+(c.change.withdrawAt||'—')+' 撤回该变更，无需签署；如需变更将由专员重新发起。</p>'
+        +'</div>';
+    }
+    if(r.t==='quick'){
+      var q=c.quickChange;
+      return '<div class="bg-white rounded-2xl shadow-soft px-3.5 py-3">'
+        +'<div class="flex items-center justify-between mb-1"><p class="text-[12px] font-bold text-gray-600">变更留痕（免重签）</p>'+chip('无需签署','#047857','#D1FAE5')+'</div>'
+        +'<p class="text-[10px] text-gray-400">主合同 '+c.no+' · '+q.at+' · '+q.by+'</p>'
+        +'<div class="mt-1.5">'+q.items.map(function(f){
+            return '<div class="diff"><span class="k">'+f[0]+'</span><span class="v">'+f[1]+'</span><span class="text-gray-300">→</span><span class="n">'+f[2]+'</span></div>';
+          }).join('')+'</div>'
+        +'<p class="text-[9px] text-gray-400 mt-1">仅联系人/联系电话变更，不产生签署任务，已直接生效。</p>'
+        +'</div>';
+    }
+    var st=effectiveStateLabel(c);
+    return '<a href="contract-detail.html?no='+c.no+'" class="card block bg-white rounded-2xl shadow-soft px-3.5 py-3">'
+      +'<div class="flex items-center justify-between mb-1">'
+      +'<p class="text-[12.5px] font-bold text-gray-800">'+c.no+' · '+c.shop+'</p>'
+      + chip(c.source==='legacy'?'存量合同':(c.change&&c.change.state==='待签署'?'变更中 · 待我签署':(c.change&&c.change.state==='已签待审'?'已签署 · 待审核':st.text)),
+             c.source==='legacy'?'#6B7280':st.fg, c.source==='legacy'?'#F3F4F6':st.bg)
+      +'</div>'
+      +'<p class="text-[10px] text-gray-400 num">'+c.year+' · 年租金 '+c.rent+' · 当前 '+c.ver+'</p>'
+      +(c.change&&c.change.id?'<p class="text-[10px] text-gray-500 mt-1">变更单 '+(c.change.id)+' · '+(c.change.state)+'</p>':'')
+      +'</a>';
+  }).join('');
+}
+
+/* ---------- Tab ---------- */
 function switchCt(tab,el){
   document.querySelectorAll('[onclick^="switchCt"]').forEach(function(a){a.className='text-white/70 pb-1.5';});
   el.className='text-white font-bold border-b-2 border-white pb-1.5';
   document.querySelectorAll('[data-ct]').forEach(function(s){s.style.display='none';});
   if(tab==='all'){document.querySelectorAll('[data-ct]').forEach(function(s){s.style.display='block';});}
-  else {document.querySelectorAll('[data-ct="'+tab+'"]').forEach(function(s){s.style.display='block';});}
+  else{document.querySelectorAll('[data-ct="'+tab+'"]').forEach(function(s){s.style.display='block';});}
 }
-// 手写签名（v1.4：无人脸识别）
-var signCtx=null,signing=false,signPad=document.getElementById('signPad');
-function openSign(){document.getElementById('signMask').style.display='flex';var c=signPad;var r=c.getBoundingClientRect();c.width=r.width;c.height=r.height;signCtx=c.getContext('2d');signCtx.lineWidth=2;signCtx.strokeStyle='#1F2937';signCtx.lineCap='round';}
+
+/* ---------- 签名 ---------- */
+var signCtx=null,signing=false,signPad=document.getElementById('signPad'),signTarget=null;
+function openSign(no,isChange){
+  signTarget={no:no,isChange:!!isChange};
+  var c=DATA[no];
+  document.getElementById('signTitle').textContent=isChange?('签署变更协议 v'+(parseInt(String(c.ver).replace('v',''))+1)):'签署合同（手写签名）';
+  document.getElementById('signSub').textContent=isChange?'一次签署即生效，旧版本仅供查阅':'提交后待合同专员审核签字';
+  document.getElementById('signMask').style.display='flex';
+  var r=signPad.getBoundingClientRect();signPad.width=r.width||300;signPad.height=r.height||160;
+  signCtx=signPad.getContext('2d');signCtx.lineWidth=2;signCtx.strokeStyle='#1F2937';signCtx.lineCap='round';
+}
 function closeSign(){document.getElementById('signMask').style.display='none';}
 function clearSign(){if(signCtx)signCtx.clearRect(0,0,signPad.width,signPad.height);}
 function submitSign(){
   closeSign();
-  // 待签署 → 待审核（转入生效中）
-  document.getElementById('signList').style.display='none';
-  document.getElementById('signNone').style.display='block';
-  document.getElementById('reviewCard').style.display='block';
-  document.getElementById('activeCard').style.display='none';
-  document.getElementById('activeTitle').textContent='待审核合同';
+  var t=signTarget||{};
+  var c=DATA[t.no];
+  if(c&&c.change&&t.isChange){
+    c.change.state='已签待审';
+    c.change.reject=null;
+    toast('已签署 · 待合同专员审核（审核通过后以本版本为准）');
+  }else if(c){
+    c.state='变更中';
+    c.change=c.change||{id:'',type:'主体信息变更',initiator:'何静（合同专员）',expect:'—',state:'已签待审',round:1,fields:[]};
+    c.change.state='已签待审';
+    toast('签名已提交 · 待合同专员审核签字');
+  }
+  renderAll();renderSign();renderActive();
   switchCt('active',document.getElementById('ct-active'));
-  toast('签名已提交，待后台审核签字');
 }
-function mockApprove(){
-  document.getElementById('reviewCard').style.display='none';
-  document.getElementById('activeCard').style.display='block';
-  document.getElementById('activeTitle').textContent='生效中合同';
-  toast('审核通过，合同已生效（演示）；物业模块权限已开通');
-}
-signPad.addEventListener('pointerdown',function(e){signing=true;signCtx.beginPath();signCtx.moveTo(e.offsetX,e.offsetY);});
-signPad.addEventListener('pointermove',function(e){if(signing){signCtx.lineTo(e.offsetX,e.offsetY);signCtx.stroke();}});
+signPad.addEventListener('pointerdown',function(e){signing=true;if(!signCtx)return;signCtx.beginPath();signCtx.moveTo(e.offsetX,e.offsetY);});
+signPad.addEventListener('pointermove',function(e){if(signing&&signCtx){signCtx.lineTo(e.offsetX,e.offsetY);signCtx.stroke();}});
 signPad.addEventListener('pointerup',function(){signing=false;});
+
+renderSign();renderActive();renderHistory();renderAll();
 </script>
 </body>
 </html>

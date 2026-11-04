@@ -326,7 +326,7 @@ function openVer(id){
       +'<div class="flex-1"><p class="text-[12px] text-[#1F2430]">'+esc(v.note)+'</p>'
       +'<p class="text-[11px] text-[#94A3B8] mt-0.5">'+esc(v.at)+'　'+esc(v.by)+(cur?'　（当前版本）':'')+'</p></div>'
       +'<div class="whitespace-nowrap">'
-      +'<span class="lk-gray" onclick="toast(\'预览 '+esc(v.v)+' 正文（原型）\')">预览</span>'
+      +'<span class="lk" onclick="previewTpl(\''+x.id+'\',\''+esc(v.v)+'\')">预览</span>'
       +(cur?'':' · <span class="lk" onclick="rollback(\''+x.id+'\',\''+v.v+'\')">回滚</span>')
       +'</div></div>';
   });
@@ -353,6 +353,27 @@ function show(which,h){
   document.getElementById(which).innerHTML=h;
   document.getElementById('mask').classList.add('on');
   document.getElementById(which).classList.add('on');
+}
+/* v1.12：版本正文预览（原来只 toast，等于死按钮） */
+function previewTpl(id,ver){
+  var x=TP.filter(function(t){return t.id===id;})[0];
+  var name=x?x.name:'合同模板';
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">模板预览　<span class="text-[12px] font-normal text-[#94A3B8]">'+esc(ver)+'</span></h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(name)+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>'
+    +'<div class="px-5 py-4"><div class="blk"><p class="text-[12px] leading-7 text-[#334155]">'
+    +'甲方（出租方）：诸暨市大唐袜业城管理有限公司<br>'
+    +'乙方（承租方）：{{承租人}}'+(x&&/企业/.test(x.name)?'（{{企业名称}}，统一社会信用代码 {{信用代码}}）':'')+'<br>'
+    +'租赁资源：{{摊位号}}（档口 {{档口编号}}）　面积：{{面积}} ㎡<br>'
+    +'租赁期限：{{租期起}} ~ {{租期止}}<br>'
+    +'年租金：{{年租金}} 元　总租金：{{总租金}} 元<br>'
+    +'履约保证金：{{保证金}} 元（线下已收，系统仅登记）<br>'
+    +'签署方式：乙方端上手写签名（无人脸识别）→ 甲方合同专员审核签字后生效</p>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-2">花括号为变量占位，发起合同时按合同字段自动填充</p></div></div>'
+    +'<div class="px-5 py-3.5 border-t border-gray-100 flex justify-end">'
+    +'<button class="btn btn-primary" onclick="closeAll()">关闭</button></div>';
+  show('modal',h);
 }
 function closeAll(){
   document.getElementById('mask').classList.remove('on');
