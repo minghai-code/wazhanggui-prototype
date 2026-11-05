@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<title>资料查看 - 袜掌柜商户版</title>
+<title>个人资料 - 袜掌柜商户版</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
 :root{--bg:#F0F6FF}
@@ -14,6 +14,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .shadow-soft{box-shadow:0 2px 12px rgba(20,40,80,.06)}
 .fade-up{animation:fadeUp .4s ease both}
 @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.inp{width:100%;background:rgba(248,249,250,.8);border:1px solid rgba(240,240,240,.8);border-radius:12px;padding:11px 13px;font-size:13px;color:#1F2430;outline:none}
+.inp::placeholder{color:#C0C0C0}.inp:focus{border-color:#2563EB;background:#fff}
+.ro-val{width:100%;background:#F8FAFC;border:1px solid #EEF2F7;border-radius:12px;padding:11px 13px;font-size:13px;color:#64748B;display:flex;justify-content:space-between;align-items:center}
+.lbl{font-size:11px;color:#6b7080;font-weight:500;display:block;margin-bottom:6px}.lbl b{color:#2563EB}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:10px;padding:3px 8px;border-radius:20px}
+.link{font-size:11px;font-weight:700;color:#2563EB;cursor:pointer;white-space:nowrap}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:300;opacity:0;transition:.2s;max-width:80%;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.mask{position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(15,23,42,.45);z-index:200;display:none}
+.mask.on{display:block}
+.sheet{position:fixed;left:0;bottom:0;width:393px;background:#fff;border-radius:20px 20px 0 0;z-index:201;transform:translateY(105%);transition:transform .24s ease;padding:16px 16px 24px;max-height:88vh;overflow-y:auto}
+.sheet.on{transform:translateY(0)}
+.bar{display:flex;gap:6px;margin:12px 0 16px}
+.bar i{height:4px;flex:1;border-radius:4px;background:#E2E8F0}
+.bar i.on{background:#2563EB}
 </style>
 <link rel="stylesheet" href="tailwind.css">
 </head>
@@ -27,51 +42,290 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
   </div>
   <div class="relative flex items-center gap-3 mt-1">
     <a href="mine.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
-    <div><span class="text-white font-extrabold text-[18px]">资料查看</span>
-    <p class="text-white/85 text-[10px] mt-0.5">与后台商户档案打通（只读）</p></div>
+    <div><span class="text-white font-extrabold text-[18px]">个人资料</span>
+    <p class="text-white/85 text-[10px] mt-0.5">账号本人资料 · 登录 / 实名凭证只读</p></div>
   </div>
 </div>
 
-<div class="px-3 pt-4 pb-16">
-  <!-- 实名信息 -->
+<div class="px-3 pt-4 pb-28">
+
+  <!-- 头像 -->
   <div class="bg-white rounded-2xl shadow-soft p-3.5 mb-3 fade-up">
-    <p class="text-[12px] font-bold text-gray-800 mb-2.5"><i class="fas fa-id-card text-primary text-xs"></i> 实名信息</p>
-    <div class="grid grid-cols-2 gap-y-2.5 text-[11px]">
-      <span class="text-gray-400">真实姓名</span><span class="text-gray-700">李老板</span>
-      <span class="text-gray-400">身份证号</span><span class="text-gray-700 num">3306**********1234</span>
-      <span class="text-gray-400">手机号</span><span class="text-gray-700 num">138****8000</span>
+    <div class="flex items-center gap-3">
+      <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-white text-xl flex-shrink-0" style="background:linear-gradient(135deg,#38BDF8,#0EA5E9)"><i class="fas fa-user"></i></div>
+      <div class="flex-1">
+        <p class="text-[13px] font-bold text-gray-800" id="headName">李老板</p>
+        <p class="text-[10px] text-gray-400 mt-0.5">商户账号 · 已实名</p>
+      </div>
+      <a onclick="changeAvatar()" class="text-[11px] font-bold text-primary"><i class="fas fa-camera text-[10px]"></i> 更换头像</a>
     </div>
   </div>
 
-  <!-- 企业信息 -->
+  <!-- 可自助编辑的基础资料 -->
   <div class="bg-white rounded-2xl shadow-soft p-3.5 mb-3 fade-up">
-    <div class="flex items-center gap-2 mb-2.5">
-      <i class="fas fa-building-columns text-primary text-xs"></i>
-      <p class="text-[12px] font-bold text-gray-800">企业信息</p>
-      <span class="ml-auto text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-50 text-blue-600">企业主体</span>
+    <div class="flex items-center gap-2 mb-3">
+      <p class="text-[12px] font-bold text-gray-800"><i class="fas fa-pen text-primary text-xs"></i> 基础资料</p>
+      <span class="chip" style="background:#EFF6FF;color:#2563EB">保存即生效 · 不审核</span>
     </div>
+    <div class="mb-3"><label class="lbl">显示昵称 <b>*</b></label><input class="inp" id="fNick" value="李老板" placeholder="请输入显示昵称"></div>
+    <div class="mb-1"><label class="lbl">电子邮箱</label><input class="inp" id="fMail" value="datang@example.com" placeholder="选填，用于接收平台通知"></div>
+    <p class="text-[10px] text-gray-400 mt-2.5">头像 / 显示昵称 / 邮箱属展示性信息，可自助修改；账号凭证与实名信息不在此处编辑。</p>
+  </div>
+
+  <!-- 账号与实名信息（只读） -->
+  <div class="bg-white rounded-2xl shadow-soft p-3.5 mb-3 fade-up">
+    <div class="flex items-center justify-between mb-1">
+      <p class="text-[12px] font-bold text-gray-800"><i class="fas fa-shield-halved text-primary text-xs"></i> 账号与实名信息</p>
+      <span class="chip" style="background:#F1F5F9;color:#64748B"><i class="fas fa-lock text-[9px]"></i> 只读</span>
+    </div>
+    <p class="text-[10px] text-gray-400 mb-3">注册时核验，是登录 / 实名 / 合同签署的匹配键，不可在资料页直接修改</p>
+    <div class="mb-3"><label class="lbl">真实姓名 <span class="text-[9px] text-gray-400 font-normal">（实名认证信息）</span></label><div class="ro-val"><span>李国强</span><i class="fas fa-lock text-[10px] text-gray-300"></i></div></div>
+    <div class="mb-3"><label class="lbl">身份证号 <span class="text-[9px] text-gray-400 font-normal">（脱敏）</span></label><div class="ro-val num"><span>3306**********1234</span><i class="fas fa-lock text-[10px] text-gray-300"></i></div></div>
+    <div class="mb-1"><label class="lbl">手机号 <span class="text-[9px] text-gray-400 font-normal">（登录 / 注册账号）</span></label>
+      <div class="ro-val"><span class="num" id="phoneView">138****8000</span><a class="link" onclick="openBind()">更换绑定 <i class="fas fa-chevron-right text-[9px]"></i></a></div>
+    </div>
+    <p class="text-[10px] leading-relaxed mt-2.5" style="color:#92400E;background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:9px 10px">
+      手机号同时是<b>登录账号、注册账号</b>与<b>合同签署匹配键</b>。换号须走「更换绑定手机号」安全校验；<b>合同侧签署手机号不随账号换绑自动变更</b>，如有待签 / 生效合同请联系合同专员核实改绑，签署中的合同需改绑重签。姓名与身份证如需更正，请联系运营走实名复核。
+    </p>
+  </div>
+
+  <!-- 账号信息（只读） -->
+  <div class="bg-white rounded-2xl shadow-soft p-3.5 mb-3 fade-up">
+    <p class="text-[12px] font-bold text-gray-800 mb-2.5"><i class="fas fa-circle-info text-primary text-xs"></i> 账号信息</p>
     <div class="grid grid-cols-2 gap-y-2.5 text-[11px]">
-      <span class="text-gray-400">企业名称</span><span class="text-gray-700">大唐袜业旗舰</span>
-      <span class="text-gray-400">统一社会信用代码</span><span class="text-gray-700 num">91330681XXXXXX1234</span>
-      <span class="text-gray-400">法定代表人</span><span class="text-gray-700">李老板</span>
-      <span class="text-gray-400">联系人</span><span class="text-gray-700">李老板</span>
+      <span class="text-gray-400">账号注册时间</span><span class="text-gray-700 num">2025-03-12</span>
+      <span class="text-gray-400">账号状态</span><span class="text-green-600 font-bold">正常</span>
+      <span class="text-gray-400">登录方式</span><span class="text-gray-700" id="loginView">手机号 + 验证码（138****8000）</span>
+      <span class="text-gray-400">账号 ID</span><span class="text-gray-700 num">SH202503120086</span>
     </div>
   </div>
 
-  <!-- 经营信息 -->
-  <div class="bg-white rounded-2xl shadow-soft p-3.5 fade-up">
-    <p class="text-[12px] font-bold text-gray-800 mb-2.5"><i class="fas fa-store text-primary text-xs"></i> 经营信息</p>
-    <div class="grid grid-cols-2 gap-y-2.5 text-[11px]">
-      <span class="text-gray-400">经营主体类型</span><span class="text-gray-700">个体工商户</span>
-      <span class="text-gray-400">主营类目</span><span class="text-gray-700">男袜 · 女袜</span>
-      <span class="text-gray-400">联系方式</span><span class="text-gray-700 num">138****8000</span>
-      <span class="text-gray-400">商户类型</span><span class="text-gray-700">线上兼档口商户</span>
-    </div>
-    <p class="text-[10px] text-gray-400 mt-2.5"><i class="fas fa-circle-info mr-1"></i>如需变更企业信息 / 联系方式 / 资质 / 经营类目，请前往「资料更新」提交变更申请（<b>不含档口</b>）。</p>
+  <!-- 换绑记录（留痕） -->
+  <div class="bg-white rounded-2xl shadow-soft p-3.5 mb-3 fade-up">
+    <p class="text-[12px] font-bold text-gray-800"><i class="fas fa-clock-rotate-left text-primary text-xs"></i> 手机号换绑记录 <span class="text-[10px] text-gray-400 font-normal">（留痕，仅本人可见）</span></p>
+    <div id="bindLog" class="mt-1.5"></div>
   </div>
 
-  <a href="profile-edit.html" class="card block w-full mt-4 py-3 rounded-2xl text-white text-[14px] font-bold text-center grad-h">去更新资料</a>
+  <!-- 资料四类关系说明：本页只管账号本人资料，不铺开商户档案字段 -->
+  <div class="rounded-2xl p-3.5 fade-up" style="background:#EFF6FF;border:1px solid #BFDBFE">
+    <p class="text-[11px] font-bold text-blue-800 mb-1.5"><i class="fas fa-layer-group mr-1"></i>资料分四类，各管各的</p>
+    <p class="text-[10px] leading-relaxed" style="color:#1E40AF">
+      ① <b>个人资料</b>（本页）：头像 / 昵称 / 邮箱可改，<b>手机号 / 姓名 / 身份证只读</b>，换绑走安全校验，不进审核。<br>
+      ② <b>商户档案主档</b>：企业名称 / 信用代码 / 经营类目等，<b>变更需运营审核</b>。<br>
+      ③ <b>线下实体商铺展示信息</b>：档口的店铺名 / 简介 / 门店图 / 营业状态，<b>属商户档案，变更同样需审核</b>。<br>
+      ④ <b>线上店铺信息</b>：归 10 商城运营，在「我的 → 店铺信息」维护，与线下档案分开。
+    </p>
+    <div class="flex gap-2 mt-3">
+      <a href="shanghu-verify.html" class="flex-1 py-2.5 rounded-xl bg-white text-[11px] font-bold text-center" style="color:#2563EB;border:1px solid #BFDBFE">商户档案与变更 ›</a>
+      <a href="my-shops.html" class="flex-1 py-2.5 rounded-xl bg-white text-[11px] font-bold text-center" style="color:#2563EB;border:1px solid #BFDBFE">我的实体商铺 ›</a>
+    </div>
+  </div>
 </div>
 
+<div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-3 py-2.5 flex gap-2" style="z-index:100;width:393px;padding-bottom:18px">
+  <a href="mine.html" class="flex-1 py-3 rounded-xl border border-gray-200 text-[13px] text-gray-600 font-medium text-center">取消</a>
+  <a onclick="saveProfile()" class="flex-[1.6] py-3 rounded-xl text-white text-[13px] font-bold text-center grad-h">保存个人资料</a>
+</div>
+
+<!-- 更换绑定手机号（3 步安全流程） -->
+<div class="mask" id="mask" onclick="closeBind()"></div>
+<div class="sheet" id="sheet">
+  <div class="flex items-center justify-between">
+    <p class="text-[14px] font-extrabold text-gray-800">更换绑定手机号</p>
+    <a onclick="closeBind()" class="text-gray-400 text-lg"><i class="fas fa-xmark"></i></a>
+  </div>
+  <div class="bar" id="stepBar"><i class="on"></i><i></i><i></i></div>
+
+  <div id="s1">
+    <p class="text-[11px] text-gray-500 mb-3">第 1 步 / 共 3 步 · 验证当前手机号</p>
+    <div class="rounded-xl p-3 mb-3" style="background:#F8FAFC">
+      <p class="text-[10px] text-gray-400">当前绑定（登录账号）</p>
+      <p class="text-[15px] font-bold text-gray-800 num mt-1" id="s1Old">138****8000</p>
+    </div>
+    <label class="lbl">短信验证码 <b>*</b></label>
+    <div class="flex gap-2">
+      <input class="inp num flex-1" id="s1Code" maxlength="6" placeholder="6 位验证码">
+      <a id="s1Send" onclick="sendCode('s1')" class="px-3 flex items-center rounded-xl text-[11px] font-bold text-white grad-h whitespace-nowrap">获取验证码</a>
+    </div>
+    <p class="text-[10px] text-gray-400 mt-2">演示：验证码 <b class="num">888888</b></p>
+    <a onclick="goStep(2)" class="block mt-4 py-3 rounded-xl text-white text-[13px] font-bold text-center grad-h">下一步</a>
+  </div>
+
+  <div id="s2" style="display:none">
+    <p class="text-[11px] text-gray-500 mb-3">第 2 步 / 共 3 步 · 验证新手机号</p>
+    <label class="lbl">新手机号 <b>*</b></label>
+    <input class="inp num" id="s2Phone" maxlength="11" placeholder="请输入 11 位新手机号">
+    <label class="lbl mt-3">短信验证码 <b>*</b></label>
+    <div class="flex gap-2">
+      <input class="inp num flex-1" id="s2Code" maxlength="6" placeholder="6 位验证码">
+      <a id="s2Send" onclick="sendCode('s2')" class="px-3 flex items-center rounded-xl text-[11px] font-bold text-white grad-h whitespace-nowrap">获取验证码</a>
+    </div>
+    <p class="text-[10px] text-gray-400 mt-2 leading-relaxed">演示：验证码 <b class="num">888888</b>；输入 <b class="num">13800000001</b> 可演示「该手机号已注册」拦截</p>
+    <div class="flex gap-2 mt-4">
+      <a onclick="goStep(1)" class="flex-1 py-3 rounded-xl border border-gray-200 text-[13px] text-gray-600 font-bold text-center">上一步</a>
+      <a onclick="goStep(3)" class="flex-[1.6] py-3 rounded-xl text-white text-[13px] font-bold text-center grad-h">下一步</a>
+    </div>
+  </div>
+
+  <div id="s3" style="display:none">
+    <p class="text-[11px] text-gray-500 mb-3">第 3 步 / 共 3 步 · 确认变更影响</p>
+    <div class="rounded-xl p-3 mb-3" style="background:#EFF6FF">
+      <p class="text-[10px] text-gray-500">登录账号将由</p>
+      <p class="text-[12px] font-bold text-gray-700 num mt-1" id="s3From">138****8000</p>
+      <p class="text-[13px] font-bold text-blue-700 num mt-1" id="s3To">→ 139****0000</p>
+    </div>
+    <div class="rounded-xl p-3 mb-3 text-[10px] leading-relaxed" style="background:#FFFBEB;border:1px solid #FDE68A;color:#92400E">
+      ① 换绑成功后请用<b>新手机号</b>登录，原号不再作为登录账号。<br>
+      ② <b>合同签署手机号不自动变更</b>：待签 / 生效合同由合同专员在后台核实身份后改绑；<b>签署中的合同需改绑重签</b>。<br>
+      ③ 员工关联、档口绑定、短信通知按新号生效；本次操作全程留痕，可在本页查看记录。
+    </div>
+    <label class="flex items-start gap-2 text-[11px] text-gray-600 mb-3"><input type="checkbox" id="s3Agree" class="mt-0.5"> 我已了解上述影响，确认更换绑定手机号</label>
+    <div class="flex gap-2">
+      <a onclick="goStep(2)" class="flex-1 py-3 rounded-xl border border-gray-200 text-[13px] text-gray-600 font-bold text-center">上一步</a>
+      <a onclick="doBind()" class="flex-[1.6] py-3 rounded-xl text-white text-[13px] font-bold text-center grad-h">确认换绑</a>
+    </div>
+  </div>
+
+  <div id="sDone" style="display:none" class="text-center py-4">
+    <div class="w-14 h-14 rounded-full mx-auto flex items-center justify-center text-white text-2xl" style="background:#10B981"><i class="fas fa-check"></i></div>
+    <p class="text-[15px] font-extrabold text-gray-800 mt-3">换绑成功</p>
+    <p class="text-[11px] text-gray-500 mt-1">登录账号已更新为 <b class="num" id="donePhone"></b></p>
+    <p class="text-[10px] mt-3" style="color:#B45309">请留意：合同侧签署手机号需联系合同专员改绑</p>
+    <a onclick="closeBind()" class="block mt-4 py-3 rounded-xl text-white text-[13px] font-bold grad-h">完成</a>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span id="toastTxt">操作成功</span></div>
+<script>
+var P_KEY='sh_profile_personal';
+var L_KEY='sh_account_bind_log';
+var DEF_PHONE='13800008000';
+var USED=['13800000001','13900000002'];
+var CODE='888888';
+var P_DEF={nick:'李老板',mail:'datang@example.com'};
+var timer1,timer2,toastTimer;
+function $(id){return document.getElementById(id);}
+function today(){return new Date().toISOString().slice(0,10);}
+function mask(p){if(!p||p.length<7)return p||'—';return p.slice(0,3)+'****'+p.slice(7);}
+function val(id){var e=$(id);return e?String(e.value||'').trim():'';}
+function show(id,v){var e=$(id);if(e)e.style.display=v?'':'none';}
+function profile(){
+  var o={nick:P_DEF.nick,mail:P_DEF.mail,phone:DEF_PHONE};
+  try{var s=JSON.parse(localStorage.getItem(P_KEY)||'null');if(s){o.nick=s.nick||s.name||o.nick;o.mail=s.mail||o.mail;o.phone=s.phone||o.phone;}}catch(e){}
+  return o;
+}
+function logs(){
+  try{var a=JSON.parse(localStorage.getItem(L_KEY)||'null');if(a&&a.length)return a;}catch(e){}
+  return [{at:'2025-03-12',old:'',now:DEF_PHONE,way:'注册绑定'}];
+}
+function renderLogs(){
+  var l=logs(),h='';
+  for(var i=l.length-1;i>=0&&i>=l.length-3;i--){
+    var x=l[i];
+    h+='<div class="flex items-start gap-2 py-2 border-b border-gray-50 last:border-0">'
+      +'<i class="fas fa-clock-rotate-left text-[10px] text-gray-300 mt-1"></i>'
+      +'<div class="flex-1"><p class="text-[11px] text-gray-700">'+x.way+' · <span class="num">'+mask(x.now)+'</span></p>'
+      +'<p class="text-[10px] text-gray-400 num mt-0.5">'+x.at+(x.old?' · 原 '+mask(x.old):'')+'</p></div></div>';
+  }
+  var e=$('bindLog');if(e)e.innerHTML=h||'<p class="text-[11px] text-gray-400">暂无换绑记录</p>';
+}
+function renderAccount(){
+  var m=mask(profile().phone);
+  var a=$('phoneView');if(a)a.textContent=m;
+  var b=$('s1Old');if(b)b.textContent=m;
+  var c=$('loginView');if(c)c.textContent='手机号 + 验证码（'+m+'）';
+  renderLogs();
+}
+function render(){
+  var p=profile();
+  var n=$('fNick');if(n)n.value=p.nick;
+  var m=$('fMail');if(m)m.value=p.mail;
+  var h=$('headName');if(h)h.textContent=p.nick||'未填写';
+  renderAccount();
+}
+function saveProfile(){
+  var n=val('fNick'),m=val('fMail');
+  if(!n){toast('请填写显示昵称');return;}
+  if(m&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(m)){toast('邮箱格式不正确');return;}
+  var p=profile();
+  localStorage.setItem(P_KEY,JSON.stringify({nick:n,mail:m,phone:p.phone,at:today()}));
+  var h=$('headName');if(h)h.textContent=n;
+  toast('个人资料已保存（无需审核，立即生效）');
+}
+function changeAvatar(){toast('演示：已选择新头像');}
+
+function openBind(){
+  var k=$('mask');if(k)k.classList.add('on');
+  var s=$('sheet');if(s)s.classList.add('on');
+  var a=$('s1Code');if(a)a.value='';
+  var b=$('s2Phone');if(b)b.value='';
+  var c=$('s2Code');if(c)c.value='';
+  var d=$('s3Agree');if(d)d.checked=false;
+  renderAccount();
+  goStep(1);
+}
+function closeBind(){
+  var k=$('mask');if(k)k.classList.remove('on');
+  var s=$('sheet');if(s)s.classList.remove('on');
+  clearInterval(timer1);clearInterval(timer2);
+  var a=$('s1Send');if(a){a.textContent='获取验证码';a.dataset.busy='';}
+  var b=$('s2Send');if(b){b.textContent='获取验证码';b.dataset.busy='';}
+  renderAccount();
+}
+function goStep(n){
+  if(n===2&&val('s1Code')!==CODE){toast('原手机号验证码不正确（演示码 888888）');return;}
+  if(n===3){
+    var np=val('s2Phone');
+    if(!/^1[3-9]\d{9}$/.test(np)){toast('请输入正确的 11 位手机号');return;}
+    if(np===profile().phone){toast('新手机号不能与当前绑定号相同');return;}
+    if(USED.indexOf(np)>=0){toast('该手机号已注册账号，请更换');return;}
+    if(val('s2Code')!==CODE){toast('新手机号验证码不正确（演示码 888888）');return;}
+    var f=$('s3From');if(f)f.textContent=mask(profile().phone);
+    var t=$('s3To');if(t)t.textContent='→ '+mask(np);
+  }
+  show('s1',n===1);show('s2',n===2);show('s3',n===3);show('sDone',n===4);
+  var bar=$('stepBar');
+  if(bar&&bar.children){for(var i=0;i<bar.children.length;i++)bar.children[i].className=(n===4||i<n)?'on':'';}
+}
+function sendCode(k){
+  var btn=$(k==='s1'?'s1Send':'s2Send');
+  if(!btn)return;
+  if(btn.dataset.busy==='1'){toast('验证码已发送，请稍候');return;}
+  if(k==='s2'){
+    var np=val('s2Phone');
+    if(!/^1[3-9]\d{9}$/.test(np)){toast('请先填写正确的 11 位新手机号');return;}
+    if(np===profile().phone){toast('新手机号不能与当前绑定号相同');return;}
+    if(USED.indexOf(np)>=0){toast('该手机号已注册账号，请更换');return;}
+  }
+  btn.dataset.busy='1';
+  var left=60;btn.textContent=left+'s 后重发';
+  var t=setInterval(function(){
+    left--;
+    if(left<=0){clearInterval(t);btn.textContent='重新获取';btn.dataset.busy='';}
+    else btn.textContent=left+'s 后重发';
+  },1000);
+  if(k==='s1')timer1=t;else timer2=t;
+  toast(k==='s1'?'验证码已发送至当前手机号（演示码 888888）':'验证码已发送至新手机号（演示码 888888）');
+}
+function doBind(){
+  var np=val('s2Phone');
+  if(!/^1[3-9]\d{9}$/.test(np)){toast('请输入正确的 11 位手机号');return;}
+  if(np===profile().phone){toast('新手机号不能与当前绑定号相同');return;}
+  if(USED.indexOf(np)>=0){toast('该手机号已注册账号，请更换');return;}
+  if(val('s2Code')!==CODE){toast('新手机号验证码不正确（演示码 888888）');return;}
+  var g=$('s3Agree');
+  if(!g||!g.checked){toast('请先确认变更影响');return;}
+  var p=profile(),old=p.phone;
+  localStorage.setItem(P_KEY,JSON.stringify({nick:p.nick,mail:p.mail,phone:np,at:today()}));
+  var l=logs();l.push({at:today(),old:old,now:np,way:'自助换绑'});
+  localStorage.setItem(L_KEY,JSON.stringify(l));
+  var d=$('donePhone');if(d)d.textContent=mask(np);
+  goStep(4);
+  renderAccount();
+  toast('换绑成功，请用新手机号登录');
+}
+function toast(m){var t=$('toast');var x=$('toastTxt');if(x)x.textContent=m;if(!t)return;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},1800);}
+render();
+</script>
 </body>
 </html>

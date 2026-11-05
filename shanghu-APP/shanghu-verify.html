@@ -48,11 +48,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <div id="st-none" class="px-3 mt-3 relative z-10 pb-8">
   <div class="rounded-2xl px-3.5 py-2.5 flex items-center gap-2 shadow-soft mb-3" style="background:#FFF7ED;border:1px solid #FED7AA">
     <i class="fas fa-triangle-exclamation text-orange-500 text-sm"></i>
-    <p class="text-[11px] text-orange-700 flex-1">当前状态：<b>待复核</b> · 证书到期前需完成复核（报价权限随入驻默认开通）</p>
+    <p class="text-[11px] text-orange-700 flex-1" id="formTip">当前状态：<b>待复核</b> · 证书到期前需完成复核（报价权限随入驻默认开通）</p>
   </div>
 
   <div class="bg-white rounded-2xl shadow-soft p-3.5 fade-up">
-    <p class="text-[12px] font-bold text-gray-800 mb-3"><i class="fas fa-file-shield text-primary text-xs"></i> 提交认证资料</p>
+    <p class="text-[12px] font-bold text-gray-800 mb-3" id="formTitle"><i class="fas fa-file-shield text-primary text-xs"></i> 提交认证资料</p>
 
     <p class="text-[11px] font-semibold text-gray-700 mb-1.5">企业名称 <span class="text-red-500">*</span></p>
     <input type="text" value="大唐袜业旗舰袜业有限公司" class="w-full text-[12px] bg-gray-50 rounded-xl px-3 py-2.5 outline-none mb-3">
@@ -82,7 +82,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
       </div>
     </div>
 
-    <button onclick="submitVerify()" class="w-full py-3 rounded-xl text-white text-[13px] font-bold" style="background:linear-gradient(135deg,#3B82F6,#2563EB)"><i class="fas fa-paper-plane text-[11px]"></i> 提交认证</button>
+    <button id="formSubmitBtn" onclick="submitVerify()" class="w-full py-3 rounded-xl text-white text-[13px] font-bold" style="background:linear-gradient(135deg,#3B82F6,#2563EB)"><i class="fas fa-paper-plane text-[11px]"></i> 提交认证</button>
     <p class="text-[9px] text-gray-400 text-center mt-2.5">提交后平台 1-2 个工作日完成审核，结果通知至 App 推送</p>
   </div>
 </div>
@@ -122,11 +122,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <!-- ============ 状态三：已认证 ============ -->
 <div id="st-pass" style="display:none" class="px-3 mt-3 relative z-10 pb-8">
   <div class="bg-white rounded-2xl shadow-soft p-5 fade-up text-center">
-    <div class="w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-3" style="background:#DCFCE7"><i class="fas fa-shield-halved text-green-600 text-2xl"></i></div>
-    <p class="text-[16px] font-extrabold text-gray-900">认证通过</p>
-    <p class="text-[11px] text-gray-400 mt-1 num">2026-09-20 生效 · 有效期至 2027-09-20</p>
-    <span class="inline-flex items-center gap-1.5 mt-3 bg-green-50 text-green-600 text-[11px] font-bold px-3 py-1.5 rounded-full"><i class="fas fa-certificate text-[10px]"></i> 已认证 · 实力商家</span>
+    <div id="passIconWrap" class="w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-3" style="background:#DCFCE7"><i id="passIcon" class="fas fa-shield-halved text-2xl" style="color:#16A34A"></i></div>
+    <p class="text-[16px] font-extrabold text-gray-900" id="passTitle">认证通过</p>
+    <p class="text-[11px] text-gray-400 mt-1 num" id="passSub">2026-09-20 生效 · 有效期至 2027-09-20</p>
+    <span id="passBadge" class="inline-flex items-center gap-1.5 mt-3 bg-green-50 text-green-600 text-[11px] font-bold px-3 py-1.5 rounded-full" style="background:#F0FDF4;color:#15803D"><i class="fas fa-certificate text-[10px]"></i> 已认证 · 实力商家</span>
   </div>
+
+  <!-- 到期状态提醒条 + 引导动作（待办 #53 ①，按状态动态渲染） -->
+  <div id="expTip" class="fade-up" style="display:none"></div>
 
   <div class="bg-white rounded-2xl shadow-soft p-3.5 fade-up mt-3" style="animation-delay:.05s">
     <p class="text-[12px] font-bold text-gray-800 mb-2.5"><i class="fas fa-wand-magic-sparkles text-primary text-xs"></i> 商户类型自动判定</p>
@@ -152,11 +155,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
       <div class="flex justify-between"><span class="text-gray-400">企业名称</span><span class="text-gray-700">大唐袜业旗舰袜业有限公司</span></div>
       <div class="flex justify-between"><span class="text-gray-400">信用代码</span><span class="text-gray-700 num">91330681MA2XXXXX0X</span></div>
       <div class="flex justify-between"><span class="text-gray-400">经营类目</span><span class="text-gray-700" id="passCats">男袜 · 运动袜</span></div>
-      <div class="flex justify-between"><span class="text-gray-400">权限</span><span class="text-green-600 font-bold">查看供需详情 · 参与询价 ✅</span></div>
+      <div class="flex justify-between"><span class="text-gray-400">有效期至</span><span class="text-gray-700 num" id="infoExpire">2027-09-20</span></div>
+      <div class="flex justify-between" id="infoHandleRow" style="display:none"><span class="text-gray-400">到期处理</span><span class="text-gray-700" id="infoHandle">—</span></div>
+      <div class="flex justify-between"><span class="text-gray-400">权限</span><span class="text-green-600 font-bold" id="passPower">查看供需详情 · 参与询价 ✅</span></div>
     </div>
   </div>
 
-  <a href="shanghu-inquiry.html" class="block w-full py-3 mt-4 rounded-xl text-white text-[13px] font-bold text-center" style="background:linear-gradient(135deg,#3B82F6,#2563EB)">返回需求池，开始报价</a>
+  <a id="passBack" href="shanghu-inquiry.html" class="block w-full py-3 mt-4 rounded-xl text-white text-[13px] font-bold text-center" style="background:linear-gradient(135deg,#3B82F6,#2563EB)">返回需求池，开始报价</a>
   <a onclick="resetVerify()" class="block text-center text-[10px] text-gray-300 mt-3">重置演示状态</a>
 </div>
 
@@ -175,11 +180,51 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
   </div>
 </div>
 
+<!-- ============ 联系平台弹层（待办 #53：不再续期后的恢复引导） ============ -->
+<div id="contactMask" style="display:none" class="fixed inset-0 z-[200] flex items-end" onclick="closeContact()">
+  <div class="absolute inset-0" style="background:rgba(15,23,42,.45)"></div>
+  <div class="relative w-full bg-white rounded-t-3xl p-4 pb-8" onclick="event.stopPropagation()">
+    <div class="w-10 h-1 rounded-full bg-gray-200 mx-auto mb-3"></div>
+    <p class="text-[15px] font-extrabold text-gray-900 text-center">联系平台恢复资质</p>
+    <p class="text-[10px] text-gray-400 text-center mt-1">资质到期后选择「不再续期」已失效，需由平台重新发起入驻认证</p>
+    <div class="rounded-2xl p-3 mt-3 space-y-1.5 text-[11px]" style="background:#F8FAFF">
+      <div class="flex justify-between"><span class="text-gray-400">平台客服</span><span class="text-gray-700 font-bold num">400-800-6688</span></div>
+      <div class="flex justify-between"><span class="text-gray-400">服务时间</span><span class="text-gray-700">09:00–18:00（工作日）</span></div>
+      <div class="flex justify-between"><span class="text-gray-400">恢复方式</span><span class="text-gray-700">平台重新发起入驻认证</span></div>
+    </div>
+    <div class="flex gap-2 mt-4">
+      <a onclick="closeContact()" class="flex-1 py-3 rounded-xl border border-gray-200 text-[13px] text-gray-600 text-center font-medium">知道了</a>
+      <a onclick="closeContact();toast('已提交恢复咨询，平台将在 1 个工作日内联系你')" class="flex-1 py-3 rounded-xl text-white text-[13px] font-bold text-center" style="background:linear-gradient(135deg,#3B82F6,#2563EB)">提交恢复咨询</a>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 商户档案（只读）：三层资料模型里的「商户主档」，变更走运营端资料变更审核 ============ -->
+<div class="px-3 relative z-10 pb-3">
+  <div class="bg-white rounded-2xl shadow-soft p-3.5">
+    <div class="flex items-center justify-between mb-2.5">
+      <p class="text-[12px] font-bold text-gray-800"><i class="fas fa-building-columns text-primary text-xs"></i> 商户档案（只读）</p>
+      <span class="text-[9px] font-bold px-1.5 py-0.5 rounded" style="background:#F1F5F9;color:#64748B">市场建档主档</span>
+    </div>
+    <div class="space-y-1.5 text-[11px]">
+      <div class="flex justify-between"><span class="text-gray-400">经营主体类型</span><span class="text-gray-700">个体工商户</span></div>
+      <div class="flex justify-between"><span class="text-gray-400">法定代表人</span><span class="text-gray-700">李*明</span></div>
+      <div class="flex justify-between"><span class="text-gray-400">联系人 / 电话</span><span class="text-gray-700 num">李老板 · 138****8000</span></div>
+      <div class="flex justify-between"><span class="text-gray-400">商户类型</span><span class="text-gray-700">线上兼档口商户</span></div>
+      <div class="flex justify-between"><span class="text-gray-400">关联档口</span><span class="text-gray-700 num">1F-A08 等 4 处（台账 / 合同同步）</span></div>
+      <div class="flex justify-between"><span class="text-gray-400">经营类目</span><span class="text-gray-700" id="archiveCats">男袜 · 运动袜</span></div>
+    </div>
+    <p class="text-[9px] text-gray-400 mt-2.5 leading-relaxed"><i class="fas fa-circle-info mr-1"></i>档案由市场建档生成，身份证 / 商户编号 / 商户类型 / 关联档口只读；企业名称、联系方式、资质、经营类目可申请变更，<b class="text-gray-500">需运营端「资料变更审核」通过后回写生效</b>。线下实体商铺展示信息也属商户档案、走同一审核台；账号个人资料保存即生效，线上店铺信息归 10 商城运营。</p>
+    <a href="profile-edit.html" class="block w-full py-2.5 mt-3 rounded-xl text-[12px] font-bold text-center" style="background:#EFF6FF;color:#2563EB;border:1px solid #BFDBFE"><i class="fas fa-file-pen text-[11px]"></i> 申请档案变更（需审核）</a>
+  </div>
+</div>
+
 <!-- ============ 品牌资质（待办 #41；与店铺设置共用同一审核状态） ============ -->
 <div class="px-3 relative z-10 pb-10">
   <div class="bg-white rounded-2xl shadow-soft p-3.5" id="brandQualiCard"></div>
 </div>
 
+<script src="yz-state.js"></script>
 <script src="category-dict.js"></script>
 <script src="brand-quali.js"></script>
 <script>
@@ -198,41 +243,115 @@ function renderPassCats(sel){
   if(el)el.textContent=(sel&&sel.length)?sel.join(' · '):'—';
 }
 
-/* ===== 认证状态 / 主体类型（待办 #38）
-   状态唯一写入口：本页。买家端政策申报、技术共享等按 `sh_yz_state` 判断主体是否就绪。
-   state: none 未提交 / reviewing 审核中 / pass 已通过 / reject 已驳回
-   subject: personal 个人 / enterprise 企业 ===== */
-var YZ_KEY='sh_yz_state';
-var YZ_LABEL={none:'未提交',reviewing:'审核中',pass:'已通过',reject:'已驳回'};
-var YZ_COLOR={none:['#F1F5F9','#64748B'],reviewing:['#EFF6FF','#2563EB'],pass:['#ECFDF5','#059669'],reject:['#FEF2F2','#DC2626']};
-
-function getYZ(){
-  try{var s=JSON.parse(localStorage.getItem(YZ_KEY)||'null');if(s&&s.state)return s;}catch(e){}
-  // 兼容旧键 sh_verify
-  var legacy=localStorage.getItem('sh_verify');
-  return {state:legacy||'none',subject:'enterprise',why:'',at:''};
-}
-function setYZ(o){localStorage.setItem(YZ_KEY,JSON.stringify(o));localStorage.setItem('sh_verify',o.state);render();}
+/* ===== 认证状态 / 到期状态（待办 #38 / #53）
+   状态唯一写入口：本页。询价闸门、政策申报等页面按 `sh_yz_state` 只读引用。
+   7 态定义、配色、闸门文案映射见 yz-state.js（端内共享，不模拟后台同步） ===== */
+function setYZ(o){saveYZ(o);render();}
 function getStatus(){return getYZ().state;}
+var DEMO_DATE={pass:YZ_DEF_EXPIRE,expiring:YZ_EXPIRING_DATE,expired:YZ_EXPIRED_DATE,invalid:YZ_EXPIRED_DATE};
+
+/* 已认证卡的四种皮肤：正常 / 即将到期 / 已过期 / 已失效 */
+var PASS_SKIN={
+  pass:{icon:'fa-shield-halved',iconBg:'#DCFCE7',iconColor:'#16A34A',title:'认证通过',badge:'已认证 · 实力商家',badgeBg:'#F0FDF4',badgeColor:'#15803D',badgeIcon:'fa-certificate',power:'查看供需详情 · 参与询价 ✅',powerColor:'#16A34A'},
+  expiring:{icon:'fa-clock-rotate-left',iconBg:'#FFF7ED',iconColor:'#EA580C',title:'认证通过 · 即将到期',badge:'即将到期 · 请尽快上传新证',badgeBg:'#FFF7ED',badgeColor:'#C2410C',badgeIcon:'fa-triangle-exclamation',power:'当前仍可询价 · 到期后将冻结',powerColor:'#EA580C'},
+  expired:{icon:'fa-circle-exclamation',iconBg:'#FEF2F2',iconColor:'#DC2626',title:'资质已过期',badge:'已过期 · 报价与政策申报受限',badgeBg:'#FEF2F2',badgeColor:'#B91C1C',badgeIcon:'fa-ban',power:'报价 / 政策申报已受限 ❌',powerColor:'#DC2626'},
+  invalid:{icon:'fa-ban',iconBg:'#F1F5F9',iconColor:'#94A3B8',title:'资质已失效',badge:'已失效（到期不再续期）',badgeBg:'#F1F5F9',badgeColor:'#64748B',badgeIcon:'fa-ban',power:'报价 / 政策申报已受限 ❌',powerColor:'#94A3B8'}
+};
+
+/* ① 已认证卡补到期状态：橙色提醒 / 红色过期 / 灰色失效 + 对应引导动作 */
+function paintPass(yz){
+  var s=yz.state,k=PASS_SKIN[s];if(!k)return;
+  var $=function(id){return document.getElementById(id);};
+  $('passIconWrap').style.background=k.iconBg;
+  var ic=$('passIcon');ic.className='fas '+k.icon+' text-2xl';ic.style.color=k.iconColor;
+  $('passTitle').textContent=k.title;
+  $('passSub').textContent=(s==='expired'||s==='invalid')
+    ? ('原有效期至 '+(yz.origExpire||yz.expire)+' · '+(s==='invalid'?'到期后不再续期':'已超期 '+Math.abs(yzDays(yz.origExpire))+' 天'))
+    : ('2026-09-20 生效 · 有效期至 '+yz.expire);
+  var b=$('passBadge');b.style.background=k.badgeBg;b.style.color=k.badgeColor;
+  b.innerHTML='<i class="fas '+k.badgeIcon+' text-[10px]"></i> '+k.badge;
+  var p=$('passPower');p.textContent=k.power;p.style.color=k.powerColor;
+  $('infoExpire').textContent=yz.expire;
+  var ht=yzHandleText(yz.handle);
+  $('infoHandleRow').style.display=ht?'flex':'none';
+  if(ht)$('infoHandle').textContent=ht.replace('本次处理：','');
+  $('passBack').style.display=(s==='pass'||s==='expiring')?'block':'none';
+
+  var tip=$('expTip');
+  if(s==='pass'){tip.style.display='none';tip.innerHTML='';return;}
+  var body='';
+  if(s==='expiring'){
+    body='<div class="rounded-2xl p-3.5" style="background:#FFF7ED;border:1px solid #FED7AA">'
+      +'<p class="text-[12px] font-bold" style="color:#C2410C"><i class="fas fa-clock-rotate-left mr-1"></i>资质将于 '+yzDays(yz.expire)+' 天后到期（'+yz.expire+'），请尽快上传新证</p>'
+      +'<p class="text-[10px] mt-1.5 leading-relaxed" style="color:#EA580C">运营端已发送 30 天到期提醒；新证复核通过后有效期自动更新，期间仍可正常询价。</p>'
+      +'<button onclick="uploadNew()" class="w-full py-2.5 mt-3 rounded-xl text-white text-[12px] font-bold" style="background:linear-gradient(135deg,#F59E0B,#D97706)"><i class="fas fa-cloud-arrow-up text-[11px]"></i> 上传新证</button></div>';
+  }else if(s==='expired'){
+    body='<div class="rounded-2xl p-3.5" style="background:#FEF2F2;border:1px solid #FECACA">'
+      +'<p class="text-[12px] font-bold" style="color:#B91C1C"><i class="fas fa-circle-exclamation mr-1"></i>资质已于 '+(yz.origExpire||yz.expire)+' 过期</p>'
+      +'<p class="text-[10px] mt-1.5 leading-relaxed" style="color:#DC2626">报价与政策申报受限，运营端已发起到期处理（换证续期 / 顺延 / 不再续期）；处理结果将同步到本页。</p>'
+      +'<button onclick="uploadNew()" class="w-full py-2.5 mt-3 rounded-xl text-white text-[12px] font-bold" style="background:linear-gradient(135deg,#EF4444,#B91C1C)"><i class="fas fa-rotate-right text-[11px]"></i> 重新提交认证</button></div>';
+  }else{
+    body='<div class="rounded-2xl p-3.5" style="background:#F8FAFC;border:1px solid #E2E8F0">'
+      +'<p class="text-[12px] font-bold" style="color:#475569"><i class="fas fa-ban mr-1"></i>已失效（到期不再续期）</p>'
+      +'<p class="text-[10px] mt-1.5 leading-relaxed" style="color:#64748B">询价 / 政策申报已受限；如需恢复请联系平台重新入驻认证。</p>'
+      +'<button onclick="contactPlatform()" class="w-full py-2.5 mt-3 rounded-xl text-white text-[12px] font-bold" style="background:linear-gradient(135deg,#94A3B8,#64748B)"><i class="fas fa-headset text-[11px]"></i> 联系平台</button></div>';
+  }
+  tip.style.display='block';tip.innerHTML=body;
+}
+
+/* 商户档案（只读）：经营类目取 sh_cat_sel；运营审核通过回写主档后本页自动刷新 */
+function renderArchive(){
+  var el=document.getElementById('archiveCats');if(!el)return;
+  var sel=catSel();
+  el.textContent=(sel&&sel.length)?sel.join(' · '):'—';
+}
 
 function render(){
-  var yz=getYZ(), s=yz.state;
+  var yz=getYZ(),s=yz.state;
+  var passLike=(s==='pass'||s==='expiring'||s==='expired'||s==='invalid');
   document.getElementById('st-none').style.display=(s==='none')?'block':'none';
   document.getElementById('st-reviewing').style.display=(s==='reviewing')?'block':'none';
-  document.getElementById('st-pass').style.display=(s==='pass')?'block':'none';
+  document.getElementById('st-pass').style.display=passLike?'block':'none';
   document.getElementById('st-reject').style.display=(s==='reject')?'block':'none';
   if(s==='reject'){
     document.getElementById('rjWhy').textContent=yz.why||'营业执照照片模糊，统一社会信用代码与证件不一致';
     document.getElementById('rjAt').textContent=(yz.at||'2026-09-22')+' 驳回';
   }
+  if(s==='none'){
+    var re=yz.reason==='expire';
+    document.getElementById('formTitle').innerHTML=re
+      ? '<i class="fas fa-cloud-arrow-up text-primary text-xs"></i> 上传新证（换证复核）'
+      : '<i class="fas fa-file-shield text-primary text-xs"></i> 提交认证资料';
+    document.getElementById('formTip').innerHTML=re
+      ? '当前状态：<b>资质已到期，待换证复核</b> · 上传新证并重新提交，审核通过后有效期自动更新'
+      : '当前状态：<b>待复核</b> · 证书到期前需完成复核（报价权限随入驻默认开通）';
+    document.getElementById('formSubmitBtn').innerHTML=re
+      ? '<i class="fas fa-paper-plane text-[11px]"></i> 提交新证复核'
+      : '<i class="fas fa-paper-plane text-[11px]"></i> 提交认证';
+  }
+  if(passLike)paintPass(yz);
   paintMeta(yz);
   renderPassCats(catSel());
+  renderArchive();
 }
 
 function paintMeta(yz){
   var box=document.getElementById('yzMeta');if(!box)return;
   var c=YZ_COLOR[yz.state]||YZ_COLOR.none;
   var isEnt=yz.subject==='enterprise';
+  var chips=YZ_STATES.map(function(k){
+    var on=k===yz.state;
+    return '<span onclick="setDemo(\''+k+'\')" class="text-[9px] px-2 py-1 rounded-lg cursor-pointer" style="border:1px solid '+(on?'#BFDBFE':'#EEF0F3')+';background:'+(on?'#EFF6FF':'#fff')+';color:'+(on?'#2563EB':'#94A3B8')+';font-weight:'+(on?'700':'400')+'">'+YZ_LABEL[k]+'</span>';
+  }).join('');
+  /* ② 模拟运营端「到期处理」三种结论下发（仅在即将到期 / 已过期时出现） */
+  var exRow='';
+  if(yz.state==='expiring'||yz.state==='expired'){
+    var btns=[['renew','换证续期'],['extend','顺延'],['stop','不再续期']].map(function(x){
+      return '<span onclick="applyExpire(\''+x[0]+'\')" class="text-[9px] px-2 py-1 rounded-lg cursor-pointer" style="border:1px solid #FDBA74;background:#FFF7ED;color:#C2410C;font-weight:700">'+x[1]+'</span>';
+    }).join('');
+    exRow='<div class="flex gap-1.5 mt-2 flex-wrap items-center">'
+      +'<span class="text-[9px] text-gray-400">运营端到期处理结果（演示）：</span>'+btns+'</div>';
+  }
   box.innerHTML='<div class="bg-white rounded-2xl shadow-soft px-3.5 py-3">'
     +'<div class="flex items-center gap-2">'
     +'<span class="text-[10px] font-bold px-2 py-0.5 rounded" style="background:'+c[0]+';color:'+c[1]+'">认证：'+YZ_LABEL[yz.state]+'</span>'
@@ -240,38 +359,66 @@ function paintMeta(yz){
     +'<span class="flex-1"></span>'
     +'<a onclick="toggleSubject()" class="text-[9px] font-bold" style="color:#2563EB">切换主体</a>'
     +'</div>'
-    +'<p class="text-[9px] text-gray-400 mt-1.5 leading-relaxed">买家端政策申报、技术共享按此判断主体是否就绪：仅「企业主体 + 认证已通过」放开申报 / 查看供需详情。</p>'
-    +'<div class="flex gap-1.5 mt-2 flex-wrap">'
-    +['none','reviewing','pass','reject'].map(function(k){
-      var on=k===yz.state;
-      return '<span onclick="setDemo(\''+k+'\')" class="text-[9px] px-2 py-1 rounded-lg cursor-pointer" style="border:1px solid '+(on?'#BFDBFE':'#EEF0F3')+';background:'+(on?'#EFF6FF':'#fff')+';color:'+(on?'#2563EB':'#94A3B8')+';font-weight:'+(on?'700':'400')+'">'+YZ_LABEL[k]+'</span>';
-    }).join('')
+    +'<p class="text-[9px] text-gray-400 mt-1.5 leading-relaxed">本状态被询价闸门、政策申报等页面只读引用：仅「企业主体 + 已通过 / 即将到期」放开询价与申报；已过期 / 已失效即冻结。商户端只展示结果状态与引导动作，不展示运营端经办人与操作记录。</p>'
+    +'<div class="flex gap-1.5 mt-2 flex-wrap">'+chips
     +'<span class="text-[8px] text-gray-300 self-center ml-1">← 演示切换</span>'
-    +'</div></div>';
+    +'</div>'+exRow+'</div>';
 }
 
 function setDemo(k){
-  var yz=getYZ();yz.state=k;
+  var yz=getYZ();yz.state=k;yz.handle='';yz.reason='';
   if(k==='reject'&&!yz.why){yz.why='营业执照照片模糊，统一社会信用代码与证件不一致';yz.at='2026-09-22';}
+  if(DEMO_DATE[k]){yz.expire=DEMO_DATE[k];yz.origExpire=DEMO_DATE[k];}
+  if(k==='invalid')yz.handle='stop';
   setYZ(yz);
   toast('演示状态：'+YZ_LABEL[k]);
   window.scrollTo(0,0);
 }
+/* ② 到期处理三种结果的端上同步展示 */
+function applyExpire(t){
+  var yz=getYZ();yz.reason='';
+  if(t==='renew'){
+    yz.state='pass';yz.expire=YZ_RENEW_DATE;yz.origExpire=YZ_RENEW_DATE;yz.handle='renew';
+    toast('换证审核通过，资质有效期已更新');
+  }else if(t==='extend'){
+    yz.state='pass';yz.expire=YZ_EXTEND_DATE;yz.origExpire=YZ_EXTEND_DATE;yz.handle='extend';
+    toast('到期顺延已生效，资质有效期已更新');
+  }else{
+    yz.state='invalid';yz.expire=YZ_EXPIRED_DATE;yz.origExpire=YZ_EXPIRED_DATE;yz.handle='stop';
+    toast('已标记「不再续期」：资质已失效，询价 / 政策申报继续冻结');
+  }
+  setYZ(yz);
+  window.scrollTo(0,0);
+}
+function uploadNew(){
+  var yz=getYZ();yz.state='none';yz.reason='expire';yz.handle='';yz.why='';
+  setYZ(yz);toast('请上传新证后重新提交认证');window.scrollTo(0,0);
+}
+function contactPlatform(){document.getElementById('contactMask').style.display='flex';}
+function closeContact(){document.getElementById('contactMask').style.display='none';}
 function toggleSubject(){
   var yz=getYZ();yz.subject=(yz.subject==='enterprise')?'personal':'enterprise';setYZ(yz);
   toast('主体类型：'+(yz.subject==='enterprise'?'企业':'个人'));
 }
-
 function submitVerify(){
   var cats=catSelected('catBox');
   if(!cats.length){toast('请至少选择一个经营类目');return;}
   localStorage.setItem('sh_cat_sel',JSON.stringify(cats));
-  var yz=getYZ();yz.state='reviewing';yz.at='';setYZ(yz);
-  toast('认证资料已提交（类目 '+cats.length+' 项），进入平台审核');
+  var yz=getYZ(),re=yz.reason==='expire';
+  yz.state='reviewing';yz.at='';yz.why='';
+  setYZ(yz);
+  toast(re?'新证资料已提交，进入平台换证复核':'认证资料已提交（类目 '+cats.length+' 项），进入平台审核');
   window.scrollTo(0,0);
 }
-function passVerify(){var yz=getYZ();yz.state='pass';yz.at='';setYZ(yz);toast('认证通过！商户类型：实力商家');window.scrollTo(0,0);}
-function backToForm(){var yz=getYZ();yz.state='none';setYZ(yz);toast('请按驳回原因修改资料后重新提交');window.scrollTo(0,0);}
+function passVerify(){
+  var yz=getYZ(),re=yz.reason==='expire';
+  yz.state='pass';yz.at='';yz.reason='';
+  if(re){yz.expire=YZ_RENEW_DATE;yz.origExpire=YZ_RENEW_DATE;yz.handle='renew';}
+  setYZ(yz);
+  toast(re?'换证审核通过，资质有效期已更新':'认证通过！商户类型：实力商家');
+  window.scrollTo(0,0);
+}
+function backToForm(){var yz=getYZ();yz.state='none';yz.reason='';setYZ(yz);toast('请按驳回原因修改资料后重新提交');window.scrollTo(0,0);}
 function resetVerify(){localStorage.removeItem(YZ_KEY);localStorage.removeItem('sh_verify');render();toast('演示状态已重置为未认证');}
 render();
 renderCats();

@@ -56,19 +56,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <!-- ================= 需求池 Tab ================= -->
 <div id="list-pool" class="px-3 mt-3 space-y-2.5 pb-8">
 
-  <!-- 企业资质认证闸门（招标#10：未认证拦截查看详情/去报价） -->
+  <!-- 企业资质认证闸门（招标#10 / 待办 #54：按 sh_yz_state 区分 未认证 / 已过期 / 不再续期） -->
   <div id="verifyGate" class="rounded-2xl px-3.5 py-3 flex items-center gap-2.5 shadow-soft fade-up" onclick="location.href='shanghu-verify.html'" style="background:#FFF7ED;border:1px solid #FED7AA;display:none">
-    <i class="fas fa-triangle-exclamation text-orange-500"></i>
+    <i id="gateIcon" class="fas fa-triangle-exclamation text-[15px]" style="color:#EA580C"></i>
     <div class="flex-1">
-      <p class="text-[12px] font-bold text-orange-700">未完成企业资质认证</p>
-      <p class="text-[10px] text-orange-600 mt-0.5" style="opacity:.85">认证通过后方可查看供需详情、参与询价（招标验收必查）</p>
+      <p id="gateTitle" class="text-[12px] font-bold" style="color:#C2410C">未完成企业资质认证</p>
+      <p id="gateSub" class="text-[10px] mt-0.5 leading-relaxed" style="color:#EA580C">认证通过后方可查看供需详情、参与询价（招标验收必查）</p>
     </div>
-    <span class="text-[11px] font-bold text-white px-3 py-1.5 rounded-lg flex-shrink-0" style="background:linear-gradient(135deg,#F59E0B,#D97706)">去认证</span>
+    <span id="gateBtn" class="text-[11px] font-bold text-white px-3 py-1.5 rounded-lg flex-shrink-0" style="background:linear-gradient(135deg,#F59E0B,#D97706)">去认证</span>
   </div>
   <div id="verifyOk" class="rounded-2xl px-3.5 py-2.5 flex items-center gap-2 shadow-soft" style="background:#F0FDF4;border:1px solid #BBF7D0;display:none">
-    <i class="fas fa-shield-halved text-green-600 text-sm"></i>
-    <p class="text-[11px] text-green-700 flex-1">企业资质已认证 · 商户类型：<b>实力商家</b></p>
-    <a href="shanghu-verify.html" class="text-[10px] text-green-600 font-bold">查看</a>
+    <i id="okIcon" class="fas fa-shield-halved text-sm" style="color:#16A34A"></i>
+    <p id="okText" class="text-[11px] flex-1" style="color:#15803D">企业资质已认证 · 商户类型：<b>实力商家</b></p>
+    <a id="okLink" href="shanghu-verify.html" class="text-[10px] font-bold" style="color:#16A34A">查看</a>
   </div>
 
   <a href="shanghu-inquiry-detail.html" class="card block bg-white rounded-2xl shadow-soft p-3.5 fade-up border-l-4" style="border-left-color:#F59E0B;background:#FFFBEB">
@@ -201,6 +201,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
   <p class="text-center text-[10px] text-gray-300 mt-4"><i class="fas fa-circle-info"></i> 竞价成功后系统自动生成订单，履约状态见「订单-询价」</p>
 </div>
 
+<script src="yz-state.js"></script>
 <script>
 function switchMain(t,el){
   document.querySelectorAll('#mainTabs .mtab').forEach(function(a){a.style.color='#6b7280';a.style.fontWeight='400';a.style.borderBottom='2px solid transparent';var u=a.querySelector('span.absolute');if(u)u.remove();});
@@ -210,15 +211,31 @@ function switchMain(t,el){
   document.getElementById('list-mine').style.display=(t==='mine')?'block':'none';
 }
 document.querySelectorAll('.chip').forEach(function(c){c.addEventListener('click',function(){document.querySelectorAll('.chip').forEach(function(x){x.classList.remove('on')});c.classList.add('on');});});
-// 企业资质认证闸门（招标#10）：未认证拦截"查看需求详情/去报价"
-var vPass=(localStorage.getItem('sh_verify')||'none')==='pass';
-document.getElementById('verifyGate').style.display=vPass?'none':'flex';
-document.getElementById('verifyOk').style.display=vPass?'flex':'none';
+// 询价闸门（招标#10 / 待办 #54）：读 sh_yz_state，区分 首次未认证 / 已过期 / 不再续期
+// 跳转目标始终为 shanghu-verify.html，由资质页承接对应状态展示（#53）
+var _yz=getYZ(),vPass=yzPass(_yz.state),g=yzGate(_yz.state,_yz);
+var gate=document.getElementById('verifyGate'),ok=document.getElementById('verifyOk');
+gate.style.display=vPass?'none':'flex';
+ok.style.display=vPass?'flex':'none';
 if(!vPass){
+  gate.style.background=g.bg;gate.style.borderColor=g.bd;
+  var gi=document.getElementById('gateIcon');gi.className='fas '+g.icon+' text-[15px]';gi.style.color=g.sub2;
+  var gt=document.getElementById('gateTitle');gt.textContent=g.title;gt.style.color=g.fg;
+  var gs=document.getElementById('gateSub');gs.textContent=g.sub;gs.style.color=g.sub2;
+  var gb=document.getElementById('gateBtn');gb.textContent=g.btn;gb.style.background='linear-gradient(135deg,'+g.bar+','+g.bar2+')';
   document.querySelectorAll('#list-pool a[href="shanghu-inquiry-detail.html"]').forEach(function(a){
-    a.addEventListener('click',function(e){e.preventDefault();toast('报价权限随入驻默认开通；资质待复核/过期将冻结受限品类询价');setTimeout(function(){location.href='shanghu-verify.html'},700);});
+    a.addEventListener('click',function(e){e.preventDefault();toast(yzBlockTip(_yz.state));setTimeout(function(){location.href='shanghu-verify.html'},700);});
   });
 }else{
+  // 30 天内到期：资质仍有效，不拦截报价，仅按运营端 R-27 给站内提醒
+  var exp=(_yz.state==='expiring');
+  ok.style.background=exp?'#FFF7ED':'#F0FDF4';ok.style.borderColor=exp?'#FED7AA':'#BBF7D0';
+  var oi=document.getElementById('okIcon');oi.className='fas '+(exp?'fa-clock-rotate-left':'fa-shield-halved')+' text-sm';oi.style.color=exp?'#EA580C':'#16A34A';
+  var ot=document.getElementById('okText');ot.style.color=exp?'#C2410C':'#15803D';
+  ot.innerHTML=exp
+    ? ('资质将于 <b>'+yzDays(_yz.expire)+'</b> 天后到期（'+_yz.expire+'），建议提前上传新证')
+    : '企业资质已认证 · 商户类型：<b>实力商家</b>';
+  var ol=document.getElementById('okLink');ol.textContent=exp?'上传新证':'查看';ol.style.color=exp?'#EA580C':'#16A34A';
   var b=document.getElementById('myTypeBadge');if(b)b.style.display='inline-block';
 }
 function toast(msg){var d=document.createElement('div');d.style.cssText='position:fixed;left:50%;bottom:110px;transform:translateX(-50%);background:rgba(20,20,40,.85);color:#fff;font-size:12px;padding:8px 16px;border-radius:20px;z-index:999;white-space:nowrap';d.textContent=msg;document.body.appendChild(d);setTimeout(function(){d.remove()},1800);}

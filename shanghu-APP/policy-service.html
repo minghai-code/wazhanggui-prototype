@@ -292,13 +292,14 @@ var APPLY_FLOW=['已提交','受理中','退回补正','已兑现','未通过'];
    v1.6（待办 #38）：状态以资质认证页写入的 `sh_yz_state` 为准，本页只读，不再各存一套 */
 function readYZ(){try{return JSON.parse(localStorage.getItem('sh_yz_state')||'null');}catch(e){return null;}}
 var _yz=readYZ();
-var QUALI_BOUND=!!(_yz&&_yz.state==='pass'&&_yz.subject==='enterprise');
+/* 待办 #53：状态扩为 7 态，「即将到期」资质仍有效，与询价闸门 yzPass() 同口径 */
+var QUALI_BOUND=!!(_yz&&(_yz.state==='pass'||_yz.state==='expiring')&&_yz.subject==='enterprise');
 var APPLY_NO={};
 function applyNo(gid){
  if(!APPLY_NO[gid])APPLY_NO[gid]='SB'+new Date().getFullYear()+('00'+gid).slice(-3);
  return APPLY_NO[gid];
 }
-function bindQuali(){localStorage.setItem('sh_yz_state',JSON.stringify({state:'pass',subject:'enterprise',why:'',at:''}));QUALI_BOUND=true;renderApplyBoxes();toast('已完成企业主体认证（演示），可在线申报');}
+function bindQuali(){localStorage.setItem('sh_yz_state',JSON.stringify({state:'pass',subject:'enterprise',why:'',at:''}));QUALI_BOUND=true;renderApplyBoxes();toast('资质认证已通过（企业主体），可在线申报');}
 function unbindQuali(){localStorage.setItem('sh_yz_state',JSON.stringify({state:'none',subject:'personal',why:'',at:''}));QUALI_BOUND=false;renderApplyBoxes();toast('已切换为未认证主体（演示）');}
 function renderApplyBoxes(){policies.forEach(function(p){renderApplyBox(p.gid);});}
 function renderApplyBox(gid){

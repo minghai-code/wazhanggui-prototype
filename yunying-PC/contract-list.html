@@ -475,8 +475,8 @@ function openD(no){
     +'<div class="kv"><span class="k">到期</span><span class="v">'+esc(c.end)+'　'+expTag(c.days)+'</span></div>'
     +'</div>'
     +(c.status==='已终止'
-      ? '<p class="text-[12px] mt-2" style="color:#B91C1C">已终止（'+esc(c.termWhy||'违约清租')+'　生效日 '+esc(c.termDate||c.end)+'）　联动结果：<b>02 档口「当前租户」已清空</b>、档口回「空闲（待竞拍）」；<b>04 商户状态已置「'+((c.termWhy||'').indexOf('违约')>=0?'违约终止':'已终止')+'」</b>；物业权限与关联账号已回收</p>'
-      : '<p class="text-[12px] text-[#64748B] mt-2">终止为<b>提前终止</b>（租期未满、不可恢复）：提交后 <b>05 合同「已终止」</b> → <b>02 该档口「当前租户」清空、档口回「空闲（待竞拍）」</b> → <b>04 该商户状态按原因置「违约终止 / 已终止」</b>（进入 04「清退商户」存档，可追溯终止原因）→ <b>物业权限与关联账号自动回收</b>；<b>不计算违约金</b>（保证金线下已收，系统不展示不录入）；<b>正常到期不走此操作</b>（到期由系统自动置「已到期」、不进清退台账）</p>'
+      ? '<p class="text-[12px] mt-2" style="color:#B91C1C">已终止（'+esc(c.termWhy||'违约清租（欠租）')+'　生效日 '+esc(c.termDate||c.end)+'）　联动结果：<b>02 档口「当前租户」已清空</b>、档口回「空闲（待竞拍）」；<b>04 商户状态已置「'+((c.termWhy||'').indexOf('违约')>=0?'违约终止':'其他原因终止')+'」</b>；物业权限与关联账号已回收</p>'
+      : '<p class="text-[12px] text-[#64748B] mt-2">终止为<b>提前终止</b>（租期未满、不可恢复）：提交后 <b>05 合同「已终止」</b> → <b>02 该档口「当前租户」清空、档口回「空闲（待竞拍）」</b> → <b>04 该商户状态：违约欠租 →「违约终止」/ 其他 →「其他原因终止」</b>（进入 04「清退商户」存档，可追溯终止原因）→ <b>物业权限与关联账号自动回收</b>；<b>不计算违约金</b>（保证金线下已收，系统不展示不录入）；<b>正常到期不走此操作</b>（到期由系统自动置「已到期」、不进清退台账）</p>'
         +'<div class="mt-2"><button class="btn btn-ghost" style="color:#B91C1C;border-color:#FECACA" onclick="openTerminate(\''+c.no+'\')"><i class="fas fa-scissors mr-1"></i>终止合同</button></div>')
     +'</div>';
 
@@ -573,7 +573,9 @@ function saveMap(){
 
 /* ================= 上传签署件 ================= */
 /* ================= v1.6：合同终止（被动终止；原「到期预警与竞拍衔接」页的终止操作迁入） ================= */
-var TERM_WHY=['违约清租（欠租）','违规清退','资质造假清退','协商解除','经营调整','转让退出','其他（备注说明）'];
+/* v1.8：终止原因收敛为 2 类（业务 2026-11-05 确认）——违约欠租 / 其他（备注必填）
+   商户状态映射：违约欠租 →「违约终止」；其他 →「其他原因终止」 */
+var TERM_WHY=['违约清租（欠租）','其他（备注说明）'];
 function openTerminate(no){
   curNo=no;
   var c=CS.filter(function(x){return x.no===no;})[0];
@@ -588,8 +590,8 @@ function openTerminate(no){
     +'<div><label class="fl">终止生效日 *</label><input class="fi" id="t-date" type="date" value="'+esc(String(c.end).replace(/\./g,'-'))+'"></div>'
     +'<div><label class="fl">终止原因（字典）*</label><select class="sel" id="t-why">'+opts+'</select></div>'
     +'</div>'
-    +'<div><label class="fl">原因说明 / 依据</label><textarea class="fi" id="t-note" rows="2" placeholder="例：连续两期租金未缴，经催缴仍未缴；依据：催缴记录与线下沟通记录"></textarea></div>'
-    +'<div class="rounded-xl border p-3" style="border-color:#FECACA;background:#FEF2F2"><p class="text-[11px] text-[#64748B]">提交后<b>一次事务</b>联动：<b>05 本合同置「已终止」</b>（<b>提前终止</b>、不可恢复）→ <b>02 该档口「当前租户」清空、档口回「空闲（待竞拍）」</b> → <b>04 该商户状态「按终止原因」置位</b>（<b>违约清租 →「违约终止」</b>；<b>违规清退 / 资质造假 / 协商解除 / 经营调整 / 转让退出 →「已终止」</b>）（进入 04「清退商户」存档，详情可追溯终止原因）→ <b>物业权限与关联账号自动回收</b>；<b>不计算违约金</b>；保证金线下已收，系统不展示不录入。<b>正常到期不走此弹窗</b>（系统自动置「已到期」）。</p></div>'
+    +'<div><label class="fl">原因说明 / 备注 <span class="text-[11px] text-[#B91C1C]">（选「其他」时必填）</span></label><textarea class="fi" id="t-note" rows="2" placeholder="例：连续两期租金未缴，经催缴仍未缴；依据：催缴记录与线下沟通记录"></textarea></div>'
+    +'<div class="rounded-xl border p-3" style="border-color:#FECACA;background:#FEF2F2"><p class="text-[11px] text-[#64748B]">提交后<b>一次事务</b>联动：<b>05 本合同置「已终止」</b>（<b>提前终止</b>、不可恢复）→ <b>02 该档口「当前租户」清空、档口回「空闲（待竞拍）」</b> → <b>04 该商户状态</b>（<b>违约欠租 →「违约终止」</b>；<b>其他 →「其他原因终止」</b>）（进入 04「清退商户」存档，详情可追溯终止原因）→ <b>物业权限与关联账号自动回收</b>；<b>不计算违约金</b>；保证金线下已收，系统不展示不录入。<b>正常到期不走此弹窗</b>（系统自动置「已到期」）。</p></div>'
     +'<label class="flex items-center gap-2 text-[12px] text-[#334155]"><input type="checkbox" id="t-lead" class="ck"> 已获运营主管确认（终止为重大动作，须主管确认）</label>'
     +'</div>';
   h+='<div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
@@ -603,8 +605,10 @@ function confirmTerminate(no){
   if(!document.getElementById('t-lead').checked){toast('终止为重大动作，请先勾选「已获运营主管确认」');return;}
   var d=document.getElementById('t-date').value;
   var w=document.getElementById('t-why').value;
+  var note=document.getElementById('t-note').value.trim();
+  if(w.indexOf('其他')>=0&&!note){toast('选「其他」时必须填写原因说明/备注');return;}
   c.status='已终止';c.termWhy=w;c.termDate=String(d).replace(/-/g,'.');
-  var ms=(w.indexOf('违约')>=0)?'违约终止':'已终止';
+  var ms=(w.indexOf('违约')>=0)?'违约终止':'其他原因终止';
   closeAll();renderStats();render();
   toast('已终止：'+c.no+'（'+w+'，生效 '+c.termDate+'）→ 02 档口 '+(c.gate||c.stall)+' 当前租户已清空并回「空闲（待竞拍）」；04 商户「'+c.name+'」状态已置「'+ms+'」；物业权限与关联账号已回收');
 }
@@ -778,6 +782,15 @@ function closeAll(){
   document.getElementById('modal').classList.remove('on');
 }
 renderStats();render();
+
+/* v1.16：支持 ?kw= 从 04 商户档案带入商户名（跳转即有落点） */
+(function fromMerchant(){
+  var m=/[?&]kw=([^&]+)/.exec(location.search);
+  if(!m)return;
+  var kw=decodeURIComponent(m[1]);
+  var el=document.getElementById('f-kw');
+  if(el){el.value=kw;doSearch();}
+})();
 </script>
 <script src="../shared/op-guard.js"></script>
 <script src="../shared/page-prd.js"></script>

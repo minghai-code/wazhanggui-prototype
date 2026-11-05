@@ -53,6 +53,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
   </div>
 </div>
 
+<!-- 30 天内到期站内提醒（运营端 R-27 / 待办 #54）：资质仍有效，不拦截报价 -->
+<div id="expireNotice" class="px-3 mt-3" style="display:none">
+  <a href="shanghu-verify.html" class="rounded-2xl px-3.5 py-2.5 flex items-center gap-2 shadow-soft" style="background:#FFF7ED;border:1px solid #FED7AA">
+    <i class="fas fa-clock-rotate-left text-[13px]" style="color:#EA580C"></i>
+    <p class="text-[11px] flex-1 leading-relaxed" style="color:#C2410C" id="expireNoticeText">资质即将到期，建议提前上传新证</p>
+    <span class="text-[10px] font-bold flex-shrink-0" style="color:#EA580C">去处理 ›</span>
+  </a>
+</div>
+
 <!-- 需求信息区 -->
 <div class="px-3 mt-3">
   <div class="bg-white rounded-2xl shadow-soft p-3.5 fade-up">
@@ -191,15 +200,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
   <a onclick="showConfirm()" class="flex-[1.6] py-2.5 rounded-xl text-white text-[12px] font-bold text-center shadow-card" style="background:linear-gradient(135deg,#3B82F6,#2563EB)">重新报价（1/2）</a>
 </div>
 
-<!-- 认证闸门底部条（未认证时替换报价操作条，招标#10） -->
+<!-- 认证闸门底部条（招标#10 / 待办 #54：未认证 / 已过期 / 不再续期 文案区分） -->
 <div id="gateBar" class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-3 py-2.5" style="z-index:100;width:393px;padding-bottom:18px;display:none">
-  <a href="shanghu-verify.html" class="flex items-center gap-2.5 rounded-xl px-3.5 py-3" style="background:#FFF7ED;border:1px solid #FED7AA">
-    <i class="fas fa-triangle-exclamation text-orange-500"></i>
+  <a id="gateLink" href="shanghu-verify.html" class="flex items-center gap-2.5 rounded-xl px-3.5 py-3" style="background:#FFF7ED;border:1px solid #FED7AA">
+    <i id="gateIcon2" class="fas fa-triangle-exclamation text-[15px]" style="color:#EA580C"></i>
     <div class="flex-1">
-      <p class="text-[12px] font-bold text-orange-700">报价权限随入驻默认开通；资质待复核/过期将冻结受限品类询价</p>
-      <p class="text-[10px] text-orange-600 mt-0.5" style="opacity:.85">企业资质 · 到期复核与受限品类校验</p>
+      <p id="gateTitle2" class="text-[12px] font-bold leading-snug" style="color:#C2410C">未完成企业资质认证</p>
+      <p id="gateSub2" class="text-[10px] mt-0.5 leading-relaxed" style="color:#EA580C">认证通过后方可查看供需详情、参与询价（招标验收必查）</p>
     </div>
-    <span class="text-[11px] font-bold text-white px-3 py-1.5 rounded-lg flex-shrink-0" style="background:linear-gradient(135deg,#F59E0B,#D97706)">去认证</span>
+    <span id="gateBtn2" class="text-[11px] font-bold text-white px-3 py-1.5 rounded-lg flex-shrink-0" style="background:linear-gradient(135deg,#F59E0B,#D97706)">去认证</span>
   </a>
 </div>
 
@@ -222,6 +231,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
   </div>
 </div>
 
+<script src="yz-state.js"></script>
 <script>
 function toggleSample(){
   var sw=document.getElementById('sampleSw');sw.classList.toggle('on');
@@ -232,11 +242,25 @@ function toggleVer(){var b=document.getElementById('verBox');b.style.display=(b.
 function showConfirm(){document.getElementById('confirmMask').style.display='flex';}
 function hideConfirm(){document.getElementById('confirmMask').style.display='none';}
 function toast(msg){var d=document.createElement('div');d.style.cssText='position:fixed;left:50%;bottom:130px;transform:translateX(-50%);background:rgba(20,20,40,.85);color:#fff;font-size:12px;padding:8px 16px;border-radius:20px;z-index:999;white-space:nowrap';d.textContent=msg;document.body.appendChild(d);setTimeout(function(){d.remove()},1800);}
-// 资质复核闸门：未复核/过期 → 底部操作条替换为复核闸门（报价权限随入驻默认开通）
-var vPass=(localStorage.getItem('sh_verify')||'none')==='pass';
+// 询价闸门（招标#10 / 待办 #54）：读 sh_yz_state，区分 首次未认证 / 已过期 / 不再续期
+// 跳转目标始终为 shanghu-verify.html，对应状态展示由 #53 承接
+var _yz=getYZ(),vPass=yzPass(_yz.state),g=yzGate(_yz.state,_yz);
 document.getElementById('quoteBar').style.display=vPass?'flex':'none';
 document.getElementById('gateBar').style.display=vPass?'none':'block';
-if(vPass){document.getElementById('myTypeBadge').style.display='inline-block';}
+if(vPass){
+  document.getElementById('myTypeBadge').style.display='inline-block';
+  // 30 天内到期：资质仍有效，可继续报价，仅按运营端 R-27 给站内提醒
+  if(_yz.state==='expiring'){
+    document.getElementById('expireNotice').style.display='block';
+    document.getElementById('expireNoticeText').innerHTML='资质将于 <b>'+yzDays(_yz.expire)+'</b> 天后到期（'+_yz.expire+'），到期后报价与政策申报将冻结';
+  }
+}else{
+  var link=document.getElementById('gateLink');link.style.background=g.bg;link.style.borderColor=g.bd;
+  var gi2=document.getElementById('gateIcon2');gi2.className='fas '+g.icon+' text-[15px]';gi2.style.color=g.sub2;
+  var gt2=document.getElementById('gateTitle2');gt2.textContent=g.title;gt2.style.color=g.fg;
+  var gs2=document.getElementById('gateSub2');gs2.textContent=g.sub;gs2.style.color=g.sub2;
+  var gb2=document.getElementById('gateBtn2');gb2.textContent=g.btn;gb2.style.background='linear-gradient(135deg,'+g.bar+','+g.bar2+')';
+}
 </script>
 </body>
 </html>

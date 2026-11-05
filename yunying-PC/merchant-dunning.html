@@ -227,7 +227,7 @@ function render(){
     h+='<tr class="hover:bg-gray-50 transition">'
       +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(d.year)+' 租赁年度<div class="text-[11px] text-[#94A3B8]">'+esc(d.typ)+'</div></td>'
       +'<td class="px-4 py-3" style="max-width:230px"><div class="font-medium text-[#1F2430]">'+esc(d.m)+'</div><div class="text-[11px] text-[#94A3B8]">档口 '+esc(d.unit)+'</div></td>'
-      +'<td class="px-4 py-3 text-[12px] text-[#64748B]"><span class="lk-gray" onclick="toast(\'跳转合同台账详情（contract-list.html）\')">'+esc(d.cno)+'</span></td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]"><span class="lk" onclick="location.href=\'contract-list.html\'">'+esc(d.cno)+'</span></td>'
       +'<td class="px-4 py-3 text-[12px]"><b>'+esc(d.due)+'</b> / '+esc(d.paid)+' / <span style="'+(left>0?'color:#B91C1C;font-weight:600':'color:#15803D')+'">'+fmt(left)+'</span></td>'
       +'<td class="px-4 py-3 text-[12px]">站内 <b>'+d.site+'</b> · 微信 <b>'+d.wx+'</b><div class="text-[10px] text-[#94A3B8]">合计 '+(d.site+d.wx)+' 次</div></td>'
       +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(d.last||'—')+'</td>'
@@ -435,7 +435,15 @@ function closeAll(){
   document.getElementById('drawer').classList.remove('on');
   document.getElementById('modal').classList.remove('on');
 }
-renderStats();render();
+renderStats();/* v1.16：支持 ?kw= 从 04 商户档案带入商户名 */
+(function fromMerchant(){
+  var m=/[?&]kw=([^&]+)/.exec(location.search);
+  if(!m)return;
+  var kw=decodeURIComponent(m[1]);
+  var el=document.getElementById('f-kw');
+  if(el){el.value=kw;doSearch();}
+})();
+render();
 </script>
 <script src="../shared/op-guard.js"></script>
 <script src="../shared/page-prd.js"></script>
