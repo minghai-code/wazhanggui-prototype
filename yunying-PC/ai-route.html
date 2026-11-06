@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 服务助手配置 - 系统设置</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none;font-family:inherit;white-space:nowrap}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.btn-danger{background:#FEF2F2;color:#B91C1C;border:1px solid #FECACA}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}.lk:hover{text-decoration:underline}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}.lk-gray:hover{color:#1F2430;text-decoration:underline}
+.lk-red{color:#B91C1C;cursor:pointer;font-size:12px}.lk-red:hover{text-decoration:underline}
+.st{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500;white-space:nowrap}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:60}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:780px;max-width:96vw;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:70;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);width:720px;max-width:95vw;max-height:86vh;overflow:hidden;background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(15,23,42,.28);opacity:0;pointer-events:none;transition:.22s;z-index:75;display:flex;flex-direction:column}
+.modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+.blk{border:1px solid #E2E8F0;border-radius:12px;padding:14px 16px}
+.blk-t{font-size:12.5px;font-weight:700;color:#1F2430;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.kv{display:flex;gap:8px;font-size:12px;line-height:1.9}
+.kv .k{width:104px;flex-shrink:0;color:#94A3B8}
+.fi{width:100%;padding:6px 10px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none;background:#fff;font-family:inherit}
+.fi:focus{border-color:#FF4D2D}
+.fl{display:block;font-size:11px;color:#94A3B8;margin-bottom:4px}
+.sel{width:100%;padding:6px 8px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none;background:#fff}
+textarea.fi{line-height:1.8;resize:vertical}
+.ck{display:flex;align-items:flex-start;gap:7px;font-size:12px;color:#334155;line-height:1.7;padding:5px 0}
+.ck input{margin-top:3px}
+.tab{display:flex;gap:22px;border-bottom:1px solid #E2E8F0;margin-bottom:16px}
+.tab span{padding:9px 0;font-size:13px;color:#64748B;cursor:pointer;border-bottom:2px solid transparent}
+.tab span.on{color:#FF4D2D;border-bottom-color:#FF4D2D;font-weight:600}
+.dis{opacity:.55}
+.kwt{display:inline-flex;align-items:center;padding:3px 8px;border-radius:6px;font-size:11.5px;background:#F1F5F9;color:#334155;border:1px solid #E2E8F0}
+.chip{display:inline-flex;align-items:center;padding:3px 8px;border-radius:6px;font-size:11.5px;background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE}
+.chip-bad{background:#FEF2F2;color:#B91C1C;border-color:#FECACA}
+.chip-gray{background:#F8FAFC;color:#64748B;border-color:#E2E8F0}
+.rowb{background:#FFF5F5}
+.rowb td:first-child{box-shadow:inset 3px 0 0 #EF4444}
+.opt-pill{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:11.5px;background:#F5F3FF;color:#6D28D9;border:1px solid #DDD6FE}
+button{cursor:pointer}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+
+<div class="p-6">
+
+  <!-- 页头 -->
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">AI 服务助手配置</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">18 系统设置</span>
+        <span class="tag" style="background:#EDE9FE;color:#6D28D9">二期能力</span>
+        <span class="tag" style="background:#DCFCE7;color:#15803D">发布即生效</span>
+      </div>
+      <p class="text-[12px] text-gray-400 mt-1">
+        配置「用户说什么 → 助手回什么 → 点了去哪」，<b>发布即生效、不用发版</b>；服务端下发给
+        <b>买家端 <code class="text-[11px] bg-gray-100 px-1 rounded">mai-APP/ai-assistant.html</code></b>（意图识别 + L1 直达 / L2 追问 / L3 知识 / L4 兜底），
+        数据结构与端上<b>同字段名冻结</b>（见「兜底与发布 → 数据结构契约」）
+      </p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="openJson()"><i class="fas fa-code text-[10px] mr-1"></i>数据结构契约</button>
+      <button class="btn btn-ghost" onclick="openVersions()"><i class="fas fa-clock-rotate-left text-[10px] mr-1"></i>发布记录</button>
+      <button class="btn btn-ghost" onclick="openPreview()"><i class="fas fa-flask text-[10px] mr-1"></i>预览测试</button>
+      <button class="btn btn-primary" onclick="doPublish()"><i class="fas fa-rocket text-[10px] mr-1"></i>发布</button>
+    </div>
+  </div>
+
+  <!-- 统计卡 -->
+  <div class="grid grid-cols-5 gap-3 mb-4" id="stats"></div>
+
+  <!-- 阻塞提示（R-2 页面下线联动） -->
+  <div id="blockBanner" class="mb-4"></div>
+
+  <!-- Tab -->
+  <div class="tab" id="tabs">
+    <span class="on" onclick="goTab(0,this)">意图配置</span>
+    <span onclick="goTab(1,this)">知识问答</span>
+    <span onclick="goTab(2,this)">兜底与发布</span>
+  </div>
+
+  <!-- ========== Tab1 意图配置 ========== -->
+  <div id="pane0">
+    <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+      <div class="flex items-center gap-3 flex-wrap">
+        <div class="relative">
+          <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+          <input id="fKw" type="text" placeholder="意图名 / 关键词" class="w-56 pl-8 pr-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary focus:bg-white transition" oninput="F.kw=this.value;renderIntents()">
+        </div>
+        <select class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 text-gray-600" id="fType" onchange="F.type=this.value;renderIntents()">
+          <option value="">全部类型</option>
+          <option value="intent">功能意图</option>
+          <option value="kb">知识问答</option>
+        </select>
+        <select class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 text-gray-600" id="fLevel" onchange="F.level=this.value;renderIntents()">
+          <option value="">全部层级</option>
+          <option value="L1">L1 直达</option>
+          <option value="L2">L2 追问</option>
+          <option value="L3">L3 知识</option>
+        </select>
+        <select class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 text-gray-600" id="fState" onchange="F.state=this.value;renderIntents()">
+          <option value="">全部状态</option>
+          <option value="on">启用</option>
+          <option value="off">停用</option>
+        </select>
+        <button class="btn btn-ghost" onclick="resetFilters()">重置</button>
+        <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>层级<b>自动判定</b>：配了追问 = L2 / 只配目标页 = L1 / 知识问答 = L3；L4 只在兜底配</span>
+        <button class="btn btn-primary ml-auto" onclick="openIntent('')"><i class="fas fa-plus mr-1"></i>新增意图</button>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+      <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-[13px] font-bold text-[#1F2430]">意图列表</span>
+          <span class="text-[12px] text-[#94A3B8]" id="iCnt">共 0 个</span>
+        </div>
+        <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-link mr-1"></i>端上按关键词长度加权打分，同分看「优先级」；知识问答与功能意图同分时<b>知识优先</b>（端上规则）
+          <span class="lk-gray ml-2" onclick="openPicker('recheck')"><i class="fas fa-list-check text-[10px] mr-1"></i>页面清单（可模拟下线验证 R-2）</span></span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-[13px]" style="min-width:1280px">
+          <thead>
+            <tr class="bg-gray-50 text-gray-500 text-[12px]">
+              <th class="px-4 py-3 text-left font-medium">意图名 / ID</th>
+              <th class="px-4 py-3 text-left font-medium">类型</th>
+              <th class="px-4 py-3 text-left font-medium">关键词数</th>
+              <th class="px-4 py-3 text-left font-medium">层级</th>
+              <th class="px-4 py-3 text-left font-medium">目标页数</th>
+              <th class="px-4 py-3 text-left font-medium">优先级</th>
+              <th class="px-4 py-3 text-left font-medium">状态</th>
+              <th class="px-4 py-3 text-left font-medium">近 7 天命中</th>
+              <th class="px-4 py-3 text-left font-medium">更新时间</th>
+              <th class="px-4 py-3 text-center font-medium">操作</th>
+            </tr>
+          </thead>
+          <tbody id="iTb" class="divide-y divide-gray-50"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== Tab2 知识问答 ========== -->
+  <div id="pane1" style="display:none">
+    <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+      <div class="flex items-center gap-3 flex-wrap">
+        <div class="relative">
+          <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+          <input id="kKw" type="text" placeholder="标题 / 关键词 / 答案正文" class="w-64 pl-8 pr-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary focus:bg-white transition" oninput="KF.kw=this.value;renderKb()">
+        </div>
+        <select class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 text-gray-600" onchange="KF.state=this.value;renderKb()">
+          <option value="">全部状态</option>
+          <option value="on">启用</option>
+          <option value="off">停用</option>
+        </select>
+        <button class="btn btn-ghost" onclick="resetKbFilters()">重置</button>
+        <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>答案正文 <b>≤200 字</b>；买家端展示 2–4 句，超长会被截断。政策口径变更改这里即可，不用发版</span>
+        <button class="btn btn-primary ml-auto" onclick="openKb('')"><i class="fas fa-plus mr-1"></i>新增知识问答</button>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+      <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-[13px] font-bold text-[#1F2430]">知识问答</span>
+          <span class="text-[12px] text-[#94A3B8]" id="kCnt">共 0 条</span>
+        </div>
+        <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-shield-halved mr-1"></i>知识问答可<b>停用不必删</b>（R-6）；停用后不再命中，问题会落到兜底</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-[13px]" style="min-width:1180px">
+          <thead>
+            <tr class="bg-gray-50 text-gray-500 text-[12px]">
+              <th class="px-4 py-3 text-left font-medium">标题 / ID</th>
+              <th class="px-4 py-3 text-left font-medium">关键词</th>
+              <th class="px-4 py-3 text-left font-medium">答案正文（≤200 字）</th>
+              <th class="px-4 py-3 text-left font-medium">相关入口</th>
+              <th class="px-4 py-3 text-left font-medium">状态</th>
+              <th class="px-4 py-3 text-left font-medium">近 7 天命中</th>
+              <th class="px-4 py-3 text-left font-medium">更新时间</th>
+              <th class="px-4 py-3 text-center font-medium">操作</th>
+            </tr>
+          </thead>
+          <tbody id="kTb" class="divide-y divide-gray-50"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== Tab3 兜底与发布 ========== -->
+  <div id="pane2" style="display:none">
+    <div class="grid grid-cols-3 gap-4">
+
+      <div class="col-span-2" style="display:flex;flex-direction:column;gap:16px">
+
+        <!-- 发布状态 -->
+        <div class="bg-white rounded-xl border border-gray-100 p-5">
+          <div class="flex items-start justify-between mb-4">
+            <div>
+              <div class="text-[13px] font-bold text-[#1F2430]"><i class="fas fa-rocket text-[#FF4D2D] mr-1"></i>发布</div>
+              <p class="text-[11px] text-[#94A3B8] mt-1">编辑即存<b>草稿</b>（可反复改）；点「发布」生成新版本号并推给端上；<b>未发布的改动不影响线上</b>（R-4）</p>
+            </div>
+            <button class="btn btn-primary" onclick="doPublish()"><i class="fas fa-arrow-up-from-bracket text-[10px] mr-1"></i>发布当前草稿</button>
+          </div>
+          <div class="grid grid-cols-4 gap-3" id="pubCards"></div>
+          <div class="mt-4" id="changesBox"></div>
+        </div>
+
+        <!-- 兜底 L4 -->
+        <div class="bg-white rounded-xl border border-gray-100 p-5">
+          <div class="flex items-start justify-between mb-3">
+            <div>
+              <div class="text-[13px] font-bold text-[#1F2430]"><i class="fas fa-life-ring text-[#B45309] mr-1"></i>兜底（L4）</div>
+              <p class="text-[11px] text-[#94A3B8] mt-1">没命中意图也没命中知识时输出；<b>常用入口固定 3 个</b>，只能从已上线页面里选（R-1）</p>
+            </div>
+            <span class="tag" style="background:#FEF3C7;color:#B45309">字段：fallback.text / fallback.cards</span>
+          </div>
+          <label class="fl">兜底文案</label>
+          <textarea class="fi" id="fbText" rows="3" onchange="FALLBACK.text=this.value;markDirty('改 兜底文案');renderAll()"></textarea>
+          <div class="flex items-center justify-between mt-3 mb-1.5">
+            <label class="fl mb-0">常用入口（固定 3 个）</label>
+            <span class="lk" onclick="openPicker('fallback')"><i class="fas fa-plus text-[9px]"></i> 选页面</span>
+          </div>
+          <div class="flex flex-wrap gap-1.5" id="fbCards"></div>
+          <div class="mt-3 rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFBEB">
+            <p class="text-[11px] text-[#64748B] leading-5">
+              <b>端上现状</b>：买家端暂用知识库最后一条当兜底，后台建成后改成读 <code class="bg-white px-1 rounded">fallback</code> 字段（<b>端上只改 1 处</b>）。
+              兜底卡片同样受「页面下线联动」约束。
+            </p>
+          </div>
+        </div>
+
+        <!-- 契约 -->
+        <div class="bg-white rounded-xl border border-gray-100 p-5">
+          <div class="flex items-start justify-between mb-3">
+            <div>
+              <div class="text-[13px] font-bold text-[#1F2430]"><i class="fas fa-file-code text-[#2563EB] mr-1"></i>数据结构契约（与买家端一致 · 字段名冻结）</div>
+              <p class="text-[11px] text-[#94A3B8] mt-1">端上按版本号拉取；<b>卡片只定义一次</b>（cards），意图与追问按 URL 引用</p>
+            </div>
+            <button class="btn btn-ghost" onclick="openJson()">查看 JSON</button>
+          </div>
+          <div class="grid grid-cols-2 gap-x-6">
+            <div class="kv"><span class="k">顶层</span><span class="v"><code>version</code> / <code>cards</code> / <code>intents</code> / <code>kb</code> / <code>fallback</code></span></div>
+            <div class="kv"><span class="k">cards</span><span class="v"><code>n</code> 名称 / <code>d</code> 说明 / <code>i</code> 图标 / <code>g</code> 渐变色</span></div>
+            <div class="kv"><span class="k">intents[]</span><span class="v"><code>id</code> / <code>label</code> / <code>keys</code> / <code>priority</code> / <code>enabled</code> / <code>cards</code> / <code>clarify</code></span></div>
+            <div class="kv"><span class="k">clarify[]</span><span class="v"><code>q</code> 问题 / <code>opts[]</code> → <code>t</code> 选项文案 + <code>cards</code></span></div>
+            <div class="kv"><span class="k">kb[]</span><span class="v"><code>id</code> / <code>keys</code> / <code>t</code> / <code>a</code> / <code>cards</code>（停用项不下发）</span></div>
+            <div class="kv"><span class="k">fallback</span><span class="v"><code>text</code> / <code>cards</code>（固定 3）</span></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 发布记录 -->
+      <div class="bg-white rounded-xl border border-gray-100 p-5" style="align-self:flex-start">
+        <div class="flex items-center justify-between mb-1">
+          <div class="text-[13px] font-bold text-[#1F2430]"><i class="fas fa-clock-rotate-left text-[#7C3AED] mr-1"></i>发布记录</div>
+          <span class="text-[11px] text-[#94A3B8]">保留最近 20 个版本</span>
+        </div>
+        <p class="text-[11px] text-[#94A3B8] mb-3">回滚 = 以历史版本内容<b>生成新版本</b>，不回改历史（R-8）</p>
+        <div id="verList" style="display:flex;flex-direction:column;gap:10px"></div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<div id="mask" class="mask" onclick="closeAll()"></div>
+<div id="drawer" class="drawer"></div>
+<div id="modal" class="modal"></div>
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
+
+<script>
+/* =============================================================================
+ * AI 服务助手「意图与路由配置」后台
+ * 数据契约与买家端 mai-APP/ai-assistant.html 完全同构，字段名冻结：
+ *   version / cards{n,d,i,g} / intents[{id,label,keys,priority,enabled,cards,clarify[{q,opts[{t,cards}]}]}]
+ *   / kb[{id,keys,t,a,cards}] / fallback{text,cards}
+ * ========================================================================== */
+
+/* ================= 页面清单（端上已上线页面 · R-1 目标页只能选不能填） ================= */
+var PAGES=[
+  {u:'market-socks.html',n:'袜子市场',d:'按品类 / 价格 / 起批量筛选，可直接询价',i:'fa-socks',g:'linear-gradient(135deg,#FF6B35,#FF4D2D)',live:true},
+  {u:'market-material.html',n:'原料市场',d:'棉纱、氨纶包覆纱、辅料一站找齐',i:'fa-spool',g:'linear-gradient(135deg,#FBBF24,#F59E0B)',live:true},
+  {u:'market-map.html',n:'市场导览',d:'线下市场楼层与档口位置',i:'fa-map-location-dot',g:'linear-gradient(135deg,#34D399,#059669)',live:true},
+  {u:'video.html',n:'视频看货',d:'看厂看产线，视频里直接点商品下单',i:'fa-video',g:'linear-gradient(135deg,#38BDF8,#3B82F6)',live:true},
+  {u:'product-filter.html',n:'商品筛选',d:'多条件组合筛选，快速缩小范围',i:'fa-sliders',g:'linear-gradient(135deg,#A78BFA,#7C3AED)',live:true},
+  {u:'search.html',n:'搜索',d:'搜商品 / 店铺 / 资讯',i:'fa-magnifying-glass',g:'linear-gradient(135deg,#94A3B8,#64748B)',live:true},
+  {u:'inquiry-publish.html',n:'发布采购需求',d:'写清需求，让工厂来报价',i:'fa-file-pen',g:'linear-gradient(135deg,#FF6B35,#FF2D78)',live:true},
+  {u:'inquiry.html',n:'采购询价',d:'看我的发布与他人公开需求',i:'fa-comments-dollar',g:'linear-gradient(135deg,#F97316,#EA580C)',live:true},
+  {u:'custom-design.html',n:'个性定制',d:'图案 / 花型 / 包装定制',i:'fa-palette',g:'linear-gradient(135deg,#C084FC,#7C3AED)',live:true},
+  {u:'bulk-custom.html',n:'大宗定制',d:'批量来样定制，走线下核价',i:'fa-boxes-stacked',g:'linear-gradient(135deg,#6366F1,#4338CA)',live:true},
+  {u:'orders.html',n:'我的订单',d:'全部订单与状态跟踪',i:'fa-receipt',g:'linear-gradient(135deg,#FF6B35,#FF4D2D)',live:true},
+  {u:'purchase-records.html',n:'采购记录',d:'历史采购明细与复购',i:'fa-clock-rotate-left',g:'linear-gradient(135deg,#34D399,#10B981)',live:true},
+  {u:'logistics.html',n:'物流跟踪',d:'发货后的物流轨迹',i:'fa-truck-fast',g:'linear-gradient(135deg,#38BDF8,#0EA5E9)',live:true},
+  {u:'purchase-order.html',n:'进货单',d:'已选商品，去结算',i:'fa-clipboard-list',g:'linear-gradient(135deg,#FBBF24,#F59E0B)',live:true},
+  {u:'merchant-join.html',n:'商户入驻',d:'注册账号，成为平台商户',i:'fa-store',g:'linear-gradient(135deg,#FF8A4C,#FF4D2D)',live:true},
+  {u:'merchant-open-shop.html',n:'申请线上开店',d:'开通店铺、填主营品类',i:'fa-shop',g:'linear-gradient(135deg,#FB7185,#EC4899)',live:true},
+  {u:'membership.html',n:'会员权益',d:'看会员等级与专属服务',i:'fa-crown',g:'linear-gradient(135deg,#FBBF24,#F59E0B)',live:true},
+  {u:'policy-service.html',n:'政策兑现',d:'产业政策、补贴申报入口',i:'fa-file-shield',g:'linear-gradient(135deg,#34D399,#059669)',live:true},
+  {u:'industry-services.html',n:'产业服务',d:'政策 / 知产 / 技术 / 中介一站式入口',i:'fa-industry',g:'linear-gradient(135deg,#60A5FA,#2563EB)',live:true},
+  {u:'ip-service.html',n:'知识产权',d:'商标 / 专利服务与申报',i:'fa-certificate',g:'linear-gradient(135deg,#818CF8,#4F46E5)',live:true},
+  {u:'tech-service.html',n:'技术共享',d:'技术需求发布与成果对接',i:'fa-flask',g:'linear-gradient(135deg,#2DD4BF,#0D9488)',live:true},
+  {u:'agency-service.html',n:'中介服务',d:'检测、认证、代运营等服务机构',i:'fa-handshake',g:'linear-gradient(135deg,#F472B6,#DB2777)',live:true},
+  {u:'study-tour.html',n:'文旅研学',d:'袜艺研学、工业旅游线路',i:'fa-route',g:'linear-gradient(135deg,#38BDF8,#6366F1)',live:true},
+  {u:'expo.html',n:'袜博会',d:'展位申请、参观登记、资料下载',i:'fa-flag',g:'linear-gradient(135deg,#FF4D2D,#FF2D78)',live:true},
+  {u:'complaint.html',n:'投诉建议',d:'对平台或商户提意见',i:'fa-comment-dots',g:'linear-gradient(135deg,#94A3B8,#475569)',live:true},
+  {u:'shop-live.html',n:'直播看货',d:'档口直播，边看边问',i:'fa-tower-broadcast',g:'linear-gradient(135deg,#F43F5E,#BE123C)',live:false},
+  {u:'invoice-apply.html',n:'开票申请',d:'订单开票与电子发票下载',i:'fa-file-invoice',g:'linear-gradient(135deg,#64748B,#334155)',live:false}
+];
+
+/* ================= 意图（L1 / L2） ================= */
+var INTENTS=[
+  {id:'find',label:'找货',keys:['找货','找袜子','找棉纱','找供应商','找厂家','找工厂','源头','批发','进货','拿货','买袜子','采购袜子','想找','找个','有没有','男袜','女袜','婴童袜','运动袜','棉袜','丝袜','袜子'],priority:10,enabled:true,cards:[],clarify:[
+    {q:'想在哪找货？',opts:[
+      {t:'线上市场',cards:['market-socks.html','market-material.html']},
+      {t:'大唐袜业城（线下）',cards:['market-socks.html','market-map.html']},
+      {t:'看视频找厂',cards:['video.html']}
+    ]}
+  ]},
+  {id:'inquiry',label:'采购询价 / 定制',keys:['询价','报价','定制','打样','贴牌','来样','加工','代工'],priority:8,enabled:true,cards:['inquiry-publish.html','custom-design.html','bulk-custom.html'],clarify:[]},
+  {id:'order',label:'订单 / 物流',keys:['订单','查单','物流','发货','快递','收货','退货','退款','售后'],priority:8,enabled:true,cards:['orders.html','logistics.html','purchase-records.html'],clarify:[]},
+  {id:'open',label:'开店 / 入驻',keys:['开店','入驻','开店铺','上线','卖货','商户','营业资质'],priority:6,enabled:true,cards:['merchant-join.html','merchant-open-shop.html'],clarify:[]},
+  {id:'policy',label:'政策 / 补贴',keys:['政策','补贴','申报','兑现','奖励','扶持'],priority:5,enabled:true,cards:['policy-service.html','industry-services.html'],clarify:[]},
+  {id:'ip',label:'知产 / 技术',keys:['商标','专利','知识产权','技术','研发','成果','检测','认证'],priority:5,enabled:true,cards:['ip-service.html','tech-service.html','agency-service.html'],clarify:[]},
+  {id:'tour',label:'研学 / 展会',keys:['研学','旅游','参观','袜博会','展会','展位','活动'],priority:4,enabled:true,cards:['study-tour.html','expo.html'],clarify:[]},
+  {id:'live',label:'直播看货',keys:['直播','看直播','直播看货','看厂直播'],priority:3,enabled:false,cards:['shop-live.html'],clarify:[]}
+];
+
+/* ================= 知识问答（L3） ================= */
+var KB=[
+  {id:'kb-fee',keys:['收费','费用','多少钱','服务费','佣金','免费','会员费'],t:'平台怎么收费',a:'买家侧浏览、询价、下单不收费；会员权益按等级购买。\n商户侧按店铺服务协议收费（入驻时可见明细），平台不额外抽佣。',cards:['membership.html','merchant-join.html'],enabled:true},
+  {id:'kb-ship',keys:['多久发货','发货时间','几天到','时效','发货','多久到'],t:'下单后多久发货',a:'现货商品一般 48 小时内发出（节假日顺延）；\n定制类以与商户约定的交期为准，可在「我的订单」看每单的约定发货时间。',cards:['orders.html'],enabled:true},
+  {id:'kb-invoice',keys:['发票','开票','专票','普票'],t:'怎么开发票',a:'下单时在结算页填写开票信息；\n已完成订单可在「我的订单 → 订单详情」补开，电子普票 1 个工作日、专票 3 个工作日。',cards:['orders.html'],enabled:true},
+  {id:'kb-join',keys:['入驻要求','什么资质','营业执照','需要什么材料','入驻条件'],t:'入驻需要什么资质',a:'需要：营业执照、法人身份证、银行账户信息；\n经营品牌需商标注册证或授权书。有线下档口的商户可由系统自动识别档口。',cards:['merchant-join.html','merchant-open-shop.html'],enabled:true},
+  {id:'kb-policy',keys:['怎么申请补贴','补贴条件','申报流程','政策怎么用','申请补贴','补贴申请'],t:'补贴申报流程',a:'① 在「政策兑现」看可申报政策与截止时间；\n② 按政策要求准备材料并在线提交；\n③ 平台初审 → 主管部门复审 → 公示 → 拨付。',cards:['policy-service.html'],enabled:true},
+  {id:'kb-return',keys:['怎么退','退货规则','七天','无理由'],t:'退换货规则',a:'现货商品支持 7 天无理由退换（不影响二次销售）；\n定制、剪裁、贴身类商品不支持无理由退换，质量问题由商户承担。',cards:['orders.html','complaint.html'],enabled:true}
+];
+
+/* ================= 兜底（L4） ================= */
+var FALLBACK={text:'这个问题我还没学会。可以换个说法，或者直接点下面最常用的入口；需要人工的话点右上角「人工」。',cards:['market-socks.html','orders.html','merchant-join.html']};
+
+/* ================= 派生统计（不进契约） ================= */
+var HIT={find:4820,inquiry:1960,order:3120,open:1040,policy:760,ip:520,tour:406,live:0,
+         'kb-fee':248,'kb-ship':196,'kb-invoice':132,'kb-join':88,'kb-policy':64,'kb-return':52};
+var UPD={find:'2026-11-05 16:20',inquiry:'2026-11-02 10:12',order:'2026-10-28 09:40',open:'2026-10-20 14:32',
+         policy:'2026-10-18 11:05',ip:'2026-10-15 16:44',tour:'2026-10-12 10:20',live:'2026-11-05 16:20',
+         'kb-fee':'2026-11-05 16:20','kb-ship':'2026-10-09 09:30','kb-invoice':'2026-10-09 09:30',
+         'kb-join':'2026-09-28 15:12','kb-policy':'2026-10-08 10:02','kb-return':'2026-08-30 14:20'};
+
+var ONLINE_VER='2026-11-05-2';
+var CHANGES=[];
+var VERSIONS=[];
+var activeTab=0;
+
+/* ================= 工具 ================= */
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},3000);}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function clone(o){return JSON.parse(JSON.stringify(o));}
+function num(n){return Number(n||0).toLocaleString('en-US');}
+function pageOf(u){for(var i=0;i<PAGES.length;i++){if(PAGES[i].u===u)return PAGES[i];}return null;}
+function isLive(u){var p=pageOf(u);return !!(p&&p.live);}
+function findIntent(id){for(var i=0;i<INTENTS.length;i++){if(INTENTS[i].id===id)return INTENTS[i];}return null;}
+function findKb(id){for(var i=0;i<KB.length;i++){if(KB[i].id===id)return KB[i];}return null;}
+function normIt(it){it.keys=it.keys||[];it.cards=it.cards||[];it.clarify=it.clarify||[];it.priority=(it.priority==null?5:it.priority);it.enabled=it.enabled!==false;
+  it.clarify.forEach(function(q){q.opts=q.opts||[];q.opts.forEach(function(o){o.cards=o.cards||[];});});return it;}
+function normKb(k){k.keys=k.keys||[];k.cards=k.cards||[];k.enabled=k.enabled!==false;return k;}
+function totalCards(it){var n={};(it.cards||[]).forEach(function(u){n[u]=1;});(it.clarify||[]).forEach(function(q){q.opts.forEach(function(o){(o.cards||[]).forEach(function(u){n[u]=1;});});});return Object.keys(n).length;}
+function levelOf(it){return (it.clarify&&it.clarify.length)?'L2':'L1';}
+function levelTag(lv){
+  if(lv==='L2')return '<span class="tag" style="background:#EDE9FE;color:#6D28D9">L2 追问</span>';
+  if(lv==='L3')return '<span class="tag" style="background:#FEF3C7;color:#B45309">L3 知识</span>';
+  return '<span class="tag" style="background:#DCFCE7;color:#15803D">L1 直达</span>';
+}
+function badOf(it){
+  var out=[];
+  (it.cards||[]).forEach(function(u){if(!isLive(u))out.push(u);});
+  (it.clarify||[]).forEach(function(q){q.opts.forEach(function(o){(o.cards||[]).forEach(function(u){if(!isLive(u))out.push(u);});});});
+  return out;
+}
+function blockingList(){
+  var out=[];
+  INTENTS.forEach(function(it){
+    if(!it.enabled)return;
+    (it.cards||[]).forEach(function(u){if(!isLive(u))out.push({where:'意图「'+it.label+'」',url:u,type:'intent',id:it.id});});
+    (it.clarify||[]).forEach(function(q){q.opts.forEach(function(o){(o.cards||[]).forEach(function(u){if(!isLive(u))out.push({where:'意图「'+it.label+'」→ 追问「'+o.t+'」',url:u,type:'intent',id:it.id});});});});
+  });
+  KB.forEach(function(k){if(!k.enabled)return;(k.cards||[]).forEach(function(u){if(!isLive(u))out.push({where:'知识问答「'+k.t+'」',url:u,type:'kb',id:k.id});});});
+  (FALLBACK.cards||[]).forEach(function(u){if(!isLive(u))out.push({where:'兜底常用入口',url:u,type:'fb',id:''});});
+  return out;
+}
+function markDirty(txt){if(txt)CHANGES.push(txt);}
+
+/* ================= 契约快照（严格按 §C 字段名，不加不该有的字段） ================= */
+function buildSnap(ver,its,kbs,fb){
+  var cards={};
+  function add(u){if(cards[u])return;var p=pageOf(u);if(p)cards[u]={n:p.n,d:p.d,i:p.i,g:p.g};}
+  (fb.cards||[]).forEach(add);
+  its.forEach(function(it){(it.cards||[]).forEach(add);(it.clarify||[]).forEach(function(q){q.opts.forEach(function(o){(o.cards||[]).forEach(add);});});});
+  kbs.forEach(function(k){(k.cards||[]).forEach(add);});
+  var oi=its.map(function(it){
+    var o={id:it.id,label:it.label,keys:it.keys.slice(),priority:it.priority,enabled:it.enabled!==false};
+    if(it.cards&&it.cards.length)o.cards=it.cards.slice();
+    if(it.clarify&&it.clarify.length)o.clarify=it.clarify.map(function(q){return {q:q.q,opts:q.opts.map(function(x){return {t:x.t,cards:x.cards.slice()};})};});
+    return o;
+  });
+  var ok=kbs.filter(function(k){return k.enabled!==false;}).map(function(k){return {id:k.id,keys:k.keys.slice(),t:k.t,a:k.a,cards:k.cards.slice()};});
+  return {version:ver,cards:cards,intents:oi,kb:ok,fallback:{text:fb.text,cards:fb.cards.slice()}};
+}
+
+/* ================= 初始化（含 3 个历史版本快照） ================= */
+function initVersions(){
+  var base=clone(INTENTS).filter(function(x){return x.id!=='live';});
+  VERSIONS=[
+    {v:'2026-11-05-2',by:'运营 何静',t:'2026-11-05 16:20',sum:'+ 意图「直播看货」· 改「找货」关键词 +2 · + 1 条知识问答',data:buildSnap('2026-11-05-2',base,clone(KB),clone(FALLBACK))},
+    {v:'2026-11-05-1',by:'运营 何静',t:'2026-11-05 10:04',sum:'改「找货」追问选项文案 · 优先级 9 → 10',data:null},
+    {v:'2026-11-04-3',by:'运营 何静',t:'2026-11-04 18:12',sum:'- 意图「袜机市场」（目标页已下线）· 修 2 处引用',data:null}
+  ];
+  /* 历史版本 2/3 的快照：分别少一条知识、少一个意图，回滚时能看出差异 */
+  var v1=clone(INTENTS).filter(function(x){return x.id!=='live'&&x.id!=='tour';});
+  v1.forEach(function(x){if(x.id==='find')x.priority=9;});
+  VERSIONS[1].data=buildSnap('2026-11-05-1',v1,clone(KB).filter(function(k){return k.id!=='kb-return';}),clone(FALLBACK));
+  var v0=clone(INTENTS).filter(function(x){return x.id!=='live'&&x.id!=='tour';});
+  v0.forEach(function(x){if(x.id==='find')x.priority=9;});
+  VERSIONS[2].data=buildSnap('2026-11-04-3',v0,clone(KB).filter(function(k){return k.id!=='kb-return'&&k.id!=='kb-policy';}),clone(FALLBACK));
+}
+
+/* ================= 渲染：统计 / 阻塞 / 列表 ================= */
+function renderStats(){
+  var on=INTENTS.filter(function(i){return i.enabled;}).length;
+  var kon=KB.filter(function(k){return k.enabled;}).length;
+  var hit=0;INTENTS.forEach(function(i){hit+=(HIT[i.id]||0);});KB.forEach(function(k){hit+=(HIT[k.id]||0);});
+  var bl=blockingList().length;
+  var cards=[
+    ['意图（启用 / 总数）',on+' / '+INTENTS.length,'#7C3AED'],
+    ['知识问答（启用 / 总数）',kon+' / '+KB.length,'#B45309'],
+    ['近 7 天命中合计',num(hit),'#2563EB'],
+    ['待处理下线引用',bl?bl+' 处':'0 处',bl?'#B91C1C':'#15803D'],
+    ['线上版本',ONLINE_VER,'#E63E20']
+  ];
+  document.getElementById('stats').innerHTML=cards.map(function(x){
+    return '<div class="bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">'+x[0]+'</p><p class="text-xl font-bold mt-1" style="color:'+x[2]+'">'+x[1]+'</p></div>';
+  }).join('');
+}
+function renderBlock(){
+  var bl=blockingList(),el=document.getElementById('blockBanner');
+  if(!bl.length){el.innerHTML='';return;}
+  el.innerHTML='<div class="rounded-xl border p-4" style="border-color:#FECACA;background:#FEF2F2">'
+    +'<div class="flex items-start justify-between gap-4">'
+    +'<div><div class="text-[12.5px] font-bold" style="color:#B91C1C"><i class="fas fa-triangle-exclamation mr-1"></i>'+bl.length+' 处引用了「已下线页面」，未处理不允许发布（R-2）</div>'
+    +'<div class="mt-1.5 text-[11.5px] leading-6" style="color:#7F1D1D">'
+    + bl.slice(0,3).map(function(x){return x.where+' → <code class="bg-white px-1 rounded">'+esc(x.url)+'</code>';}).join('　·　')
+    + (bl.length>3?'　…':'')+'</div></div>'
+    +'<div class="flex items-center gap-2 flex-shrink-0">'
+    +'<button class="btn btn-ghost" onclick="openPicker(\'recheck\')">查看页面清单</button>'
+    +'<button class="btn" style="background:#fff;color:#B91C1C;border:1px solid #FECACA" onclick="fixFirst()">处理第一处</button>'
+    +'</div></div></div>';
+}
+function fixFirst(){
+  var bl=blockingList();if(!bl.length)return;
+  var x=bl[0];
+  if(x.type==='intent'){goTab(0,'' );openIntent(x.id);}
+  else if(x.type==='kb'){goTab(1,'');openKb(x.id);}
+  else{goTab(2,'');toast('兜底常用入口：点「选页面」替换掉已下线页面');}
+}
+
+function renderIntents(){
+  var rows='';
+  var list=INTENTS.filter(function(it){
+    if(F.type==='kb')return false;
+    if(F.level&&F.level!==levelOf(it))return false;
+    if(F.state==='on'&&!it.enabled)return false;
+    if(F.state==='off'&&it.enabled)return false;
+    if(F.kw){var s=(it.label+' '+it.id+' '+it.keys.join(' ')).toLowerCase();if(s.indexOf(F.kw.toLowerCase())<0)return false;}
+    return true;
+  });
+  var kbList=[];
+  if(F.type==='kb'){
+    kbList=KB.filter(function(k){
+      if(F.level&&F.level!=='L3')return false;
+      if(F.state==='on'&&!k.enabled)return false;
+      if(F.state==='off'&&k.enabled)return false;
+      if(F.kw){var s=(k.t+' '+k.id+' '+k.keys.join(' ')+' '+k.a).toLowerCase();if(s.indexOf(F.kw.toLowerCase())<0)return false;}
+      return true;
+    });
+  }
+  list.forEach(function(it){
+    var lv=levelOf(it),bad=badOf(it),blk=bad.length>0;
+    rows+='<tr class="hover:bg-gray-50 transition'+(blk?' rowb':'')+(it.enabled?'':' dis')+'">'
+      +'<td class="px-4 py-3"><div class="flex items-center gap-2"><span class="font-medium text-[#1F2430]">'+esc(it.label)+'</span>'
+        +(blk?'<span class="tag" style="background:#FEE2E2;color:#B91C1C"><i class="fas fa-link-slash text-[9px]"></i>目标页已下线</span>':'')+'</div>'
+        +'<div class="text-[11px] text-[#94A3B8] mt-0.5">'+esc(it.id)+'</div></td>'
+      +'<td class="px-4 py-3"><span class="tag" style="background:#DBEAFE;color:#2563EB">功能意图</span></td>'
+      +'<td class="px-4 py-3 text-[#334155]"><span class="cursor-pointer hover:underline" onclick="openIntent(\''+it.id+'\')">'+it.keys.length+'</span>'
+        +'<div class="text-[10px] text-[#94A3B8] max-w-[150px] truncate">'+esc(it.keys.slice(0,3).join(' / '))+(it.keys.length>3?' …':'')+'</div></td>'
+      +'<td class="px-4 py-3">'+levelTag(lv)+'</td>'
+      +'<td class="px-4 py-3 text-[#334155]">'+totalCards(it)+'</td>'
+      +'<td class="px-4 py-3"><span class="font-medium text-[#1F2430]">'+it.priority+'</span></td>'
+      +'<td class="px-4 py-3">'+(it.enabled?'<span class="st" style="background:#DCFCE7;color:#15803D">启用</span>':'<span class="st" style="background:#F1F5F9;color:#94A3B8">停用</span>')+'</td>'
+      +'<td class="px-4 py-3 text-[#334155]">'+num(HIT[it.id]||0)+'</td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#94A3B8]">'+esc(UPD[it.id]||'—')+'</td>'
+      +'<td class="px-4 py-3 text-center whitespace-nowrap">'
+        +'<span class="lk" onclick="openIntent(\''+it.id+'\')">编辑</span> · '
+        +'<span class="lk-gray" onclick="toggleIntent(\''+it.id+'\')">'+(it.enabled?'停用':'启用')+'</span> · '
+        +'<span class="lk-gray" onclick="copyIntent(\''+it.id+'\')">复制</span> · '
+        +'<span class="lk-red" onclick="delIntent(\''+it.id+'\')">删除</span></td></tr>';
+  });
+  kbList.forEach(function(k){
+    var blk=!isLiveAll(k.cards);
+    rows+='<tr class="hover:bg-gray-50 transition'+(blk?' rowb':'')+(k.enabled?'':' dis')+'">'
+      +'<td class="px-4 py-3"><div class="flex items-center gap-2"><span class="font-medium text-[#1F2430]">'+esc(k.t)+'</span>'
+        +(blk?'<span class="tag" style="background:#FEE2E2;color:#B91C1C">目标页已下线</span>':'')+'</div>'
+        +'<div class="text-[11px] text-[#94A3B8] mt-0.5">'+esc(k.id)+'</div></td>'
+      +'<td class="px-4 py-3"><span class="tag" style="background:#FEF3C7;color:#B45309">知识问答</span></td>'
+      +'<td class="px-4 py-3 text-[#334155]">'+k.keys.length+'</td>'
+      +'<td class="px-4 py-3">'+levelTag('L3')+'</td>'
+      +'<td class="px-4 py-3 text-[#334155]">'+k.cards.length+'</td>'
+      +'<td class="px-4 py-3 text-[#94A3B8]">—</td>'
+      +'<td class="px-4 py-3">'+(k.enabled?'<span class="st" style="background:#DCFCE7;color:#15803D">启用</span>':'<span class="st" style="background:#F1F5F9;color:#94A3B8">停用</span>')+'</td>'
+      +'<td class="px-4 py-3 text-[#334155]">'+num(HIT[k.id]||0)+'</td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#94A3B8]">'+esc(UPD[k.id]||'—')+'</td>'
+      +'<td class="px-4 py-3 text-center whitespace-nowrap"><span class="lk" onclick="goKb(\''+k.id+'\')">去编辑</span></td></tr>';
+  });
+  document.getElementById('iTb').innerHTML=rows||'<tr><td colspan="10" class="px-4 py-10 text-center text-[12px] text-[#94A3B8]">没有匹配的意图；知识问答题请在「知识问答」Tab 维护</td></tr>';
+  document.getElementById('iCnt').textContent='共 '+(list.length+kbList.length)+' 个';
+}
+function isLiveAll(arr){for(var i=0;i<(arr||[]).length;i++){if(!isLive(arr[i]))return false;}return true;}
+
+function renderKb(){
+  var list=KB.filter(function(k){
+    if(KF.state==='on'&&!k.enabled)return false;
+    if(KF.state==='off'&&k.enabled)return false;
+    if(KF.kw){var s=(k.t+' '+k.id+' '+k.keys.join(' ')+' '+k.a).toLowerCase();if(s.indexOf(KF.kw.toLowerCase())<0)return false;}
+    return true;
+  });
+  var rows=list.map(function(k){
+    var blk=!isLiveAll(k.cards);
+    return '<tr class="hover:bg-gray-50 transition'+(blk?' rowb':'')+(k.enabled?'':' dis')+'">'
+      +'<td class="px-4 py-3"><div class="flex items-center gap-2"><span class="font-medium text-[#1F2430]">'+esc(k.t)+'</span>'
+        +(blk?'<span class="tag" style="background:#FEE2E2;color:#B91C1C"><i class="fas fa-link-slash text-[9px]"></i>目标页已下线</span>':'')+'</div>'
+        +'<div class="flex items-center gap-1.5 mt-0.5"><span class="text-[11px] text-[#94A3B8]">'+esc(k.id)+'</span>'+levelTag('L3')+'</div></td>'
+      +'<td class="px-4 py-3"><div class="flex flex-wrap gap-1 max-w-[190px]">'+k.keys.map(function(x){return '<span class="kwt">'+esc(x)+'</span>';}).join('')+'</div></td>'
+      +'<td class="px-4 py-3" style="max-width:360px"><div class="text-[12px] text-[#334155] leading-5" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">'+esc(k.a).replace(/\n/g,' / ')+'</div>'
+        +'<div class="text-[10px] text-[#94A3B8] mt-0.5">'+k.a.length+' 字'+(k.a.length>200?'（超 200，发布前需精简）':'')+'</div></td>'
+      +'<td class="px-4 py-3">'+k.cards.map(function(u){var p=pageOf(u);return '<span class="chip'+(p&&p.live?'':' chip-bad')+' mr-1">'+esc(p?p.n:u)+'</span>';}).join('')+'</td>'
+      +'<td class="px-4 py-3">'+(k.enabled?'<span class="st" style="background:#DCFCE7;color:#15803D">启用</span>':'<span class="st" style="background:#F1F5F9;color:#94A3B8">停用</span>')+'</td>'
+      +'<td class="px-4 py-3 text-[#334155]">'+num(HIT[k.id]||0)+'</td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#94A3B8]">'+esc(UPD[k.id]||'—')+'</td>'
+      +'<td class="px-4 py-3 text-center whitespace-nowrap">'
+        +'<span class="lk" onclick="openKb(\''+k.id+'\')">编辑</span> · '
+        +'<span class="lk-gray" onclick="toggleKb(\''+k.id+'\')">'+(k.enabled?'停用':'启用')+'</span> · '
+        +'<span class="lk-gray" onclick="copyKb(\''+k.id+'\')">复制</span></td></tr>';
+  }).join('');
+  document.getElementById('kTb').innerHTML=rows||'<tr><td colspan="8" class="px-4 py-10 text-center text-[12px] text-[#94A3B8]">没有匹配的知识问答</td></tr>';
+  document.getElementById('kCnt').textContent='共 '+list.length+' 条';
+}
+
+function renderPublish(){
+  var bl=blockingList();
+  var dirty=CHANGES.length;
+  var cards=[
+    ['线上版本',ONLINE_VER,'#E63E20'],
+    ['草稿改动',dirty?dirty+' 处':'无','#2563EB'],
+    ['发布阻塞',bl.length?bl.length+' 处':'无','#B91C1C'],
+    ['上次发布人','运营 何静','#64748B']
+  ];
+  document.getElementById('pubCards').innerHTML=cards.map(function(x){
+    return '<div class="blk text-center"><p class="text-[11px] text-[#94A3B8]">'+x[0]+'</p><p class="text-[15px] font-bold mt-1" style="color:'+x[2]+'">'+x[1]+'</p></div>';
+  }).join('');
+  var box=document.getElementById('changesBox');
+  if(bl.length){
+    box.innerHTML='<div class="rounded-xl border p-3" style="border-color:#FECACA;background:#FEF2F2"><p class="text-[11.5px]" style="color:#B91C1C"><i class="fas fa-ban mr-1"></i>发布已被拦截：先处理 '+bl.length+' 处下线页面引用（更换目标页或停用该项）</p></div>';
+  }else if(dirty){
+    box.innerHTML='<div class="rounded-xl border p-3" style="border-color:#BFDBFE;background:#EFF6FF"><p class="text-[11.5px] font-bold" style="color:#1D4ED8">变更摘要（发布后写入发布记录）</p>'
+      +'<div class="mt-1 text-[11.5px] leading-6" style="color:#334155">'+CHANGES.map(function(c,i){return (i+1)+'. '+esc(c);}).join('<br>')+'</div></div>';
+  }else{
+    box.innerHTML='<div class="rounded-xl border p-3" style="border-color:#E2E8F0;background:#F8FAFC"><p class="text-[11.5px] text-[#64748B]"><i class="fas fa-circle-check mr-1" style="color:#15803D"></i>草稿与线上一致，没有未发布的改动</p></div>';
+  }
+  document.getElementById('fbText').value=FALLBACK.text;
+  document.getElementById('fbCards').innerHTML=(FALLBACK.cards||[]).map(function(u,i){
+    var p=pageOf(u);
+    return '<span class="chip'+(p&&p.live?'':' chip-bad')+'">'+esc(p?p.n:u)+'<i class="fas fa-xmark ml-1 cursor-pointer" onclick="delFbCard('+i+')"></i></span>';
+  }).join('')||'<span class="text-[11px] text-[#B91C1C]">未配置（固定 3 个，缺失会被拦截）</span>';
+  renderVerList();
+}
+function renderVerList(){
+  document.getElementById('verList').innerHTML=VERSIONS.slice(0,8).map(function(v,i){
+    var cur=v.v===ONLINE_VER;
+    return '<div class="rounded-xl border p-3'+(cur?'':'')+'" style="'+(cur?'border-color:#FECACA;background:#FFF7F7':'border-color:#E2E8F0')+'">'
+      +'<div class="flex items-center justify-between"><span class="text-[12.5px] font-bold" style="color:'+(cur?'#B91C1C':'#1F2430')+'">'+esc(v.v)+'</span>'
+      +(cur?'<span class="tag" style="background:#FEE2E2;color:#B91C1C">线上</span>':'<span class="lk-gray" onclick="rollbackTo(\''+v.v+'\')">回滚到此版本</span>')+'</div>'
+      +'<div class="text-[11px] text-[#64748B] mt-1 leading-5">'+esc(v.sum)+'</div>'
+      +'<div class="text-[10px] text-[#94A3B8] mt-1">'+esc(v.by)+' · '+esc(v.t)+'</div></div>';
+  }).join('');
+}
+
+function renderAll(){renderStats();renderBlock();renderIntents();renderKb();renderPublish();}
+
+/* ================= Tab ================= */
+function goTab(i,el){
+  activeTab=i;
+  var ts=document.getElementById('tabs').children;
+  for(var k=0;k<ts.length;k++){ts[k].className=(k===i?'on':'');}
+  document.getElementById('pane0').style.display=(i===0?'':'none');
+  document.getElementById('pane1').style.display=(i===1?'':'none');
+  document.getElementById('pane2').style.display=(i===2?'':'none');
+  if(i===2)renderPublish();
+}
+function goKb(id){goTab(1,'');openKb(id);}
+
+/* ================= 意图开关 / 复制 / 删除 ================= */
+function toggleIntent(id){
+  var it=findIntent(id);it.enabled=!it.enabled;
+  markDirty((it.enabled?'启用':'停用')+' 意图「'+it.label+'」');
+  renderAll();
+  toast('意图「'+it.label+'」已'+(it.enabled?'启用':'停用：端上不再命中，相关问法落到兜底（R-6/AC-3）')+'；改动为草稿，需发布才生效');
+}
+function copyIntent(id){
+  var it=clone(findIntent(id));
+  it.id=it.id+'-copy'+(INTENTS.length);
+  it.label=it.label+'（副本）';
+  it.enabled=false;
+  INTENTS.push(normIt(it));
+  markDirty('+ 复制意图「'+it.label+'」（默认停用）');
+  renderAll();
+  toast('已复制为「'+it.label+'」，默认停用；确认后再启用并发布');
+}
+function delIntent(id){
+  var it=findIntent(id);
+  if(!confirm('删除意图「'+it.label+'」？\n\n买家端命中这条问法时将落到兜底（L4）。若只是暂时不用，建议「停用」保留配置。'))return;
+  INTENTS=INTENTS.filter(function(x){return x.id!==id;});
+  markDirty('- 删除意图「'+it.label+'」');
+  renderAll();toast('已删除意图「'+it.label+'」：端上该问法落到兜底，需发布生效');
+}
+function toggleKb(id){
+  var k=findKb(id);k.enabled=!k.enabled;
+  markDirty((k.enabled?'启用':'停用')+' 知识问答「'+k.t+'」');
+  renderAll();toast('知识问答「'+k.t+'」已'+(k.enabled?'启用':'停用（历史保留，可随时恢复）'));
+}
+function copyKb(id){
+  var k=clone(findKb(id));
+  k.id=k.id+'-copy'+(KB.length);
+  k.t=k.t+'（副本）';
+  k.enabled=false;
+  KB.push(normKb(k));
+  markDirty('+ 复制知识问答「'+k.t+'」（默认停用）');
+  renderAll();toast('已复制为「'+k.t+'」，默认停用');
+}
+function delFbCard(i){
+  FALLBACK.cards.splice(i,1);
+  markDirty('删 兜底常用入口（现 '+FALLBACK.cards.length+' 个）');
+  renderAll();toast('兜底常用入口必须固定 3 个，缺失会被发布拦截');
+}
+function resetFilters(){
+  F={kw:'',type:'',level:'',state:''};
+  document.getElementById('fKw').value='';
+  document.getElementById('fType').value='';
+  document.getElementById('fLevel').value='';
+  document.getElementById('fState').value='';
+  renderIntents();
+}
+function resetKbFilters(){
+  KF={kw:'',state:''};
+  document.getElementById('kKw').value='';
+  renderKb();
+}
+
+/* ================= 意图编辑抽屉 ================= */
+var ED={kind:'',isNew:false,draft:null,bulk:false};
+function openIntent(id){
+  ED.kind='intent';ED.bulk=false;
+  var it=id?findIntent(id):null;
+  ED.isNew=!it;
+  ED.draft=it?clone(it):{id:'',label:'',keys:[],priority:5,enabled:true,cards:[],clarify:[]};
+  renderIntentEditor();show('drawer');
+}
+function drawerHead(title,sub){
+  return '<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+esc(title)+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+sub+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+}
+function drawerFoot(onsave,saveTxt){
+  return '<div class="px-5 py-3.5 border-t border-gray-100 flex items-center justify-between">'
+    +'<span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>保存只存<b>草稿</b>，需在「兜底与发布」点发布才对买家端生效</span>'
+    +'<div class="flex items-center gap-2"><button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="'+onsave+'">'+(saveTxt||'保存草稿')+'</button></div></div>';
+}
+function refreshEditor(){
+  var sc=document.querySelector('#drawer .dr-body');var top=sc?sc.scrollTop:0;
+  if(ED.kind==='kb')renderKbEditor();else renderIntentEditor();
+  var s2=document.querySelector('#drawer .dr-body');if(s2)s2.scrollTop=top;
+}
+function renderIntentEditor(){
+  var d=ED.draft,lv=levelOf(d);
+  var h=drawerHead(ED.isNew?'新增意图':'编辑意图 · '+(d.label||d.id),'配「用户说什么 → 回什么 → 点了去哪」；<b>层级由配置自动判定，不手填</b>（R-3）');
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4 dr-body" style="display:flex;flex-direction:column;gap:14px">';
+
+  /* ① 基本信息 */
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-tag text-[#2563EB]"></i>基本信息</div>'
+    +'<div class="grid grid-cols-3 gap-3">'
+    +'<div><label class="fl">意图名（买家端不直接展示，内部识别用）</label><input class="fi" value="'+esc(d.label)+'" placeholder="如：找货" onchange="ED.draft.label=this.value"></div>'
+    +'<div><label class="fl">意图 ID（端上引用键，创建后不可改）</label><input class="fi" value="'+esc(d.id)+'" placeholder="如：find"'+(ED.isNew?'':' disabled')+' onchange="ED.draft.id=this.value.trim()"></div>'
+    +'<div><label class="fl">优先级（同分时高者胜 · R-5）</label><input class="fi" type="number" min="0" max="99" value="'+d.priority+'" onchange="ED.draft.priority=parseInt(this.value||0,10)"></div>'
+    +'</div><label class="ck mt-2"><input type="checkbox" '+(d.enabled?'checked':'')+' onchange="ED.draft.enabled=this.checked"><span><b>启用</b>（停用后不推给端上，命中会落到兜底）</span></label></div>';
+
+  /* ② 层级自动判定 */
+  h+='<div class="blk" style="border-color:#DDD6FE;background:#FAF8FF"><div class="blk-t" style="color:#6D28D9"><i class="fas fa-layer-group"></i>层级（自动判定，不可手填）</div>'
+    +'<div class="flex items-center gap-3"><span class="text-[20px] font-bold" style="color:#6D28D9">'+lv+'</span>'
+    +'<span class="text-[12px] text-[#64748B]">'+(lv==='L2'?'配了追问 → 端上先问一句再给卡片（L2 追问）':'只配目标页 → 端上直接出卡片（L1 直达）')+'</span></div>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-2">规则：配了追问 = L2；只配目标页 = L1；知识问答 = L3（在「知识问答」Tab 维护）；<b>三者互斥</b>，L4 只在兜底配</p></div>';
+
+  /* ③ 关键词 */
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-key text-[#B45309]"></i>关键词（标签式多值，命中按<b>词长加权</b>打分）</div>'
+    +'<div class="flex flex-wrap gap-1.5 mb-2">'+(d.keys.length?d.keys.map(function(k,i){return '<span class="kwt">'+esc(k)+'<i class="fas fa-xmark ml-1.5 cursor-pointer text-[#94A3B8] hover:text-red-500" onclick="delKey('+i+')"></i></span>';}).join(''):'<span class="text-[11px] text-[#B91C1C]">至少 1 个关键词</span>')+'</div>'
+    +'<div class="flex items-center gap-2"><input class="fi" id="kwIn" placeholder="输入后回车 / 逗号分隔，可连续加" onkeydown="if(event.key===\'Enter\'){event.preventDefault();addKey();}">'
+    +'<button class="btn btn-ghost" onclick="addKey()">添加</button>'
+    +'<button class="btn btn-ghost" onclick="ED.bulk=!ED.bulk;refreshEditor()">批量粘贴</button></div>'
+    +(ED.bulk?'<div class="mt-2"><textarea class="fi" id="kwBulk" rows="3" placeholder="粘贴：找货,找袜子,男袜、女袜  （逗号 / 顿号 / 空格 / 换行 均可）"></textarea>'
+      +'<button class="btn btn-ghost mt-2" onclick="addKeysBulk()">解析并加入</button></div>':'')
+    +'<p class="text-[11px] text-[#94A3B8] mt-2"><i class="fas fa-circle-info mr-1"></i>单字关键词不触发（端上阈值 ≥2 分）；命中词越长权重越高，避免「袜」一个字把无关问句全吃掉</p></div>';
+
+  /* ④ 追问 */
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-comments text-[#7C3AED]"></i>追问（可选 · 配了就自动变 L2）</div>'
+    +'<p class="text-[11px] text-[#94A3B8] mb-2">问题 1 句 + 2–3 个选项，每选项绑定 1–3 个目标页；端上按选项给卡片</p>';
+  (d.clarify||[]).forEach(function(q,qi){
+    h+='<div class="rounded-xl border p-3 mb-2" style="border-color:#DDD6FE;background:#FCFAFF">'
+      +'<div class="flex items-center justify-between mb-2"><span class="text-[12px] font-bold" style="color:#6D28D9">追问 '+(qi+1)+'</span>'
+      +'<span class="lk-red" onclick="delClarify('+qi+')">删除这组</span></div>'
+      +'<input class="fi" value="'+esc(q.q)+'" placeholder="问题 1 句，如：想在哪找货？" onchange="ED.draft.clarify['+qi+'].q=this.value">'
+      +'<div class="text-[11px] text-[#94A3B8] mt-2 mb-1">选项（'+q.opts.length+' / 2–3）</div>';
+    q.opts.forEach(function(o,oi){
+      h+='<div class="rounded-lg bg-white border p-2.5 mb-1.5" style="border-color:#E9E4FF">'
+        +'<div class="flex items-center gap-2"><input class="fi" style="flex:1" value="'+esc(o.t)+'" placeholder="选项文案，如：线上市场" onchange="ED.draft.clarify['+qi+'].opts['+oi+'].t=this.value">'
+        +'<span class="lk-red" onclick="delOpt('+qi+','+oi+')">删除</span></div>'
+        +'<div class="flex flex-wrap items-center gap-1.5 mt-2">'
+        +(o.cards||[]).map(function(u,ui){
+          var p=pageOf(u);
+          return '<span class="chip'+(p&&p.live?'':' chip-bad')+'">'+esc(p?p.n:u)+'<i class="fas fa-xmark ml-1 cursor-pointer" onclick="delOptCard('+qi+','+oi+','+ui+')"></i></span>';
+        }).join('')
+        +'<span class="lk" onclick="openPicker(\'opt\','+qi+','+oi+')"><i class="fas fa-plus text-[9px]"></i> 选目标页</span></div></div>';
+    });
+    h+='<span class="lk inline-block mt-1" onclick="addOpt('+qi+')"><i class="fas fa-plus text-[9px]"></i> 加一个选项</span></div>';
+  });
+  h+='<button class="btn btn-ghost w-full" onclick="addClarify()"><i class="fas fa-plus mr-1"></i>新增一组追问</button></div>';
+
+  /* ⑤ 目标页 L1 */
+  if((d.clarify||[]).length){
+    h+='<div class="blk dis"><div class="blk-t"><i class="fas fa-link-slash text-[#94A3B8]"></i>目标页（L1 直出）</div>'
+      +'<p class="text-[11px] text-[#64748B]">已配置追问 → 端上走 <b>L2 追问</b>，不再直出卡片。保存时 L1 目标页会被清空（层级互斥，R-3）。<br>如需直出卡片，先删掉上面所有追问。</p></div>';
+  }else{
+    h+='<div class="blk"><div class="blk-t"><i class="fas fa-arrow-up-right-from-square text-[#15803D]"></i>目标页（L1 直出 · 1–3 个）</div>'
+      +'<div class="flex flex-wrap items-center gap-1.5">'
+      +(d.cards||[]).map(function(u,ui){
+        var p=pageOf(u);
+        return '<span class="chip'+(p&&p.live?'':' chip-bad')+'">'+esc(p?p.n:u)+'<i class="fas fa-xmark ml-1 cursor-pointer" onclick="delCard('+ui+')"></i></span>';
+      }).join('')
+      +'<span class="lk" onclick="openPicker(\'intent\')"><i class="fas fa-plus text-[9px]"></i> 选目标页</span></div>'
+      +'<p class="text-[11px] text-[#94A3B8] mt-2"><i class="fas fa-lock mr-1"></i>只能从「已上线页面清单」里选，<b>没有 URL 输入框</b>——从根上杜绝 404（R-1）</p></div>';
+  }
+
+  h+='</div>'+drawerFoot('saveIntent()');
+  document.getElementById('drawer').innerHTML=h;
+}
+function addKey(){
+  var el=document.getElementById('kwIn');if(!el)return;
+  var parts=el.value.split(/[,，、;；\s]+/).filter(function(x){return x.trim().length>0;});
+  if(!parts.length){toast('请输入关键词');return;}
+  parts.forEach(function(p){p=p.trim();if(ED.draft.keys.indexOf(p)<0)ED.draft.keys.push(p);});
+  refreshEditor();
+  var e2=document.getElementById('kwIn');if(e2)e2.focus();
+}
+function delKey(i){ED.draft.keys.splice(i,1);refreshEditor();}
+function addKeysBulk(){
+  var el=document.getElementById('kwBulk');if(!el)return;
+  var parts=el.value.split(/[,，、;；\s\n]+/).filter(function(x){return x.trim().length>0;});
+  var add=0;
+  parts.forEach(function(p){p=p.trim();if(ED.draft.keys.indexOf(p)<0){ED.draft.keys.push(p);add++;}});
+  ED.bulk=false;refreshEditor();toast('已解析 '+parts.length+' 个词，新增 '+add+' 个（去重后共 '+ED.draft.keys.length+' 个）');
+}
+function addClarify(){
+  ED.draft.clarify=ED.draft.clarify||[];
+  if(ED.draft.clarify.length>=3){toast('追问最多 3 组（端上只问第一组），先删一组再加');return;}
+  ED.draft.clarify.push({q:'',opts:[{t:'',cards:[]},{t:'',cards:[]}]});
+  ED.draft.cards=[];
+  refreshEditor();toast('已新增追问：配了追问即 L2，L1 目标页已清空（层级互斥）');
+}
+function delClarify(qi){ED.draft.clarify.splice(qi,1);refreshEditor();}
+function addOpt(qi){
+  var q=ED.draft.clarify[qi];
+  if(q.opts.length>=3){toast('一组追问最多 3 个选项');return;}
+  q.opts.push({t:'',cards:[]});refreshEditor();
+}
+function delOpt(qi,oi){ED.draft.clarify[qi].opts.splice(oi,1);refreshEditor();}
+function delOptCard(qi,oi,ui){ED.draft.clarify[qi].opts[oi].cards.splice(ui,1);refreshEditor();}
+function delCard(ui){ED.draft.cards.splice(ui,1);refreshEditor();}
+
+function saveIntent(){
+  var d=ED.draft;
+  if(!d.label||!d.label.trim()){toast('请填写意图名');return;}
+  if(!d.id||!d.id.trim()){toast('请填写意图 ID（端上引用键，如 find）');return;}
+  d.id=d.id.trim();
+  if(ED.isNew&&findIntent(d.id)){toast('意图 ID 已存在：'+d.id);return;}
+  if(!d.keys.length){toast('至少配置 1 个关键词（否则这条意图永远不会被命中）');return;}
+  /* 层级互斥：有追问则清空 L1 目标页 */
+  if((d.clarify||[]).length){
+    for(var i=0;i<d.clarify.length;i++){
+      var q=d.clarify[i];
+      if(!q.q||!q.q.trim()){toast('追问 '+(i+1)+' 的问题不能为空');return;}
+      if(q.opts.length<2){toast('追问 '+(i+1)+' 至少 2 个选项');return;}
+      for(var j=0;j<q.opts.length;j++){
+        var o=q.opts[j];
+        if(!o.t||!o.t.trim()){toast('追问 '+(i+1)+' 第 '+(j+1)+' 个选项文案不能为空');return;}
+        if(!o.cards.length){toast('选项「'+o.t+'」至少要绑定 1 个目标页');return;}
+        if(o.cards.length>3){toast('选项「'+o.t+'」最多绑定 3 个目标页');return;}
+      }
+    }
+    d.cards=[];
+  }else{
+    if(!d.cards.length){toast('L1 直达至少要选 1 个目标页（或加一组追问走 L2）');return;}
+    if(d.cards.length>3){toast('L1 目标页最多 3 个');return;}
+  }
+  var bad=badOf(d);
+  var existed=ED.isNew?null:findIntent(d.id);
+  if(existed){
+    var idx=INTENTS.indexOf(existed);
+    INTENTS[idx]=normIt(clone(d));
+    markDirty('改 意图「'+d.label+'」（'+levelOf(d)+' / 关键词 '+d.keys.length+' 个 / 目标页 '+totalCards(d)+' 个）');
+  }else{
+    INTENTS.push(normIt(clone(d)));
+    markDirty('+ 新增意图「'+d.label+'」（'+levelOf(d)+'）');
+  }
+  renderAll();closeAll();
+  toast('已存草稿：意图「'+d.label+'」'+levelOf(d)+(bad.length?'；注意有 '+bad.length+' 个目标页已下线，发布会被拦截':'')); 
+}
+
+/* ================= 知识问答编辑抽屉 ================= */
+function openKb(id){
+  ED.kind='kb';ED.bulk=false;
+  var k=id?findKb(id):null;
+  ED.isNew=!k;
+  ED.draft=k?clone(k):{id:'',keys:[],t:'',a:'',cards:[],enabled:true};
+  renderKbEditor();show('drawer');
+}
+function renderKbEditor(){
+  var d=ED.draft;
+  var h=drawerHead(ED.isNew?'新增知识问答':'编辑知识问答 · '+(d.t||d.id),'L3 知识：命中后直接答，可带 1–2 个相关入口；<b>答案正文 ≤200 字</b>');
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4 dr-body" style="display:flex;flex-direction:column;gap:14px">';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-heading text-[#2563EB]"></i>基本信息</div>'
+    +'<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl">标题（买家端卡片标题）</label><input class="fi" value="'+esc(d.t)+'" placeholder="如：平台怎么收费" onchange="ED.draft.t=this.value"></div>'
+    +'<div><label class="fl">ID（端上引用键，创建后不可改）</label><input class="fi" value="'+esc(d.id)+'" placeholder="如：kb-fee"'+(ED.isNew?'':' disabled')+' onchange="ED.draft.id=this.value.trim()"></div>'
+    +'</div><label class="ck mt-2"><input type="checkbox" '+(d.enabled?'checked':'')+' onchange="ED.draft.enabled=this.checked"><span><b>启用</b>（停用后不命中，问题落到兜底）</span></label></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-key text-[#B45309]"></i>关键词</div>'
+    +'<div class="flex flex-wrap gap-1.5 mb-2">'+(d.keys.length?d.keys.map(function(k,i){return '<span class="kwt">'+esc(k)+'<i class="fas fa-xmark ml-1.5 cursor-pointer text-[#94A3B8] hover:text-red-500" onclick="delKey('+i+')"></i></span>';}).join(''):'<span class="text-[11px] text-[#B91C1C]">至少 1 个关键词</span>')+'</div>'
+    +'<div class="flex items-center gap-2"><input class="fi" id="kwIn" placeholder="输入后回车" onkeydown="if(event.key===\'Enter\'){event.preventDefault();addKey();}">'
+    +'<button class="btn btn-ghost" onclick="addKey()">添加</button>'
+    +'<button class="btn btn-ghost" onclick="ED.bulk=!ED.bulk;refreshEditor()">批量粘贴</button></div>'
+    +(ED.bulk?'<div class="mt-2"><textarea class="fi" id="kwBulk" rows="3" placeholder="粘贴：收费,费用,多少钱"></textarea><button class="btn btn-ghost mt-2" onclick="addKeysBulk()">解析并加入</button></div>':'')
+    +'</div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-align-left text-[#7C3AED]"></i>答案正文（≤200 字 · 买家端展示 2–4 句）</div>'
+    +'<textarea class="fi" rows="6" oninput="document.getElementById(\'aCnt\').textContent=this.value.length;document.getElementById(\'aCnt\').style.color=(this.value.length>200?\'#B91C1C\':\'#94A3B8\')" onchange="ED.draft.a=this.value">'+esc(d.a)+'</textarea>'
+    +'<div class="flex items-center justify-between mt-1.5"><span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>换行在端上按段落展示；超过 200 字发布会拦截</span>'
+    +'<span class="text-[11px] text-[#94A3B8]" id="aCnt" style="color:'+(d.a.length>200?'#B91C1C':'#94A3B8')+'">'+d.a.length+'</span></div></div>';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-arrow-up-right-from-square text-[#15803D]"></i>相关入口（1–2 个）</div>'
+    +'<div class="flex flex-wrap items-center gap-1.5">'+(d.cards||[]).map(function(u,ui){var p=pageOf(u);return '<span class="chip'+(p&&p.live?'':' chip-bad')+'">'+esc(p?p.n:u)+'<i class="fas fa-xmark ml-1 cursor-pointer" onclick="delCard('+ui+')"></i></span>';}).join('')
+    +'<span class="lk" onclick="openPicker(\'kb\')"><i class="fas fa-plus text-[9px]"></i> 选页面</span></div>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-2"><i class="fas fa-lock mr-1"></i>只能选已上线页面，禁止手输 URL（R-1）</p></div>';
+  h+='</div>'+drawerFoot('saveKb()');
+  document.getElementById('drawer').innerHTML=h;
+}
+function saveKb(){
+  var d=ED.draft;
+  if(!d.t||!d.t.trim()){toast('请填写标题');return;}
+  if(!d.id||!d.id.trim()){toast('请填写 ID（如 kb-fee）');return;}
+  d.id=d.id.trim();
+  if(ED.isNew&&findKb(d.id)){toast('ID 已存在：'+d.id);return;}
+  if(!d.keys.length){toast('至少配置 1 个关键词');return;}
+  if(!d.a||!d.a.trim()){toast('请填写答案正文');return;}
+  if(d.a.length>200){toast('答案正文 '+d.a.length+' 字，超过 200 字上限（买家端卡片会截断）');return;}
+  if(!d.cards.length){toast('至少选 1 个相关入口（也可留空？端上会只剩纯文字答案，建议 1–2 个）');return;}
+  if(d.cards.length>2){toast('相关入口最多 2 个');return;}
+  var existed=ED.isNew?null:findKb(d.id);
+  if(existed){var idx=KB.indexOf(existed);KB[idx]=normKb(clone(d));
+    markDirty('改 知识问答「'+d.t+'」（'+d.a.length+' 字 / 入口 '+d.cards.length+' 个）');}
+  else{KB.push(normKb(clone(d)));markDirty('+ 新增知识问答「'+d.t+'」');}
+  renderAll();closeAll();toast('已存草稿：知识问答「'+d.t+'」');
+}
+
+/* ================= 目标页选择器（R-1 / R-2 / AC-4 / AC-5） ================= */
+var PICK={mode:'',qi:0,oi:0,kw:'',onlyLive:true,sel:[]};
+function pickLimit(mode){return mode==='kb'?2:3;}
+function pickMin(mode){return mode==='fallback'?3:1;}
+function openPicker(mode,qi,oi){
+  PICK.mode=mode;PICK.qi=qi||0;PICK.oi=oi||0;PICK.kw='';PICK.onlyLive=true;
+  PICK.sel=[];
+  var cur=[];
+  if(mode==='intent'&&ED.kind==='intent')cur=ED.draft.cards||[];
+  else if(mode==='opt'&&ED.kind==='intent')cur=ED.draft.clarify[PICK.qi].opts[PICK.oi].cards||[];
+  else if(mode==='kb'&&ED.kind==='kb')cur=ED.draft.cards||[];
+  else if(mode==='fallback')cur=FALLBACK.cards||[];
+  if(mode!=='recheck')PICK.sel=cur.slice();
+  renderPicker();show('modal');
+}
+function renderPicker(refocus){
+  var lim=pickLimit(PICK.mode);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">选择目标页</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">只列端上<b>已上线</b>页面；<b>没有 URL 输入框</b>（R-1）。卡片名称 / 说明取自页面清单，同一入口只描述一次</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeOnly(\'modal\')"><i class="fas fa-xmark"></i></button></div>';
+  h+='<div class="px-5 py-3 border-b border-gray-100 flex items-center gap-3 flex-wrap">'
+    +'<div class="relative"><i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>'
+    +'<input class="w-64 pl-8 pr-3 py-1.5 text-[12.5px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary" id="pkKw" placeholder="页面名 / 路径关键字" value="'+esc(PICK.kw)+'" oninput="PICK.kw=this.value;renderPicker(1)"></div>'
+    +'<label class="ck mb-0"><input type="checkbox" '+(PICK.onlyLive?'checked':'')+' onchange="PICK.onlyLive=this.checked;renderPicker()"><span class="text-[12px]">仅看已上线（含已下线的用于修复引用）</span></label>'
+    +'<span class="text-[11px] text-[#94A3B8] ml-auto">已选 <b style="color:'+(PICK.sel.length>lim?'#B91C1C':'#1F2430')+'">'+PICK.sel.length+'</b> / 上限 '+lim+'</span></div>';
+  var rows=PAGES.filter(function(p){
+    if(PICK.onlyLive&&!p.live)return false;
+    if(PICK.kw){var s=(p.n+' '+p.u+' '+p.d).toLowerCase();if(s.indexOf(PICK.kw.toLowerCase())<0)return false;}
+    return true;
+  }).map(function(p){
+    var on=PICK.sel.indexOf(p.u)>=0;
+    return '<div class="flex items-center gap-3 px-3 py-2 rounded-lg '+(on?'bg-[#FFF7F5]':'hover:bg-gray-50')+'">'
+      +(PICK.mode==='recheck'?'<div class="w-4"></div>':'<input type="checkbox" '+(on?'checked':'')+' onchange="pickToggle(\''+p.u+'\')">')
+      +'<div class="w-7 h-7 rounded-lg flex items-center justify-center text-white flex-shrink-0" style="background:'+p.g+'"><i class="fas '+p.i+' text-[11px]"></i></div>'
+      +'<div class="min-w-0 flex-1"><div class="flex items-center gap-2"><span class="text-[12.5px] font-medium text-[#1F2430]">'+esc(p.n)+'</span>'
+      +'<code class="text-[10.5px] text-[#94A3B8] bg-gray-100 px-1 rounded">'+esc(p.u)+'</code>'
+      +(p.live?'<span class="tag" style="background:#DCFCE7;color:#15803D">在线</span>':'<span class="tag" style="background:#FEE2E2;color:#B91C1C">已下线</span>')+'</div>'
+      +'<div class="text-[11px] text-[#94A3B8] truncate">'+esc(p.d)+'</div></div>'
+      +'<span class="lk-gray" onclick="simPage(\''+p.u+'\')">'+(p.live?'模拟下线':'恢复上线')+'</span></div>';
+  }).join('');
+  h+='<div class="flex-1 overflow-y-auto px-2 py-2" style="min-height:220px">'
+    +(rows||'<p class="text-[12px] text-[#94A3B8] px-3 py-6 text-center">没有匹配的页面</p>')
+    +'</div>';
+  h+='<div class="px-5 py-3 border-t border-gray-100 flex items-center justify-between">'
+    +'<span class="text-[11px] text-[#94A3B8]"><i class="fas fa-flask mr-1"></i>演示：点每行右侧「模拟下线」可验证 R-2 联动（引用它的意图/知识卡标红且无法发布）</span>'
+    +'<div class="flex items-center gap-2"><button class="btn btn-ghost" onclick="closeOnly(\'modal\')">取消</button>'
+    +(PICK.mode==='recheck'?'<button class="btn btn-primary" onclick="closeOnly(\'modal\')">关闭</button>':'<button class="btn btn-primary" onclick="pickConfirm()">确定（'+PICK.sel.length+'）</button>')
+    +'</div></div>';
+  document.getElementById('modal').innerHTML=h;
+  if(refocus){var el=document.getElementById('pkKw');if(el){el.focus();try{el.setSelectionRange(el.value.length,el.value.length);}catch(e){}}}
+}
+function pickToggle(u){
+  var i=PICK.sel.indexOf(u);
+  if(i>=0){PICK.sel.splice(i,1);}
+  else{
+    var lim=pickLimit(PICK.mode);
+    if(PICK.sel.length>=lim){toast('最多选 '+lim+' 个目标页');return;}
+    PICK.sel.push(u);
+  }
+  renderPicker();
+}
+function simPage(u){
+  var p=pageOf(u);if(!p)return;
+  p.live=!p.live;
+  if(!p.live){PICK.sel=PICK.sel.filter(function(x){return x!==u;});}
+  renderPicker();renderAll();
+  toast(p.live?('已恢复上线：'+p.n):('已模拟下线：'+p.n+' —— 引用它的意图/知识卡会标红，发布被拦截（AC-5）'));
+}
+function pickConfirm(){
+  var lim=pickLimit(PICK.mode),min=pickMin(PICK.mode);
+  if(PICK.sel.length<min){toast('请至少选 '+min+' 个'+(PICK.mode==='fallback'?'（兜底固定 3 个）':'目标页'));return;}
+  if(PICK.mode==='fallback'){
+    FALLBACK.cards=PICK.sel.slice();
+    markDirty('改 兜底常用入口（'+FALLBACK.cards.length+' 个）');
+  }else if(PICK.mode==='intent'){
+    ED.draft.cards=PICK.sel.slice();
+    if((ED.draft.clarify||[]).length)toast('注意：已配置追问（L2），保存时 L1 目标页会被清空');
+  }else if(PICK.mode==='opt'){
+    ED.draft.clarify[PICK.qi].opts[PICK.oi].cards=PICK.sel.slice();
+  }else if(PICK.mode==='kb'){
+    ED.draft.cards=PICK.sel.slice();
+  }
+  closeOnly('modal');
+  if(document.getElementById('drawer').classList.contains('on'))refreshEditor();
+  renderAll();
+  toast('已选 '+PICK.sel.length+' 个（上限 '+lim+'）；保存草稿后需发布才对端上生效');
+}
+
+/* ================= 预览测试（P5 · 不写库） ================= */
+var PRE={list:[],n:0};
+function openPreview(){
+  PRE={list:[],n:0};
+  renderPreview();show('drawer');
+}
+function renderPreview(){
+  var h=drawerHead('预览测试','用<b>当前草稿</b>模拟买家端路由：不写库、不影响线上（P5）；一次最多试 5 句');
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4 dr-body" style="display:flex;flex-direction:column;gap:12px">';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-keyboard text-[#2563EB]"></i>输入一句话</div>'
+    +'<div class="flex items-center gap-2"><input class="fi" id="askIn" placeholder="如：我想找纯棉男袜" onkeydown="if(event.key===\'Enter\'){event.preventDefault();tryAsk();}">'
+    +'<button class="btn btn-primary" onclick="tryAsk()">试一下</button></div>'
+    +'<div class="flex flex-wrap items-center gap-1.5 mt-2">'
+    +['我想找纯棉男袜','查一下我的订单','平台怎么收费','多久发货','我要开个店铺'].map(function(q){
+        return '<span class="opt-pill cursor-pointer" onclick="quickAsk(\''+q+'\')">'+esc(q)+'</span>';
+      }).join('')+'</div>'
+    +'<div class="flex items-center justify-between mt-2"><span class="text-[11px] text-[#94A3B8]">已试 <b>'+PRE.n+'</b> / 5 句</span>'
+    +'<span class="lk-gray" onclick="PRE.list=[];PRE.n=0;renderPreview()">清空重试</span></div></div>';
+  if(!PRE.list.length){
+    h+='<div class="blk text-center" style="border-style:dashed"><p class="text-[12px] text-[#94A3B8] py-6">输入一句话或点上面的常见问法，看命中哪个意图 / 知识 / 兜底，以及端上会输出什么卡片</p></div>';
+  }
+  PRE.list.forEach(function(x,i){
+    var r=x.r;
+    var kindTag=r.kind==='intent'?'<span class="tag" style="background:#EDE9FE;color:#6D28D9">命中功能意图</span>'
+      :(r.kind==='kb'?'<span class="tag" style="background:#FEF3C7;color:#B45309">命中知识问答</span>'
+      :'<span class="tag" style="background:#F1F5F9;color:#64748B">落到兜底</span>');
+    h+='<div class="blk"><div class="flex items-center justify-between mb-2">'
+      +'<div class="text-[12px] text-[#64748B]">第 '+(i+1)+' 句：<b class="text-[#1F2430]">'+esc(x.q)+'</b></div>'+kindTag+'</div>';
+    /* 判定过程 */
+    h+='<div class="rounded-lg bg-gray-50 p-2.5 text-[11px] text-[#64748B] leading-6">'
+      +'功能意图最高：'+(r.it?('<b class="text-[#1F2430]">'+esc(r.it.label)+'</b> '+r.is+' 分（命中 '+esc((r.ihit||[]).join('、')||'—')+'）'):'0 分')
+      +'　·　知识问答最高：'+(r.kb?('<b class="text-[#1F2430]">'+esc(r.kb.t)+'</b> '+r.ks+' 分'):'0 分')
+      +'<br>判定：'+(r.reason)+'</div>';
+    if(r.kind==='intent'||r.kind==='intent-clarify'){
+      var it=r.it;
+      if(it.clarify&&it.clarify.length){
+        var q=it.clarify[0];
+        h+='<div class="mt-2"><div class="text-[11px] text-[#94A3B8] mb-1">端上输出（L2 追问）</div>'
+          +'<div class="rounded-xl border p-3" style="border-color:#DDD6FE;background:#FCFAFF">'
+          +'<p class="text-[12.5px] text-[#1F2430] font-medium">'+esc(q.q)+'</p>'
+          +'<div class="flex flex-wrap gap-1.5 mt-2">'+q.opts.map(function(o){return '<span class="opt-pill">'+esc(o.t)+' <span class="text-[10px] opacity-70">'+o.cards.length+' 个卡片</span></span>';}).join('')+'</div>'
+          +'<div class="mt-2 text-[11px] text-[#94A3B8]">点任一选项后输出：'+(q.opts[0]?(q.opts[0].cards||[]).map(function(u){var p=pageOf(u);return esc(p?p.n:u);}).join(' / '):'—')+'</div></div></div>';
+      }else{
+        h+='<div class="mt-2"><div class="text-[11px] text-[#94A3B8] mb-1">端上输出（L1 直达 · 卡片）</div><div class="flex flex-wrap gap-2">'
+          +(it.cards||[]).map(cardThumb).join('')+'</div></div>';
+      }
+    }else if(r.kind==='kb'){
+      h+='<div class="mt-2"><div class="text-[11px] text-[#94A3B8] mb-1">端上输出（L3 知识 · 答案卡）</div>'
+        +'<div class="rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFDF5">'
+        +'<p class="text-[12.5px] font-bold text-[#1F2430]"><i class="fas fa-circle-info text-[#B45309] mr-1"></i>'+esc(r.kb.t)+'</p>'
+        +'<p class="text-[11.5px] text-[#334155] mt-1 leading-6" style="white-space:pre-line">'+esc(r.kb.a)+'</p>'
+        +'<div class="flex flex-wrap gap-2 mt-2">'+(r.kb.cards||[]).map(cardThumb).join('')+'</div></div></div>';
+    }else{
+      h+='<div class="mt-2"><div class="text-[11px] text-[#94A3B8] mb-1">端上输出（L4 兜底）</div>'
+        +'<div class="rounded-xl border p-3" style="border-color:#E2E8F0;background:#F8FAFC">'
+        +'<p class="text-[11.5px] text-[#334155] leading-6" style="white-space:pre-line">'+esc(FALLBACK.text)+'</p>'
+        +'<div class="flex flex-wrap gap-2 mt-2">'+(FALLBACK.cards||[]).map(cardThumb).join('')+'</div></div></div>';
+    }
+    h+='</div>';
+  });
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex items-center justify-between">'
+    +'<span class="text-[11px] text-[#94A3B8]">预览不写库；结果与端上同一套打分（词长加权 + 同分看优先级 + 知识优先）</span>'
+    +'<button class="btn btn-ghost" onclick="closeAll()">关闭</button></div>';
+  document.getElementById('drawer').innerHTML=h;
+  var sc=document.querySelector('#drawer .dr-body');if(sc)sc.scrollTop=sc.scrollHeight;
+}
+function cardThumb(u){
+  var p=pageOf(u);
+  if(!p)return '<span class="chip chip-bad">'+esc(u)+'</span>';
+  return '<div class="flex items-center gap-2 rounded-xl border p-2" style="width:208px;'+(p.live?'border-color:#E2E8F0':'border-color:#FECACA;background:#FFF7F7')+'">'
+    +'<div class="w-8 h-8 rounded-lg flex items-center justify-center text-white flex-shrink-0" style="background:'+p.g+'"><i class="fas '+p.i+' text-[11px]"></i></div>'
+    +'<div class="min-w-0"><p class="text-[12px] font-bold text-[#1F2430] truncate">'+esc(p.n)+'</p>'
+    +'<p class="text-[10px] text-[#94A3B8] truncate">'+esc(p.u)+(p.live?'':' · 已下线')+'</p></div></div>';
+}
+function quickAsk(q){var el=document.getElementById('askIn');if(el)el.value=q;tryAsk();}
+function tryAsk(){
+  var el=document.getElementById('askIn');
+  var t=(el?el.value:'')||'';
+  if(!t.trim()){toast('先说一句话');return;}
+  if(PRE.n>=5){toast('本次已试 5 句，点「清空重试」再来');return;}
+  PRE.list.push({q:t.trim(),r:route(t)});
+  PRE.n++;
+  renderPreview();
+}
+function matchWords(text,keys){
+  var score=0,hit=[];
+  (keys||[]).forEach(function(k){if(k&&text.indexOf(k)>=0){score+=k.length;hit.push(k);}});
+  return {score:score,hit:hit};
+}
+function route(text){
+  var t=(text||'').trim();
+  var best=null,bs=0,bhit=[];
+  INTENTS.forEach(function(it){
+    if(!it.enabled)return;
+    var m=matchWords(t,it.keys);
+    if(m.score>bs){bs=m.score;best=it;bhit=m.hit;}
+    else if(m.score===bs&&m.score>0&&best&&it.priority>best.priority){best=it;bhit=m.hit;}
+  });
+  var kbBest=null,ks=0;
+  KB.forEach(function(k){
+    if(!k.enabled)return;
+    var m=matchWords(t,k.keys);
+    if(m.score>ks){ks=m.score;kbBest=k;}
+  });
+  var is=bs,reason='';
+  if(best&&is>=2&&is>ks){reason='功能意图 '+is+' 分 ≥2 且高于知识问答 → <b>命中功能意图</b>'+(best.clarify&&best.clarify.length?'（配了追问）→ 走 <b>L2 追问</b>':' → 走 <b>L1 直达</b>');}
+  else if(kbBest&&ks>=2){reason='知识问答 '+ks+' 分 ≥2'+(is>=2&&is<=ks?'，且与功能意图同分/更高 → <b>知识优先</b>':'')+' → 走 <b>L3 知识</b>';}
+  else{reason='两边都低于 2 分阈值 → <b>落到 L4 兜底</b>';}
+  return {kind:(best&&is>=2&&is>ks)?'intent':(kbBest&&ks>=2?'kb':'fallback'),it:best,is:is,ihit:bhit,kb:kbBest,ks:ks,reason:reason};
+}
+
+/* ================= 发布记录 / 回滚 / 契约 JSON ================= */
+function openVersions(){
+  var h=drawerHead('发布记录','保留最近 20 个版本；回滚会<b>生成新版本</b>，历史版本不改动（R-8）');
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4 dr-body" style="display:flex;flex-direction:column;gap:10px">';
+  h+=VERSIONS.map(function(v){
+    var cur=v.v===ONLINE_VER;
+    return '<div class="blk" style="'+(cur?'border-color:#FECACA;background:#FFF7F7':'')+'">'
+      +'<div class="flex items-center justify-between"><div class="flex items-center gap-2">'
+      +'<span class="text-[13px] font-bold" style="color:'+(cur?'#B91C1C':'#1F2430')+'">'+esc(v.v)+'</span>'
+      +(cur?'<span class="tag" style="background:#FEE2E2;color:#B91C1C">当前线上</span>':'')+'</div>'
+      +(cur?'<span class="text-[11px] text-[#94A3B8]">当前版本</span>':'<button class="btn btn-ghost" onclick="rollbackTo(\''+v.v+'\')">回滚到此版本</button>')
+      +'</div>'
+      +'<div class="text-[11.5px] text-[#64748B] mt-1.5">'+esc(v.sum)+'</div>'
+      +'<div class="text-[10.5px] text-[#94A3B8] mt-1">'+esc(v.by)+' · '+esc(v.t)+' · 快照：意图 '+v.data.intents.length+' / 知识 '+v.data.kb.length+' / 卡片 '+Object.keys(v.data.cards).length+'</div></div>';
+  }).join('');
+  h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end"><button class="btn btn-ghost" onclick="closeAll()">关闭</button></div>';
+  document.getElementById('drawer').innerHTML=h;show('drawer');
+}
+function rollbackTo(v){
+  var ver=VERSIONS.filter(function(x){return x.v===v;})[0];
+  if(!ver){toast('版本不存在');return;}
+  if(!ver.data){toast('该版本无可用快照，仅存档展示');return;}
+  if(!confirm('回滚到 '+v+'？\n\n将以该版本内容生成一个新版本推给端上（历史版本不改动）。'))return;
+  INTENTS=clone(ver.data.intents).map(normIt);
+  KB=clone(ver.data.kb).map(normKb);
+  FALLBACK=clone(ver.data.fallback);
+  var nv=nextVer();
+  VERSIONS.unshift({v:nv,by:'运营 何静',t:'2026-11-06 15:20',sum:'回滚到 '+v+'（生成新版本，历史不改）',data:buildSnap(nv,INTENTS,KB,FALLBACK)});
+  ONLINE_VER=nv;CHANGES=[];
+  closeAll();renderAll();
+  toast('已回滚：线上版本 '+nv+'（内容取自 '+v+'）——端上下次启动按版本号拉取即恢复（AC-7）');
+}
+function nextVer(){
+  var d='2026-11-06',n=1;
+  VERSIONS.forEach(function(v){
+    if(v.v.indexOf(d)===0){var x=parseInt(v.v.split('-').pop(),10);if(x>=n)n=x+1;}
+  });
+  return d+'-'+n;
+}
+function openJson(){
+  var s=buildSnap(ONLINE_VER,INTENTS,KB,FALLBACK);
+  var json=JSON.stringify(s,null,2);
+  var h=drawerHead('数据结构契约（当前线上 '+ONLINE_VER+'）','字段名与买家端 <code>mai-APP/ai-assistant.html</code> 完全一致：<b>version / cards{n,d,i,g} / intents[] / kb[] / fallback{text,cards}</b>');
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4 dr-body">'
+    +'<div class="rounded-xl border p-3 mb-3" style="border-color:#BFDBFE;background:#EFF6FF">'
+    +'<p class="text-[11.5px] text-[#334155] leading-6"><b>改动约定</b>：只允许<b>追加</b>字段（如 <code>kb[].enabled</code>），已发布字段名一律不改——买家端已按同一结构实现，改名会导致二期切换要动两端。</p></div>'
+    +'<pre class="text-[11px] leading-5 bg-[#0F172A] text-[#E2E8F0] rounded-xl p-4 overflow-x-auto" style="max-height:520px">'+esc(json)+'</pre>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-2"><i class="fas fa-circle-info mr-1"></i>发布时另存 <code>localStorage.ai_route_config</code>（演示用，二期买家端改读此处、端上只改 1 处：<code>fallback</code>）</p>'
+    +'</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="copyJson()">复制 JSON</button>'
+    +'<button class="btn btn-primary" onclick="closeAll()">关闭</button></div>';
+  document.getElementById('drawer').innerHTML=h;show('drawer');
+}
+function copyJson(){
+  var s=JSON.stringify(buildSnap(ONLINE_VER,INTENTS,KB,FALLBACK),null,2);
+  try{navigator.clipboard.writeText(s);toast('已复制（'+s.length+' 字符）');}catch(e){toast('浏览器未授权剪贴板，可手动选中复制');}
+}
+
+/* ================= 发布 ================= */
+function doPublish(){
+  var bl=blockingList();
+  if(bl.length){
+    toast('不能发布：'+bl.length+' 处引用已下线页面（如 '+bl[0].where+' → '+bl[0].url+'），请先更换目标页或停用该项');
+    goTab(0,'');return;
+  }
+  if(!CHANGES.length){toast('当前没有未发布的改动；改完任意配置后再发布');return;}
+  if((FALLBACK.cards||[]).length!==3){toast('兜底常用入口必须固定 3 个（当前 '+FALLBACK.cards.length+' 个）');goTab(2,'');return;}
+  for(var i=0;i<KB.length;i++){
+    if(KB[i].a.length>200){toast('知识问答「'+KB[i].t+'」正文 '+KB[i].a.length+' 字，超过 200 字，不能发布');goTab(1,'');return;}
+  }
+  var v=nextVer();
+  var sum=CHANGES.join(' · ');
+  var snap=buildSnap(v,INTENTS,KB,FALLBACK);
+  VERSIONS.unshift({v:v,by:'运营 何静',t:'2026-11-06 15:20',sum:sum,data:snap});
+  ONLINE_VER=v;CHANGES=[];
+  try{
+    localStorage.setItem('ai_route_config',JSON.stringify(snap));
+    localStorage.setItem('ai_route_version',v);
+  }catch(e){}
+  renderAll();
+  toast('已发布 '+v+'：端上下次启动按版本号拉取新配置，版本未变则用本地缓存（R-7）——生效范围：买家端 AI 助手');
+  goTab(2,'');
+}
+
+/* ================= 基础 ================= */
+var F={kw:'',type:'',level:'',state:''};
+var KF={kw:'',state:''};
+function show(which){
+  if(which==='modal'){document.getElementById('mask').classList.add('on');document.getElementById('modal').classList.add('on');return;}
+  document.getElementById('mask').classList.add('on');
+  document.getElementById('drawer').classList.add('on');
+}
+function closeOnly(which){
+  document.getElementById(which).classList.remove('on');
+  if(!document.getElementById('drawer').classList.contains('on')&&!document.getElementById('modal').classList.contains('on')){
+    document.getElementById('mask').classList.remove('on');
+  }
+}
+function closeAll(){
+  document.getElementById('mask').classList.remove('on');
+  document.getElementById('drawer').classList.remove('on');
+  document.getElementById('modal').classList.remove('on');
+}
+
+INTENTS=INTENTS.map(normIt);
+KB=KB.map(normKb);
+initVersions();
+renderAll();
+</script>
+<script src="../shared/page-prd.js"></script>
+</body>
+</html>
