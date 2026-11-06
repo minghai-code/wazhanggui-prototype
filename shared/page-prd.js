@@ -89,6 +89,7 @@
     'yunying-PC/mall-video.html':         ['10b-商城运营/07-视频看货管理', '', '视频看货管理'],
 
     /* ===== 移动端 · 功能族（值指向 _views/ 下的单页视图，不是族文档） ===== */
+    'mai-APP/ai-assistant.html':      ['_views/F13-AI服务助手-p1', '', 'AI 服务助手'],
     'mai-APP/home.html':              ['_views/F01-首页与导航-p1', '', '首页'],
     'mai-APP/search.html':            ['_views/F01-首页与导航-p2', '', '搜索'],
     'mai-APP/video.html':             ['_views/F01-首页与导航-p3', '', '视频看货'],

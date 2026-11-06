@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>AI 服务助手 - 袜掌柜买家版</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--p:#FF4D2D;--bg:#F6F7FA}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+::-webkit-scrollbar{width:2px;height:2px}
+::-webkit-scrollbar-thumb{background:#dfdfdf;border-radius:1px}
+
+/* 顶部 */
+.hd{position:fixed;top:0;left:0;width:393px;z-index:50;background:linear-gradient(135deg,#FF6B35 0%,#FF4D2D 45%,#FF2D78 100%);padding:44px 12px 10px;display:flex;align-items:center;gap:10px}
+.hd .back{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;color:#fff}
+.hd .who{flex:1;display:flex;align-items:center;gap:8px}
+.hd .ava{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.24);display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px}
+.hd .nm{color:#fff;font-size:14px;font-weight:800;line-height:1.2}
+.hd .st{color:rgba(255,255,255,.82);font-size:10px;margin-top:1px}
+.hd .human{font-size:11px;color:#fff;background:rgba(255,255,255,.2);padding:5px 10px;border-radius:999px;display:flex;align-items:center;gap:4px}
+
+/* 消息区 */
+.msgs{padding:96px 12px 150px}
+.m{display:flex;gap:8px;margin-bottom:14px}
+.m .bot-ava{width:28px;height:28px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,#FF6B35,#FF2D78);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px}
+.m.user{justify-content:flex-end}
+.bub{max-width:270px;padding:9px 12px;border-radius:14px;font-size:12.5px;line-height:1.6}
+.bot .bub{background:#fff;color:#2A2F3A;border-top-left-radius:4px;box-shadow:0 2px 10px rgba(20,20,40,.05)}
+.user .bub{background:#FF4D2D;color:#fff;border-top-right-radius:4px}
+.bub b{color:#FF4D2D}
+
+/* 入口卡 */
+.ecard{display:flex;align-items:center;gap:9px;background:#fff;border-radius:14px;padding:10px;margin-top:8px;box-shadow:0 3px 14px rgba(20,20,40,.07);text-decoration:none;max-width:300px}
+.ecard:active{transform:scale(.98)}
+.ec-icon{width:38px;height:38px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px}
+.ec-main{flex:1;min-width:0}
+.ec-n{font-size:12.5px;font-weight:700;color:#1F2430;margin:0}
+.ec-d{font-size:10.5px;color:#8A93A3;margin:2px 0 0;line-height:1.4}
+.ec-go{flex-shrink:0;font-size:10.5px;font-weight:700;color:#FF4D2D;background:#FFF1EC;padding:5px 9px;border-radius:999px;display:flex;align-items:center;gap:3px}
+
+/* 知识卡 */
+.kb{background:#fff;border-radius:14px;padding:11px 12px;margin-top:8px;box-shadow:0 3px 14px rgba(20,20,40,.07);max-width:300px}
+.kb-t{font-size:12px;font-weight:800;color:#1F2430;display:flex;align-items:center;gap:5px}
+.kb-t i{color:#FF4D2D;font-size:11px}
+.kb-a{font-size:12px;color:#3A4150;line-height:1.7;margin:7px 0 0;white-space:pre-line}
+.kb-c{font-size:10.5px;color:#FF4D2D;margin-top:8px;display:flex;flex-wrap:wrap;gap:8px}
+.kb-c a{color:#FF4D2D;text-decoration:none;font-weight:600}
+
+/* 选项 chips */
+.opts{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px;max-width:300px}
+.opt{font-size:11.5px;color:#5A6270;background:#fff;border:1px solid #EDEFF3;border-radius:999px;padding:6px 11px;cursor:pointer}
+.opt:active{background:#FFF1EC;border-color:#FFD4C5;color:#FF4D2D}
+.tag{font-size:9.5px;color:#B4BAC6;margin-top:6px}
+
+/* 底部输入 */
+.ft{position:fixed;left:0;bottom:0;width:393px;background:#fff;border-top:1px solid #F1F2F5;padding:8px 12px 22px;z-index:50}
+.quick{display:flex;gap:6px;overflow-x:auto;padding-bottom:7px;scrollbar-width:none}
+.quick::-webkit-scrollbar{display:none}
+.q{flex-shrink:0;font-size:11px;color:#FF4D2D;background:#FFF1EC;border-radius:999px;padding:5px 10px;cursor:pointer;white-space:nowrap}
+.in-row{display:flex;align-items:center;gap:8px}
+.in-row input{flex:1;background:#F4F5F7;border:0;border-radius:999px;padding:11px 14px;font-size:12.5px;outline:none}
+.in-row button{width:38px;height:38px;border-radius:50%;border:0;background:linear-gradient(135deg,#FF6B35,#FF4D2D);color:#fff;font-size:14px}
+.tip{font-size:9.5px;color:#C3C8D2;margin-top:6px;text-align:center}
+
+/* 正在输入 */
+.typing span{display:inline-block;width:5px;height:5px;border-radius:50%;background:#C3C8D2;margin-right:3px;animation:bl 1s infinite}
+.typing span:nth-child(2){animation-delay:.15s}
+.typing span:nth-child(3){animation-delay:.3s}
+@keyframes bl{0%,80%,100%{opacity:.3}40%{opacity:1}}
+
+/* toast */
+.toast{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.9);background:rgba(0,0,0,.82);color:#fff;font-size:12px;padding:10px 16px;border-radius:10px;opacity:0;pointer-events:none;transition:.2s;z-index:99;max-width:78%;text-align:center;line-height:1.5}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+</style>
+</head>
+<body>
+
+<!-- 顶部 -->
+<div class="hd">
+  <a href="home.html" class="back"><i class="fas fa-chevron-left text-[13px]"></i></a>
+  <div class="who">
+    <div class="ava"><i class="fas fa-wand-magic-sparkles"></i></div>
+    <div>
+      <p class="nm">袜掌柜小助手</p>
+      <p class="st">按意图智能匹配平台服务</p>
+    </div>
+  </div>
+  <div class="human" onclick="toHuman()"><i class="fas fa-headset text-[10px]"></i>人工</div>
+</div>
+
+<!-- 消息区 -->
+<div class="msgs" id="msgs"></div>
+
+<!-- 底部输入 -->
+<div class="ft">
+  <div class="quick" id="quick"></div>
+  <div class="in-row">
+    <input id="inp" type="text" placeholder="说说你想做什么，比如：我想找纯棉男袜" onkeydown="if(event.key==='Enter')submit(this.value)">
+    <button onclick="submit(document.getElementById('inp').value)"><i class="fas fa-paper-plane"></i></button>
+  </div>
+  <p class="tip">意图识别与功能路由由平台配置，答案仅供参考（原型演示）</p>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===== 卡片库：功能入口（URL 必须真实存在） ===== */
+var CARDS={
+  'market-socks.html':{n:'袜子市场',d:'按品类 / 价格 / 起批量筛选，可直接询价',i:'fa-socks',g:'linear-gradient(135deg,#FF6B35,#FF4D2D)'},
+  'market-material.html':{n:'原料市场',d:'棉纱、氨纶包覆纱、辅料一站找齐',i:'fa-spool',g:'linear-gradient(135deg,#FBBF24,#F59E0B)'},
+  'video.html':{n:'视频看货',d:'看厂看产线，视频里直接点商品下单',i:'fa-video',g:'linear-gradient(135deg,#38BDF8,#3B82F6)'},
+  'product-filter.html':{n:'商品筛选',d:'多条件组合筛选，快速缩小范围',i:'fa-sliders',g:'linear-gradient(135deg,#A78BFA,#7C3AED)'},
+  'search.html':{n:'搜索',d:'搜商品 / 店铺 / 资讯',i:'fa-magnifying-glass',g:'linear-gradient(135deg,#94A3B8,#64748B)'},
+  'inquiry-publish.html':{n:'发布采购需求',d:'写清需求，让工厂来报价',i:'fa-file-pen',g:'linear-gradient(135deg,#FF6B35,#FF2D78)'},
+  'inquiry.html':{n:'采购询价',d:'看我的发布与他人公开需求',i:'fa-comments-dollar',g:'linear-gradient(135deg,#F97316,#EA580C)'},
+  'custom-design.html':{n:'个性定制',d:'图案 / 花型 / 包装定制',i:'fa-palette',g:'linear-gradient(135deg,#C084FC,#7C3AED)'},
+  'bulk-custom.html':{n:'大宗定制',d:'批量来样定制，走线下核价',i:'fa-boxes-stacked',g:'linear-gradient(135deg,#6366F1,#4338CA)'},
+  'orders.html':{n:'我的订单',d:'全部订单与状态跟踪',i:'fa-receipt',g:'linear-gradient(135deg,#FF6B35,#FF4D2D)'},
+  'purchase-records.html':{n:'采购记录',d:'历史采购明细与复购',i:'fa-clock-rotate-left',g:'linear-gradient(135deg,#34D399,#10B981)'},
+  'logistics.html':{n:'物流跟踪',d:'发货后的物流轨迹',i:'fa-truck-fast',g:'linear-gradient(135deg,#38BDF8,#0EA5E9)'},
+  'purchase-order.html':{n:'进货单',d:'已选商品，去结算',i:'fa-clipboard-list',g:'linear-gradient(135deg,#FBBF24,#F59E0B)'},
+  'merchant-join.html':{n:'商户入驻',d:'注册账号，成为平台商户',i:'fa-store',g:'linear-gradient(135deg,#FF8A4C,#FF4D2D)'},
+  'merchant-open-shop.html':{n:'申请线上开店',d:'开通店铺、填主营品类',i:'fa-shop',g:'linear-gradient(135deg,#FB7185,#EC4899)'},
+  'membership.html':{n:'会员权益',d:'看会员等级与专属服务',i:'fa-crown',g:'linear-gradient(135deg,#FBBF24,#F59E0B)'},
+  'policy-service.html':{n:'政策兑现',d:'产业政策、补贴申报入口',i:'fa-file-shield',g:'linear-gradient(135deg,#34D399,#059669)'},
+  'ip-service.html':{n:'知识产权',d:'商标 / 专利服务与申报',i:'fa-certificate',g:'linear-gradient(135deg,#818CF8,#4F46E5)'},
+  'tech-service.html':{n:'技术共享',d:'技术需求发布与成果对接',i:'fa-flask',g:'linear-gradient(135deg,#2DD4BF,#0D9488)'},
+  'agency-service.html':{n:'中介服务',d:'检测、认证、代运营等服务机构',i:'fa-handshake',g:'linear-gradient(135deg,#F472B6,#DB2777)'},
+  'study-tour.html':{n:'文旅研学',d:'袜艺研学、工业旅游线路',i:'fa-route',g:'linear-gradient(135deg,#38BDF8,#6366F1)'},
+  'expo.html':{n:'袜博会',d:'展位申请、参观登记、资料下载',i:'fa-flag',g:'linear-gradient(135deg,#FF4D2D,#FF2D78)'},
+  'complaint.html':{n:'投诉建议',d:'对平台或商户提意见',i:'fa-comment-dots',g:'linear-gradient(135deg,#94A3B8,#475569)'}
+};
+
+/* ===== 意图库（L1 直达 / L2 追问 / L3 知识） ===== */
+var INTENTS=[
+  {id:'find',label:'找货',
+   keys:['找货','找袜子','找棉纱','找供应商','找厂家','找工厂','源头','批发','进货','拿货','买袜子','采购袜子','想找','找个','有没有','男袜','女袜','婴童袜','运动袜','棉袜','丝袜','袜子'],
+   clarify:[{q:'想在哪找货？',opts:[
+     {t:'线上市场',cards:['market-socks.html','market-material.html']},
+     {t:'大唐袜业城（线下）',cards:['market-socks.html','market-map.html']},
+     {t:'看视频找厂',cards:['video.html']}]}]},
+  {id:'inquiry',label:'采购询价 / 定制',
+   keys:['询价','报价','定制','打样','贴牌','来样','加工','代工'],
+   cards:['inquiry-publish.html','custom-design.html','bulk-custom.html']},
+  {id:'order',label:'订单 / 物流',
+   keys:['订单','查单','物流','发货','快递','收货','退货','退款','售后'],
+   cards:['orders.html','logistics.html','purchase-records.html']},
+  {id:'open',label:'开店 / 入驻',
+   keys:['开店','入驻','开店铺','上线','卖货','商户','营业资质'],
+   cards:['merchant-join.html','merchant-open-shop.html']},
+  {id:'policy',label:'政策 / 补贴',
+   keys:['政策','补贴','申报','兑现','奖励','扶持'],
+   cards:['policy-service.html','industry-services.html']},
+  {id:'ip',label:'知产 / 技术',
+   keys:['商标','专利','知识产权','技术','研发','成果','检测','认证'],
+   cards:['ip-service.html','tech-service.html','agency-service.html']},
+  {id:'tour',label:'研学 / 展会',
+   keys:['研学','旅游','参观','袜博会','展会','展位','活动'],
+   cards:['study-tour.html','expo.html']}
+];
+
+/* ===== 知识库（L3 非功能问答 + L4 兜底） ===== */
+var KB_ITEMS=[
+  {id:'kb-fee',keys:['收费','费用','多少钱','服务费','佣金','免费','会员费'],
+   t:'平台怎么收费',
+   a:'买家侧浏览、询价、下单不收费；会员权益按等级购买。\n商户侧按店铺服务协议收费（入驻时可见明细），平台不额外抽佣。',
+   cards:['membership.html','merchant-join.html']},
+  {id:'kb-ship',keys:['多久发货','发货时间','几天到','时效','发货','多久到'],
+   t:'下单后多久发货',
+   a:'现货商品一般 48 小时内发出（节假日顺延）；\n定制类以与商户约定的交期为准，可在「我的订单」看每单的约定发货时间。',
+   cards:['orders.html']},
+  {id:'kb-invoice',keys:['发票','开票','专票','普票'],
+   t:'怎么开发票',
+   a:'下单时在结算页填写开票信息；\n已完成订单可在「我的订单 → 订单详情」补开，电子普票 1 个工作日、专票 3 个工作日。',
+   cards:['orders.html']},
+  {id:'kb-join',keys:['入驻要求','什么资质','营业执照','需要什么材料','入驻条件'],
+   t:'入驻需要什么资质',
+   a:'需要：营业执照、法人身份证、银行账户信息；\n经营品牌需商标注册证或授权书。有线下档口的商户可由系统自动识别档口。',
+   cards:['merchant-join.html','merchant-open-shop.html']},
+  {id:'kb-policy',keys:['怎么申请补贴','补贴条件','申报流程','政策怎么用','申请补贴','补贴申请'],
+   t:'补贴申报流程',
+   a:'① 在「政策兑现」看可申报政策与截止时间；\n② 按政策要求准备材料并在线提交；\n③ 平台初审 → 主管部门复审 → 公示 → 拨付。',
+   cards:['policy-service.html']},
+  {id:'kb-return',keys:['怎么退','退货规则','七天','无理由'],
+   t:'退换货规则',
+   a:'现货商品支持 7 天无理由退换（不影响二次销售）；\n定制、剪裁、贴身类商品不支持无理由退换，质量问题由商户承担。',
+   cards:['orders.html','complaint.html']},
+  {id:'kb-fallback',keys:[],
+   t:'',
+   a:'这个问题我还没学会。可以换个说法，或者直接点下面最常用的入口；\n需要人工的话点右上角「人工」。',
+   cards:['market-socks.html','orders.html','merchant-join.html']}
+];
+
+/* 首屏引导语与快捷问法 */
+var welcome='你好，我是袜掌柜小助手。\n告诉我你想做什么，我直接带你到对应功能；问流程、政策、费用这类问题，我可以直接答。';
+var quickAsk=['我想找纯棉男袜','查一下我的订单','我想开店入驻','平台怎么收费'];
+
+var asked=false,typingEl=null;
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function $(id){return document.getElementById(id);}
+
+function cardHTML(url){
+  var key=url.split('?')[0];
+  var c=CARDS[key];
+  if(!c)return '';
+  return '<a class="ecard" href="'+url+'">'
+    + '<div class="ec-icon" style="background:'+c.g+'"><i class="fas '+c.i+'"></i></div>'
+    + '<div class="ec-main"><p class="ec-n">'+esc(c.n)+'</p><p class="ec-d">'+esc(c.d)+'</p></div>'
+    + '<span class="ec-go">去这里<i class="fas fa-chevron-right" style="font-size:8px"></i></span></a>';
+}
+
+function scrollBottom(){setTimeout(function(){window.scrollTo(0,document.body.scrollHeight);},60);}
+
+function addBot(html){
+  var d=document.createElement('div');
+  d.className='m bot';
+  d.innerHTML='<div class="bot-ava"><i class="fas fa-wand-magic-sparkles"></i></div><div style="flex:1">'+html+'</div>';
+  $('msgs').appendChild(d);
+  scrollBottom();
+  return d;
+}
+
+function addUser(text){
+  var d=document.createElement('div');
+  d.className='m user';
+  d.innerHTML='<div class="bub">'+esc(text)+'</div>';
+  $('msgs').appendChild(d);
+  scrollBottom();
+}
+
+function botText(text){
+  return '<div class="bub">'+text+'</div>';
+}
+
+function botCards(cards,prefix){
+  var h=prefix?botText(prefix):'';
+  h+='<div>'+cards.map(cardHTML).join('')+'</div>';
+  return h;
+}
+
+function botKB(item){
+  var h='<div class="kb">';
+  if(item.t)h+='<p class="kb-t"><i class="fas fa-circle-info"></i>'+esc(item.t)+'</p>';
+  h+='<p class="kb-a">'+esc(item.a)+'</p>';
+  if(item.cards&&item.cards.length){
+    h+='<div class="kb-c">'+item.cards.map(function(u){
+      var c=CARDS[u.split('?')[0]];
+      return c?'<a href="'+u+'"><i class="fas fa-arrow-right" style="font-size:8px"></i> '+esc(c.n)+'</a>':'';
+    }).join('')+'</div>';
+  }
+  h+='</div>';
+  return h;
+}
+
+function botOpts(question,opts){
+  var h=botText(question);
+  h+='<div class="opts">'+opts.map(function(o,i){
+    return '<span class="opt" onclick="pickOpt('+i+')">'+esc(o.t)+'</span>';
+  }).join('')+'</div>';
+  return h;
+}
+
+var pendingOpts=null;
+function pickOpt(i){
+  if(!pendingOpts)return;
+  var o=pendingOpts[i];
+  pendingOpts=null;
+  addUser(o.t);
+  typing(function(){
+    if(o.cards&&o.cards.length)addBot(botCards(o.cards,'好的，去这里最直接：'));
+    else addBot(botText('这个我先记下来，稍后给你更准确的答复。'));
+  });
+}
+
+function typing(cb){
+  var d=addBot('<div class="bub typing"><span></span><span></span><span></span></div>');
+  setTimeout(function(){d.remove();cb();},380);
+}
+
+/* 关键词打分：命中词越长权重越高，单字不触发 */
+function score(text,keys){
+  var s=0;
+  for(var i=0;i<keys.length;i++){if(text.indexOf(keys[i])>=0)s+=keys[i].length;}
+  return s;
+}
+
+function route(text){
+  var t=(text||'').trim();
+  if(!t)return;
+  var best=null,bestScore=0;
+  INTENTS.forEach(function(it){
+    var s=score(t,it.keys);
+    if(s>bestScore){bestScore=s;best=it;}
+  });
+  var kbBest=null,kbScore=0;
+  KB_ITEMS.forEach(function(k){
+    if(!k.keys.length)return;
+    var s=score(t,k.keys);
+    if(s>kbScore){kbScore=s;kbBest=k;}
+  });
+
+  /* 功能意图优先，但同分时让知识问答胜出（问句式更像是“问问题”而不是“要办事”） */
+  if(best&&bestScore>=2&&bestScore>kbScore){
+    if(best.clarify&&best.clarify.length){
+      var q=best.clarify[0];
+      pendingOpts=q.opts;
+      addBot(botOpts(q.q,q.opts));
+    }else{
+      addBot(botCards(best.cards,'这件事可以直接在下面这些地方办：'));
+    }
+    return;
+  }
+  if(kbBest&&kbScore>=2){addBot(botKB(kbBest));return;}
+  addBot(botKB(KB_ITEMS[KB_ITEMS.length-1]));
+}
+
+function submit(v){
+  var inp=$('inp');
+  var t=(v||'').trim();
+  if(!t){toast('说点什么吧');return;}
+  addUser(t);
+  inp.value='';
+  pendingOpts=null;
+  typing(function(){route(t);});
+}
+
+function toHuman(){
+  addUser('我要找人工');
+  typing(function(){
+    addBot('<div class="kb"><p class="kb-t"><i class="fas fa-headset"></i>人工客服</p>'
+      +'<p class="kb-a">服务时间：周一至周六 9:00–18:00\n客服电话：0575-8888xxxx（占位）\n紧急投诉可先在「投诉建议」提交，承诺 24 小时内响应。</p>'
+      +'<div class="kb-c"><a href="complaint.html"><i class="fas fa-arrow-right" style="font-size:8px"></i> 投诉建议</a></div></div>');
+  });
+}
+
+function toast(msg){
+  var t=$('toast');
+  t.textContent=msg;t.classList.add('on');
+  clearTimeout(t._tm);t._tm=setTimeout(function(){t.classList.remove('on');},1600);
+}
+
+function init(){
+  $('quick').innerHTML=quickAsk.map(function(q){
+    return '<span class="q" onclick="submit(\''+q+'\')">'+q+'</span>';
+  }).join('');
+  addBot(botText(welcome.replace(/\n/g,'<br>')));
+  addBot('<div class="opts">'
+    +'<span class="opt" onclick="submit(\'我想找货\')">我要找货</span>'
+    +'<span class="opt" onclick="submit(\'查我的订单\')">查订单</span>'
+    +'<span class="opt" onclick="submit(\'我要开店入驻\')">我要开店</span>'
+    +'<span class="opt" onclick="submit(\'平台怎么收费\')">平台收费</span>'
+    +'</div><p class="tag">也可以直接打字问我，比如「袜子怎么发货」「补贴怎么申请」</p>');
+}
+
+init();
+</script>
+<script src="../shared/page-prd.js?v=20261023e"></script>
+</body>
+</html>
