@@ -61,7 +61,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <a href="repair.html" class="flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)"><i class="fas fa-screwdriver-wrench text-lg"></i></div><span class="text-[11px] text-gray-700 font-medium">报修工单</span></a>
 <a href="payment.html" class="flex flex-col items-center gap-1.5 relative"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#F87171,#EF4444)"><i class="fas fa-receipt text-lg"></i></div><span class="text-[11px] text-gray-700 font-medium">我要缴费</span><span class="absolute top-0 right-3 bg-red-500 text-white text-[7px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center">1</span></a>
 <a href="contract.html" class="flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#34D399,#10B981)"><i class="fas fa-file-contract text-lg"></i></div><span class="text-[11px] text-gray-700 font-medium">合同管理</span></a>
-<a href="service-booking.html" class="flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#2DD4BF,#14B8A6)"><i class="fas fa-calendar-check text-lg"></i></div><span class="text-[11px] text-gray-700 font-medium">服务预约</span></a>
+<a href="service-booking.html" class="flex flex-col items-center gap-1.5 relative"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#2DD4BF,#14B8A6)"><i class="fas fa-calendar-check text-lg"></i></div><span class="text-[11px] text-gray-700 font-medium">服务预约</span><span id="bookBadge" class="absolute top-0 right-3 bg-red-500 text-white text-[7px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center" style="display:none"></span></a>
 <a href="complaint.html" class="flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#A78BFA,#7C3AED)"><i class="fas fa-comment-dots text-lg"></i></div><span class="text-[11px] text-gray-700 font-medium">投诉建议</span></a>
 <a href="wuye-issue.html" class="flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)"><i class="fas fa-camera-retro text-lg"></i></div><span class="text-[11px] text-gray-700 font-medium">问题反馈</span></a>
 </div>
@@ -196,6 +196,7 @@ var SH_PROFILE={type:'线上兼档口商户',shop:'1F-A08',area:'50㎡',floor:'A
 function shFill(){document.querySelectorAll('[data-sh]').forEach(function(el){var k=el.getAttribute('data-sh');if(SH_PROFILE[k]!=null)el.textContent=SH_PROFILE[k];});}
 shFill();
 </script>
+<script src="wuye-booking-seed.js"></script>
 <script src="wuye-units.js"></script>
 <script>
 /* 一人多档口：物业服务枢纽的当前服务档口，默认首个、可下拉切换 */
@@ -214,6 +215,15 @@ var hub=document.getElementById('wuHub');
 if(hub)hub.innerHTML=wuyePickerHtml({title:'当前服务档口'});
 wuyeFill();
 paintHub(wuyeCur());
+/* 服务预约角标：已受理（待上门）单数，与后台受理派单联动 */
+function paintBookingBadge(){
+  var n=0;
+  try{var a=(typeof bookingAll==='function')?bookingAll():(JSON.parse(localStorage.getItem('sh_booking_v4')||'[]')||[]);n=a.filter(function(o){return o.state==='已受理';}).length;}catch(e){}
+  var b=document.getElementById('bookBadge');
+  if(!b)return;
+  if(n){b.textContent=n;b.style.display='flex';}else{b.style.display='none';}
+}
+paintBookingBadge();
 function wuyeOnUnitChange(u){paintHub(u);toast('已切换至 '+u.code+' · '+u.name+'；各类服务记录仍展示全部档口');}
 </script>
 <script src="wuye-tab.js"></script>

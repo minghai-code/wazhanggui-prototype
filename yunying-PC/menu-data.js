@@ -102,6 +102,7 @@ window.MENU_DATA = [
       { type: 'item', name: '维修资金台账', page: 'property-budget.html', status: 'done', points: ['年度 25 万（4.1–次年 3.31）', '上年未用完结转下年', '已核销 / 在途 / 剩余可用', '额外申请追加'] },
       { type: 'item', name: '物业人员', page: 'property-staff.html', status: 'done', points: ['从统一用户体系搜账号建立物业档案（不建账号）', '岗位多选（维修工 / 主管；巡检员·保洁仅保留档案属性，不再派单）', '在岗与休假（休假不接新派单）', '停用前必须转派名下未完成单'] }
     ] },
+    { type: 'item', name: '服务预约', page: 'property-service.html', status: 'done', points: ['招标 #129：商户端预约保洁 / 维修 / 搬运三类上门服务（YY）', '商户不选人——运营端受理并派师傅（可改派，按服务类型映射岗位、仅派在岗）', '师傅到场 / 完成打卡拍照由员工端提交，本页只读跟踪', '费用选填、线下结算（不进维修资金台账、不生成账单）', '商户评价星级 + 留言，≤3 星自动标「需回访」并通知主管', '端间接线：消费商户端 sh_booking，受理 / 驳回 / 完成后回写保留 unit'] },
     { type: 'item', name: '问题上报', page: 'property-issue.html', status: 'done', points: ['来源：移动端随手报 / 商户端反馈 / 电话代录', '照片必传（≥1 张）', '两条出口：提交处理结果并关闭 / 转报修（BX，按工单字段生成）', '责任方只做归因与商户告知，不生成整改单'] },
     { type: 'item', name: '投诉建议', page: 'property-complaint.html', status: 'done', points: ['商户端/电话代录', '受理 → 回复 → 评价关闭'] }
   ]

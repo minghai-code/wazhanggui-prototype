@@ -1,13 +1,13 @@
 /* ============================================================
-   07 物业服务 ↔ 商户端 端间演示同步（Y-19 B-0）
+   07 物业服务 ↔ 商户端 端间演示同步（Y-19 B-0；v2 增服务预约 Y-22）
    借用 localStorage 让原型演示「商户端提交 → 后台受理 → 商户端回显」闭环，
-   不是前后端同步架构。三类单据：
-     报修 sh_bx_v2 / 投诉 sh_ts / 问题反馈 wuye_db_v2.wt
+   不是前后端同步架构。四类单据：
+     报修 sh_bx_v2 / 投诉 sh_ts / 问题反馈 wuye_db_v2.wt / 服务预约 sh_booking
    unit 语义统一 = 上报档口（单据归属），回写时只改业务状态，不丢 unit。
-   缴费 / 服务预约未接入（归口待 PM 确认，勿凭空建页）。
+   缴费仍未接入（归口待 PM 确认，勿凭空建页）。
    ============================================================ */
 (function (g) {
-  var K = { repair: 'sh_bx_v2', complaint: 'sh_ts', issue: 'wuye_db_v2' };
+  var K = { repair: 'sh_bx_v2', complaint: 'sh_ts', issue: 'wuye_db_v2', booking: 'sh_booking' };
   var DEF_UNITS = ['1F-A08', '2F-B12', 'YLSC-S08', 'XZFW-3F-06'];
 
   function ls(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } }
@@ -47,6 +47,19 @@
       reply: o.reply || '', replyAt: o.replyAt || '', star: o.star || 0,
       tags: o.tags || [], cmt: o.cmt || '', bxNo: o.bxNo || '', zgNo: o.zgNo || '',
       createdAt: o.createdAt || '', logs: o.logs || [], unit: o.unit || '', fromApp: true
+    };
+    if (kind === 'booking') return {
+      no: o.no, src: '商户端', reporter: o.reporter || '商户端', phone: o.phone || '',
+      unit: o.unit || '', type: o.type || '保洁', name: o.name || o.desc || o.type + '服务',
+      time: o.time || '', state: o.state || '待确认',
+      worker: o.worker || '', planAt: o.planAt || '', arriveAt: o.arriveAt || '',
+      finishAt: o.finishAt || '', resultDesc: o.resultDesc || '',
+      fee: o.fee || '', feeNote: o.feeNote || '', feeSettled: o.feeSettled || false,
+      star: o.star || 0, comment: o.comment || '', cancelWhy: o.cancelWhy || '',
+      exceptionWhy: o.exceptionWhy || '', exceptionNote: o.exceptionNote || '',
+      exceptionAt: o.exceptionAt || '', exceptionGeo: o.exceptionGeo || '',
+      exceptionPhotos: o.exceptionPhotos || 0,
+      createdAt: o.createdAt || '', logs: o.logs || [], fromApp: true
     };
     return {
       no: o.no, area: o.area || o.unit || '', unit: o.unit || '', type: o.type || '',
@@ -88,7 +101,10 @@
       ? ['acceptBy', 'worker', 'arriveAt', 'resultDesc', 'rejectWhy', 'star']
       : (kind === 'complaint'
         ? ['handler', 'reply', 'replyAt', 'star', 'bxNo', 'zgNo']
-        : ['bxNo', 'result']);
+        : (kind === 'booking'
+          ? ['worker', 'planAt', 'arriveAt', 'finishAt', 'resultDesc', 'fee', 'feeNote', 'feeSettled', 'star', 'comment', 'cancelWhy',
+             'exceptionWhy', 'exceptionNote', 'exceptionAt', 'exceptionGeo', 'exceptionPhotos']
+          : ['bxNo', 'result']));
     extra.forEach(function (k) {
       if (row[k] != null && row[k] !== '') hit[k] = row[k];
     });

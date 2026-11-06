@@ -9,9 +9,6 @@
 :root{--p:#2563EB;--bg:#F0F6FF}
 *{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
-::-webkit-scrollbar{width:2px;height:2px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:#cfe0f8;border-radius:1px}
 .grad-h{background:linear-gradient(135deg,#3B82F6 0%,#2563EB 50%,#1D4ED8 100%)}
 .shadow-soft{box-shadow:0 2px 12px rgba(20,40,80,.06)}
 .card{transition:transform .16s ease}
@@ -22,18 +19,40 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 .stype{cursor:pointer;border:1.5px solid transparent}
 .stype.on{border-color:#2563EB;background:#EFF6FF}
 .no-bar::-webkit-scrollbar{display:none}
+.chip{font-size:11px;color:#6b7080;background:#fff;border:1px solid #eceef0;border-radius:999px;padding:5px 11px;white-space:nowrap;cursor:pointer}
+.chip.on{color:#fff;font-weight:700;background:#2563EB;border-color:#2563EB}
+.inp{width:100%;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:9px 11px;font-size:12px;color:#1F2430;outline:none}
+.inp:focus{border-color:#2563EB;background:#fff}
+.sel-wrap{position:relative;display:flex;align-items:center}
+.sel{width:100%;appearance:none;-webkit-appearance:none;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:9px 28px 9px 11px;font-size:12px;color:#1F2430;outline:none;cursor:pointer}
+.sel-wrap>i{position:absolute;right:10px;color:#94A3B8;font-size:10px;pointer-events:none}
+.mask{position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(15,23,42,.45);z-index:200;display:none}
+.mask.on{display:block}
+.sheet{position:fixed;left:0;bottom:0;width:393px;background:#fff;border-radius:20px 20px 0 0;z-index:201;transform:translateY(105%);transition:transform .24s ease;padding:14px 16px 26px;max-height:86vh;overflow-y:auto}
+.sheet.on{transform:translateY(0)}
+.bar{width:36px;height:4px;background:#E2E8F0;border-radius:4px;margin:0 auto 12px}
+.blk{background:#F8FAFC;border-radius:12px;padding:10px 12px;margin-bottom:10px}
+.blk-t{font-size:11px;font-weight:700;color:#334155;margin-bottom:4px;display:flex;align-items:center;gap:5px}
+.kv{display:flex;justify-content:space-between;gap:10px;font-size:11px;padding:4px 0;border-bottom:1px dashed #EEF2F7}
+.kv:last-child{border-bottom:0}
+.kv .k{color:#94A3B8;flex-shrink:0}
+.kv .v{color:#1F2430;text-align:right;word-break:break-all}
+.st{font-size:9px;font-weight:700;padding:2px 7px;border-radius:6px;white-space:nowrap}
+.ph-big{height:72px;border-radius:10px;background:linear-gradient(135deg,#E0F2FE,#BAE6FD);display:flex;align-items:center;justify-content:center;color:#0369A1;font-size:11px;font-weight:600;gap:6px}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:300;opacity:0;transition:.2s;max-width:80%;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.star-pick i{font-size:26px;color:#E2E8F0;margin-right:6px;cursor:pointer}
+.star-pick i.on{color:#F59E0B}
 </style>
 <link rel="stylesheet" href="tailwind.css">
 </head>
 <body>
 
-<!-- iOS状态栏 -->
 <div class="flex justify-between items-center px-6 text-white text-sm font-semibold grad-h" style="height:44px;padding-top:8px">
 <span>9:41</span>
 <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
 </div>
 
-<!-- 页面头部 -->
 <div class="grad-h px-3.5 pb-6">
 <div class="flex items-center justify-between mb-1">
 <a href="property.html" class="w-8 h-8 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
@@ -47,6 +66,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <div class="px-3 -mt-3 relative z-10">
   <div class="bg-white rounded-2xl shadow-soft p-3.5 fade-up">
     <div id="wuUnitBox"></div>
+
     <p class="text-[11px] font-semibold text-gray-700 mb-2">预约类型 <span class="text-red-500">*</span></p>
     <div class="grid grid-cols-3 gap-2">
       <button onclick="pick(this)" class="stype on flex flex-col items-center gap-1 py-3 rounded-xl bg-gray-50">
@@ -60,77 +80,396 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
       </button>
     </div>
 
-    <p class="text-[11px] font-semibold text-gray-700 mt-3.5 mb-2">预约日期</p>
-    <div class="flex gap-2 overflow-x-auto no-bar">
-      <button onclick="pickDay(this)" class="flex-shrink-0 px-3.5 py-2 rounded-xl text-[11px] text-white font-bold" style="background:#2563EB">今天 7.20</button>
-      <button onclick="pickDay(this)" class="flex-shrink-0 px-3.5 py-2 rounded-xl text-[11px] text-gray-600 bg-gray-50">明天 7.21</button>
-      <button onclick="pickDay(this)" class="flex-shrink-0 px-3.5 py-2 rounded-xl text-[11px] text-gray-600 bg-gray-50">周三 7.22</button>
-      <button onclick="pickDay(this)" class="flex-shrink-0 px-3.5 py-2 rounded-xl text-[11px] text-gray-600 bg-gray-50">周四 7.23</button>
+    <div class="grid grid-cols-2 gap-2 mt-3.5">
+      <div>
+        <p class="text-[11px] font-semibold text-gray-700 mb-2">预约日期 <span class="text-red-500">*</span></p>
+        <input type="date" id="bookDate" class="inp num" min="2026-11-06" max="2026-12-06" value="2026-11-07" onchange="onTimeChange()">
+      </div>
+      <div>
+        <p class="text-[11px] font-semibold text-gray-700 mb-2">预约时段 <span class="text-red-500">*</span></p>
+        <div class="sel-wrap">
+          <select id="bookSlot" class="sel num" onchange="onTimeChange()">
+            <option>09:00-11:00</option>
+            <option selected>14:00-16:00</option>
+            <option>16:00-18:00</option>
+            <option value="custom">自定义时段…</option>
+          </select>
+          <i class="fas fa-chevron-down"></i>
+        </div>
+      </div>
     </div>
+    <div class="grid grid-cols-2 gap-2 mt-2" id="customBox" style="display:none">
+      <div><p class="text-[10px] text-gray-500 mb-1">开始时间</p><input type="time" id="bookStart" class="inp num" value="10:00" onchange="onTimeChange()"></div>
+      <div><p class="text-[10px] text-gray-500 mb-1">结束时间</p><input type="time" id="bookEnd" class="inp num" value="12:00" onchange="onTimeChange()"></div>
+    </div>
+    <p class="text-[10px] mt-1.5 leading-relaxed" id="timeTip" style="color:#64748B"></p>
 
-    <p class="text-[11px] font-semibold text-gray-700 mt-3.5 mb-2">服务说明</p>
+    <p class="text-[11px] font-semibold text-gray-700 mt-3.5 mb-2">服务内容 <span class="text-red-500">*</span> <span class="text-[10px] text-gray-400 font-normal">至少 4 个字</span></p>
+    <div class="flex gap-1.5 mb-1.5 flex-wrap">
+      <span class="text-[10px] px-2 py-1 rounded-md" style="background:#F1F5F9;color:#475569;cursor:pointer" onclick="quickFill('深度保洁（含玻璃）')">深度保洁（含玻璃）</span>
+      <span class="text-[10px] px-2 py-1 rounded-md" style="background:#F1F5F9;color:#475569;cursor:pointer" onclick="quickFill('照明线路维修')">照明线路维修</span>
+      <span class="text-[10px] px-2 py-1 rounded-md" style="background:#F1F5F9;color:#475569;cursor:pointer" onclick="quickFill('货架 / 展品搬运协助')">货架 / 展品搬运协助</span>
+    </div>
     <textarea id="bookDesc" rows="3" placeholder="请描述服务内容，如：商铺内灯具更换 2 处、地面深度保洁等" class="w-full text-[12px] bg-gray-50 rounded-xl px-3 py-2.5 outline-none resize-none"></textarea>
 
     <button onclick="submitBook()" class="w-full py-3 mt-3 rounded-xl text-white text-[13px] font-bold" style="background:linear-gradient(135deg,#3B82F6,#2563EB)"><i class="fas fa-paper-plane text-[11px]"></i> 提交预约</button>
+    <p class="text-[10px] text-gray-400 mt-2 leading-relaxed">提交后由物业受理并派师傅，上门时间以派单结果为准；费用线下结算，不生成账单。</p>
   </div>
 </div>
 
-<!-- 我的预约（全部档口） -->
+<!-- 我的预约 -->
 <div class="px-3 mt-4 mb-8">
   <div class="flex items-center gap-1.5 mb-2.5"><i class="fas fa-clock-rotate-left text-primary text-sm"></i><span class="text-[16px] font-extrabold" style="color:#1F2430">我的预约</span><span class="text-[10px] text-gray-400">全部档口</span></div>
+  <div class="flex gap-1.5 mb-2 overflow-x-auto no-bar" id="chips"></div>
   <div id="wuFilterBox"></div>
   <div class="bg-white rounded-2xl shadow-soft overflow-hidden" id="bookList"></div>
+  <p class="text-[10px] text-gray-400 mt-2.5 px-1 leading-relaxed"><i class="fas fa-circle-info mr-1"></i>状态、师傅、上门时间、费用与评价由物业后台受理 / 登记后回写本页；档口归属不会因状态变更而丢失。</p>
 </div>
 
+<!-- 详情抽屉 -->
+<div class="mask" id="mask" onclick="closeSheet('detailSheet')"></div>
+<div class="sheet" id="detailSheet">
+  <div class="bar"></div>
+  <div id="detailBody"></div>
+</div>
+
+<!-- 评价抽屉 -->
+<div class="mask" id="mask2" onclick="closeSheet('rateSheet')"></div>
+<div class="sheet" id="rateSheet">
+  <div class="bar"></div>
+  <p class="text-[15px] font-extrabold text-gray-800 text-center">评价本次服务</p>
+  <p class="text-[10px] text-gray-400 text-center mt-1" id="rateNo"></p>
+  <div class="text-center mt-4 star-pick" id="starPick"></div>
+  <p class="text-[10px] text-gray-400 text-center mt-2" id="starHint">请选择 1–5 星</p>
+  <textarea id="rateCmt" rows="3" placeholder="说说这次的体验（必填，≤3 星物业将安排回访）" class="w-full text-[12px] bg-gray-50 rounded-xl px-3 py-2.5 outline-none resize-none mt-3"></textarea>
+  <button onclick="doRate()" class="w-full py-3 mt-3 rounded-xl text-white text-[13px] font-bold" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)">提交评价</button>
+</div>
+
+<div class="toast" id="toast"><span id="toastTxt">操作成功</span></div>
+<script src="wuye-booking-seed.js"></script>
 <script src="wuye-units.js"></script>
 <script>
-var curType='保洁', curDay='今天 7.20', unitFilter=WUYE_ALL;
-function pick(btn){document.querySelectorAll('.stype').forEach(function(b){b.classList.remove('on')});btn.classList.add('on');curType=btn.textContent.trim();}
-function pickDay(btn){document.querySelectorAll('button[onclick^="pickDay"]').forEach(function(b){b.style.background='';b.style.color='';b.classList.remove('text-white','font-bold');b.classList.add('text-gray-600','bg-gray-50')});btn.style.background='#2563EB';btn.classList.add('text-white','font-bold');btn.classList.remove('text-gray-600','bg-gray-50');curDay=btn.textContent.trim();}
-function toast(msg){var d=document.createElement('div');d.style.cssText='position:fixed;left:50%;bottom:110px;transform:translateX(-50%);background:rgba(20,20,40,.85);color:#fff;font-size:12px;padding:8px 16px;border-radius:20px;z-index:999;white-space:nowrap;max-width:88%';d.textContent=msg;document.body.appendChild(d);setTimeout(function(){d.remove()},1800);}
+var B_KEY='sh_booking';
+var TODAY='2026-11-06', MAX_DATE='2026-12-06';
+var curType='保洁', unitFilter=WUYE_ALL, stateF='全部';
+var curNo='', pickedStar=0;
 
-var SEED_BOOK=[
- {no:'YY202610-0021',type:'保洁',icon:'fa-broom',bg:'linear-gradient(135deg,#FBBF24,#F59E0B)',name:'深度保洁（含玻璃）',time:'7月20日 14:00-16:00',state:'待确认',unit:'1F-A08'},
- {no:'YY202610-0018',type:'维修',icon:'fa-screwdriver-wrench',bg:'linear-gradient(135deg,#34D399,#10B981)',name:'照明线路维修',time:'7月12日 已完成 · 师傅已上门',state:'已完成',unit:'2F-B12'},
- {no:'YY202610-0015',type:'搬运',icon:'fa-truck-ramp-box',bg:'linear-gradient(135deg,#60A5FA,#3B82F6)',name:'样品搬运至物流点',time:'6月28日 已完成',state:'已完成',unit:'YLSC-S08'},
- {no:'YY202610-0013',type:'保洁',icon:'fa-broom',bg:'linear-gradient(135deg,#FBBF24,#F59E0B)',name:'办公室定期保洁',time:'6月20日 已完成',state:'已完成',unit:'XZFW-3F-06'},
- {no:'YY202610-0011',type:'搬运',icon:'fa-truck-ramp-box',bg:'linear-gradient(135deg,#60A5FA,#3B82F6)',name:'货架移位协助',time:'6月15日 已取消',state:'已取消',unit:'1F-A08'}
+/* 商户名 / 电话与后台 UNIT_MERCHANT 同源，保证两端同单同内容 */
+var UNIT_MERCHANT={
+  '1F-A08':{n:'诸暨××袜业（王××）',p:'137****8891'},
+  '2F-B12':{n:'大唐××服饰（李××）',p:'136****1122'},
+  'YLSC-S08':{n:'义乌××针织（陈××）',p:'137****8810'},
+  'XZFW-3F-06':{n:'晓琳袜业（汤××）',p:'138****6621'}
+};
+
+/* 种子已统一到 wuye-booking-seed.js（BOOK_SEED）；此数组仅作历史参考，不参与渲染 */
+var __legacySeed=[
+ {no:'YY202611-0009',src:'商户端',reporter:'诸暨××袜业（王××）',phone:'137****8891',unit:'1F-A08',
+  type:'保洁',name:'深度保洁（含玻璃）',time:'预约 2026-11-08 14:00-16:00',state:'待确认',photos:0,
+  createdAt:'2026-11-05 16:20',logs:[['2026-11-05 16:20','商户端提交预约（档口 1F-A08）']]},
+ {no:'YY202611-0008',src:'商户端',reporter:'义乌××针织（陈××）',phone:'137****8810',unit:'YLSC-S08',
+  type:'搬运',name:'样品搬运至原料市场物流点',time:'预约 2026-11-07 09:00-11:00',state:'待确认',photos:0,
+  createdAt:'2026-11-05 10:05',logs:[['2026-11-05 10:05','商户端提交预约（档口 YLSC-S08）']]},
+ {no:'YY202611-0007',src:'电话代录',reporter:'大唐××服饰（李××）',phone:'136****1122',unit:'2F-B12',
+  type:'维修',name:'照明线路维修（2 处灯具不亮）',time:'预约 2026-11-06 14:00-15:00',state:'已受理',photos:0,
+  acceptBy:'客服 何××',worker:'李国强',planAt:'2026-11-06 14:00',createdAt:'2026-11-05 09:30',
+  logs:[['2026-11-05 09:30','电话代录登记预约（来电号 136****1122）'],
+    ['2026-11-05 10:00','受理并派单（李国强，预计 2026-11-06 14:00 上门）']]},
+ {no:'YY202611-0006',src:'商户端',reporter:'晓琳袜业（汤××）',phone:'138****6621',unit:'XZFW-3F-06',
+  type:'保洁',name:'办公室定期保洁',time:'预约 2026-11-07 09:00-11:00',state:'已受理',photos:0,
+  acceptBy:'客服 何××',worker:'王丽',planAt:'2026-11-07 09:00',createdAt:'2026-11-04 14:00',
+  logs:[['2026-11-04 14:00','商户端提交预约'],['2026-11-04 15:10','受理并派单（王丽，预计 2026-11-07 09:00 上门）']]},
+ {no:'YY202611-0005',src:'商户端',reporter:'诸暨××袜业（王××）',phone:'137****8891',unit:'1F-A08',
+  type:'维修',name:'照明线路维修',time:'预约 2026-11-03 14:00-16:00',state:'已完成',photos:1,
+  acceptBy:'客服 何××',worker:'张建国',planAt:'2026-11-03 14:00',
+  arriveAt:'2026-11-03 14:10',arriveGeo:'大唐袜业城 A 栋（GPS 命中档口 30m 内）',
+  finishAt:'2026-11-03 16:00',resultDesc:'更换老化镇流器 2 只，线路固定处理，已通电测试正常',
+  fee:'¥180',feeNote:'耗材另计，现金收款',feeSettled:true,
+  star:4,comment:'师傅很专业，就是比约定时间晚到了十分钟',createdAt:'2026-11-02 11:00',
+  logs:[['2026-11-02 11:00','商户端提交预约'],['2026-11-02 13:00','受理并派单（张建国）'],
+    ['2026-11-03 14:10','师傅到场打卡（定位命中）'],['2026-11-03 16:00','完成打卡：更换镇流器 2 只'],
+    ['2026-11-03 16:20','登记费用 ¥180（线下已结）'],['2026-11-04 09:00','商户评价 4 星']]},
+ {no:'YY202611-0004',src:'商户端',reporter:'大唐××服饰（李××）',phone:'136****1122',unit:'2F-B12',
+  type:'搬运',name:'货架移位协助',time:'预约 2026-11-01 09:00-11:00',state:'已完成',photos:1,
+  acceptBy:'客服 何××',worker:'赵伟',planAt:'2026-11-01 09:00',
+  arriveAt:'2026-11-01 09:35',arriveGeo:'大唐袜业城 B 栋（GPS 命中档口 45m 内）',
+  finishAt:'2026-11-01 11:10',resultDesc:'协助货架移位 4 组，打包装保护完成',
+  fee:'¥300',feeNote:'线下转账',feeSettled:false,
+  star:2,comment:'迟到半小时，搬运时磕碰了货架边角',createdAt:'2026-10-31 15:00',
+  logs:[['2026-10-31 15:00','商户端提交预约'],['2026-10-31 16:30','受理并派单（赵伟）'],
+    ['2026-11-01 09:35','师傅到场打卡（迟到 35 分钟）'],['2026-11-01 11:10','完成打卡'],
+    ['2026-11-02 09:00','商户评价 2 星（≤3 星）→ 标记「需回访」并通知主管']]},
+ {no:'YY202611-0003',src:'商户端',reporter:'诸暨××袜业（王××）',phone:'137****8891',unit:'1F-A08',
+  type:'保洁',name:'开业前开荒保洁',time:'预约 2026-10-28 08:00-12:00',state:'已完成',photos:1,
+  acceptBy:'客服 何××',worker:'刘芳',planAt:'2026-10-28 08:00',
+  arriveAt:'2026-10-28 07:55',arriveGeo:'大唐袜业城 A 栋（GPS 命中档口 25m 内）',
+  finishAt:'2026-10-28 11:40',resultDesc:'开荒保洁 120㎡，含玻璃与地面',
+  fee:'¥600',feeNote:'转账已收',feeSettled:true,
+  star:5,comment:'非常干净，人员也很守时',createdAt:'2026-10-26 10:00',
+  logs:[['2026-10-26 10:00','商户端提交预约'],['2026-10-26 11:00','受理并派单（刘芳）'],
+    ['2026-10-28 07:55','师傅到场打卡'],['2026-10-28 11:40','完成打卡'],
+    ['2026-10-29 10:00','商户评价 5 星']]},
+ {no:'YY202611-0002',src:'商户端',reporter:'诸暨××袜业（王××）',phone:'137****8891',unit:'1F-A08',
+  type:'搬运',name:'展品搬运至展位',time:'预约 2026-10-25 14:00-16:00',state:'已取消',photos:0,
+  cancelWhy:'商户当天有事，改约下周（将重新提交）',createdAt:'2026-10-24 09:00',
+  logs:[['2026-10-24 09:00','商户端提交预约'],['2026-10-24 18:00','商户取消预约（改约下周）']]},
+ {no:'YY202611-0010',src:'商户端',reporter:'诸暨××袜业（王××）',phone:'137****8891',unit:'1F-A08',
+  type:'维修',name:'试衣镜固定加固',time:'预约 2026-11-04 10:00-11:00',state:'已完成',photos:1,
+  acceptBy:'客服 何××',worker:'张建国',planAt:'2026-11-04 10:00',
+  arriveAt:'2026-11-04 10:05',arriveGeo:'大唐袜业城 A 栋（GPS 命中档口 20m 内）',
+  finishAt:'2026-11-04 10:55',resultDesc:'镜面加固 2 颗膨胀螺栓，居中校正',
+  fee:'¥60',feeNote:'现金收款',feeSettled:true,star:0,comment:'',createdAt:'2026-11-03 18:10',
+  logs:[['2026-11-03 18:10','商户端提交预约'],['2026-11-03 19:00','受理并派单（张建国）'],
+    ['2026-11-04 10:05','师傅到场打卡（定位命中）'],['2026-11-04 10:55','完成打卡：镜面加固 2 颗膨胀螺栓'],
+    ['2026-11-04 11:10','登记费用 ¥60（线下已结）']]},
+ {no:'YY202611-0011',src:'商户端',reporter:'大唐××服饰（李××）',phone:'136****1122',unit:'2F-B12',
+  type:'维修',name:'卷帘门滑轨异响处理',time:'预约 2026-11-07 10:00-12:00',state:'已受理',photos:0,
+  acceptBy:'客服 何××',worker:'张建国',planAt:'2026-11-07 10:00',createdAt:'2026-11-06 09:10',
+  logs:[['2026-11-06 09:10','商户端提交预约（档口 2F-B12）'],
+    ['2026-11-06 09:40','受理并派单（张建国，预计 2026-11-07 10:00 上门）']]}
 ];
-function getBook(){
-  try{var s=localStorage.getItem('sh_booking');if(s)return JSON.parse(s);}catch(e){}
-  localStorage.setItem('sh_booking',JSON.stringify(SEED_BOOK));
-  return SEED_BOOK.slice();
+
+function getBook(){return bookingAll();}
+function saveBook(l){bookingSave(l);}
+function toast(m){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=m;t.classList.add('on');clearTimeout(toast._t);toast._t=setTimeout(function(){t.classList.remove('on')},1900);}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+function nowStr(){var d=new Date();return TODAY+' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);}
+function stars(n){var h='';for(var i=1;i<=5;i++)h+='<i class="fas fa-star'+(i<=n?'':'')+'" style="font-size:10px;color:'+(i<=n?'#F59E0B':'#E2E8F0')+'"></i>';return h;}
+function isVisit(x){return x.state==='已完成'&&x.star>0&&x.star<=3;}
+
+var STC={'待确认':'background:#FEF3C7;color:#B45309','已受理':'background:#DBEAFE;color:#2563EB','已完成':'background:#DCFCE7;color:#15803D','已取消':'background:#F1F5F9;color:#64748B','异常待处理':'background:#FEF2F2;color:#B91C1C'};
+var TYPEC={'保洁':'background:#FEF3C7;color:#B45309','维修':'background:#DCFCE7;color:#15803D','搬运':'background:#DBEAFE;color:#2563EB'};
+var TYPEICON={'保洁':'fa-broom','维修':'fa-screwdriver-wrench','搬运':'fa-truck-ramp-box'};
+var TYPEBG={'保洁':'linear-gradient(135deg,#FBBF24,#F59E0B)','维修':'linear-gradient(135deg,#34D399,#10B981)','搬运':'linear-gradient(135deg,#60A5FA,#3B82F6)'};
+function st(s,c){return '<span class="st" style="'+(c||STC[s]||STC['已取消'])+'">'+esc(s)+'</span>';}
+
+/* ---------- 表单 ---------- */
+function pick(btn){
+  document.querySelectorAll('.stype').forEach(function(b){b.classList.remove('on')});
+  btn.classList.add('on');curType=btn.textContent.trim();onTimeChange();
 }
-function saveBook(l){localStorage.setItem('sh_booking',JSON.stringify(l));}
-var STC={'待确认':'bg-amber-50 text-amber-500','已完成':'bg-green-50 text-green-600','已取消':'bg-gray-100 text-gray-500'};
+function quickFill(t){var e=document.getElementById('bookDesc');if(e)e.value=t;}
+function slotValue(){
+  var v=document.getElementById('bookSlot').value;
+  if(v!=='custom')return v;
+  var s=document.getElementById('bookStart').value||'', e=document.getElementById('bookEnd').value||'';
+  return (s&&e)?(s+'-'+e):'';
+}
+function onTimeChange(){
+  var v=document.getElementById('bookSlot').value;
+  var box=document.getElementById('customBox');
+  if(box)box.style.display=(v==='custom')?'grid':'none';
+  var tip=document.getElementById('timeTip');if(!tip)return;
+  var d=document.getElementById('bookDate').value;
+  if(!d){tip.textContent='请选择预约日期（今天起 30 天内）';tip.style.color='#B45309';return;}
+  var wd='日一二三四五六'[new Date(d+'T00:00:00').getDay()];
+  var r=slotValue();
+  var msg='将于 '+d+'（周'+wd+'）'+(r?r+' ':'')+'上门；受理派单后按此时段安排师傅';
+  var busy=getBook().filter(function(x){return x.type===curType&&x.state==='已受理'&&(x.time||'').indexOf(d)>-1;}).length;
+  if(busy)msg+='　⚠ 同日已有 '+busy+' 单同类预约，师傅可能需排队';
+  tip.textContent=msg;
+  tip.style.color=busy?'#B45309':'#64748B';
+}
+
+/* ---------- 列表 ---------- */
+function chipsRender(){
+  var all=getBook();
+  document.getElementById('chips').innerHTML=['全部','待确认','已受理','异常待处理','已完成','已取消'].map(function(c){
+    var n=c==='全部'?all.length:all.filter(function(o){return o.state===c;}).length;
+    return '<span class="chip'+(c===stateF?' on':'')+'" onclick="setSF(\''+c+'\')">'+c+(n?' '+n:'')+'</span>';
+  }).join('');
+}
+function setSF(c){stateF=c;chipsRender();renderBook();}
+function wuyeFilterChange(v){unitFilter=v;renderBook();}
+
 function renderBook(){
-  var arr=getBook().filter(function(o){return wuyeFilterMatch(o.unit,unitFilter);});
+  var arr=getBook().filter(function(o){
+    return (stateF==='全部'||o.state===stateF)&&wuyeFilterMatch(o.unit,unitFilter);
+  });
   document.getElementById('bookList').innerHTML=arr.length?arr.map(function(o){
-    return '<a onclick="toast(\''+o.no+' · '+wuyeLabel(o.unit)+'\')" class="card flex items-center gap-3 px-3.5 py-3 border-b border-gray-50 last:border-0 fade-up">'
-      +'<div class="w-10 h-10 rounded-xl flex items-center justify-center text-white flex-shrink-0" style="background:'+o.bg+'"><i class="fas '+o.icon+' text-sm"></i></div>'
-      +'<div class="flex-1 min-w-0"><p class="text-[13px] font-bold text-gray-800">'+o.name+'</p>'
-      +'<p class="text-[10px] text-gray-400 mt-0.5">'+o.time+'</p>'
-      +'<div class="mt-1">'+wuyeTag(o.unit)+'</div></div>'
-      +'<span class="'+(STC[o.state]||STC['已取消'])+' text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0">'+o.state+'</span></a>';
-  }).join(''):'<div class="text-center text-[12px] text-gray-400 py-10">该档口暂无预约记录</div>';
+    var line='';
+    if(o.state==='待确认')line='<span style="color:#B45309">已提交，等待物业受理派单</span>';
+    else if(o.state==='已受理')line='<span style="color:#2563EB">'+esc(o.worker||'待派单')+(o.arriveAt?' 已到场 '+esc(o.arriveAt.slice(5)):(o.planAt?' · 预计 '+esc(o.planAt.slice(5))+' 上门':''))+'</span>';
+    else if(o.state==='已完成')line='<span style="color:#15803D">'+esc(o.finishAt?o.finishAt.slice(5):'已完成')+' 完成'+(o.fee?' · 费用 '+esc(o.fee)+(o.feeSettled?'（线下已结）':'（未结）'):'')+'</span>';
+    else if(o.state==='异常待处理')line='<span style="color:#B91C1C">物业反馈：'+esc(o.exceptionWhy||'现场异常')+'，正在处理</span>';
+    else if(o.state==='已取消')line='<span style="color:#94A3B8">'+esc(o.cancelWhy||'已取消')+'</span>';
+    var rate='';
+    if(o.state==='已完成'){
+      rate=o.star?'<div class="mt-1">'+stars(o.star)+(isVisit(o)?'<span class="text-[9px] ml-1" style="color:#DC2626">需回访</span>':'')+'</div>'
+        :'<a onclick="event.stopPropagation();openRate(\''+o.no+'\')" class="inline-block mt-1.5 text-[10px] font-bold px-2 py-1 rounded-md" style="background:#FFFBEB;color:#B45309;border:1px solid #FCD34D">去评价</a>';
+    }
+    return '<div class="card flex items-start gap-3 px-3.5 py-3 border-b border-gray-50 last:border-0 fade-up" onclick="openBook(\''+o.no+'\')">'
+      +'<div class="w-10 h-10 rounded-xl flex items-center justify-center text-white flex-shrink-0" style="background:'+(TYPEBG[o.type]||TYPEBG['保洁'])+'"><i class="fas '+(TYPEICON[o.type]||'fa-broom')+' text-sm"></i></div>'
+      +'<div class="flex-1 min-w-0"><div class="flex items-center gap-1.5"><p class="text-[13px] font-bold text-gray-800 truncate">'+esc(o.name)+'</p>'+st(o.state)+'</div>'
+      +'<p class="text-[10px] text-gray-400 mt-0.5 num">'+esc(o.time||'—')+'</p>'
+      +'<p class="text-[10px] mt-1">'+line+'</p>'+rate
+      +'<div class="mt-1.5">'+wuyeTag(o.unit)+'</div></div>'
+      +'<i class="fas fa-chevron-right text-[10px] text-gray-300 self-center"></i></div>';
+  }).join(''):'<div class="text-center text-[12px] text-gray-400 py-10">该筛选条件下暂无预约记录</div>';
+}
+
+/* ---------- 详情（分区与后台详情抽屉一致） ---------- */
+function openBook(no){
+  var o=null;getBook().forEach(function(x){if(x.no===no)o=x;});
+  if(!o)return;
+  var h='<p class="text-[15px] font-extrabold text-gray-800 text-center">'+esc(o.no)+'</p>'
+    +'<div class="flex justify-center gap-1.5 mt-2">'+st(o.src||'商户端','background:#DCFCE7;color:#15803D')+st(o.type,TYPEC[o.type])+st(o.state)+'</div>';
+
+  h+='<div class="blk mt-3"><div class="blk-t"><i class="fas fa-calendar-check" style="color:#2563EB"></i>预约信息</div>'
+    +'<div class="kv"><span class="k">来源</span><span class="v">'+esc(o.src||'商户端')+'</span></div>'
+    +'<div class="kv"><span class="k">上报档口</span><span class="v"><b>'+esc(o.unit||'—')+'</b></span></div>'
+    +'<div class="kv"><span class="k">商户</span><span class="v">'+esc(o.reporter||'—')+'　'+esc(o.phone||'')+'</span></div>'
+    +'<div class="kv"><span class="k">服务类型</span><span class="v">'+esc(o.type)+'</span></div>'
+    +'<div class="kv"><span class="k">服务内容</span><span class="v">'+esc(o.name)+'</span></div>'
+    +'<div class="kv"><span class="k">预约时间</span><span class="v">'+esc(o.time||'—')+'</span></div>'
+    +'<div class="kv"><span class="k">提交时间</span><span class="v">'+esc(o.createdAt||'—')+'</span></div>'
+    +(o.cancelWhy?'<div class="kv"><span class="k">取消原因</span><span class="v" style="color:#B91C1C">'+esc(o.cancelWhy)+'</span></div>':'')
+    +'</div>';
+
+  if(o.state==='已受理'||o.state==='已完成'){
+    h+='<div class="blk"><div class="blk-t"><i class="fas fa-user-check" style="color:#2563EB"></i>受理与派单</div>'
+      +'<div class="kv"><span class="k">受理人</span><span class="v">'+(o.acceptBy?esc(o.acceptBy):'<span style="color:#94A3B8">未受理</span>')+'</span></div>'
+      +'<div class="kv"><span class="k">服务师傅</span><span class="v">'+(o.worker?esc(o.worker):'<span style="color:#94A3B8">未派单</span>')+'</span></div>'
+      +'<div class="kv"><span class="k">预计上门</span><span class="v">'+esc(o.planAt||'—')+'</span></div>'
+      +'</div>';
+
+    h+='<div class="blk"><div class="blk-t"><i class="fas fa-camera" style="color:#7C3AED"></i>执行留痕</div>';
+    if(o.arriveAt){
+      h+='<div class="kv"><span class="k">到场打卡</span><span class="v">'+esc(o.arriveAt)+'<br><span style="color:#15803D;font-size:10px">'+esc(o.arriveGeo||'')+'</span></span></div>'
+        +'<div class="kv"><span class="k">完成打卡</span><span class="v">'+(o.finishAt?esc(o.finishAt):'<span style="color:#94A3B8">未完成</span>')+'</span></div>'
+        +'<div class="kv"><span class="k">处理说明</span><span class="v">'+(o.resultDesc?esc(o.resultDesc):'<span style="color:#94A3B8">尚未提交</span>')+'</span></div>';
+      if(o.photos)h+='<div class="mt-2"><div class="ph-big"><i class="fas fa-image"></i>完工照片 '+o.photos+' 张<span style="font-size:9px;color:#0C4A6E">水印 '+esc(o.finishAt||'')+' · '+esc(o.unit||'')+'</span></div></div>';
+    }else{
+      h+='<p class="text-[11px]" style="color:#94A3B8">师傅尚未到场，打卡与拍照由师傅端提交后自动回填。</p>';
+    }
+    h+='</div>';
+  }
+
+  if(o.state==='异常待处理'){
+    h+='<div class="blk"><div class="blk-t"><i class="fas fa-triangle-exclamation" style="color:#B91C1C"></i>现场异常（物业反馈）</div>'
+      +'<div class="kv"><span class="k">异常原因</span><span class="v" style="color:#B91C1C">'+esc(o.exceptionWhy||'—')+'</span></div>'
+      +(o.exceptionNote?'<div class="kv"><span class="k">补充说明</span><span class="v">'+esc(o.exceptionNote)+'</span></div>':'')
+      +'<div class="kv"><span class="k">上报时间</span><span class="v">'+esc(o.exceptionAt||'—')+'</span></div>'
+      +(o.exceptionGeo?'<div class="kv"><span class="k">上报定位</span><span class="v" style="color:#B45309">'+esc(o.exceptionGeo)+'</span></div>':'')
+      +'</div>'
+      +'<p class="text-[10px] mt-1.5" style="color:#94A3B8">物业正在改派师傅或重新排期，处理后本单会更新状态。</p>';
+  }
+
+  if(o.state==='已完成'){
+    h+='<div class="blk"><div class="blk-t"><i class="fas fa-coins" style="color:#F59E0B"></i>费用（选填 · 线下结算）</div>';
+    if(o.fee){
+      h+='<div class="kv"><span class="k">费用金额</span><span class="v" style="font-weight:600">'+esc(o.fee)+'</span></div>'
+        +'<div class="kv"><span class="k">费用说明</span><span class="v">'+esc(o.feeNote||'—')+'</span></div>'
+        +'<div class="kv"><span class="k">结算状态</span><span class="v">'+(o.feeSettled?'<span class="st" style="background:#DCFCE7;color:#15803D">线下已结</span>':'<span class="st" style="background:#FEF3C7;color:#B45309">待线下结算</span>')+'</span></div>';
+    }else{
+      h+='<p class="text-[11px]" style="color:#94A3B8">未登记费用（选填）。费用由物业与商户线下结算，不进维修资金台账、不生成账单。</p>';
+    }
+    h+='</div>';
+
+    h+='<div class="blk"><div class="blk-t"><i class="fas fa-star" style="color:#F59E0B"></i>商户评价（星级 + 留言）</div>';
+    if(o.star){
+      h+='<div class="kv"><span class="k">满意度</span><span class="v">'+stars(o.star)+'　'+o.star+' 星'+(isVisit(o)?'　<span class="st" style="background:#FEE2E2;color:#B91C1C">≤3 星 · 需回访</span>':'')+'</span></div>'
+        +'<div class="kv"><span class="k">评价留言</span><span class="v">'+esc(o.comment||'—')+'</span></div>';
+    }else{
+      h+='<p class="text-[11px]" style="color:#94A3B8">尚未评价。可点击下方按钮评价（≤3 星物业将安排回访）。</p>';
+    }
+    h+='</div>';
+  }
+
+  if(o.logs&&o.logs.length){
+    h+='<div class="blk"><div class="blk-t"><i class="fas fa-clock-rotate-left" style="color:#64748B"></i>流程时间轴</div>'
+      +o.logs.map(function(l){return '<div class="flex gap-2 text-[10px] py-1"><span class="num" style="color:#94A3B8;flex-shrink:0">'+esc(l[0])+'</span><span style="color:#475569">'+esc(l[1])+'</span></div>';}).join('')
+      +'</div>';
+  }
+
+  if(o.state==='已完成'&&!o.star){
+    h+='<button onclick="closeSheet(\'detailSheet\');openRate(\''+o.no+'\')" class="w-full py-3 mt-1 rounded-xl text-white text-[13px] font-bold" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)">去评价</button>';
+  }
+  document.getElementById('detailBody').innerHTML=h;
+  document.getElementById('mask').classList.add('on');
+  document.getElementById('detailSheet').classList.add('on');
+}
+
+/* ---------- 评价 ---------- */
+function openRate(no){
+  curNo=no;pickedStar=0;
+  document.getElementById('rateNo').textContent=no;
+  document.getElementById('rateCmt').value='';
+  paintStar();
+  document.getElementById('mask2').classList.add('on');
+  document.getElementById('rateSheet').classList.add('on');
+}
+function setStar(n){pickedStar=n;paintStar();}
+function paintStar(){
+  var h='';
+  for(var i=1;i<=5;i++)h+='<i class="fas fa-star'+(i<=pickedStar?' on':'')+'" onclick="setStar('+i+')"></i>';
+  document.getElementById('starPick').innerHTML=h;
+  var hint=document.getElementById('starHint');
+  hint.textContent=pickedStar?(pickedStar+' 星'+(pickedStar<=3?' · 提交后物业将安排回访':'')):'请选择 1–5 星';
+  hint.style.color=(pickedStar&&pickedStar<=3)?'#DC2626':'#94A3B8';
+}
+function doRate(){
+  var cmt=document.getElementById('rateCmt').value.trim();
+  if(!pickedStar){toast('请先选择星级');return;}
+  if(!cmt){toast('请填写评价留言');return;}
+  var list=getBook(),hit=null;
+  list.forEach(function(o){if(o.no===curNo)hit=o;});
+  if(!hit){toast('预约单不存在');return;}
+  hit.star=pickedStar;hit.comment=cmt;
+  hit.logs=hit.logs||[];
+  hit.logs.push([nowStr(),'商户评价 '+pickedStar+' 星'+(pickedStar<=3?'（≤3 星）→ 标记「需回访」':'')]);
+  saveBook(list);
+  closeSheet('rateSheet');
+  chipsRender();renderBook();
+  toast('评价已提交'+(pickedStar<=3?'，物业将安排回访':''));
+}
+
+/* ---------- 提交 ---------- */
+function nextNo(list){
+  var n=100+list.length, no;
+  do{ no='YY202611-'+('00'+n).slice(-4); n++; }
+  while(list.some(function(o){return o.no===no;}));
+  return no;
 }
 function submitBook(){
   var desc=document.getElementById('bookDesc').value.trim();
+  var date=document.getElementById('bookDate').value;
+  var slot=document.getElementById('bookSlot').value;
+  if(slot==='custom'){
+    var s=document.getElementById('bookStart').value||'', e=document.getElementById('bookEnd').value||'';
+    if(!s||!e){toast('自定义时段需填写开始与结束时间');return;}
+    if(e<=s){toast('自定义时段结束需晚于开始');return;}
+    slot=s+'-'+e;
+  }
+  if(!date){toast('请选择预约日期（今天起 30 天内）');return;}
+  if(date<TODAY){toast('预约日期不能早于今天');return;}
+  if(date>MAX_DATE){toast('最多可预约 30 天内，请调整日期');return;}
+  if(!slot){toast('请选择预约时段');return;}
+  if(desc.length<4){toast('服务内容至少 4 个字（当前 '+desc.length+' 字）');return;}
+
   var u=wuyeCur();
+  var mm=UNIT_MERCHANT[u.code]||{n:'商户端',p:''};
   var list=getBook();
-  var no='YY202610-'+('00'+(22+list.length)).slice(-4);
-  list.unshift({no:no,type:curType,icon:curType==='保洁'?'fa-broom':(curType==='维修'?'fa-screwdriver-wrench':'fa-truck-ramp-box'),
-    bg:'linear-gradient(135deg,#60A5FA,#3B82F6)',name:desc||(curType+'服务'),time:curDay+' · 待物业确认',state:'待确认',unit:u.code});
+  list.unshift({no:nextNo(list), src:'商户端', reporter:mm.n, phone:mm.p, unit:u.code,
+    type:curType, name:desc, time:'预约 '+date+' '+slot, state:'待确认', photos:0,
+    createdAt:nowStr(), logs:[[nowStr(),'商户端提交预约（档口 '+u.code+'）']]});
   saveBook(list);
   document.getElementById('bookDesc').value='';
-  renderBook();
-  toast('预约已提交：'+u.code+' · '+curType+'，物业将电话确认上门时间');
+  stateF='全部';chipsRender();renderBook();
+  toast('预约已提交：'+u.code+' · '+curType+' · '+date+' '+slot);
 }
-function wuyeFilterChange(v){unitFilter=v;renderBook();}
+
+function closeSheet(id){
+  document.getElementById(id).classList.remove('on');
+  document.getElementById('mask').classList.remove('on');
+  document.getElementById('mask2').classList.remove('on');
+}
+
+/* ---------- init ---------- */
 document.getElementById('wuUnitBox').innerHTML=wuyePickerHtml({title:'预约档口'});
 document.getElementById('wuFilterBox').innerHTML=wuyeFilterHtml({cur:WUYE_ALL});
 wuyeFill();
-renderBook();
+chipsRender();renderBook();onTimeChange();
 function wuyeOnUnitChange(u){toast('申报档口已切换为 '+u.code+' · '+u.name);}
 </script>
 </body>

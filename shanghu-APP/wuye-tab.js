@@ -48,8 +48,7 @@ function wuyeEnsureStaff() {
 /* 待办数（报修 / 问题 / 投诉），供 Tab 角标。v1.5：巡检、整改已下线，不再统计 */
 function wuyeTodoCount() {
   try {
-    var db = JSON.parse(localStorage.getItem(WUYE_DB_KEY) || 'null');
-    if (!db) return 0;
+    var db = JSON.parse(localStorage.getItem(WUYE_DB_KEY) || 'null') || { bx: [], wt: [], ts: [] };
     var mgr = wuyeIsManager();
     var n = 0;
     (db.bx || []).forEach(function (o) {
@@ -57,6 +56,14 @@ function wuyeTodoCount() {
     });
     (db.wt || []).forEach(function (o) { if (o.state === '待处理') n++; });
     (db.ts || []).forEach(function (o) { if (o.state === '待受理' || o.state === '处理中') n++; });
+    /* 服务预约（Y-22）：后台受理派单后进入「已受理」，派给我的且未到场的计入待办 */
+    try {
+      var bk = (typeof bookingAll === 'function') ? bookingAll() : (JSON.parse(localStorage.getItem('sh_booking_v4') || '[]') || []);
+      var me = (typeof wuyeMe === 'function') ? wuyeMe().name : '';
+      bk.forEach(function (o) {
+        if (o && o.state === '已受理' && !o.arriveAt && (!o.worker || !me || o.worker === me)) n++;
+      });
+    } catch (e) {}
     return n;
   } catch (e) { return 0; }
 }

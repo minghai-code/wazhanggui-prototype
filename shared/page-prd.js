@@ -73,6 +73,7 @@
     'yunying-PC/property-repair.html':     ['07-物业服务/01-报修工单', '', '报修工单'],
     'yunying-PC/property-request.html':    ['07-物业服务/02-交办单与核销', '', '交办单与核销'],
     'yunying-PC/property-budget.html':     ['07-物业服务/03-维修资金台账', '', '维修资金台账'],
+    'yunying-PC/property-service.html':    ['07-物业服务/04-服务预约', '', '服务预约'],
     'yunying-PC/property-issue.html':      ['07-物业服务/05-问题上报', '', '问题上报'],
     'yunying-PC/property-complaint.html':  ['07-物业服务/07-投诉建议', '', '投诉建议'],
     'yunying-PC/property-material.html':   ['07-物业服务/08-物资与供应商库', '', '物资与供应商库'],

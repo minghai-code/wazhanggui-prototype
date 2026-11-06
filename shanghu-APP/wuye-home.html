@@ -86,8 +86,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <div class="px-3 mt-3">
   <div class="bg-white rounded-2xl shadow-soft px-2.5 py-4">
     <div class="flex items-center gap-1.5 mb-3"><div class="w-1 h-3.5 rounded-full" style="background:#0EA5E9"></div><span class="text-[12px] font-bold text-gray-800">快捷操作</span></div>
-    <div class="grid grid-cols-4 gap-y-4">
+    <div class="grid grid-cols-5 gap-y-4">
       <a href="wuye-repair.html" class="flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#38BDF8,#0EA5E9)"><i class="fas fa-screwdriver-wrench text-lg"></i></div><span class="text-[10px] text-gray-700 font-medium">我的报修单</span></a>
+      <a href="wuye-service.html" class="flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#7DD3FC,#0284C7)"><i class="fas fa-calendar-check text-lg"></i></div><span class="text-[10px] text-gray-700 font-medium">服务预约</span></a>
       <a href="wuye-issue.html" class="flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)"><i class="fas fa-camera-retro text-lg"></i></div><span class="text-[10px] text-gray-700 font-medium">随手报问题</span></a>
       <a href="wuye-complaint.html" class="flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#2DD4BF,#0D9488)"><i class="fas fa-comment-dots text-lg"></i></div><span class="text-[10px] text-gray-700 font-medium">投诉处置</span></a>
       <a href="wuye-mine.html" class="flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#A78BFA,#7C3AED)"><i class="fas fa-chart-simple text-lg"></i></div><span class="text-[10px] text-gray-700 font-medium">我的工作量</span></a>
@@ -122,6 +123,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
   </div>
 </div>
 
+<script src="wuye-booking-seed.js"></script>
 <script src="wuye-tab.js"></script>
 <script src="wuye-data.js"></script>
 <script>
@@ -196,6 +198,16 @@ function paintTodo(){
       arr.push({ p: 3, icon: 'fa-camera-retro', color: '#F59E0B', bg: '#FFFBEB', t: '问题上待处置 · ' + o.no, s: o.area + ' · ' + o.type + '（' + o.owner + '）', tag: '待处理', h: 'wuye-issue.html?no=' + o.no });
     }
   });
+  /* 服务预约（Y-22 移交）：已受理且未到场的单进入待办，跳师傅端上门打卡 */
+  try {
+    var bk = (typeof bookingAll === 'function') ? bookingAll() : (JSON.parse(localStorage.getItem('sh_booking_v4') || '[]') || []);
+    var me = (typeof wuyeMe === 'function') ? wuyeMe().name : '';
+    bk.forEach(function(o){
+      if (o.state === '已受理' && !o.arriveAt && (!o.worker || !me || o.worker === me)) {
+        arr.push({ p: 3.5, icon: 'fa-calendar-check', color: '#0284C7', bg: '#F0F9FF', t: '服务预约待上门 · ' + o.no, s: (o.unit || '') + ' · ' + o.type + ' · ' + (o.planAt || o.time || ''), tag: '已受理', h: 'wuye-service.html' });
+      }
+    });
+  } catch (e) {}
 
   arr.sort(function(a, b){ return a.p - b.p; });
   if (!arr.length) {
