@@ -16,8 +16,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 .card:active{transform:scale(.98)}
 .fade-up{animation:fadeUp .4s ease both}
 @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:300;opacity:0;transition:.2s;max-width:80%;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
 </style>
-<!-- Tailwind 静态样式：本地引用（不再依赖 cdn.tailwindcss.com）；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
 <link rel="stylesheet" href="tailwind.css">
 </head>
 <body>
@@ -48,64 +49,90 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <div class="px-3 mt-2">
   <div class="bg-red-50 border border-red-100 rounded-2xl p-3.5 flex items-center gap-3">
     <div class="w-11 h-11 rounded-xl flex items-center justify-center text-white flex-shrink-0" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)"><i class="fas fa-circle-exclamation text-lg"></i></div>
-    <div class="flex-1"><p class="text-[13px] font-bold text-red-600">您有1笔账单已逾期</p><p class="text-[10px] text-red-500 mt-0.5">逾期可能影响正常经营，请尽快缴费</p></div>
+    <div class="flex-1"><p class="text-[13px] font-bold text-red-600">您有1笔账单待缴</p><p class="text-[10px] text-red-500 mt-0.5" id="overdueTip">逾期可能影响正常经营，请尽快缴费</p></div>
   </div>
 </div>
 
-<!-- 待缴账单 -->
+<!-- 申报档口 + 待缴账单（按所选档口联动） -->
 <div class="px-3 mt-3">
-  <p class="text-[12px] font-bold text-gray-800 mb-2 px-1">待缴账单</p>
-  <div class="bg-white rounded-2xl shadow-soft overflow-hidden" style="border-left:3px solid #EF4444">
-    <div class="px-3.5 py-3.5">
-      <div class="flex items-center justify-between mb-2.5">
-        <div class="flex items-center gap-2">
-          <div class="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center"><i class="fas fa-house text-red-500 text-sm"></i></div>
-          <div><p class="text-[13px] font-bold text-gray-800">10月商铺租金</p><p class="text-[10px] text-gray-400"><span data-sh="shop">1F-A08</span> · <span data-sh="area">50㎡</span></p></div>
-        </div>
-        <span class="bg-red-100 text-red-500 text-[9px] font-bold px-1.5 py-0.5 rounded">逾期3天</span>
-      </div>
-      <div class="grid grid-cols-2 gap-2 bg-gray-50 rounded-lg p-2.5 text-[11px]">
-        <div><span class="text-gray-400">账单金额</span><p class="text-[16px] font-extrabold text-red-500 num mt-0.5">¥12,800.00</p></div>
-        <div><span class="text-gray-400">应缴日期</span><p class="text-[12px] font-semibold text-gray-700 num mt-0.5">2026-07-17</p></div>
-      </div>
-      <div class="flex gap-2 mt-3">
-        <a href="payment-records.html" class="flex-1 py-2.5 rounded-lg border border-gray-200 text-[12px] text-gray-600 text-center">账单详情</a>
-        <button class="flex-[1.5] py-2.5 rounded-lg text-white text-[12px] font-bold" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)"><i class="fab fa-weixin text-[11px]"></i> 立即缴费</button>
-      </div>
-    </div>
+  <div id="wuUnitBox"></div>
+  <div class="flex items-center justify-between mb-2 px-1">
+    <p class="text-[12px] font-bold text-gray-800">待缴账单 <span class="text-[10px] text-gray-400 font-normal">（按所选档口）</span></p>
+    <span class="text-[10px] text-gray-400 num" id="billHint"></span>
   </div>
+  <div id="billBox"></div>
 </div>
 
-<!-- 缴费记录 -->
+<!-- 缴费记录（全部档口） -->
 <div class="px-3 mt-4 mb-6">
-  <div class="flex items-center justify-between mb-2">
-    <p class="text-[12px] font-bold text-gray-800 px-1">近期缴费记录</p>
+  <div class="flex items-center justify-between mb-2 px-1">
+    <p class="text-[12px] font-bold text-gray-800">近期缴费记录 <span class="text-[10px] text-gray-400 font-normal">（全部档口）</span></p>
     <a href="payment-records.html" class="text-[10px] text-primary">全部 ›</a>
   </div>
-  <div class="bg-white rounded-2xl shadow-soft overflow-hidden">
-    <div class="flex items-center gap-3 px-3.5 py-3 border-b border-gray-50">
-      <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center flex-shrink-0"><i class="fas fa-bolt text-emerald-500 text-xs"></i></div>
-      <div class="flex-1 min-w-0"><p class="text-[12px] font-medium text-gray-700">9月电费</p><p class="text-[9px] text-gray-400 num">2026-07-05 · 微信支付</p></div>
-      <span class="text-[12px] font-bold text-gray-700 num">¥860.00</span>
-    </div>
-    <div class="flex items-center gap-3 px-3.5 py-3 border-b border-gray-50">
-      <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0"><i class="fas fa-house text-primary text-xs"></i></div>
-      <div class="flex-1 min-w-0"><p class="text-[12px] font-medium text-gray-700">9月商铺租金</p><p class="text-[9px] text-gray-400 num">2026-07-03 · 微信支付</p></div>
-      <span class="text-[12px] font-bold text-gray-700 num">¥12,800.00</span>
-    </div>
-    <div class="flex items-center gap-3 px-3.5 py-3">
-      <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0"><i class="fas fa-broom text-amber-500 text-xs"></i></div>
-      <div class="flex-1 min-w-0"><p class="text-[12px] font-medium text-gray-700">3季度物业费</p><p class="text-[9px] text-gray-400 num">2026-07-01 · 微信支付</p></div>
-      <span class="text-[12px] font-bold text-gray-700 num">¥1,500.00</span>
-    </div>
-  </div>
+  <div class="bg-white rounded-2xl shadow-soft overflow-hidden" id="recentBox"></div>
 </div>
 
+<div class="toast" id="toast"><span id="toastTxt">操作成功</span></div>
+<script src="wuye-units.js"></script>
 <script>
-// 商户档案（只读回显，模拟 04 商户管理主档；本端不建后端同步）
-var SH_PROFILE={type:'线上兼档口商户',shop:'1F-A08',area:'50㎡',floor:'A区1层',leaseEnd:'2028.08.31',category:'男袜专营'};
-function shFill(){document.querySelectorAll('[data-sh]').forEach(function(el){var k=el.getAttribute('data-sh');if(SH_PROFILE[k]!=null)el.textContent=SH_PROFILE[k];});}
-shFill();
+var BILLS={
+ '1F-A08':{name:'10月商铺租金',amount:'¥12,800.00',due:'2026-07-17',overdue:'逾期3天'},
+ '2F-B12':{name:'10月商铺租金',amount:'¥9,600.00',due:'2026-07-17',overdue:'逾期1天'},
+ 'YLSC-S08':{name:'10月店面租金',amount:'¥18,000.00',due:'2026-07-20',overdue:'待缴'},
+ 'XZFW-3F-06':{name:'10月办公室物业费',amount:'¥2,400.00',due:'2026-07-25',overdue:'待缴'}
+};
+var PAY_RECORDS=[
+ {type:'9月电费',icon:'fa-bolt',cls:'bg-emerald-50 text-emerald-500',date:'2026-07-05',amount:'¥860.00',unit:'1F-A08'},
+ {type:'9月商铺租金',icon:'fa-house',cls:'bg-blue-50 text-blue-600',date:'2026-07-03',amount:'¥12,800.00',unit:'1F-A08'},
+ {type:'3季度物业费',icon:'fa-broom',cls:'bg-amber-50 text-amber-500',date:'2026-07-01',amount:'¥1,500.00',unit:'2F-B12'},
+ {type:'9月店面租金',icon:'fa-store',cls:'bg-blue-50 text-blue-600',date:'2026-06-28',amount:'¥18,000.00',unit:'YLSC-S08'},
+ {type:'9月水电费',icon:'fa-faucet-drip',cls:'bg-emerald-50 text-emerald-500',date:'2026-06-25',amount:'¥1,240.00',unit:'YLSC-S08'},
+ {type:'3季度办公室物业费',icon:'fa-building',cls:'bg-amber-50 text-amber-500',date:'2026-06-20',amount:'¥2,400.00',unit:'XZFW-3F-06'}
+];
+var toastTimer;
+function toast(m){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=m;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},1800);}
+
+function paintBill(){
+  var u=wuyeCur(),b=BILLS[u.code]||BILLS['1F-A08'];
+  var over=b.overdue.indexOf('逾期')===0;
+  document.getElementById('overdueTip').textContent=over
+    ? '「'+u.code+'」有 1 笔账单已'+b.overdue+'，请尽快缴费'
+    : '「'+u.code+'」有 1 笔账单待缴，应缴日期 '+b.due;
+  document.getElementById('billHint').textContent=u.code+' · '+u.area;
+  document.getElementById('billBox').innerHTML='<div class="bg-white rounded-2xl shadow-soft overflow-hidden" style="border-left:3px solid #EF4444">'
+    +'<div class="px-3.5 py-3.5">'
+    +'<div class="flex items-center justify-between mb-2.5">'
+    +'<div class="flex items-center gap-2">'
+    +'<div class="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center"><i class="fas fa-house text-red-500 text-sm"></i></div>'
+    +'<div><p class="text-[13px] font-bold text-gray-800">'+b.name+'</p>'
+    +'<p class="text-[10px] text-gray-400"><span class="num">'+u.code+'</span> · '+u.area+' · '+u.name+'</p></div></div>'
+    +'<span class="bg-red-100 text-red-500 text-[9px] font-bold px-1.5 py-0.5 rounded">'+b.overdue+'</span></div>'
+    +'<div class="mb-1">'+wuyeTag(u.code)+'</div>'
+    +'<div class="grid grid-cols-2 gap-2 bg-gray-50 rounded-lg p-2.5 text-[11px] mt-2">'
+    +'<div><span class="text-gray-400">账单金额</span><p class="text-[16px] font-extrabold text-red-500 num mt-0.5">'+b.amount+'</p></div>'
+    +'<div><span class="text-gray-400">应缴日期</span><p class="text-[12px] font-semibold text-gray-700 num mt-0.5">'+b.due+'</p></div></div>'
+    +'<div class="flex gap-2 mt-3">'
+    +'<a href="payment-records.html" class="flex-1 py-2.5 rounded-lg border border-gray-200 text-[12px] text-gray-600 text-center">账单详情</a>'
+    +'<a onclick="payNow()" class="flex-[1.5] py-2.5 rounded-lg text-white text-[12px] font-bold text-center" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)"><i class="fab fa-weixin text-[11px]"></i> 立即缴费</a>'
+    +'</div></div></div>';
+}
+function payNow(){
+  var u=wuyeCur();
+  toast('已发起支付：'+u.code+' · '+(BILLS[u.code]||BILLS['1F-A08']).name+'（演示）');
+}
+function paintRecent(){
+  document.getElementById('recentBox').innerHTML=PAY_RECORDS.slice(0,4).map(function(r){
+    return '<div class="flex items-center gap-3 px-3.5 py-3 border-b border-gray-50 last:border-0">'
+      +'<div class="w-8 h-8 rounded-lg '+r.cls+' flex items-center justify-center flex-shrink-0"><i class="fas '+r.icon+' text-xs"></i></div>'
+      +'<div class="flex-1 min-w-0"><p class="text-[12px] font-medium text-gray-700">'+r.type+'</p>'
+      +'<div class="flex items-center gap-1.5 mt-1 flex-wrap"><span class="text-[9px] text-gray-400 num">'+r.date+' · 微信支付</span>'+wuyeTag(r.unit)+'</div></div>'
+      +'<span class="text-[12px] font-bold text-gray-700 num">'+r.amount+'</span></div>';
+  }).join('');
+}
+document.getElementById('wuUnitBox').innerHTML=wuyePickerHtml({title:'缴费档口'});
+wuyeFill();
+paintBill();paintRecent();
+function wuyeOnUnitChange(u){paintBill();toast('已切换至 '+u.code+' · '+u.name);}
 </script>
 </body>
 </html>

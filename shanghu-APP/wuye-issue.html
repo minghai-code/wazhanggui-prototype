@@ -36,6 +36,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 .ph.after{background:linear-gradient(135deg,#6EE7B7,#10B981)}
 </style>
 <link rel="stylesheet" href="tailwind.css">
+<script src="wuye-units.js"></script>
 </head>
 <body>
 
@@ -110,6 +111,7 @@ function paintList(){
       + '<span><i class="fas fa-location-dot mr-0.5"></i>' + o.area + '</span>'
       + '<span class="font-bold" style="color:' + ownC + '">' + o.owner + '</span>'
       + (o.bxNo ? '<span style="color:#2563EB">· 转报修 ' + o.bxNo + '</span>' : '') + '</div>'
+      + '<div class="mt-1.5">' + wuyeTag(o.unit) + '</div>'
       + '<div class="flex items-center justify-between mt-1.5"><span class="text-[9px] text-gray-400">' + o.reporter + ' · ' + o.at + '</span>'
       + '<span class="text-[9px] text-gray-400">' + (tabOf(o) === '待处理' ? '物业处理中' : tabOf(o) === '已转报修' ? '已生成报修单' : '已处置') + '</span></div>'
       + '</div>';
@@ -177,7 +179,8 @@ function openNew(){
     '<div class="sheet-bar"></div>'
     + '<p class="text-[15px] font-extrabold text-gray-900 text-center">上报物业问题</p>'
     + '<p class="text-[10px] text-gray-400 text-center mt-1">照片必传 · 提交后进入物业问题清单</p>'
-    + '<div class="mt-3"><label class="lbl">区域 / 档口 <b>*</b></label><input id="nwArea" class="inp" value="' + (isStaff ? 'A 栋 3F 通道' : 'A 栋 3F A3-118 门前') + '" placeholder="楼栋 + 楼层 + 档口"></div>'
+    + (isStaff ? '' : '<div class="mt-3" id="wuUnitBox">' + wuyePickerHtml({ title: '上报档口' }) + '</div>')
+    + '<div class="mt-3"><label class="lbl">区域 / 档口 <b>*</b></label><input id="nwArea" class="inp" value="' + (isStaff ? 'A 栋 3F 通道' : wuyeCur().venue + ' ' + wuyeCur().loc + ' ' + wuyeCurCode()) + '" placeholder="楼栋 + 楼层 + 档口"></div>'
     + '<div class="mt-3"><label class="lbl">问题类型 <b>*</b></label><div class="flex flex-wrap gap-1.5" id="nwTypes">'
     + types.map(function (t) { return '<span class="tag-opt' + (t === types[0] ? ' on' : '') + '" onclick="pickType(this)">' + t + '</span>'; }).join('') + '</div></div>'
     + '<div class="mt-3"><label class="lbl">问题描述 <b>*</b>（≥5 字）</label><textarea id="nwDesc" class="inp" rows="3" placeholder="例：通道堆放纸箱约 1.5m 宽，消防栓被遮挡"></textarea></div>'
@@ -224,13 +227,20 @@ function doNew(){
   db.wt.unshift({
     no: no, area: area, type: nwType, sev: nwSev, desc: desc, owner: nwOwner,
     state: '待处理', reporter: who, at: nowStr(), photos: nwPhotos,
-    from: isStaff ? '随手报问题' : '商户端反馈', unit: area.split(' ').pop(),
+    from: isStaff ? '随手报问题' : '商户端反馈',
+    unit: isStaff ? area.split(' ').pop() : wuyeCurCode(),
     rectNo: '', bxNo: '', result: null,
     logs: [[nowStr(), who + ' 提交（照片 ' + nwPhotos + ' 张）· 责任方=' + nwOwner + ' · 待物业处置']]
   });
   wuyeSave(db); closeSheet('nwSheet');
-  toast('已提交 ' + no + '，物业会在后台处置');
+  toast('已提交 ' + no + (isStaff ? '' : '（' + wuyeCurCode() + '）') + '，物业会在后台处置');
   filter = '待处理'; paintChips(); paintList();
+}
+
+/* 商户侧切换档口时，自动带出该实体的区域 / 档口描述 */
+function wuyeOnUnitChange(u){
+  var a = document.getElementById('nwArea');
+  if (a) a.value = u.venue + ' ' + u.loc + ' ' + u.code;
 }
 
 /* ---------- init ---------- */

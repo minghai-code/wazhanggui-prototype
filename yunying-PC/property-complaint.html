@@ -63,7 +63,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
         <span class="tag" style="background:#FEF3C7;color:#B45309">24h 未受理即升级</span>
         <span class="tag" style="background:#FFEDE7;color:#E63E20">≤3 星自动回访</span>
       </div>
-      <p class="text-[12px] text-gray-400 mt-1">收敛商户与买家的不满，并通过转单反哺物业：<b>维修质量 → 转报修（BX）</b>、<b>秩序问题 → 转整改（ZG）</b>。电话代录<b>必填来电号码</b>；满意度 ≤3 星<b>自动回访</b>（退回处理中）。</p>
+      <p class="text-[12px] text-gray-400 mt-1">收敛商户与买家的不满，并通过转单反哺物业：<b>维修质量 → 转报修（BX）</b>；<b>秩序问题由物业上门督办</b>（整改单据已下线，不生成 ZG）。电话代录<b>必填来电号码</b>；满意度 ≤3 星<b>自动回访</b>（退回处理中）。</p>
     </div>
     <div class="flex items-center gap-2">
       <button class="btn btn-ghost" onclick="toast('已导出投诉台账（含满意度分布、超时统计、转单关联）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
@@ -82,10 +82,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
     <span class="py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600" onclick="switchTab('已升级',this)">已升级 <span class="text-[11px]" id="c-up"></span></span>
   </div>
 
+  <!-- 筛选：档口编号并入关键词搜索框，不再单设几百项档口下拉 -->
   <div class="bg-white rounded-xl border border-gray-100 p-3 mb-4 flex items-center gap-3 flex-wrap">
-    <input id="f-kw" type="text" placeholder="投诉编号 / 投诉人 / 内容" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none w-56">
+    <input id="f-kw" type="text" placeholder="投诉编号 / 投诉人 / 档口 / 内容" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none w-56">
     <select id="f-src" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
-      <option value="">全部来源</option><option>商户端</option><option>买家端</option><option>电话代录</option><option>巡检转</option>
+      <option value="">全部来源</option><option>商户端</option><option>买家端</option><option>电话代录</option>
     </select>
     <select id="f-cat" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
       <option value="">全部分类</option><option>维修质量</option><option>秩序问题</option><option>服务态度</option><option>收费争议</option><option>环境卫生</option><option>其他</option>
@@ -101,13 +102,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
       <div class="flex items-center gap-2">
         <span class="text-[13px] font-bold text-[#1F2430]">投诉清单</span>
         <span class="text-[12px] text-[#94A3B8]" id="cnt">共 0 条</span>
+        <span class="text-[11px] text-[#2563EB]" id="syncTip"></span>
       </div>
-      <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>转报修 / 转整改后原投诉保留，可回看原内容</span>
+      <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>转报修后原投诉保留，可回看原内容</span>
     </div>
     <div class="overflow-x-auto">
       <table class="w-full tb" style="min-width:1280px">
         <thead><tr>
-          <th>投诉编号</th><th>来源</th><th>投诉人</th><th>被投诉对象</th><th>分类</th><th>内容摘要</th><th>状态</th><th>超时</th><th class="text-center">操作</th>
+          <th>投诉编号</th><th>来源</th><th>上报档口</th><th>投诉人</th><th>被投诉对象</th><th>分类</th><th>内容摘要</th><th>状态</th><th>超时</th><th class="text-center">操作</th>
         </tr></thead>
         <tbody id="tb"></tbody>
       </table>
@@ -119,9 +121,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 <div class="drawer" id="drawer"></div>
 <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
 
+<script src="../shared/wuye-sync.js"></script>
+<script src="../shared/select-options.js"></script>
 <script>
 /* ================= 数据 ================= */
-var SRC=['商户端','买家端','电话代录','巡检转'];
+var SRC=['商户端','买家端','电话代录'];
 var CAT=['维修质量','秩序问题','服务态度','收费争议','环境卫生','其他'];
 var OBJ=['商户','物业人员','公共区域','平台'];
 var STC={'待受理':'background:#FEF3C7;color:#B45309','处理中':'background:#DBEAFE;color:#2563EB',
@@ -130,55 +134,47 @@ var STC={'待受理':'background:#FEF3C7;color:#B45309','处理中':'background:
 var TS=[
   {no:'TS202610-0062', src:'商户端', by:'诸暨××袜业（王××）', phone:'138****6721', obj:'物业人员', cat:'维修质量',
    desc:'报修 3 天了没人来处理，打物业电话也没人接', photos:0, state:'待受理', over:6,
-   acceptBy:'', handler:'', reply:'', star:0, tags:[], cmt:'', bxNo:'', zgNo:'',
-   createdAt:'2026-10-27 08:30', logs:[['2026-10-27 08:30','商户端提交投诉']]},
+   acceptBy:'', handler:'', reply:'', star:0, tags:[], cmt:'', bxNo:'',   createdAt:'2026-10-27 08:30', logs:[['2026-10-27 08:30','商户端提交投诉']]},
 
   {no:'TS202610-0061', src:'电话代录', by:'买家（李女士）', phone:'139****2233', obj:'商户', cat:'服务态度',
    desc:'到店询价被店员冷落，态度恶劣', photos:0, state:'待受理', over:2,
-   acceptBy:'', handler:'', reply:'', star:0, tags:[], cmt:'', bxNo:'', zgNo:'',
-   createdAt:'2026-10-27 10:15', logs:[['2026-10-27 10:15','电话代录（来电号 139****2233）']]},
+   acceptBy:'', handler:'', reply:'', star:0, tags:[], cmt:'', bxNo:'',   createdAt:'2026-10-27 10:15', logs:[['2026-10-27 10:15','电话代录（来电号 139****2233）']]},
 
   {no:'TS202610-0060', src:'商户端', by:'义乌××针织（陈××）', phone:'137****8810', obj:'公共区域', cat:'环境卫生',
    desc:'B 栋 2F 卫生间长期异味，无人清理', photos:1, state:'处理中', over:0,
-   acceptBy:'客服 何××', handler:'物业 张××', reply:'', star:0, tags:[], cmt:'', bxNo:'', zgNo:'',
-   createdAt:'2026-10-26 14:20', logs:[['2026-10-26 14:20','商户端提交投诉（照片 1 张）'],
+   acceptBy:'客服 何××', handler:'物业 张××', reply:'', star:0, tags:[], cmt:'', bxNo:'',   createdAt:'2026-10-26 14:20', logs:[['2026-10-26 14:20','商户端提交投诉（照片 1 张）'],
      ['2026-10-26 15:00','已受理，指派 物业 张×× 处理']]},
 
   {no:'TS202610-0059', src:'商户端', by:'诸暨××服饰（李××）', phone:'136****1122', obj:'商户', cat:'秩序问题',
    desc:'隔壁 1F-B07 长期把货物摆到通道，影响通行', photos:2, state:'已回复', over:0,
-   acceptBy:'客服 何××', handler:'物业 张××', reply:'已现场核查，已向该商户下发整改单，限 3 日内清理通道并承诺不超线摆放。',
-   star:0, tags:[], cmt:'', bxNo:'', zgNo:'ZG202610-0028', 
-   createdAt:'2026-10-24 09:10', logs:[['2026-10-24 09:10','商户端提交投诉（照片 2 张）'],
-     ['2026-10-24 10:00','已受理，指派 物业 张××'],['2026-10-24 16:30','已转整改 → ZG202610-0028'],
-     ['2026-10-24 17:00','已回复（转单处理中）']]},
+   acceptBy:'客服 何××', handler:'物业 张××', reply:'已现场核查并上门督办，商户承诺 3 日内清理通道、不超线摆放。',
+   star:0, tags:[], cmt:'', bxNo:'',   createdAt:'2026-10-24 09:10', logs:[['2026-10-24 09:10','商户端提交投诉（照片 2 张）'],
+     ['2026-10-24 10:00','已受理，指派 物业 张××'],['2026-10-24 16:30','物业上门督办'],
+     ['2026-10-24 17:00','已回复（督办中）']]},
 
   {no:'TS202610-0058', src:'买家端', by:'买家（赵先生）', phone:'—', obj:'平台', cat:'其他',
    desc:'在市场内找不到卫生间指示，导航也不显示', photos:1, state:'已升级', over:30,
-   acceptBy:'', handler:'', reply:'', star:0, tags:[], cmt:'', bxNo:'', zgNo:'',
-   createdAt:'2026-10-23 11:40', logs:[['2026-10-23 11:40','买家端提交投诉（照片 1 张）'],
+   acceptBy:'', handler:'', reply:'', star:0, tags:[], cmt:'', bxNo:'',   createdAt:'2026-10-23 11:40', logs:[['2026-10-23 11:40','买家端提交投诉（照片 1 张）'],
      ['2026-10-24 12:00','超 24h 未受理 → 自动置「已升级」并通知运营主管']]},
 
   {no:'TS202610-0057', src:'商户端', by:'大唐××商贸（周××）', phone:'135****4433', obj:'物业人员', cat:'收费争议',
    desc:'认为本月物业费多算了公摊电费，要求核对明细', photos:0, state:'已关闭', over:0,
    acceptBy:'客服 何××', handler:'财务 吴××', reply:'已提供本月公摊电费分摊明细（按面积比），核算无误，商户确认。',
-   star:5, tags:['回复及时','解释清楚'], cmt:'明细发了，确实没算错', bxNo:'', zgNo:'',
-   createdAt:'2026-10-20 09:00', logs:[['2026-10-20 09:00','商户端提交投诉'],['2026-10-20 09:40','已受理'],
+   star:5, tags:['回复及时','解释清楚'], cmt:'明细发了，确实没算错', bxNo:'',   createdAt:'2026-10-20 09:00', logs:[['2026-10-20 09:00','商户端提交投诉'],['2026-10-20 09:40','已受理'],
      ['2026-10-21 10:00','已回复（附分摊明细）'],['2026-10-21 15:20','商户评价 5 星 → 已关闭']]},
 
   {no:'TS202610-0056', src:'商户端', by:'浙江××服饰（钱××）', phone:'134****7788', obj:'公共区域', cat:'维修质量',
    desc:'A 栋 2F 中央空调出风小，报修后仍没改善', photos:1, state:'处理中', over:0,
    acceptBy:'客服 何××', handler:'物业 张××', reply:'已转报修，维修班组将于明日上午入场复检。',
-   star:2, tags:['处理慢'], cmt:'等了好几天还是老样子', bxNo:'BX202610-0028', zgNo:'',
-   createdAt:'2026-10-22 10:30', logs:[['2026-10-22 10:30','商户端提交投诉'],['2026-10-22 11:00','已受理'],
+   star:2, tags:['处理慢'], cmt:'等了好几天还是老样子', bxNo:'BX202610-0028',   createdAt:'2026-10-22 10:30', logs:[['2026-10-22 10:30','商户端提交投诉'],['2026-10-22 11:00','已受理'],
      ['2026-10-22 14:00','已转报修 → BX202610-0028'],['2026-10-22 14:10','已回复'],
      ['2026-10-23 09:00','商户评价 2 星（≤3 星）→ 自动回访：退回「处理中」并通知主管']]},
 
-  {no:'TS202610-0055', src:'巡检转', by:'巡检员 陈××', phone:'—', obj:'商户', cat:'秩序问题',
-   desc:'巡检发现 A 栋 3F 消防通道被货物占用，商户拒不配合', photos:2, state:'已关闭', over:0,
-   acceptBy:'客服 何××', handler:'物业 张××', reply:'已下发整改单 ZG202610-0031，商户已清理完毕并通过复核。',
-   star:4, tags:['处理到位'], cmt:'已经清干净了', bxNo:'', zgNo:'ZG202610-0031',
-   createdAt:'2026-10-19 15:00', logs:[['2026-10-19 15:00','巡检转投诉'],['2026-10-19 15:30','已受理'],
-     ['2026-10-19 16:00','已转整改 → ZG202610-0031'],['2026-10-20 10:00','已回复'],
+  {no:'TS202610-0055', src:'电话代录', by:'客服 何××（代录物业反馈）', phone:'138****2208', obj:'商户', cat:'秩序问题',
+   desc:'A 栋 3F 消防通道被货物占用，商户拒不配合（物业巡逻反馈）', photos:2, state:'已关闭', over:0,
+   acceptBy:'客服 何××', handler:'物业 张××', reply:'已上门督办，商户当日清理完毕并通过复核。',
+   star:4, tags:['处理到位'], cmt:'已经清干净了', bxNo:'',   createdAt:'2026-10-19 15:00', logs:[['2026-10-19 15:00','电话代录登记'],['2026-10-19 15:30','已受理'],
+     ['2026-10-19 16:00','物业上门督办'],['2026-10-20 10:00','已回复'],
      ['2026-10-21 09:00','商户评价 4 星 → 已关闭']]}
 ];
 
@@ -217,7 +213,13 @@ function renderStats(){
   document.getElementById('c-up').textContent='('+TS.filter(function(x){return x.state==='已升级';}).length+')';
 }
 
+/* 筛选下拉由列表全量数据去重生成：商户端注入、电话代录、来源/分类变化都会自动更新 */
+function syncFilterOptions(){
+  SEL_OPTS.fill('f-src',TS,'src','全部来源',{order:SRC});
+  SEL_OPTS.fill('f-cat',TS,'cat','全部分类',{order:CAT});
+}
 function render(){
+  syncFilterOptions();
   var h='';
   curRows.forEach(function(x){
     var ops='<span class="lk-gray" onclick="openDetail(\''+x.no+'\')">查看</span>';
@@ -226,7 +228,6 @@ function render(){
     }else if(x.state==='处理中'){
       ops='<span class="lk" onclick="openReply(\''+x.no+'\')">回复</span>';
       if(x.cat==='维修质量'&&!x.bxNo) ops+=' · <span class="lk" onclick="toBx(\''+x.no+'\')">转报修</span>';
-      if(x.cat==='秩序问题'&&!x.zgNo) ops+=' · <span class="lk" onclick="toZg(\''+x.no+'\')">转整改</span>';
       ops+=' · '+ops0(x);
     }else if(x.state==='已回复'){
       ops='<span class="lk'+(x.star?'':'')+'" onclick="openClose(\''+x.no+'\')">关闭</span> · '+ops;
@@ -241,6 +242,7 @@ function render(){
     h+='<tr>'
       +'<td class="font-medium">'+esc(x.no)+'</td>'
       +'<td class="text-[12px] text-[#64748B]">'+esc(x.src)+(x.src==='电话代录'?'<div class="text-[10px] text-[#94A3B8]">'+esc(x.phone)+'</div>':'')+'</td>'
+      +'<td class="text-[12px]"><span class="tag" style="background:#EFF6FF;color:#2563EB">'+esc(x.unit||'公共区域')+'</span>'+(x.fromApp?'<div class="text-[10px] text-[#94A3B8]">商户端上报</div>':'')+'</td>'
       +'<td class="text-[12px]">'+esc(x.by)+'</td>'
       +'<td class="text-[12px] text-[#64748B]">'+esc(x.obj)+'</td>'
       +'<td class="text-[12px]">'+esc(x.cat)+'</td>'
@@ -249,8 +251,9 @@ function render(){
       +'<td class="text-[12px]">'+(x.over>=24&&(x.state==='待受理'||x.state==='已升级')?'<span style="color:#DC2626;font-weight:600">'+x.over+' 小时</span>':'<span class="text-[#94A3B8]">—</span>')+'</td>'
       +'<td class="text-center whitespace-nowrap">'+ops+'</td></tr>';
   });
-  document.getElementById('tb').innerHTML=h||'<tr><td colspan="9"><div class="empty"><i class="fas fa-inbox"></i>暂无符合条件投诉</div></td></tr>';
+  document.getElementById('tb').innerHTML=h||'<tr><td colspan="10"><div class="empty"><i class="fas fa-inbox"></i>暂无符合条件投诉</div></td></tr>';
   document.getElementById('cnt').textContent='共 '+curRows.length+' 条';
+  syncBackAll();
 }
 function ops0(x){return '<span class="lk-gray" onclick="openDetail(\''+x.no+'\')">查看</span>';}
 function switchTab(s,el){
@@ -266,7 +269,7 @@ function doSearch(){
   var cat=document.getElementById('f-cat').value;
   var slow=document.getElementById('f-slow').checked;
   curRows=TS.filter(function(x){
-    return (!kw||x.no.indexOf(kw)>-1||x.by.indexOf(kw)>-1||x.desc.indexOf(kw)>-1)
+    return (!kw||x.no.indexOf(kw)>-1||x.by.indexOf(kw)>-1||x.desc.indexOf(kw)>-1||(x.unit||'').indexOf(kw)>-1)
       &&(!src||x.src===src)&&(!cat||x.cat===cat)&&(!slow||isSlow(x))
       &&(!curTab||x.state===curTab);
   });
@@ -291,6 +294,7 @@ function openNew(){
     +'<div><label class="fl"><i>*</i>来源</label><select class="fi" id="n_src" onchange="phoneTip()">'
       +SRC.map(function(s){return '<option>'+s+'</option>';}).join('')+'</select></div>'
     +'<div><label class="fl"><i>*</i>投诉人</label><input class="fi" id="n_by" placeholder="如 买家（李女士）／商户名"></div>'
+    +'<div><label class="fl"><i>*</i>上报档口（默认首个，可改）</label><input class="fi" id="n_unit" value="'+esc(WUYE_SYNC.units()[0]||'')+'" placeholder="如 1F-A08"></div>'
     +'<div><label class="fl"><i>*</i>联系方式</label><input class="fi" id="n_phone" placeholder="电话代录必填来电号"><p class="text-[11px] text-[#94A3B8] mt-1" id="phoneTip">当前来源可不填</p></div>'
     +'<div><label class="fl"><i>*</i>记录人</label><input class="fi" id="n_rec" value="客服 何××"></div>'
     +'<div><label class="fl"><i>*</i>被投诉对象</label><select class="fi" id="n_obj">'
@@ -311,6 +315,7 @@ function phoneTip(){
 function saveNew(){
   var src=document.getElementById('n_src').value;
   var by=document.getElementById('n_by').value.trim();
+  var unit=document.getElementById('n_unit').value.trim()||WUYE_SYNC.units()[0]||'公共区域';
   var phone=document.getElementById('n_phone').value.trim();
   var rec=document.getElementById('n_rec').value.trim();
   var obj=document.getElementById('n_obj').value;
@@ -320,9 +325,8 @@ function saveNew(){
   if(src==='电话代录'&&!phone){toast('电话代录必须填写来电号码（否则无法回访）');return;}
   if(desc.length<5){toast('投诉内容至少 5 个字（当前 '+desc.length+' 字）');return;}
   var no='TS202610-00'+(63+TS.length);
-  TS.unshift({no:no, src:src, by:by, phone:phone||'—', obj:obj, cat:cat, desc:desc, photos:0,
-    state:'待受理', over:0, acceptBy:'', handler:'', reply:'', star:0, tags:[], cmt:'', bxNo:'', zgNo:'',
-    createdAt:'2026-10-27 '+new Date().toTimeString().slice(0,5),
+  TS.unshift({no:no, src:src, by:by, phone:phone||'—', unit:unit, obj:obj, cat:cat, desc:desc, photos:0,
+    state:'待受理', over:0, acceptBy:'', handler:'', reply:'', star:0, tags:[], cmt:'', bxNo:'',    createdAt:'2026-10-27 '+new Date().toTimeString().slice(0,5),
     logs:[['2026-10-27 '+new Date().toTimeString().slice(0,5),'代录投诉（记录人 '+rec+'，来源 '+src+'）']]});
   curRows=TS.slice();curTab='';
   renderStats();render();closeAll();
@@ -366,7 +370,6 @@ function openReply(no){
   h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
     +'<div class="blk"><div class="kv"><span class="k">投诉内容</span><span class="v">'+esc(x.desc)+'</span></div>'
     +(x.bxNo?'<div class="kv"><span class="k">关联报修</span><span class="v"><span class="lk" onclick="toast(\'已定位到报修单 '+x.bxNo+'\')">'+esc(x.bxNo)+'</span></span></div>':'')
-    +(x.zgNo?'<div class="kv"><span class="k">关联整改</span><span class="v"><span class="lk" onclick="toast(\'已定位到整改单 '+x.zgNo+'\')">'+esc(x.zgNo)+'</span></span></div>':'')
     +'</div>'
     +'<div><label class="fl"><i>*</i>回复内容</label><input class="fi" id="rp_text" value="'+esc(x.reply)+'" placeholder="说明处理结果与后续安排"></div>';
   h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
@@ -390,13 +393,6 @@ function toBx(no){
   x.logs.push(['2026-10-27 '+new Date().toTimeString().slice(0,5),'转报修 → '+x.bxNo+'（原投诉保留）']);
   curRows=TS.slice();render();
   toast('已转报修：'+x.bxNo+'　原投诉记录保留，可回看');
-}
-function toZg(no){
-  var x=sOf(no);
-  x.zgNo='ZG202610-00'+(33+TS.length);
-  x.logs.push(['2026-10-27 '+new Date().toTimeString().slice(0,5),'转整改 → '+x.zgNo+'（原投诉保留）']);
-  curRows=TS.slice();render();
-  toast('已转整改：'+x.zgNo+'　原投诉记录保留，可回看');
 }
 function openClose(no){
   curNo=no;var x=sOf(no);
@@ -437,6 +433,7 @@ function openDetail(no){
   h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:12px">';
   h+='<div class="blk"><div class="blk-t"><i class="fas fa-user text-[#2563EB]"></i>基本信息</div>'
     +'<div class="kv"><span class="k">来源</span><span class="v">'+esc(x.src)+'</span></div>'
+    +'<div class="kv"><span class="k">上报档口</span><span class="v"><b>'+esc(x.unit||'公共区域')+'</b>　<span class="text-[11px] text-[#94A3B8]">单据归属，回写时不可丢</span></span></div>'
     +'<div class="kv"><span class="k">投诉人</span><span class="v">'+esc(x.by)+'</span></div>'
     +'<div class="kv"><span class="k">联系方式</span><span class="v">'+esc(x.phone)+'</span></div>'
     +'<div class="kv"><span class="k">提交时间</span><span class="v">'+esc(x.createdAt)+'</span></div></div>';
@@ -449,7 +446,6 @@ function openDetail(no){
     +'<div class="kv"><span class="k">处理人</span><span class="v">'+(x.handler||'—')+'</span></div>'
     +'<div class="kv"><span class="k">回复内容</span><span class="v">'+(x.reply?esc(x.reply):'<span class="text-[#94A3B8]">—</span>')+'</span></div>'
     +(x.bxNo?'<div class="kv"><span class="k">关联报修</span><span class="v"><span class="lk" onclick="toast(\'已定位到报修单 '+x.bxNo+'\')">'+esc(x.bxNo)+'</span></span></div>':'')
-    +(x.zgNo?'<div class="kv"><span class="k">关联整改</span><span class="v"><span class="lk" onclick="toast(\'已定位到整改单 '+x.zgNo+'\')">'+esc(x.zgNo)+'</span></span></div>':'')
     +'</div>';
   h+='<div class="blk"><div class="blk-t"><i class="fas fa-star text-[#F59E0B]"></i>评价</div>'
     +'<div class="kv"><span class="k">满意度</span><span class="v">'+(x.star?stars+'　'+x.star+' 星':'<span class="text-[#94A3B8]">商户未评价</span>')+'</span></div>'
@@ -463,7 +459,23 @@ function openDetail(no){
 
 function show(){document.getElementById('mask').className='mask on';document.getElementById('drawer').className='drawer on';}
 function closeAll(){document.getElementById('mask').className='mask';document.getElementById('drawer').className='drawer';}
-renderStats();render();
+
+/* ===== Y-19 B-0：商户端投诉单接线 =====
+   v1.7 订正（PM 走查）：不做「全部档口」下拉，也不做按档口分组的小字统计条；
+   档口编号并入 f-kw 关键词搜索；?unit= 深链同样写入 f-kw。 */
+var SYNC_KIND='complaint', SYNC_ROWS=TS;
+function syncBackAll(){WUYE_SYNC.backAll(SYNC_KIND,SYNC_ROWS);}
+(function initWuyeSync(){
+  /* 内置 mock 也补档口归属，保证按档口号搜索时每条都能命中 */
+  var defs=WUYE_SYNC.units();
+  SYNC_ROWS.forEach(function(x,i){if(!x.unit)x.unit=defs[i%defs.length];});
+  var n=WUYE_SYNC.inject(SYNC_KIND,SYNC_ROWS);
+  var tip=document.getElementById('syncTip');
+  if(tip)tip.textContent=n?('已同步商户端投诉 '+n+' 条（保留上报档口 unit）'):'';
+  renderStats();render();
+  var m=location.search.match(/[?&]unit=([^&]+)/);
+  if(m){document.getElementById('f-kw').value=decodeURIComponent(m[1]);doSearch();}
+})();
 </script>
 <script src="../shared/op-guard.js"></script>
 <script src="../shared/page-prd.js"></script>

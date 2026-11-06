@@ -31,6 +31,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </style>
 <!-- Tailwind 静态样式：本地引用（不再依赖 cdn.tailwindcss.com）；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
 <link rel="stylesheet" href="tailwind.css">
+<script src="wuye-units.js"></script>
 </head>
 <body>
 
@@ -56,14 +57,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
   <p class="text-[12px] font-bold text-gray-800 mb-2 px-1"><i class="fas fa-paper-plane text-primary text-xs"></i> 提交报修</p>
   <div class="bg-white rounded-2xl shadow-soft p-3.5">
 
-    <!-- 位置：档口只读 + 具体位置手填 -->
-    <p class="text-[11px] font-semibold text-gray-700 mb-2">报修位置 <span class="text-red-500">*</span></p>
-    <div class="flex items-center gap-2 mb-2">
-      <div class="flex-1 flex items-center gap-1.5 bg-gray-100 rounded-lg px-2.5 py-2 text-[11px] text-gray-500">
-        <i class="fas fa-location-dot text-[10px]"></i><span data-sh="shop">1F-A08</span><span data-sh="floor">A区1层</span>
-        <span class="ml-auto text-[9px] text-gray-400">档案带出</span>
-      </div>
-    </div>
+    <!-- 位置：多档口下拉选择（默认首个） + 具体位置手填 -->
+    <div id="wuUnitBox"></div>
+    <p class="text-[11px] font-semibold text-gray-700 mb-2">具体位置 <span class="text-red-500">*</span></p>
     <input type="text" id="repairAddr" placeholder="具体位置，如：商铺内东侧 / 卷帘门内侧" class="w-full text-[12px] bg-gray-50 rounded-lg px-3 py-2.5 mb-3 outline-none">
 
     <!-- 故障类型（后台字典 6 项） -->
@@ -103,7 +99,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <!-- 我的工单 -->
 <div class="px-3 mt-4 mb-6">
   <div class="flex items-center justify-between mb-2">
-    <p class="text-[12px] font-bold text-gray-800 px-1">最近工单</p>
+    <p class="text-[12px] font-bold text-gray-800 px-1">最近工单 <span class="text-[10px] text-gray-400 font-normal">（全部档口）</span></p>
     <a href="repair-records.html" class="text-[10px] text-primary">全部 ›</a>
   </div>
   <div class="bg-white rounded-2xl shadow-soft overflow-hidden" id="recent"></div>
@@ -157,7 +153,7 @@ function renderPhotos(){
 function addPhoto(){
   photos++;
   renderPhotos();
-  toast('已拍摄第 '+photos+' 张（水印：2026-10-28 10:20 · '+SH_PROFILE.shop+'）');
+  toast('已拍摄第 '+photos+' 张（水印：2026-10-28 10:20 · '+wuyeCurCode()+'）');
 }
 function delPhoto(){photos=Math.max(0,photos-1);renderPhotos();}
 
@@ -182,6 +178,9 @@ var SEED=[
 ];
 function getBX(){
   try{var s=localStorage.getItem('sh_bx_v2');if(s)return JSON.parse(s);}catch(e){}
+  /* 一人多档口：种子工单按序分配档口，覆盖名下 4 处实体 */
+  var U=['1F-A08','2F-B12','YLSC-S08','XZFW-3F-06'];
+  SEED.forEach(function(o,i){o.unit=U[i%U.length];});
   localStorage.setItem('sh_bx_v2',JSON.stringify(SEED));
   return SEED.slice();
 }
@@ -202,7 +201,8 @@ function submitRepair(){
   var icon=(TYPES.filter(function(t){return t.n===curType;})[0]||{}).i||'fa-ellipsis';
   var now=new Date();
   var hh=('0'+now.getHours()).slice(-2), mm=('0'+now.getMinutes()).slice(-2);
-  list.unshift({no:no, type:curType, icon:icon, unit:SH_PROFILE.shop, addr:addr, desc:desc, urg:urg,
+  var unit=wuyeCurCode();
+  list.unshift({no:no, type:curType, icon:icon, unit:unit, addr:addr, desc:desc, urg:urg,
     photos:photos, state:'待受理', createdAt:'2026-10-28 '+hh+':'+mm,
     acceptBy:'', worker:'', arriveAt:'', resultDesc:'', before:photos, after:0, staffConfirmed:false, star:0});
   saveBX(list);
@@ -210,10 +210,10 @@ function submitRepair(){
   document.getElementById('repairAddr').value='';
   document.getElementById('repairDesc').value='';
   photos=0;renderPhotos();renderRecent();
-  toast('已提交报修 '+no+'　物业将在 2 小时内受理，超时系统会提醒主管');
+  toast('已提交报修 '+no+'（'+unit+'）　物业将在 2 小时内受理，超时系统会提醒主管');
 }
 
-/* ================= 最近工单 ================= */
+/* ================= 最近工单（全部档口） ================= */
 function renderRecent(){
   var list=getBX().slice(0,3);
   if(!list.length){document.getElementById('recent').innerHTML='<div class="text-center text-[12px] text-gray-400 py-8">暂无工单</div>';return;}
@@ -229,10 +229,13 @@ function renderRecent(){
       +'<span class="text-[11px] text-gray-400 num">'+o.no+'</span>'
       +'<span class="st '+STC[o.state]+'">'+o.state+'</span></div>'
       +'<p class="text-[12px] font-medium text-gray-800"><i class="fas '+o.icon+' text-amber-400 text-[10px]"></i> '+o.type+' · '+o.addr+'</p>'
-      +'<p class="text-[10px] mt-1">'+line+'</p></a>';
+      +'<div class="flex items-center gap-2 mt-1 flex-wrap"><p class="text-[10px]">'+line+'</p>'+wuyeTag(o.unit)+'</div></a>';
   }).join('');
 }
 
+document.getElementById('wuUnitBox').innerHTML=wuyePickerHtml({title:'报修档口'});
+wuyeFill();
+function wuyeOnUnitChange(u){toast('申报档口已切换为 '+u.code+' · '+u.name);}
 renderTypes();renderPhotos();renderRecent();
 </script>
 </body>

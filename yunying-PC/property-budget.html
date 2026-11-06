@@ -130,6 +130,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
     </div>
   </div>
 
+  <!-- Y-19 B-5：按上报档口统计（一人多档口时按档口拆额度 / 待核销） -->
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-5">
+    <div class="text-[13px] font-bold text-[#1F2430] mb-2">按上报档口消耗（金额）</div>
+    <div id="stallList"></div>
+    <p class="text-[11px] text-[#94A3B8] mt-2"><i class="fas fa-circle-info mr-1"></i><b>unit = 上报档口</b>（单据归属）；一人多档口时额度占用、待核销与额外申请按档口拆开看，避免混在楼栋汇总里。此处 <code>unit</code> 只作档口编号，非物资计量单位 / 实施单位。</p>
+  </div>
+
   <!-- 待核销清单 -->
   <div class="bg-white rounded-xl border border-gray-100 overflow-hidden mb-5">
     <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
@@ -169,6 +176,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 <div class="drawer" id="drawer"></div>
 <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
 
+<script src="../shared/select-options.js"></script>
 <script>
 /* ================= 数据 ================= */
 var BUDGET={
@@ -211,6 +219,15 @@ var BLD={'2026':[
   {n:'A 栋（主市场）', v:21800},{n:'B 栋（原料馆）', v:13600},{n:'C 栋（配套楼）', v:5400},{n:'原料市场 D 栋', v:4120}
 ],'2025':[
   {n:'A 栋（主市场）', v:108400},{n:'B 栋（原料馆）', v:62800},{n:'C 栋（配套楼）', v:34200},{n:'原料市场 D 栋', v:26200}
+]};
+
+/* Y-19 B-5：按上报档口维度统计（与楼栋 BLD 平级，一人多档口时按档口拆） */
+var STALL={'2026':[
+  {n:'1F-A08', v:8600},{n:'2F-B12', v:6240},{n:'YLSC-S08', v:4180},{n:'XZFW-3F-06', v:1960},
+  {n:'1F-C05', v:5400},{n:'2F-A18', v:3820}
+],'2025':[
+  {n:'1F-A08', v:48200},{n:'2F-B12', v:31600},{n:'YLSC-S08', v:22400},{n:'XZFW-3F-06', v:9800},
+  {n:'1F-C05', v:18200},{n:'2F-A18', v:12600}
 ]};
 
 /* 待核销（与 P2 一致：已通过/部分核销） */
@@ -286,7 +303,8 @@ function renderBar(){
   document.getElementById('barMax').textContent=mx?(mx.m+'　¥'+money(max)):'—';
 }
 
-function rankList(el,arr,unit,link){
+/* 第三参改名 displayUnit（显示单位：'%' / '¥'），避免与「上报档口 unit」语义冲突（Y-19 B-4/B-5） */
+function rankList(el,arr,displayUnit,link){
   var max=Math.max.apply(null,arr.map(function(x){return x.v;}))||1;
   document.getElementById(el).innerHTML=arr.slice(0,10).map(function(x,i){
     var w=Math.round(x.v/max*100);
@@ -295,7 +313,7 @@ function rankList(el,arr,unit,link){
       : '<span class="nm">'+esc(x.n)+'</span>';
     return '<div class="rank"><span class="n">'+(i+1)+'</span>'+nm
       +'<span class="bar2"><i style="width:'+w+'%"></i></span>'
-      +'<span class="amt">'+(unit==='%'?x.v+'%':'¥'+money(x.v))+'</span></div>';
+      +'<span class="amt">'+(displayUnit==='%'?x.v+'%':'¥'+money(x.v))+'</span></div>';
   }).join('');
 }
 function jumpSup(n){
@@ -376,11 +394,20 @@ function renderApply(){
   document.getElementById('applyCnt').textContent='共 '+APPLY.length+' 条';
 }
 
+/* 年度下拉由 BUDGET 的年度键生成，新增年度数据后自动出现 */
+function syncFilterOptions(){
+  SEL_OPTS.fill('f-year',Object.keys(BUDGET).map(function(k){return {y:k};}),'y','全部年度',{
+    noAll:true,defaultFirst:true,order:['2026','2025'],
+    label:function(v){return '额度年度 '+v+'.04–'+(Number(v)+1)+'.03';}
+  });
+}
 function renderAll(){
+  syncFilterOptions();
   renderStats();renderBar();
   rankList('catList',CAT[curYear]);
   rankList('supList',SUP[curYear],null,true);
   rankList('bldList',BLD[curYear]);
+  rankList('stallList',STALL[curYear]);
   renderPend();renderApply();
 }
 function switchYear(){

@@ -31,30 +31,38 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
   <div class="relative flex items-center gap-3 mt-1">
     <a href="payment.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
     <div><span class="text-white font-extrabold text-[18px]">缴费记录</span>
-    <p class="text-white/85 text-[10px] mt-0.5">各费用缴单与缴纳状态</p></div>
+    <p class="text-white/85 text-[10px] mt-0.5">全部档口 · 各费用缴单与缴纳状态</p></div>
   </div>
 </div>
 
 <div class="px-3 pt-4 pb-16">
+  <div id="wuFilterBox"></div>
   <div class="flex gap-1.5 mb-3 overflow-x-auto no-bar" id="chips"></div>
+  <p class="text-[10px] text-gray-400 mb-2 px-1" id="sumHint"></p>
   <div class="space-y-2.5" id="list"></div>
 </div>
 
 <div class="toast" id="toast"><span id="toastTxt">操作成功</span></div>
+<script src="wuye-units.js"></script>
 <script>
-var toastTimer;function toast(m){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=m;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},1800)}
+var toastTimer;function toast(m){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=m;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},1800);}
 var RECORDS=[
- {type:'商铺租金',icon:'fa-file-invoice-dollar',cls:'bg-amber-50 text-amber-600',period:'2026 租赁年度',amount:'¥153,600',state:'待缴',time:'应缴 8月31日前'},
- {type:'物业管理费',icon:'fa-building',cls:'bg-sky-50 text-sky-600',period:'2026年10月',amount:'¥300',state:'待缴',time:'应缴 10月31日前'},
- {type:'电费',icon:'fa-bolt',cls:'bg-yellow-50 text-yellow-600',period:'2026年9月',amount:'¥268',state:'已缴',time:'2026-09-28'},
- {type:'商铺租金',icon:'fa-file-invoice-dollar',cls:'bg-amber-50 text-amber-600',period:'2025 租赁年度',amount:'¥150,000',state:'已缴',time:'2025-08-20'},
- {type:'车位费',icon:'fa-square-parking',cls:'bg-violet-50 text-violet-600',period:'2026年9月',amount:'¥120',state:'已缴',time:'2026-09-05'}
+ {type:'商铺租金',icon:'fa-file-invoice-dollar',cls:'bg-amber-50 text-amber-600',period:'2026 租赁年度',amount:'¥153,600',state:'待缴',time:'应缴 8月31日前',unit:'1F-A08'},
+ {type:'物业管理费',icon:'fa-building',cls:'bg-sky-50 text-sky-600',period:'2026年10月',amount:'¥300',state:'待缴',time:'应缴 10月31日前',unit:'2F-B12'},
+ {type:'店面租金',icon:'fa-store',cls:'bg-amber-50 text-amber-600',period:'2026年10月',amount:'¥18,000',state:'待缴',time:'应缴 10月20日前',unit:'YLSC-S08'},
+ {type:'电费',icon:'fa-bolt',cls:'bg-yellow-50 text-yellow-600',period:'2026年9月',amount:'¥268',state:'已缴',time:'2026-09-28',unit:'1F-A08'},
+ {type:'商铺租金',icon:'fa-file-invoice-dollar',cls:'bg-amber-50 text-amber-600',period:'2025 租赁年度',amount:'¥150,000',state:'已缴',time:'2025-08-20',unit:'2F-B12'},
+ {type:'水电费',icon:'fa-faucet-drip',cls:'bg-yellow-50 text-yellow-600',period:'2026年8月',amount:'¥1,240',state:'已缴',time:'2026-08-22',unit:'YLSC-S08'},
+ {type:'车位费',icon:'fa-square-parking',cls:'bg-violet-50 text-violet-600',period:'2026年9月',amount:'¥120',state:'已缴',time:'2026-09-05',unit:'1F-A08'},
+ {type:'办公室物业费',icon:'fa-building',cls:'bg-sky-50 text-sky-600',period:'2026年9月',amount:'¥2,400',state:'已缴',time:'2026-09-02',unit:'XZFW-3F-06'}
 ];
-var filter='全部';
+var filter='全部', unitFilter=WUYE_ALL;
 function badges(){var all=['全部','待缴','已缴'];document.getElementById('chips').innerHTML=all.map(function(c){return '<a onclick="setF(\''+c+'\')" class="chip'+(c===filter?' on':'')+'">'+c+'</a>';}).join('');}
 function setF(c){filter=c;badges();render();}
+function wuyeFilterChange(v){unitFilter=v;render();}
 function render(){
-  var arr=RECORDS.filter(function(r){return filter==='全部'||r.state===filter;});
+  var arr=RECORDS.filter(function(r){return (filter==='全部'||r.state===filter)&&wuyeFilterMatch(r.unit,unitFilter);});
+  document.getElementById('sumHint').textContent='共 '+arr.length+' 条记录 · '+(unitFilter===WUYE_ALL?'全部档口':'仅 '+wuyeLabel(unitFilter));
   document.getElementById('list').innerHTML=arr.length?arr.map(function(r){
     var sc=r.state==='待缴'?'text-rose-500 bg-rose-50':'text-green-600 bg-green-50';
     return '<div class="card bg-white rounded-2xl shadow-soft px-3.5 py-3">'
@@ -64,11 +72,13 @@ function render(){
       +'<p class="text-[10px] text-gray-400 mt-0.5">'+r.period+' · '+r.time+'</p></div>'
       +'<span class="text-[14px] font-extrabold num '+(r.state==='待缴'?'text-rose-500':'text-gray-700')+'">'+r.amount+'</span>'
       +'</div>'
-      +'<div class="flex gap-2 mt-2.5"><a onclick="toast(\'账单详情（演示）\')" class="flex-1 py-2 rounded-lg border border-gray-200 text-[11px] text-gray-600 text-center">账单详情</a>'
-      +(r.state==='待缴'?'<a onclick="toast(\'去缴费（演示）\')" class="flex-1 py-2 rounded-lg text-white text-[11px] font-bold text-center" style="background:linear-gradient(135deg,#3B82F6,#2563EB)">去缴费</a>':'<a onclick="toast(\'缴费凭证（演示）\')" class="flex-1 py-2 rounded-lg border border-gray-200 text-[11px] text-gray-600 text-center">缴费凭证</a>')
+      +'<div class="mt-2">'+wuyeTag(r.unit)+'</div>'
+      +'<div class="flex gap-2 mt-2.5"><a onclick="toast(\'账单详情：'+wuyeLabel(r.unit)+'（演示）\')" class="flex-1 py-2 rounded-lg border border-gray-200 text-[11px] text-gray-600 text-center">账单详情</a>'
+      +(r.state==='待缴'?'<a onclick="toast(\'去缴费：'+wuyeLabel(r.unit)+'（演示）\')" class="flex-1 py-2 rounded-lg text-white text-[11px] font-bold text-center" style="background:linear-gradient(135deg,#3B82F6,#2563EB)">去缴费</a>':'<a onclick="toast(\'缴费凭证（演示）\')" class="flex-1 py-2 rounded-lg border border-gray-200 text-[11px] text-gray-600 text-center">缴费凭证</a>')
       +'</div></div>';
-  }).join(''):'<div class="text-center text-[12px] text-gray-400 py-10">暂无缴费记录</div>';
+  }).join(''):'<div class="text-center text-[12px] text-gray-400 py-10">该筛选条件下暂无缴费记录</div>';
 }
+document.getElementById('wuFilterBox').innerHTML=wuyeFilterHtml({cur:WUYE_ALL});
 badges();render();
 </script>
 </body>

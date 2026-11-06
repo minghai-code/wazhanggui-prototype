@@ -39,6 +39,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 .toast.on{opacity:1;transform:translate(-50%,0)}
 </style>
 <link rel="stylesheet" href="tailwind.css">
+<script src="wuye-units.js"></script>
 </head>
 <body>
 
@@ -58,7 +59,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </div>
 
 <div class="px-3 pt-4 pb-16">
+  <div id="wuFilterBox"></div>
   <div class="flex gap-1.5 mb-3 overflow-x-auto no-bar" id="chips"></div>
+  <p class="text-[10px] text-gray-400 mb-2 px-1" id="sumHint"></p>
   <div class="space-y-2.5" id="list"></div>
 </div>
 
@@ -131,12 +134,15 @@ var SEED=[
 ];
 function getBX(){
   try{var s=localStorage.getItem('sh_bx_v2');if(s)return JSON.parse(s);}catch(e){}
+  /* 一人多档口：种子工单按序分配档口，覆盖名下 4 处实体 */
+  var U=['1F-A08','2F-B12','YLSC-S08','XZFW-3F-06','1F-A08','2F-B12'];
+  SEED.forEach(function(o,i){o.unit=U[i%U.length];});
   localStorage.setItem('sh_bx_v2',JSON.stringify(SEED));
   return SEED.slice();
 }
 function saveBX(list){localStorage.setItem('sh_bx_v2',JSON.stringify(list));}
 
-var filter='全部', curIdx=-1, score=0, picked=[];
+var filter='全部', unitFilter=WUYE_ALL, curIdx=-1, score=0, picked=[];
 
 function tabOf(o){return o.state;}
 function chipsRender(){
@@ -145,13 +151,16 @@ function chipsRender(){
   }).join('');
 }
 function setF(c){filter=c;chipsRender();render();}
+function wuyeFilterChange(v){unitFilter=v;render();}
 
 function render(){
   var all=getBX();
-  var arr=all.filter(function(o){return filter==='全部'||tabOf(o)===filter;});
+  var arr=all.filter(function(o){return (filter==='全部'||tabOf(o)===filter)&&wuyeFilterMatch(o.unit,unitFilter);});
+  var sh=document.getElementById('sumHint');
+  if(sh)sh.textContent='共 '+arr.length+' 条工单 · '+(unitFilter===WUYE_ALL?'全部档口':'仅 '+wuyeLabel(unitFilter));
   if(!arr.length){
     document.getElementById('list').innerHTML='<div class="text-center text-[12px] text-gray-400 py-12">'
-      +'<i class="fas fa-inbox text-xl text-gray-300 block mb-2"></i>该分类下暂无工单</div>';
+      +'<i class="fas fa-inbox text-xl text-gray-300 block mb-2"></i>该筛选条件下暂无工单</div>';
     return;
   }
   document.getElementById('list').innerHTML=arr.map(function(o){
@@ -181,7 +190,8 @@ function render(){
       +'<div class="flex-1 min-w-0">'
       +'<div class="flex items-center gap-1.5"><p class="text-[13px] font-bold text-gray-800">'+o.type+' · '+o.addr+'</p><span class="st '+STC[o.state]+'">'+o.state+'</span></div>'
       +'<p class="text-[10px] text-gray-400 mt-0.5 num">'+o.no+' · '+o.createdAt+'</p>'
-      +'<p class="text-[10px] mt-1">'+hint+'</p></div>'
+      +'<p class="text-[10px] mt-1">'+hint+'</p>'
+      +'<div class="mt-1.5">'+wuyeTag(o.unit)+'</div></div>'
       +'<i class="fas fa-chevron-right text-[10px] text-gray-300 self-center"></i>'
       +'</div>'+act+'</div>';
   }).join('');
@@ -198,7 +208,8 @@ function openDetail(idx){
     +'<span class="st '+STC[o.state]+'">'+o.state+'</span></div>';
 
   h+='<div class="rounded-xl p-3 mb-3" style="background:#F8FAFC">'
-    +'<div class="flex justify-between text-[11px] py-0.5"><span class="text-gray-400">报修位置</span><span>'+o.unit+' · '+o.addr+'</span></div>'
+    +'<div class="flex justify-between text-[11px] py-0.5"><span class="text-gray-400">上报档口</span><span>'+wuyeLabel(o.unit)+'</span></div>'
+    +'<div class="flex justify-between text-[11px] py-0.5"><span class="text-gray-400">具体位置</span><span>'+o.addr+'</span></div>'
     +'<div class="flex justify-between text-[11px] py-0.5"><span class="text-gray-400">紧急程度</span><span>'+(o.urg==='紧急'?'<span style="color:#DC2626">紧急</span>':'一般')+'</span></div>'
     +'<div class="flex justify-between text-[11px] py-0.5"><span class="text-gray-400">问题描述</span><span class="text-right max-w-[210px]">'+o.desc+'</span></div>'
     +(o.worker?'<div class="flex justify-between text-[11px] py-0.5"><span class="text-gray-400">维修工</span><span>'+o.worker+'</span></div>':'')
@@ -291,6 +302,7 @@ function submitRate(){
   toast('评价已提交，感谢反馈'+(score<=3?'（我们会安排回访）':''));
 }
 
+document.getElementById('wuFilterBox').innerHTML=wuyeFilterHtml({cur:WUYE_ALL});
 chipsRender();render();
 </script>
 </body>

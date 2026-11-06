@@ -88,12 +88,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
     <span class="py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600" onclick="switchTab('已驳回',this)">已驳回 <span class="text-[11px]" id="c-rej"></span></span>
   </div>
 
-  <!-- 筛选 -->
+  <!-- 筛选：档口编号并入关键词搜索框，不再单设几百项档口下拉 -->
   <div class="bg-white rounded-xl border border-gray-100 p-3 mb-4">
     <div class="flex items-center gap-3 flex-wrap">
-      <input id="f-kw" type="text" placeholder="报修编号 / 位置 / 报修人" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary w-56" onkeydown="if(event.key==='Enter')doSearch()">
+      <input id="f-kw" type="text" placeholder="报修编号 / 位置 / 档口 / 报修人" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary w-56" onkeydown="if(event.key==='Enter')doSearch()">
       <select id="f-src" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
-        <option value="">全部来源</option><option>商户端</option><option>物业巡逻</option><option>巡检转单</option>
+        <option value="">全部来源</option><option>商户端</option><option>物业巡逻</option><option>问题上报转单</option>
       </select>
       <select id="f-type" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
         <option value="">全部故障类型</option><option>照明</option><option>水电</option><option>门窗</option><option>地砖</option><option>空调</option><option>其他</option>
@@ -115,13 +115,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
       <div class="flex items-center gap-2">
         <span class="text-[13px] font-bold text-[#1F2430]">报修列表</span>
         <span class="text-[12px] text-[#94A3B8]" id="cnt">共 0 条</span>
+        <span class="text-[11px] text-[#2563EB]" id="syncTip"></span>
       </div>
       <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>照片水印含「时间 · 位置 · 单号」，拍摄与提交间隔 &gt;24h 标「凭证存疑」</span>
     </div>
     <div class="overflow-x-auto">
-      <table class="w-full text-[13px] tb" style="min-width:1240px">
+      <table class="w-full text-[13px] tb" style="min-width:1320px">
         <thead><tr>
-          <th>报修编号</th><th>位置</th><th>报修人</th><th>故障类型</th><th>紧急度</th><th>照片</th><th>处理人</th><th>状态</th><th>停留时长</th><th class="text-center">操作</th>
+          <th>报修编号</th><th>来源</th><th>位置</th><th>报修人</th><th>故障类型</th><th>紧急度</th><th>照片</th><th>处理人</th><th>状态</th><th>停留时长</th><th class="text-center">操作</th>
         </tr></thead>
         <tbody id="tb"></tbody>
       </table>
@@ -137,12 +138,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 <div class="drawer" id="drawer"></div>
 <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
 
+<script src="../shared/wuye-sync.js"></script>
+<script src="../shared/select-options.js"></script>
 <script>
 /* ================= 字典 ================= */
 var STC={'待受理':'background:#FEF3C7;color:#B45309','已派单':'background:#DBEAFE;color:#2563EB','处理中':'background:#DBEAFE;color:#2563EB',
   '待采购':'background:#FFEDE7;color:#E63E20','待确认':'background:#EDE9FE;color:#6D28D9','已完成':'background:#DCFCE7;color:#15803D','已驳回':'background:#F1F5F9;color:#64748B'};
 var TYPE=['照明','水电','门窗','地砖','空调','其他'];
 var PLACES=['大唐袜业城','原料市场','行政服务中心'];
+var SRCC={'商户端':'background:#DCFCE7;color:#15803D','物业巡逻':'background:#DBEAFE;color:#2563EB','问题上报转单':'background:#FEF3C7;color:#B45309'};
 var TODAY='2026-10-27';
 
 /* ================= 数据 ================= */
@@ -150,7 +154,7 @@ var BX=[
   {no:'BX202610-0031', src:'商户端', reporter:'诸暨××袜业（王××）', pl:'大唐袜业城', b:'A 栋', f:'1F', unit:'1F-A08',
    type:'照明', desc:'商铺内主照明灯不亮，影响营业', urg:'紧急', state:'待受理', hours:3, photos:1, doubt:false,
    createdAt:'2026-10-27 08:40', expect:'2026-10-27 12:00', logs:[['2026-10-27 08:40','商户端提交报修（照片 1 张，水印合规）']]},
-  {no:'BX202610-0030', src:'物业巡逻', reporter:'巡检员 陈××', pl:'大唐袜业城', b:'B 栋', f:'2F', unit:'2F-B12',
+  {no:'BX202610-0030', src:'物业巡逻', reporter:'物业 陈××（巡逻发现）', pl:'大唐袜业城', b:'B 栋', f:'2F', unit:'2F-B12',
    type:'水电', desc:'公共走道水龙头漏水，地面有积水', urg:'紧急', state:'待受理', hours:1, photos:2, doubt:false,
    createdAt:'2026-10-27 10:15', expect:'2026-10-27 14:00', logs:[['2026-10-27 10:15','巡逻发现并上报（照片 2 张）']]},
   {no:'BX202610-0029', src:'商户端', reporter:'义乌××针织（陈××）', pl:'原料市场', b:'D 栋', f:'1F', unit:'1F-D03',
@@ -171,12 +175,12 @@ var BX=[
    createdAt:'2026-10-19 08:10', expect:'2026-10-26 18:00',
    logs:[['2026-10-19 08:10','商户端提交报修'],['2026-10-19 09:30','受理并派单'],['2026-10-19 10:00','到场处理'],
      ['2026-10-19 11:20','提交处理结果：需采购地砖 12 块 → 进入待采购池']]},
-  {no:'BX202610-0026', src:'巡检转单', reporter:'巡检员 周××', pl:'大唐袜业城', b:'B 栋', f:'1F', unit:'1F-B01',
-   type:'照明', desc:'东侧公共通道 2 支灯管闪烁（来源：巡检问题 WT202610-0045）', urg:'一般', state:'待采购', hours:480, photos:1, doubt:false,
+  {no:'BX202610-0026', src:'问题上报转单', reporter:'物业 周××（巡逻发现）', pl:'大唐袜业城', b:'B 栋', f:'1F', unit:'1F-B01',
+   type:'照明', desc:'东侧公共通道 2 支灯管闪烁（来源：问题上报 WT202610-0045）', urg:'一般', state:'待采购', hours:480, photos:1, doubt:false,
    acceptBy:'物业 张××', worker:'赵伟', arriveAt:'2026-10-21 14:00',
    resultDesc:'灯管支架氧化，需更换 LED 灯管 8 支', needMat:true, jbNo:'JB202610-0007',
    createdAt:'2026-10-21 11:00', expect:'2026-10-28 18:00',
-   logs:[['2026-10-21 11:00','由巡检问题 WT202610-0045 转报修'],['2026-10-21 13:20','受理并派单'],
+   logs:[['2026-10-21 11:00','由问题上报 WT202610-0045 转报修'],['2026-10-21 13:20','受理并派单'],
      ['2026-10-21 14:00','到场处理'],['2026-10-21 16:10','提交结果：需 LED 灯管 8 支 → 待采购池'],
      ['2026-10-22 09:30','已并入交办单 JB202610-0007（待审批）']]},
   {no:'BX202610-0025', src:'商户端', reporter:'诸暨××针织（赵××）', pl:'大唐袜业城', b:'A 栋', f:'2F', unit:'2F-A12',
@@ -260,7 +264,14 @@ function renderStats(){
   document.getElementById('c-rej').textContent='('+BX.filter(function(x){return x.state==='已驳回';}).length+')';
 }
 
+/* 筛选下拉由列表全量数据去重生成：注入单据、问题上报转单、新增报修都会自动更新选项 */
+function syncFilterOptions(){
+  SEL_OPTS.fill('f-src',BX,'src','全部来源',{order:['商户端','物业巡逻','问题上报转单']});
+  SEL_OPTS.fill('f-type',BX,'type','全部故障类型',{order:TYPE});
+  SEL_OPTS.fill('f-urg',BX,'urg','全部紧急度',{order:['紧急','一般']});
+}
 function render(){
+  syncFilterOptions();
   var h='';
   curRows.forEach(function(x){
     var ops='<span class="lk-gray" onclick="openDetail(\''+x.no+'\')">查看</span>';
@@ -280,7 +291,8 @@ function render(){
     var ph='';
     for(var i=0;i<x.photos;i++) ph+='<div class="thumb" onclick="toast(\'查看原图（水印：'+x.createdAt+' · '+x.unit+' · '+x.no+'）\')" style="margin-right:4px">照片</div>';
     h+='<tr>'
-      +'<td><div class="font-medium">'+esc(x.no)+'</div><div class="text-[11px] text-[#94A3B8]">'+esc(x.src)+(x.doubt?' <span style="color:#DC2626">· 凭证存疑</span>':'')+'</div></td>'
+      +'<td><div class="font-medium">'+esc(x.no)+'</div>'+(x.doubt?'<div class="text-[11px]" style="color:#DC2626">凭证存疑</div>':'')+'</td>'
+      +'<td>'+st(x.src,SRCC[x.src])+'</td>'
       +'<td><div>'+esc(x.pl)+' · '+esc(x.b)+' '+esc(x.f)+'</div><div class="text-[11px] text-[#94A3B8]">'+esc(x.unit)+'</div></td>'
       +'<td class="text-[12px] text-[#64748B]">'+esc(x.reporter)+'</td>'
       +'<td>'+esc(x.type)+'</td>'
@@ -296,6 +308,7 @@ function render(){
   document.getElementById('tb').innerHTML=h||'<tr><td colspan="10"><div class="empty"><i class="fas fa-inbox"></i>暂无符合条件的报修单</div></td></tr>';
   document.getElementById('cnt').textContent='共 '+curRows.length+' 条';
   document.getElementById('pageInfo').textContent='共 '+curRows.length+' 条记录，第 1-'+curRows.length+' 条';
+  syncBackAll();
 }
 
 function switchTab(s,el){
@@ -338,6 +351,7 @@ function openDetail(no){
   h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:13px">';
 
   h+='<div class="blk"><div class="blk-t"><i class="fas fa-circle-info text-[#FF4D2D]"></i>报修信息</div>'
+    +'<div class="kv"><span class="k">来源</span><span class="v">'+st(x.src,SRCC[x.src])+'</span></div>'
     +'<div class="kv"><span class="k">位置</span><span class="v">'+esc(x.pl)+' · '+esc(x.b)+' '+esc(x.f)+' · '+esc(x.unit)+'</span></div>'
     +'<div class="kv"><span class="k">报修人</span><span class="v">'+esc(x.reporter)+'</span></div>'
     +'<div class="kv"><span class="k">故障类型</span><span class="v">'+esc(x.type)+'　'+(x.urg==='紧急'?'<span class="tag" style="background:#FEE2E2;color:#B91C1C">紧急</span>':'<span class="tag" style="background:#F1F5F9;color:#64748B">一般</span>')+'</span></div>'
@@ -643,6 +657,26 @@ function backToDoing(no){
   renderStats();render();closeAll();
   toast('已退回处理中：'+no+'　已通知维修工与主管重新处理（原结果留痕，不重复计完成）');
 }
+
+/* ===== Y-19 B-0：商户端报修单接线 =====
+   v1.7 订正（PM 走查）：档口几百个，不做「全部档口」下拉，也不做按档口分组的小字统计条
+   ——与「位置」搜索框重复。档口编号并入 f-kw 关键词搜索；?unit= 深链同样写入 f-kw。 */
+var SYNC_KIND='repair', SYNC_ROWS=BX;
+function syncBackAll(){WUYE_SYNC.backAll(SYNC_KIND,SYNC_ROWS);}
+(function initWuyeSync(){
+  /* B-3：消费 property-issue.html「转报修」生成的单据（unit 随单带过来） */
+  var tf=[];try{tf=JSON.parse(localStorage.getItem('pc_bx_from_issue')||'[]');}catch(e){tf=[];}
+  var tfN=0;
+  tf.forEach(function(o){
+    if(o&&o.no&&!BX.some(function(b){return b.no===o.no;})){BX.unshift(o);tfN++;}
+  });
+  var n=WUYE_SYNC.inject(SYNC_KIND,SYNC_ROWS);
+  var tip=document.getElementById('syncTip');
+  if(tip)tip.textContent=(n||tfN)?('已同步商户端报修 '+n+' 条'+(tfN?' · 问题上报转单 '+tfN+' 条（含上报档口）':'')):'';
+  renderStats();render();
+  var m=location.search.match(/[?&]unit=([^&]+)/);
+  if(m){document.getElementById('f-kw').value=decodeURIComponent(m[1]);doSearch();}
+})();
 </script>
 <script src="../shared/op-guard.js"></script>
 <script src="../shared/page-prd.js"></script>

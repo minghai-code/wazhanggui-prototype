@@ -44,9 +44,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </div>
 </div>
 <div class="grid grid-cols-3 gap-2 mt-2">
-<div class="text-center"><p class="text-white font-bold text-base">¥8,500</p><p class="text-white/50 text-[9px]">月租金</p></div>
-<div class="text-center"><p class="text-white font-bold text-base">12月</p><p class="text-white/50 text-[9px]">剩余租期</p></div>
-<div class="text-center"><p class="text-white font-bold text-base">无</p><p class="text-white/50 text-[9px]">欠费</p></div>
+<div class="text-center"><p class="text-white font-bold text-base" id="hubRent">¥8,500</p><p class="text-white/50 text-[9px]">月租金</p></div>
+<div class="text-center"><p class="text-white font-bold text-base" id="hubLease">12月</p><p class="text-white/50 text-[9px]">剩余租期</p></div>
+<div class="text-center"><p class="text-white font-bold text-base" id="hubOwe">无</p><p class="text-white/50 text-[9px]">欠费</p></div>
 </div>
 </div>
 </div>
@@ -55,6 +55,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <div class="px-3 -mt-3 relative z-10">
 <div class="bg-white/80 backdrop-blur-xl rounded-3xl shadow-soft px-2.5 py-4 border border-white">
 <div class="flex items-center gap-1.5 mb-3"><div class="w-1 h-3.5 rounded-full" style="background:#2563EB"></div><span class="text-[12px] font-bold text-gray-800">物业服务</span></div>
+<div id="wuHub" class="mb-3"></div>
 <div class="grid grid-cols-5 gap-y-4">
 <a href="mine.html" class="flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#38BDF8,#0EA5E9)"><i class="fas fa-id-card text-lg"></i></div><span class="text-[11px] text-gray-700 font-medium">商户资料</span></a>
 <a href="repair.html" class="flex flex-col items-center gap-1.5"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)"><i class="fas fa-screwdriver-wrench text-lg"></i></div><span class="text-[11px] text-gray-700 font-medium">报修工单</span></a>
@@ -194,6 +195,26 @@ var HOME_ACTS=[
 var SH_PROFILE={type:'线上兼档口商户',shop:'1F-A08',area:'50㎡',floor:'A区1层',leaseEnd:'2028.08.31',category:'男袜专营'};
 function shFill(){document.querySelectorAll('[data-sh]').forEach(function(el){var k=el.getAttribute('data-sh');if(SH_PROFILE[k]!=null)el.textContent=SH_PROFILE[k];});}
 shFill();
+</script>
+<script src="wuye-units.js"></script>
+<script>
+/* 一人多档口：物业服务枢纽的当前服务档口，默认首个、可下拉切换 */
+var HUB_RENT={
+ '1F-A08':['¥8,500','12月','无'],
+ '2F-B12':['¥6,800','10月','无'],
+ 'YLSC-S08':['¥12,000','8月','¥1,200'],
+ 'XZFW-3F-06':['¥4,500','34月','无']
+};
+function paintHub(u){
+  var d=HUB_RENT[u.code]||HUB_RENT['1F-A08'];
+  var a=document.getElementById('hubRent'),b=document.getElementById('hubLease'),c=document.getElementById('hubOwe');
+  if(a)a.textContent=d[0];if(b)b.textContent=d[1];if(c)c.textContent=d[2];
+}
+var hub=document.getElementById('wuHub');
+if(hub)hub.innerHTML=wuyePickerHtml({title:'当前服务档口'});
+wuyeFill();
+paintHub(wuyeCur());
+function wuyeOnUnitChange(u){paintHub(u);toast('已切换至 '+u.code+' · '+u.name+'；各类服务记录仍展示全部档口');}
 </script>
 <script src="wuye-tab.js"></script>
 <script>

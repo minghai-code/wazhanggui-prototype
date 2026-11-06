@@ -78,8 +78,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
     <span class="py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600" onclick="switchTab('已关闭',this)">已关闭 <span class="text-[11px]" id="c-close"></span></span>
   </div>
 
+  <!-- 筛选：档口编号并入关键词搜索框，不再单设几百项档口下拉 -->
   <div class="bg-white rounded-xl border border-gray-100 p-3 mb-4 flex items-center gap-3 flex-wrap">
-    <input id="f-kw" type="text" placeholder="问题编号 / 区域 / 描述" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none w-56">
+    <input id="f-kw" type="text" placeholder="问题编号 / 区域 / 档口 / 描述" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none w-56">
     <select id="f-type" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
       <option value="">全部类型</option><option>消防</option><option>卫生</option><option>占道</option><option>设备</option><option>安全</option>
     </select>
@@ -95,6 +96,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
       <div class="flex items-center gap-2">
         <span class="text-[13px] font-bold text-[#1F2430]">问题清单</span>
         <span class="text-[12px] text-[#94A3B8]" id="cnt">共 0 条</span>
+        <span class="text-[11px] text-[#2563EB]" id="syncTip"></span>
       </div>
       <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>责任方只做<b>归因统计 + 决定是否通知商户</b>，不生成任何单据</span>
     </div>
@@ -113,6 +115,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 <div class="drawer" id="drawer"></div>
 <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-2.5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
 
+<script src="../shared/wuye-sync.js"></script>
+<script src="../shared/select-options.js"></script>
 <script>
 /* ================= 数据 ================= */
 var TYPES=['消防','卫生','占道','设备','安全'];
@@ -125,30 +129,30 @@ var LVC={'严重':'background:#FEE2E2;color:#B91C1C','一般':'background:#FEF3C
 
 var WT=[
   {no:'WT202610-0061', area:'A 栋 3F', unit:'3F-A18', type:'占道', desc:'商铺货物堆放到消防通道，宽约 1.2m，影响疏散',
-   photos:2, duty:'商户责任', level:'严重', by:'巡检员 陈××', from:'巡检 XJ202610-0085',
+   photos:2, duty:'商户责任', level:'严重', by:'物业 陈××（巡逻发现）', from:'物业巡逻',
    state:'待处理', days:1, deadline:'2026-10-30',
-   createdAt:'2026-10-26 09:40', logs:[['2026-10-26 09:40','巡检上报（照片 2 张）'],['2026-10-26 10:10','主管判定：商户责任（已通知商户现场清理）']]},
+   createdAt:'2026-10-26 09:40', logs:[['2026-10-26 09:40','巡逻上报（照片 2 张）'],['2026-10-26 10:10','主管判定：商户责任（已通知商户现场清理）']]},
   {no:'WT202610-0062', area:'A 栋 3F', unit:'3F-A21', type:'安全', desc:'东侧安全出口指示灯不亮，夜间疏散无指引',
-   photos:1, duty:'物业责任', level:'一般', by:'巡检员 陈××', from:'巡检 XJ202610-0085',
+   photos:1, duty:'物业责任', level:'一般', by:'物业 陈××（巡逻发现）', from:'物业巡逻',
    state:'已转报修', bxNo:'BX202610-0035', days:1, deadline:'',
-   createdAt:'2026-10-26 09:52', logs:[['2026-10-26 09:52','巡检上报（照片 1 张）'],['2026-10-26 10:15','主管判定：物业责任'],
+   createdAt:'2026-10-26 09:52', logs:[['2026-10-26 09:52','巡逻上报（照片 1 张）'],['2026-10-26 10:15','主管判定：物业责任'],
      ['2026-10-26 10:18','已转报修 → BX202610-0035（原记录保留）']]},
   {no:'WT202610-0060', area:'B 栋 2F', unit:'2F-B09', type:'卫生', desc:'女卫地面长期积水，地砖湿滑有摔倒风险',
-   photos:1, duty:'物业责任', level:'一般', by:'巡检员 周××', from:'巡检 XJ202610-0083',
+   photos:1, duty:'物业责任', level:'一般', by:'物业 周××（巡逻发现）', from:'物业巡逻',
    state:'待处理', days:3, deadline:'',
-   createdAt:'2026-10-24 09:30', logs:[['2026-10-24 09:30','巡检上报（照片 1 张）'],['2026-10-24 11:00','主管判定：物业责任']]},
+   createdAt:'2026-10-24 09:30', logs:[['2026-10-24 09:30','巡逻上报（照片 1 张）'],['2026-10-24 11:00','主管判定：物业责任']]},
   {no:'WT202610-0059', area:'C 栋 1F', unit:'1F-C03', type:'消防', desc:'灭火器压力表指针在红区，已过期 3 个月',
    photos:2, duty:'商户责任', level:'严重', by:'商户 钱××（商户端）', from:'商户端反馈',
    state:'待处理', days:5, deadline:'2026-11-05',
    createdAt:'2026-10-22 15:10', logs:[['2026-10-22 15:10','商户端上报（照片 2 张，责任方：商户）']]},
   {no:'WT202610-0058', area:'B 栋 1F', unit:'1F-B05', type:'设备', desc:'卷帘门电机异响，运行时抖动明显',
-   photos:1, duty:'物业责任', level:'一般', by:'巡检员 吴××', from:'移动端随手报',
+   photos:1, duty:'物业责任', level:'一般', by:'物业 吴××（随手报）', from:'移动端随手报',
    state:'待处理', days:2, deadline:'',
    createdAt:'2026-10-25 15:00', logs:[['2026-10-25 15:00','移动端随手报（照片 1 张，责任方：物业）']]},
   {no:'WT202610-0057', area:'A 栋 1F', unit:'1F-A02', type:'占道', desc:'店外堆放纸箱至通道边线，已当场提醒',
-   photos:1, duty:'商户责任', level:'轻微', by:'巡检员 陈××', from:'巡检 XJ202610-0082',
+   photos:1, duty:'商户责任', level:'轻微', by:'物业 陈××（巡逻发现）', from:'物业巡逻',
    state:'已关闭', days:0, deadline:'2026-10-23', resolve:'现场已当面告知商户清理，通道恢复畅通（照片 2 张）',
-   createdAt:'2026-10-22 10:20', logs:[['2026-10-22 10:20','巡检上报'],['2026-10-22 16:40','提交处理结果并关闭（商户已清理）']]},
+   createdAt:'2026-10-22 10:20', logs:[['2026-10-22 10:20','巡逻上报'],['2026-10-22 16:40','提交处理结果并关闭（商户已清理）']]},
   {no:'WT202610-0056', area:'D 栋 1F', unit:'1F-D11', type:'卫生', desc:'门前垃圾未清运，有异味（重复上报）',
    photos:1, duty:'商户责任', level:'轻微', by:'物业 张××', from:'电话反馈',
    state:'已关闭', days:0, deadline:'',
@@ -192,7 +196,13 @@ function filterDuty(d){
   doSearch();
 }
 
+/* 筛选下拉由列表全量数据去重生成：商户端注入（含空分类）、转报修、新增上报都会自动更新 */
+function syncFilterOptions(){
+  SEL_OPTS.fill('f-type',WT,'type','全部类型',{order:TYPES});
+  SEL_OPTS.fill('f-duty',WT,'duty','全部责任方',{order:DUTIES});
+}
 function render(){
+  syncFilterOptions();
   var h='';
   curRows.forEach(function(x){
     var ops='<span class="lk-gray" onclick="openDetail(\''+x.no+'\')">查看</span>';
@@ -210,13 +220,14 @@ function render(){
       +'<td class="text-[12px] text-[#64748B]" style="max-width:280px;white-space:normal">'+esc(x.desc)+'</td>'
       +'<td><span class="tag" style="'+DTC[x.duty]+'">'+esc(x.duty)+'</span>'+(x.days>3&&x.state==='待处理'?'<span class="text-[10px]" style="color:#DC2626"> 超'+x.days+'天</span>':'')+'</td>'
       +'<td><span class="tag" style="'+LVC[x.level]+'">'+esc(x.level)+'</span></td>'
-      +'<td class="text-[12px] text-[#64748B]">'+esc(x.by)+'</td>'
+      +'<td class="text-[12px] text-[#64748B]">'+esc(x.by)+'<div class="text-[11px] text-[#94A3B8]">'+esc(x.from||'')+'</div></td>'
       +'<td><span class="tag" style="'+STC[x.state]+'">'+esc(x.state)+'</span>'
         +(x.bxNo?'<div class="text-[10px] text-[#94A3B8]">→ '+esc(x.bxNo)+'</div>':'')+'</td>'
       +'<td class="text-center whitespace-nowrap">'+ops+'</td></tr>';
   });
   document.getElementById('tb').innerHTML=h||'<tr><td colspan="9"><div class="empty"><i class="fas fa-inbox"></i>暂无符合条件的问题</div></td></tr>';
   document.getElementById('cnt').textContent='共 '+curRows.length+' 条';
+  syncBackAll();
 }
 function switchTab(s,el){
   curTab=s;
@@ -230,7 +241,7 @@ function doSearch(){
   var type=document.getElementById('f-type').value;
   var duty=document.getElementById('f-duty').value;
   curRows=WT.filter(function(x){
-    return (!kw||x.no.indexOf(kw)>-1||x.area.indexOf(kw)>-1||x.desc.indexOf(kw)>-1)
+    return (!kw||x.no.indexOf(kw)>-1||x.area.indexOf(kw)>-1||x.desc.indexOf(kw)>-1||(x.unit||'').indexOf(kw)>-1)
       &&(!type||x.type===type)&&(!duty||x.duty===duty)
       &&(!curTab||x.state===curTab);
   });
@@ -415,8 +426,12 @@ function saveToBx(no){
     type:type, desc:desc, urg:urg, state:'待受理', hours:0, photos:x.photos, doubt:false,
     createdAt:now, expect:'',
     logs:[[now,'由问题上报 '+x.no+' 转入（照片 '+x.photos+' 张随单）']]};
+  /* B-3：转报修单落到跨页台账，property-repair.html 启动时消费，unit 必须随单带走 */
+  var tf=[];try{tf=JSON.parse(localStorage.getItem('pc_bx_from_issue')||'[]');}catch(e){tf=[];}
+  tf.unshift(lastBX);
+  try{localStorage.setItem('pc_bx_from_issue',JSON.stringify(tf));}catch(e){}
   x.state='已转报修';x.bxNo=bxNo;
-  x.logs.push([now,'已转报修 → '+bxNo+'（'+pl+' '+b+' '+f+' · '+unit+' · '+type+' · '+urg+'）']);
+  x.logs.push([now,'已转报修 → '+bxNo+'（'+pl+' '+b+' '+f+' · '+unit+' · '+type+' · '+urg+'）· 上报档口 '+unit+' 随单传递']);
   curRows=WT.slice();
   renderStats();render();closeAll();
   toast('已转报修：'+no+' → '+bxNo+'　已按报修工单字段生成（待受理）');
@@ -465,6 +480,7 @@ function openDetail(no){
       +'<span class="lk" style="margin-left:8px" onclick="openDutyFix(\''+x.no+'\')">修正</span>'
       +'<span class="text-[11px] text-[#94A3B8]" style="margin-left:6px">仅归因，不影响流程</span></span></div>'
     +'<div class="kv"><span class="k">限期</span><span class="v">'+(x.deadline?esc(x.deadline):'<span class="text-[#94A3B8]">—</span>')+'</span></div>'
+    +'<div class="kv"><span class="k">来源</span><span class="v">'+esc(x.from||'—')+'</span></div>'
     +'<div class="kv"><span class="k">上报人</span><span class="v">'+esc(x.by)+'　'+esc(x.createdAt)+'</span></div>'
     +(x.bxNo?'<div class="kv"><span class="k">关联报修</span><span class="v"><span class="lk" onclick="toast(\'已定位到报修单 '+x.bxNo+'\')">'+esc(x.bxNo)+'</span></span></div>':'')
     +(x.resolve?'<div class="kv"><span class="k">处理结果</span><span class="v">'+esc(x.resolve)+'</span></div>':'')
@@ -520,7 +536,19 @@ function saveDutyFix(no){
 /* ================= 基础 ================= */
 function show(){document.getElementById('mask').className='mask on';document.getElementById('drawer').className='drawer on';}
 function closeAll(){document.getElementById('mask').className='mask';document.getElementById('drawer').className='drawer';}
-renderStats();render();
+/* ===== Y-19 B-0：商户端问题反馈接线 =====
+   v1.7 订正（PM 走查）：不做「全部档口」下拉，也不做按档口分组的小字统计条；
+   档口编号并入 f-kw 关键词搜索；?unit= 深链同样写入 f-kw。 */
+var SYNC_KIND='issue', SYNC_ROWS=WT;
+function syncBackAll(){WUYE_SYNC.backAll(SYNC_KIND,SYNC_ROWS);}
+(function initWuyeSync(){
+  var n=WUYE_SYNC.inject(SYNC_KIND,SYNC_ROWS);
+  var tip=document.getElementById('syncTip');
+  if(tip)tip.textContent=n?('已同步商户端问题反馈 '+n+' 条（保留上报档口 unit）'):'';
+  renderStats();render();
+  var m=location.search.match(/[?&]unit=([^&]+)/);
+  if(m){document.getElementById('f-kw').value=decodeURIComponent(m[1]);doSearch();}
+})();
 /* 从巡检任务「上报问题」跳转时带 from / area 参数，自动打开上报抽屉并标注来源 */
 (function(){
   var q=(location.search||'').replace(/^\?/,'');

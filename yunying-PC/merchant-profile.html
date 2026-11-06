@@ -138,6 +138,7 @@ button{cursor:pointer}
 <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
 
 <script src="category-dict.js"></script>
+<script src="../shared/wuye-sync.js"></script>
 <script>
 /* ================= 模拟数据（原型态） ================= */
 var TAG_POOL={strong:['源头工厂','实力商家','企业商家','新晋商家'],risk:['欠费','违规','投诉','资质过期']};
@@ -301,6 +302,7 @@ function dispOf(m,s){
   return o;
 }
 function goChange(unit){location.href='merchant-change.html?kw='+encodeURIComponent(unit||'');}
+function goWuye(page,unit){location.href=page+'?unit='+encodeURIComponent(unit||'');}
 function openAddEmp(id){
   var m=mpOf(id);
   var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
@@ -505,6 +507,33 @@ function openD(id,mode){
   h+='<div class="text-[11px] text-[#64748B] leading-6"><i class="fas fa-rotate mr-1"></i>端间演示同步：商户端在途展示信息变更 <b>'+pend.length+'</b> 项、已审核通过 <b>'+approved.length+'</b> 项（通过值已回写上方对应档口）。'
     +(outside.length?'<br>其中来自商户端演示档口（'+outside.map(function(a){return esc(a.unit);}).filter(function(v,i,arr){return arr.indexOf(v)===i;}).join('、')+'）的 '+outside.length+' 项不在本档案 02 档口字典内，<b>以审核台受理的档口编号为准</b>，<span class="lk" onclick="goChange(\''+esc(outside[0].unit)+'\')">前往审核台查看</span>；原型两套档口 mock 未强行合并，审核通过统一回写 <b>sh_shop_display_v1</b> 供商户端回显。':'')
     +'</div><div class="flex gap-2 mt-2"><button class="btn btn-ghost" onclick="goChange(\'\')">查看全部展示信息变更</button></div></div>';
+
+  /* ⑪ 按档口的物业单据（Y-19 B-7）：读 B-0 接进来的商户端三类单据，按上报档口 unit 分组 */
+  var wt=WUYE_SYNC.all(), byUnit={};
+  function collect(kind,arr){
+    arr.forEach(function(o){
+      var u=o.unit||'公共区域';
+      if(!byUnit[u])byUnit[u]={repair:0,complaint:0,issue:0};
+      byUnit[u][kind]++;
+    });
+  }
+  collect('repair',wt.repair);collect('complaint',wt.complaint);collect('issue',wt.issue);
+  ownUnits.forEach(function(u){if(!byUnit[u])byUnit[u]={repair:0,complaint:0,issue:0};});
+  var uks=Object.keys(byUnit);
+  h+='<div class="blk" style="border-color:#BFDBFE;background:#F8FBFF"><div class="blk-t" style="color:#1D4ED8"><i class="fas fa-screwdriver-wrench"></i>⑪ 按档口的物业单据（Y-19：一人多档口）</div>'
+    +'<p class="text-[11px] text-[#64748B] mb-2">按单据的<b>上报档口 unit</b> 分组，读取商户端报修 / 投诉建议 / 问题反馈三类台账；点档口可跳后台受理页并带 <code>?unit=</code> 预筛。⑧ 的「添加员工必须选档口、不给默认」保持不变。<b>缴费 / 服务预约归口待确认，本区块暂不纳入</b>。</p>';
+  h+=uks.length?uks.map(function(u){
+    var c=byUnit[u],isOwn=ownUnits.indexOf(u)>-1;
+    return '<div class="rounded-lg bg-white border border-gray-100 p-3 mb-2">'
+      +'<div class="flex items-center gap-2 mb-1.5 flex-wrap"><span class="tag" style="background:'+(isOwn?'#FFEDE7;color:#E63E20':'#EFF6FF;color:#2563EB')+'">档口 '+esc(u)+'</span>'
+      +'<span class="text-[11px] text-[#94A3B8]">'+(isOwn?'本档案关联档口（02 台账）':'商户端演示档口字典')+'</span>'
+      +'<span class="flex-1"></span><span class="text-[11px] text-[#64748B]">共 <b>'+(c.repair+c.complaint+c.issue)+'</b> 单</span></div>'
+      +'<div class="flex gap-2 flex-wrap text-[11px]">'
+      +'<span class="lk" onclick="goWuye(\'property-repair.html\',\''+esc(u)+'\')">报修 '+c.repair+'</span> · '
+      +'<span class="lk" onclick="goWuye(\'property-complaint.html\',\''+esc(u)+'\')">投诉 '+c.complaint+'</span> · '
+      +'<span class="lk" onclick="goWuye(\'property-issue.html\',\''+esc(u)+'\')">问题反馈 '+c.issue+'</span></div></div>';
+  }).join(''):'<div class="rounded-lg bg-white border border-gray-100 p-3"><p class="text-[12px] text-[#94A3B8]">暂无物业单据（该商户名下档口与商户端台账均无记录）。</p></div>';
+  h+='<p class="text-[11px] text-[#94A3B8] mt-1"><i class="fas fa-circle-info mr-1"></i>原型阶段商户端档口字典（1F-A08 等）与后台 02 台账（A9-15 等）是两套 mock，按单据自带的 unit 各自受理 / 回显，未强行合并。</p></div>';
 
   if(edit){
     h+='<div class="blk" style="border-color:#FDB4A3;background:#FFF6F3"><div class="blk-t" style="color:#E63E20"><i class="fas fa-triangle-exclamation"></i>只读字段说明</div>'

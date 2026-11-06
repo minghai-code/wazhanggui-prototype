@@ -104,6 +104,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 <div class="drawer" id="drawer"></div>
 <div id="toast"></div>
 
+<script src="../shared/select-options.js"></script>
 <script>
 /* 区域字典：来自「02 市场资源管理 → 楼栋楼层维护」（resource-unit.html），本页只读引用，不在此新增区域 */
 var AREAS=['A 栋 1F','A 栋 2F','A 栋 3F','B 栋 1F','B 栋 2F','C 栋 1F','D 栋 1F'];
@@ -176,7 +177,13 @@ function renderStats(){
   }).join('');
 }
 
+/* 筛选下拉由人员档案全量数据去重生成；posts/areas 为数组字段，自动展开 */
+function syncFilterOptions(){
+  SEL_OPTS.fill('f-post',STAFF,'posts','全部岗位',{order:POSTS});
+  SEL_OPTS.fill('f-state',STAFF,'state','全部状态',{order:STATE});
+}
 function render(){
+  syncFilterOptions();
   var kw=document.getElementById('f-kw').value.trim();
   var fp=document.getElementById('f-post').value;
   var fs=document.getElementById('f-state').value;
@@ -247,7 +254,7 @@ function openStaff(code){
   h+='<div class="blk"><div class="blk-t"><i class="fas fa-map-location-dot text-[#15803D]"></i>③ 负责区域（可多选）</div><div>'
     +'<label class="chk" style="margin-bottom:8px"><input type="checkbox" class="ar" value="全部区域" '+(s&&s.areas.indexOf('全部区域')>=0?'checked':'')+' onclick="allArea(this)">全部区域（仅主管）</label>'
     +'<div>'+areaGroupsHtml(s)+'</div>'
-    +'<p class="text-[11px] text-[#94A3B8] mt-1"><i class="fas fa-circle-info mr-1"></i>区域字典来自「02 市场资源管理 · 楼栋楼层维护」，本页<b>只读引用</b>，新增楼栋/楼层请到 02 维护；派单时按<b>工单位置</b>过滤可选人员</p></div>';
+    +'<p class="text-[11px] text-[#94A3B8] mt-1"><i class="fas fa-circle-info mr-1"></i>区域字典来自「02 市场资源管理 · 楼栋楼层维护」，本页<b>只读引用</b>，新增楼栋/楼层请到 02 维护；派单时按<b>工单位置</b>过滤可选人员；<b>Y-19：按单据的「上报档口 unit」所在区域匹配</b>（先由档口编号解析楼栋 / 楼层，再与负责区域比对；无匹配时兜底全部在岗维修工）。这里的「单位」指岗位口径，物资计量单位已在物资库改名 <code>measureUnit</code>，两者不混用</p></div>';
 
   h+='<div class="grid grid-cols-2 gap-3">'
     +'<div><label class="fl"><i>*</i>上级主管</label><select class="fi" id="fLeader">'
