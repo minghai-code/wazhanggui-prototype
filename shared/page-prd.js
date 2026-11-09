@@ -95,6 +95,7 @@
     'mai-APP/search.html':            ['_views/F01-首页与导航-p2', '', '搜索'],
     'mai-APP/video.html':             ['_views/F01-首页与导航-p3', '', '视频看货'],
     'mai-APP/ai.html':                ['_views/F01-首页与导航-p4', '', 'AI 工具'],
+    'mai-APP/ai-chat.html':           ['_views/F01-首页与导航-p7', '', 'AI 创作对话'],
     'mai-APP/messages.html':          ['_views/F01-首页与导航-p5', '', '消息中心'],
     'mai-APP/news-detail.html':       ['_views/F01-首页与导航-p6', '', '资讯详情'],
 
