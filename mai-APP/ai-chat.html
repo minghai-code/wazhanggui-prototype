@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>AI 创作 - 袜掌柜买家版</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--p:#FF4D2D;--bg:#F6F7FA;--t1:#6366F1;--t2:#8B5CF6;--t3:#A78BFA;--chip:#6D28D9;--chipbg:#F3EFFF}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);width:393px;overflow-x:hidden}
+::-webkit-scrollbar{width:2px;height:2px}
+::-webkit-scrollbar-thumb{background:#dfdfdf;border-radius:1px}
+
+/* 顶部（主题色随入口变化） */
+.hd{position:fixed;top:0;left:0;width:393px;z-index:50;background:linear-gradient(135deg,var(--t1) 0%,var(--t2) 60%,var(--t3) 140%);padding:44px 12px 10px;display:flex;align-items:center;gap:10px}
+.hd .back{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;color:#fff}
+.hd .who{flex:1;display:flex;align-items:center;gap:8px}
+.hd .ava{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.24);display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px}
+.hd .nm{color:#fff;font-size:14px;font-weight:800;line-height:1.2}
+.hd .st{color:rgba(255,255,255,.82);font-size:10px;margin-top:1px}
+.hd .side{font-size:11px;color:#fff;background:rgba(255,255,255,.2);padding:5px 10px;border-radius:999px;display:flex;align-items:center;gap:4px}
+
+/* 消息区 */
+.msgs{padding:96px 12px 158px}
+.m{display:flex;gap:8px;margin-bottom:14px}
+.m .bot-ava{width:28px;height:28px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,var(--t1),var(--t2));display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px}
+.m.user{justify-content:flex-end}
+.bub{max-width:272px;padding:9px 12px;border-radius:14px;font-size:12.5px;line-height:1.65}
+.bot .bub{background:#fff;color:#2A2F3A;border-top-left-radius:4px;box-shadow:0 2px 10px rgba(20,20,40,.05)}
+.user .bub{background:linear-gradient(135deg,var(--t1),var(--t2));color:#fff;border-top-right-radius:4px}
+.bub b{color:var(--t2)}
+
+/* 示例效果条 */
+.prev-h{font-size:10px;color:#9AA0AC;margin:0 0 5px}
+.prev-img{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;max-width:272px}
+.prev-img .pv{position:relative;border-radius:9px;overflow:hidden;height:76px;background:#EDEFF3}
+.prev-img .pv img{width:100%;height:100%;object-fit:cover;display:block}
+.prev-img .pv span{position:absolute;left:4px;bottom:3px;font-size:8px;color:#fff;background:rgba(0,0,0,.45);padding:1px 4px;border-radius:4px}
+
+/* 案例卡 */
+.case-wrap{background:#fff;border-radius:14px;padding:11px 11px 6px;margin-top:8px;box-shadow:0 3px 14px rgba(20,20,40,.07);max-width:310px}
+.case-h{font-size:11px;font-weight:800;color:#1F2430;display:flex;align-items:center;gap:5px;margin-bottom:8px}
+.case-h i{color:var(--t2);font-size:11px}
+.case-h span{font-weight:500;color:#9AA0AC;font-size:10px}
+.case{display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-top:1px dashed #F0F1F4;cursor:pointer}
+.case:active{opacity:.7}
+.case:first-of-type{border-top:0}
+.ci{width:26px;height:26px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px}
+.cn{font-size:11.5px;font-weight:700;color:#2A2F3A;margin:0}
+.cq{font-size:10px;color:#8A93A3;margin:2px 0 0;line-height:1.45}
+.cgo{flex-shrink:0;font-size:9.5px;font-weight:700;color:var(--chip);background:var(--chipbg);padding:3px 7px;border-radius:999px}
+
+/* 结果：图片网格 */
+.grid-img{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;max-width:280px}
+.gi{position:relative;border-radius:10px;overflow:hidden;background:#EDEFF3;aspect-ratio:1/1}
+.gi img{width:100%;height:100%;object-fit:cover;display:block}
+.gi span{position:absolute;left:5px;bottom:4px;font-size:8px;color:#fff;background:rgba(0,0,0,.45);padding:1px 5px;border-radius:4px}
+.res-bar{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px;max-width:280px}
+.rb{font-size:10.5px;color:#5A6270;background:#fff;border:1px solid #EDEFF3;border-radius:999px;padding:5px 10px;cursor:pointer}
+.rb.pri{color:#fff;background:linear-gradient(135deg,var(--t1),var(--t2));border-color:transparent;font-weight:700}
+.rb:active{transform:scale(.96)}
+
+/* 结果：文案卡 */
+.copy{background:#fff;border-radius:12px;padding:9px 10px;margin-top:7px;box-shadow:0 2px 10px rgba(20,20,40,.05);max-width:280px}
+.copy p{font-size:11.5px;color:#3A4150;line-height:1.65;margin:0;white-space:pre-line}
+.copy .bar{display:flex;justify-content:space-between;align-items:center;margin-top:6px;border-top:1px dashed #F0F1F4;padding-top:6px}
+.copy .bar span{font-size:9.5px;color:#B4BAC6}
+.copy .bar a{font-size:9.5px;color:var(--t2);font-weight:700;text-decoration:none}
+
+/* 结果：海报 */
+.poster{position:relative;max-width:230px;border-radius:12px;overflow:hidden;margin-top:8px;box-shadow:0 4px 16px rgba(20,20,40,.12)}
+.poster img{width:100%;display:block}
+.poster .ov{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.62));display:flex;flex-direction:column;justify-content:flex-end;padding:10px}
+.poster .ov b{color:#fff;font-size:15px;font-weight:900;letter-spacing:.5px}
+.poster .ov span{color:rgba(255,255,255,.9);font-size:9.5px;margin-top:3px}
+
+/* 底部输入 */
+.ft{position:fixed;left:0;bottom:0;width:393px;background:#fff;border-top:1px solid #F1F2F5;padding:8px 12px 22px;z-index:50}
+.quick{display:flex;gap:6px;overflow-x:auto;padding-bottom:7px;scrollbar-width:none}
+.quick::-webkit-scrollbar{display:none}
+.q{flex-shrink:0;font-size:11px;color:var(--chip);background:var(--chipbg);border-radius:999px;padding:5px 10px;cursor:pointer;white-space:nowrap}
+.in-row{display:flex;align-items:center;gap:8px}
+.in-row input{flex:1;background:#F4F5F7;border:0;border-radius:999px;padding:11px 14px;font-size:12.5px;outline:none}
+.in-row button{width:38px;height:38px;border-radius:50%;border:0;background:linear-gradient(135deg,var(--t1),var(--t2));color:#fff;font-size:14px}
+.tip{font-size:9.5px;color:#C3C8D2;margin-top:6px;text-align:center}
+
+.typing span{display:inline-block;width:5px;height:5px;border-radius:50%;background:#C3C8D2;margin-right:3px;animation:bl 1s infinite}
+.typing span:nth-child(2){animation-delay:.15s}
+.typing span:nth-child(3){animation-delay:.3s}
+@keyframes bl{0%,80%,100%{opacity:.3}40%{opacity:1}}
+
+.toast{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.9);background:rgba(0,0,0,.82);color:#fff;font-size:12px;padding:10px 16px;border-radius:10px;opacity:0;pointer-events:none;transition:.2s;z-index:99;max-width:78%;text-align:center;line-height:1.5}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+</style>
+</head>
+<body>
+
+<!-- 顶部 -->
+<div class="hd">
+  <a href="ai.html" class="back"><i class="fas fa-chevron-left text-[13px]"></i></a>
+  <div class="who">
+    <div class="ava"><i class="fas fa-wand-magic-sparkles" id="avaIcon"></i></div>
+    <div>
+      <p class="nm" id="hdName">AI生图</p>
+      <p class="st" id="hdSub">商品主图 · 促销海报</p>
+    </div>
+  </div>
+  <div class="side" onclick="toast('最近使用记录（原型演示）')"><i class="fas fa-clock-rotate-left text-[10px]"></i>记录</div>
+</div>
+
+<!-- 消息区 -->
+<div class="msgs" id="msgs"></div>
+
+<!-- 底部输入 -->
+<div class="ft">
+  <div class="quick" id="quick"></div>
+  <div class="in-row">
+    <input id="inp" type="text" placeholder="说说你要做什么" onkeydown="if(event.key==='Enter')submit(this.value)">
+    <button onclick="submit(document.getElementById('inp').value)"><i class="fas fa-paper-plane"></i></button>
+  </div>
+  <p class="tip" id="tip">生成内容为 AI 辅助产出，发布前请核对规格与卖点（原型演示）</p>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var SOCK=['images/sock_02.jpg','images/sock_05.jpg','images/sock_08.jpg','images/sock_11.jpg'];
+var POSTER='images/scene_03.jpg';
+
+/* ===== 入口配置：AI生图 / AI文案 / AI卖货助手 ===== */
+var CFG={
+  image:{
+    nm:'AI生图',st:'商品主图 · 促销海报',icon:'fa-image',k:'image',
+    g:['#6366F1','#8B5CF6','#A78BFA'],chip:{c:'#6D28D9',bg:'#F3EFFF'},
+    ph:'比如：精梳棉男袜，白底平铺，突出透气网眼',
+    welcome:'想做哪种图？说清袜子的<b>品类、卖点</b>和用途（当商品主图还是促销海报），我来出图。',
+    demo:'image',
+    quick:['做一张白底主图','做一张场景图','做一张促销海报','换背景再生成一版'],
+    kinds:['image','poster'],
+    caseH:'AI生图常见用法'
+  },
+  copy:{
+    nm:'AI文案',st:'标题 · 朋友圈 · 详情页',icon:'fa-pen-fancy',k:'copy',
+    g:['#0EA5E9','#3B82F6','#6366F1'],chip:{c:'#1D4ED8',bg:'#EAF2FF'},
+    ph:'比如：运动压缩袜新品，写给跑友看',
+    welcome:'要写哪种文案？说明<b>产品、卖点、写给谁看</b>（朋友圈还是详情页），我按场景来写。',
+    demo:'copy',
+    quick:['写3条朋友圈文案','写一个商品标题','写一段详情页介绍','写一段转卖文案'],
+    kinds:['copy','sell'],
+    caseH:'AI文案常见用法'
+  },
+  sell:{
+    nm:'AI卖货助手',st:'转卖文案 · 一键转发',icon:'fa-store',k:'sell',
+    g:['#0D9488','#06B6D4','#3B82F6'],chip:{c:'#0F766E',bg:'#E6FBF8'},
+    ph:'比如：精梳棉男袜，一箱12双，写段转卖文案',
+    welcome:'把要转卖的货发我，我写成能<b>直接发给客户</b>的文案，改个价格就能用。',
+    demo:'sell',
+    quick:['写一段转卖文案','写得再短一点','加上批发价话术','写一版朋友圈版本'],
+    kinds:['sell','copy'],
+    caseH:'卖货文案常见用法'
+  }
+};
+
+/* ===== 案例库 ===== */
+var CASES=[
+  {k:'image',n:'给男袜做主图',q:'精梳棉商务男袜，白底，突出透气网眼，简约高级',i:'fa-image',g:'linear-gradient(135deg,#A78BFA,#7C3AED)'},
+  {k:'poster',n:'做一张促销海报',q:'年货节满3双8折，红金配色，袜子礼盒装',i:'fa-flag',g:'linear-gradient(135deg,#FF8A4C,#FF4D2D)'},
+  {k:'copy',n:'写一条朋友圈',q:'运动压缩袜新品，主打跑步不掉筒，写给跑友看',i:'fa-pen-fancy',g:'linear-gradient(135deg,#38BDF8,#3B82F6)'},
+  {k:'sell',n:'写一段转卖文案',q:'精梳棉商务男袜，一箱12双，帮我写段能直接发客户的转卖文案',i:'fa-store',g:'linear-gradient(135deg,#2DD4BF,#06B6D4)'}
+];
+
+var CUR=CFG.image;
+
+function $(id){return document.getElementById(id);}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function scrollBottom(){setTimeout(function(){window.scrollTo(0,document.body.scrollHeight);},60);}
+
+function addBot(html){
+  var d=document.createElement('div');
+  d.className='m bot';
+  d.innerHTML='<div class="bot-ava"><i class="fas '+CUR.icon+'"></i></div><div style="flex:1">'+html+'</div>';
+  $('msgs').appendChild(d);scrollBottom();return d;
+}
+function addUser(text){
+  var d=document.createElement('div');
+  d.className='m user';
+  d.innerHTML='<div class="bub">'+esc(text)+'</div>';
+  $('msgs').appendChild(d);scrollBottom();
+}
+function typing(cb){
+  var d=addBot('<div class="bub typing"><span></span><span></span><span></span></div>');
+  setTimeout(function(){d.remove();cb();},500);
+}
+
+/* ===== 首屏示例：生图给缩略图，文案给示例文案 ===== */
+function demoBlock(kind){
+  if(kind==='image'){
+    return '<p class="prev-h">生成效果示例</p><div class="prev-img">'
+      +'<div class="pv"><img src="images/sock_02.jpg" alt="白底主图"><span>白底主图</span></div>'
+      +'<div class="pv"><img src="images/sock_08.jpg" alt="场景图"><span>场景图</span></div>'
+      +'<div class="pv"><img src="'+POSTER+'" alt="促销海报"><span>促销海报</span></div>'
+      +'</div>';
+  }
+  if(kind==='copy'){
+    return '<p class="prev-h">生成效果示例</p><div class="copy"><p>跑马拉松最怕袜子往下掉。这双压缩袜脚踝加压、筒口不勒，跑完42公里稳稳的。\n新色到货，跑友私我拿批发价。</p>'
+      +'<div class="bar"><span>朋友圈 · 46字</span><a href="javascript:;" onclick="toast(\'示例不可复制，发需求后生成你自己的\')">复制</a></div></div>';
+  }
+  return '<p class="prev-h">生成效果示例</p><div class="copy"><p>【现货直发】精梳棉商务男袜\n· 200针精梳棉，袜口不松垮\n· 一箱12双，混色可挑\n批发价私聊，量大再谈。</p>'
+    +'<div class="bar"><span>转卖文案 · 可改价</span><a href="javascript:;" onclick="toast(\'示例不可复制，发需求后生成你自己的\')">复制</a></div></div>';
+}
+
+/* ===== 案例区块（按入口过滤） ===== */
+function caseBlock(kinds){
+  var h='<div class="case-wrap"><div class="case-h"><i class="fas fa-lightbulb"></i>'+CUR.caseH+' <span>点击直接用</span></div>';
+  CASES.forEach(function(c,i){
+    if(kinds.indexOf(c.k)<0)return;
+    h+='<div class="case" onclick="useCase('+i+')">'
+      +'<div class="ci" style="background:'+c.g+'"><i class="fas '+c.i+'"></i></div>'
+      +'<div style="flex:1;min-width:0"><p class="cn">'+c.n+'</p><p class="cq">'+esc(c.q)+'</p></div>'
+      +'<span class="cgo">用它</span></div>';
+  });
+  h+='</div>';
+  return h;
+}
+
+function useCase(i){
+  var c=CASES[i];
+  addUser(c.q);
+  typing(function(){result(c.k,c.q);});
+}
+
+/* ===== 意图判断 ===== */
+function kindOf(t){
+  if(/海报|促销|活动图|banner/i.test(t))return 'poster';
+  if(/转卖|卖货|代发|一件代发|批发价/.test(t))return 'sell';
+  if(/文案|朋友圈|标题|详情页|介绍|脚本|口播/.test(t))return 'copy';
+  if(/图|主图|白底|拍照|修图|模特|背景/.test(t))return 'image';
+  return CUR.k||'image';
+}
+
+/* ===== 结果渲染 ===== */
+function result(kind,q){
+  if(kind==='image'){
+    var h='<div class="bub">按「'+esc(short(q))+'」生成了 4 张主图，白底、正面平铺，可直接当商品首图。</div>';
+    h+='<div class="grid-img">'+SOCK.map(function(src,i){
+      return '<div class="gi"><img src="'+src+'" alt="AI主图"><span>主图'+(i+1)+'</span></div>';
+    }).join('')+'</div>';
+    h+='<div class="res-bar"><span class="rb pri" onclick="toast(\'已保存到相册（原型演示）\')"><i class="fas fa-download"></i> 保存全部</span>'
+      +'<span class="rb" onclick="regen(\'换一组浅色背景的主图\')">换一组</span>'
+      +'<span class="rb" onclick="toast(\'已转发到微信（原型演示）\')">转发微信</span>'
+      +'<span class="rb" onclick="toast(\'已加入商品素材库\')">存素材库</span></div>';
+    addBot(h);
+    return;
+  }
+  if(kind==='copy'){
+    var copies=[
+      '跑马拉松最怕袜子往下掉。这双压缩袜，脚踝加压、筒口不勒，跑完42公里还稳稳的。\n新色到货，跑友私我拿批发价。',
+      '秋冬跑步脚冷？这双加厚压缩袜，脚底加绒但不闷，透气网眼走路不捂汗。\n一箱12双，档口直发。',
+      '运动袜挑不对，跑两步就掉筒、磨脚。我们这款做了三处加压，脚弓有支撑，穿一天不累。\n现货充足，支持拿样试穿。'
+    ];
+    var h='<div class="bub">写了 3 条朋友圈文案，语气偏口语、带具体卖点，可以直接复制发。</div>';
+    copies.forEach(function(c,i){
+      h+='<div class="copy"><p>'+esc(c)+'</p><div class="bar"><span>文案'+(i+1)+' · 78字</span>'
+        +'<a href="javascript:;" onclick="toast(\'已复制文案'+(i+1)+'\')">复制</a></div></div>';
+    });
+    h+='<div class="res-bar"><span class="rb pri" onclick="regen(\'再写3条更短的，20字以内\')">再写一组</span>'
+      +'<span class="rb" onclick="toast(\'已转发到微信（原型演示）\')">转发微信</span>'
+      +'<span class="rb" onclick="toast(\'已改成详情页版本\')">改详情页版</span></div>';
+    addBot(h);
+    return;
+  }
+  if(kind==='poster'){
+    var h='<div class="bub">做了一张促销海报，文案可换成你的活动时间。</div>'
+      +'<div class="poster"><img src="'+POSTER+'" alt="促销海报"><div class="ov"><b>年货节 满3双8折</b><span>袜子礼盒装 · 12月28日-1月10日</span></div></div>'
+      +'<div class="res-bar"><span class="rb pri" onclick="toast(\'已保存海报\')">保存海报</span>'
+      +'<span class="rb" onclick="regen(\'换成红金配色，加“档口直发”字样\')">换配色</span>'
+      +'<span class="rb" onclick="toast(\'已转发到微信（原型演示）\')">转发微信</span></div>';
+    addBot(h);
+    return;
+  }
+  /* sell */
+  var h='<div class="bub">帮你写好了转卖文案，改个价格就能发给客户。</div>'
+    +'<div class="copy"><p>【现货直发】精梳棉商务男袜\n· 200针精梳棉，袜口不松垮\n· 秋冬厚度，上班穿不勒脚\n· 一箱12双，混色可挑\n批发价私聊，量大再谈。</p><div class="bar"><span>转卖文案 · 可改价</span><a href="javascript:;" onclick="toast(\'已复制\')">复制</a></div></div>'
+    +'<div class="res-bar"><span class="rb pri" onclick="toast(\'一键发布到朋友圈（原型演示）\')">发朋友圈</span>'
+    +'<span class="rb" onclick="regen(\'再写一版更简短的\')">再写一版</span></div>';
+  addBot(h);
+}
+
+function short(t){return t.length>16?t.slice(0,16)+'…':t;}
+function regen(t){addUser(t);typing(function(){result(kindOf(t),t);});}
+
+function submit(v){
+  var inp=$('inp'),t=(v||'').trim();
+  if(!t){toast('说说你要做什么');return;}
+  addUser(t);inp.value='';
+  typing(function(){result(kindOf(t),t);});
+}
+
+function toast(msg){
+  var t=$('toast');
+  t.textContent=msg;t.classList.add('on');
+  clearTimeout(t._tm);t._tm=setTimeout(function(){t.classList.remove('on');},1600);
+}
+
+/* 应用入口主题 */
+function applyCfg(k){
+  var c=CFG[k]||CFG.image;
+  CUR=c;
+  var r=document.documentElement.style;
+  r.setProperty('--t1',c.g[0]);r.setProperty('--t2',c.g[1]);r.setProperty('--t3',c.g[2]);
+  r.setProperty('--chip',c.chip.c);r.setProperty('--chipbg',c.chip.bg);
+  $('hdName').textContent=c.nm;
+  $('hdSub').textContent=c.st;
+  $('avaIcon').className='fas '+c.icon;
+  $('inp').setAttribute('placeholder',c.ph);
+  document.title=c.nm+' - 袜掌柜买家版';
+}
+
+function init(){
+  var f=(location.search.match(/f=(\w+)/)||[])[1];
+  applyCfg(CFG[f]?f:'image');
+
+  $('quick').innerHTML=CUR.quick.map(function(q){
+    return '<span class="q" onclick="submit(\''+q+'\')">'+q+'</span>';
+  }).join('');
+
+  addBot('<div class="bub">'+CUR.welcome+'</div>');
+  addBot(demoBlock(CUR.demo));
+  addBot(caseBlock(CUR.kinds));
+  scrollBottom();
+}
+init();
+</script>
+<script src="../shared/page-prd.js?v=20261023e"></script>
+</body>
+</html>
