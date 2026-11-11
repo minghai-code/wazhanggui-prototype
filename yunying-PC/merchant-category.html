@@ -47,10 +47,10 @@ button{cursor:pointer}
         <span class="tag" style="background:#FEF3C7;color:#B45309">经营品类唯一来源</span>
         <span class="tag" style="background:#F1F5F9;color:#94A3B8">只停用不删除</span>
       </div>
-      <p class="text-[12px] text-gray-400 mt-1">「主营品类」的<b>唯一字典</b>：商户档案、商户端认证、资料变更审核、展商主营品类统一从这里取值，<b>不允许自由文本</b>；停用品类不进新选择项、历史数据保留；同义写法用「合并」归并</p>
+      <p class="text-[12px] text-gray-400 mt-1">「主营品类」的<b>唯一字典</b>：商户档案、商户端认证、资料变更审核、展商主营品类统一从这里取值，<b>不允许自由文本</b>；停用品类不进新选择项、历史数据保留；同义写法用「合并」归并　·　<b>所属市场由大类推导</b>（原料纱线 → 原料市场；袜品 → 袜子市场；其余 → 两个都算），供买家端原料市场 / 品牌馆分流</p>
     </div>
     <div class="flex items-center gap-2">
-      <button class="btn btn-ghost" onclick="toast('已导出品类字典（含大类、关联商户数、使用状态）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+      <button class="btn btn-ghost" onclick="toast('已导出品类字典（含大类、所属市场、关联商户数、使用状态）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
       <button class="btn btn-primary" onclick="openEdit(null)"><i class="fas fa-plus mr-1"></i>新增品类</button>
     </div>
   </div>
@@ -62,6 +62,9 @@ button{cursor:pointer}
       <input id="f-kw" type="text" placeholder="品类名称 / 编号" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary w-48">
       <select id="f-group" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
         <option value="">全部大类</option>
+      </select>
+      <select id="f-market" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+        <option value="">全部市场</option><option>袜子市场</option><option>原料市场</option><option>两个都算</option>
       </select>
       <select id="f-on" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
         <option value="">全部状态</option><option value="1">启用</option><option value="0">停用</option>
@@ -87,6 +90,7 @@ button{cursor:pointer}
             <th class="px-4 py-3 text-left font-medium">品类编号</th>
             <th class="px-4 py-3 text-left font-medium">品类名称</th>
             <th class="px-4 py-3 text-left font-medium">所属大类</th>
+            <th class="px-4 py-3 text-left font-medium">所属市场</th>
             <th class="px-4 py-3 text-left font-medium">排序</th>
             <th class="px-4 py-3 text-left font-medium">关联商户</th>
             <th class="px-4 py-3 text-left font-medium">状态</th>
@@ -133,6 +137,20 @@ function toast(m){var t=document.getElementById('toast');t.textContent=m;t.class
 function show(){document.getElementById('mask').className='mask on';document.getElementById('drawer').className='drawer on';}
 function closeAll(){document.getElementById('mask').className='mask';document.getElementById('drawer').className='drawer';}
 function useCount(name){return MB.filter(function(m){return m.cats.indexOf(name)>-1;}).length;}
+/* 所属市场：由大类推导，不手工维护（Y-11 ④）
+ *   原料纱线 → 原料市场；袜品 → 袜子市场；其余大类（袜机设备 / 设计包装 / 其他）→ 两个都算 */
+function marketOf(group){
+  if(group==='原料纱线') return '原料市场';
+  if(group==='袜品') return '袜子市场';
+  return '两个都算';
+}
+function mktBadge(g){
+  var m=marketOf(g);
+  var style=m==='原料市场'?'background:#F5F3FF;color:#6D28D9'
+    :m==='袜子市场'?'background:#EFF6FF;color:#1D4ED8'
+    :'background:#F0FDF4;color:#15803D';
+  return '<span class="tag" style="'+style+'">'+m+'</span>';
+}
 function catOf(name){return CATS.filter(function(c){return c.name===name;})[0];}
 function catById(id){return CATS.filter(function(c){return c.id===id;})[0];}
 
@@ -163,6 +181,7 @@ function render(){
       +'<td class="px-4 py-3 text-[#94A3B8] text-[12px]">'+esc(c.id)+'</td>'
       +'<td class="px-4 py-3 font-medium">'+esc(c.name)+'</td>'
       +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(c.group)+'</td>'
+      +'<td class="px-4 py-3 text-[12px]">'+mktBadge(c.group)+'</td>'
       +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+c.sort+'</td>'
       +'<td class="px-4 py-3 text-[12px]">'+(n?'<span class="lk" onclick="showUsers(\''+esc(c.name)+'\')">'+n+' 家</span>':'<span class="text-[#94A3B8]">0</span>')+'</td>'
       +'<td class="px-4 py-3">'+(c.on?'<span class="tag" style="background:#DCFCE7;color:#15803D">启用</span>':'<span class="tag" style="background:#F1F5F9;color:#64748B">停用</span>')
@@ -173,7 +192,7 @@ function render(){
         +(c.name==='其他'?'':' · <span class="lk-gray" onclick="toggleCat(\''+c.id+'\')">'+(c.on?'停用':'启用')+'</span>')
       +'</td></tr>';
   });
-  document.getElementById('tb').innerHTML=h||'<tr><td colspan="7" class="px-4 py-16 text-center text-gray-300"><i class="fas fa-inbox text-3xl block mb-2"></i><span class="text-[12px]">暂无匹配品类</span></td></tr>';
+  document.getElementById('tb').innerHTML=h||'<tr><td colspan="8" class="px-4 py-16 text-center text-gray-300"><i class="fas fa-inbox text-3xl block mb-2"></i><span class="text-[12px]">暂无匹配品类</span></td></tr>';
   document.getElementById('cnt').textContent='共 '+curRows.length+' 个';
   renderStats();
 }
@@ -209,10 +228,11 @@ function openEdit(id){
     +'<div><label class="fl"><i style="color:#EF4444">*</i> 品类名称（唯一，商户端展示此名称）</label>'
     +'<input class="fi" id="c-name" value="'+(c?esc(c.name):'')+'" placeholder="如：运动袜"></div>'
     +'<div class="grid grid-cols-2 gap-3">'
-    +'<div><label class="fl"><i style="color:#EF4444">*</i> 所属大类</label><select class="sel" id="c-group">'
+    +'<div><label class="fl"><i style="color:#EF4444">*</i> 所属大类</label><select class="sel" id="c-group" onchange="document.getElementById(\'c-market\').textContent=marketOf(this.value)">'
       +GROUPS.map(function(g){return '<option'+(c&&c.group===g?' selected':'')+'>'+g+'</option>';}).join('')+'</select></div>'
     +'<div><label class="fl">排序（同大类内越小越靠前）</label><input class="fi" id="c-sort" type="number" min="1" value="'+(c?c.sort:9)+'"></div>'
     +'</div>'
+    +'<div class="ok"><i class="fas fa-circle-info mr-1"></i>所属市场<b>由大类推导，不手工维护</b>：当前 = <b id="c-market">'+marketOf(c?c.group:'袜品')+'</b>　（原料纱线 → 原料市场；袜品 → 袜子市场；其余大类 → 两个都算）</div>'
     +'<div><label class="fl">状态</label><select class="sel" id="c-on">'
       +'<option value="1"'+(!c||c.on?' selected':'')+'>启用</option><option value="0"'+(c&&!c.on?' selected':'')+'>停用</option></select></div>'
     +'<div><label class="fl">备注</label><input class="fi" id="c-note" value="'+(c?esc(c.note):'')+'" placeholder="如：2026-08 起无商户使用，暂时停用"></div>'
@@ -310,16 +330,18 @@ function doMerge(){
 function doSearch(){
   var kw=document.getElementById('f-kw').value.trim();
   var g=document.getElementById('f-group').value;
+  var mk=document.getElementById('f-market').value;
   var on=document.getElementById('f-on').value;
   curRows=CATS.filter(function(c){
     return (!kw||c.name.indexOf(kw)>-1||c.id.indexOf(kw)>-1)
       &&(!g||c.group===g)
+      &&(!mk||marketOf(c.group)===mk)
       &&(on===''||String(c.on)===on);
   });
   render();toast('已按条件查询，共 '+curRows.length+' 个品类');
 }
 function resetSearch(){
-  ['f-kw','f-group','f-on'].forEach(function(k){document.getElementById(k).value='';});
+  ['f-kw','f-group','f-market','f-on'].forEach(function(k){document.getElementById(k).value='';});
   curRows=CATS.slice();render();toast('已重置筛选条件');
 }
 

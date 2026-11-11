@@ -129,7 +129,8 @@ var CONTRACTS=[
 
 /* 可编辑字段定义（决定"哪些能改" + 变更类型映射） */
 var EDITABLE={
-  rent:{label:'年租金（元）',type:'租金变更'},
+  rent:{label:'每期租金（元）',type:'租金变更'},
+  bondAmt:{label:'履约保证金（元）',type:'保证金变更'},
   start:{label:'租赁起始日',type:'租期变更'},
   end:{label:'租赁终止日',type:'租期变更'},
   area:{label:'出租面积（㎡）',type:'面积变更'},
@@ -157,7 +158,7 @@ var MOCK_REJECTED={
   id:'BG2026-0016',no:'HT2026-0069',state:'已驳回',
   reject:'商户签名与承租方不一致（签署笔迹为他人代签），请修正后重新送签',
   reason:'周边市场租金上调，协商一致按年递增 5%',
-  diff:[{key:'rent',label:'年租金（元）',type:'租金变更',from:'45600',to:'47880'}]
+  diff:[{key:'rent',label:'每期租金（元）',type:'租金变更',from:'45600',to:'47880'}]
 };
 function findRejected(id){
   var hit=getExtra().filter(function(x){return x.id===id;})[0];
@@ -215,7 +216,7 @@ function loadContract(){
   cur=CONTRACTS.filter(function(c){return c.no===curNo;})[0];
   document.getElementById('ctMeta').innerHTML=
     '<b>'+esc(cur.name)+'</b>　档口 '+esc(cur.gate)+'（'+esc(cur.stall)+'）　'+esc(cur.area)+' ㎡　'+esc(cur.start)+' ~ '+esc(cur.end)
-    +'　年租金 '+money(cur.rent)+' 元　当前状态 '+esc(cur.status);
+    +'　每期租金 '+money(cur.rent)+' 元　当前状态 '+esc(cur.status);
   document.getElementById('vTag').textContent=cur.ver+' → v'+(parseInt(cur.ver.replace('v',''),10)+1);
   var G=[
     ['合同号',cur.no,0],['卷号',cur.vol,0],['资产类型','商铺',0],['资产名称（摊位号）',cur.stall,0],
@@ -229,10 +230,11 @@ function loadContract(){
     ['出租面积（㎡）',cur.area,'area'],
     ['租赁起始日',cur.start,'start'],
     ['租赁终止日',cur.end,'end'],
-    ['年租金（元）',cur.rent,'rent'],
-    ['履约保证金（元）',money(cur.dep)+'（'+cur.lv+'固定，不可改）',0],
-    ['租金收取方式','每年 8 月底前缴清下一租赁年度年租金',0],
-    ['出租依据','政府招投标成交确认书（系统外）',0],
+    ['每期租金（元）',cur.rent,'rent'],
+    ['履约保证金（元）',(cur.bondAmt||cur.dep||0),'bondAmt'],
+    ['保证金按间数计','每间 '+(cur.bondU?money(cur.bondU):'按等级默认')+' 元 × '+(cur.rooms||1)+' 间（v2.0：金额可改，仍由财务线下收付）',0],
+    ['租金收取方式','每期 '+(cur.months||12)+' 个月；第一期签订前付清，以后每期 '+(cur.dueDay||'8 月 15 日')+' 前付清',0],
+    ['出租依据',(cur.noticeNo?'竞拍公告 '+cur.noticeNo+'（成交价 '+(cur.price||'—')+'）':'政府招投标成交确认书（系统外 / 存量补录）'),0],
     ['合同状态',cur.status,0],['当前版本',cur.ver,0]
   ];
   document.getElementById('fieldGrid').innerHTML=G.map(function(f){

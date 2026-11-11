@@ -91,7 +91,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
       <li>累计参团数量<b>达到目标档才成团</b>；<b>支付不等于成团</b>，只表示锁定份额。</li>
       <li>全员按<b>目标档单价预付</b>（预付价 = 锁档结算价），成团只转状态、不改金额、不多退少补。</li>
       <li><b>超档不升价</b>：累计超过目标档仍按目标档价结算，不降价、不退差价。</li>
-      <li>参团下限 = <b>阶梯最小档 × 20%</b>（不低于 10 双），与团长选哪一档无关。</li>
+      <li>参团下限 = <b>目标档 × 20%</b>（不低于 10 双）：选 500 档每人至少 100 双，选 300 档至少 60 双。</li>
       <li>到期未达目标档 → <b>拼单失败</b>，款项原路全额退回，预计 3 个工作日到账（<b>即便已过第一档也不算成团</b>）。</li>
       <li>团长可<b>退出</b>（份额保留、团继续）或<b>取消本团</b>（二次确认、全员退款）；已成团后不支持退出，按售后处理。</li>
     </ol>
@@ -114,7 +114,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <script>
 /* 拼单团数据（10b v2.1 §2.0.13 目标档口径）
    与 group-buy-join.html / 运营端 mall-group-manage.html 同源，共 8 团，禁止单端造数
-   tierQty=阶梯最小档（算参团下限）· targetQty=成团阈值 · targetPrice=目标档价（预付=结算） */
+   tierQty=阶梯最小档（仅展示）· targetQty=成团阈值 + 下限基数 · targetPrice=目标档价（预付=结算） */
 var GBL=[
  {no:'T20261110001',st:'going',title:'秋季加厚羊毛袜',img:'images/sock_06.jpg',merchant:'大唐袜业旗舰店',origin:3.50,tierQty:100,targetQty:500,targetPrice:2.90,cum:320,people:3,cd:'54:00:00'},
  {no:'T20261110008',st:'going',title:'抗菌防臭商务袜',img:'images/sock_03.jpg',merchant:'金华EE贸易',origin:4.20,tierQty:100,targetQty:300,targetPrice:3.50,cum:180,people:2,cd:'06:00:00'},
@@ -140,7 +140,8 @@ function cardHtml(g){
   }else if(g.st==='deal'){
     statusTxt='已成团 · 锁目标档 ¥'+g.targetPrice.toFixed(2)+'/双';statusColor='#059669';
     note='<span class="flex items-center gap-0.5 text-[10px] text-gray-500"><i class="fas fa-circle-check text-[9px]" style="color:#059669"></i> 已锁档 · 超档不升价</span>';
-    btn='<a href="orders.html?type=group" class="'+btnCls+'" style="background:linear-gradient(135deg,#2DD4BF,#059669)">查看订单</a>';
+    /* 列表是公区：可能没参与，不能出现「查看订单」；个人单据只在我的拼单 / 我的订单里看 */
+    btn='<a href="group-buy-join.html?gb='+g.no+'" class="text-gray-500 text-[11px] font-semibold px-4 py-1.5 rounded-full border border-gray-200 bg-gray-50">查看详情</a>';
   }else if(g.st==='fail'){
     statusTxt='已失效 · 已全额退款';statusColor='#B91C1C';
     note='<span class="flex items-center gap-0.5 text-[10px] text-gray-400"><i class="fas fa-rotate-left text-[9px]"></i> 未达目标档 · '+g.people+' 人已退款</span>';

@@ -713,27 +713,42 @@ function markMis(i){
   renderAudit();renderAll();
   toast(h.mis?'已标记为误报：该命中项不再阻断（可下拉到「词库」沉淀为白名单）':'已取消误报标记');
 }
+/* 审核结论回写商品状态（B2）：mall-ops.html 加载时合并 sh_mall_goods_state_v1，
+   用于演示「审核通过 → 商品列表状态变为已通过」的同一份状态流转 */
+function pushGoodsState(goodsId,state){
+  if(!goodsId) return;
+  try{
+    var m=JSON.parse(localStorage.getItem('sh_mall_goods_state_v1')||'{}');
+    m[goodsId]=state;
+    localStorage.setItem('sh_mall_goods_state_v1',JSON.stringify(m));
+  }catch(e){}
+}
+
 function submitAudit(pass){
   var a=CUR,note=(document.getElementById('aNote')||{}).value||'';
   if(a.state==='machine_blocked'){
     if(!pass){
       if(note.trim().length<4){toast('维持拦截请补充理由（≥4 字），将回传商户端');return;}
       a.state='rejected';a.manual={by:'admin',at:'2026-11-09 10:05',result:'reject',reason:'涉黄涉暴内容',note:note.trim()};
+      pushGoodsState(a.goodsId,'rejected');
       closeAll();renderAll();toast('已维持拦截：商品不上架，理由已回传商户端');return;
     }
     if(note.trim().length<4){toast('复核放行必须填写误判理由');return;}
     a.state='pending_manual';a.manual=null;
     a.appeal=(a.appeal?a.appeal+'　｜　':'')+'运营复核放行：'+note.trim();
+    pushGoodsState(a.goodsId,'pending_manual');
     closeAll();renderAll();toast('已放行：商品转入人工判定队列（拦截记录保留）');return;
   }
   if(pass){
     a.state='passed';a.manual={by:'admin',at:'2026-11-09 10:05',result:'pass',reason:'',note:note.trim()};
+    pushGoodsState(a.goodsId,'passed');
     closeAll();renderAll();toast('审核通过：商品已上架，买家端可见（机审 + 人审双留痕）');
   }else{
     var r=document.getElementById('aReason');
     var reason=r?r.value:(REASON||REASONS[0]);
     if(!note.trim()){toast('驳回需填写说明（将展示给商户）');return;}
     a.state='rejected';a.manual={by:'admin',at:'2026-11-09 10:05',result:'reject',reason:reason,note:note.trim()};
+    pushGoodsState(a.goodsId,'rejected');
     closeAll();renderAll();toast('已驳回：原因「'+reason+'」已回传商户端，商品不上架');
   }
 }

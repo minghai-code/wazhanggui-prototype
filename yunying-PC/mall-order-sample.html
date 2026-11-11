@@ -51,7 +51,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
     <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600" data-s="待付款">待付款</span>
     <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600" data-s="待制样">待制样</span>
     <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600" data-s="已寄样">已寄样</span>
-    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600" data-s="已完成">已完成</span>
+    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600" data-s="样衣确认">样衣确认</span>
+    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600" data-s="已完结">已完结</span>
     <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600" data-s="已取消">已取消</span>
   </div>
 
@@ -88,7 +89,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
       <span class="ml-auto text-[11px] text-[#94A3B8]">抵扣额度只在同一需求链路内有效，跨需求不抵扣；额度仅生成定制单时一次性使用</span>
     </div>
     <div class="overflow-x-auto">
-      <table class="w-full text-[13px]" style="min-width:1480px">
+      <table class="w-full text-[13px]" style="min-width:1360px">
         <thead>
           <tr class="bg-gray-50 text-gray-500 text-[12px]">
             <th class="px-4 py-3 text-left font-medium">打样单号</th>
@@ -98,8 +99,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
             <th class="px-4 py-3 text-center font-medium">打样轮次</th>
             <th class="px-4 py-3 text-right font-medium">样品费</th>
             <th class="px-4 py-3 text-left font-medium">可抵扣</th>
-            <th class="px-4 py-3 text-left font-medium">样衣状态</th>
-            <th class="px-4 py-3 text-left font-medium">订单状态</th>
+            <th class="px-4 py-3 text-left font-medium">打样状态</th>
             <th class="px-4 py-3 text-left font-medium">关联定制单</th>
             <th class="px-4 py-3 text-center font-medium">操作</th>
           </tr>
@@ -134,7 +134,7 @@ var S = [
     log:['2026-10-25 09:12 由需求 CP20261026001 选标生成打样单（商户选「收样品费·可抵大货款」¥200）','2026-10-25 09:13 系统向买家下发待付款通知（¥200，可抵大货款），未支付前不进入制样'] },
   { no:'SP20261024011', demand:'CP20261024002', goods:'情侣款刺绣短袜 姓名定制', shop:'丹吉娅智能工厂', buyer:'吴**',
     design:'刺绣姓名 · 纯棉 · 短筒 · 电脑绣花', round:2, fee:'200.00',
-    sampleFeeWay:'收样品费·可抵大货款', freeCond:'', deductState:'已用', sampleState:'样衣确认', state:'已完成', cz:'CZ20261026007', paid:true,
+    sampleFeeWay:'收样品费·可抵大货款', freeCond:'', deductState:'已用', sampleState:'样衣确认', state:'已完结', cz:'CZ20261026007', paid:true,
     rounds:[{r:1, at:'2026-10-24 10:00', note:'第 1 版样衣寄出'},{r:2, at:'2026-10-25 14:30', note:'买家要求改样：绣字改为金线'},{r:2, at:'2026-10-26 09:10', note:'第 2 版样衣确认，可下大货'}],
     log:['2026-10-24 09:40 由需求选标生成打样单（商户选「收样品费·可抵大货款」¥200）','2026-10-26 09:10 买家确认样衣','2026-10-26 09:15 生成定制单 CZ20261026007（抵扣 ¥200）'] },
   { no:'SP20261026005', demand:'CP20261026003', goods:'宠物主题潮袜 柯基图案', shop:'恒丰织造', buyer:'郑**',
@@ -156,7 +156,13 @@ var S = [
     design:'深灰纯色 · 精梳棉 · 中筒 · 侧边织标', round:1, fee:'0.00',
     sampleFeeWay:'免费提供', freeCond:'大货起订量 ≥ 3000 双', deductState:'无', sampleState:'待制样', state:'待制样', cz:'—', paid:false,
     rounds:[{r:1, at:'2026-11-11 09:20', note:'样品免费提供（条件：大货起订量 ≥ 3000 双），无需支付，直接制样'}],
-    log:['2026-11-11 09:10 由企业需求 CE20261108021 选标生成打样单','2026-11-11 09:20 商户选择「免费提供」，跳过支付直接进入待制样（§2.0.4② 免费样品不设待付款）'] }
+    log:['2026-11-11 09:10 由企业需求 CE20261108021 选标生成打样单','2026-11-11 09:20 商户选择「免费提供」，跳过支付直接进入待制样（§2.0.4② 免费样品不设待付款）'] },
+  /* 样衣确认、额度未用 —— 唯一可「生成定制单并抵扣」的在途单（定制订单页 simCreate 同源引用） */
+  { no:'SP20261105009', demand:'CP20261104003', goods:'校徽刺绣中筒袜（学校家委会）', shop:'丹吉娅智能工厂', buyer:'陈**',
+    design:'藏青底+金色校徽刺绣 · 精梳棉 · 中筒 · 电脑绣花', round:2, fee:'200.00',
+    sampleFeeWay:'收样品费·可抵大货款', freeCond:'', deductState:'可用', sampleState:'样衣确认', state:'已寄样', cz:'—', paid:true,
+    rounds:[{r:1, at:'2026-11-05 09:30', note:'第 1 版样衣寄出'},{r:2, at:'2026-11-08 14:00', note:'买家要求改样：校徽放大'}],
+    log:['2026-11-05 09:20 由需求 CP20261104003 选标生成打样单（商户选「收样品费·可抵大货款」¥200）','2026-11-05 09:26 买家支付样品费 ¥200','2026-11-10 16:40 买家确认第 2 版样衣，可下大货（额度 ¥200 待用）'] }
 ];
 
 /* 样品收费方式 → 金额推导（§2.0.5：金额由收费方式决定，不得在数据里写死抵扣额）
@@ -173,12 +179,25 @@ var cur=null, rows=S.slice(), tab='all';
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
 function stBadge(s){
-  var map={'待付款':'background:#FEF3C7;color:#B45309','待制样':'background:#EDE9FE;color:#6D28D9','已寄样':'background:#DBEAFE;color:#1D4ED8','已完成':'background:#DCFCE7;color:#15803D','已取消':'background:#F1F5F9;color:#64748B'};
+  var map={'待付款':'background:#FEF3C7;color:#B45309','待制样':'background:#EDE9FE;color:#6D28D9','已寄样':'background:#DBEAFE;color:#1D4ED8','已完结':'background:#DCFCE7;color:#15803D','已取消':'background:#F1F5F9;color:#64748B'};
   return '<span class="tag" style="'+(map[s]||'background:#F1F5F9;color:#64748B')+'">'+s+'</span>';
 }
 function sampleBadge(s){
   var map={'未开始':'background:#F1F5F9;color:#64748B','待制样':'background:#F5F3FF;color:#6D28D9','已寄样':'background:#EFF6FF;color:#1D4ED8','样衣确认':'background:#F0FDF4;color:#15803D'};
   return '<span class="tag" style="'+(map[s]||'background:#F1F5F9;color:#64748B')+'">'+s+'</span>';
+}
+/* 主状态（打样专属，§2.0.4②：不套用订单 4 态做主列）
+ *   已取消 / 已完结 取终态；其余取打样子态：未开始 → 待制样 → 已寄样 → 样衣确认
+ *   「待付款」只是样品费付款子态，主列不占位，用小标提示（B5） */
+function mainState(o){
+  if(o.state==='已取消') return '已取消';
+  if(o.state==='已完结') return '已完结';
+  return o.sampleState;
+}
+function mainCell(o){
+  var h=stBadge(mainState(o));
+  if(o.state==='待付款') h+=' <span class="tag" style="background:#FEF3C7;color:#B45309">样品费待付</span>';
+  return h;
 }
 /* 样品费支付状态（免费样品不产生支付；收费样品未付前不进入制样） */
 function payCell(o){
@@ -214,8 +233,11 @@ function render(){
   var fd=document.getElementById('fDeduct').value;
   var fw=document.getElementById('fWay').value;
   rows=S.filter(function(o){
-    /* Tab 按"打样主状态"筛：已寄样 / 样衣确认属打样专属子态，订单主状态此时仍是待付款，故两维取并集 */
-    if(tab!=='all'&&o.state!==tab&&o.sampleState!==tab)return false;
+    /* Tab 按「打样主状态」筛；「待付款」是样品费付款子态，单独按订单态筛 */
+    if(tab!=='all'){
+      if(tab==='待付款'){ if(o.state!=='待付款')return false; }
+      else if(mainState(o)!==tab) return false;
+    }
     if(kw&&o.no.indexOf(kw)<0&&o.demand.indexOf(kw)<0&&o.goods.indexOf(kw)<0)return false;
     if(fw&&o.sampleFeeWay!==fw)return false;
     if(fd&&o.deductState!==fd)return false;
@@ -232,20 +254,19 @@ function render(){
       +'<td class="px-4 py-3 text-center">'+o.round+'</td>'
       +'<td class="px-4 py-3 text-right">¥'+esc(o.fee)+'</td>'
       +'<td class="px-4 py-3">'+deductCell(o)+'</td>'
-      +'<td class="px-4 py-3">'+sampleBadge(o.sampleState)+'</td>'
-      +'<td class="px-4 py-3">'+stBadge(o.state)+'</td>'
+      +'<td class="px-4 py-3">'+mainCell(o)+'</td>'
       +'<td class="px-4 py-3">'+(o.cz==='—'?'<span class="text-[#CBD5E1]">—</span>':'<span class="lk" onclick="jumpCZ(\''+esc(o.cz)+'\')">'+esc(o.cz)+'</span>')+'</td>'
       +'<td class="px-4 py-3 text-center whitespace-nowrap"><span class="lk" onclick="openD(\''+o.no+'\')">详情</span></td>'
       +'</tr>';
   });
-  if(!rows.length) h='<tr><td colspan="11" class="px-4 py-16 text-center text-gray-300"><i class="fas fa-inbox text-3xl block mb-2"></i><span class="text-[12px]">暂无匹配的打样单</span></td></tr>';
+  if(!rows.length) h='<tr><td colspan="10" class="px-4 py-16 text-center text-gray-300"><i class="fas fa-inbox text-3xl mb-2" style="display:block"></i><span class="text-[12px]">暂无匹配的打样单</span></td></tr>';
   document.getElementById('tb').innerHTML=h;
   document.getElementById('cnt').textContent='共 '+rows.length+' 条';
   /* 统计卡与列表同源（派生值不手写） */
   function cnt(fn){return S.filter(fn).length;}
   document.getElementById('s1').textContent=S.length;
-  document.getElementById('s2').textContent=cnt(function(o){return o.state==='待制样'||o.sampleState==='待制样';});
-  document.getElementById('s3').textContent=cnt(function(o){return o.sampleState==='已寄样';});
+  document.getElementById('s2').textContent=cnt(function(o){return mainState(o)==='待制样';});
+  document.getElementById('s3').textContent=cnt(function(o){return mainState(o)==='已寄样';});
   document.getElementById('s4').textContent=cnt(function(o){return o.state==='待付款';});
   document.getElementById('s5').textContent=cnt(function(o){return o.deductState==='已用';});
 }
@@ -275,7 +296,7 @@ function openD(no){
     +'<div class="kv"><span class="k">来源需求</span><span class="v"><span class="lk" onclick="jumpDemand(\''+esc(o.demand)+'\')" title="查看该定制需求详情">'+esc(o.demand)+'</span></span></div>'
     +'<div class="kv"><span class="k">设计方案</span><span class="v">'+esc(o.design)+'</span></div>'
     +'<div class="kv"><span class="k">打样轮次</span><span class="v">'+o.round+' 轮'+(o.round>3?'（已超 3 轮，建议运营介入）':'')+'</span></div>'
-    +'<div class="kv"><span class="k">样衣状态</span><span class="v">'+sampleBadge(o.sampleState)+'</span></div>'
+    +'<div class="kv"><span class="k">打样状态</span><span class="v">'+mainCell(o)+'</span></div>'
     +'<div class="kv"><span class="k">抵扣额度</span><span class="v">'+deductCell(o)+'</span></div>'
     + (o.sampleFeeWay==='免费提供'
         ? '<div class="kv"><span class="k">免费条件</span><span class="v">'+esc(o.freeCond||'—')+'</span></div>'

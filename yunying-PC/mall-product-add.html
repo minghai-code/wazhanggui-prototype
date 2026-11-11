@@ -32,14 +32,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .del:hover{color:#EF4444}
 .tabbtn{padding:12px 16px;font-size:13px;color:#64748B;cursor:pointer;border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none}
 .tabbtn.on{color:#FF4D2D;border-bottom-color:#FF4D2D;font-weight:700}
-.mn-fab{position:fixed;right:22px;bottom:22px;z-index:30;display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:999px;border:1px solid #FDB4A3;background:#fff;color:#E63E20;font-size:12px;font-weight:600;cursor:pointer;box-shadow:0 8px 22px rgba(255,77,45,.20);font-family:inherit}
-.mn-fab:hover{background:#FFF6F3}
-.mn-mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:80}
-.mn-mask.on{opacity:1;pointer-events:auto}
-.mn-modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);width:580px;max-width:92vw;max-height:82vh;overflow-y:auto;background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(15,23,42,.28);opacity:0;pointer-events:none;transition:.22s;z-index:90}
-.mn-modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
-.mn-li{display:flex;gap:8px;font-size:12.5px;color:#334155;line-height:1.75}
-.mn-li i{margin-top:5px;font-size:8px;flex-shrink:0}
 .tm-mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:60}
 .tm-mask.on{opacity:1;pointer-events:auto}
 .tm-modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);width:640px;max-width:94vw;max-height:84vh;overflow-y:auto;background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(15,23,42,.28);opacity:0;pointer-events:none;transition:.22s;z-index:70}
@@ -250,11 +242,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 
 <!-- toast -->
 <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[95]"></div>
-
-<!-- ===== 修改说明（商城运营 · 右下角） ===== -->
-<button class="mn-fab" onclick="openNote()"><i class="fas fa-circle-info"></i><span>修改说明</span></button>
-<div id="mn-mask" class="mn-mask" onclick="closeNote()"></div>
-<div id="mn-modal" class="mn-modal"></div>
 
 <script>
 /* ================= 数据（原型态 mock） ================= */
@@ -476,47 +463,6 @@ function submitProduct(){
   }
 }
 
-/* ================= 修改说明 ================= */
-var NOTE_TITLE='商品管理 · 新增商品';
-var NOTE_PENDING=false;
-var NOTE_EXT=[
-  '本页 Tab（基本信息 / 销售信息 / 物流及配送 / 商品详情 / 高级信息）、各 Tab 内字段与校验、业务流程，一律以外采 igshop 系统「添加商品」页为准；原型只还原「销售信息」中与本次修改相关的部分。',
-  '外采商品管理的其他菜单与功能模块同样以外采为准：商品列表、商品分类、商品品牌、商品分组、商品评价、属性模板、商品服务、商品售后服务、批量操作、库存管理、商品询价等。'
-];
-var NOTE_MOD=[
-  '【本次新增】销售信息增加「是否支持拼单」：支持时，买家端商品详情页除「立即下单」外增加「发起拼单」入口（不支持则只保留「立即下单」）。',
-  '【本次新增】阶梯价设置：无论统一规格还是多规格，每个规格都可设置阶梯价（起始数量 / 结束数量 / 单价，可增删档位），供买家端展示并按下单数量落档计价。',
-  '【实现参考】外采系统「批发管理」中也有批发商品的批发价设置，技术实现可以参考该模块的方式。',
-  '【本次新增·关联改造】商品提交后**不再直接同步买家端**：先做机器初筛（敏感词 + 敏感图），再按结果转人工判定，通过后才上架（招标 2.1.3-97 商品自动审核）。拼单开关与阶梯价随商品一起过审，审核期间买家端仍展示上一版。审核入口见 `mall-product-audit.html`。'
-];
-function noteItems(arr,color,empty){
-  if(!arr||!arr.length){return '<div class="mn-li" style="color:#94A3B8">'+empty+'</div>';}
-  return arr.map(function(t){return '<div class="mn-li"><i class="fas fa-circle" style="color:'+color+'"></i><span>'+t+'</span></div>';}).join('');
-}
-function openNote(){
-  var h='<div class="flex items-start justify-between px-5 py-4 border-b border-gray-100">'
-    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">开发修改说明</h3>'
-    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+NOTE_TITLE+'　·　商城运营（外采 igshop 系统）'+(NOTE_PENDING?'　·　<span style="color:#E63E20">待补充</span>':'')+'</p></div>'
-    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeNote()"><i class="fas fa-xmark"></i></button></div>'
-    +'<div class="px-5 py-4" style="display:flex;flex-direction:column;gap:14px">'
-    +'<div class="rounded-xl border p-4" style="border-color:#FDE68A;background:#FFFBEB">'
-    +'<div class="text-[12.5px] font-bold mb-2" style="color:#B45309"><i class="fas fa-triangle-exclamation mr-1"></i>请以外采系统为准</div>'
-    +noteItems(NOTE_EXT,'#F59E0B','无')+'</div>'
-    +'<div class="rounded-xl border p-4" style="border-color:#FDB4A3;background:#FFF6F3">'
-    +'<div class="text-[12.5px] font-bold mb-2" style="color:#E63E20"><i class="fas fa-pen-to-square mr-1"></i>请以本次修改内容为准</div>'
-    +noteItems(NOTE_MOD,'#FF4D2D','本页无本次修改内容，全部以外采系统为准')+'</div></div>'
-    +'<div class="px-5 py-3.5 border-t border-gray-100 flex justify-end">'
-    +'<button class="px-4 py-2 rounded-lg text-[12px] font-semibold text-white" style="background:#FF4D2D" onclick="closeNote()">知道了</button></div>';
-  var m=document.getElementById('mn-modal');
-  m.innerHTML=h;
-  document.getElementById('mn-mask').classList.add('on');
-  m.classList.add('on');
-}
-function closeNote(){
-  document.getElementById('mn-mask').classList.remove('on');
-  document.getElementById('mn-modal').classList.remove('on');
-}
-
 /* ================= 初始化 ================= */
 renderTabs();
 renderAttrs();
@@ -526,6 +472,25 @@ renderSingleTiers();
 renderSvc();
 pickMode('multi');
 tabGo('sale');
+
+/* 编辑态（由 mall-ops.html「编辑 / 详情」带入 ?id=商品编号）
+   原型不落库：只切换标题与提示条，表单沿用默认演示值，保存仍走机审 + 人审 */
+(function(){
+  var id=new URLSearchParams(location.search).get('id');
+  if(!id) return;
+  document.title='商城运营 - 编辑商品 '+id;
+  var h=document.querySelector('h1');
+  var tip=document.createElement('div');
+  tip.className='rounded-xl px-4 py-2.5 mb-4 text-[12px]';
+  tip.style.cssText='background:#EFF6FF;border:1px solid #BFDBFE;color:#1D4ED8';
+  tip.innerHTML='<i class="fas fa-pen-to-square mr-1"></i>编辑态：正在维护商品 <b>'+id+'</b> 的阶梯价与拼单开关（原型不落库，字段沿用演示值；保存后先机审、命中原警示级再转人工，通过后才上架）';
+  if(h){
+    h.innerHTML='编辑商品 <span class="text-[12px] font-normal text-[#94A3B8] ml-1">'+id+'</span>';
+    var head=h.closest('.flex.items-start');
+    if(head&&head.parentNode) head.parentNode.insertBefore(tip,head.nextSibling);
+  }
+})();
 </script>
+<script src="../shared/page-prd.js"></script>
 </body>
 </html>

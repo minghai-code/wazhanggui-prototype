@@ -158,9 +158,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 <script>
 /* ============ 数据（mock，字段与 10b v2.1 §2.0.13 一致）
    targetQty  = 团长发起时选定的目标档起始数量 = 成团阈值
-   tierQty    = 该规格阶梯表最小档起始数量，仅用于算参团下限
+   tierQty    = 该规格阶梯表最小档起始数量，仅作「起批量」展示，不参与下限计算
    targetPrice= 目标档单价，全员预付价与锁档结算价
-   groupMin   = max(10, ceil(tierQty*20%))，对齐 10 的倍数
+   groupMin   = max(10, ceil(targetQty*20%))，即目标档 20%，对齐 10 的倍数（10b §2.0.13 ④ v2.1）
    ============ */
 var G = [
   /* 进行中：已过第一档 300，但未达目标档 500 —— 新口径核心样本 */
@@ -227,7 +227,7 @@ var G = [
     refund:{people:3,amount:'¥868.00',state:'部分失败（1 人可重试）',detail:['2026-11-10 22:00 到期累计 140 双，未达目标档 200 双 → 团失效','2026-11-10 22:05 3 笔订单置「已取消（已退款）」','2026-11-11 09:10 退款成功 2/3；罗** ¥248.00 通道失败，待重试']},
     log:['2026-11-09 08:30 团长选目标档 200 双（¥6.20/双）发起','2026-11-10 22:00 到期未达目标档 200 双，团失效','2026-11-11 09:10 退款 2 成功 1 失败（罗**）'] },
 
-  /* 已失效：高门槛多档，参团下限 20 */
+  /* 已失效：高门槛多档，参团下限 1000×20% = 200 */
   { no:'T20261102007', goods:'精梳棉长筒商务袜', merchant:'诸暨精梳棉工厂',
     tier:'100–999 双 ¥2.60 / 1000–1999 双 ¥2.40 / ≥2000 双 ¥2.10',
     tierQty:100, targetQty:1000, targetPrice:2.40, lead:400, cum:780, people:8, state:'已失效', deadline:'2026-11-07 18:00（已到期）', doneAt:'—',
@@ -256,7 +256,7 @@ var cur=null, curSt='';
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 function money(n){return Number(n||0).toLocaleString('en-US');}
 function pct(g){return Math.min(100,Math.round(g.cum/g.targetQty*100));}
-function groupMin(g){return Math.max(10,Math.ceil(g.tierQty*0.2/10)*10);}
+function groupMin(g){return Math.max(10,Math.ceil(g.targetQty*0.2/10)*10);}
 
 function stBadge(s){
   var m={'进行中':['#EFF6FF','#2563EB'],'已成团':['#DCFCE7','#15803D'],'已失效':['#F1F5F9','#64748B'],'已取消':['#FEF3C7','#B45309']};
@@ -276,10 +276,10 @@ function render(){
   var tb=list.map(function(g){
     var p=pct(g);
     var bar='<div class="flex items-center gap-2"><div class="pbar '+(g.state==='已成团'?'done':(g.state==='进行中'?'':'dead'))+'" style="width:80px"><i style="width:'+p+'%"></i></div><span class="text-[11px] '+(p>=100?'':'text-[#94A3B8]')+'" style="'+(p>=100?'color:#15803D':'')+'">'+p+'%</span></div>';
-    var op='<span class="lk" onclick="openD(\''+g.no+'\')">详情</span>';
-    if(g.state==='已成团') op+=' · <span class="lk" onclick="goOrders(\''+g.no+'\')">查看订单</span>';
-    else if(g.state==='进行中') op+=' · <span class="lk-gray" onclick="goOrders(\''+g.no+'\')">订单</span>';
-    else if(g.refund&&g.refund.state.indexOf('失败')>-1) op+=' · <span class="lk" onclick="retryRefund(\''+g.no+'\')">退款重试</span>';
+    /* 四态都给订单入口：进行中有「待成团」单、失效/取消团有已退款单，都要能查到逐笔（Y-28 C2） */
+    var op='<span class="lk" onclick="openD(\''+g.no+'\')">详情</span>'
+      +' · <span class="lk" onclick="goOrders(\''+g.no+'\')">查看订单</span>';
+    if(g.refund&&g.refund.state.indexOf('失败')>-1) op+=' · <span class="lk" onclick="retryRefund(\''+g.no+'\')">退款重试</span>';
     return '<tr class="hover:bg-gray-50/60">'
       +'<td class="px-4 py-3"><span class="lk" onclick="openD(\''+g.no+'\')">'+esc(g.no)+'</span></td>'
       +'<td class="px-4 py-3">'+esc(g.goods)+'<div class="text-[11px] text-[#94A3B8]">'+esc(g.starter)+'</div></td>'
@@ -345,7 +345,8 @@ function openD(no){
     +'<div class="kv"><span class="k">商户</span><span class="v">'+esc(g.merchant)+'</span></div>'
     +'<div class="kv"><span class="k">团长</span><span class="v">'+esc(g.starter)+'</span></div>'
     +'<div class="kv"><span class="k">目标档</span><span class="v">'+money(g.targetQty)+' 双 · ¥'+Number(g.targetPrice).toFixed(2)+'/双</span></div>'
-    +'<div class="kv"><span class="k">起批量</span><span class="v">'+money(g.tierQty)+' 双（参团下限 '+gm+' 双）</span></div>'
+    +'<div class="kv"><span class="k">起批量</span><span class="v">'+money(g.tierQty)+' 双</span></div>'
+    +'<div class="kv"><span class="k">参团下限</span><span class="v">'+gm+' 双（目标档 '+money(g.targetQty)+' 双 × 20%）</span></div>'
     +'<div class="kv"><span class="k">团长下单</span><span class="v">'+money(g.lead)+' 双</span></div>'
     +'<div class="kv"><span class="k">累计 / 人数</span><span class="v">'+money(g.cum)+' 双 / '+g.people+' 人</span></div>'
     +'<div class="kv"><span class="k">发起时间</span><span class="v">'+esc(g.created)+'</span></div>'
@@ -386,7 +387,9 @@ function openD(no){
   document.getElementById('dBody').innerHTML=h;
 
   var foot='<button class="btn btn-ghost" onclick="closeAll()">关闭</button>';
+  /* 已成团/进行中 = 主按钮；已失效/已取消 = 次按钮（同样可查逐笔 GB 单与退款明细） */
   if(g.state==='已成团'||g.state==='进行中') foot+='<button class="btn btn-primary" onclick="goOrders(\''+g.no+'\')">查看订单</button>';
+  else foot+='<button class="btn btn-ghost" onclick="goOrders(\''+g.no+'\')">查看订单（'+g.state+'）</button>';
   if(g.state==='进行中'&&g.apply){
     foot+='<button class="btn" style="background:#FFFBEB;color:#B45309;border:1px solid #FDE68A" onclick="rejectApply(\''+g.no+'\')">驳回申请</button>';
     foot+='<button class="btn" style="background:#FEF2F2;color:#B91C1C;border:1px solid #FECACA" onclick="approveApply(\''+g.no+'\')">通过并取消</button>';
@@ -477,11 +480,12 @@ function toast(msg){
   clearTimeout(window._tt);window._tt=setTimeout(function(){t.style.opacity='0';t.style.transform='translate(-50%,-8px)';},2200);
 }
 
-/* 从订单页带团号跳入时自动筛选 */
+/* 从订单页带团号跳入时自动筛选；精确命中团号直接打开团详情（与 mall-order-group.html 体验一致） */
 (function(){
   var tid=new URLSearchParams(location.search).get('tid');
   if(tid){document.getElementById('kw').value=tid;}
   render();
+  if(tid&&G.some(function(g){return g.no===tid;})){openD(tid);}
 })();
 </script>
 <script src="../shared/op-guard.js"></script>

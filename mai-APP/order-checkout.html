@@ -197,16 +197,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <!-- 支付弹窗 -->
 <div class="fixed inset-0 flex items-center justify-center" id="payMask" style="display:none;background:rgba(0,0,0,.5);z-index:300">
   <div class="bg-white rounded-3xl mx-6 p-5 text-center shadow-card" style="max-width:300px;animation:fadeUp .35s ease both">
-    <div class="w-14 h-14 mx-auto rounded-full flex items-center justify-center mb-3" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D);box-shadow:0 8px 24px rgba(255,77,45,.3)"><i class="fas fa-file-invoice text-white text-xl"></i></div>
-    <p class="text-[16px] font-bold text-gray-800" id="payTitle">订单提交成功</p>
+    <div class="w-14 h-14 mx-auto rounded-full flex items-center justify-center mb-3" id="payIcon" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D);box-shadow:0 8px 24px rgba(255,77,45,.3)"><i class="fas fa-shield-halved text-white text-xl" id="payIconI"></i></div>
+    <p class="text-[16px] font-bold text-gray-800" id="payTitle">确认支付</p>
+    <p class="text-[10px] text-gray-400 mt-1" id="payDesc">支付后不可撤回</p>
     <p class="text-[11px] text-gray-500 mt-1"><span id="payNoLabel">订单号</span>：<span id="payOrderNo">DD20260825001</span></p>
     <div class="bg-gray-50 rounded-xl p-3 mt-3 text-left space-y-1">
       <div class="flex justify-between text-[11px]"><span class="text-gray-500">应付金额</span><span class="text-primary font-bold" id="payAmount">¥864.00</span></div>
       <div class="flex justify-between text-[11px]"><span class="text-gray-500">支付方式</span><span class="text-gray-700">微信支付</span></div>
     </div>
     <div class="flex gap-2 mt-4">
-      <a href="purchase-order.html" class="card flex-1 py-2 rounded-xl text-[12px] font-medium text-gray-500 bg-gray-100">返回进货单</a>
-      <button class="card flex-1 py-2 rounded-xl text-[12px] font-medium text-white grad-h" onclick="toast('调起微信支付')">立即支付</button>
+      <a href="javascript:;" id="payBack" class="card flex-1 py-2 rounded-xl text-[12px] font-medium text-gray-500 bg-gray-100">返回修改</a>
+      <button id="payBtn" class="card flex-1 py-2 rounded-xl text-[12px] font-medium text-white grad-h">确认支付</button>
     </div>
   </div>
 </div>
@@ -256,9 +257,47 @@ function updateTotal(){
   $('subTotal').textContent='¥'+baseAmount.toFixed(2);
   $('totalPrice').textContent=txt;
   $('bottomTotal').textContent=txt;
-  $('payAmount').textContent=txt;
+  if(typeof PAY!=='undefined'&&PAY)PAY.amount=txt;
+  if(typeof PAY==='undefined'||!PAY||PAY.state==='confirm')$('payAmount').textContent=txt;
 }
-function submitOrder(){document.getElementById('payMask').style.display='flex'}
+
+/* 支付弹层两态：confirm（支付确认，付款前）→ success（支付成功，付款后）
+   付款前不得出现「成功」字样，否则按钮语义矛盾（2026-11-11 PM 截图反馈） */
+var PAY={
+  state:'confirm',
+  confirmTitle:'确认支付',confirmDesc:'点击「确认支付」调起微信支付',
+  successTitle:'支付成功',successDesc:'',
+  confirmBtn:'确认支付',noLabel:'订单号',no:'',amount:'¥0.00',
+  doneLabel:'查看订单',doneHref:'orders.html',backLabel:'返回首页',backHref:'home.html'
+};
+function renderPay(){
+  var confirm=PAY.state==='confirm';
+  $('payIconI').className=confirm?'fas fa-shield-halved text-white text-xl':'fas fa-circle-check text-white text-xl';
+  $('payIcon').style.background=confirm?'linear-gradient(135deg,#FF6B35,#FF4D2D)':'linear-gradient(135deg,#34D399,#059669)';
+  $('payIcon').style.boxShadow=confirm?'0 8px 24px rgba(255,77,45,.3)':'0 8px 24px rgba(5,150,105,.28)';
+  $('payTitle').textContent=confirm?PAY.confirmTitle:PAY.successTitle;
+  $('payDesc').textContent=confirm?PAY.confirmDesc:PAY.successDesc;
+  $('payNoLabel').textContent=PAY.noLabel;
+  $('payOrderNo').textContent=PAY.no;
+  $('payAmount').textContent=PAY.amount;
+  var back=$('payBack'),btn=$('payBtn');
+  if(confirm){
+    back.textContent='返回修改';back.setAttribute('href','javascript:;');
+    back.onclick=function(){document.getElementById('payMask').style.display='none';};
+    btn.textContent=PAY.confirmBtn;
+    btn.onclick=function(){PAY.state='success';renderPay();toast('支付成功');};
+  }else{
+    back.textContent=PAY.backLabel;back.setAttribute('href',PAY.backHref);back.onclick=null;
+    btn.textContent=PAY.doneLabel;
+    btn.onclick=function(){location.href=PAY.doneHref;};
+  }
+}
+function openPay(){PAY.state='confirm';renderPay();document.getElementById('payMask').style.display='flex';}
+function submitOrder(){
+  if(!PAY.no)PAY.no='DD'+String(Date.now()).slice(-10); /* 普通下单：弹层内现生成订单号 */
+  if(!PAY.amount||PAY.amount==='¥0.00')PAY.amount=$('totalPrice').textContent;
+  openPay();
+}
 
 /* ===== 拼单结算（10b v2.1 §2.0.13 目标档口径）
    参团：?type=group&gb=T…&qty=20&spec=藏青/均码
@@ -308,7 +347,7 @@ function blockGroup(msg,back){
   }
   if(!g){blockGroup('该拼单不存在或已下线，请回拼单列表重新选择。','group-buy.html');return;}
   if(g.status&&g.status!=='active'){blockGroup(GB_STATUS_TIP[g.status]||'该拼单已结束，无法继续参团。','group-buy.html');return;}
-  var qty=parseInt(P.get('qty'))||Math.max(10,Math.ceil(g.tierQty*0.2));
+  var qty=parseInt(P.get('qty'))||Math.max(10,Math.ceil(g.targetQty*0.2/10)*10);
   var spec=(P.get('spec')||'藏青/均码').replace('/',' · ');
 
   document.title=(isCreate?'发起拼单确认':'拼单确认')+' - 袜掌柜买家版';
@@ -344,7 +383,7 @@ function blockGroup(msg,back){
         +(isCreate?'发起拼单 · 目标档 '+g.targetQty+' 双':'拼单号 '+gb+' · 目标档 '+g.targetQty+' 双')+'</span></div>'
       +'<p class="text-[10px] text-gray-600 leading-relaxed">按目标档价 ¥'+g.targetPrice.toFixed(2)+'/双 预付（预付价 = 锁档结算价，超目标档不升价也不降价）。'
         +'累计达目标档 '+g.targetQty+' 双即成团，全团按该价结算；到期未达目标档则拼单失败、款项原路全额退回。</p>'
-      +'<p class="text-[9px] text-gray-400 mt-1">每人参团不少于 '+Math.max(10,Math.ceil(g.tierQty*0.2))+' 双（阶梯最小档 '+g.tierQty+' 双 × 20%）</p>'
+      +'<p class="text-[9px] text-gray-400 mt-1">每人参团不少于 '+Math.max(10,Math.ceil(g.targetQty*0.2/10)*10)+' 双（目标档 '+g.targetQty+' 双 × 20%）</p>'
       +'<p class="text-[9px] mt-1" style="color:#B45309"><i class="fas fa-lock text-[8px] mr-0.5"></i>本次已锁定 '+qty+' 双，成团前不可撤回；未达目标档则全额原路退回，不扣手续费。</p>'
       +(isCreate?'':'<p class="text-[9px] text-gray-400 mt-1">当前进度：已拼 '+(g.cum||0)+' / 目标档 '+g.targetQty+' 双 · 还差 '+Math.max(0,g.targetQty-(g.cum||0))+' 双</p>');
     card.appendChild(info);
@@ -358,14 +397,24 @@ function blockGroup(msg,back){
 
   $('bottomInfo').textContent='共'+qty+'双 · 目标档价 ¥'+g.targetPrice.toFixed(2)+'/双 · 运费¥'+curFee;
   $('submitBtn').textContent=isCreate?'确认支付并开团':'提交并支付';
-  if($('payNoLabel'))$('payNoLabel').textContent=isCreate?'拼单号':'订单号';
 
-  $('payTitle').textContent=isCreate?'开团成功，等待成团':'参团成功，等待成团';
-  $('payOrderNo').textContent=isCreate?('T'+String(Date.now()).slice(-10)):('GB'+String(Date.now()).slice(-10));
-  var payBtn=document.querySelector('#payMask button.grad-h');
-  if(payBtn){payBtn.textContent=isCreate?'确认支付并开团':'支付并参团';payBtn.onclick=function(){location.href=isCreate?'group-records.html?new=1':('group-buy-join.html?gb='+gb)};}
-  var back=document.querySelector('#payMask a');
-  if(back){back.textContent=isCreate?'查看我的拼单':'返回拼单';back.href=isCreate?'group-records.html':'group-buy-join.html?gb='+gb;}
+  /* 弹层两态文案：付款前只谈「确认」，付款后才谈「成功」 */
+  PAY.noLabel=isCreate?'拼单号':'订单号';
+  PAY.no=isCreate?('T'+String(Date.now()).slice(-10)):('GB'+String(Date.now()).slice(-10));
+  PAY.amount=$('totalPrice').textContent;
+  PAY.confirmTitle=isCreate?'确认开团支付':'确认支付';
+  PAY.confirmDesc=isCreate
+    ? '付款后团即开始，累计达目标档 '+g.targetQty+' 双成团；到期未达则全额原路退回'
+    : '付款后锁定 '+qty+' 双，成团前不可撤回；未达目标档则全额原路退回';
+  PAY.confirmBtn=isCreate?'确认支付并开团':'确认支付';
+  PAY.successTitle=isCreate?'开团成功，等待成团':'参团成功，等待成团';
+  PAY.successDesc=isCreate
+    ? '已生成拼单号，可在「我的拼单」查看进度'
+    : '已锁定 '+qty+' 双，可在拼单详情查看进度';
+  PAY.doneLabel=isCreate?'查看我的拼单':'查看拼单';
+  PAY.doneHref=isCreate?'group-records.html?new=1':('group-buy-join.html?gb='+gb);
+  PAY.backLabel=isCreate?'返回进货单':'返回拼单';
+  PAY.backHref=purchase-order.html;
 })();
 if(new URLSearchParams(location.search).get('type')!=='group')updateTotal();
 </script>

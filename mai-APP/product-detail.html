@@ -535,8 +535,8 @@ var specMode='buy';
 var tierPrice=3.5;
 var tierMin=100;
 var targetTier=0; /* 拼单目标档：手动选档后锁存，数量变更不得回改（10b v2.1 §2.0.13 ①） */
-/* 参团/团长下单下限：恒按阶梯最小档 × 20%，与所选目标档无关 */
-function GMIN(){return Math.max(10,Math.ceil((TIERS[0].min||100)*0.2));}
+/* 参团/团长下单下限 = 目标档 × 20%（10b v2.1 §2.0.13 ④，2026-11-11 业务裁决），对齐 10 的倍数 */
+function GMIN(){var t=targetTier||(TIERS[0]&&TIERS[0].min)||100;return Math.max(10,Math.ceil(t*0.2/10)*10);}
 function selectTier(el,price,min){
   var items=document.querySelectorAll('.tier-item');
   items.forEach(function(i){
@@ -555,7 +555,7 @@ function selectTier(el,price,min){
   var groupMin=GMIN();
   var input=document.getElementById('specQty');
   if(parseInt(input.value)<groupMin){input.value=groupMin;}
-  document.getElementById('specHint').innerHTML='<i class="fas fa-triangle-exclamation text-[8px] mr-0.5"></i>目标档 '+min+' 双 · 目标档价 ¥'+price.toFixed(2)+'/双；团长下单不低于 '+groupMin+' 双（阶梯最小档 '+TIERS[0].min+' 双的 20%），与目标档无关';
+  document.getElementById('specHint').innerHTML='<i class="fas fa-triangle-exclamation text-[8px] mr-0.5"></i>目标档 '+min+' 双 · 目标档价 ¥'+price.toFixed(2)+'/双；团长下单不低于 '+groupMin+' 双（目标档 '+min+' 双的 20%）';
 }
 function openSpecSheet(action){
   specMode=action;
@@ -582,7 +582,7 @@ function openSpecSheet(action){
     if(PRODUCT.hasTier){
       if(!targetTier){targetTier=TIERS[0].min;tierMin=TIERS[0].min;tierPrice=TIERS[0].price;}
       tierBlock.style.display='block';applyQtyTier();
-    }else{tierBlock.style.display='none';hint.innerHTML='<i class="fas fa-triangle-exclamation text-[8px] mr-0.5"></i>团长下单不低于 '+GMIN()+' 双（阶梯最小档 '+TIERS[0].min+' 双的 20%）';}}
+    }else{tierBlock.style.display='none';hint.innerHTML='<i class="fas fa-triangle-exclamation text-[8px] mr-0.5"></i>团长下单不低于 '+GMIN()+' 双（目标档 '+(targetTier||TIERS[0].min)+' 双的 20%）';}}
   setTimeout(function(){sheet.style.transform='translateY(0)';},10);
 }
 function closeSpec(){
@@ -609,7 +609,7 @@ function applyQtyTier(){
     var gm=GMIN();
     var sp0=document.getElementById('specPrice');
     if(sp0)sp0.innerHTML='¥'+tierPrice.toFixed(2)+'<span class="text-[10px] text-gray-400 font-normal">/双</span>';
-    document.getElementById('specHint').innerHTML='<i class="fas fa-'+(qty<gm?'triangle-exclamation':'check-circle')+' text-[8px] mr-0.5"></i>目标档 '+targetTier+' 双 · 目标档价 ¥'+tierPrice.toFixed(2)+'/双 · 团长至少 '+gm+' 双（阶梯最小档 '+TIERS[0].min+' 双 × 20%）';
+    document.getElementById('specHint').innerHTML='<i class="fas fa-'+(qty<gm?'triangle-exclamation':'check-circle')+' text-[8px] mr-0.5"></i>目标档 '+targetTier+' 双 · 目标档价 ¥'+tierPrice.toFixed(2)+'/双 · 团长至少 '+gm+' 双（目标档 '+targetTier+' 双 × 20%）';
     return;
   }
   var selected=TIERS[0];
@@ -648,11 +648,11 @@ function qtyGuard(action){
   var qty=parseInt(input.value)||0;
   var base=tierMin||100;
   if(action==='group'){
-    /* 10b：拼单下限 = 阶梯最小档 × 20%（不用当前所选档位，B5） */
+    /* 10b v2.1 §2.0.13 ④：拼单下限 = 目标档 × 20%（随所选档位变化） */
     var tMin=GMIN();
     if(qty<tMin){
       input.value=tMin;applyQtyTier();
-      toast('团长下单不得少于 '+tMin+' 双（阶梯最小档 '+TIERS[0].min+' 双的 20%），已自动调整');
+      toast('团长下单不得少于 '+tMin+' 双（目标档 '+(targetTier||TIERS[0].min)+' 双的 20%），已自动调整');
       return false;
     }
     if(qty%10!==0){

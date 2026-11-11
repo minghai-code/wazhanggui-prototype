@@ -89,6 +89,10 @@
     'yunying-PC/mall-video.html':         ['10b-商城运营/07-视频看货管理', '', '视频看货管理'],
     'yunying-PC/ai-route.html':           ['18-系统设置/01-AI服务助手配置', '', 'AI 服务助手配置'],
     'yunying-PC/mall-product-audit.html': ['10b-商城运营/08-商品审核', '', '商品审核'],
+    'yunying-PC/mall-product-add.html':   ['10b-商城运营/09-商品新增与阶梯价', '', '商品新增与阶梯价'],
+    'yunying-PC/mall-ops.html':           ['10b-商城运营/09-商品新增与阶梯价', '商品列表', '商品列表'],
+    'yunying-PC/mall-product-add.html':   ['10b-商城运营/09-商品新增与阶梯价', '', '商品新增与阶梯价'],
+    'yunying-PC/mall-ops.html':           ['10b-商城运营/09-商品新增与阶梯价', '', '商品新增与阶梯价'],
 
     /* ===== 移动端 · 功能族（值指向 _views/ 下的单页视图，不是族文档） ===== */
     'mai-APP/ai-assistant.html':      ['_views/F13-AI服务助手-p1', '', 'AI 服务助手'],

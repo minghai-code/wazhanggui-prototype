@@ -17,14 +17,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .tab-active{color:#FF4D2D;border-bottom:2px solid #FF4D2D;font-weight:600}
 .status-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500}
 button{cursor:pointer;font-family:inherit}
-.mn-fab{position:fixed;right:22px;bottom:22px;z-index:30;display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:999px;border:1px solid #FDB4A3;background:#fff;color:#E63E20;font-size:12px;font-weight:600;cursor:pointer;box-shadow:0 8px 22px rgba(255,77,45,.20);font-family:inherit}
-.mn-fab:hover{background:#FFF6F3}
-.mn-mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:80}
-.mn-mask.on{opacity:1;pointer-events:auto}
-.mn-modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);width:580px;max-width:92vw;max-height:82vh;overflow-y:auto;background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(15,23,42,.28);opacity:0;pointer-events:none;transition:.22s;z-index:90}
-.mn-modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
-.mn-li{display:flex;gap:8px;font-size:12.5px;color:#334155;line-height:1.75}
-.mn-li i{margin-top:5px;font-size:8px;flex-shrink:0}
 </style>
 </head>
 <body>
@@ -142,11 +134,6 @@ button{cursor:pointer;font-family:inherit}
 
 <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[70]"></div>
 
-<!-- ===== 修改说明（商城运营 · 右下角） ===== -->
-<button class="mn-fab" onclick="openNote()"><i class="fas fa-circle-info"></i><span>修改说明</span></button>
-<div id="mn-mask" class="mn-mask" onclick="closeNote()"></div>
-<div id="mn-modal" class="mn-modal"></div>
-
 <script>
 /* ================= 列表数据（原型态 mock） ================= */
 var ROWS=[
@@ -185,6 +172,21 @@ function scoreColor(s){return s>=80?'#B91C1C':(s>=50?'#B45309':'#15803D');}
 function goAuditPage(kind,id){
   location.href=kind==='rule'?'mall-product-audit.html?tab=rule':('mall-product-audit.html'+(id?'?aid='+encodeURIComponent(id):''));
 }
+/* 详情 / 编辑统一进商品页（阶梯价与拼单开关在此维护）；?id= 进入编辑态 */
+function goEdit(id){ location.href='mall-product-add.html?id='+encodeURIComponent(id); }
+/* 审核结论回写（B2）：mall-product-audit.html 人审通过/驳回后写 sh_mall_goods_state_v1，
+   本页加载时合并到同一批商品，保证「审核通过 → 列表状态变已通过」可演示 */
+function syncAuditState(){
+  try{
+    var m=JSON.parse(localStorage.getItem('sh_mall_goods_state_v1')||'{}');
+    ROWS.forEach(function(r){
+      var s=m[r.id]; if(!s) return;
+      r.state=s;
+      if(s==='passed'){ r.m={r:'pass',s:(r.m&&r.m.s)||0,n:0}; }
+    });
+  }catch(e){}
+}
+syncAuditState();
 var curRows=ROWS.slice();
 var tid;
 function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},2200);}
@@ -193,12 +195,13 @@ function render(){
   document.getElementById('tb').innerHTML=curRows.map(function(r,i){
     var ic=ICONS[ROWS.indexOf(r)]||ICONS[0];
     var st=ST[r.state]||ST.needfix,mr=MR[r.m.r]||MR.wait;
-    var ops='<button class="text-gray-400 text-[12px] hover:text-gray-600" onclick="toast(\'商品详情：'+r.name+'（外采详情页）\')">详情</button>';
+    var ops='<button class="text-gray-400 text-[12px] hover:text-gray-600" onclick="goEdit(\''+r.id+'\')">详情</button>';
     if(r.state==='pending_manual'){ops='<button class="text-primary text-[12px] hover:underline mr-2" onclick="goAuditPage(\'audit\',\''+r.id+'\')">审核</button>'+ops;}
     else if(r.state==='machine_blocked'){ops='<button class="text-red-500 text-[12px] hover:underline mr-2" onclick="goAuditPage(\'audit\',\''+r.id+'\')">复核</button>'+ops;}
     else if(r.state==='pending_machine'){ops='<button class="text-sky-600 text-[12px] hover:underline mr-2" onclick="goAuditPage(\'audit\',\''+r.id+'\')">查看机审</button>'+ops;}
     else if(r.state==='rejected'){ops='<button class="text-gray-500 text-[12px] hover:underline mr-2" onclick="toast(\'查看驳回原因：'+r.id+'（人工判定结果，见审核留痕）\')">驳回原因</button>'+ops;}
     else if(r.state==='needfix'){ops='<button class="text-gray-500 text-[12px] hover:underline mr-2" onclick="toast(\'商户修改中：'+r.id+'\')">查看</button>'+ops;}
+    ops='<button class="text-[12px] text-[#475569] hover:underline mr-2" onclick="goEdit(\''+r.id+'\')" title="维护阶梯价与拼单开关（运营纠错）">编辑</button>'+ops;
     return '<tr class="hover:bg-gray-50 transition">'
       +'<td class="px-4 py-3 text-gray-600">'+r.id+'</td>'
       +'<td class="px-4 py-3"><div class="flex items-center gap-2">'
@@ -230,48 +233,7 @@ function pageGo(n){toast(n===1?'当前第 1 页（原型）':'已切换到第 '+
 
 render();
 
-/* ================= 修改说明 ================= */
-var NOTE_TITLE='商品管理';
-var NOTE_PENDING=false;
-var NOTE_EXT=[
-  '外采 igshop 商品管理的其他菜单与功能模块一律以外采为准：商品分类、商品品牌、商品分组、商品评价、属性模板、商品服务、商品售后服务、批量操作（批量导出 / 批量上传 / 批量修改）、库存管理（库存日志 / 库存查询 / 商品入库 / 商品出库 / 库存调拨）、商品询价等。',
-  '商品本身的字段、列表列、上下架与编辑流程仍以外采为准；外采原系统**没有**敏感词 / 敏感图审核链路，审核能力需在外采基础上二次开发接入（审核单、机审结果、人工判定、词库与拦截记录均为新增表）。',
-  '本页列表内容仅为占位示意，开发请直接打开外采系统对照实现。'
-];
-var NOTE_MOD=[
-  '【本次修改①·新增商品】商品「新增 / 编辑」页增加两项：①「是否支持拼单」；② 阶梯价设置（统一规格与多规格的每个规格都支持）。实现方式可参考外采「批发管理」的批发价设置。',
-  '【本次新增②·商品自动审核（招标 2.1.3-97）】商品提交后先过**机器初筛**（敏感词库 + 敏感图识别）：命中**拦截级**词或图超阈值 → 自动拦截、不上架、进「拦截与复核」；命中**警示级**或图处于灰区 → 转**人工判定**；机审全通过且店铺要求人审 → 待人审。人工判定通过才在买家端展示，**机审不可关闭、不可跳过**。',
-  '【本页改造点】① 审核状态由外采「待审核」拆为 **待机审 / 机审拦截 / 待人审 / 已通过 / 已驳回 / 需修改**；② 列表**新增「机审结论」列**（结论 + 风险分 + 命中项数，数据来自审核引擎，运营不可改）；③ 行内「审核 / 复核 / 查看机审」与工具栏「审核规则与词库」跳转新增的**商品审核中心** `mall-product-audit.html`；④ 顶部统计卡由 4 张改为 5 张（待机审 / 待人审 / 机审拦截 / 本月通过 / 本月驳回）。',
-  '【口径变更】外采「店铺设置 → 店铺商品审核（商品默认审核通过）」开关语义收窄：**不再决定是否过机审**，只决定机审通过后是否还需要人工判定（见 mall-shop-setting.html 同步修改）。',
-  '原型入口：本页右上角「新增商品（本次修改点）」→ `mall-product-add.html`；「商品审核中心（本次新增）」→ `mall-product-audit.html`。'
-];
-function noteItems(arr,color,empty){
-  if(!arr||!arr.length){return '<div class="mn-li" style="color:#94A3B8">'+empty+'</div>';}
-  return arr.map(function(t){return '<div class="mn-li"><i class="fas fa-circle" style="color:'+color+'"></i><span>'+t+'</span></div>';}).join('');
-}
-function openNote(){
-  var h='<div class="flex items-start justify-between px-5 py-4 border-b border-gray-100">'
-    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">开发修改说明</h3>'
-    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+NOTE_TITLE+'　·　商城运营（外采 igshop 系统）'+(NOTE_PENDING?'　·　<span style="color:#E63E20">待补充</span>':'')+'</p></div>'
-    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeNote()"><i class="fas fa-xmark"></i></button></div>'
-    +'<div class="px-5 py-4" style="display:flex;flex-direction:column;gap:14px">'
-    +'<div class="rounded-xl border p-4" style="border-color:#FDE68A;background:#FFFBEB">'
-    +'<div class="text-[12.5px] font-bold mb-2" style="color:#B45309"><i class="fas fa-triangle-exclamation mr-1"></i>请以外采系统为准</div>'
-    +noteItems(NOTE_EXT,'#F59E0B','无')+'</div>'
-    +'<div class="rounded-xl border p-4" style="border-color:#FDB4A3;background:#FFF6F3">'
-    +'<div class="text-[12.5px] font-bold mb-2" style="color:#E63E20"><i class="fas fa-pen-to-square mr-1"></i>请以本次修改内容为准</div>'
-    +noteItems(NOTE_MOD,'#FF4D2D','本页无本次修改内容，全部以外采系统为准')+'</div></div>'
-    +'<div class="px-5 py-3.5 border-t border-gray-100 flex justify-end">'
-    +'<button class="px-4 py-2 rounded-lg text-[12px] font-semibold text-white" style="background:#FF4D2D" onclick="closeNote()">知道了</button></div>';
-  var m=document.getElementById('mn-modal');
-  m.innerHTML=h;
-  document.getElementById('mn-mask').classList.add('on');
-  m.classList.add('on');
-}
-function closeNote(){
-  document.getElementById('mn-mask').classList.remove('on');
-  document.getElementById('mn-modal').classList.remove('on');
-}
 </script>
+<script src="../shared/page-prd.js"></script>
 </body>
 </html>

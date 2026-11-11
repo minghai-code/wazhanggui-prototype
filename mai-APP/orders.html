@@ -145,6 +145,7 @@ const orders=[
   {type:'inquiry',id:'QJ20260920-006',status:'review',statusText:'待评价',stClass:'st-review',shop:'丰棉织造',shopIcon:'fas fa-store',shopColor:'linear-gradient(135deg,#FF8A4C,#FF4D2D)',name:'精梳棉商务男袜 透气防臭',spec:'询价成交 · 含运费',qty:1000,price:3.10,demandId:'XQ20260920-006'},
   /* ===== 拼单订单（成团后按档位价生成，T 号关联拼单） ===== */
   {type:'group',id:'GB20261106041',status:'receipt',statusText:'待收货',stClass:'st-receipt',shop:'义乌竹纤维针织',shopIcon:'fas fa-users',shopColor:'linear-gradient(135deg,#2DD4BF,#059669)',name:'竹纤维抗菌男袜',spec:'拼单已成团 · 目标档 300 双 · 混色/均码',qty:60,price:3.90,ref:'T20261106005',refLabel:'拼单号'},
+  {type:'group',id:'GB20261108011',status:'ship',statusText:'待发货',stClass:'st-ship',shop:'宁波纯棉针织',shopIcon:'fas fa-users',shopColor:'linear-gradient(135deg,#2DD4BF,#059669)',name:'纯棉商务袜（5 双装）',spec:'拼单已成团 · 目标档 200 双 · 本白/M(39-42)',qty:80,price:4.50,ref:'T20261108002',refLabel:'拼单号'},
   {type:'group',id:'GB20261110001',status:'pending',statusText:'待成团',stClass:'st-pending',shop:'大唐袜业旗舰店',shopIcon:'fas fa-users',shopColor:'linear-gradient(135deg,#2DD4BF,#059669)',name:'秋季加厚羊毛袜',spec:'待成团 · 达目标档 500 双后转待发货 · 未成团全额退款',qty:120,price:2.90,ref:'T20261110001',refLabel:'拼单号'},
   {type:'group',id:'GB20261105003',status:'after',statusText:'已取消（已退款）',stClass:'st-cancel',shop:'绍兴童袜工厂',shopIcon:'fas fa-users',shopColor:'linear-gradient(135deg,#94A3B8,#64748B)',name:'儿童卡通棉袜（3 双装）',spec:'未达目标档 300 双 · 拼单失败 · 已全额退款 ¥858.00',qty:260,price:3.30,ref:'T20261105003',refLabel:'拼单号'},
   {type:'group',id:'GB20261103004',status:'after',statusText:'已取消（已退款）',stClass:'st-cancel',shop:'杭州AA跨境',shopIcon:'fas fa-users',shopColor:'linear-gradient(135deg,#94A3B8,#64748B)',name:'运动船袜（纯色 10 双装）',spec:'团长/商户取消本团 · 款项已原路退回',qty:450,price:2.80,ref:'T20261103004',refLabel:'拼单号'},
@@ -397,8 +398,11 @@ function handleOrderBtn(label,id){
     var tb=document.querySelector('#typeBar .type-item[data-type="'+t+'"]');
     if(tb)tb.click();
   }
-  var tab=P.get('tab');
+  /* 兼容 mine.html 的 ?status= 入口（unpaid/unshipped/unreceived/unreviewed/aftersale） */
+  var SMAP={unpaid:'pay',unshipped:'ship',unreceived:'receipt',unreviewed:'review',aftersale:'after'};
+  var tab=P.get('tab')||P.get('status');
   if(tab){
+    tab=SMAP[tab]||tab;
     var btn=document.querySelector('#tabBar .tab-item[data-tab="'+tab+'"]');
     if(btn)btn.click();
   }

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>10b-09 商品新增与阶梯价 · 运营端页面说明 · 页面 PRD</title><style>
+:root{--fg:#1F2430;--muted:#64748B;--line:#E9EDF3}
+*{box-sizing:border-box}
+body{margin:0;padding:26px 32px 90px;background:#fff;color:var(--fg);
+ font:14px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif}
+h1{font-size:20px;margin:0 0 6px}
+h2{font-size:17px;margin:34px 0 12px;padding-top:12px;border-top:1px solid var(--line)}
+h3{font-size:15px;margin:22px 0 10px}
+h4{font-size:14px;margin:18px 0 8px;color:#334155}
+p{margin:8px 0}
+table{border-collapse:collapse;width:100%;margin:10px 0 16px;font-size:12.5px}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:#F8FAFC;font-weight:700}
+tr:nth-child(even) td{background:#FCFDFE}
+code{background:#F1F5F9;padding:1px 5px;border-radius:4px;font-size:12px;
+ font-family:ui-monospace,Menlo,Consolas,monospace;color:#B91C1C}
+pre.code{background:#0F172A;color:#E2E8F0;padding:14px 16px;border-radius:10px;overflow:auto;font-size:12px}
+pre.code code{background:none;color:inherit;padding:0}
+blockquote{margin:10px 0;padding:10px 14px;background:#EFF6FF;border-left:3px solid #60A5FA;
+ border-radius:0 8px 8px 0;color:#334155;font-size:13px}
+ul,ol{margin:8px 0;padding-left:22px}
+li{margin:3px 0}
+hr{border:0;border-top:1px dashed var(--line);margin:22px 0}
+a{color:#2563EB;text-decoration:none}
+.meta{font-size:12px;color:var(--muted);margin:0 0 20px}
+.vtitle{font-size:18px;font-weight:800;margin:0 0 4px}
+details.fam{margin:12px 0 20px;border:1px solid var(--line);border-radius:10px;background:#F8FAFC;padding:0 14px}
+details.fam summary{cursor:pointer;padding:10px 0;font-size:13px;font-weight:700;color:#334155}
+details.fam[open]{padding-bottom:10px}
+.vnav{display:flex;justify-content:space-between;margin-top:34px;padding-top:14px;border-top:1px dashed var(--line);font-size:13px}
+</style></head><body>
+<div class="meta">由 <code>yunying-PC/prd/10b-商城运营/09-商品新增与阶梯价.md</code> 生成，勿手改；改文档请改 md 后重跑 build-prd。</div>
+<h1>10b-09 商品新增与阶梯价 · 运营端页面说明</h1>
+<blockquote>端：运营端 PC　｜　模块：10 商城运营 → 商品管理　｜　页面：<code>mall-product-add.html</code>（新增 / 编辑商品）、<code>mall-ops.html</code>（商品列表） 页面版本：v1.0（2026-11-11）　｜　依据：<code>10-商城运营.md</code> §3.2 商品管理、<code>10b §2.0.13</code>（阶梯价与拼单）、招标 <strong>2.1.3-97 商品自动审核</strong> <strong>模块通用说明</strong>见同目录 <strong><code>01-个性定制需求管理.md</code> §0</strong>。</blockquote>
+<hr>
+<h2 id="p0">0. 改造边界（商城为外采 igshop 源码）</h2>
+<table><thead><tr><th>项</th><th>结论</th></tr></thead><tbody><tr><td>外采原状</td><td>「添加商品」页有 基本信息 / 销售信息 / 物流及配送 / 商品详情 / 高级信息 五个 Tab；销售信息内每个规格只有一口价、库存、市场价、成本价、规格编码，<strong>没有阶梯价、没有拼单开关</strong></td></tr><tr><td>本页性质</td><td><strong>二次开发</strong>，页面骨架、字段、校验、业务流程一律照搬外采；本系统只在「销售信息」内做增量</td></tr><tr><td>不改的</td><td>商品分类 / 品牌 / 分组 / 属性模板 / 商品服务 / 售后 / 批量操作等外采既有结构</td></tr><tr><td>口径前提</td><td><strong>阶梯价形态已定稿</strong>：按档位设置「起始数量 / 结束数量 / 阶梯单价」，可增删档位，末档结束数量可留空表示「以上」；统一规格一份阶梯表，多规格<strong>每个规格各自一份</strong>独立阶梯表。该形态不再讨论改造</td></tr></tbody></table>
+<hr>
+<h2 id="p1">1. 商品新增 <code>mall-product-add.html</code></h2>
+<h3>1.1 页面说明</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>页面目标</td><td>商户 / 运营在同一套表单内维护商品，并配置<strong>拼单开关</strong>与<strong>阶梯价</strong>，保存后进入审核链路</td></tr><tr><td>使用角色</td><td>商户（有电商模块权限者自助发布）、商城运营专员（监督、纠错、代发）</td></tr><tr><td>入口</td><td>菜单 → 商城运营 → 商品管理 → 新增商品；或商品列表行内「编辑 / 详情」带 <code>?id=</code> 进入编辑态</td></tr><tr><td>前置</td><td>商户已通过入驻审核、已开通线上店铺；商品品类在品类字典内</td></tr><tr><td>后置</td><td>提交 → 机器初筛（敏感词 + 敏感图）→ 命中警示级转人工判定 → 通过后上架；审核期间买家端仍展示上一版</td></tr><tr><td>编辑态</td><td><code>?id=商品编号</code> 打开时标题变「编辑商品」，页头出现编辑态提示条；字段取值沿用演示数据（原型不落库，接口实现以后端为准）</td></tr></tbody></table>
+<h3>1.2 本页端间关系</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>数据来源</td><td>商品图文由本页提交；阶梯价与拼单开关同属商品销售信息</td></tr><tr><td>跨端影响</td><td>审核通过后买家端商品详情按阶梯价<strong>按实际下单数量落档计价</strong>；<code>是否支持拼单=支持</code> 时买家端多出「发起拼单」入口，不支持则只有「立即下单」</td></tr><tr><td>依赖的其他端页面</td><td>买家端商品详情 / 拼单发起（消费方）；商户端商品发布（同一套表单，商户视角）；运营端 <code>mall-product-audit.html</code>（审核）、<code>mall-ops.html</code>（列表与入口）</td></tr><tr><td>一致性要求</td><td>阶梯档位字段、拼单开关取值在三端（后台 / 商户端 / 买家端）<strong>同一口径</strong>，买家端不得自建档位规则</td></tr></tbody></table>
+<h3>1.3 页面结构</h3>
+<table><thead><tr><th>区块</th><th>内容</th></tr></thead><tbody><tr><td>顶部</td><td>标题「新增商品 / 编辑商品」+ 模块标签 + 「返回商品管理」</td></tr><tr><td>五个 Tab</td><td>基本信息 / 销售信息 / 物流及配送 / 商品详情 / 高级信息（照搬外采）</td></tr><tr><td><strong>销售信息 ①</strong></td><td>「是否支持拼单」开关（支持 / 不支持）</td></tr><tr><td><strong>销售信息 ②（统一规格）</strong></td><td>阶梯价设置表：起始数量（双）/ 结束数量（双）/ 阶梯单价（元/双）/ 操作；「+ 添加档位」；末档留空 = 以上</td></tr><tr><td><strong>销售信息 ③（多规格）</strong></td><td>规格维度维护 + 规格明细表，末列为「阶梯价」，每个规格组合一行一个「阶梯价」按钮，打开该规格独立的档位编辑弹层</td></tr><tr><td>附加服务</td><td>商品附加服务列表（照搬外采）</td></tr><tr><td>底部</td><td>取消 / 保存并提交审核</td></tr></tbody></table>
+<h3>1.4 字段与规则</h3>
+<table><thead><tr><th>字段</th><th>规则</th></tr></thead><tbody><tr><td>是否支持拼单</td><td>必选，默认「支持」；关闭后买家端不出现拼单入口</td></tr><tr><td>起始数量（双）</td><td>必填；同规格内按升序排列</td></tr><tr><td>结束数量（双）</td><td>可空，空 = 以上（不封顶）</td></tr><tr><td>阶梯单价（元/双）</td><td>必填；同一规格内随档位递增而单价不升</td></tr><tr><td>档位数量</td><td>统一规格至少 1 档；多规格每个规格至少 1 档</td></tr><tr><td>提交校验</td><td>统一规格未设置阶梯价 → 拦「统一规格未设置阶梯价，请至少添加一档」；多规格有任一规格未设置 → 拦「还有 N 个规格未设置阶梯价，请补全」</td></tr><tr><td>审核联动</td><td>提交后不直接同步买家端，先机审再人审；拼单开关与阶梯价随商品一起过审</td></tr></tbody></table>
+<h3>1.5 状态与留痕</h3>
+<table><thead><tr><th>环节</th><th>表现</th></tr></thead><tbody><tr><td>保存提交</td><td>提示「已提交（支持/不支持拼单 · N 个规格阶梯价均已设置）：已进入机器初筛」</td></tr><tr><td>机审通过</td><td>进 <code>mall-product-audit.html</code> 人审队列（店铺开关决定是否需人审）</td></tr><tr><td>人审通过</td><td>商品上架，买家端可见新版本；列表页状态变「已通过」</td></tr><tr><td>编辑已上架商品</td><td>重审期间<strong>老版本继续展示</strong>，通过后替换</td></tr></tbody></table>
+<h3>1.6 验收要点</h3>
+<table><thead><tr><th>编号</th><th>场景</th><th>预期</th></tr></thead><tbody><tr><td>AC-01</td><td>统一规格不添加任何档位直接提交</td><td>阻断并提示至少添加一档</td></tr><tr><td>AC-02</td><td>多规格中某规格未设阶梯价直接提交</td><td>阻断并提示未设置规格数量</td></tr><tr><td>AC-03</td><td>末档结束数量留空</td><td>显示为「以上」，保存无报错</td></tr><tr><td>AC-04</td><td>关闭拼单开关提交</td><td>提示为「不支持拼单」；买家端无发起拼单入口</td></tr><tr><td>AC-05</td><td>带 <code>?id=</code> 打开</td><td>标题变「编辑商品 + 编号」，页头出现编辑态提示条</td></tr><tr><td>AC-06</td><td>提交后查看审核中心</td><td>待审队列出现该商品，机审结论与命中项可查</td></tr></tbody></table>
+<hr>
+<h2 id="p2">2. 商品列表 <code>mall-ops.html</code></h2>
+<h3>2.1 页面说明</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>页面目标</td><td>商品总台账：看状态、进审核、纠错编辑、查驳回原因</td></tr><tr><td>入口</td><td>菜单 → 商城运营 → 商品管理 → 商品列表</td></tr><tr><td>列表列</td><td>商品编号 / 商品 / 商户 / 品类 / 提交时间 / 机审结论 / 审核状态 / 操作</td></tr><tr><td>操作列</td><td><strong>编辑</strong>（进 <code>mall-product-add.html?id=</code>，维护阶梯价与拼单开关）· 详情（同编辑页只读回显）· 审核 / 复核 / 查看机审（进审核页并带单号）· 驳回原因（人工判定结论留痕）· 查看（商户修改中）</td></tr><tr><td>状态枚举</td><td>待机审 / 机审拦截 / 待人审 / 已通过 / 已驳回 / 需修改（与 <code>mall-product-audit.html</code> 取值一致）</td></tr></tbody></table>
+<h3>2.2 审核结论回写</h3>
+<table><thead><tr><th>项</th><th>规则</th></tr></thead><tbody><tr><td>回写方向</td><td>审核页人审「通过 / 驳回」、拦截单「复核放行 / 维持拦截」均回写同一份商品状态</td></tr><tr><td>列表表现</td><td>列表加载时合并回写结果：通过 → 已通过（机审结论置为通过），驳回 / 维持拦截 → 已驳回，复核放行 → 待人审</td></tr><tr><td>目的</td><td>让「审核通过后阶梯价与拼单开关才生效」有可见的状态流转，不再两页各一套 mock</td></tr></tbody></table>
+<h3>2.3 验收要点</h3>
+<table><thead><tr><th>编号</th><th>场景</th><th>预期</th></tr></thead><tbody><tr><td>AC-07</td><td>商品列表点「编辑」</td><td>进商品页且标题为编辑态，页头有编辑提示条</td></tr><tr><td>AC-08</td><td>审核页通过某商品后回到列表</td><td>该商品状态变「已通过」，机审结论列显示通过</td></tr><tr><td>AC-09</td><td>审核页驳回后回到列表</td><td>该商品状态变「已驳回」，行内可查驳回原因</td></tr><tr><td>AC-10</td><td>列表内任一操作</td><td>无 toast 假跳；跳转目标页均存在</td></tr></tbody></table>
+<hr>
+<h2 id="p3">3. 遗留与边界</h2>
+<table><thead><tr><th>项</th><th>说明</th></tr></thead><tbody><tr><td>起批量字段</td><td>商品表单不新增独立「起批量」字段；参团下限与起批口径按 <code>10b §2.0.13</code> 由目标档 / 阶梯最小档解释，PRD 侧已收口</td></tr><tr><td>数据持久化</td><td>原型层不做落库（无真实数据库）；保存只做前端提示与状态演示</td></tr><tr><td>编辑回填</td><td>编辑态当前沿用演示值，真实回填以商品详情接口为准</td></tr><tr><td>页 PRD 归属</td><td>本文件同时承载「商品新增」与「商品列表」两页说明，两页各有一条映射</td></tr></tbody></table>
+</body></html>
