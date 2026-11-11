@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>商城运营 - 商品审核</title>
+<link rel="stylesheet" href="tailwind.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none;font-family:inherit;white-space:nowrap}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}.btn-primary:hover{filter:brightness(1.05)}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}.btn-ghost:hover{border-color:#CBD5E1;color:#1F2430}
+.btn-danger{background:#FEF2F2;color:#B91C1C;border:1px solid #FECACA}.btn-danger:hover{background:#FEE2E2}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}.lk:hover{text-decoration:underline}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}.lk-gray:hover{color:#1F2430;text-decoration:underline}
+.lk-red{color:#B91C1C;cursor:pointer;font-size:12px}.lk-red:hover{text-decoration:underline}
+.st{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500;white-space:nowrap}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:60}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:1000px;max-width:97vw;background:#F8FAFC;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:70;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);width:620px;max-width:95vw;max-height:86vh;overflow:hidden;background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(15,23,42,.28);opacity:0;pointer-events:none;transition:.22s;z-index:75;display:flex;flex-direction:column}
+.modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+.blk{border:1px solid #E2E8F0;border-radius:12px;padding:14px 16px;background:#fff}
+.blk-t{font-size:12.5px;font-weight:700;color:#1F2430;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.kv{display:flex;gap:8px;font-size:12px;line-height:1.9}
+.kv .k{width:86px;flex-shrink:0;color:#94A3B8}
+.fi{width:100%;padding:6px 10px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none;background:#fff;font-family:inherit}
+.fi:focus{border-color:#FF4D2D}
+.fl{display:block;font-size:11px;color:#94A3B8;margin-bottom:4px}
+.sel{width:100%;padding:6px 8px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none;background:#fff}
+.dis{opacity:.55}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg span{padding:5px 12px;border-radius:999px;font-size:12px;color:#64748B;background:#fff;border:1px solid #E2E8F0;cursor:pointer;white-space:nowrap}
+.seg span.on{background:#FFF1EC;border-color:#FDB4A3;color:#E63E20;font-weight:600}
+.hl-block{background:#FECACA;color:#7F1D1D;border-radius:3px;padding:0 2px;font-weight:600}
+.hl-warn{background:#FDE68A;color:#78350F;border-radius:3px;padding:0 2px}
+.imgcell{position:relative;border-radius:10px;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;color:#fff;font-size:26px;overflow:hidden}
+.imgcell .sc{position:absolute;left:5px;bottom:5px;right:5px;background:rgba(15,23,42,.72);color:#fff;font-size:9.5px;padding:2px 5px;border-radius:4px;line-height:1.35}
+.imgcell.bad{outline:2px solid #EF4444;outline-offset:-2px}
+.risk{font-size:30px;font-weight:800;line-height:1}
+.hit{display:flex;gap:8px;padding:8px 10px;border-radius:9px;background:#fff;border:1px solid #E2E8F0;font-size:11.5px;line-height:1.6}
+.hit.b{background:#FEF2F2;border-color:#FECACA}
+.hit.w{background:#FFFBEB;border-color:#FDE68A}
+.hit .ic{width:18px;height:18px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;margin-top:2px;color:#fff}
+.radio{display:flex;gap:8px;padding:9px 11px;border:1px solid #E2E8F0;border-radius:9px;font-size:12px;cursor:pointer;align-items:flex-start}
+.radio.on{border-color:#FF4D2D;background:#FFF7F5}
+.radio i{margin-top:2px}
+.tr-h{background:#F8FAFC}
+button{cursor:pointer;font-family:inherit}
+</style>
+</head>
+<body>
+
+<div class="p-6">
+
+  <!-- 页头 -->
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">商品审核</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">10 商城运营 · 商品管理</span>
+        <span class="tag" style="background:#FEE2E2;color:#B91C1C">招标 2.1.3-97 商品自动审核</span>
+        <span class="tag" style="background:#DCFCE7;color:#15803D">机器初筛 + 人工判定</span>
+      </div>
+      <p class="text-[12px] text-gray-400 mt-1">
+        商品提交后先过<b>机器初筛</b>（敏感词 + 敏感图），命中拦截直接不上架；警示或超阈值转<b>人工判定</b>，人审通过才进买家端。
+        商品字段与列表以外采 igshop 为准，本页<b>只新增审核链路</b>
+      </p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="goTab(2)"><i class="fas fa-shield-halved text-[10px] mr-1"></i>词库与规则</button>
+      <button class="btn btn-ghost" onclick="openTrace()"><i class="fas fa-clock-rotate-left text-[10px] mr-1"></i>审核留痕</button>
+      <button class="btn btn-ghost" onclick="refreshQ()"><i class="fas fa-rotate text-[10px] mr-1"></i>刷新队列</button>
+    </div>
+  </div>
+
+  <!-- 统计卡 -->
+  <div class="grid grid-cols-5 gap-3 mb-4" id="stats"></div>
+
+  <!-- Tab -->
+  <div class="flex items-center gap-6 border-b border-gray-200 mb-4" id="tabs">
+    <span class="py-2.5 text-[13px] font-semibold cursor-pointer" style="color:#FF4D2D;border-bottom:2px solid #FF4D2D" onclick="goTab(0)">审核队列</span>
+    <span class="py-2.5 text-[13px] text-gray-400 cursor-pointer" onclick="goTab(1)">拦截与复核 <span class="tag" style="background:#FEE2E2;color:#B91C1C" id="blkCnt">1</span></span>
+    <span class="py-2.5 text-[13px] text-gray-400 cursor-pointer" onclick="goTab(2)">词库与规则</span>
+  </div>
+
+  <!-- ========== Tab1 审核队列 ========== -->
+  <div id="pane0">
+
+    <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+      <div class="rounded-xl border p-3 mb-3" style="border-color:#BFDBFE;background:#EFF6FF">
+        <p class="text-[11.5px] text-[#334155] leading-6">
+          <b>审核链路（机审不可跳过）</b>：提交 → <b>① 机器初筛</b>（敏感词命中 / 敏感图识别，秒级）→ 命中<b>拦截级</b>词或图超阈值：<b>自动拦截、不进人工队列、不上架</b>（可复核放行）；
+          命中<b>警示级</b>词或图处灰区：<b>转人工判定</b>；机审全通过：<b>② 人工判定</b>（按店铺审核开关，见「词库与规则 → 送审范围」）→ 通过才在买家端展示。
+          编辑已上架商品同样重新过审，<b>审核期间老版本继续展示</b>，不影响线上。
+        </p>
+      </div>
+      <div class="flex items-center gap-3 flex-wrap">
+        <div class="relative">
+          <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+          <input id="qKw" type="text" placeholder="商品编号 / 名称 / 商户" class="w-56 pl-8 pr-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary focus:bg-white transition" oninput="QF.kw=this.value;renderQueue()">
+        </div>
+        <select class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 text-gray-600" onchange="QF.machine=this.value;renderQueue()">
+          <option value="">全部机审结论</option>
+          <option value="block">机审拦截</option>
+          <option value="warn">机审警示（转人工）</option>
+          <option value="pass">机审通过</option>
+          <option value="wait">机审中</option>
+        </select>
+        <select class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 text-gray-600" onchange="QF.cat=this.value;renderQueue()">
+          <option value="">全部品类</option>
+          <option>男袜</option><option>女袜</option><option>童袜</option><option>运动袜</option><option>原料</option><option>袜机</option>
+        </select>
+        <label class="inline-flex items-center gap-2 text-[12px] text-gray-600 cursor-pointer"><input type="checkbox" class="w-4 h-4 accent-[#FF4D2D]" onchange="QF.over=this.checked;renderQueue()">只看超时（>24h）</label>
+        <button class="btn btn-ghost" onclick="resetQ()">重置</button>
+        <span class="text-[11px] text-[#94A3B8] ml-auto"><i class="fas fa-circle-info mr-1"></i>机审结论与命中项由审核引擎产出，运营不可改；人工只能对命中项判「误报」并留痕</span>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2 mb-3 seg" id="segBar"></div>
+
+    <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+      <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-[13px] font-bold text-[#1F2430]">审核队列</span>
+          <span class="text-[12px] text-[#94A3B8]" id="qCnt">共 0 条</span>
+        </div>
+        <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-stopwatch mr-1"></i>人工判定时限 24 小时，超时红标并在统计卡提示（不影响已上架老版本）</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-[13px]" style="min-width:1320px">
+          <thead>
+            <tr class="bg-gray-50 text-gray-500 text-[12px]">
+              <th class="px-4 py-3 text-left font-medium">商品</th>
+              <th class="px-4 py-3 text-left font-medium">商户</th>
+              <th class="px-4 py-3 text-left font-medium">品类</th>
+              <th class="px-4 py-3 text-left font-medium">来源</th>
+              <th class="px-4 py-3 text-left font-medium">机审结论</th>
+              <th class="px-4 py-3 text-left font-medium">命中项</th>
+              <th class="px-4 py-3 text-left font-medium">提交时间</th>
+              <th class="px-4 py-3 text-left font-medium">等待</th>
+              <th class="px-4 py-3 text-left font-medium">审核状态</th>
+              <th class="px-4 py-3 text-center font-medium">操作</th>
+            </tr>
+          </thead>
+          <tbody id="qTb" class="divide-y divide-gray-50"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== Tab2 拦截与复核 ========== -->
+  <div id="pane1" style="display:none">
+    <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+      <div class="rounded-xl border p-3" style="border-color:#FECACA;background:#FEF2F2">
+        <p class="text-[11.5px] leading-6" style="color:#7F1D1D">
+          <b>机审拦截</b>不进入人工队列，商品<b>自动不上架</b>（买家端搜不到、详情不可访问），平台在下方留档。
+          商户端可发起申诉；运营复核确认是误判时点「复核放行」，商品回到人工判定队列并留痕（<b>放行必须填理由</b>）。
+        </p>
+      </div>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+      <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-[13px] font-bold text-[#1F2430]">拦截记录</span>
+          <span class="text-[12px] text-[#94A3B8]" id="blkCnt2">共 0 条</span>
+        </div>
+        <span class="text-[11px] text-[#94A3B8]">拦截判定依据：敏感词「拦截级」命中 / 敏感图超阈值</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-[13px]" style="min-width:1180px">
+          <thead>
+            <tr class="bg-gray-50 text-gray-500 text-[12px]">
+              <th class="px-4 py-3 text-left font-medium">商品</th>
+              <th class="px-4 py-3 text-left font-medium">商户</th>
+              <th class="px-4 py-3 text-left font-medium">拦截依据</th>
+              <th class="px-4 py-3 text-left font-medium">风险分</th>
+              <th class="px-4 py-3 text-left font-medium">拦截时间</th>
+              <th class="px-4 py-3 text-left font-medium">商户申诉</th>
+              <th class="px-4 py-3 text-center font-medium">操作</th>
+            </tr>
+          </thead>
+          <tbody id="bTb" class="divide-y divide-gray-50"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== Tab3 词库与规则 ========== -->
+  <div id="pane2" style="display:none">
+    <div class="grid grid-cols-3 gap-4">
+
+      <div class="col-span-2" style="display:flex;flex-direction:column;gap:16px">
+
+        <!-- 词库 -->
+        <div class="blk">
+          <div class="flex items-start justify-between mb-3">
+            <div>
+              <div class="text-[13px] font-bold text-[#1F2430]"><i class="fas fa-font text-[#B45309] mr-1"></i>敏感词库</div>
+              <p class="text-[11px] text-[#94A3B8] mt-1">拦截级 = 命中即自动拦截；警示级 = 转人工判定。比对范围：商品标题 / 卖点 / 详情 / 图片 OCR 文字</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button class="btn btn-ghost" onclick="openWordImport()"><i class="fas fa-file-import text-[10px] mr-1"></i>批量导入</button>
+              <button class="btn btn-primary" onclick="openWord('')"><i class="fas fa-plus mr-1"></i>新增词</button>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 mb-3">
+            <input class="fi" style="width:200px" id="wKw" placeholder="搜索词 / 分类" oninput="WF.kw=this.value;renderWords()">
+            <select class="sel" style="width:130px" onchange="WF.cat=this.value;renderWords()">
+              <option value="">全部分类</option>
+              <option>涉黄涉暴</option><option>违禁品</option><option>医疗宣称</option><option>绝对化用语</option><option>侵权品牌</option>
+            </select>
+            <select class="sel" style="width:120px" onchange="WF.level=this.value;renderWords()">
+              <option value="">全部等级</option>
+              <option value="block">拦截级</option>
+              <option value="warn">警示级</option>
+            </select>
+            <span class="text-[11px] text-[#94A3B8] ml-auto" id="wCnt">共 0 条</span>
+          </div>
+          <div class="overflow-x-auto" style="max-height:360px">
+            <table class="w-full text-[12.5px]">
+              <thead>
+                <tr class="bg-gray-50 text-gray-500 text-[11.5px]">
+                  <th class="px-3 py-2 text-left font-medium">敏感词</th>
+                  <th class="px-3 py-2 text-left font-medium">分类</th>
+                  <th class="px-3 py-2 text-left font-medium">等级</th>
+                  <th class="px-3 py-2 text-left font-medium">比对范围</th>
+                  <th class="px-3 py-2 text-left font-medium">来源</th>
+                  <th class="px-3 py-2 text-left font-medium">近 7 天命中</th>
+                  <th class="px-3 py-2 text-left font-medium">启用</th>
+                  <th class="px-3 py-2 text-center font-medium">操作</th>
+                </tr>
+              </thead>
+              <tbody id="wTb" class="divide-y divide-gray-50"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 图片策略 -->
+        <div class="blk">
+          <div class="text-[13px] font-bold text-[#1F2430]"><i class="fas fa-image text-[#7C3AED] mr-1"></i>敏感图识别策略</div>
+          <p class="text-[11px] text-[#94A3B8] mt-1 mb-3">按类别设阈值：置信度 ≥ 阈值即命中；处置「拦截」= 自动不上架，「转人工」= 进人工队列</p>
+          <table class="w-full text-[12.5px]">
+            <thead>
+              <tr class="bg-gray-50 text-gray-500 text-[11.5px]">
+                <th class="px-3 py-2 text-left font-medium">识别类别</th>
+                <th class="px-3 py-2 text-left font-medium">启用</th>
+                <th class="px-3 py-2 text-left font-medium">阈值</th>
+                <th class="px-3 py-2 text-left font-medium">命中处置</th>
+                <th class="px-3 py-2 text-left font-medium">近 7 天命中</th>
+              </tr>
+            </thead>
+            <tbody id="imgTb" class="divide-y divide-gray-50"></tbody>
+          </table>
+        </div>
+
+        <!-- 处置与范围 -->
+        <div class="blk">
+          <div class="text-[13px] font-bold text-[#1F2430]"><i class="fas fa-sliders text-[#2563EB] mr-1"></i>处置与送审范围</div>
+          <div class="mt-2" style="display:flex;flex-direction:column;gap:8px">
+            <label class="text-[12px] text-[#334155] flex items-start gap-2"><input type="checkbox" class="w-4 h-4 accent-[#FF4D2D] mt-0.5" checked disabled><span><b>新商品必须过机审（强制）</b> —— 招标要求，不可关闭；关闭入口不提供</span></label>
+            <label class="text-[12px] text-[#334155] flex items-start gap-2"><input type="checkbox" class="w-4 h-4 accent-[#FF4D2D] mt-0.5" checked onchange="toast(this.checked?'编辑已上架商品将重新过审（审核期间老版本继续展示）':'已关闭：编辑商品不再重新过审（不推荐，招标口径建议开启）')"><span><b>编辑已上架商品重新过审</b>（审核期间买家端继续展示上一版）</span></label>
+            <label class="text-[12px] text-[#334155] flex items-start gap-2"><input type="checkbox" class="w-4 h-4 accent-[#FF4D2D] mt-0.5" checked disabled><span><b>批量导入 / 平台代发同样过审（强制）</b></span></label>
+            <label class="text-[12px] text-[#334155] flex items-start gap-2"><input type="checkbox" class="w-4 h-4 accent-[#FF4D2D] mt-0.5" checked onchange="MACHINE.needManual=this.checked;renderAll();toast(this.checked?'机审通过后仍需人工判定（双重审核）':'已改为：机审通过即上架（仅机审）')"><span><b>机审通过后仍需人工判定</b>（双重审核；关闭后仅机审即上架，与「店铺设置 · 店铺商品审核」联动）</span></label>
+          </div>
+          <div class="rounded-xl border p-3 mt-3" style="border-color:#FDE68A;background:#FFFBEB">
+            <p class="text-[11px] text-[#64748B] leading-5"><i class="fas fa-triangle-exclamation mr-1" style="color:#B45309"></i>
+              外采「店铺设置 → 店铺商品审核（商品默认审核通过）」开关<b>不再决定是否过机审</b>，只能决定机审通过后是否还需要人工判定；机审永远执行（招标 2.1.3-97 双重审核口径）。</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 右列：引擎状态 / 留痕 -->
+      <div style="display:flex;flex-direction:column;gap:16px;align-self:flex-start">
+        <div class="blk">
+          <div class="text-[13px] font-bold text-[#1F2430]"><i class="fas fa-microchip text-[#15803D] mr-1"></i>审核引擎</div>
+          <div class="kv mt-2"><span class="k">文本模型</span><span class="v">敏感词库 + 语义相似度（v2.3）</span></div>
+          <div class="kv"><span class="k">图像模型</span><span class="v">内容安全识别（v1.8）</span></div>
+          <div class="kv"><span class="k">平均耗时</span><span class="v">1.2 秒 / 商品</span></div>
+          <div class="kv"><span class="k">近 7 天初筛</span><span class="v">1,286 件（拦截 23 · 转人工 96）</span></div>
+          <div class="kv"><span class="k">人工复核准确率</span><span class="v">97.4%（误报 25 件）</span></div>
+          <div class="rounded-lg border p-2.5 mt-3" style="border-color:#E2E8F0;background:#F8FAFC">
+            <p class="text-[11px] text-[#64748B] leading-5">引擎由平台统一维护；商户不可见评分细节，只在驳回时看到<b>驳回原因</b>。误报可在命中项上点「判为误报」沉淀为样本。</p>
+          </div>
+        </div>
+        <div class="blk">
+          <div class="text-[13px] font-bold text-[#1F2430] mb-2"><i class="fas fa-clock-rotate-left text-[#7C3AED] mr-1"></i>最近规则变更</div>
+          <div id="ruleLog" style="display:flex;flex-direction:column;gap:8px"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<div id="mask" class="mask" onclick="closeAll()"></div>
+<div id="drawer" class="drawer"></div>
+<div id="modal" class="modal"></div>
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
+
+<script>
+/* =============================================================================
+ * 商品审核（外采 igshop 商品管理的改造点）：机器初筛 + 人工判定
+ * 数据字段（供开发对照，不属于外采原有表）：
+ *   audit: {aid, goodsId, goodsName, shop, cat, price, stock, source, submittedAt,
+ *           machine:{result:'wait|block|warn|pass', score, at, hits:[{type:'word|image', cat, text, where, level, conf, mis}]},
+ *           state:'pending_machine|machine_blocked|pending_manual|passed|rejected',
+ *           manual:{by, at, result, reason, note}, appeal}
+ * ========================================================================== */
+
+var MACHINE={needManual:true, version:'v2.3 / v1.8'};
+
+/* ============ 图片占位（演示用渐变块，真实为商品图） ============ */
+var G=[
+  'linear-gradient(135deg,#FF8A4C,#FF4D2D)','linear-gradient(135deg,#38BDF8,#3B82F6)',
+  'linear-gradient(135deg,#FB7185,#EC4899)','linear-gradient(135deg,#34D399,#10B981)',
+  'linear-gradient(135deg,#A78BFA,#7C3AED)','linear-gradient(135deg,#FBBF24,#F59E0B)'
+];
+
+/* ============ 审核单（覆盖各种状态） ============ */
+var AUDS=[
+  {aid:'AU-20261109-008', goodsId:'SP20261109021', goodsName:'冰丝无痕男士平角袜（10双装）', shop:'大唐袜业旗舰', cat:'男袜', price:'3.80', stock:'2,400',
+   source:'商户提交', submittedAt:'2026-11-09 09:12',
+   imgs:[{i:0,ic:'fa-socks',score:0.04},{i:1,ic:'fa-socks',score:0.11},{i:2,ic:'fa-box',score:0.02},{i:3,ic:'fa-socks',score:0.06}],
+   text:{title:'冰丝无痕男士平角袜 10双装 夏季薄款', selling:'透气不闷脚，工厂直供，支持贴牌代发', detail:'精选冰丝面料，无痕包边工艺。库存充足，48 小时内发货。'},
+   machine:{result:'pass',score:8,at:'2026-11-09 09:12',hits:[]},
+   state:'pending_manual', appeal:''},
+
+  {aid:'AU-20261108-007', goodsId:'SP20261109018', goodsName:'暖足坊加厚羊毛袜（东北特供）', shop:'暖足坊袜业有限公司', cat:'男袜', price:'12.60', stock:'860',
+   source:'商户提交', submittedAt:'2026-11-08 08:40',
+   imgs:[{i:0,ic:'fa-snowflake',score:0.03},{i:1,ic:'fa-socks',score:0.07},{i:2,ic:'fa-box',score:0.05}],
+   text:{title:'暖足坊加厚羊毛袜 东北特供 保暖抗寒', selling:'零下 30 度不冻脚，纯羊毛，治脚气', detail:'加厚羊毛，保暖效果最好。可缓解脚气、改善循环。'},
+   machine:{result:'warn',score:62,at:'2026-11-08 08:40',hits:[
+     {type:'word',cat:'医疗宣称',text:'治脚气',where:'卖点',level:'warn',conf:0.93,mis:false},
+     {type:'word',cat:'医疗宣称',text:'缓解脚气',where:'详情',level:'warn',conf:0.88,mis:false},
+     {type:'word',cat:'绝对化用语',text:'最好',where:'详情',level:'warn',conf:0.81,mis:false}
+   ]},
+   state:'pending_manual', appeal:''},
+
+  {aid:'AU-20261109-006', goodsId:'SP20261109015', goodsName:'花间舞隐形船袜（裸感冰丝）', shop:'花间舞袜业', cat:'女袜', price:'4.20', stock:'1,320',
+   source:'编辑重提', submittedAt:'2026-11-09 08:05',
+   imgs:[{i:0,ic:'fa-socks',score:0.05},{i:1,ic:'fa-socks',score:0.72},{i:2,ic:'fa-socks',score:0.09}],
+   text:{title:'花间舞隐形船袜 裸感冰丝 5 双装', selling:'穿裙子不掉跟，浅口百搭', detail:'冰丝面料，透气轻盈。模特实拍图见详情。'},
+   machine:{result:'warn',score:71,at:'2026-11-09 08:05',hits:[
+     {type:'image',cat:'涉黄涉暴（软色情）',text:'第 2 张主图：人物姿势疑似擦边',where:'商品图 2',level:'warn',conf:0.72,mis:false}
+   ]},
+   state:'pending_manual', appeal:''},
+
+  {aid:'AU-20261109-005', goodsId:'SP20261109009', goodsName:'极速运动压缩袜（马拉松款）', shop:'极速运动袜业', cat:'运动袜', price:'18.00', stock:'540',
+   source:'商户提交', submittedAt:'2026-11-09 09:26',
+   imgs:[{i:0,ic:'fa-bolt',score:0.03}],
+   text:{title:'极速运动压缩袜 马拉松款', selling:'梯度压力，减少乳酸堆积', detail:'专业运动袜，适合长距离跑步。'},
+   machine:{result:'wait',score:0,at:'',hits:[]},
+   state:'pending_machine', appeal:''},
+
+  {aid:'AU-20261109-004', goodsId:'SP20261109006', goodsName:'仿真枪型袜类礼盒（创意装）', shop:'某商贸有限公司', cat:'男袜', price:'29.90', stock:'120',
+   source:'商户提交', submittedAt:'2026-11-09 07:48',
+   imgs:[{i:0,ic:'fa-gift',score:0.94},{i:1,ic:'fa-box',score:0.21}],
+   text:{title:'仿真枪型礼盒 创意恶搞袜子', selling:'整蛊礼物，逼真造型', detail:'外包装仿真手枪造型，送礼有面子。'},
+   machine:{result:'block',score:96,at:'2026-11-09 07:48',hits:[
+     {type:'word',cat:'涉黄涉暴',text:'仿真枪',where:'标题',level:'block',conf:0.97,mis:false},
+     {type:'image',cat:'涉黄涉暴（武器）',text:'第 1 张主图：疑似仿真枪械',where:'商品图 1',level:'block',conf:0.94,mis:false}
+   ]},
+   state:'machine_blocked', appeal:'商户已申诉：为袜子礼盒外包装，非真枪械'},
+
+  {aid:'AU-20261108-0021', goodsId:'SP20261108011', goodsName:'绿源竹纤维抗菌童袜（A 类）', shop:'绿源纤维科技有限公司', cat:'童袜', price:'6.90', stock:'2,000',
+   source:'商户提交', submittedAt:'2026-11-08 10:20',
+   imgs:[{i:0,ic:'fa-leaf',score:0.02},{i:1,ic:'fa-socks',score:0.03}],
+   text:{title:'绿源竹纤维抗菌童袜 A 类标准', selling:'婴幼儿可穿，无骨缝工艺', detail:'A 类婴幼儿纺织品标准，亲肤柔软。'},
+   machine:{result:'pass',score:6,at:'2026-11-08 10:20',hits:[]},
+   state:'passed', appeal:'',
+   manual:{by:'admin',at:'2026-11-08 11:05',result:'pass',reason:'',note:'机审通过，抽查图文一致'}},
+
+  {aid:'AU-20261108-0019', goodsId:'SP20261108007', goodsName:'某品牌同款运动袜（无授权）', shop:'某商贸有限公司', cat:'运动袜', price:'9.90', stock:'300',
+   source:'商户提交', submittedAt:'2026-11-08 09:02',
+   imgs:[{i:0,ic:'fa-socks',score:0.12},{i:1,ic:'fa-tag',score:0.66}],
+   text:{title:'某品牌同款运动袜 工厂尾单', selling:'大牌同款，价格只要三分之一', detail:'与某国际品牌同款同厂，无授权销售。'},
+   machine:{result:'warn',score:74,at:'2026-11-08 09:02',hits:[
+     {type:'word',cat:'侵权品牌',text:'大牌同款',where:'卖点',level:'warn',conf:0.9,mis:false},
+     {type:'image',cat:'侵权 LOGO',text:'第 2 张图：疑似品牌 LOGO',where:'商品图 2',level:'warn',conf:0.66,mis:false}
+   ]},
+   state:'rejected', appeal:'',
+   manual:{by:'admin',at:'2026-11-08 09:40',result:'reject',reason:'侵权或假冒',note:'主图含他人品牌 LOGO，且文案宣称"大牌同款"，请删除授权风险内容后重提'}}
+];
+
+/* ============ 敏感词库 ============ */
+var WORDS=[
+  {w:'仿真枪',cat:'涉黄涉暴',level:'block',scope:'标题/卖点/详情/OCR',src:'内置',hit:3,on:true},
+  {w:'迷药',cat:'违禁品',level:'block',scope:'标题/卖点/详情',src:'内置',hit:0,on:true},
+  {w:'原味内衣',cat:'涉黄涉暴',level:'block',scope:'标题/详情',src:'自定义',hit:2,on:true},
+  {w:'治脚气',cat:'医疗宣称',level:'warn',scope:'卖点/详情',src:'内置',hit:11,on:true},
+  {w:'缓解脚气',cat:'医疗宣称',level:'warn',scope:'详情',src:'内置',hit:6,on:true},
+  {w:'抗菌',cat:'医疗宣称',level:'warn',scope:'标题/卖点/详情',src:'自定义',hit:38,on:true},
+  {w:'最好',cat:'绝对化用语',level:'warn',scope:'标题/卖点/详情',src:'内置',hit:24,on:true},
+  {w:'大牌同款',cat:'侵权品牌',level:'warn',scope:'标题/卖点/详情',src:'自定义',hit:9,on:true},
+  {w:'原单',cat:'侵权品牌',level:'warn',scope:'标题/卖点/详情',src:'内置',hit:4,on:false}
+];
+
+/* ============ 敏感图类别 ============ */
+var IMGCATS=[
+  {c:'涉黄涉暴（裸露/色情）',on:true,th:0.70,act:'拦截',hit:11},
+  {c:'涉黄涉暴（武器/暴力）',on:true,th:0.80,act:'拦截',hit:4},
+  {c:'违禁品（药品/管制）',on:true,th:0.80,act:'拦截',hit:2},
+  {c:'侵权 LOGO / 水印',on:true,th:0.65,act:'转人工',hit:6},
+  {c:'二维码 / 外部联系方式引流',on:true,th:0.60,act:'转人工',hit:18}
+];
+
+/* ============ 规则变更留痕 ============ */
+var RULELOG=[
+  {t:'2026-11-08 16:20',u:'admin',m:'新增敏感词「大牌同款」（警示级）'},
+  {t:'2026-11-06 10:12',u:'admin',m:'涉黄涉暴（裸露/色情）阈值 0.75 → 0.70'},
+  {t:'2026-11-04 09:35',u:'admin',m:'开启「编辑已上架商品重新过审」'}
+];
+
+/* ================= 基础 ================= */
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},2800);}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function num(n){return Number(n||0).toLocaleString('en-US');}
+function audOf(aid){for(var i=0;i<AUDS.length;i++){if(AUDS[i].aid===aid)return AUDS[i];}return null;}
+
+/* ================= 状态派生 ================= */
+var ST={
+  pending_machine:{t:'机审中',bg:'background:#E0F2FE;color:#0369A1'},
+  machine_blocked:{t:'机审拦截',bg:'background:#FEE2E2;color:#B91C1C'},
+  pending_manual:{t:'待人审',bg:'background:#FEF3C7;color:#B45309'},
+  passed:{t:'已通过·已上架',bg:'background:#DCFCE7;color:#15803D'},
+  rejected:{t:'已驳回',bg:'background:#FEE2E2;color:#B91C1C'}
+};
+function scoreColor(s){return s>=80?'#B91C1C':(s>=50?'#B45309':'#15803D');}
+function hoursOf(a){
+  var m=Math.round((new Date('2026-11-09T10:00:00')-new Date(a.submittedAt.replace(' ','T')))/60000);
+  return m<60?m+' 分钟':Math.round(m/60)+' 小时';
+}
+function isOver(a){return a.state==='pending_manual'&&hoursOf(a).indexOf('小时')>0&&parseInt(hoursOf(a),10)>24;}
+function hitText(a){
+  if(!a.machine.hits.length)return '<span class="text-[#15803D]">无</span>';
+  var b=a.machine.hits.filter(function(h){return h.level==='block';}).length;
+  return (b?'<span class="tag" style="background:#FEE2E2;color:#B91C1C">拦截 '+b+'</span> ':'')+'<span class="tag" style="background:#FEF3E2;color:#B45309">警示 '+(a.machine.hits.length-b)+'</span>';
+}
+
+/* ================= 统计 / 分段 ================= */
+function counts(){
+  return {
+    wait:a4('pending_machine'),blk:a4('machine_blocked'),manual:a4('pending_manual'),
+    over:AUDS.filter(isOver).length,passed:a4('passed'),rejected:a4('rejected')
+  };
+}
+function a4(s){return AUDS.filter(function(a){return a.state===s;}).length;}
+function renderStats(){
+  var c=counts();
+  var cards=[
+    ['机审中',c.wait,'#0369A1'],['机审拦截（待复核）',c.blk,'#B91C1C'],
+    ['待人审',c.manual+(c.over?'（超时 '+c.over+'）':''),'#B45309'],
+    ['已通过',c.passed,'#15803D'],['已驳回',c.rejected,'#64748B']
+  ];
+  document.getElementById('stats').innerHTML=cards.map(function(x){
+    return '<div class="bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">'+x[0]+'</p><p class="text-xl font-bold mt-1" style="color:'+x[2]+'">'+x[1]+'</p></div>';
+  }).join('');
+  var b=counts();
+  document.getElementById('blkCnt').textContent=b.blk;
+  document.getElementById('blkCnt2').textContent='共 '+b.blk+' 条';
+}
+
+/* ================= Tab1 队列 ================= */
+var QF={seg:'pending_manual',kw:'',machine:'',cat:'',over:false};
+function renderSeg(){
+  var c=counts(),map=[
+    ['pending_manual','待人审',c.manual],['pending_machine','机审中',c.wait],
+    ['machine_blocked','机审拦截',c.blk],['passed','已通过',c.passed],['rejected','已驳回',c.rejected],['all','全部',AUDS.length]
+  ];
+  document.getElementById('segBar').innerHTML=map.map(function(x){
+    return '<span class="'+(QF.seg===x[0]?'on':'')+'" onclick="setSeg(\''+x[0]+'\')">'+x[1]+' '+x[2]+'</span>';
+  }).join('');
+}
+function setSeg(s){QF.seg=s;renderQueue();}
+function renderQueue(){
+  renderSeg();
+  var list=AUDS.filter(function(a){
+    if(QF.seg!=='all'&&a.state!==QF.seg)return false;
+    if(QF.over&&!isOver(a))return false;
+    if(QF.cat&&a.cat!==QF.cat)return false;
+    if(QF.machine){
+      if(QF.machine==='wait'&&a.machine.result!=='wait')return false;
+      if(QF.machine!=='wait'&&a.machine.result!==QF.machine)return false;
+    }
+    if(QF.kw){var s=(a.goodsId+' '+a.goodsName+' '+a.shop).toLowerCase();if(s.indexOf(QF.kw.toLowerCase())<0)return false;}
+    return true;
+  });
+  document.getElementById('qTb').innerHTML=list.map(function(a){
+    var st=ST[a.state],mr=a.machine.result;
+    var mTag=mr==='wait'?'<span class="tag" style="background:#E0F2FE;color:#0369A1">机审中</span>'
+      :mr==='pass'?'<span class="tag" style="background:#DCFCE7;color:#15803D">通过</span>'
+      :mr==='warn'?'<span class="tag" style="background:#FEF3C7;color:#B45309">警示</span>'
+      :'<span class="tag" style="background:#FEE2E2;color:#B91C1C">拦截</span>';
+    var over=isOver(a);
+    var ops='';
+    if(a.state==='pending_manual')ops='<span class="lk" onclick="openAudit(\''+a.aid+'\')">审核</span> · ';
+    else if(a.state==='pending_machine')ops='<span class="lk" onclick="rerun(\''+a.aid+'\')">重跑机审</span> · ';
+    else if(a.state==='machine_blocked')ops='<span class="lk-red" onclick="openAudit(\''+a.aid+'\')">复核</span> · ';
+    ops+='<span class="lk-gray" onclick="openAudit(\''+a.aid+'\')">详情</span>';
+    return '<tr class="hover:bg-gray-50 transition">'
+      +'<td class="px-4 py-3"><div class="flex items-center gap-2">'
+      +'<div class="w-8 h-8 rounded-lg flex-shrink-0" style="background:'+G[a.imgs[0].i]+'"></div>'
+      +'<div class="min-w-0"><div class="font-medium text-[#1F2430] truncate" style="max-width:230px">'+esc(a.goodsName)+'</div>'
+      +'<div class="text-[11px] text-[#94A3B8]">'+esc(a.goodsId)+'</div></div></div></td>'
+      +'<td class="px-4 py-3 text-[#64748B] text-[12px]">'+esc(a.shop)+'</td>'
+      +'<td class="px-4 py-3 text-[#64748B] text-[12px]">'+esc(a.cat)+'</td>'
+      +'<td class="px-4 py-3"><span class="text-[11.5px] text-[#64748B]">'+esc(a.source)+'</span></td>'
+      +'<td class="px-4 py-3"><div class="flex items-center gap-1.5">'+mTag
+        +(mr==='wait'?'':'<span class="text-[11px] font-semibold" style="color:'+scoreColor(a.machine.score)+'">'+a.machine.score+'</span>')+'</div></td>'
+      +'<td class="px-4 py-3 text-[12px]">'+hitText(a)+'</td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#94A3B8]">'+esc(a.submittedAt)+'</td>'
+      +'<td class="px-4 py-3 text-[12px] '+(over?'text-[#B91C1C] font-semibold':'text-[#94A3B8]')+'">'+(a.state==='pending_manual'?hoursOf(a):'—')+'</td>'
+      +'<td class="px-4 py-3"><span class="st" style="'+st.bg+'">'+st.t+'</span>'+(over?'<div class="text-[10px] mt-0.5" style="color:#B91C1C">已超 24h</div>':'')+'</td>'
+      +'<td class="px-4 py-3 text-center whitespace-nowrap">'+ops+'</td></tr>';
+  }).join('')||'<tr><td colspan="10" class="px-4 py-14 text-center text-[12px] text-[#94A3B8]">该状态下暂无商品</td></tr>';
+  document.getElementById('qCnt').textContent='共 '+list.length+' 条';
+}
+function resetQ(){
+  QF={seg:'pending_manual',kw:'',machine:'',cat:'',over:false};
+  document.getElementById('qKw').value='';renderQueue();toast('已重置筛选');
+}
+function refreshQ(){renderAll();toast('队列已刷新（机审结果实时回写）');}
+function rerun(aid){
+  var a=audOf(aid);if(!a)return;
+  a.machine.at='2026-11-09 10:02';
+  if(a.machine.result==='block'){a.state='machine_blocked';}
+  else if(a.machine.result==='pass'){a.state=MACHINE.needManual?'pending_manual':'passed';}
+  else{a.state='pending_manual';}
+  renderAll();
+  toast('机审完成：'+(a.machine.result==='block'?'命中拦截级内容，已自动拦截（不上架）':(a.machine.result==='pass'?'未命中风险内容（风险分 '+a.machine.score+'）':'命中警示级内容，转人工判定')));
+}
+
+/* ================= Tab2 拦截记录 ================= */
+function renderBlock(){
+  var list=AUDS.filter(function(a){return a.state==='machine_blocked';});
+  document.getElementById('bTb').innerHTML=list.map(function(a){
+    var basis=a.machine.hits.filter(function(h){return h.level==='block';}).map(function(h){
+      return '<span class="tag" style="background:#FEE2E2;color:#B91C1C;margin:1px 2px 1px 0">'+(h.type==='word'?'词':'图')+'：'+esc(h.text)+'</span>';
+    }).join('');
+    return '<tr class="hover:bg-gray-50 transition">'
+      +'<td class="px-4 py-3"><div class="font-medium text-[#1F2430]">'+esc(a.goodsName)+'</div><div class="text-[11px] text-[#94A3B8]">'+esc(a.goodsId)+'</div></td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(a.shop)+'</td>'
+      +'<td class="px-4 py-3" style="max-width:360px">'+basis+'</td>'
+      +'<td class="px-4 py-3"><span class="text-[15px] font-bold" style="color:'+scoreColor(a.machine.score)+'">'+a.machine.score+'</span></td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#94A3B8]">'+esc(a.machine.at)+'</td>'
+      +'<td class="px-4 py-3 text-[11.5px] '+(a.appeal?'text-[#B45309]':'text-[#94A3B8]')+'">'+(a.appeal?esc(a.appeal):'未申诉')+'</td>'
+      +'<td class="px-4 py-3 text-center whitespace-nowrap"><span class="lk-red" onclick="openAudit(\''+a.aid+'\')">复核</span> · <span class="lk-gray" onclick="openAudit(\''+a.aid+'\')">详情</span></td></tr>';
+  }).join('')||'<tr><td colspan="7" class="px-4 py-14 text-center text-[12px] text-[#94A3B8]">暂无拦截记录</td></tr>';
+}
+
+/* ================= 审核抽屉 ================= */
+var CUR=null,VERDICT='pass',REASON='';
+var REASONS=['涉黄涉暴内容','侵权或假冒','违规宣传用语（医疗功效 / 绝对化）','图片不合规','类目错放 / 商品信息不实','其他（备注必填）'];
+function hl(txt,hits,where){
+  var out=esc(txt);
+  hits.filter(function(h){return h.type==='word'&&h.where.indexOf(where)>=0;}).forEach(function(h){
+    var cls=h.level==='block'?'hl-block':'hl-warn';
+    out=out.split(esc(h.text)).join('<span class="'+cls+'">'+esc(h.text)+'</span>');
+  });
+  return out;
+}
+function openAudit(aid){
+  CUR=audOf(aid);if(!CUR)return;
+  VERDICT=CUR.state==='machine_blocked'?'release':(CUR.state==='passed'?'pass':'pass');
+  REASON=CUR.manual&&CUR.manual.reason?CUR.manual.reason:'';
+  renderAudit();show('drawer');
+}
+function show(which){
+  document.getElementById('mask').classList.add('on');
+  document.getElementById(which).classList.add('on');
+}
+function renderAudit(){
+  var a=CUR,blocked=a.state==='machine_blocked',over=isOver(a);
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-white">'
+    +'<div><div class="flex items-center gap-2"><h3 class="text-[15px] font-bold text-[#1F2430]">商品审核 · '+esc(a.goodsId)+'</h3>'
+    +'<span class="st" style="'+ST[a.state].bg+'">'+ST[a.state].t+'</span>'
+    +(over?'<span class="tag" style="background:#FEE2E2;color:#B91C1C">已超 24h</span>':'')+'</div>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(a.goodsName)+'　·　'+esc(a.shop)+'　·　'+esc(a.source)+'　·　'+esc(a.submittedAt)+'</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
+
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:grid;grid-template-columns:1.45fr 1fr;gap:14px;align-items:start">';
+
+  /* 左：商品原文 + 图片 */
+  h+='<div style="display:flex;flex-direction:column;gap:12px">';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-box text-[#2563EB]"></i>商品信息（外采原字段，只读）</div>'
+    +'<div class="grid grid-cols-2 gap-x-4">'
+    +'<div class="kv"><span class="k">商品编号</span><span class="v">'+esc(a.goodsId)+'</span></div>'
+    +'<div class="kv"><span class="k">品类</span><span class="v">'+esc(a.cat)+'</span></div>'
+    +'<div class="kv"><span class="k">售价 / 库存</span><span class="v">¥'+esc(a.price)+'　'+esc(a.stock)+' 双</span></div>'
+    +'<div class="kv"><span class="k">审核单号</span><span class="v">'+esc(a.aid)+'</span></div>'
+    +'</div></div>';
+
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-image text-[#7C3AED]"></i>商品图（机审逐张打分）</div>'
+    +'<div class="grid grid-cols-4 gap-2">';
+  a.imgs.forEach(function(im,i){
+    var hi=a.machine.hits.filter(function(x){return x.type==='image'&&x.where==='商品图 '+(i+1);});
+    var bad=hi.length>0,badge='正常',bd='background:rgba(22,163,74,.85)';
+    if(bad){badge=hi[0].cat.split('（')[0]+' '+hi[0].conf;bd='background:rgba(185,28,28,.9)';}
+    h+='<div class="imgcell '+(bad?'bad':'')+'" style="background:'+G[im.i]+'"><i class="fas '+im.ic+'"></i>'
+      +'<span class="sc" style="'+bd+'">第 '+(i+1)+' 张 · '+esc(badge)+'</span></div>';
+  });
+  h+='</div><p class="text-[11px] text-[#94A3B8] mt-2"><i class="fas fa-circle-info mr-1"></i>红框 = 命中敏感图类别；分数为模型置信度（0–1）</p></div>';
+
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-align-left text-[#B45309]"></i>文本内容（命中处高亮：<span class="hl-block">拦截级</span> / <span class="hl-warn">警示级</span>）</div>'
+    +'<div class="text-[12px] leading-7 text-[#334155]"><b>标题：</b>'+hl(a.text.title,a.machine.hits,'标题')+'</div>'
+    +'<div class="text-[12px] leading-7 text-[#334155] mt-1"><b>卖点：</b>'+hl(a.text.selling,a.machine.hits,'卖点')+'</div>'
+    +'<div class="text-[12px] leading-7 text-[#334155] mt-1"><b>详情：</b>'+hl(a.text.detail,a.machine.hits,'详情')+'</div></div>';
+
+  if(a.manual&&a.state==='rejected'){
+    h+='<div class="blk" style="border-color:#FECACA;background:#FEF2F2"><div class="blk-t" style="color:#B91C1C"><i class="fas fa-circle-exclamation"></i>驳回记录（已回传商户端）</div>'
+      +'<div class="kv"><span class="k">原因</span><span class="v">'+esc(a.manual.reason)+'</span></div>'
+      +'<div class="kv"><span class="k">说明</span><span class="v">'+esc(a.manual.note||'—')+'</span></div>'
+      +'<div class="kv"><span class="k">审核人</span><span class="v">'+esc(a.manual.by)+' · '+esc(a.manual.at)+'</span></div></div>';
+  }
+  if(blocked&&a.appeal){
+    h+='<div class="blk" style="border-color:#FDE68A;background:#FFFBEB"><div class="blk-t" style="color:#B45309"><i class="fas fa-comment-dots"></i>商户申诉</div>'
+      +'<p class="text-[12px] text-[#334155] leading-6">'+esc(a.appeal)+'</p></div>';
+  }
+  h+='</div>';
+
+  /* 右：机审报告 + 人工判定 */
+  h+='<div style="display:flex;flex-direction:column;gap:12px">';
+  h+='<div class="blk"><div class="blk-t"><i class="fas fa-robot text-[#0EA5E9]"></i>① 机器初筛报告</div>'
+    +'<div class="flex items-end gap-3 mb-2"><div><p class="text-[10px] text-[#94A3B8]">风险分</p>'
+    +'<div class="risk" style="color:'+scoreColor(a.machine.score)+'">'+(a.machine.result==='wait'?'—':a.machine.score)+'</div></div>'
+    +'<div class="pb-1"><p class="text-[11px] text-[#64748B]">结论：<b style="color:'+scoreColor(a.machine.score)+'">'+(a.machine.result==='wait'?'机审中':(a.machine.result==='block'?'自动拦截':(a.machine.result==='warn'?'转人工判定':'通过')))+'</b></p>'
+    +'<p class="text-[10.5px] text-[#94A3B8]">引擎 '+MACHINE.version+'　'+(a.machine.at||'—')+'</p></div></div>';
+  if(a.machine.hits.length){
+    h+='<div style="display:flex;flex-direction:column;gap:6px;margin-top:6px">';
+    a.machine.hits.forEach(function(hh,hi2){
+      var cls=hh.level==='block'?'b':'w';
+      h+='<div class="hit '+cls+'">'
+        +'<div class="ic" style="background:'+(hh.type==='word'?'#B45309':'#7C3AED')+'"><i class="fas '+(hh.type==='word'?'fa-font':'fa-image')+'"></i></div>'
+        +'<div class="min-w-0" style="flex:1"><div class="text-[#1F2430]"><b>'+esc(hh.text)+'</b></div>'
+        +'<div class="text-[#64748B] mt-0.5">'+esc(hh.cat)+'　·　位置：'+esc(hh.where)+'　·　置信度 '+hh.conf+'</div>'
+        +(hh.mis?'<div class="text-[10.5px] mt-1" style="color:#15803D"><i class="fas fa-check mr-1"></i>已判为误报（不计入阻断）</div>':'')
+        +'</div>'
+        +(!hh.mis&&(a.state==='pending_manual'||a.state==='machine_blocked')?'<span class="lk-gray" style="white-space:nowrap" onclick="markMis('+hi2+')">判为误报</span>':'')
+        +'</div>';
+    });
+    h+='</div>';
+  }else{
+    h+='<p class="text-[11.5px] text-[#15803D] mt-1"><i class="fas fa-circle-check mr-1"></i>'+(a.machine.result==='wait'?'等待机审结果':'未命中任何敏感词 / 敏感图')+'</p>';
+  }
+  h+='</div>';
+
+  if(a.state==='pending_manual'||a.state==='machine_blocked'||a.state==='pending_machine'){
+    h+='<div class="blk" style="border-color:#FDB4A3"><div class="blk-t"><i class="fas fa-user-check text-[#FF4D2D]"></i>② 人工判定</div>';
+    if(a.state==='machine_blocked'){
+      h+='<div class="rounded-lg border p-2.5 mb-2" style="border-color:#FECACA;background:#FEF2F2"><p class="text-[11px]" style="color:#B91C1C">该商品已被机审拦截，只能二选一：<b>复核放行</b>（转人工判定队列）或 <b>维持拦截</b>（驳回并回传商户）。</p></div>';
+      h+='<div class="radio '+(VERDICT==='release'?'on':'')+'" onclick="setVerdict(\'release\')"><i class="'+(VERDICT==='release'?'fas fa-circle-dot':'far fa-circle')+'" style="color:#FF4D2D"></i><div><b>复核放行</b><div class="text-[11px] text-[#94A3B8]">误判，转入人工判定队列（需填理由，留痕）</div></div></div>';
+      h+='<div class="radio mt-2 '+(VERDICT==='keep'?'on':'')+'" onclick="setVerdict(\'keep\')"><i class="'+(VERDICT==='keep'?'fas fa-circle-dot':'far fa-circle')+'" style="color:#B91C1C"></i><div><b>维持拦截</b><div class="text-[11px] text-[#94A3B8]">驳回商品，原因回传商户端</div></div></div>';
+      h+='<textarea class="fi mt-2" id="aNote" rows="3" placeholder="复核理由（放行必填）">'+(a.appeal?esc(a.appeal):'')+'</textarea>';
+    }else{
+      h+='<div class="radio '+(VERDICT==='pass'?'on':'')+'" onclick="setVerdict(\'pass\')"><i class="'+(VERDICT==='pass'?'fas fa-circle-dot':'far fa-circle')+'" style="color:#15803D"></i><div><b>通过并上架</b><div class="text-[11px] text-[#94A3B8]">买家端可见（机审通过 + 人工确认）</div></div></div>';
+      h+='<div class="radio mt-2 '+(VERDICT==='reject'?'on':'')+'" onclick="setVerdict(\'reject\')"><i class="'+(VERDICT==='reject'?'fas fa-circle-dot':'far fa-circle')+'" style="color:#B91C1C"></i><div><b>驳回</b><div class="text-[11px] text-[#94A3B8]">不上架，原因回传商户端，可修改重提</div></div></div>';
+      if(VERDICT==='reject'){
+        h+='<label class="fl mt-2">驳回原因（必选）</label><select class="sel" id="aReason" onchange="REASON=this.value">'
+          +REASONS.map(function(r){return '<option'+(REASON===r?' selected':'')+'>'+r+'</option>';}).join('')+'</select>';
+        h+='<textarea class="fi mt-2" id="aNote" rows="3" placeholder="补充说明（将展示给商户）"></textarea>';
+      }else{
+        h+='<textarea class="fi mt-2" id="aNote" rows="2" placeholder="审核备注（选填，仅内部可见）"></textarea>';
+      }
+    }
+    h+='</div>';
+  }else{
+    h+='<div class="blk"><div class="blk-t"><i class="fas fa-clock-rotate-left text-[#7C3AED]"></i>审核留痕</div>'
+      +'<div class="kv"><span class="k">机器初筛</span><span class="v">'+(a.machine.at?esc(a.machine.at)+'　风险分 '+a.machine.score:'—')+'</span></div>'
+      +'<div class="kv"><span class="k">人工判定</span><span class="v">'+(a.manual?esc(a.manual.by)+' · '+esc(a.manual.at)+'　'+(a.manual.result==='pass'?'通过':'驳回'):'—')+'</span></div>'
+      +(a.manual&&a.manual.note?'<div class="kv"><span class="k">备注</span><span class="v">'+esc(a.manual.note)+'</span></div>':'')+'</div>';
+  }
+  h+='</div>';
+
+  h+='</div>';
+
+  /* 底部 */
+  h+='<div class="px-5 py-3.5 border-t border-gray-100 bg-white flex items-center justify-between">'
+    +'<span class="text-[11px] text-[#94A3B8]"><i class="fas fa-lock mr-1"></i>机审不可跳过；判定结果写审核留痕，商户端同步收到通知</span>';
+  if(a.state==='machine_blocked'){
+    h+='<div class="flex items-center gap-2"><button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+      +'<button class="btn btn-danger" onclick="submitAudit(0)">维持拦截</button>'
+      +'<button class="btn btn-primary" onclick="submitAudit(1)">复核放行</button></div>';
+  }else if(a.state==='pending_manual'){
+    h+='<div class="flex items-center gap-2"><button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+      +'<button class="btn btn-danger" onclick="submitAudit(0)">驳回</button>'
+      +'<button class="btn btn-primary" onclick="submitAudit(1)">通过并上架</button></div>';
+  }else if(a.state==='pending_machine'){
+    h+='<div class="flex items-center gap-2"><button class="btn btn-ghost" onclick="closeAll()">关闭</button>'
+      +'<button class="btn btn-primary" onclick="rerun(\''+a.aid+'\');closeAll()">重跑机审</button></div>';
+  }else{
+    h+='<div class="flex items-center gap-2"><button class="btn btn-ghost" onclick="closeAll()">关闭</button></div>';
+  }
+  h+='</div>';
+
+  document.getElementById('drawer').innerHTML=h;
+}
+function setVerdict(v){VERDICT=v;renderAudit();}
+function markMis(i){
+  var h=CUR.machine.hits[i];
+  h.mis=!h.mis;
+  var left=CUR.machine.hits.filter(function(x){return !x.mis;});
+  CUR.machine.score=left.length?Math.max(30,Math.round(CUR.machine.score*0.7)):5;
+  if(!left.length){CUR.machine.result='pass';}
+  renderAudit();renderAll();
+  toast(h.mis?'已标记为误报：该命中项不再阻断（可下拉到「词库」沉淀为白名单）':'已取消误报标记');
+}
+function submitAudit(pass){
+  var a=CUR,note=(document.getElementById('aNote')||{}).value||'';
+  if(a.state==='machine_blocked'){
+    if(!pass){
+      if(note.trim().length<4){toast('维持拦截请补充理由（≥4 字），将回传商户端');return;}
+      a.state='rejected';a.manual={by:'admin',at:'2026-11-09 10:05',result:'reject',reason:'涉黄涉暴内容',note:note.trim()};
+      closeAll();renderAll();toast('已维持拦截：商品不上架，理由已回传商户端');return;
+    }
+    if(note.trim().length<4){toast('复核放行必须填写误判理由');return;}
+    a.state='pending_manual';a.manual=null;
+    a.appeal=(a.appeal?a.appeal+'　｜　':'')+'运营复核放行：'+note.trim();
+    closeAll();renderAll();toast('已放行：商品转入人工判定队列（拦截记录保留）');return;
+  }
+  if(pass){
+    a.state='passed';a.manual={by:'admin',at:'2026-11-09 10:05',result:'pass',reason:'',note:note.trim()};
+    closeAll();renderAll();toast('审核通过：商品已上架，买家端可见（机审 + 人审双留痕）');
+  }else{
+    var r=document.getElementById('aReason');
+    var reason=r?r.value:(REASON||REASONS[0]);
+    if(!note.trim()){toast('驳回需填写说明（将展示给商户）');return;}
+    a.state='rejected';a.manual={by:'admin',at:'2026-11-09 10:05',result:'reject',reason:reason,note:note.trim()};
+    closeAll();renderAll();toast('已驳回：原因「'+reason+'」已回传商户端，商品不上架');
+  }
+}
+
+/* ================= Tab3 词库与规则 ================= */
+var WF={kw:'',cat:'',level:''};
+function renderWords(){
+  var list=WORDS.filter(function(w){
+    if(WF.cat&&w.cat!==WF.cat)return false;
+    if(WF.level&&w.level!==WF.level)return false;
+    if(WF.kw){var s=(w.w+' '+w.cat).toLowerCase();if(s.indexOf(WF.kw.toLowerCase())<0)return false;}
+    return true;
+  });
+  document.getElementById('wTb').innerHTML=list.map(function(w,i){
+    var idx=WORDS.indexOf(w);
+    return '<tr class="hover:bg-gray-50 transition'+(w.on?'':' dis')+'">'
+      +'<td class="px-3 py-2 font-medium text-[#1F2430]">'+esc(w.w)+'</td>'
+      +'<td class="px-3 py-2 text-[#64748B]">'+esc(w.cat)+'</td>'
+      +'<td class="px-3 py-2">'+(w.level==='block'?'<span class="tag" style="background:#FEE2E2;color:#B91C1C">拦截级</span>':'<span class="tag" style="background:#FEF3C7;color:#B45309">警示级</span>')+'</td>'
+      +'<td class="px-3 py-2 text-[11.5px] text-[#64748B]">'+esc(w.scope)+'</td>'
+      +'<td class="px-3 py-2 text-[11.5px] text-[#94A3B8]">'+esc(w.src)+'</td>'
+      +'<td class="px-3 py-2 text-[#64748B]">'+w.hit+'</td>'
+      +'<td class="px-3 py-2"><input type="checkbox" class="w-4 h-4 accent-[#FF4D2D]" '+(w.on?'checked':'')+' onchange="toggleWord('+idx+')"></td>'
+      +'<td class="px-3 py-2 text-center whitespace-nowrap"><span class="lk-gray" onclick="openWord(\''+esc(w.w)+'\')">编辑</span> · <span class="lk-red" onclick="delWord('+idx+')">删除</span></td></tr>';
+  }).join('')||'<tr><td colspan="8" class="px-3 py-8 text-center text-[12px] text-[#94A3B8]">没有匹配的敏感词</td></tr>';
+  document.getElementById('wCnt').textContent='共 '+list.length+' 条';
+}
+function toggleWord(i){
+  WORDS[i].on=!WORDS[i].on;renderWords();logRule((WORDS[i].on?'启用':'停用')+'敏感词「'+WORDS[i].w+'」');
+  toast('敏感词「'+WORDS[i].w+'」已'+(WORDS[i].on?'启用':'停用')+'，即时生效');
+}
+function delWord(i){
+  var w=WORDS[i];
+  if(!confirm('删除敏感词「'+w.w+'」？删除后该类内容不再被拦截（历史命中记录保留）。'))return;
+  WORDS.splice(i,1);renderWords();logRule('删除敏感词「'+w.w+'」');toast('已删除「'+w.w+'」');
+}
+function renderImg(){
+  document.getElementById('imgTb').innerHTML=IMGCATS.map(function(x,i){
+    return '<tr class="hover:bg-gray-50 transition'+(x.on?'':' dis')+'">'
+      +'<td class="px-3 py-2 font-medium text-[#1F2430]">'+esc(x.c)+'</td>'
+      +'<td class="px-3 py-2"><input type="checkbox" class="w-4 h-4 accent-[#FF4D2D]" '+(x.on?'checked':'')+' onchange="toggleImg('+i+')"></td>'
+      +'<td class="px-3 py-2"><select class="sel" style="width:88px" onchange="setTh('+i+',this.value)">'
+        +[0.6,0.65,0.7,0.8,0.9].map(function(v){return '<option value="'+v+'"'+(v===x.th?' selected':'')+'>'+v.toFixed(2)+'</option>';}).join('')+'</select></td>'
+      +'<td class="px-3 py-2"><select class="sel" style="width:96px" onchange="setAct('+i+',this.value)">'
+        +['拦截','转人工'].map(function(v){return '<option'+(v===x.act?' selected':'')+'>'+v+'</option>';}).join('')+'</select></td>'
+      +'<td class="px-3 py-2 text-[#64748B]">'+x.hit+'</td></tr>';
+  }).join('');
+}
+function toggleImg(i){IMGCATS[i].on=!IMGCATS[i].on;renderImg();logRule((IMGCATS[i].on?'启用':'停用')+'图片类别「'+IMGCATS[i].c+'」');toast('已'+(IMGCATS[i].on?'启用':'停用')+'「'+IMGCATS[i].c+'」识别');}
+function setTh(i,v){IMGCATS[i].th=parseFloat(v);logRule('「'+IMGCATS[i].c+'」阈值调整为 '+v);toast('阈值已调整为 '+v+'（置信度 ≥ 阈值即命中）');}
+function setAct(i,v){IMGCATS[i].act=v;logRule('「'+IMGCATS[i].c+'」命中处置改为「'+v+'」');toast('处置已改为「'+v+'」'+(v==='拦截'?'：命中即自动不上架':'：命中进人工队列'));}
+function logRule(m){
+  RULELOG.unshift({t:'2026-11-09 10:06',u:'admin',m:m});
+  renderRuleLog();
+}
+function renderRuleLog(){
+  document.getElementById('ruleLog').innerHTML=RULELOG.slice(0,6).map(function(r){
+    return '<div class="text-[11px] leading-5"><span class="text-[#94A3B8]">'+esc(r.t)+' · '+esc(r.u)+'</span><div class="text-[#334155]">'+esc(r.m)+'</div></div>';
+  }).join('');
+}
+
+/* 新增/编辑敏感词 */
+var WEDIT=null;
+function openWord(w){
+  WEDIT=w?WORDS.filter(function(x){return x.w===w;})[0]:null;
+  var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+(WEDIT?'编辑敏感词':'新增敏感词')+'</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">拦截级命中即自动不上架；警示级转人工判定。保存后立即生效</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeOnly(\'modal\')"><i class="fas fa-xmark"></i></button></div>'
+    +'<div class="px-5 py-4" style="display:flex;flex-direction:column;gap:10px">'
+    +'<div><label class="fl">敏感词（支持多个，用逗号分隔）</label><input class="fi" id="wv" value="'+(WEDIT?esc(WEDIT.w):'')+'" placeholder="如：仿真枪,迷药"></div>'
+    +'<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl">分类</label><select class="sel" id="wc">'+['涉黄涉暴','违禁品','医疗宣称','绝对化用语','侵权品牌'].map(function(c){return '<option'+(WEDIT&&WEDIT.cat===c?' selected':'')+'>'+c+'</option>';}).join('')+'</select></div>'
+    +'<div><label class="fl">等级</label><select class="sel" id="wl"><option value="block"'+(WEDIT&&WEDIT.level==='block'?' selected':'')+'>拦截级（自动不上架）</option><option value="warn"'+(WEDIT&&WEDIT.level==='warn'?' selected':'')+'>警示级（转人工）</option></select></div>'
+    +'</div>'
+    +'<div><label class="fl">比对范围</label><input class="fi" id="ws" value="'+(WEDIT?esc(WEDIT.scope):'标题/卖点/详情/OCR')+'"></div>'
+    +'<p class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>单个字的词不会生效（避免误伤）；词越长权重越高</p></div>'
+    +'<div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeOnly(\'modal\')">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveWord()">保存并生效</button></div>';
+  document.getElementById('modal').innerHTML=h;
+  document.getElementById('mask').classList.add('on');
+  document.getElementById('modal').classList.add('on');
+}
+function saveWord(){
+  var v=(document.getElementById('wv').value||'').trim();
+  if(!v){toast('请填写敏感词');return;}
+  var cat=document.getElementById('wc').value,lv=document.getElementById('wl').value,sc=document.getElementById('ws').value;
+  var parts=v.split(/[,，、\s]+/).filter(function(x){return x.trim().length>1;});
+  if(!parts.length){toast('敏感词至少 2 个字（单字会误伤）');return;}
+  var add=0;
+  parts.forEach(function(p){
+    if(WEDIT&&p===WEDIT.w){
+      WEDIT.cat=cat;WEDIT.level=lv;WEDIT.scope=sc;
+    }else if(WEDIT&&p!==WEDIT.w&&WORDS.indexOf(WEDIT)>=0&&add===0){
+      WEDIT.w=p;WEDIT.cat=cat;WEDIT.level=lv;WEDIT.scope=sc;
+    }else if(!WORDS.filter(function(x){return x.w===p;}).length){
+      WORDS.unshift({w:p,cat:cat,level:lv,scope:sc,src:'自定义',hit:0,on:true});add++;
+    }
+  });
+  closeOnly('modal');renderWords();logRule((WEDIT?'编辑':'新增')+'敏感词「'+parts.join('、')+'」（'+lv+'）');
+  toast('已保存 '+(parts.length)+' 个词（新增 '+add+'），立即生效');
+}
+function openWordImport(){
+  document.getElementById('modal').innerHTML='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">批量导入敏感词</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">每行一个词，或用逗号分隔；默认按「警示级 + 医疗宣称」导入，导入后可逐个调整</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeOnly(\'modal\')"><i class="fas fa-xmark"></i></button></div>'
+    +'<div class="px-5 py-4"><textarea class="fi" id="wi" rows="6" placeholder="纯棉抗菌&#10;百分百防臭&#10;永不掉色"></textarea></div>'
+    +'<div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="closeOnly(\'modal\')">取消</button>'
+    +'<button class="btn btn-primary" onclick="importWords()">导入</button></div>';
+  document.getElementById('mask').classList.add('on');
+  document.getElementById('modal').classList.add('on');
+}
+function importWords(){
+  var raw=(document.getElementById('wi').value||'');
+  var ps=raw.split(/[,，、\s\n]+/).filter(function(x){return x.trim().length>1;});
+  if(!ps.length){toast('请粘贴至少一个敏感词（≥2 字）');return;}
+  var n=0;ps.forEach(function(p){if(!WORDS.filter(function(x){return x.w===p;}).length){WORDS.unshift({w:p,cat:'医疗宣称',level:'warn',scope:'标题/卖点/详情',src:'自定义',hit:0,on:true});n++;}});
+  closeOnly('modal');renderWords();logRule('批量导入敏感词 '+n+' 个');
+  toast('已导入 '+n+' 个（去重后），默认警示级，可逐个调整为拦截级');
+}
+
+/* ================= 审核留痕 ================= */
+function openTrace(){
+  var rows=AUDS.filter(function(a){return a.manual;}).map(function(a){
+    return '<div class="blk mb-2" style="padding:10px 12px"><div class="flex items-center justify-between">'
+      +'<span class="text-[12px] font-medium text-[#1F2430]">'+esc(a.goodsName)+'</span>'
+      +'<span class="st" style="'+(a.manual.result==='pass'?'background:#DCFCE7;color:#15803D':'background:#FEE2E2;color:#B91C1C')+'">'+(a.manual.result==='pass'?'通过':'驳回')+'</span></div>'
+      +'<div class="text-[11px] text-[#94A3B8] mt-1">'+esc(a.manual.by)+' · '+esc(a.manual.at)+(a.manual.reason?'　·　'+esc(a.manual.reason):'')+'</div>'
+      +(a.manual.note?'<div class="text-[11px] text-[#64748B] mt-1">'+esc(a.manual.note)+'</div>':'')
+      +'<div class="text-[10.5px] text-[#94A3B8] mt-1">机审：'+(a.machine.at?esc(a.machine.at)+' · 风险分 '+a.machine.score+' · 命中 '+a.machine.hits.length+' 项':'未出结果')+'</div></div>';
+  }).join('');
+  document.getElementById('modal').innerHTML='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
+    +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">审核留痕</h3>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1">机器初筛结果 + 人工判定结果全量留档，可按商品追溯（可导出）</p></div>'
+    +'<button class="text-gray-400 hover:text-gray-600" onclick="closeOnly(\'modal\')"><i class="fas fa-xmark"></i></button></div>'
+    +'<div class="flex-1 overflow-y-auto px-5 py-4">'+(rows||'<p class="text-[12px] text-[#94A3B8] py-6 text-center">暂无人工判定记录</p>')+'</div>'
+    +'<div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
+    +'<button class="btn btn-ghost" onclick="toast(\'已导出审核留痕（含机审风险分、命中项、人工判定）\')">导出</button>'
+    +'<button class="btn btn-primary" onclick="closeOnly(\'modal\')">关闭</button></div>';
+  document.getElementById('mask').classList.add('on');
+  document.getElementById('modal').classList.add('on');
+}
+
+/* ================= Tab / 关闭 ================= */
+var curTab=0;
+function goTab(i){
+  curTab=i;
+  var ts=document.getElementById('tabs').children;
+  for(var k=0;k<ts.length;k++){
+    ts[k].style.color=(k===i?'#FF4D2D':'#94A3B8');
+    ts[k].style.borderBottom=(k===i?'2px solid #FF4D2D':'2px solid transparent');
+    ts[k].style.fontWeight=(k===i?'600':'400');
+  }
+  document.getElementById('pane0').style.display=(i===0?'':'none');
+  document.getElementById('pane1').style.display=(i===1?'':'none');
+  document.getElementById('pane2').style.display=(i===2?'':'none');
+  if(i===0)renderQueue();
+  if(i===1)renderBlock();
+  if(i===2){renderWords();renderImg();renderRuleLog();}
+}
+function closeOnly(which){
+  document.getElementById(which).classList.remove('on');
+  if(!document.getElementById('drawer').classList.contains('on')&&!document.getElementById('modal').classList.contains('on')){
+    document.getElementById('mask').classList.remove('on');
+  }
+}
+function closeAll(){
+  document.getElementById('mask').classList.remove('on');
+  document.getElementById('drawer').classList.remove('on');
+  document.getElementById('modal').classList.remove('on');
+}
+function renderAll(){renderStats();renderQueue();renderBlock();}
+
+/* 初始化 */
+renderAll();
+renderWords();renderImg();renderRuleLog();
+
+/* 深链：?tab=rule 打开词库与规则；?aid=审核单号 或 商品编号 直接开审核抽屉（商品列表跳转用） */
+(function(){
+  var qs={};
+  (location.search||'').replace(/^\?/,'').split('&').forEach(function(kv){
+    if(!kv)return;var p=kv.split('=');qs[decodeURIComponent(p[0])]=decodeURIComponent(p[1]||'');
+  });
+  if(qs.tab==='rule'||qs.tab==='2'){goTab(2);return;}
+  if(qs.tab==='block'){goTab(1);return;}
+  var q=qs.aid||qs.goodsId;
+  if(q){
+    var t=AUDS.filter(function(a){return a.aid===q||a.goodsId===q;})[0];
+    if(t){goTab(0);openAudit(t.aid);}
+    else{toast('未找到审核单 '+q+'（可能在更早的批次，可用搜索定位）');}
+  }
+})();
+</script>
+<script src="../shared/page-prd.js"></script>
+</body>
+</html>

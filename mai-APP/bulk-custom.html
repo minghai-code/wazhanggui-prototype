@@ -25,10 +25,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 .upload-box:active{border-color:#3B82F6;background:#EFF6FF}
 input[type=range]{-webkit-appearance:none;width:100%;height:4px;border-radius:2px;background:#E5E7EB;outline:none}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#3B82F6;box-shadow:0 2px 6px rgba(59,130,246,.4);cursor:pointer}
-.fac-card{border:1.5px solid #E5E7EB;border-radius:14px;padding:12px;cursor:pointer;transition:.15s;background:#fff}
-.fac-card.on{border-color:#3B82F6;background:#EFF6FF;box-shadow:0 4px 12px rgba(59,130,246,.1)}
-.fac-card .check{display:none}
-.fac-card.on .check{display:inline}
+.tag-opt-sm{font-size:11px}
 </style>
 <!-- Tailwind 静态样式：本地引用（不再依赖 cdn.tailwindcss.com）；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
 <link rel="stylesheet" href="tailwind.css">
@@ -52,7 +49,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
         <span class="text-white font-extrabold text-[20px] tracking-wide" style="text-shadow:0 2px 10px rgba(0,0,0,.18)">批量定制</span>
         <span class="text-[9px] text-white/90 bg-white/20 rounded-full px-2 py-0.5 backdrop-blur">企业采购</span>
       </div>
-      <p class="text-white/80 text-[11px] mt-0.5">大额定制·智能匹配厂家·一站式采购</p>
+      <p class="text-white/80 text-[11px] mt-0.5">大额定制 · 一站提交 · 多商户报价</p>
     </div>
   </div>
 </div>
@@ -66,10 +63,13 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
       <span class="text-[9px] text-gray-400 ml-auto">支持 JPG / PNG / AI</span>
     </div>
     <div class="grid grid-cols-3 gap-2">
-      <div class="upload-box" onclick="upDoc('front',this,'上传正面设计稿')"><i class="fas fa-image text-2xl text-blue-300"></i><span class="text-[10px] text-gray-400 mt-1">正面图案</span></div>
-      <div class="upload-box" onclick="upDoc('side',this,'上传侧面设计稿')"><i class="fas fa-image text-2xl text-blue-300"></i><span class="text-[10px] text-gray-400 mt-1">侧面图案</span></div>
-      <div class="upload-box" onclick="upDoc('tech',this,'上传工艺说明')"><i class="fas fa-file-lines text-2xl text-blue-300"></i><span class="text-[10px] text-gray-400 mt-1">工艺说明</span></div>
+      <div class="upload-box" id="docBox-front" onclick="document.getElementById('docFront').click()"><i class="fas fa-image text-2xl text-blue-300"></i><span class="text-[10px] text-gray-400 mt-1 doc-state">正面图案</span></div>
+      <div class="upload-box" id="docBox-side" onclick="document.getElementById('docSide').click()"><i class="fas fa-image text-2xl text-blue-300"></i><span class="text-[10px] text-gray-400 mt-1 doc-state">侧面图案</span></div>
+      <div class="upload-box" id="docBox-tech" onclick="document.getElementById('docTech').click()"><i class="fas fa-file-lines text-2xl text-blue-300"></i><span class="text-[10px] text-gray-400 mt-1 doc-state">工艺说明</span></div>
     </div>
+    <input type="file" id="docFront" accept="image/*,.pdf,.ai" class="hidden" onchange="onDoc('front',this)">
+    <input type="file" id="docSide" accept="image/*,.pdf,.ai" class="hidden" onchange="onDoc('side',this)">
+    <input type="file" id="docTech" accept="image/*,.pdf,.ai" class="hidden" onchange="onDoc('tech',this)">
     <div class="mt-2.5 flex items-center gap-2 text-[10px] text-gray-400">
       <i class="fas fa-circle-info text-blue-400"></i>
       <span>文件大小不超过20MB，AI文件请转PDF后上传</span>
@@ -86,6 +86,12 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     </div>
 
     <div class="mb-3">
+      <label class="text-[11px] font-medium text-gray-500 block mb-1.5">需求名称 <span class="text-[#EF4444]">*</span></label>
+      <input type="text" id="demandTitle" maxlength="24" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-[12px] outline-none" placeholder="如：企业年会定制袜 · 竹纤维">
+      <p class="text-[9px] text-gray-400 mt-1">将作为「我的定制需求」列表标题，便于区分多个需求</p>
+    </div>
+
+    <div class="mb-3">
       <label class="text-[11px] font-medium text-gray-500 block mb-2">定制品类</label>
       <div class="flex flex-wrap gap-1.5">
         <span class="tag-opt on" onclick="tagToggle(this)">男袜</span>
@@ -99,11 +105,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     <div class="mb-3">
       <label class="text-[11px] font-medium text-gray-500 block mb-2">材质选择</label>
       <div class="flex flex-wrap gap-1.5">
-        <span class="tag-opt on" onclick="tagSingle(this,'mat');updatePrice()">精梳棉</span>
-        <span class="tag-opt" onclick="tagSingle(this,'mat');updatePrice()">竹纤维</span>
-        <span class="tag-opt" onclick="tagSingle(this,'mat');updatePrice()">美利奴羊毛</span>
-        <span class="tag-opt" onclick="tagSingle(this,'mat');updatePrice()">冰丝</span>
-        <span class="tag-opt" onclick="tagSingle(this,'mat');updatePrice()">Coolmax</span>
+        <span class="tag-opt on" onclick="tagSingle(this,'mat')">精梳棉</span>
+        <span class="tag-opt" onclick="tagSingle(this,'mat')">竹纤维</span>
+        <span class="tag-opt" onclick="tagSingle(this,'mat')">美利奴羊毛</span>
+        <span class="tag-opt" onclick="tagSingle(this,'mat')">冰丝</span>
+        <span class="tag-opt" onclick="tagSingle(this,'mat')">Coolmax</span>
       </div>
     </div>
 
@@ -168,6 +174,17 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
       <div class="flex justify-between text-[9px] text-gray-400 mt-1"><span>7天</span><span>30天</span><span>60天</span></div>
     </div>
 
+    <div class="mb-3">
+      <label class="text-[11px] font-medium text-gray-500 block mb-2">包装要求</label>
+      <div class="flex flex-wrap gap-1.5" id="packList">
+        <span class="tag-opt on" onclick="pickPack(this,'标准包装')">标准包装</span>
+        <span class="tag-opt" onclick="pickPack(this,'独立包装')">独立包装</span>
+        <span class="tag-opt" onclick="pickPack(this,'定制吊牌')">定制吊牌</span>
+        <span class="tag-opt" onclick="pickPack(this,'贴牌代工')">贴牌代工</span>
+        <span class="tag-opt" onclick="pickPack(this,'礼盒装')">礼盒装</span>
+      </div>
+    </div>
+
     <div class="p-2.5 bg-blue-50 rounded-xl flex items-start gap-2">
       <i class="fas fa-circle-info text-blue-500 text-[11px] mt-0.5"></i>
       <p class="text-[10px] text-gray-600 leading-relaxed">数量≥3000双可享受阶梯价优惠；加急订单（≤10天）单价上浮15%；支持分批交付</p>
@@ -175,102 +192,33 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
   </div>
 </div>
 
-<!-- ===== 智能厂家匹配 ===== -->
+<!-- ===== 报价截止 + 收货地址 ===== -->
 <div class="px-3 mt-3">
   <div class="bg-white rounded-2xl shadow-soft p-3.5">
-    <div class="flex items-center justify-between mb-3">
-      <div class="flex items-center gap-2">
-        <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white" style="background:linear-gradient(135deg,#60A5FA,#3B82F6)"><i class="fas fa-robot text-[11px]"></i></div>
-        <span class="text-[13px] font-bold text-gray-800">智能厂家匹配</span>
-      </div>
-      <span class="text-[9px] text-gray-400 bg-gray-50 rounded-full px-2 py-0.5">已匹配 3 家</span>
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-[13px] font-bold text-gray-800">报价截止</span>
+      <span class="text-[10px] text-gray-400">提交后不可延长</span>
+    </div>
+    <div class="flex flex-wrap gap-1.5">
+        <span class="tag-opt" onclick="pickDeadline(this,1)">1天</span>
+        <span class="tag-opt" onclick="pickDeadline(this,2)">2天</span>
+        <span class="tag-opt on" onclick="pickDeadline(this,3)">3天</span>
+        <span class="tag-opt" onclick="pickDeadline(this,4)">4天</span>
+        <span class="tag-opt" onclick="pickDeadline(this,5)">5天</span>
+        <span class="tag-opt" onclick="pickDeadline(this,6)">6天</span>
+        <span class="tag-opt" onclick="pickDeadline(this,7)">7天</span>
     </div>
 
-    <div class="space-y-2.5" id="factoryList">
-      <!-- 厂家1 -->
-      <div class="fac-card on" onclick="selectFac(this,4.20)" data-price="4.20">
-        <div class="flex items-center gap-2.5">
-          <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-[12px] shrink-0" style="background:linear-gradient(135deg,#3B82F6,#1D4ED8)">A</div>
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-1.5">
-              <p class="text-[12px] font-bold text-gray-800">大唐精工袜业</p>
-              <span class="text-[8px] text-white bg-green-500 rounded px-1 py-0.5">优选</span>
-            </div>
-            <div class="flex items-center gap-2 mt-0.5">
-              <span class="text-[9px] text-gray-400">月产能 50万双</span>
-              <span class="text-[9px] text-gray-300">|</span>
-              <span class="text-[9px] text-gray-400">评分 4.9</span>
-              <span class="text-[9px] text-gray-300">|</span>
-              <span class="text-[9px] text-primary font-medium">¥4.20/双</span>
-            </div>
-          </div>
-          <i class="fas fa-check-circle text-primary text-[16px] check"></i>
-          <i class="far fa-circle text-gray-300 text-[16px] uncheck"></i>
-        </div>
+    <div class="border-t border-gray-50 mt-3 pt-3">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-[12px] font-bold text-gray-800">收货地址</span>
+        <span class="text-[9px] text-red-400 font-medium bg-red-50 rounded px-1.5 py-0.5">必填</span>
+        <span class="text-[10px] text-primary font-medium" onclick="switchAddr()">切换</span>
       </div>
-
-      <!-- 厂家2 -->
-      <div class="fac-card" onclick="selectFac(this,3.95)" data-price="3.95">
-        <div class="flex items-center gap-2.5">
-          <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-[12px] shrink-0" style="background:linear-gradient(135deg,#60A5FA,#3B82F6)">B</div>
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-1.5">
-              <p class="text-[12px] font-bold text-gray-800">织云智造工厂</p>
-            </div>
-            <div class="flex items-center gap-2 mt-0.5">
-              <span class="text-[9px] text-gray-400">月产能 80万双</span>
-              <span class="text-[9px] text-gray-300">|</span>
-              <span class="text-[9px] text-gray-400">评分 4.7</span>
-              <span class="text-[9px] text-gray-300">|</span>
-              <span class="text-[9px] text-primary font-medium">¥3.95/双</span>
-            </div>
-          </div>
-          <i class="fas fa-check-circle text-primary text-[16px] check"></i>
-          <i class="far fa-circle text-gray-300 text-[16px] uncheck"></i>
-        </div>
+      <div class="bg-gray-50 rounded-xl p-2.5">
+        <p class="text-[11.5px] font-medium text-gray-700" id="addrName">王建国 138****6688</p>
+        <p class="text-[10px] text-gray-500 mt-1 leading-relaxed" id="addrDetail">浙江省绍兴市诸暨市大唐街道袜业城 A 区 12 号档口</p>
       </div>
-
-      <!-- 厂家3 -->
-      <div class="fac-card" onclick="selectFac(this,4.50)" data-price="4.50">
-        <div class="flex items-center gap-2.5">
-          <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-[12px] shrink-0" style="background:linear-gradient(135deg,#818CF8,#6366F1)">C</div>
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-1.5">
-              <p class="text-[12px] font-bold text-gray-800">恒达纺织科技</p>
-              <span class="text-[8px] text-white bg-orange-500 rounded px-1 py-0.5">快反</span>
-            </div>
-            <div class="flex items-center gap-2 mt-0.5">
-              <span class="text-[9px] text-gray-400">月产能 30万双</span>
-              <span class="text-[9px] text-gray-300">|</span>
-              <span class="text-[9px] text-gray-400">评分 4.8</span>
-              <span class="text-[9px] text-gray-300">|</span>
-              <span class="text-[9px] text-primary font-medium">¥4.50/双</span>
-            </div>
-          </div>
-          <i class="fas fa-check-circle text-primary text-[16px] check"></i>
-          <i class="far fa-circle text-gray-300 text-[16px] uncheck"></i>
-        </div>
-      </div>
-    </div>
-
-    <button class="card w-full mt-3 py-2 rounded-xl text-[11px] font-medium text-primary border border-blue-200 bg-blue-50" onclick="toast('查看更多匹配厂家')">查看全部 12 家匹配厂家 ›</button>
-  </div>
-</div>
-
-<!-- ===== 报价汇总 ===== -->
-<div class="px-3 mt-3">
-  <div class="bg-white rounded-2xl shadow-soft p-3.5">
-    <div class="flex items-center gap-2 mb-3">
-      <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white" style="background:linear-gradient(135deg,#60A5FA,#3B82F6)"><i class="fas fa-calculator text-[11px]"></i></div>
-      <span class="text-[13px] font-bold text-gray-800">报价汇总</span>
-    </div>
-    <div class="space-y-2">
-      <div class="flex justify-between text-[11px]"><span class="text-gray-500">定制数量</span><span class="text-gray-800 font-medium" id="sumQty">1,000 双</span></div>
-      <div class="flex justify-between text-[11px]"><span class="text-gray-500">选中厂家单价</span><span class="text-primary font-bold" id="sumPrice">¥4.20/双</span></div>
-      <div class="flex justify-between text-[11px]"><span class="text-gray-500">打样费（可抵扣）</span><span class="text-gray-800 font-medium">¥500</span></div>
-      <div class="flex justify-between text-[11px]"><span class="text-gray-500">预计大货交期</span><span class="text-gray-800 font-medium" id="sumDay">15 天</span></div>
-      <div class="h-px bg-gray-100 my-2"></div>
-      <div class="flex justify-between items-center"><span class="text-[11px] text-gray-500">预估总价</span><span class="text-primary font-bold text-[16px]" id="sumTotal">¥4,700</span></div>
     </div>
   </div>
 </div>
@@ -284,43 +232,41 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     </div>
     <div class="mb-3">
       <label class="text-[11px] font-medium text-gray-500 block mb-1.5">企业名称</label>
-      <input type="text" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-[12px] outline-none" placeholder="请输入企业全称">
+      <input type="text" id="entName" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-[12px] outline-none" placeholder="请输入企业全称">
     </div>
     <div class="mb-3">
       <label class="text-[11px] font-medium text-gray-500 block mb-1.5">联系人 / 手机号</label>
       <div class="flex gap-2">
-        <input type="text" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-[12px] outline-none" placeholder="联系人姓名">
-        <input type="tel" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-[12px] outline-none" placeholder="手机号">
+        <input type="text" id="entContact" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-[12px] outline-none" placeholder="联系人姓名">
+        <input type="tel" id="entPhone" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-[12px] outline-none" placeholder="手机号">
       </div>
     </div>
     <div class="mb-1">
       <label class="text-[11px] font-medium text-gray-500 block mb-1.5">备注需求</label>
-      <textarea class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-[12px] outline-none resize-none" rows="2" placeholder="补充包装要求、物流方式、发票信息等…"></textarea>
+      <textarea id="entNote" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-[12px] outline-none resize-none" rows="2" placeholder="补充包装要求、物流方式、发票信息等…"></textarea>
     </div>
   </div>
 </div>
 
 <!-- ===== 底部操作栏 ===== -->
 <div class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-gray-100 flex items-center px-3 gap-2" style="height:60px;z-index:100;width:393px">
-  <div class="flex flex-col items-end mr-2">
-    <span class="text-[9px] text-gray-400">预估总价</span>
-    <span class="text-primary font-bold text-[14px]" id="bottomTotal">¥4,700</span>
-  </div>
-  <button class="card flex-1 rounded-full text-center font-bold text-[13px] py-2.5 text-white shadow-card grad-h" onclick="submitBulk()">提交定制询价</button>
+  <button class="card flex-1 rounded-full text-center font-bold text-[13px] py-2.5 text-white shadow-card grad-h" onclick="submitDemand()">提交定制需求</button>
 </div>
 <div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none"><div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:2px"></div></div>
 
 <!-- 提交成功弹窗 -->
 <div class="fixed inset-0 flex items-center justify-center" id="successMask" style="display:none;background:rgba(0,0,0,.5);z-index:300">
-  <div class="bg-white rounded-3xl mx-6 p-6 text-center shadow-card" style="max-width:280px;animation:fadeUp .35s ease both">
+  <div class="bg-white rounded-3xl mx-6 p-6 text-center shadow-card" style="max-width:300px;animation:fadeUp .35s ease both">
     <div class="w-16 h-16 mx-auto rounded-full flex items-center justify-center" style="background:linear-gradient(135deg,#34D399,#10B981);box-shadow:0 8px 24px rgba(16,185,129,.3)"><i class="fas fa-check text-white text-2xl"></i></div>
-    <p class="text-[16px] font-bold text-gray-800 mt-4">询价已提交</p>
-    <p class="text-[12px] text-gray-500 mt-1.5 leading-relaxed">平台已通知匹配厂家报价<br>预计 2 小时内收到厂家回复</p>
+    <p class="text-[16px] font-bold text-gray-800 mt-4">需求已提交</p>
+    <p class="text-[12px] text-gray-500 mt-1.5 leading-relaxed" id="successDesc">已推送给匹配商户，等待报价</p>
     <div class="bg-blue-50 rounded-xl p-3 mt-3 text-left">
-      <p class="text-[10px] text-gray-500">询价单号：<span class="text-gray-700 font-medium">BC20260825001</span></p>
-      <p class="text-[10px] text-gray-500 mt-0.5">匹配厂家：<span class="text-gray-700 font-medium">大唐精工袜业 等3家</span></p>
+      <p class="text-[10px] text-gray-500">需求号</p>
+      <p class="text-[13px] font-bold text-gray-800 mt-0.5" id="successNo">CE20261110001</p>
+      <p class="text-[10px] text-gray-500 mt-1" id="successMeta">数量 1,000 双 · 报价截止 3 天</p>
     </div>
-    <a href="market-socks.html" class="card block w-full mt-4 py-2.5 rounded-xl text-white text-[13px] font-bold" style="background:linear-gradient(135deg,#3B82F6,#2563EB)">返回袜子市场</a>
+    <a href="custom-demand.html" class="card block w-full mt-4 py-2.5 rounded-xl text-white text-[13px] font-bold" style="background:linear-gradient(135deg,#3B82F6,#2563EB)">查看我的需求</a>
+    <a href="market-socks.html" class="block text-[11px] text-gray-400 mt-2.5">继续逛市场</a>
   </div>
 </div>
 
@@ -332,34 +278,73 @@ function toast(msg){var t=document.getElementById('toast');document.getElementBy
 function tagToggle(el){el.classList.toggle('on')}
 function tagSingle(el,group){var parent=el.parentElement;var items=parent.querySelectorAll('.tag-opt');items.forEach(function(i){i.classList.remove('on')});el.classList.add('on')}
 
-var curQty=1000,curDay=15,curPrice=4.20;
-function updateQty(el){curQty=parseInt(el.value);document.getElementById('qtyDisplay').textContent=curQty.toLocaleString()+' 双';document.getElementById('sumQty').textContent=curQty.toLocaleString()+' 双';updateTotal()}
-function updateDay(el){curDay=parseInt(el.value);document.getElementById('dayDisplay').textContent=curDay+' 天';document.getElementById('sumDay').textContent=curDay+' 天'}
-function selectFac(el,price){
-  var cards=document.querySelectorAll('.fac-card');
-  cards.forEach(function(c){c.classList.remove('on');var check=c.querySelector('.check');var uncheck=c.querySelector('.uncheck');if(check)check.style.display='none';if(uncheck)uncheck.style.display='inline'});
-  el.classList.add('on');
-  var ch=el.querySelector('.check');var un=el.querySelector('.uncheck');if(ch)ch.style.display='inline';if(un)un.style.display='none';
-  curPrice=price;updateTotal();
+var curQty=1000,curDay=15,curDeadline=3,curPack='标准包装';
+var ADDRS=[
+  {n:'王建国 138****6688',d:'浙江省绍兴市诸暨市大唐街道袜业城 A 区 12 号档口'},
+  {n:'李小红 139****2233',d:'浙江省绍兴市诸暨市大唐街道袜业城 B 区 06 号档口'}
+];
+var addrIdx=0;
+function updateQty(el){curQty=parseInt(el.value);document.getElementById('qtyDisplay').textContent=curQty.toLocaleString()+' 双'}
+function updateDay(el){curDay=parseInt(el.value);document.getElementById('dayDisplay').textContent=curDay+' 天'}
+function pickDeadline(el,d){
+  el.parentElement.querySelectorAll('.tag-opt').forEach(function(e){e.classList.remove('on')});
+  el.classList.add('on');curDeadline=d;
 }
-function updateTotal(){
-  var total=curQty*curPrice+500;
-  document.getElementById('sumPrice').textContent='¥'+curPrice.toFixed(2)+'/双';
-  document.getElementById('sumTotal').textContent='¥'+total.toLocaleString('zh-CN',{minimumFractionDigits:0,maximumFractionDigits:0});
-  document.getElementById('bottomTotal').textContent='¥'+total.toLocaleString('zh-CN',{minimumFractionDigits:0,maximumFractionDigits:0});
+function pickPack(el,val){
+  el.parentElement.querySelectorAll('.tag-opt').forEach(function(e){e.classList.remove('on')});
+  el.classList.add('on');curPack=val;
 }
-function updatePrice(){}
-/* 设计稿上传状态（演示：点击即视为已上传） */
+function switchAddr(){
+  addrIdx=(addrIdx+1)%ADDRS.length;var a=ADDRS[addrIdx];
+  document.getElementById('addrName').textContent=a.n;
+  document.getElementById('addrDetail').textContent=a.d;
+  toast('已切换收货地址');
+}
+/* 设计稿上传：真实选择文件，记录文件名 */
 var docs={front:false,side:false,tech:false};
-function upDoc(k,el,label){
-  if(docs[k]){toast('已上传，可点击重新选择');return;}
-  docs[k]=true;
-  el.style.borderColor='#10B981';
-  el.insertAdjacentHTML('beforeend','<span class="text-[9px]" style="color:#10B981">已上传</span>');
-  toast(label);
+function onDoc(k,el){
+  var f=el.files&&el.files[0];
+  if(!f)return;
+  if(f.size>20*1024*1024){toast('文件不能超过 20MB');el.value='';return;}
+  docs[k]=f.name;
+  var box=document.getElementById('docBox-'+k);
+  if(box){
+    box.style.borderColor='#10B981';
+    var s=box.querySelector('.doc-state');
+    if(s){s.textContent=f.name.length>9?f.name.slice(0,7)+'…':f.name;s.style.color='#10B981';}
+  }
+  toast('已选择 '+f.name);
 }
-function submitBulk(){
+function submitDemand(){
   if(!docs.front){toast('请先上传设计稿');return;}
+  var dTitle=document.getElementById('demandTitle').value.trim();
+  if(!dTitle){toast('请填写需求名称');return;}
+  var name=document.getElementById('entName').value.trim();
+  var contact=document.getElementById('entContact').value.trim();
+  var phone=document.getElementById('entPhone').value.trim();
+  if(!name){toast('请填写企业名称');return;}
+  if(!contact){toast('请填写联系人');return;}
+  if(!/^1\d{10}$/.test(phone)){toast('请填写正确的手机号');return;}
+  if(!curQty||curQty<500){toast('定制数量不少于 500 双');return;}
+  /* 参数快照 */
+  var snapshot={
+    type:'CE',
+    title:dTitle,
+    enterprise:name,contact:contact,phone:phone,
+    qty:curQty,deliveryDays:curDay,deadlineDays:curDeadline,
+    packaging:curPack,
+    addr:ADDRS[addrIdx].n+' '+ADDRS[addrIdx].d,
+    note:(document.getElementById('entNote').value||''),
+    docs:docs,
+    createdAt:Date.now()
+  };
+  var d=new Date(),pad=function(n){return n<10?'0'+n:''+n};
+  var no='CE'+d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+String(Math.floor(Math.random()*900+100));
+  snapshot.no=no;
+  try{localStorage.setItem('mai_last_ce',JSON.stringify(snapshot));}catch(e){}
+  document.getElementById('successNo').textContent=no;
+  document.getElementById('successDesc').innerHTML='已推送给匹配商户，等待报价<br>可在「我的定制需求」查看报价进度';
+  document.getElementById('successMeta').textContent=dTitle+' · 数量 '+curQty.toLocaleString()+' 双 · '+curPack+' · 报价截止 '+curDeadline+' 天';
   document.getElementById('successMask').style.display='flex';
 }
 </script>

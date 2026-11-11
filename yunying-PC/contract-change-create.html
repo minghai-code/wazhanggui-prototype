@@ -137,7 +137,8 @@ var EDITABLE={
   ptype:{label:'主体类型',type:'主体信息变更'},
   uscc:{label:'统一社会信用代码',type:'主体信息变更'},
   contact:{label:'法定代表人 / 联系人',type:'主体信息变更'},
-  phone:{label:'联系电话（签署匹配键）',type:'主体信息变更'}
+  phone:{label:'联系电话（签署匹配键）',type:'主体信息变更'},
+  idno:{label:'证件号（身份证 / 法定代表人身份证）',type:'主体信息变更'}
 };
 
 var curNo='',cur=null,bgId='',EMBED=false;
@@ -148,6 +149,8 @@ var INFLIGHT={'HT2025-0231':'BG2026-0012（待审核）','HT2026-0072':'BG2026-0
 function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(window.__tid);window.__tid=setTimeout(function(){t.style.opacity='0'},2600);}
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function money(n){return Number(n||0).toLocaleString('en-US');}
+/* 证件号脱敏（前 6 后 4），只读展示用 */
+function maskId(s){s=String(s||'');return s.length>=10?(s.slice(0,6)+'********'+s.slice(-4)):s;}
 
 /* 内置驳回样本（演示"同单号重新送签"；真实环境从变更单读取） */
 var MOCK_REJECTED={
@@ -220,6 +223,7 @@ function loadContract(){
     ['主体类型',cur.ptype,'ptype',['个人','企业']],
     ['承租方（乙方）',cur.name,'name'],
     ['统一社会信用代码',cur.uscc||'（个人主体无）','uscc'],
+    ['证件号（身份证 / 法定代表人身份证）',cur.idno?maskId(cur.idno):'',cur.idno?0:'idno',cur.idno?'':'本合同证件号为空（身份待补全）→ 请补录 18 位后再提交'],
     ['法定代表人 / 联系人',cur.contact||'—','contact'],
     ['联系电话（签署匹配键）',cur.phone,'phone'],
     ['出租面积（㎡）',cur.area,'area'],
@@ -237,7 +241,7 @@ function loadContract(){
     if(Array.isArray(key)){
       return '<div><label class="fl">'+f[0]+'</label><select class="sel chg" data-k="ptype" onchange="onEdit()">'+key.map(function(o){return '<option'+(o===f[1]?' selected':'')+'>'+o+'</option>';}).join('')+'</select></div>';
     }
-    return '<div><label class="fl">'+f[0]+'</label><input class="fi chg" data-k="'+key+'" value="'+esc(f[1])+'" oninput="onEdit()"></div>';
+    return '<div><label class="fl">'+f[0]+'</label><input class="fi chg" data-k="'+key+'" value="'+esc(f[1])+'"'+(f[3]?' placeholder="'+esc(f[3])+'"':'')+' oninput="onEdit()"></div>';
   }).join('');
   document.getElementById('ct-reason').value='';
   showInflight();
@@ -282,7 +286,7 @@ function needSignFor(list){
   var ts=typesOf(list);
   var key=['租金变更','租期变更','面积变更','承租人变更'];
   if(ts.some(function(t){return key.indexOf(t)>-1;}))return true;
-  return ts.indexOf('主体信息变更')>-1 && list.some(function(d){return ['ptype','name','uscc'].indexOf(d.key)>-1;});
+  return ts.indexOf('主体信息变更')>-1 && list.some(function(d){return ['ptype','name','uscc','idno'].indexOf(d.key)>-1;});
 }
 function typesOf(list){
   var ts=[];
@@ -308,6 +312,12 @@ function submitChange(){
   var reason=document.getElementById('ct-reason').value.trim();
   if(!list.length){toast('请至少修改一处需要变更的字段（橙色底输入框）');return;}
   if(!reason){toast('变更原因必填（商户端会看到）');return;}
+  /* v1.17：原合同证件号为空（身份待补全）时，本页必须补录，否则新版本正文主体栏仍为空 */
+  if(!cur.idno){
+    var idEl=document.querySelector('[data-k="idno"]'), idVal=idEl?idEl.value.trim():'';
+    if(!idVal){toast('本合同证件号为空（身份待补全），请在「证件号」栏补齐后再提交（合同正文主体栏不能为空）');if(idEl){idEl.focus();}return;}
+    if(!/^\d{17}[\dXx]$/.test(idVal)){toast('请填写完整身份证号（18 位，末位可为 X）');if(idEl){idEl.focus();}return;}
+  }
   var ts=typesOf(list);
   var needSign=needSignFor(list);
   var extra=getExtra();

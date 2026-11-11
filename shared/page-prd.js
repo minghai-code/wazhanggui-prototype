@@ -82,12 +82,13 @@
     'yunying-PC/mall-order-inquiry.html': ['10a-采购询价/02-采购询价订单', '', '采购询价订单'],
     'yunying-PC/mall-custom-demand.html': ['10b-商城运营/01-个性定制需求管理', '', '个性定制需求管理'],
     'yunying-PC/mall-order-group.html':   ['10b-商城运营/02-拼单集采订单', '', '拼单集采订单'],
-    'yunying-PC/mall-group-manage.html':  ['10b-商城运营/06-拼单团管理', '', '拼单团管理'],
+    'yunying-PC/mall-group-manage.html':  ['10b-商城运营/06-拼单团管理', '', '拼单集采需求管理'],
     'yunying-PC/mall-order-sample.html':  ['10b-商城运营/03-样品打样订单', '', '样品打样订单'],
     'yunying-PC/mall-order-custom.html':  ['10b-商城运营/04-定制订单', '', '定制订单'],
     'yunying-PC/mall-recommend.html':     ['10b-商城运营/05-推荐位管理', '', '推荐位管理'],
     'yunying-PC/mall-video.html':         ['10b-商城运营/07-视频看货管理', '', '视频看货管理'],
     'yunying-PC/ai-route.html':           ['18-系统设置/01-AI服务助手配置', '', 'AI 服务助手配置'],
+    'yunying-PC/mall-product-audit.html': ['10b-商城运营/08-商品审核', '', '商品审核'],
 
     /* ===== 移动端 · 功能族（值指向 _views/ 下的单页视图，不是族文档） ===== */
     'mai-APP/ai-assistant.html':      ['_views/F13-AI服务助手-p1', '', 'AI 服务助手'],
@@ -150,7 +151,9 @@
     'mai-APP/inquiry-demand.html':    ['_views/F08-采购询价与定制-p4', '', '公开需求详情'],
     'mai-APP/custom-design.html':     ['_views/F08-采购询价与定制-p5', '', '个性定制'],
     'mai-APP/bulk-custom.html':       ['_views/F08-采购询价与定制-p6', '', '批量定制'],
-    'mai-APP/ai-outfit.html':         ['_views/F08-采购询价与定制-p7', '', 'AI 穿搭']
+    'mai-APP/ai-outfit.html':         ['_views/F08-采购询价与定制-p7', '', 'AI 穿搭'],
+    'mai-APP/custom-demand.html':     ['_views/F08-采购询价与定制-p8', '', '我的定制需求'],
+    'mai-APP/custom-demand-detail.html':['_views/F08-采购询价与定制-p9', '', '定制需求详情']
   };
 
   var parts = location.pathname.replace(/\\/g, '/').split('/');

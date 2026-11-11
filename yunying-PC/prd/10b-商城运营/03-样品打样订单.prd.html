@@ -34,7 +34,7 @@ details.fam[open]{padding-bottom:10px}
 </style></head><body>
 <div class="meta">由 <code>yunying-PC/prd/10b-商城运营/03-样品打样订单.md</code> 生成，勿手改；改文档请改 md 后重跑 build-prd。</div>
 <h1>10b-03 样品打样订单 · 运营端页面说明</h1>
-<blockquote>端：运营端 PC　｜　模块：10 商城运营　｜　页面：<code>mall-order-sample.html</code>（订单类型 <code>sample</code>） 页面版本：v1.0（2026-10-26）　｜　业务分册：<code>开发PRD/运营管理端分册PRD/10b-商城运营（定制订单与推荐位）.md</code> <strong>v1.0</strong> <strong>模块通用说明</strong>见同目录 <strong><code>01-个性定制需求管理.md</code> §0</strong>。</blockquote>
+<blockquote>端：运营端 PC　｜　模块：10 商城运营　｜　页面：<code>mall-order-sample.html</code>（订单类型 <code>sample</code>） 页面版本：v1.0（2026-10-26）　｜　业务分册：<code>开发PRD/运营管理端分册PRD/10b-商城运营（定制订单与推荐位）.md</code> <strong>v1.0</strong> <strong>2026-11-10</strong>：页面文件由 <code>_legacy/</code> 取回并接回菜单（<code>menu-data.js</code> status → done）；内容未改。与 <code>mall-order-custom.html</code> 互链（<code>?focus=</code> 双向定位）。 <strong>模块通用说明</strong>见同目录 <strong><code>01-个性定制需求管理.md</code> §0</strong>。</blockquote>
 <hr>
 <h2 id="p1">1. 样品打样订单 <code>mall-order-sample.html</code></h2>
 <h3>1.1 页面说明</h3>
@@ -49,7 +49,7 @@ details.fam[open]{padding-bottom:10px}
 <h3>1.5 字段规格</h3>
 <table><thead><tr><th>列</th><th>字段</th><th>说明</th></tr></thead><tbody><tr><td>打样单号</td><td><code>no</code></td><td><code>SP</code> + 日期 + 序号</td></tr><tr><td>来源需求</td><td><code>demand</code></td><td>可跳需求</td></tr><tr><td>设计方案</td><td><code>design</code></td><td>副行显示商品名</td></tr><tr><td>打样轮次</td><td><code>round</code></td><td>&gt;3 红标</td></tr><tr><td>打样费</td><td><code>fee</code></td><td>¥200（个性）/ ¥500（企业）</td></tr><tr><td>可抵扣</td><td><code>deduct</code> + <code>deductState</code></td><td>可用 / 已用 / 无</td></tr><tr><td>样衣状态</td><td><code>sampleState</code></td><td>待制样 / 已寄样 / 样衣确认</td></tr><tr><td>订单状态</td><td><code>state</code></td><td>外采主状态</td></tr><tr><td>关联定制单</td><td><code>cz</code></td><td>可跳 P4</td></tr><tr><td>操作</td><td>—</td><td>详情</td></tr></tbody></table>
 <h3>1.6 交互规则</h3>
-<table><thead><tr><th>元素</th><th>显示条件</th><th>可点条件</th><th>点击后</th><th>禁止表现</th></tr></thead><tbody><tr><td>详情</td><td>始终</td><td>始终</td><td>抽屉</td><td>—</td></tr><tr><td>跳来源需求</td><td>有需求号</td><td>始终</td><td>提示跳转</td><td>—</td></tr><tr><td><strong>查看定制单</strong></td><td>有 <code>cz</code></td><td>始终</td><td>跳 P4 并定位</td><td>额度已用但无单号 → 提示已被使用</td></tr><tr><td>导出</td><td>始终</td><td>专员/主管</td><td>Excel</td><td>—</td></tr></tbody></table>
+<table><thead><tr><th>元素</th><th>显示条件</th><th>可点条件</th><th>点击后</th><th>禁止表现</th></tr></thead><tbody><tr><td>详情</td><td>始终</td><td>始终</td><td>抽屉</td><td>—</td></tr><tr><td><strong>跳来源需求</strong></td><td>有需求号</td><td>始终</td><td><strong>跳 <code>mall-custom-demand.html?kw={需求号}</code></strong>：需求页按需求号预筛并自动打开该需求详情</td><td>需求号查不到 → 需求页显示"未匹配到该需求号，已按关键字筛选"</td></tr><tr><td><strong>查看定制单</strong></td><td>有 <code>cz</code></td><td>始终</td><td>跳 P4 并定位</td><td>额度已用但无单号 → 提示已被使用</td></tr><tr><td>导出</td><td>始终</td><td>专员/主管</td><td>Excel</td><td>—</td></tr></tbody></table>
 <h3>1.7 业务规则与计算口径</h3>
 <table><thead><tr><th>编号</th><th>规则</th><th>触发</th><th>处理</th><th>影响端</th></tr></thead><tbody><tr><td>R-12</td><td>样衣确认才解锁定制单</td><td>确认</td><td>端上出现"下单大货"</td><td>买家端</td></tr><tr><td>R-13</td><td>改样超 3 轮提醒</td><td>round&gt;3</td><td>列表红标 + 详情提示，不强制</td><td>—</td></tr><tr><td>R-14</td><td>抵扣额度一次性</td><td>用于 CZ</td><td>状态转"已用"并记录被哪单使用</td><td>P4</td></tr><tr><td>R-15</td><td>仅样品定制确认后结案</td><td>确认</td><td>不生成 CZ</td><td>—</td></tr><tr><td>R-16</td><td>打样费</td><td>200（个性）/ 500（企业，可抵扣）</td><td>端上展示</td><td>买家端</td></tr></tbody></table>
 <h3>1.8 异常与边界</h3>

@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>商城运营 - 拼单集采需求管理</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:40}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:820px;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:50;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.ftitle{font-size:13px;font-weight:700;color:#1F2430;margin:18px 0 10px;display:flex;align-items:center;gap:6px}
+.ftitle::before{content:'';width:3px;height:13px;border-radius:2px;background:#FF4D2D}
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.5);opacity:0;pointer-events:none;transition:.2s;z-index:60;display:flex;align-items:center;justify-content:center}
+.modal.on{opacity:1;pointer-events:auto}
+.kv{display:flex;gap:8px;font-size:12.5px;line-height:1.9}
+.kv .k{color:#94A3B8;width:100px;flex-shrink:0}
+.kv .v{color:#1F2430;flex:1}
+.pbar{height:6px;border-radius:3px;background:#EEF2F7;overflow:hidden}
+.pbar i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,#FF7849,#FF4D2D)}
+.pbar.done i{background:linear-gradient(90deg,#34D399,#10B981)}
+.pbar.dead i{background:#CBD5E1}
+</style>
+<!-- Tailwind 静态样式：本地引用（不再依赖 cdn.tailwindcss.com）；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+<div class="p-6">
+
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">拼单集采需求管理</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">10 商城运营</span>
+        <span class="tag" style="background:#FEF3C7;color:#B45309">团维度 T</span>
+      </div>
+      <p class="text-[12px] text-[#94A3B8] mt-1">商城运营 / 拼单集采需求管理 · <b>一个团一行</b>：状态、进度、取消与退款　·　拼单只由买家发起，运营端无新建入口（10b v2.1 §2.0.13）</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="text-[11px] text-[#94A3B8] bg-white border border-gray-100 rounded-lg px-3 py-1.5"><i class="fas fa-user-shield mr-1" style="color:#FF4D2D"></i>当前角色：商城运营主管</span>
+      <a href="mall-order-group.html" class="btn btn-ghost" style="text-decoration:none"><i class="fas fa-receipt text-[10px] mr-1"></i>去拼单订单</a>
+    </div>
+  </div>
+
+  <!-- 成团口径条 -->
+  <div class="rounded-xl px-4 py-2.5 mb-4 text-[12px] flex items-start gap-2" style="background:#EFF6FF;border:1px solid #BFDBFE;color:#1D4ED8">
+    <i class="fas fa-circle-info mt-0.5"></i>
+    <span><b>成团口径（10b v2.1）</b>：团长发起时选定<b>目标档</b>，累计件数 ≥ 目标档即成团，按目标档单价锁档结算；<b>超档不升价</b>；到期未达目标档即失效并全额退款，<b>即便已过第一档也不算成团</b>。</span>
+  </div>
+
+  <!-- 统计卡（4） -->
+  <div class="grid grid-cols-4 gap-3 mb-5">
+    <div class="stat-card bg-white rounded-lg border border-gray-100 p-3.5">
+      <p class="text-[11px] text-gray-400">进行中</p>
+      <p class="text-xl font-bold mt-1" style="color:#2563EB" id="s1">0</p>
+      <p class="text-[10px] text-[#94A3B8] mt-0.5">可参团 · 倒计时中</p>
+    </div>
+    <div class="stat-card bg-white rounded-lg border border-gray-100 p-3.5">
+      <p class="text-[11px] text-gray-400">已成团</p>
+      <p class="text-xl font-bold mt-1" style="color:#15803D" id="s2">0</p>
+      <p class="text-[10px] text-[#94A3B8] mt-0.5">锁目标档 · 逐笔 GB 订单</p>
+    </div>
+    <div class="stat-card bg-white rounded-lg border border-gray-100 p-3.5">
+      <p class="text-[11px] text-gray-400">已失效（已退款）</p>
+      <p class="text-xl font-bold mt-1" style="color:#64748B" id="s3">0</p>
+      <p class="text-[10px] text-[#94A3B8] mt-0.5">到期未达目标档</p>
+    </div>
+    <div class="stat-card bg-white rounded-lg border border-gray-100 p-3.5">
+      <p class="text-[11px] text-gray-400">已取消（已退款）</p>
+      <p class="text-xl font-bold mt-1" style="color:#B45309" id="s4">0</p>
+      <p class="text-[10px] text-[#94A3B8] mt-0.5">团长 / 商户申请 / 平台强制</p>
+    </div>
+  </div>
+
+  <!-- 状态 Tab -->
+  <div class="flex items-center gap-2 mb-3">
+    <button class="tabbtn btn btn-primary" data-st="" onclick="setTab(this,'')">全部</button>
+    <button class="tabbtn btn btn-ghost" data-st="进行中" onclick="setTab(this,'进行中')">进行中</button>
+    <button class="tabbtn btn btn-ghost" data-st="已成团" onclick="setTab(this,'已成团')">已成团</button>
+    <button class="tabbtn btn btn-ghost" data-st="已失效" onclick="setTab(this,'已失效')">已失效</button>
+    <button class="tabbtn btn btn-ghost" data-st="已取消" onclick="setTab(this,'已取消')">已取消</button>
+  </div>
+
+  <!-- 筛选 -->
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+    <div class="flex items-center gap-3 flex-wrap">
+      <div class="relative">
+        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+        <input id="kw" type="text" placeholder="团号 / 商品名称 / 团长 / 商户" class="w-60 pl-8 pr-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary">
+      </div>
+      <select id="fTier" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+        <option value="">全部目标档</option><option>目标档 200 双</option><option>目标档 300 双</option><option>目标档 500 双</option><option>目标档 1000 双</option>
+      </select>
+      <button class="btn btn-primary" onclick="render()"><i class="fas fa-filter mr-1"></i>查询</button>
+      <button class="btn btn-ghost" onclick="resetF()">重置</button>
+      <span class="ml-auto text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>进度 = 累计 ÷ 目标档（封顶 100%）；已成团不可取消</span>
+    </div>
+  </div>
+
+  <!-- 表格 -->
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <div class="px-5 py-3 border-b border-gray-100 flex items-center gap-2">
+      <button class="btn btn-ghost" onclick="toast('已导出拼单台账（含团号、目标档、参团人数、退款状态）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+      <span class="text-[12px] text-[#94A3B8]" id="cnt">共 0 条</span>
+      <span class="ml-auto text-[11px] text-[#94A3B8]">订单在「拼单集采订单」页逐笔查看 · 商户端「拼单团管理」看同一批团</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-[13px]" style="min-width:1560px">
+        <thead>
+          <tr class="bg-gray-50 text-gray-500 text-[12px]">
+            <th class="px-4 py-3 text-left font-medium">团号</th>
+            <th class="px-4 py-3 text-left font-medium">商品</th>
+            <th class="px-4 py-3 text-left font-medium">商户</th>
+            <th class="px-4 py-3 text-left font-medium">档位</th>
+            <th class="px-4 py-3 text-right font-medium">目标档</th>
+            <th class="px-4 py-3 text-right font-medium">团长下单</th>
+            <th class="px-4 py-3 text-center font-medium">累计 / 人数</th>
+            <th class="px-4 py-3 text-left font-medium" style="width:140px">进度</th>
+            <th class="px-4 py-3 text-left font-medium">截止时间</th>
+            <th class="px-4 py-3 text-left font-medium">状态</th>
+            <th class="px-4 py-3 text-center font-medium">操作</th>
+          </tr>
+        </thead>
+        <tbody id="tb" class="divide-y divide-gray-50"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div id="mask" class="mask" onclick="closeAll()"></div>
+<div id="drawer" class="drawer">
+  <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+    <div>
+      <h3 class="text-[15px] font-bold text-[#1F2430]" id="dTitle">团详情</h3>
+      <p class="text-[11px] text-[#94A3B8] mt-0.5" id="dSub"></p>
+    </div>
+    <button onclick="closeAll()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-xmark text-lg"></i></button>
+  </div>
+  <div class="flex-1 overflow-y-auto px-6 py-5" id="dBody"></div>
+  <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex items-center gap-3" id="dFoot"></div>
+</div>
+
+<div id="modal" class="modal"></div>
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
+
+<script>
+/* ============ 数据（mock，字段与 10b v2.1 §2.0.13 一致）
+   targetQty  = 团长发起时选定的目标档起始数量 = 成团阈值
+   tierQty    = 该规格阶梯表最小档起始数量，仅用于算参团下限
+   targetPrice= 目标档单价，全员预付价与锁档结算价
+   groupMin   = max(10, ceil(tierQty*20%))，对齐 10 的倍数
+   ============ */
+var G = [
+  /* 进行中：已过第一档 300，但未达目标档 500 —— 新口径核心样本 */
+  { no:'T20261110001', goods:'秋季加厚羊毛袜', merchant:'大唐袜业旗舰店',
+    tier:'100–299 双 ¥3.50 / 300–499 双 ¥3.20 / 500–999 双 ¥2.90 / ≥1000 双 ¥2.60',
+    tierQty:100, targetQty:500, targetPrice:2.90, lead:120, cum:320, people:3, state:'进行中', deadline:'2026-11-12 20:00（剩 2 天 6 小时）',
+    starter:'杭州XX贸易（张**）', created:'2026-11-10 09:12',
+    members:[{n:'张**（团长）',qty:120,pay:'¥348.00',t:'11-10 09:12'},{n:'李**',qty:100,pay:'¥290.00',t:'11-10 10:30'},
+             {n:'王**',qty:100,pay:'¥290.00',t:'11-11 08:40'}],
+    orders:['GB20261110001','GB20261110002','GB20261110003'],
+    refund:null, log:['2026-11-10 09:12 团长选目标档 500 双（¥2.90/双）发起拼单并支付 ¥348.00（120 双）','2026-11-10 10:30 李** 参团 100 双（累计 220）','2026-11-11 08:40 王** 参团 100 双（累计 320）','2026-11-11 08:40 累计 320 双已过第一档 300 双，未达目标档 500 双，团仍为进行中'] },
+
+  /* 已成团：累计 520 超目标档 200，仍按 ¥4.50 结算，不降到 ¥4.10 —— 超档不升价样本 */
+  { no:'T20261108002', goods:'纯棉商务袜（5 双装）', merchant:'宁波纯棉针织',
+    tier:'200–399 双 ¥4.50 / ≥400 双 ¥4.10',
+    tierQty:200, targetQty:200, targetPrice:4.50, lead:80, cum:520, people:6, state:'已成团', deadline:'2026-11-10 18:00（已锁档）', doneAt:'2026-11-09 14:20',
+    starter:'宁波YY电商（周**）', created:'2026-11-08 16:40',
+    members:[{n:'周**（团长）',qty:80,pay:'¥360.00',t:'11-08 16:40'},{n:'吴**',qty:120,pay:'¥540.00',t:'11-09 09:10'},
+             {n:'郑**',qty:100,pay:'¥450.00',t:'11-09 10:22'},{n:'孙**',qty:80,pay:'¥360.00',t:'11-09 11:05'},
+             {n:'钱**',qty:80,pay:'¥360.00',t:'11-09 13:30'},{n:'冯**',qty:60,pay:'¥270.00',t:'11-09 14:18'}],
+    orders:['GB20261108011','GB20261108012','GB20261108013','GB20261108014','GB20261108015','GB20261108016'],
+    refund:null, log:['2026-11-08 16:40 团长选目标档 200 双（¥4.50/双）发起并支付','2026-11-09 14:20 累计 520 双达目标档 200 双，锁档 ¥4.50/双（超档不升价，不按 ¥4.10）','2026-11-09 14:20 6 笔 GB 订单统一转「待发货」'] },
+
+  /* 已失效：累计 260 已过第一档 100，未达目标档 300 —— 过期失效样本 */
+  { no:'T20261105003', goods:'儿童卡通棉袜（3 双装）', merchant:'绍兴童袜工厂',
+    tier:'100–299 双 ¥3.60 / 300–599 双 ¥3.30 / ≥600 双 ¥3.00',
+    tierQty:100, targetQty:300, targetPrice:3.30, lead:120, cum:260, people:3, state:'已失效', deadline:'2026-11-09 12:00（已到期）', doneAt:'—',
+    starter:'绍兴ZZ母婴（何**）', created:'2026-11-05 10:20',
+    members:[{n:'何**（团长）',qty:120,pay:'¥396.00',t:'11-05 10:20'},{n:'许**',qty:80,pay:'¥264.00',t:'11-06 15:00'},
+             {n:'邓**',qty:60,pay:'¥198.00',t:'11-07 09:30'}],
+    orders:['GB20261105021','GB20261105022','GB20261105023'],
+    refund:{people:3,amount:'¥858.00',state:'已全额退款',detail:['2026-11-09 12:00 到期累计 260 双，未达目标档 300 双 → 团失效（已过第一档 100 双，仍不成团）','2026-11-09 12:05 3 笔订单置「已取消（已退款）」','2026-11-11 09:00 退款到账（3/3）']},
+    log:['2026-11-05 10:20 团长选目标档 300 双（¥3.30/双）发起并支付','2026-11-09 12:00 到期未达目标档 300 双，团失效','2026-11-09 12:05 全额退款（3 人 ¥858.00）'] },
+
+  /* 已取消：商户申请取消（无法供货）—— 新增责任方路径 */
+  { no:'T20261103004', goods:'运动船袜（纯色 10 双装）', merchant:'诸暨运动袜业',
+    tier:'500–999 双 ¥2.80 / ≥1000 双 ¥2.50',
+    tierQty:500, targetQty:500, targetPrice:2.80, lead:150, cum:450, people:4, state:'已取消', deadline:'2026-11-12 12:00（提前取消）', doneAt:'—',
+    starter:'杭州AA跨境（李**）', created:'2026-11-03 14:00', cancelBy:'商户申请取消（无法供货）', cancelAt:'2026-11-08 16:22',
+    members:[{n:'李**（团长）',qty:150,pay:'¥420.00',t:'11-03 14:00'},{n:'黄**',qty:100,pay:'¥280.00',t:'11-04 09:15'},
+             {n:'刘**',qty:100,pay:'¥280.00',t:'11-05 10:00'},{n:'林**',qty:100,pay:'¥280.00',t:'11-06 11:30'}],
+    orders:['GB20261103031','GB20261103032','GB20261103033','GB20261103034'],
+    refund:{people:4,amount:'¥1,260.00',state:'已全额退款',detail:['2026-11-08 16:22 商户申请取消本团（原因：无法供货），运营审核通过','2026-11-08 16:25 4 笔订单置「已取消（已退款）」','2026-11-10 10:00 退款到账（4/4）']},
+    log:['2026-11-03 14:00 团长选目标档 500 双（¥2.80/双）发起并支付','2026-11-08 16:10 商户提交取消申请（无法供货）','2026-11-08 16:22 运营审核通过，团置已取消','2026-11-08 16:25 全员全额退款'] },
+
+  /* 已成团：刚好达目标档 */
+  { no:'T20261106005', goods:'竹纤维抗菌男袜', merchant:'义乌竹纤维针织',
+    tier:'300–599 双 ¥3.90 / ≥600 双 ¥3.50',
+    tierQty:300, targetQty:300, targetPrice:3.90, lead:150, cum:330, people:4, state:'已成团', deadline:'2026-11-11 10:00（已锁档）', doneAt:'2026-11-09 09:05',
+    starter:'义乌BB商贸（孙**）', created:'2026-11-06 11:00',
+    members:[{n:'孙**（团长）',qty:150,pay:'¥585.00',t:'11-06 11:00'},{n:'马**',qty:60,pay:'¥234.00',t:'11-07 09:40'},
+             {n:'朱**',qty:60,pay:'¥234.00',t:'11-08 14:10'},{n:'胡**',qty:60,pay:'¥234.00',t:'11-09 09:02'}],
+    orders:['GB20261106041','GB20261106042','GB20261106043','GB20261106044'],
+    refund:null, log:['2026-11-06 11:00 团长选目标档 300 双（¥3.90/双）发起','2026-11-09 09:05 累计 330 双达目标档 300 双，锁档 ¥3.90','2026-11-09 09:05 4 笔 GB 订单转「待发货」'] },
+
+  /* 已失效：退款部分失败 */
+  { no:'T20261109006', goods:'加厚滑雪袜（户外款）', merchant:'杭州户外袜业',
+    tier:'200–499 双 ¥6.20 / ≥500 双 ¥5.80',
+    tierQty:200, targetQty:200, targetPrice:6.20, lead:60, cum:140, people:3, state:'已失效', deadline:'2026-11-10 22:00（已到期）', doneAt:'—',
+    starter:'杭州CC户外（郑**）', created:'2026-11-09 08:30',
+    members:[{n:'郑**（团长）',qty:60,pay:'¥372.00',t:'11-09 08:30'},{n:'高**',qty:40,pay:'¥248.00',t:'11-09 15:20'},
+             {n:'罗**',qty:40,pay:'¥248.00',t:'11-10 09:00'}],
+    orders:['GB20261109051','GB20261109052','GB20261109053'],
+    refund:{people:3,amount:'¥868.00',state:'部分失败（1 人可重试）',detail:['2026-11-10 22:00 到期累计 140 双，未达目标档 200 双 → 团失效','2026-11-10 22:05 3 笔订单置「已取消（已退款）」','2026-11-11 09:10 退款成功 2/3；罗** ¥248.00 通道失败，待重试']},
+    log:['2026-11-09 08:30 团长选目标档 200 双（¥6.20/双）发起','2026-11-10 22:00 到期未达目标档 200 双，团失效','2026-11-11 09:10 退款 2 成功 1 失败（罗**）'] },
+
+  /* 已失效：高门槛多档，参团下限 20 */
+  { no:'T20261102007', goods:'精梳棉长筒商务袜', merchant:'诸暨精梳棉工厂',
+    tier:'100–999 双 ¥2.60 / 1000–1999 双 ¥2.40 / ≥2000 双 ¥2.10',
+    tierQty:100, targetQty:1000, targetPrice:2.40, lead:400, cum:780, people:8, state:'已失效', deadline:'2026-11-07 18:00（已到期）', doneAt:'—',
+    starter:'诸暨DD工厂（钱**）', created:'2026-11-02 09:00',
+    members:[{n:'钱**（团长）',qty:400,pay:'¥960.00',t:'11-02 09:00'},{n:'严**',qty:120,pay:'¥288.00',t:'11-02 15:00'},
+             {n:'华**',qty:100,pay:'¥240.00',t:'11-03 10:20'},{n:'金**',qty:60,pay:'¥144.00',t:'11-03 16:40'},
+             {n:'魏**',qty:40,pay:'¥96.00',t:'11-04 09:10'},{n:'陶**',qty:20,pay:'¥48.00',t:'11-05 14:00'},
+             {n:'姜**',qty:20,pay:'¥48.00',t:'11-06 10:30'},{n:'戚**',qty:20,pay:'¥48.00',t:'11-07 09:00'}],
+    orders:['GB20261102061','GB20261102062','GB20261102063','GB20261102064','GB20261102065','GB20261102066','GB20261102067','GB20261102068'],
+    refund:{people:8,amount:'¥1,872.00',state:'已全额退款',detail:['2026-11-07 18:00 到期累计 780 双，未达目标档 1000 双 → 团失效','2026-11-07 18:10 8 笔订单置「已取消（已退款）」','2026-11-09 12:00 退款到账（8/8）']},
+    log:['2026-11-02 09:00 团长选目标档 1000 双（¥2.40/双）发起','2026-11-07 18:00 到期未达目标档 1000 双','2026-11-07 18:10 全额退款（8 人 ¥1,872.00）'] },
+
+  /* 进行中：临期 */
+  { no:'T20261110008', goods:'抗菌防臭商务袜', merchant:'金华商务袜业',
+    tier:'100–299 双 ¥3.80 / 300–599 双 ¥3.50 / ≥600 双 ¥3.20',
+    tierQty:100, targetQty:300, targetPrice:3.50, lead:100, cum:180, people:2, state:'进行中', deadline:'2026-11-11 06:00（剩 6 小时）',
+    starter:'金华EE贸易（王**）', created:'2026-11-10 12:30',
+    members:[{n:'王**（团长）',qty:100,pay:'¥350.00',t:'11-10 12:30'},{n:'施**',qty:80,pay:'¥280.00',t:'11-10 18:10'}],
+    orders:['GB20261110071','GB20261110072'],
+    apply:{at:'2026-11-11 09:30', reason:'无法供货', note:'该款现货已被其他渠道订走，剩余库存不足 300 双，申请取消本团'},
+    refund:null, log:['2026-11-10 12:30 团长选目标档 300 双（¥3.50/双）发起并支付','2026-11-10 18:10 施** 参团 80 双（累计 180）','2026-11-11 00:00 临期提醒已发送（还差 120 双）','2026-11-11 09:30 商户提交取消申请（无法供货），待运营审核'] }
+];
+
+var cur=null, curSt='';
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function money(n){return Number(n||0).toLocaleString('en-US');}
+function pct(g){return Math.min(100,Math.round(g.cum/g.targetQty*100));}
+function groupMin(g){return Math.max(10,Math.ceil(g.tierQty*0.2/10)*10);}
+
+function stBadge(s){
+  var m={'进行中':['#EFF6FF','#2563EB'],'已成团':['#DCFCE7','#15803D'],'已失效':['#F1F5F9','#64748B'],'已取消':['#FEF3C7','#B45309']};
+  var c=m[s]||['#F1F5F9','#64748B'];
+  return '<span class="tag" style="background:'+c[0]+';color:'+c[1]+'">'+esc(s)+'</span>';
+}
+
+function render(){
+  var kw=(document.getElementById('kw').value||'').trim();
+  var tier=document.getElementById('fTier').value;
+  var list=G.filter(function(g){
+    if(curSt&&g.state!==curSt) return false;
+    if(kw&&(g.no+g.goods+g.starter+g.merchant).indexOf(kw)<0) return false;
+    if(tier&&('目标档 '+g.targetQty+' 双')!==tier) return false;
+    return true;
+  });
+  var tb=list.map(function(g){
+    var p=pct(g);
+    var bar='<div class="flex items-center gap-2"><div class="pbar '+(g.state==='已成团'?'done':(g.state==='进行中'?'':'dead'))+'" style="width:80px"><i style="width:'+p+'%"></i></div><span class="text-[11px] '+(p>=100?'':'text-[#94A3B8]')+'" style="'+(p>=100?'color:#15803D':'')+'">'+p+'%</span></div>';
+    var op='<span class="lk" onclick="openD(\''+g.no+'\')">详情</span>';
+    if(g.state==='已成团') op+=' · <span class="lk" onclick="goOrders(\''+g.no+'\')">查看订单</span>';
+    else if(g.state==='进行中') op+=' · <span class="lk-gray" onclick="goOrders(\''+g.no+'\')">订单</span>';
+    else if(g.refund&&g.refund.state.indexOf('失败')>-1) op+=' · <span class="lk" onclick="retryRefund(\''+g.no+'\')">退款重试</span>';
+    return '<tr class="hover:bg-gray-50/60">'
+      +'<td class="px-4 py-3"><span class="lk" onclick="openD(\''+g.no+'\')">'+esc(g.no)+'</span></td>'
+      +'<td class="px-4 py-3">'+esc(g.goods)+'<div class="text-[11px] text-[#94A3B8]">'+esc(g.starter)+'</div></td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#475569]">'+esc(g.merchant)+'</td>'
+      +'<td class="px-4 py-3 text-[11.5px] text-[#64748B]">'+esc(g.tier)+'</td>'
+      +'<td class="px-4 py-3 text-right">'+money(g.targetQty)+' 双<div class="text-[#94A3B8]" style="font-size:10.5px">¥'+Number(g.targetPrice).toFixed(2)+'/双</div></td>'
+      +'<td class="px-4 py-3 text-right">'+money(g.lead)+' 双</td>'
+      +'<td class="px-4 py-3 text-center">'+money(g.cum)+' / '+g.people+' 人</td>'
+      +'<td class="px-4 py-3">'+bar+'</td>'
+      +'<td class="px-4 py-3 text-[11.5px] '+(g.state==='进行中'?'text-[#B45309]':'text-[#64748B]')+'">'+esc(g.deadline)+'</td>'
+      +'<td class="px-4 py-3">'+stBadge(g.state)+(g.state==='进行中'&&g.apply?'<div style="margin-top:4px"><span class="tag" style="background:#FFFBEB;color:#B45309;border:1px solid #FDE68A">商户申请取消 · 待审</span></div>':'')+'</td>'
+      +'<td class="px-4 py-3 text-center">'+op+'</td>'
+      +'</tr>';
+  }).join('');
+  document.getElementById('tb').innerHTML=tb||'<tr><td colspan="11" class="px-4 py-10 text-center text-[12px] text-[#94A3B8]">暂无匹配的拼单团</td></tr>';
+  document.getElementById('cnt').textContent='共 '+list.length+' 条';
+
+  document.getElementById('s1').textContent=G.filter(function(g){return g.state==='进行中';}).length;
+  document.getElementById('s2').textContent=G.filter(function(g){return g.state==='已成团';}).length;
+  document.getElementById('s3').textContent=G.filter(function(g){return g.state==='已失效';}).length;
+  document.getElementById('s4').textContent=G.filter(function(g){return g.state==='已取消';}).length;
+}
+
+function setTab(el,st){
+  curSt=st;
+  document.querySelectorAll('.tabbtn').forEach(function(b){b.className='tabbtn btn btn-ghost';});
+  el.className='tabbtn btn btn-primary';
+  render();
+}
+
+function resetF(){
+  document.getElementById('kw').value='';document.getElementById('fTier').value='';
+  curSt='';document.querySelectorAll('.tabbtn').forEach(function(b,i){b.className='tabbtn btn '+(i===0?'btn-primary':'btn-ghost');});
+  render();toast('已重置筛选条件');
+}
+
+function goOrders(tid){ location.href='mall-order-group.html?tid='+encodeURIComponent(tid); }
+
+function openD(no){
+  var g=G.filter(function(x){return x.no===no;})[0]; if(!g)return; cur=g;
+  var gm=groupMin(g);
+  document.getElementById('dTitle').textContent='团详情';
+  document.getElementById('dSub').textContent=g.no+' · '+g.goods+' · '+g.merchant;
+  var h='';
+
+  if(g.state==='进行中'){
+    var p=pct(g);
+    h+='<div class="rounded-xl p-3 mb-1 text-[11.5px]" style="background:#EFF6FF;border:1px solid #BFDBFE;color:#1D4ED8"><i class="fas fa-circle-info mr-1"></i>进行中：还差 <b>'+money(Math.max(0,g.targetQty-g.cum))+' 双</b> 达目标档 '+money(g.targetQty)+' 双（当前 '+p+'%），到期未达则自动失效并全额退款</div>';
+    if(g.apply){
+      h+='<div class="rounded-xl p-3 mb-1 text-[11.5px]" style="background:#FFFBEB;border:1px solid #FDE68A;color:#B45309"><i class="fas fa-triangle-exclamation mr-1"></i><b>商户申请取消本团</b>（'+esc(g.apply.at)+'　原因：'+esc(g.apply.reason)+'）：'+esc(g.apply.note)+'。<b>待运营审核</b>，通过后全员全额退款、团置已取消；驳回则团继续。</div>';
+    }
+  }else if(g.state==='已成团'){
+    h+='<div class="rounded-xl p-3 mb-1 text-[11.5px]" style="background:#F0FDF4;border:1px solid #BBF7D0;color:#15803D"><i class="fas fa-circle-check mr-1"></i>已成团：'+esc(g.doneAt)+' 达目标档 '+money(g.targetQty)+' 双，按 ¥'+Number(g.targetPrice).toFixed(2)+'/双 锁档结算，<b>成团后不可取消</b></div>';
+  }else if(g.state==='已失效'){
+    h+='<div class="rounded-xl p-3 mb-1 text-[11.5px]" style="background:#F8FAFC;border:1px solid #E2E8F0;color:#475569"><i class="fas fa-circle-minus mr-1"></i>已失效：到期未达目标档 '+money(g.targetQty)+' 双，全部参团人已付款项原路全额退回（3 个工作日）</div>';
+  }else if(g.state==='已取消'){
+    h+='<div class="rounded-xl p-3 mb-1 text-[11.5px]" style="background:#FFFBEB;border:1px solid #FDE68A;color:#B45309"><i class="fas fa-triangle-exclamation mr-1"></i>已取消：' + esc(g.cancelBy||'平台强制取消')+'（'+esc(g.cancelAt||'')+'），全员全额退款</div>';
+  }
+
+  h+='<div class="ftitle" style="margin-top:0">团信息</div><div class="grid grid-cols-2 gap-x-6">'
+    +'<div class="kv"><span class="k">团号</span><span class="v">'+esc(g.no)+'</span></div>'
+    +'<div class="kv"><span class="k">商品</span><span class="v">'+esc(g.goods)+'</span></div>'
+    +'<div class="kv"><span class="k">商户</span><span class="v">'+esc(g.merchant)+'</span></div>'
+    +'<div class="kv"><span class="k">团长</span><span class="v">'+esc(g.starter)+'</span></div>'
+    +'<div class="kv"><span class="k">目标档</span><span class="v">'+money(g.targetQty)+' 双 · ¥'+Number(g.targetPrice).toFixed(2)+'/双</span></div>'
+    +'<div class="kv"><span class="k">起批量</span><span class="v">'+money(g.tierQty)+' 双（参团下限 '+gm+' 双）</span></div>'
+    +'<div class="kv"><span class="k">团长下单</span><span class="v">'+money(g.lead)+' 双</span></div>'
+    +'<div class="kv"><span class="k">累计 / 人数</span><span class="v">'+money(g.cum)+' 双 / '+g.people+' 人</span></div>'
+    +'<div class="kv"><span class="k">发起时间</span><span class="v">'+esc(g.created)+'</span></div>'
+    +'<div class="kv"><span class="k">状态</span><span class="v">'+stBadge(g.state)+'</span></div>'
+    +'<div class="kv" style="grid-column:span 2"><span class="k">档位表</span><span class="v">'+esc(g.tier)+'</span></div>'
+    +'<div class="kv" style="grid-column:span 2"><span class="k">截止时间</span><span class="v">'+esc(g.deadline)+'</span></div>'
+    +'</div>';
+
+  h+='<div class="ftitle">成团结算说明</div>'
+    +'<div class="rounded-xl p-3 text-[12px] text-[#475569]" style="background:#FAFAFF;border:1px solid #EDE9FE">'
+    +'累计件数达<b>目标档 '+money(g.targetQty)+' 双</b>即成团，按目标档单价 <b>¥'+Number(g.targetPrice).toFixed(2)+'/双</b> 锁档结算；<b>超档不升价</b>（超出目标档或跨到更高档，仍按目标档价，不降价、不退差价）。<b>支付即生单</b>——每位参团人付款时已生成一笔 GB 订单（状态「待成团」），成团时统一转「待发货」，失效/取消时统一转「已取消（已退款）」。（10b v2.1 §2.0.13）</div>';
+
+  h+='<div class="ftitle">参团人明细（'+g.members.length+' 人）</div>'
+    +'<table class="w-full text-[12.5px]"><thead><tr class="text-[11px] text-gray-400"><th class="text-left py-1.5 font-medium">参团人</th><th class="text-right font-medium">数量</th><th class="text-right font-medium">实付</th><th class="text-left font-medium" style="padding-left:16px">参团时间</th><th class="text-center font-medium">对应订单</th></tr></thead><tbody>';
+  g.members.forEach(function(m,i){
+    var on=g.orders[i]||'—';
+    h+='<tr class="border-t border-gray-50"><td class="py-2">'+esc(m.n)+'</td><td class="py-2 text-right">'+money(m.qty)+' 双</td>'
+      +'<td class="py-2 text-right">'+esc(m.pay)+'</td><td class="py-2" style="padding-left:16px">'+esc(m.t)+'</td>'
+      +'<td class="py-2 text-center">'+(on==='—'?'—':'<span class="lk" onclick="goOrders(\''+g.no+'\')">'+esc(on)+'</span>')+'</td></tr>';
+  });
+  h+='</tbody></table>';
+
+  if(g.refund){
+    var bad=g.refund.state.indexOf('失败')>-1;
+    h+='<div class="ftitle">退款记录</div>'
+      +'<div class="rounded-xl p-3" style="background:'+(bad?'#FEF2F2':'#F8FAFC')+';border:1px solid '+(bad?'#FECACA':'#E2E8F0')+'">'
+      +'<div class="flex items-center justify-between mb-2"><span class="text-[12px] font-bold" style="color:'+(bad?'#B91C1C':'#334155')+'">'+esc(g.refund.state)+'</span>'
+      +'<span class="text-[11px] text-[#64748B]">涉及 '+g.refund.people+' 人 · 合计 '+esc(g.refund.amount)+'</span></div>';
+    g.refund.detail.forEach(function(d){h+='<p class="text-[11.5px] text-[#64748B] leading-relaxed">'+esc(d)+'</p>';});
+    if(bad) h+='<button class="btn btn-ghost mt-2" onclick="retryRefund(\''+g.no+'\')"><i class="fas fa-rotate-right text-[10px] mr-1"></i>重试失败退款</button>';
+    h+='</div>';
+  }
+
+  h+='<div class="ftitle">操作日志</div><div class="border-l-2 border-gray-100 pl-3 space-y-1.5">';
+  g.log.forEach(function(l){h+='<p class="text-[12px] text-gray-500">'+esc(l)+'</p>';});
+  h+='</div>';
+
+  document.getElementById('dBody').innerHTML=h;
+
+  var foot='<button class="btn btn-ghost" onclick="closeAll()">关闭</button>';
+  if(g.state==='已成团'||g.state==='进行中') foot+='<button class="btn btn-primary" onclick="goOrders(\''+g.no+'\')">查看订单</button>';
+  if(g.state==='进行中'&&g.apply){
+    foot+='<button class="btn" style="background:#FFFBEB;color:#B45309;border:1px solid #FDE68A" onclick="rejectApply(\''+g.no+'\')">驳回申请</button>';
+    foot+='<button class="btn" style="background:#FEF2F2;color:#B91C1C;border:1px solid #FECACA" onclick="approveApply(\''+g.no+'\')">通过并取消</button>';
+  }
+  if(g.state==='进行中') foot+='<button class="btn" style="background:#FEF2F2;color:#B91C1C;border:1px solid #FECACA" onclick="askCancel(\''+g.no+'\')">强制取消（主管）</button>';
+  if(g.refund&&g.refund.state.indexOf('失败')>-1) foot+='<button class="btn" style="background:#FFFBEB;color:#B45309;border:1px solid #FDE68A" onclick="retryRefund(\''+g.no+'\')">退款重试</button>';
+  document.getElementById('dFoot').innerHTML=foot;
+
+  document.getElementById('mask').classList.add('on');
+  document.getElementById('drawer').classList.add('on');
+}
+
+/* 强制取消：仅未成团；原因必填（ML-35 / ML-36 / ML-37） */
+function askCancel(no){
+  var g=G.filter(function(x){return x.no===no;})[0]; if(!g)return;
+  if(g.state!=='进行中'){toast('该团已成团，不能取消；如需退款请走售后退款流程');return;}
+  showModal('强制取消拼单团','取消后全部 '+g.people+' 人参团款项将原路全额退回（3 个工作日），不可撤销。',
+    '<label class="block text-[11px] text-[#94A3B8] mb-1">取消原因 *</label>'
+    +'<select id="cnReason" class="w-full px-3 py-2 text-[13px] bg-gray-50 border border-gray-200 rounded-lg outline-none mb-2">'
+    +'<option value="">请选择</option><option>商户申请取消（无法供货）</option><option>商品被下架 / 违规</option><option>档位设置有误</option><option>其他</option></select>'
+    +'<textarea id="cnNote" rows="2" class="w-full px-3 py-2 text-[13px] bg-gray-50 border border-gray-200 rounded-lg outline-none" placeholder="补充说明（选填）"></textarea>',
+    '确认取消', function(){
+      var r=document.getElementById('cnReason').value;
+      if(!r){toast('取消原因必填（将通知全部参团人并触发全额退款）');return false;}
+      g.state='已取消';g.cancelBy='平台强制取消';g.cancelAt='2026-11-10 17:40';
+      g.refund={people:g.people,amount:'待退款',state:'已全额退款',detail:['2026-11-10 17:40 平台强制取消（原因='+r+'）','2026-11-10 17:45 '+g.orders.length+' 笔订单置「已取消（已退款）」']};
+      g.log.push('2026-11-10 17:40 平台强制取消（原因='+r+'），全员全额退款');
+      closeModal();render();
+      if(cur&&cur.no===g.no)openD(g.no);
+      toast('已取消拼单团 '+g.no+'，'+g.people+' 人全额退款处理中');
+    });
+}
+
+function retryRefund(no){
+  var g=G.filter(function(x){return x.no===no;})[0]; if(!g)return;
+  if(!g.refund)return;
+  g.refund.state='已全额退款';
+  g.refund.detail.push('2026-11-10 17:42 已发起退款重试（第 1 次），结果稍后回写');
+  g.log.push('2026-11-10 17:42 退款重试（第 1 次）');
+  render();if(cur&&cur.no===g.no)openD(g.no);
+  toast('已发起退款重试（第 1 次），结果稍后回写');
+}
+
+/* 商户申请取消：运营审核（10b v2.1 §2.0.13 ⑦） */
+function approveApply(no){
+  var g=G.filter(function(x){return x.no===no;})[0]; if(!g||!g.apply)return;
+  showModal('通过商户取消申请',
+    '通过后团置「已取消」，全部 '+g.people+' 人参团款项原路全额退回（3 个工作日），不可撤销；商户端同步看到「已取消 · 已退款」。',
+    '<div class="text-[12px] text-[#475569] leading-relaxed">申请原因：<b>'+esc(g.apply.reason)+'</b><br>说明：'+esc(g.apply.note)+'</div>',
+    '确认通过并取消', function(){
+      g.state='已取消';g.cancelBy='商户申请取消';g.cancelAt='2026-11-11 10:05';
+      g.refund={people:g.people,amount:'待退款',state:'已全额退款',detail:['2026-11-11 10:05 运营通过商户取消申请（原因='+g.apply.reason+'）','2026-11-11 10:06 '+g.orders.length+' 笔订单置「已取消（已退款）」']};
+      g.log.push('2026-11-11 10:05 运营通过商户取消申请，团置已取消，全员全额退款');
+      g.apply=null;
+      closeModal();render();
+      if(cur&&cur.no===g.no)openD(g.no);
+      toast('已通过商户取消申请，'+g.people+' 人全额退款处理中');
+    });
+}
+
+function rejectApply(no){
+  var g=G.filter(function(x){return x.no===no;})[0]; if(!g||!g.apply)return;
+  var reason=g.apply.reason;
+  g.apply=null;
+  g.log.push('2026-11-11 10:05 运营驳回商户取消申请（原因='+reason+'），团继续进行中');
+  render();if(cur&&cur.no===g.no)openD(g.no);
+  toast('已驳回商户取消申请，团继续进行中');
+}
+
+function showModal(title,desc,body,okTxt,onOk){
+  var m=document.getElementById('modal');
+  m.innerHTML='<div class="bg-white rounded-2xl w-[460px] p-5" style="box-shadow:0 20px 60px rgba(15,23,42,.25)">'
+    +'<div class="flex items-start justify-between mb-3"><div><h3 class="text-[15px] font-bold text-[#1F2430]">'+esc(title)+'</h3>'
+    +'<p class="text-[11.5px] text-[#94A3B8] mt-1 leading-relaxed">'+esc(desc)+'</p></div>'
+    +'<button onclick="closeModal()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-xmark"></i></button></div>'
+    +'<div class="mt-2">'+body+'</div>'
+    +'<div class="flex justify-end gap-2 mt-5"><button class="btn btn-ghost" onclick="closeModal()">取消</button>'
+    +'<button class="btn btn-primary" id="mOk">'+esc(okTxt)+'</button></div></div>';
+  m.classList.add('on');
+  document.getElementById('mOk').onclick=function(){ if(onOk()!==false) return; };
+}
+function closeModal(){document.getElementById('modal').classList.remove('on');document.getElementById('modal').innerHTML='';}
+function closeAll(){document.getElementById('mask').classList.remove('on');document.getElementById('drawer').classList.remove('on');}
+
+function toast(msg){
+  var t=document.getElementById('toast');t.textContent=msg;
+  t.style.opacity='1';t.style.transform='translate(-50%,0)';
+  clearTimeout(window._tt);window._tt=setTimeout(function(){t.style.opacity='0';t.style.transform='translate(-50%,-8px)';},2200);
+}
+
+/* 从订单页带团号跳入时自动筛选 */
+(function(){
+  var tid=new URLSearchParams(location.search).get('tid');
+  if(tid){document.getElementById('kw').value=tid;}
+  render();
+})();
+</script>
+<script src="../shared/op-guard.js"></script>
+<script src="../shared/page-prd.js?v=20261111a"></script>
+</body>
+</html>

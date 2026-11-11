@@ -60,7 +60,7 @@ textarea.fi{font-family:inherit;line-height:1.8;resize:vertical}
         <span class="tag" style="background:#E0E7FF;color:#4338CA">短信通知（独立服务）</span>
         <span class="tag" style="background:#DCFCE7;color:#15803D">审核签字即生效</span>
       </div>
-      <p class="text-[12px] text-gray-400 mt-1"><b>v1.8（2026-10-15）</b>：① 合同主体分 <b>个人 / 企业</b> —— 企业主体须填 <b>企业名称 / 统一社会信用代码 / 法定代表人·联系人 / 联系电话 / 企业类型</b>（签署匹配键 = 联系人手机号）；② <b>Tab 职责切分</b>：<b>Tab1</b> 录入/导入竞拍结果 + <b>生成合同并发送</b>（生成与发送是同一动作，取消独立「待生成」）；<b>Tab2「签署与盖章」</b> 只处理 <b>待商户签字 / 待签署审核 / 盖章件待回传·已回传</b>。<br>流程：竞拍结果由<b>浙交会线下</b>给到袜业城 → <b>合同专员录入 / 导入</b> → <b>主动发起合同</b>（模板按资源类型）→ <b>发送并自动发短信</b> → 联系人<b>用同一手机号注册</b>后商户端出现待签合同 → <b>手写签名</b>（无人脸识别）→ <b>合同专员审核签字</b> → <b>合同生效 + 存档</b>（盖章件回传仅影响归档完整性）</p>
+      <p class="text-[12px] text-gray-400 mt-1"><b>v1.8（2026-10-15）</b>：① 合同主体分 <b>个人 / 企业</b> —— 企业主体须填 <b>企业名称 / 统一社会信用代码 / 法定代表人·联系人 / 联系电话 / 企业类型</b>（签署匹配键 = 联系人手机号）；② <b>Tab 职责切分</b>：<b>Tab1</b> 录入/导入竞拍结果 + <b>生成合同并发送</b>（生成与发送是同一动作，取消独立「待生成」）；<b>Tab2「签署与盖章」</b> 只处理 <b>待商户签字 / 待签署审核 / 盖章件待回传·已回传</b>。<br>流程：竞拍结果由<b>浙交会线下</b>给到袜业城 → <b>合同专员录入 / 导入</b> → <b>主动发起合同</b>（模板按资源类型）→ <b>发送并自动发短信</b> → 联系人<b>用同一手机号注册</b>后商户端出现待签合同 → <b>手写签名</b>（无人脸识别）→ <b>合同专员审核签字</b> → <b>合同生效 + 存档</b>（盖章件回传仅影响归档完整性）<br><b>v1.17（2026-11-10）</b>：<b>证件号</b>（个人 = 身份证号 / 企业 = 法定代表人·经办人身份证号）与<b>联系电话</b>是<b>合同正文主体栏必填项</b>——<b>发起并发送前强制校验</b>，缺失直接拦截（K-51 / K-52）；<b>存量合同</b>可后补并标「身份待补全」，但须在<b>存档前</b>补录（补录后重走发起）。</p>
     </div>
     <div class="flex items-center gap-2">
       <button class="btn btn-ghost" onclick="toast('已导出合同发起台账（含竞拍结果、短信记录、签署状态）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
@@ -500,6 +500,7 @@ function saveAu(){
   var winner=document.getElementById('n-winner').value.trim();
   var ptype=document.getElementById('n-ptype').value,isEnt=(ptype==='企业');
   var entname=document.getElementById('n-entname').value.trim(),uscc=document.getElementById('n-uscc').value.trim(),contact=document.getElementById('n-contact').value.trim();
+  var idnoV=document.getElementById('n-idno').value.trim();
   if(!pickedUnit){toast('请从「选择档口」中选择资源（资源来自 02 市场资源管理，不能手填编号）');return;}
   if(pickedUnit.status!=='空闲'){toast('该资源当前为「'+pickedUnit.status+'」，不可新签；请先在合同台账终止原合同，或改选空闲资源');return;}
   if(!unit||!winner){toast('资源编号与承租方名称为必填项');return;}
@@ -508,17 +509,18 @@ function saveAu(){
   if(isEnt&&!contact){toast('企业主体：法定代表人 / 联系人为必填（合同内体现联系人）');return;}
   if(!phone){toast('联系电话必填（它是合同签署的匹配键）');return;}
   if(!/^1\d{10}$/.test(phone)){toast('手机号格式不正确（应为 11 位数字，与竞拍登记一致）');return;}
+  if(idnoV&&!/^\d{17}[\dXx]$/.test(idnoV)){toast('身份证号格式不正确（18 位，末位可为 X）');return;}
   var type=document.getElementById('n-type').value;
   AU.unshift({id:'JT2027-00'+(32+AU.length), unit:unit, type:type, place:(type==='办公室'?'行政服务中心':'资源台账位置'),
     ptype:isEnt?'企业':'个人', winner:isEnt?entname:winner, entname:isEnt?entname:'', uscc:isEnt?uscc:'', contact:isEnt?contact:winner,
-    idno:document.getElementById('n-idno').value.trim()||'（待补）', phone:phone.slice(0,3)+'****'+phone.slice(7),
+    idno:idnoV||'（待补）', phone:phone.slice(0,3)+'****'+phone.slice(7),
     ent:isEnt?document.getElementById('n-ent').value:'个人', term:document.getElementById('n-term').value.trim()||'（待补）',
     rent:document.getElementById('n-rent').value.trim()||'（待补）', dep:'—（保证金线下缴纳，系统不录入）',
     price:document.getElementById('n-batch').value.trim()||'—（直接出租，无竞拍）', batch:document.getElementById('n-batch').value.trim()||'—（直接出租，无竞拍）',
     src:'线下录入（合同专员 何敏）', at:'2026-10-15 10:20', state:'待发起', no:'',
     logs:['2026-10-15 10:20 合同专员录入线下竞拍结果（'+(isEnt?'企业主体':'个人主体')+'）']});
   closeDrawer();
-  toast('已保存竞拍结果：'+unit+'（'+(isEnt?'企业主体：'+entname+'，联系人 '+contact:'个人主体：'+winner)+'）→ 状态「待发起」，可点击「发起合同」');
+  toast('已保存竞拍结果：'+unit+'（'+(isEnt?'企业主体：'+entname+'，联系人 '+contact:'个人主体：'+winner)+'）→ 状态「待发起」，可点击「发起合同」'+(idnoV?'':'　⚠ 证件号待补全：发起并发送前必须补录（K-51）'));
 }
 function openImport(){
   var h='<div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">'
@@ -529,7 +531,7 @@ function openImport(){
     +'<div class="rounded-xl border p-4" style="border-color:#E2E8F0;background:#F8FAFC"><p class="text-[12px] text-[#64748B] mb-2">导入模板字段（列名需一致）：</p>'
     +'<p class="text-[11px] text-[#94A3B8]">资源编号 ｜ 资源类型 ｜ <b>主体类型（个人 / 企业）</b> ｜ <b>承租方名称</b> ｜ <b>企业名称</b> ｜ <b>统一社会信用代码</b> ｜ <b>法定代表人·联系人</b> ｜ <b>联系电话</b>（签署匹配键）｜ 身份证号 ｜ 企业类型 ｜ 租期 ｜ 年租金 ｜ 竞拍批次 ｜ 成交价（<b>不含保证金</b>：线下已缴，系统不录入）</p></div>'
     +'<div class="seal" style="width:100%;height:96px" onclick="toast(\'已选择文件：浙交会竞拍结果_2027首轮.xlsx（6 行）\')"><div><i class="fas fa-file-excel block mb-1 text-[16px]"></i>点击选择文件（.xlsx，首行为表头）</div></div>'
-    +'<div class="rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B]">校验规则：① <b>联系电话必填 + 11 位格式 + 重复校验</b>（合同签署匹配键）；② <b>主体类型 = 企业时：企业名称 / 统一社会信用代码 / 法定代表人·联系人 必填</b>（个人主体免填企业信息）；③ 资源编号需存在于 02 资源台账；④ 同一资源 + 竞拍批次不允许重复；⑤ <b>办公室行竞拍批次 / 成交价可空</b>。</p></div>'
+    +'<div class="rounded-xl border p-3" style="border-color:#FDE68A;background:#FFFBEB"><p class="text-[11px] text-[#64748B]">校验规则：① <b>联系电话必填 + 11 位格式 + 重复校验</b>（合同签署匹配键）；② <b>主体类型 = 企业时：企业名称 / 统一社会信用代码 / 法定代表人·联系人 必填</b>（个人主体免填企业信息）；③ 资源编号需存在于 02 资源台账；④ 同一资源 + 竞拍批次不允许重复；⑤ <b>办公室行竞拍批次 / 成交价可空</b>；⑥ <b>身份证号（企业为法定代表人·经办人身份证号）</b>：录入时可空（存量合同原件无该字段），但<b>发起并发送前必须补录</b>，否则正文主体栏为空、禁止发送（v1.17）；⑦ <b>联系电话</b>同时是合同签署与商户账号的唯一匹配键，须渲染进合同正文。</p></div>'
     +'</div>';
   h+='<div class="px-5 py-3 border-t border-gray-100 flex items-center justify-end gap-2" style="margin-top:auto">'
     +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
@@ -557,7 +559,7 @@ function openAu(id){
     +'<div class="kv"><span class="k">统一社会信用代码</span><span class="v">'+esc(a.uscc||'—（个人主体无）')+'</span></div>'
     +'<div class="kv"><span class="k">法定代表人 / 联系人</span><span class="v">'+esc(a.contact||'—')+'</span></div>'
     +'<div class="kv"><span class="k">联系电话</span><span class="v">'+esc(a.phone)+'　<span class="tag" style="background:#E0E7FF;color:#4338CA">签署匹配键</span></span></div>'
-    +'<div class="kv"><span class="k">证件号（个人=身份证 / 企业=法定代表人身份证）</span><span class="v">'+esc(a.idno)+'</span></div>'
+    +'<div class="kv"><span class="k">证件号（个人=身份证 / 企业=法定代表人身份证）</span><span class="v">'+(a.idno==='（待补）'?'<span class="tag" style="background:#FEF3C7;color:#B45309">身份待补全 · 发起前必须补齐</span>':esc(a.idno))+'</span></div>'
     +'<div class="kv"><span class="k">企业类型</span><span class="v">'+esc(a.ent)+'</span></div>'
     +'<div class="kv"><span class="k">租期</span><span class="v">'+esc(a.term)+'</span></div>'
     +'<div class="kv"><span class="k">年租金</span><span class="v">'+esc(a.rent)+'　<span class="text-[11px] text-[#94A3B8]">（保证金线下缴纳，系统不录入）</span></span></div>'
@@ -582,6 +584,7 @@ function openAu(id){
 }
 function openDraft(id){
   curAu=id;var a=uOf(id);
+  var idno0=(a.idno&&a.idno!=='（待补）')?a.idno:'';
   var tpl=TPLS[a.type]||'档口租赁合同模板（普通摊·3 年）';
   var h='<div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">'
     +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+(a.ver?'重新发起并发送（v'+(a.ver+1)+' · 合同号不变）':'生成合同并发送签署')+'</h3>'
@@ -600,9 +603,12 @@ function openDraft(id){
     +'<div><label class="fl">统一社会信用代码</label><input class="fi" id="d-uscc" value="'+esc(a.uscc||'—（个人主体无）')+'" readonly></div>'
     +'<div><label class="fl">法定代表人 / 联系人</label><input class="fi" id="d-contact" value="'+esc(a.contact||'—')+'" readonly></div>'
     +'<div><label class="fl">企业类型</label><input class="fi" id="d-ent" value="'+esc(a.ent)+'"></div>'
+    +'<div style="grid-column:span 2"><label class="fl">证件号 *（'+(a.ptype==='企业'?'法定代表人 / 经办人身份证号':'身份证号')+'）</label>'
+    +'<input class="fi" id="d-idno" value="'+esc(idno0)+'" placeholder="合同正文主体栏必填：个人填身份证号，企业填法定代表人身份证号（v1.17）">'
+    +'<p class="text-[11px] text-[#B45309] mt-1"><i class="fas fa-triangle-exclamation mr-1"></i>合同正文抬头为「承租方 + 社会信用代码（身份证号码）」<b>同一栏</b>，留空即主体不可识别 → <b>缺失时不允许发送</b>（K-51）</p></div>'
     +'</div></div>';
   h+='<div class="blk"><div class="blk-t"><i class="fas fa-align-left text-[#64748B]"></i>合同正文（可编辑）</div>'
-    +'<textarea class="fi" id="d-body" rows="10">'+esc('甲方（出租方）：诸暨市大唐袜业城管理有限公司\n乙方（承租方）：'+a.winner+(a.ptype==='企业'?'（统一社会信用代码：'+a.uscc+'）':'')+'\n联系人 / 联系电话：'+(a.contact||a.winner)+'　'+a.phone+'\n\n一、租赁资源：'+a.unit+'（'+a.type+'）\n二、租赁期限：'+a.term+'\n三、年租金：'+a.rent+'（保证金由乙方按竞拍公告线下缴纳，本系统不代收不记账）\n四、付款方式：租赁年度按年预付（办公室/店面按合同约定）\n五、逾期未付：按约定承担违约责任（具体以线下执行为准）\n六、到期与终止：合同到期（自然到期）后重新竞拍，到期不视为终止；租期未满可因违约、违规、资质造假或双方协商一致提前终止（系统不计算违约金）\n七、签署方式：乙方在「袜掌柜」小程序手写签名（无人脸识别），甲方审核签字后生效')+'</textarea>'
+    +'<textarea class="fi" id="d-body" rows="10">'+esc('甲方（出租方）：诸暨市大唐袜业城管理有限公司\n乙方（承租方）：'+a.winner+(a.ptype==='企业'?'　社会信用代码：'+a.uscc+'　法定代表人 / 经办人身份证号：'+(idno0||'＿＿＿（待补·不可发送）'):'　社会信用代码（身份证号码）：'+(idno0||'＿＿＿（待补·不可发送）'))+'\n联系人 / 联系电话：'+(a.contact||a.winner)+'　'+a.phone+'\n\n一、租赁资源：'+a.unit+'（'+a.type+'）\n二、租赁期限：'+a.term+'\n三、年租金：'+a.rent+'（保证金由乙方按竞拍公告线下缴纳，本系统不代收不记账）\n四、付款方式：租赁年度按年预付（办公室/店面按合同约定）\n五、逾期未付：按约定承担违约责任（具体以线下执行为准）\n六、到期与终止：合同到期（自然到期）后重新竞拍，到期不视为终止；租期未满可因违约、违规、资质造假或双方协商一致提前终止（系统不计算违约金）\n七、签署方式：乙方在「袜掌柜」小程序手写签名（无人脸识别），甲方审核签字后生效')+'</textarea>'
     +'<p class="text-[11px] text-[#94A3B8] mt-2"><i class="fas fa-circle-info mr-1"></i>模板按<b>资源类型拆分</b>（档口 / 办公室 / 店面 / 物业）；办公室与店面必须使用不同模板。</p></div>';
   h+='<div class="blk" style="border-color:#E0E7FF;background:#EEF2FF"><div class="blk-t" style="color:#4338CA"><i class="fas fa-comment-sms"></i>发送后自动发短信（独立短信服务）</div>'
     +'<p class="text-[12px] text-[#64748B]">文案<b>待客户定</b>（原型按模板占位实现）：如「您已竞得 XX 资源，请用同一手机号到「袜掌柜」小程序注册并签署合同」；变量：姓名 / 资源 / 租期 / 小程序注册指引。发送失败<b>自动重试 3 次</b>并提醒合同专员。</p></div>';
@@ -619,9 +625,16 @@ function sendSign(id){
   var a=uOf(id);
   var ent=document.getElementById('d-ent').value, term=document.getElementById('d-term').value, rent=document.getElementById('d-rent').value;
   a.term=term;a.rent=rent;a.ent=ent;
+  /* v1.17：发起前强制校验证件号 + 联系电话（合同正文主体栏不能为空） */
+  var idnoEl=document.getElementById('d-idno'), idno=idnoEl?idnoEl.value.trim():'';
+  var phEl=document.getElementById('d-phone'), ph=phEl?phEl.value.trim():'';
+  if(!idno){toast('乙方证件号未填写：个人填身份证号、企业填统一社会信用代码。合同正文主体栏不能为空，请先补录后再发起并发送');if(idnoEl){idnoEl.focus();}return;}
+  if(a.ptype!=='企业'&&!/^\d{17}[\dXx]$/.test(idno)){toast('请填写完整身份证号（18 位，末位可为 X）');if(idnoEl){idnoEl.focus();}return;}
+  if(!ph){toast('联系电话未填写：该手机号是合同签署与商户账号匹配的唯一依据，请在正文「联系电话」栏补齐后再发送');return;}
+  a.idno=idno;
   var no=a.no||('HT2027-000'+(7+SG.length));
   var ver=(a.ver||0)+1;a.ver=ver;
-  SG.unshift({no:no, unit:a.unit, type:a.type, m:a.winner, ptype:a.ptype||'个人', entname:a.entname||'', uscc:a.uscc||'', contact:a.contact||a.winner,
+  SG.unshift({no:no, unit:a.unit, type:a.type, m:a.winner, ptype:a.ptype||'个人', entname:a.entname||'', uscc:a.uscc||'', idno:idno, contact:a.contact||a.winner,
     ent:a.ent, phone:a.phone, term:term, rent:rent, dep:a.dep, state:'待商户签字',
     owner:'承租商户（'+(a.contact||a.winner)+'）', hrs:0, tmpl:document.getElementById('d-tpl').value, ver:ver,
     sms:'2026-10-15 10:25 已送达（重试 0 次）', sign:'', audit:'', seal:'', src:a.id,

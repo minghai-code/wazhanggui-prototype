@@ -45,6 +45,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <div class="px-3 -mt-2 relative z-10">
   <div class="rounded-3xl overflow-hidden shadow-soft bg-white">
     <img id="cover" src="images/scene_05.jpg" class="w-full h-[170px] object-cover">
+    <div id="coverFallback" style="display:none;height:112px;background:linear-gradient(135deg,#FFF3EC,#FFE3D6);align-items:center;justify-content:center">
+      <div style="text-align:center"><i class="fas fa-newspaper" style="font-size:20px;color:#FFA07A"></i><p style="font-size:10px;color:#C2795B;margin-top:6px">本文无封面图</p></div>
+    </div>
   </div>
 </div>
 
@@ -89,7 +92,7 @@ var NEWS=[
   {id:2,cat:'技术创新',src:'袜业智能制造中心',time:'2026-02-25 14:10',view:860,cover:'images/scene_08.jpg',title:'智能制造赋能袜业转型升级',
     summary:'多家会员企业引入智能袜机，人均产能提升3倍，次品率降低至1%以下。',
     content:['近年来，大唐袜业加速推进智能制造升级。多家会员企业引入智能一体袜机与自动缝头设备，人均产能较传统产线提升约3倍，产品次品率由5%降至1%以下。','某动力袜业工厂负责人介绍，数字化车间可实时采集设备状态与产量数据，订单交付周期缩短近40%。','专家指出，智能制造不仅是降本增效，更是袜业从"制造"向"智造"跃迁、迈向高质量发展的关键路径。']},
-  {id:3,cat:'政策解读',src:'诸暨市商务局',time:'2026-02-18 10:00',view:1530,cover:'images/scene_11.jpg',title:'外贸稳增长若干政策落地袜业',
+  {id:3,cat:'政策解读',src:'诸暨市商务局',time:'2026-02-18 10:00',view:1530,title:'外贸稳增长若干政策落地袜业',
     summary:'市级外贸稳增长专项政策出台，涵盖出口信保补贴、展位补贴与跨境电商扶持。',
     content:['诸暨市商务局近日发布外贸稳增长专项政策，明确对袜业等重点产业给予出口信用保险保费补贴、境外展会摊位补贴及跨境电商运营扶持。','政策还鼓励企业通过"独立站+海外仓"模式拓展市场，对符合条件的企业给予最高50万元的一次性奖励。','相关负责人表示，政策旨在帮助企业稳订单、拓市场，全年预计惠及袜业企业超300家。']},
   {id:4,cat:'市场动态',src:'袜掌柜研究院',time:'2026-02-10 16:20',view:980,cover:'images/sock_12.jpg',title:'2026春季袜品流行趋势发布',
@@ -98,13 +101,15 @@ var NEWS=[
   {id:5,cat:'产业资讯',src:'大唐袜业城',time:'2026-02-05 11:00',view:2100,cover:'images/scene_04.jpg',title:'第18届中国国际袜业博览会招商启动',
     summary:'第18届袜博会将于下半年在诸暨举办，展位申请通道已开启，设智能馆、面料馆与设备馆。',
     content:['第18届中国国际袜业博览会招商工作正式启动，展会设于诸暨大唐袜业城，规划展览面积5万㎡，展位超2000个。','本届设智能馆、面料馆与设备馆三大展区，新增"买家自选展位"模式，参展商可在线上直接选取展位。','组委会表示，将同步举办流行趋势发布、供应链对接与跨境电商峰会，打造全产业链一站式平台。']},
-  {id:6,cat:'市场动态',src:'袜掌柜研究院',time:'2026-01-28 15:40',view:720,cover:'images/scene_01.jpg',title:'棉价回落带动袜品成本下降',
+  {id:6,cat:'市场动态',src:'袜掌柜研究院',time:'2026-01-28 15:40',view:720,title:'棉价回落带动袜品成本下降',
     summary:'受原料供应宽松影响，棉花价格较年内高点回落约12%，袜品出厂价有望下探。',
     content:['近期棉花期货价格较年内高点回落约12%，带动棉袜等主要品类原料成本下降。','分析师认为，成本下行将改善中小袜企毛利空间，但终端价格受渠道与品牌溢价影响，传导相对滞后。','建议采购商把握窗口期，合理锁定中长期订单价格，降低波动风险。']}
 ];
 function getParam(name){var r=new RegExp('[?&]'+name+'=([^&]*)').exec(location.search);return r?decodeURIComponent(r[1]):null;}
 var cur=NEWS.filter(function(n){return String(n.id)===getParam('id')})[0]||NEWS[0];
-document.getElementById('cover').src=cur.cover;
+var cv=document.getElementById('cover'),cf=document.getElementById('coverFallback');
+if(cur.cover){cv.src=cur.cover;cv.style.display='block';cf.style.display='none';}
+else{cv.style.display='none';cf.style.display='flex';}
 document.getElementById('catTag').textContent=cur.cat;
 document.getElementById('ntitle').textContent=cur.title;
 document.getElementById('nsrc').textContent=cur.src;
@@ -114,7 +119,7 @@ document.getElementById('ncontent').innerHTML=cur.content.map(function(p){return
 var related=NEWS.filter(function(n){return n.id!==cur.id}).slice(0,3);
 document.getElementById('related').innerHTML=related.map(function(n){
   return '<a href="news-detail.html?id='+n.id+'" class="card block bg-white rounded-2xl shadow-soft p-2.5 fade-up">'
-    +'<div class="flex gap-2.5"><img src="'+n.cover+'" class="w-[80px] h-[80px] rounded-xl object-cover">'
+    +'<div class="flex gap-2.5">'+(n.cover?'<img src="'+n.cover+'" class="w-[80px] h-[80px] rounded-xl object-cover">':'<div class="w-[80px] h-[80px] rounded-xl flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,#FFF3EC,#FFE3D6)"><i class="fas fa-newspaper" style="color:#FFA07A;font-size:18px"></i></div>')
     +'<div class="flex-1 min-w-0"><p class="text-[12px] font-bold text-gray-800 leading-tight line-clamp-2">'+n.title+'</p>'
     +'<p class="text-[10px] text-gray-500 mt-1 leading-relaxed line-clamp-2">'+n.summary+'</p>'
     +'<div class="flex items-center gap-2 mt-1"><span class="text-[9px] text-gray-400">'+n.time.split(' ')[0]+'</span><span class="text-[9px] text-primary">'+n.cat+'</span></div></div></div></a>';

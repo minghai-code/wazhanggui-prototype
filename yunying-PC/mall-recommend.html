@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>商城运营 - 推荐位管理</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#F1F5F9}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+.tab-active{color:#FF4D2D;border-bottom:2px solid #FF4D2D;font-weight:600}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border:none}
+.btn-primary{background:linear-gradient(135deg,#FF7849,#FF4D2D);color:#fff}
+.btn-ghost{background:#fff;color:#64748B;border:1px solid #E2E8F0}
+.lk{color:#FF4D2D;cursor:pointer;font-size:12px}
+.lk-gray{color:#64748B;cursor:pointer;font-size:12px}
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);opacity:0;pointer-events:none;transition:.2s;z-index:40}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:720px;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:50;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.ftitle{font-size:13px;font-weight:700;color:#1F2430;margin:18px 0 10px;display:flex;align-items:center;gap:6px}
+.ftitle::before{content:'';width:3px;height:13px;border-radius:2px;background:#FF4D2D}
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.5);opacity:0;pointer-events:none;transition:.2s;z-index:60;display:flex;align-items:center;justify-content:center}
+.modal.on{opacity:1;pointer-events:auto}
+.fi{width:100%;padding:7px 10px;border:1px solid #E2E8F0;border-radius:8px;font-size:12.5px;outline:none;background:#fff}
+.fl{display:block;font-size:11px;color:#94A3B8;margin:10px 0 4px}
+/* 端上预览：实力商家卡 */
+.shopcard{background:#fff;border-radius:16px;box-shadow:0 4px 16px rgba(15,23,42,.08);padding:12px}
+</style>
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+<div class="p-6">
+
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-[20px] font-bold text-[#1F2430]">推荐位管理</h1>
+        <span class="tag" style="background:#DBEAFE;color:#2563EB">10 商城运营</span>
+        <span class="tag" style="background:#DCFCE7;color:#047857">线下商铺推荐</span>
+      </div>
+      <p class="text-[12px] text-[#94A3B8] mt-1">商城运营 / 营销 · 推荐位　·　<b>只推荐线下商铺</b>（2026-10-09 确认）；端上落点 = 买家端「线下市场」市场布局图下方的 <b>实力商家</b> 橱窗（2026-10-26 确认）</p>
+    </div>
+    <span class="text-[11px] text-[#94A3B8] bg-white border border-gray-100 rounded-lg px-3 py-1.5"><i class="fas fa-user-shield mr-1" style="color:#FF4D2D"></i>当前角色：商城运营专员</span>
+  </div>
+
+  <div class="grid grid-cols-5 gap-3 mb-5">
+    <div class="stat-card bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">推荐位总数</p><p class="text-xl font-bold mt-1" style="color:#2563EB">6</p><p class="text-[10px] text-[#94A3B8] mt-0.5">1F–3F 共 6 个位</p></div>
+    <div class="stat-card bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">在架推荐项</p><p class="text-xl font-bold mt-1" style="color:#15803D">4</p><p class="text-[10px] text-[#94A3B8] mt-0.5">端上可见</p></div>
+    <div class="stat-card bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">本周新增</p><p class="text-xl font-bold mt-1" style="color:#7C3AED">2</p><p class="text-[10px] text-[#94A3B8] mt-0.5">含草稿</p></div>
+    <div class="stat-card bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">位次冲突</p><p class="text-xl font-bold mt-1" style="color:#B91C1C">1</p><p class="text-[10px] text-[#94A3B8] mt-0.5">待主管处置</p></div>
+    <div class="stat-card bg-white rounded-lg border border-gray-100 p-3.5"><p class="text-[11px] text-gray-400">待补位</p><p class="text-xl font-bold mt-1" style="color:#B45309">2</p><p class="text-[10px] text-[#94A3B8] mt-0.5">生效期内空位</p></div>
+  </div>
+
+  <div class="flex items-center gap-5 mb-4 border-b border-gray-200" id="tabs">
+    <span class="tab-active py-2.5 text-[13px] cursor-pointer" data-t="item">推荐项</span>
+    <span class="text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600" data-t="slot">位字典</span>
+  </div>
+
+  <!-- 推荐项 -->
+  <div id="boxItem">
+    <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+      <div class="flex items-center gap-3 flex-wrap">
+        <div class="relative">
+          <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+          <input id="kw" type="text" placeholder="商铺名 / 档口号" class="w-56 pl-8 pr-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary">
+        </div>
+        <select id="fSlot" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+          <option value="">全部位次</option>
+        </select>
+        <select id="fState" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
+          <option value="">全部状态</option><option>草稿</option><option>已发布</option><option>已下线</option><option>已过期</option>
+        </select>
+        <button class="btn btn-primary" onclick="render()"><i class="fas fa-filter mr-1"></i>查询</button>
+        <button class="btn btn-ghost" onclick="resetF()">重置</button>
+        <div class="ml-auto flex items-center gap-2">
+          <button class="btn btn-ghost" onclick="previewEnd()"><i class="fas fa-mobile-screen mr-1"></i>端上预览</button>
+          <button class="btn btn-primary" onclick="openEdit(null)"><i class="fas fa-plus mr-1"></i>新增推荐</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+      <div class="px-5 py-3 border-b border-gray-100 flex items-center gap-2">
+        <button class="btn btn-ghost" onclick="toast('已导出推荐位配置（含位次、商铺、生效期、状态）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+        <span class="text-[12px] text-[#94A3B8]" id="cnt">共 0 条</span>
+        <span class="ml-auto text-[11px] text-[#94A3B8]">同位次同时段唯一；上下架仅主管</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-[13px]" style="min-width:1200px">
+          <thead>
+            <tr class="bg-gray-50 text-gray-500 text-[12px]">
+              <th class="px-4 py-3 text-left font-medium">位次</th>
+              <th class="px-4 py-3 text-left font-medium">商铺（来自 04）</th>
+              <th class="px-4 py-3 text-left font-medium">区域 / 楼层</th>
+              <th class="px-4 py-3 text-left font-medium">推荐语</th>
+              <th class="px-4 py-3 text-left font-medium">生效期</th>
+              <th class="px-4 py-3 text-center font-medium">排序</th>
+              <th class="px-4 py-3 text-left font-medium">状态</th>
+              <th class="px-4 py-3 text-center font-medium">操作</th>
+            </tr>
+          </thead>
+          <tbody id="tb" class="divide-y divide-gray-50"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 位字典 -->
+  <div id="boxSlot" style="display:none">
+    <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+      <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+        <span class="text-[13px] font-bold text-[#1F2430]">推荐位字典（线下市场）</span>
+        <span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>与 09 内容管理的投放位<b>分表存放</b>，两处不得配置同一前端位</span>
+      </div>
+      <table class="w-full text-[13px]">
+        <thead>
+          <tr class="bg-gray-50 text-gray-500 text-[12px]">
+            <th class="px-4 py-3 text-left font-medium">位 ID</th>
+            <th class="px-4 py-3 text-left font-medium">区域</th>
+            <th class="px-4 py-3 text-left font-medium">楼层</th>
+            <th class="px-4 py-3 text-center font-medium">位次上限</th>
+            <th class="px-4 py-3 text-center font-medium">当前占用</th>
+            <th class="px-4 py-3 text-left font-medium">状态</th>
+          </tr>
+        </thead>
+        <tbody id="tbSlot" class="divide-y divide-gray-50"></tbody>
+      </table>
+      <div class="px-5 py-3 text-[11px] text-[#94A3B8]" style="background:#FFFBEB;border-top:1px solid #FEF3C7">
+        <i class="fas fa-triangle-exclamation mr-1" style="color:#D97706"></i>
+        09 内容管理的位（如「买家端首页轮播」）属平台级内容位，<b>不得在此引用</b>；两模块位字典互不引用。
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div id="mask" class="mask" onclick="closeAll()"></div>
+<div id="drawer" class="drawer">
+  <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+    <div><h3 class="text-[15px] font-bold text-[#1F2430]" id="dTitle">编辑推荐</h3><p class="text-[11px] text-[#94A3B8] mt-0.5" id="dSub"></p></div>
+    <button onclick="closeAll()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-xmark text-lg"></i></button>
+  </div>
+  <div class="flex-1 overflow-y-auto px-6 py-5" id="dBody"></div>
+  <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex items-center gap-3" id="dFoot"></div>
+</div>
+
+<div id="modal" class="modal"></div>
+<div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
+
+<script>
+/* 位字典（线下市场推荐位，与 09 内容位分表） */
+var SLOTS=[
+  {id:'MK-1F-A', area:'A 区 · 品牌馆', floor:'1F', max:2, on:true},
+  {id:'MK-1F-B', area:'B 区 · 男袜',   floor:'1F', max:2, on:true},
+  {id:'MK-2F-A', area:'A 区 · 女袜',   floor:'2F', max:2, on:true},
+  {id:'MK-2F-B', area:'B 区 · 童袜',   floor:'2F', max:1, on:true},
+  {id:'MK-3F-A', area:'A 区 · 原料',   floor:'3F', max:1, on:true},
+  {id:'MK-3F-B', area:'B 区 · 设备',   floor:'3F', max:1, on:false}
+];
+
+/* 推荐项（mock；商铺来自 04 档案，只读引用） */
+var ITEMS=[
+  {id:'RC001', shop:'大唐自有品牌旗舰店', unit:'1F-A08', cat:'男袜', rating:'4.9', years:'3', slot:'MK-1F-A', pos:1,
+   words:'实力工厂 源头直供', start:'2026-10-01', end:'2026-12-31', state:'已发布', conflict:false},
+  {id:'RC002', shop:'大唐自有品牌旗舰店', unit:'1F-B12', cat:'女袜', rating:'4.8', years:'2', slot:'MK-1F-B', pos:1,
+   words:'十年老店 品质稳定', start:'2026-10-01', end:'2026-12-31', state:'已发布', conflict:false},
+  {id:'RC003', shop:'锦程袜业', unit:'2F-A03', cat:'女袜', rating:'4.7', years:'5', slot:'MK-2F-A', pos:1,
+   words:'外贸尾单 一件起批', start:'2026-10-15', end:'2026-11-15', state:'已发布', conflict:false},
+  {id:'RC004', shop:'恒丰织造', unit:'2F-B07', cat:'童袜', rating:'4.6', years:'4', slot:'MK-2F-B', pos:1,
+   words:'童袜专营 无荧光剂', start:'2026-10-20', end:'2026-12-20', state:'已发布', conflict:false},
+  {id:'RC005', shop:'丹吉娅智能工厂', unit:'2F-A09', cat:'女袜', rating:'4.8', years:'2', slot:'MK-2F-A', pos:1,
+   words:'智能工厂 7 天快反', start:'2026-10-18', end:'2026-12-31', state:'草稿', conflict:true},
+  {id:'RC006', shop:'锦丰针织', unit:'3F-A02', cat:'原料', rating:'4.5', years:'6', slot:'MK-3F-A', pos:1,
+   words:'包覆纱 现货充足', start:'2026-09-01', end:'2026-09-30', state:'已过期', conflict:false}
+];
+
+var cur=null, rows=ITEMS.slice(), tab='item';
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function slotOf(id){return SLOTS.filter(function(s){return s.id===id;})[0]||{area:'—',floor:'—',max:0};}
+function usedOf(id){return ITEMS.filter(function(x){return x.slot===id&&(x.state==='已发布'||x.state==='草稿');}).length;}
+function stBadge(s){
+  var map={'草稿':'background:#F1F5F9;color:#64748B','已发布':'background:#DCFCE7;color:#15803D','已下线':'background:#FEF3C7;color:#B45309','已过期':'background:#E5E7EB;color:#6B7280'};
+  return '<span class="tag" style="'+(map[s]||'background:#F1F5F9;color:#64748B')+'">'+s+'</span>';
+}
+
+document.querySelectorAll('#tabs span').forEach(function(el){
+  el.onclick=function(){
+    document.querySelectorAll('#tabs span').forEach(function(x){x.className='text-gray-400 py-2.5 text-[13px] cursor-pointer hover:text-gray-600';});
+    el.className='tab-active py-2.5 text-[13px] cursor-pointer';
+    tab=el.getAttribute('data-t');
+    document.getElementById('boxItem').style.display=tab==='item'?'':'none';
+    document.getElementById('boxSlot').style.display=tab==='slot'?'':'none';
+    if(tab==='slot') renderSlot();
+  };
+});
+
+function initSlotFilter(){
+  document.getElementById('fSlot').innerHTML='<option value="">全部位次</option>'
+    +SLOTS.map(function(s){return '<option value="'+s.id+'">'+s.floor+' '+s.area+'（'+s.id+'）</option>';}).join('');
+}
+
+function render(){
+  var kw=(document.getElementById('kw').value||'').trim();
+  var fs=document.getElementById('fSlot').value, st=document.getElementById('fState').value;
+  rows=ITEMS.filter(function(x){
+    if(kw&&x.shop.indexOf(kw)<0&&x.unit.indexOf(kw)<0)return false;
+    if(fs&&x.slot!==fs)return false;
+    if(st&&x.state!==st)return false;
+    return true;
+  });
+  var h='';
+  rows.forEach(function(x){
+    var s=slotOf(x.slot);
+    h+='<tr>'
+      +'<td class="px-4 py-3"><div class="font-medium" style="color:#1F2430">'+esc(s.floor)+' · 第 '+x.pos+' 位</div>'
+        +'<div class="text-[11px] text-[#94A3B8]">'+esc(x.slot)+'（上限 '+s.max+'，占用 '+usedOf(x.slot)+'）</div></td>'
+      +'<td class="px-4 py-3"><div class="text-[#1F2430]">'+esc(x.shop)+
+        (x.conflict?' <span class="tag" style="background:#FEF2F2;color:#B91C1C">位次冲突</span>':'')+'</div>'
+        +'<div class="text-[11px] text-[#94A3B8]">'+esc(x.unit)+' · '+esc(x.cat)+' · '+esc(x.rating)+'分 · '+esc(x.years)+'年店</div></td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(s.area)+'</td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(x.words)+'</td>'
+      +'<td class="px-4 py-3 text-[12px] text-[#64748B]">'+esc(x.start)+' ~ '+esc(x.end)+'</td>'
+      +'<td class="px-4 py-3 text-center">'+x.pos+'</td>'
+      +'<td class="px-4 py-3">'+stBadge(x.state)+'</td>'
+      +'<td class="px-4 py-3 text-center whitespace-nowrap">'
+        +'<span class="lk" onclick="openEdit(\''+x.id+'\')">编辑</span>'
+        +' · <span class="lk-gray" onclick="askToggle(\''+x.id+'\')">'+(x.state==='已发布'?'下架':'上架')+'</span>'
+        +' · <span class="lk-gray" onclick="delItem(\''+x.id+'\')">删除</span>'
+      +'</td></tr>';
+  });
+  if(!rows.length) h='<tr><td colspan="8" class="px-4 py-16 text-center text-gray-300"><i class="fas fa-inbox text-3xl block mb-2"></i><span class="text-[12px]">暂无推荐项</span></td></tr>';
+  document.getElementById('tb').innerHTML=h;
+  document.getElementById('cnt').textContent='共 '+rows.length+' 条';
+}
+
+function renderSlot(){
+  document.getElementById('tbSlot').innerHTML=SLOTS.map(function(s){
+    var u=usedOf(s.id), over=u>s.max;
+    return '<tr><td class="px-4 py-3 font-medium" style="color:#1F2430">'+esc(s.id)+'</td>'
+      +'<td class="px-4 py-3 text-[12px]">'+esc(s.area)+'</td>'
+      +'<td class="px-4 py-3 text-[12px]">'+esc(s.floor)+'</td>'
+      +'<td class="px-4 py-3 text-center">'+s.max+'</td>'
+      +'<td class="px-4 py-3 text-center"><span style="color:'+(over?'#B91C1C':'#1F2430')+';font-weight:'+(over?'700':'400')+'">'+u+'</span>'+(over?' <span class="tag" style="background:#FEF2F2;color:#B91C1C">超限</span>':'')+'</td>'
+      +'<td class="px-4 py-3">'+(s.on?'<span class="tag" style="background:#DCFCE7;color:#15803D">启用</span>':'<span class="tag" style="background:#F1F5F9;color:#64748B">停用</span>')+'</td></tr>';
+  }).join('');
+}
+
+function resetF(){
+  document.getElementById('kw').value='';document.getElementById('fSlot').value='';document.getElementById('fState').value='';
+  render();toast('已重置筛选条件');
+}
+
+/* 新增 / 编辑 */
+function openEdit(id){
+  cur=id?ITEMS.filter(function(x){return x.id===id;})[0]:null;
+  document.getElementById('dTitle').textContent=cur?'编辑推荐':'新增推荐';
+  document.getElementById('dSub').textContent=cur?cur.id+' · '+cur.shop:'推荐线下商铺至买家端「实力商家」橱窗';
+  var slotOpts=SLOTS.filter(function(s){return s.on;}).map(function(s){
+    var u=usedOf(s.id), full=u>=s.max&&(!cur||cur.slot!==s.id);
+    return '<option value="'+s.id+'"'+(cur&&cur.slot===s.id?' selected':'')+'>'+s.floor+' '+s.area+'（上限 '+s.max+'，已占用 '+u+'）'+(full?' — 已满':'')+'</option>';
+  }).join('');
+  var h='';
+  h+='<div class="ftitle" style="margin-top:0">商铺与位次</div>'
+    +'<label class="fl">商铺（来自 04 商户档案，只读引用）*</label>'
+    +'<input id="eShop" class="fi" value="'+(cur?esc(cur.shop):'')+'" placeholder="搜索商铺名或档口号">'
+    +'<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl">推荐位 *</label><select id="eSlot" class="fi">'+slotOpts+'</select></div>'
+    +'<div><label class="fl">位次 *</label><input id="ePos" type="number" min="1" class="fi" value="'+(cur?cur.pos:1)+'"></div>'
+    +'</div>'
+    +'<label class="fl">推荐语（≤20 字，端上单行展示）</label>'
+    +'<input id="eWords" class="fi" maxlength="30" value="'+(cur?esc(cur.words):'')+'" placeholder="如：实力工厂 源头直供">'
+    +'<div class="grid grid-cols-2 gap-3">'
+    +'<div><label class="fl">生效开始 *</label><input id="eStart" type="date" class="fi" value="'+(cur?cur.start:'2026-10-26')+'"></div>'
+    +'<div><label class="fl">生效结束 *</label><input id="eEnd" type="date" class="fi" value="'+(cur?cur.end:'2026-12-31')+'"></div>'
+    +'</div>'
+    +'<div class="rounded-xl p-3 mt-4 text-[11px] text-[#64748B]" style="background:#F8FAFC;border:1px solid #E2E8F0">'
+    +'<i class="fas fa-circle-info mr-1"></i>同位次同时段唯一；商铺被清退/停用将自动下线；09 内容管理的位（如「买家端首页轮播」）不在此列表，属平台级内容位，不得引用。'
+    +'</div>';
+  document.getElementById('dBody').innerHTML=h;
+  document.getElementById('dFoot').innerHTML='<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
+    +'<button class="btn btn-primary" onclick="saveItem()">保存</button>';
+  document.getElementById('mask').classList.add('on');
+  document.getElementById('drawer').classList.add('on');
+}
+
+function saveItem(){
+  var shop=(document.getElementById('eShop').value||'').trim();
+  var slot=document.getElementById('eSlot').value;
+  var pos=parseInt(document.getElementById('ePos').value,10)||1;
+  var words=(document.getElementById('eWords').value||'').trim();
+  if(!shop){toast('请选择商铺');return;}
+  if(/清退|停用/.test(shop)){toast('该商铺已清退/停用，无法推荐');return;}
+  if(words.length>20){toast('推荐语不超过 20 字（端上单行展示）');return;}
+  var s=slotOf(slot);
+  if(pos>s.max){toast('位次 '+pos+' 超出该位上限（上限 '+s.max+'）');return;}
+  // 位次冲突校验（ML-24）
+  var conflict=ITEMS.filter(function(x){
+    return x.slot===slot&&x.pos===pos&&x.id!==(cur?cur.id:'')&&(x.state==='已发布'||x.state==='草稿');
+  })[0];
+  if(conflict){
+    showModal('位次冲突（需主管处置）','位次 '+pos+' 已被「'+conflict.shop+'」占用（'+conflict.start+' ~ '+conflict.end+'）。',
+      '<p class="text-[12px] text-[#64748B]">可选择调整位次，或由主管强制替换（原推荐项将下线并留痕）。</p>',
+      '主管强制替换', function(){
+        conflict.state='已下线';
+        doSave(shop,slot,pos,words,s,true,conflict);
+        return true;
+      });
+    return;
+  }
+  doSave(shop,slot,pos,words,s,false,null);
+}
+
+function doSave(shop,slot,pos,words,s,forced,old){
+  var start=document.getElementById('eStart').value, end=document.getElementById('eEnd').value;
+  if(cur){
+    cur.shop=shop;cur.slot=slot;cur.pos=pos;cur.words=words;cur.start=start;cur.end=end;cur.conflict=false;
+  }else{
+    ITEMS.push({id:'RC'+String(ITEMS.length+1).padStart(3,'0'),shop:shop,unit:'—',cat:'—',rating:'—',years:'—',
+      slot:slot,pos:pos,words:words,start:start,end:end,state:'草稿',conflict:false});
+  }
+  closeAll();render();
+  if(forced) toast('已强制替换位次 '+pos+'（原「'+old.shop+'」已下线，留痕已记录）');
+  else toast('已保存推荐（草稿），上架后买家端线下市场即时可见');
+}
+
+function askToggle(id){
+  var x=ITEMS.filter(function(v){return v.id===id;})[0];
+  if(x.state==='已发布'){
+    x.state='已下线';render();toast('已下架「'+x.shop+'」，买家端橱窗即时移除');
+  }else{
+    if(x.conflict){toast('该推荐项存在位次冲突，请先调整位次或由主管强制替换');return;}
+    x.state='已发布';render();
+    var s=slotOf(x.slot);
+    toast('已上架「'+x.shop+'」至 '+s.area+'·第 '+x.pos+' 位，买家端线下市场即时可见');
+  }
+}
+
+function delItem(id){
+  var x=ITEMS.filter(function(v){return v.id===id;})[0];
+  if(x.state!=='草稿'){toast('仅「草稿」可删除；已发布请用「下架」（保留历史）');return;}
+  ITEMS=ITEMS.filter(function(v){return v.id!==id;});
+  render();toast('已删除草稿推荐');
+}
+
+/* 端上预览：实力商家橱窗（与买家端 market-socks.html?view=offline 一致） */
+function previewEnd(){
+  var live=ITEMS.filter(function(x){return x.state==='已发布';}).sort(function(a,b){return a.pos-b.pos;});
+  var cards=live.map(function(x){
+    return '<div class="shopcard mb-2.5"><div class="flex items-center gap-2">'
+      +'<div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#3B82F6,#1D4ED8)"></div>'
+      +'<div class="flex-1"><div class="flex items-center gap-1.5"><p class="text-[12px] font-bold text-gray-800">'+esc(x.shop)+'</p>'
+      +'<span style="background:#FFF7ED;color:#FF4D2D;font-size:8px;padding:1px 4px;border-radius:4px">实力</span></div>'
+      +'<p class="text-[9px] text-gray-400">'+esc(x.unit)+' · '+esc(x.cat)+' · '+esc(x.rating)+'分 · '+esc(x.years)+'年店</p></div>'
+      +'<span class="text-[10px]" style="color:#FF4D2D">进店 ›</span></div>'
+      +'<div class="text-[10px] text-gray-500 mt-2">'+esc(x.words)+'</div>'
+      +'<div class="flex gap-1.5 mt-2">'+[1,2,3,4].map(function(){return '<div style="width:52px;height:52px;border-radius:8px;background:#F1F5F9"></div>';}).join('')+'</div></div>';
+  }).join('');
+  if(!cards) cards='<p class="text-[12px] text-[#94A3B8] text-center py-6">当前无已发布推荐项，端上「实力商家」橱窗将整块隐藏</p>';
+  showModal('端上预览 · 线下市场「实力商家」橱窗','位置：买家端 袜子市场 → 逛线下市场 → 市场布局图下方。',
+    '<div style="background:#F1F5F9;border-radius:16px;padding:12px">'
+    +'<p class="text-[11px] font-bold text-gray-700 mb-2">实力商家（'+live.length+'）</p>'+cards+'</div>',
+    '知道了', function(){ return true; });
+  setTimeout(function(){toast('已按买家端「实力商家」橱窗效果预览');},200);
+}
+
+function showModal(title,desc,body,okText,onOk){
+  document.getElementById('modal').innerHTML='<div class="bg-white rounded-2xl p-5" style="width:420px;max-width:94vw;max-height:86vh;overflow-y:auto">'
+    +'<h3 class="text-[15px] font-bold text-[#1F2430]">'+title+'</h3>'
+    +'<p class="text-[12px] text-[#64748B] mt-1 mb-3">'+desc+'</p>'+body
+    +'<div class="flex justify-end gap-2 mt-4"><button class="btn btn-primary" id="mOk">'+okText+'</button></div></div>';
+  document.getElementById('mOk').onclick=function(){ if(onOk()!==false) closeModal(); };
+  document.getElementById('modal').classList.add('on');
+}
+function closeModal(){document.getElementById('modal').classList.remove('on');}
+function closeAll(){document.getElementById('mask').classList.remove('on');document.getElementById('drawer').classList.remove('on');closeModal();}
+
+var tid;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},2800);}
+
+initSlotFilter();
+render();
+</script>
+<script src="../shared/op-guard.js"></script>
+<script src="../shared/page-prd.js"></script>
+</body>
+</html>

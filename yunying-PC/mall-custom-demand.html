@@ -75,6 +75,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
     </div>
   </div>
 
+  <!-- 从订单页（样品打样 / 定制订单）跳入时的来源提示 -->
+  <div id="fromOrder" class="rounded-xl px-4 py-2.5 mb-4 text-[12px]" style="display:none;background:#EFF6FF;border:1px solid #BFDBFE;color:#1D4ED8">
+    <div class="flex items-center gap-2">
+      <i class="fas fa-circle-info"></i><span id="fromOrderTxt"></span>
+      <span class="ml-auto" style="cursor:pointer;text-decoration:underline" onclick="resetF()">清除筛选</span>
+    </div>
+  </div>
+
   <!-- 筛选 -->
   <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
     <div class="flex items-center gap-3 flex-wrap">
@@ -240,6 +248,7 @@ function render(){
 function resetF(){
   ['kw','fKind','fType','fState'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
   document.getElementById('fZero').checked=false;document.getElementById('fUrgent').checked=false;
+  var bar=document.getElementById('fromOrder'); if(bar) bar.style.display='none';
   render();toast('已重置筛选条件');
 }
 
@@ -364,6 +373,19 @@ function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style
 document.getElementById('fZero').addEventListener('change',function(){
   if(this.checked){render();toast('已筛选「仅看零报价」，共 '+rows.length+' 条');}
 });
+
+/* 从订单页跳入定位：?kw=需求号（或 ?focus= / ?demand=）→ 预筛 + 精确命中时打开详情 */
+(function(){
+  var q=new URLSearchParams(location.search);
+  var k=(q.get('kw')||q.get('demand')||q.get('focus')||'').trim();
+  if(!k) return;
+  document.getElementById('kw').value=k;
+  var hit=D.filter(function(d){return d.id===k;});
+  var bar=document.getElementById('fromOrder'), txt=document.getElementById('fromOrderTxt');
+  if(txt) txt.innerHTML='来自订单：需求号 <b>'+esc(k)+'</b>'+(hit.length?'（已定位该需求）':'（未匹配到该需求号，已按关键字筛选）');
+  if(bar) bar.style.display='block';
+  if(hit.length===1) setTimeout(function(){openD(hit[0].id);},400);
+})();
 render();
 </script>
 <script src="../shared/op-guard.js"></script>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>我的定制需求 - 袜掌柜买家版</title>
+<link rel="stylesheet" href="tailwind.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:#F6F7FA;width:393px;overflow-x:hidden}
+*{-webkit-tap-highlight-color:transparent}
+.card{background:#fff}
+.tab{position:relative;padding:9px 0 8px;font-size:12.5px;color:#8A93A3;cursor:pointer;white-space:nowrap}
+.tab.on{color:#1F2430;font-weight:800}
+.tab.on::after{content:'';position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:18px;height:2.5px;border-radius:2px;background:#FF4D2D}
+.tab b{font-size:9px;color:#B4BAC6;margin-left:2px;font-weight:600}
+.tab.on b{color:#FF4D2D}
+.chip{font-size:11px;color:#5A6270;background:#fff;border:1px solid #EDEFF3;border-radius:999px;padding:5px 11px;white-space:nowrap;cursor:pointer}
+.chip.on{color:#fff;background:#1F2430;border-color:#1F2430;font-weight:700}
+.badge{font-size:9.5px;font-weight:700;padding:2.5px 7px;border-radius:999px;white-space:nowrap}
+.b-quote{color:#B45309;background:#FEF3C7}
+.b-sel{color:#1D4ED8;background:#DBEAFE}
+.b-deal{color:#047857;background:#D1FAE5}
+.b-close{color:#6B7280;background:#F1F2F5}
+.type{font-size:9px;font-weight:700;padding:2px 6px;border-radius:5px}
+.t-cp{color:#6D28D9;background:#F3EFFF}
+.t-ce{color:#0F766E;background:#E6FBF8}
+.btn{font-size:11px;font-weight:700;color:#fff;background:linear-gradient(135deg,#FB7185,#EC4899);padding:5.5px 12px;border-radius:999px}
+.btn.ghost{color:#5A6270;background:#F4F5F7}
+.toast{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.9);background:rgba(0,0,0,.82);color:#fff;font-size:12px;padding:10px 16px;border-radius:10px;opacity:0;pointer-events:none;transition:.2s;z-index:99;max-width:78%;text-align:center;line-height:1.5}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+</style>
+</head>
+<body>
+
+<div class="fixed top-0 left-0 right-0 bg-white border-b border-gray-100" style="width:393px;z-index:50">
+  <div style="padding-top:44px"></div>
+  <div class="flex items-center justify-between px-3 pb-2">
+    <a href="mine.html" class="w-8 h-8 flex items-center justify-center text-gray-600"><i class="fas fa-chevron-left"></i></a>
+    <p class="text-[15px] font-bold text-gray-800">我的定制需求</p>
+    <a href="custom-design.html" class="text-[11px] font-bold text-primary">新建需求</a>
+  </div>
+  <div class="flex gap-4 px-3 overflow-x-auto" id="statusTabs"></div>
+</div>
+
+<div style="padding-top:112px;padding-bottom:96px">
+  <div class="px-3 pt-3 flex gap-1.5 overflow-x-auto" id="typeChips"></div>
+  <div class="px-3 mt-2.5 space-y-2.5" id="list"></div>
+</div>
+
+<div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100" style="height:65px;z-index:100;width:393px">
+  <div class="flex justify-around items-center h-full" style="padding-bottom:10px">
+    <a href="home.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-house text-[18px]"></i><span class="text-[9px]">首页</span></a>
+    <a href="video.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-video text-[18px]"></i><span class="text-[9px]">视频看货</span></a>
+    <a href="ai.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-wand-magic-sparkles text-[18px]"></i><span class="text-[9px]">AI工具</span></a>
+    <a href="purchase-order.html" class="flex flex-col items-center gap-0.5 text-gray-400"><i class="fas fa-clipboard-list text-[18px]"></i><span class="text-[9px]">进货单</span></a>
+    <a href="mine.html" class="flex flex-col items-center gap-0.5" style="color:#FF4D2D"><i class="fas fa-user text-[18px]"></i><span class="text-[9px] font-semibold">我的</span></a>
+  </div>
+</div>
+<div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none"><div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:3px"></div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* 需求列表 mock：覆盖 报价中 / 已选标 / 已成交 / 已关闭 × 个性定制 / 企业批量 */
+var DEMANDS=[
+  {no:'CP20261111001',type:'cp',method:'先打样后大货',title:'藏青条纹商务袜 · 精梳棉（新一批）',qty:'500 双',quotes:3,left:'剩 2 天 4 小时',leftH:52,status:'quote'},
+  {no:'CP20261110001',type:'cp',method:'先打样后大货',title:'藏青条纹商务袜 · 精梳棉',qty:'500 双',quotes:3,left:'CZ20261110001',leftH:0,status:'deal'},
+  {no:'CP20261108002',type:'cp',method:'仅打样',title:'运动压缩袜 · Coolmax',qty:'1,000 双',quotes:0,left:'剩 6 小时',leftH:6,status:'quote'},
+  {no:'CE20261109001',type:'ce',method:'直接大货',title:'企业年会定制袜 · 竹纤维',qty:'5,000 双',quotes:5,left:'去支付剩 46 小时',leftH:46,status:'selected'},
+  {no:'CP20261105003',type:'cp',method:'直接大货',title:'儿童卡通袜 · 精梳棉',qty:'2,000 双',quotes:4,left:'CZ20261106001',leftH:0,status:'deal'},
+  {no:'CP20261103002',type:'cp',method:'直接大货',title:'厚款毛圈运动袜 · 精梳棉',qty:'1,200 双',quotes:2,left:'CZ20261103002',leftH:0,status:'deal'},
+  {no:'CE20261103002',type:'ce',method:'直接大货',title:'商超促销款 · 冰丝',qty:'8,000 双',quotes:0,left:'超时未选标',leftH:0,status:'closed'},
+  {no:'CP20261102004',type:'cp',method:'先打样后大货',title:'节日礼盒款 · 美利奴羊毛',qty:'800 双',quotes:2,left:'买家已撤销',leftH:0,status:'closed'}
+];
+/* 合并本次会话新提交的需求：custom-design 写 mai_last_cp、bulk-custom 写 mai_last_ce */
+(function(){
+  [['mai_last_cp','cp'],['mai_last_ce','ce']].forEach(function(it){
+    var raw=null;
+    try{raw=localStorage.getItem(it[0]);}catch(e){return;}
+    if(!raw)return;
+    var s;try{s=JSON.parse(raw);}catch(e){return;}
+    if(!s||!s.no)return;
+    if(DEMANDS.some(function(d){return d.no===s.no}))return;
+    DEMANDS.unshift({
+      no:s.no,type:it[1],
+      method:s.methodName||(s.deliveryDays?('交期 '+s.deliveryDays+' 天'):'直接大货'),
+      title:s.title||'新提交的定制需求',
+      qty:(parseInt(s.qty,10)||0).toLocaleString()+' 双',
+      quotes:0,left:'等待商户报价',leftH:72,status:'quote',isNew:true,
+      snap:s
+    });
+  });
+})();
+
+var ST=[{k:'quote',n:'报价中'},{k:'selected',n:'已选标'},{k:'deal',n:'已成交'},{k:'closed',n:'已关闭'}];
+var curSt='quote',curType='all';
+var BADGE={quote:['b-quote','报价中'],selected:['b-sel','已选标 · 待支付'],deal:['b-deal','已成交'],closed:['b-close','已关闭']};
+
+function $(id){return document.getElementById(id);}
+function toast(msg){var t=$('toast');t.textContent=msg;t.classList.add('on');clearTimeout(t._tm);t._tm=setTimeout(function(){t.classList.remove('on')},1600)}
+
+function renderTabs(){
+  $('statusTabs').innerHTML=ST.map(function(s){
+    var n=DEMANDS.filter(function(d){return d.status===s.k}).length;
+    return '<div class="tab'+(curSt===s.k?' on':'')+'" onclick="setSt(\''+s.k+'\')">'+s.n+'<b>'+n+'</b></div>';
+  }).join('');
+}
+function setSt(k){curSt=k;renderTabs();renderList()}
+function renderChips(){
+  var arr=[{k:'all',n:'全部类型'},{k:'cp',n:'个性定制'},{k:'ce',n:'企业批量'}];
+  $('typeChips').innerHTML=arr.map(function(a){
+    return '<span class="chip'+(curType===a.k?' on':'')+'" onclick="setType(\''+a.k+'\')">'+a.n+'</span>';
+  }).join('');
+}
+function setType(k){curType=k;renderChips();renderList()}
+
+function renderList(){
+  var list=DEMANDS.filter(function(d){return d.status===curSt&&(curType==='all'||d.type===curType)});
+  if(!list.length){
+    $('list').innerHTML='<div class="card rounded-2xl p-8 text-center mt-4">'
+      +'<i class="fas fa-inbox text-[26px] text-gray-200"></i>'
+      +'<p class="text-[12px] text-gray-400 mt-3">该状态下暂无定制需求</p>'
+      +'<a href="custom-design.html" class="inline-block mt-3 text-[11px] font-bold text-primary">去发起定制 →</a></div>';
+    return;
+  }
+  $('list').innerHTML=list.map(function(d){
+    var b=BADGE[d.status];
+    var action='';
+    if(d.status==='quote'){
+      action=d.quotes>0
+        ? '<span class="btn">查看报价('+d.quotes+')</span>'
+        : '<span class="btn ghost">等待报价</span>';
+    }else if(d.status==='selected'){
+      action='<span class="btn">去支付</span>';
+    }else if(d.status==='deal'){
+      action='<span class="btn ghost">查看订单</span>';
+    }else{
+      action='<span class="btn ghost">重新发起</span>';
+    }
+    return '<a href="custom-demand-detail.html?id='+d.no+'" class="card block rounded-2xl p-3 shadow-soft">'
+      +'<div class="flex items-start justify-between">'
+      +'<div style="min-width:0"><div class="flex items-center gap-1.5">'
+      +'<span class="text-[10px] font-bold text-gray-400">'+d.no+'</span>'
+      +'<span class="type '+(d.type==='cp'?'t-cp':'t-ce')+'">'+(d.type==='cp'?'个性定制':'企业批量')+'</span>'
+      +'</div>'
+      +'<p class="text-[13px] font-bold text-gray-800 mt-1 truncate">'+d.title+'</p></div>'
+      +'<span class="badge '+b[0]+'">'+b[1]+'</span>'
+      +'</div>'
+      +'<div class="flex items-center gap-3 mt-2 text-[10px] text-gray-500">'
+      +'<span><i class="fas fa-cubes mr-0.5"></i>'+d.qty+'</span>'
+      +'<span><i class="fas fa-file-invoice mr-0.5"></i>已收报价 '+d.quotes+' 家</span>'
+      +'</div>'
+      +'<div class="flex items-center justify-between mt-2.5 pt-2.5 border-t border-dashed border-gray-100">'
+      +'<span class="text-[10px] '+(d.status==='quote'?'text-orange-500':'text-gray-400')+'"><i class="fas '+(d.status==='deal'?'fa-file-invoice':'fa-clock')+' mr-1"></i>'+d.method+' · '+(d.status==='deal'?'订单 '+d.left:d.left)+'</span>'
+      +action
+      +'</div></a>';
+  }).join('');
+}
+renderTabs();renderChips();renderList();
+</script>
+<script src="../shared/page-prd.js?v=20261109"></script>
+</body>
+</html>

@@ -217,9 +217,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 
   </div>
 
+  <!-- 审核流程提示（本次新增改造：招标 2.1.3-97 商品自动审核） -->
+  <div class="rounded-xl border p-4 mb-4" style="border-color:#BFDBFE;background:#EFF6FF">
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <div class="text-[12.5px] font-bold" style="color:#1D4ED8"><i class="fas fa-shield-halved mr-1"></i>提交后进入「机器初筛 + 人工判定」双重审核（本次新增）</div>
+        <p class="text-[11.5px] leading-6 mt-1" style="color:#334155">
+          ① <b>机器初筛</b>：敏感词（涉黄涉暴 / 违禁品 / 医疗宣称 / 绝对化用语 / 侵权品牌）+ 敏感图识别，秒级出结果；
+          命中<b>拦截级</b>内容 → 自动不上架；命中<b>警示级</b> → 转人工；
+          ② <b>人工判定</b>：运营在审核中心通过后才在买家端展示，驳回原因回传商户端可改后重提。
+          <b>机审不可关闭</b>，商品字段与表单结构仍以外采为准。
+        </p>
+      </div>
+      <a href="mall-product-audit.html" class="flex-shrink-0 px-3 py-1.5 rounded-lg text-[12px] font-semibold" style="background:#fff;color:#1D4ED8;border:1px solid #BFDBFE">去审核中心</a>
+    </div>
+  </div>
+
   <!-- 底部操作 -->
   <div class="bg-white rounded-xl border border-gray-100 px-5 py-3.5 flex items-center justify-between">
-    <span class="text-[11px] text-[#94A3B8]">确认后：支持拼单开关与各规格阶梯价将同步到买家端商品详情页</span>
+    <span class="text-[11px] text-[#94A3B8]">确认后：先进入机器初筛 → 人工判定；<b>审核通过后</b>拼单开关与阶梯价才随商品在买家端生效</span>
     <div class="flex items-center gap-2">
       <button class="px-4 py-2 rounded-lg text-[12px] text-[#64748B] border border-gray-200 bg-white hover:border-[#CBD5E1]" onclick="toast('已取消（原型）')">取消</button>
       <button class="px-4 py-2 rounded-lg text-[12px] font-semibold text-white" style="background:linear-gradient(135deg,#FF7849,#FF4D2D)" onclick="submitProduct()">确认</button>
@@ -452,11 +468,11 @@ function delSvc(i){SVC.splice(i,1);renderSvc();toast('已删除该附加服务')
 function submitProduct(){
   if(SPEC_MODE==='single'){
     if(!(TIERS.single||[]).length){toast('统一规格未设置阶梯价，请至少添加一档');return;}
-    toast('已提交：'+(GROUP_OK?'支持拼单':'不支持拼单')+' · 阶梯价 '+TIERS.single.length+' 档（已同步买家端）');
+    toast('已提交（'+(GROUP_OK?'支持拼单':'不支持拼单')+' · 阶梯价 '+TIERS.single.length+' 档）：已进入机器初筛，约 1 秒出结果；命中警示级转人工判定，通过后才在买家端展示');
   }else{
     var unset=SPECS.filter(function(s){return !(TIERS[s.id]||[]).length;});
     if(unset.length){toast('还有 '+unset.length+' 个规格未设置阶梯价，请补全');return;}
-    toast('已提交：'+(GROUP_OK?'支持拼单':'不支持拼单')+' · '+SPECS.length+' 个规格阶梯价均已设置（已同步买家端）');
+    toast('已提交（'+(GROUP_OK?'支持拼单':'不支持拼单')+' · '+SPECS.length+' 个规格阶梯价均已设置）：已进入机器初筛，机审结果与人工判定见「商品审核中心」');
   }
 }
 
@@ -470,7 +486,8 @@ var NOTE_EXT=[
 var NOTE_MOD=[
   '【本次新增】销售信息增加「是否支持拼单」：支持时，买家端商品详情页除「立即下单」外增加「发起拼单」入口（不支持则只保留「立即下单」）。',
   '【本次新增】阶梯价设置：无论统一规格还是多规格，每个规格都可设置阶梯价（起始数量 / 结束数量 / 单价，可增删档位），供买家端展示并按下单数量落档计价。',
-  '【实现参考】外采系统「批发管理」中也有批发商品的批发价设置，技术实现可以参考该模块的方式。'
+  '【实现参考】外采系统「批发管理」中也有批发商品的批发价设置，技术实现可以参考该模块的方式。',
+  '【本次新增·关联改造】商品提交后**不再直接同步买家端**：先做机器初筛（敏感词 + 敏感图），再按结果转人工判定，通过后才上架（招标 2.1.3-97 商品自动审核）。拼单开关与阶梯价随商品一起过审，审核期间买家端仍展示上一版。审核入口见 `mall-product-audit.html`。'
 ];
 function noteItems(arr,color,empty){
   if(!arr||!arr.length){return '<div class="mn-li" style="color:#94A3B8">'+empty+'</div>';}

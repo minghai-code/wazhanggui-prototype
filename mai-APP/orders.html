@@ -31,6 +31,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 .st-receipt{color:#06B6D4;background:rgba(6,182,212,.10)}
 .st-review{color:#F59E0B;background:rgba(245,158,11,.10)}
 .st-after{color:#EC4899;background:rgba(236,72,153,.10)}
+.st-pending{color:#0F766E;background:rgba(13,148,136,.10)}
+.st-cancel{color:#64748B;background:rgba(100,116,139,.12)}
 /* 操作按钮 */
 .btn-pri{background:linear-gradient(90deg,#FF4D2D,#FF7849);color:#fff;box-shadow:0 3px 10px rgba(255,77,45,.28)}
 .btn-ghost{background:#fff;color:#6b7280;border:1px solid #ececf0}
@@ -86,8 +88,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <div class="px-3 pt-2 pb-1">
   <div class="flex gap-2 overflow-x-auto no-bar" id="typeBar">
     <button class="type-item type-active text-[11px] font-semibold px-3 py-1.5 rounded-full" data-type="all" onclick="switchType('all')">全部</button>
-    <button class="type-item type-inactive text-[11px] font-semibold px-3 py-1.5 rounded-full" data-type="purchase" onclick="switchType('purchase')">采购订单</button>
-    <button class="type-item type-inactive text-[11px] font-semibold px-3 py-1.5 rounded-full flex items-center gap-1" data-type="inquiry" onclick="switchType('inquiry')">询价订单<span class="bg-primary text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full leading-none" id="badge-inquiry">3</span></button>
+    <button class="type-item type-inactive text-[11px] font-semibold px-3 py-1.5 rounded-full" data-type="purchase" onclick="switchType('purchase')">普通订单</button>
+    <button class="type-item type-inactive text-[11px] font-semibold px-3 py-1.5 rounded-full" data-type="group" onclick="switchType('group')">拼单订单</button>
+    <button class="type-item type-inactive text-[11px] font-semibold px-3 py-1.5 rounded-full" data-type="sample" onclick="switchType('sample')">打样订单</button>
+    <button class="type-item type-inactive text-[11px] font-semibold px-3 py-1.5 rounded-full" data-type="custom" onclick="switchType('custom')">定制订单</button>
+    <button class="type-item type-inactive text-[11px] font-semibold px-3 py-1.5 rounded-full flex items-center gap-1" data-type="inquiry" onclick="switchType('inquiry')">采购询价<span class="bg-primary text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full leading-none" id="badge-inquiry">3</span></button>
   </div>
 </div>
 
@@ -137,7 +142,18 @@ const orders=[
   /* ===== 询价订单（采购询价选标成交后生成） ===== */
   {type:'inquiry',id:'QJ20260920-007',status:'pay',statusText:'待付款',stClass:'st-pay',shop:'大唐自有品牌旗舰店',shopIcon:'fas fa-store',shopColor:'linear-gradient(135deg,#3B82F6,#6366F1)',name:'男士刺绣薄袜 莱卡棉',spec:'询价成交 · 含运费 · 已寄定制样',qty:200,price:2.85,demandId:'XQ20260920-008'},
   {type:'inquiry',id:'QJ20260920-004',status:'ship',statusText:'待发货',stClass:'st-ship',shop:'广东劲步体育',shopIcon:'fas fa-store',shopColor:'linear-gradient(135deg,#F59E0B,#D97706)',name:'运动压缩跑步袜 减震防滑',spec:'询价成交 · 含运费',qty:300,price:5.80,demandId:'XQ20260920-004'},
-  {type:'inquiry',id:'QJ20260920-006',status:'review',statusText:'待评价',stClass:'st-review',shop:'丰棉织造',shopIcon:'fas fa-store',shopColor:'linear-gradient(135deg,#FF8A4C,#FF4D2D)',name:'精梳棉商务男袜 透气防臭',spec:'询价成交 · 含运费',qty:1000,price:3.10,demandId:'XQ20260920-006'}
+  {type:'inquiry',id:'QJ20260920-006',status:'review',statusText:'待评价',stClass:'st-review',shop:'丰棉织造',shopIcon:'fas fa-store',shopColor:'linear-gradient(135deg,#FF8A4C,#FF4D2D)',name:'精梳棉商务男袜 透气防臭',spec:'询价成交 · 含运费',qty:1000,price:3.10,demandId:'XQ20260920-006'},
+  /* ===== 拼单订单（成团后按档位价生成，T 号关联拼单） ===== */
+  {type:'group',id:'GB20261106041',status:'receipt',statusText:'待收货',stClass:'st-receipt',shop:'义乌竹纤维针织',shopIcon:'fas fa-users',shopColor:'linear-gradient(135deg,#2DD4BF,#059669)',name:'竹纤维抗菌男袜',spec:'拼单已成团 · 目标档 300 双 · 混色/均码',qty:60,price:3.90,ref:'T20261106005',refLabel:'拼单号'},
+  {type:'group',id:'GB20261110001',status:'pending',statusText:'待成团',stClass:'st-pending',shop:'大唐袜业旗舰店',shopIcon:'fas fa-users',shopColor:'linear-gradient(135deg,#2DD4BF,#059669)',name:'秋季加厚羊毛袜',spec:'待成团 · 达目标档 500 双后转待发货 · 未成团全额退款',qty:120,price:2.90,ref:'T20261110001',refLabel:'拼单号'},
+  {type:'group',id:'GB20261105003',status:'after',statusText:'已取消（已退款）',stClass:'st-cancel',shop:'绍兴童袜工厂',shopIcon:'fas fa-users',shopColor:'linear-gradient(135deg,#94A3B8,#64748B)',name:'儿童卡通棉袜（3 双装）',spec:'未达目标档 300 双 · 拼单失败 · 已全额退款 ¥858.00',qty:260,price:3.30,ref:'T20261105003',refLabel:'拼单号'},
+  {type:'group',id:'GB20261103004',status:'after',statusText:'已取消（已退款）',stClass:'st-cancel',shop:'杭州AA跨境',shopIcon:'fas fa-users',shopColor:'linear-gradient(135deg,#94A3B8,#64748B)',name:'运动船袜（纯色 10 双装）',spec:'团长/商户取消本团 · 款项已原路退回',qty:450,price:2.80,ref:'T20261103004',refLabel:'拼单号'},
+  /* ===== 打样订单（仅打样 / 先打样后大货时生成，SP 号） ===== */
+  {type:'sample',id:'SP20261105001',status:'ship',statusText:'打样中',stClass:'st-ship',shop:'大唐精工袜业',shopIcon:'fas fa-flask',shopColor:'linear-gradient(135deg,#38BDF8,#0EA5E9)',name:'打样单 藏青条纹商务袜',spec:'先打样后大货 · 精梳棉 200针',qty:1,price:50,ref:'CP20261111001',refLabel:'需求号'},
+  /* ===== 定制订单（选标支付订金后生成，CZ 号） ===== */
+  {type:'custom',id:'CZ20261106001',status:'ship',statusText:'生产中',stClass:'st-ship',shop:'诸暨华康针织',shopIcon:'fas fa-industry',shopColor:'linear-gradient(135deg,#F472B6,#DB2777)',name:'定制单 儿童卡通袜·精梳棉',spec:'直接大货 · 168针 · 2000双',qty:2000,price:2.35,ref:'CP20261105003',refLabel:'需求号'},
+  {type:'custom',id:'CZ20261103002',status:'pay',statusText:'待付尾款',stClass:'st-pay',shop:'诸暨华康针织',shopIcon:'fas fa-industry',shopColor:'linear-gradient(135deg,#F472B6,#DB2777)',name:'定制单 厚款毛圈运动袜',spec:'直接大货 · 144针 · 1200双 · 已完工待付尾款',qty:1200,price:3.65,ref:'CP20261103002',refLabel:'需求号'},
+  {type:'custom',id:'CZ20261110001',status:'ship',statusText:'待生产',stClass:'st-ship',shop:'大唐精工袜业',shopIcon:'fas fa-industry',shopColor:'linear-gradient(135deg,#F472B6,#DB2777)',name:'定制单 藏青条纹商务袜·精梳棉',spec:'直接大货 · 200针提花 · 500双 · 样品费已抵',qty:500,price:3.20,ref:'CP20261110001',refLabel:'需求号'}
 ];
 
 /* 按钮配置（按状态） */
@@ -150,12 +166,27 @@ const btnConfig={
 };
 const allBtn=[{t:'查看详情',cls:'btn-ghost'}];
 
-/* 渲染询价订单卡片 */
+/* 订单类型元信息 + 各类型按钮 */
+const TYPE_META={
+  inquiry:{t:'采购询价',bg:'linear-gradient(135deg,#7C3AED,#A855F7)',icon:'fa-file-invoice'},
+  group:{t:'拼单订单',bg:'linear-gradient(135deg,#2DD4BF,#059669)',icon:'fa-users'},
+  sample:{t:'打样订单',bg:'linear-gradient(135deg,#38BDF8,#0EA5E9)',icon:'fa-flask'},
+  custom:{t:'定制订单',bg:'linear-gradient(135deg,#F472B6,#DB2777)',icon:'fa-industry'}
+};
+const specialBtns={
+  group:{pending:['查看拼单进度'],ship:['联系商户','催发货'],receipt:['查看物流','确认收货'],review:['追加评价','去评价'],after:['查看退款说明']},
+  sample:{ship:['查看打样进度','确认样衣'],receipt:['查看样衣','确认样衣']},
+  custom:{pay:['联系商户','支付尾款'],ship:['联系商户','查看生产进度'],receipt:['查看物流','确认收货'],review:['追加评价','去评价']}
+};
+/* 渲染特殊类型订单卡片（询价 / 拼单 / 打样 / 定制） */
 function renderInquiryCard(o,delay){
+  const m=TYPE_META[o.type]||TYPE_META.inquiry;
   const total=(o.price*o.qty).toFixed(2);
-  const detail='order-detail.html?type=inquiry&id='+o.id+'&status='+o.status;
-  const btns=(o.status==='after'?allBtn:(btnConfig[o.status]||allBtn));
-  const pri=btns[btns.length-1].t;
+  const detail='order-detail.html?type='+o.type+'&id='+o.id+'&status='+o.status;
+  const list=(specialBtns[o.type]&&specialBtns[o.type][o.status])||(btnConfig[o.status]||['查看详情']).map(b=>b.t);
+  const pri=list[list.length-1];
+  const refLine=o.refLabel&&o.ref?' · 关联'+o.refLabel+' <span style="color:#FF4D2D;text-decoration:underline">'+o.ref+'</span>':'';
+  const specLine=(o.type==='inquiry'&&o.demandId)?' · 关联需求 <span style="color:#FF4D2D;text-decoration:underline">'+o.demandId+'</span>':refLine;
   return `
   <div class="card bg-white rounded-2xl shadow-soft overflow-hidden fade-up" style="animation-delay:${delay}s;margin-bottom:12px" onclick="location.href='${detail}'">
     <div class="flex items-center justify-between px-3.5 pt-3 pb-2">
@@ -166,8 +197,8 @@ function renderInquiryCard(o,delay){
       </div>
       <span class="text-[11px] font-bold px-2 py-0.5 rounded-full ${o.stClass} flex-shrink-0">${o.statusText}</span>
     </div>
-    <div class="px-3.5 pb-1"><span class="text-[9px] font-bold px-1.5 py-0.5 rounded text-white" style="background:linear-gradient(135deg,#7C3AED,#A855F7)"><i class="fas fa-file-invoice mr-0.5"></i>询价订单</span></div>
-    <div class="px-3.5 pb-1.5 text-[10px] text-gray-400">订单号：${o.id} · 关联需求 <span onclick="event.stopPropagation();location.href='inquiry-mypublish.html'" style="color:#FF4D2D;text-decoration:underline;cursor:pointer">${o.demandId}</span></div>
+    <div class="px-3.5 pb-1"><span class="text-[9px] font-bold px-1.5 py-0.5 rounded text-white" style="background:${m.bg}"><i class="fas ${m.icon} mr-0.5"></i>${m.t}</span></div>
+    <div class="px-3.5 pb-1.5 text-[10px] text-gray-400">订单号：${o.id}${specLine}</div>
     <div class="flex gap-3 px-3.5 pb-3">
       <div class="w-[68px] h-[68px] rounded-xl flex items-center justify-center text-white text-[20px]" style="background:${o.shopColor}"><i class="${o.shopIcon}"></i></div>
       <div class="flex-1 min-w-0 flex flex-col justify-between py-0.5">
@@ -176,13 +207,13 @@ function renderInquiryCard(o,delay){
           <p class="text-[10px] text-gray-400 mt-1 truncate">${o.spec}</p>
         </div>
         <div class="flex items-end justify-between">
-          <span class="text-[10px] text-gray-400">成交 ×${o.qty}</span>
-          <span class="text-[13px] text-gray-700 font-semibold">¥${o.price}/双</span>
+          <span class="text-[10px] text-gray-400">${o.type==='sample'?'样品':'成交'} ×${o.qty}</span>
+          <span class="text-[13px] text-gray-700 font-semibold">¥${o.price}${o.type==='sample'?'<span class="text-[9px] text-gray-400 font-normal">/件</span>':'/双'}</span>
         </div>
       </div>
     </div>
     <div class="flex items-center justify-between px-3.5 pb-3 pt-1 border-t border-gray-50">
-      <span class="text-[11px] text-gray-500">合计 <span class="text-primary font-bold text-[15px]">¥${total}</span></span>
+      <span class="text-[11px] text-gray-500">${o.type==='sample'?'样品费':'合计'} <span class="text-primary font-bold text-[15px]">¥${total}</span></span>
       <a href="${detail}" onclick="event.stopPropagation()" class="text-[11px] font-medium px-3 py-1.5 rounded-full btn-pri">${pri} <i class="fas fa-chevron-right text-[9px]"></i></a>
     </div>
   </div>`;
@@ -190,7 +221,7 @@ function renderInquiryCard(o,delay){
 
 /* 渲染单个订单卡片 */
 function renderCard(o,delay){
-  if(o.type==='inquiry') return renderInquiryCard(o,delay);
+  if(o.type) return renderInquiryCard(o,delay);
   const total=(o.price*o.qty).toFixed(2);
   const btns=(o.status==='after'?allBtn:(btnConfig[o.status]||allBtn));
   return `
@@ -238,7 +269,7 @@ let currentType='all';
 function filterByType(list){
   if(currentType==='all')return list;
   if(currentType==='purchase')return list.filter(o=>!o.type||o.type==='purchase');
-  return list.filter(o=>o.type==='inquiry');
+  return list.filter(o=>o.type===currentType);
 }
 function updateBadges(){
   const base=filterByType(orders);
@@ -254,7 +285,7 @@ function renderPanels(){
   const base=filterByType(orders);
   const map={all:'panel-all',pay:'panel-pay',ship:'panel-ship',receipt:'panel-receipt',review:'panel-review',after:'panel-after'};
   for(const key in map){
-    const list = key==='all'? base : base.filter(o=>o.status===key);
+    const list = key==='all'? base : (key==='ship'? base.filter(o=>o.status==='ship'||o.status==='pending') : base.filter(o=>o.status===key));
     const el=document.getElementById(map[key]);
     if(list.length){
       el.innerHTML=list.map((o,i)=>renderCard(o,i*0.06)).join('');
@@ -357,6 +388,21 @@ function handleOrderBtn(label,id){
   }
   m03Toast(label+'（原型演示）');
 }
+
+/* ===== 深链落地：?type=group|custom|sample|inquiry|purchase（自动切类型筛选）+ ?tab=pay|ship|receipt|review|after ===== */
+(function(){
+  var P=new URLSearchParams(location.search);
+  var t=P.get('type');
+  if(t&&['purchase','group','sample','custom','inquiry'].indexOf(t)>-1){
+    var tb=document.querySelector('#typeBar .type-item[data-type="'+t+'"]');
+    if(tb)tb.click();
+  }
+  var tab=P.get('tab');
+  if(tab){
+    var btn=document.querySelector('#tabBar .tab-item[data-tab="'+tab+'"]');
+    if(btn)btn.click();
+  }
+})();
 </script>
 
 <script src="../shared/page-prd.js?v=20261023i"></script>

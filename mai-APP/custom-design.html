@@ -17,7 +17,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 .shadow-soft{box-shadow:0 2px 12px rgba(20,20,40,.06)}
 .fade-up{animation:fadeUp .4s ease both}
 @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:200;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.25);min-width:140px;justify-content:center}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:400;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.25);min-width:140px;justify-content:center}
 .toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
 /* 袜子预览SVG样式 */
 .sock-preview{filter:drop-shadow(0 8px 20px rgba(0,0,0,.12))}
@@ -41,9 +41,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 /* 滑块 */
 input[type=range]{-webkit-appearance:none;width:100%;height:4px;border-radius:2px;background:#E5E7EB;outline:none}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#FF4D2D;box-shadow:0 2px 6px rgba(255,77,45,.4);cursor:pointer}
-/* AI面板 */
-.ai-panel{display:none;animation:fadeUp .3s ease both}
-.ai-panel.on{display:block}
+/* AI 抽屉 */
 </style>
 <!-- Tailwind 静态样式：本地引用（不再依赖 cdn.tailwindcss.com）；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
 <link rel="stylesheet" href="tailwind.css">
@@ -69,7 +67,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
       </div>
       <p class="text-white/80 text-[11px] mt-0.5">自由设计款式·实时预览·打样快反</p>
     </div>
-    <a href="#" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white" onclick="toast('查看定制案例')"><i class="fas fa-images text-sm"></i></a>
+    <a href="javascript:;" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white" onclick="document.getElementById('caseSection').scrollIntoView({behavior:'smooth'})"><i class="fas fa-images text-sm"></i></a>
   </div>
 </div>
 
@@ -90,64 +88,62 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
         <span class="text-[9px] text-gray-400 bg-white/80 rounded px-1.5 py-0.5"><i class="fas fa-eye text-[8px] mr-0.5"></i>实时预览</span>
         <span class="text-[9px] text-primary font-medium bg-white/80 rounded px-1.5 py-0.5" id="styleLabel">经典条纹</span>
       </div>
-      <!-- 360旋转提示 -->
-      <div class="absolute right-3 bottom-2 flex items-center gap-1 text-gray-300">
-        <i class="fas fa-rotate text-[10px]"></i>
-        <span class="text-[9px]">360°预览</span>
-      </div>
+      <!-- AI 生成入口（与参数同一套体系） -->
+      <button onclick="toggleAI()" class="absolute right-3 bottom-2 flex items-center gap-1 text-[9px] font-medium text-white px-2 py-1 rounded-full" style="background:linear-gradient(135deg,#7C3AED,#C084FC)"><i class="fas fa-wand-magic-sparkles text-[9px]"></i>AI 生成</button>
     </div>
-    <!-- 规格摘要 -->
-    <div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-50">
+
+    <!-- 当前方案摘要：与下方参数一一对应 -->
+    <div class="mt-3 pt-3 border-t border-gray-50">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-[9px] text-gray-400">当前方案</span>
+        <span class="text-[9px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500" id="planSource">手动配置</span>
+      </div>
       <div class="flex items-center gap-3">
+        <div class="text-center"><p class="text-[8px] text-gray-400">主色</p><p class="text-[10px] font-semibold text-gray-700" id="colorLabel">藏青</p></div>
         <div class="text-center"><p class="text-[8px] text-gray-400">材质</p><p class="text-[10px] font-semibold text-gray-700" id="matLabel">精梳棉</p></div>
+        <div class="text-center"><p class="text-[8px] text-gray-400">图案</p><p class="text-[10px] font-semibold text-gray-700" id="patLabel">经典条纹</p></div>
         <div class="text-center"><p class="text-[8px] text-gray-400">筒高</p><p class="text-[10px] font-semibold text-gray-700" id="heightLabel">中筒</p></div>
         <div class="text-center"><p class="text-[8px] text-gray-400">起订</p><p class="text-[10px] font-semibold text-gray-700" id="moqLabel">50双</p></div>
       </div>
-      <div class="text-right"><p class="text-[8px] text-gray-400">预估单价</p><p class="text-grad font-bold text-[15px]" id="priceLabel">¥5.80</p></div>
+      <div class="flex items-end justify-between mt-2">
+        <p class="text-[9px] text-gray-400 leading-relaxed">尺码 <span class="text-gray-600 font-medium" id="sizeLabel">39-42</span> · 工艺 <span class="text-gray-600 font-medium" id="craftLabel">200针提花</span> · 配色 <span class="text-gray-600 font-medium" id="paletteLabel">纯色</span></p>
+        <div class="text-right shrink-0"><p class="text-[8px] text-gray-400">单价</p><p class="text-[10px] font-bold text-gray-500">待商户报价</p></div>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- ===== AI设计入口 ===== -->
-<div class="px-3 mt-3">
-  <div class="bg-white rounded-2xl shadow-soft p-3 flex items-center gap-3">
-    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0" style="background:linear-gradient(135deg,#7C3AED,#C084FC)"><i class="fas fa-wand-magic-sparkles"></i></div>
-    <div class="flex-1">
-      <p class="text-[13px] font-bold text-gray-800">AI智能设计</p>
-      <p class="text-[10px] text-gray-400">输入需求，大模型一键生成袜品设计方案</p>
+<!-- ===== AI 生成抽屉（辅助填参，不独立成方案） ===== -->
+<div id="aiOverlay" class="fixed top-0 bottom-0 bg-black/30" style="left:50%;margin-left:-196.5px;width:393px;display:none;z-index:310" onclick="closeAI()"></div>
+<div id="aiPanel" class="fixed bottom-0 bg-white rounded-t-3xl" style="left:50%;margin-left:-196.5px;width:393px;max-height:84vh;overflow-y:auto;transform:translateY(100%);transition:transform .3s ease;box-shadow:0 -10px 40px rgba(0,0,0,.14);z-index:320">
+  <div class="sticky top-0 bg-white px-4 pt-3 pb-2.5 border-b border-gray-50 z-10">
+    <div class="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-3"></div>
+    <div class="flex items-start justify-between">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white shrink-0" style="background:linear-gradient(135deg,#7C3AED,#C084FC)"><i class="fas fa-wand-magic-sparkles text-[12px]"></i></div>
+        <div>
+          <p class="text-[13px] font-bold text-gray-800">AI 生成设计方案</p>
+          <p class="text-[9px] text-gray-400">采用的方案会直接填入下方参数，可继续手动微调</p>
+        </div>
+      </div>
+      <a href="javascript:;" onclick="closeAI()" class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 shrink-0"><i class="fas fa-xmark text-[11px]"></i></a>
     </div>
-    <button class="card px-3 py-1.5 rounded-xl text-white text-[11px] font-bold" style="background:linear-gradient(135deg,#7C3AED,#C084FC)" onclick="toggleAI()">开始设计</button>
   </div>
-</div>
-
-<!-- ===== AI设计面板 ===== -->
-<div class="px-3 mt-2 ai-panel" id="aiPanel">
-  <div class="bg-white rounded-2xl shadow-soft p-3.5 fade-up">
-    <div class="flex items-center gap-2 mb-2.5">
-      <i class="fas fa-robot text-[12px]" style="color:#7C3AED"></i>
-      <span class="text-[12px] font-bold text-gray-800">AI设计助手</span>
-    </div>
-    <textarea class="w-full bg-gray-50 border border-gray-200 rounded-xl p-2.5 text-[12px] text-gray-700 outline-none resize-none" rows="2" placeholder="描述你想要的袜品风格，如：商务简约风，深蓝色系，透气网眼设计…"></textarea>
+  <div class="px-4 pt-3" style="padding-bottom:calc(28px + env(safe-area-inset-bottom))">
+    <textarea id="aiPrompt" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-2.5 text-[12px] text-gray-700 outline-none resize-none" rows="2" placeholder="描述你想要的袜品风格，如：商务简约风，深蓝色系，透气网眼设计…"></textarea>
     <div class="flex flex-wrap gap-1.5 mt-2">
-      <span class="text-[10px] text-gray-500 bg-gray-50 rounded px-2 py-1 cursor-pointer" onclick="toast('已填入：商务简约风')">商务简约风</span>
-      <span class="text-[10px] text-gray-500 bg-gray-50 rounded px-2 py-1 cursor-pointer" onclick="toast('已填入：运动潮流风')">运动潮流风</span>
-      <span class="text-[10px] text-gray-500 bg-gray-50 rounded px-2 py-1 cursor-pointer" onclick="toast('已填入：儿童卡通风')">儿童卡通风</span>
-      <span class="text-[10px] text-gray-500 bg-gray-50 rounded px-2 py-1 cursor-pointer" onclick="toast('已填入：节日限定款')">节日限定款</span>
+      <span class="text-[10px] text-gray-500 bg-gray-50 rounded px-2 py-1 cursor-pointer" onclick="fillPrompt('商务简约风，主色藏青配银灰条纹，透气网眼')">商务简约风</span>
+      <span class="text-[10px] text-gray-500 bg-gray-50 rounded px-2 py-1 cursor-pointer" onclick="fillPrompt('运动潮流风，荧光撞色，减震毛巾底')">运动潮流风</span>
+      <span class="text-[10px] text-gray-500 bg-gray-50 rounded px-2 py-1 cursor-pointer" onclick="fillPrompt('儿童卡通风，明快配色，无骨缝合不勒脚')">儿童卡通风</span>
+      <span class="text-[10px] text-gray-500 bg-gray-50 rounded px-2 py-1 cursor-pointer" onclick="fillPrompt('节日限定款，红金配色，礼盒包装')">节日限定款</span>
     </div>
-    <button class="card w-full mt-2.5 py-2 rounded-xl text-white text-[12px] font-bold" style="background:linear-gradient(135deg,#7C3AED,#C084FC)" onclick="aiGenerate()">生成设计方案</button>
-    <div class="mt-2.5 fade-up" id="aiResult" style="display:none">
-      <!-- AI生成效果图 -->
-      <div class="relative rounded-xl overflow-hidden mb-2.5" style="height:160px;background:linear-gradient(180deg,#ffffff 0%,#e8e8e8 100%)">
-        <img src="images/custom-preview-1.jpg" id="aiPreviewImg" class="w-full h-full object-contain">
-        <div class="absolute top-2 left-2 flex items-center gap-1 bg-purple-500/90 text-white text-[9px] font-medium px-2 py-0.5 rounded-full"><i class="fas fa-sparkles text-[8px]"></i>AI生成</div>
-        <button class="absolute bottom-2 right-2 bg-white/90 text-primary text-[10px] font-medium px-2 py-1 rounded-lg flex items-center gap-1" onclick="applyAIResult()"><i class="fas fa-check text-[8px]"></i>采用此方案</button>
-      </div>
-      <div class="p-2.5 bg-purple-50 rounded-xl text-[11px] text-gray-600 leading-relaxed">
-        <div class="flex items-center gap-1.5 mb-1.5"><i class="fas fa-lightbulb text-[11px] text-yellow-500"></i><span class="font-bold text-gray-700">AI推荐方案</span></div>
-        <div>风格：商务简约 · 主色：藏青+银灰条纹 · 材质：80S精梳棉 · 筒高：中筒</div>
-        <div>工艺：200针提花 · 网眼透气区 · 无骨缝头</div>
-        <div class="mt-1.5 text-primary font-medium">预估单价：¥5.80/双 · 起订量：50双 · 打样费：¥200</div>
-      </div>
+    <div class="flex gap-2 mt-2.5">
+      <button class="card flex-1 py-2.5 rounded-xl text-white text-[12px] font-bold" style="background:linear-gradient(135deg,#7C3AED,#C084FC)" onclick="aiGenerate()">生成方案</button>
+      <button class="card px-3 py-2.5 rounded-xl text-[12px] text-gray-500 bg-gray-100" onclick="resetPlan()">恢复默认</button>
+    </div>
+    <div class="mt-3" id="aiResult" style="display:none">
+      <p class="text-[10px] text-gray-400 mb-2">AI 已按你的描述生成 2 套参数，点击「采用」会同步到下方所有选项</p>
+      <div id="aiCandidates" class="space-y-2"></div>
     </div>
   </div>
 </div>
@@ -155,6 +151,15 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 <!-- ===== 参数配置区 ===== -->
 <div class="px-3 mt-3">
   <div class="bg-white rounded-2xl shadow-soft overflow-hidden">
+    <!-- 当前方案（与预览卡同源） -->
+    <div class="px-3.5 py-2.5 flex items-center justify-between" style="background:#FAFAFB;border-bottom:1px solid #F3F4F6">
+      <div class="flex items-center gap-1.5 min-w-0">
+        <i class="fas fa-sliders text-[10px] text-gray-400"></i>
+        <span class="text-[10px] text-gray-400 shrink-0">当前方案</span>
+        <span class="text-[10px] text-gray-700 font-medium truncate" id="planBar">藏青 · 精梳棉 · 经典条纹 · 中筒 · 39-42</span>
+      </div>
+      <span class="text-[9px] text-primary shrink-0 ml-2" onclick="resetPlan()">重置</span>
+    </div>
     <!-- 选项卡 -->
     <div class="opt-tab">
       <div class="on" onclick="switchOptTab(this,'optColor')">颜色款式</div>
@@ -180,10 +185,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
       </div>
       <p class="text-[11px] font-medium text-gray-500 mb-2">配色风格</p>
       <div class="flex flex-wrap gap-1.5">
-        <span class="pat-opt on text-[11px] text-gray-600" onclick="patSelect(this)">纯色</span>
-        <span class="pat-opt text-[11px] text-gray-600" onclick="patSelect(this)">撞色拼接</span>
-        <span class="pat-opt text-[11px] text-gray-600" onclick="patSelect(this)">渐变色</span>
-        <span class="pat-opt text-[11px] text-gray-600" onclick="patSelect(this)">莫兰迪</span>
+        <span class="pat-opt on text-[11px] text-gray-600" onclick="patSelect(this,'纯色')">纯色</span>
+        <span class="pat-opt text-[11px] text-gray-600" onclick="patSelect(this,'撞色拼接')">撞色拼接</span>
+        <span class="pat-opt text-[11px] text-gray-600" onclick="patSelect(this,'渐变色')">渐变色</span>
+        <span class="pat-opt text-[11px] text-gray-600" onclick="patSelect(this,'莫兰迪')">莫兰迪</span>
       </div>
     </div>
 
@@ -275,10 +280,117 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
         <span class="pat-opt text-[11px] text-gray-600" onclick="specSelect(this,'craft','108针')">108针</span>
       </div>
       <div class="flex items-center justify-between mb-1">
-        <span class="text-[10px] text-gray-400">起订数量</span>
+        <span class="text-[10px] text-gray-400">材质起订量</span>
         <span class="text-[10px] text-primary font-medium" id="moqVal">50双</span>
       </div>
-      <input type="range" min="50" max="1000" step="50" value="50" oninput="updateMoq(this)">
+      <p class="text-[9px] text-gray-400 leading-relaxed">起订量随所选材质自动变化；实际采购数量请在上方「需求信息」填写</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 需求信息（报价必需项） ===== -->
+<div class="px-3 mt-3">
+  <div class="bg-white rounded-2xl shadow-soft p-3.5">
+    <div class="flex items-center justify-between mb-2.5">
+      <span class="text-[13px] font-bold text-gray-800">需求信息</span>
+      <span class="text-[9px] text-red-500 bg-red-50 rounded px-1.5 py-0.5">* 为必填</span>
+    </div>
+
+    <label class="text-[11px] font-medium text-gray-500 block mb-1">需求名称 *</label>
+    <input id="demandTitle" maxlength="24" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-[12px] outline-none mb-3" placeholder="如：藏青条纹商务袜 · 企业年货款">
+
+    <label class="text-[11px] font-medium text-gray-500 block mb-1">采购数量 *</label>
+    <div class="flex items-center gap-2">
+      <input type="number" id="demandQty" value="500" min="50" step="50" oninput="onQtyInput(this)" class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-[12px] outline-none">
+      <span class="text-[12px] text-gray-500 shrink-0">双</span>
+    </div>
+    <p class="text-[10px] text-gray-400 mt-1" id="qtyHint">当前材质起订 50 双；阶梯价与总价由商户报价</p>
+
+    <label class="text-[11px] font-medium text-gray-500 block mt-3 mb-1">期望到货时间 *</label>
+    <div class="flex flex-wrap gap-1.5" id="needByList">
+      <span class="pat-opt text-[11px] text-gray-600" onclick="pickNeedBy(this,'15天内')">15天内</span>
+      <span class="pat-opt text-[11px] text-gray-600" onclick="pickNeedBy(this,'30天内')">30天内</span>
+      <span class="pat-opt text-[11px] text-gray-600" onclick="pickNeedBy(this,'45天内')">45天内</span>
+      <span class="pat-opt text-[11px] text-gray-600" onclick="pickNeedBy(this,'60天内')">60天内</span>
+      <span class="pat-opt text-[11px] text-gray-600" onclick="pickNeedBy(this,'待商议')">待商议</span>
+    </div>
+
+    <label class="text-[11px] font-medium text-gray-500 block mt-3 mb-1">包装要求</label>
+    <div class="flex flex-wrap gap-1.5" id="packList">
+      <span class="pat-opt on text-[11px] text-gray-600" onclick="pickPack(this,'标准包装')">标准包装</span>
+      <span class="pat-opt text-[11px] text-gray-600" onclick="pickPack(this,'独立包装')">独立包装</span>
+      <span class="pat-opt text-[11px] text-gray-600" onclick="pickPack(this,'定制吊牌')">定制吊牌</span>
+      <span class="pat-opt text-[11px] text-gray-600" onclick="pickPack(this,'贴牌代工')">贴牌代工</span>
+    </div>
+
+    <label class="text-[11px] font-medium text-gray-500 block mt-3 mb-1">参考图 / 设计稿（选填）</label>
+    <div class="flex items-center gap-2">
+      <input type="file" id="refImg" accept="image/*" class="hidden" onchange="onRefImg(this)">
+      <button onclick="document.getElementById('refImg').click()" class="card text-[11px] text-gray-600 px-3 py-2 rounded-xl shrink-0" style="border:1px dashed #D8DCE3"><i class="fas fa-image mr-1"></i>上传图片</button>
+      <span class="text-[10px] text-gray-400 truncate" id="refImgName">支持 jpg / png，≤5MB</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 定制方式 / 报价截止 / 收货地址 ===== -->
+<div class="px-3 mt-3">
+  <div class="bg-white rounded-2xl shadow-soft p-3.5">
+    <div class="flex items-center gap-2 mb-2">
+      <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white" style="background:linear-gradient(135deg,#7C3AED,#C084FC)"><i class="fas fa-list-check text-[11px]"></i></div>
+      <span class="text-[13px] font-bold text-gray-800">定制方式</span>
+      <span class="text-[9px] text-red-400 font-medium bg-red-50 rounded px-1.5 py-0.5">必选</span>
+    </div>
+    <div class="space-y-2" id="methodList">
+      <div class="mat-card" onclick="pickMethod(this,'sample','仅打样')">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-lg flex items-center justify-center text-white" style="background:linear-gradient(135deg,#38BDF8,#0EA5E9)"><i class="fas fa-flask text-[11px]"></i></div>
+          <div class="flex-1"><p class="text-[12px] font-bold text-gray-800">仅打样</p><p class="text-[10px] text-gray-400">先看样衣，确认后再决定是否大货</p></div>
+          <i class="far fa-circle text-gray-300 text-[14px]"></i>
+        </div>
+      </div>
+      <div class="mat-card" onclick="pickMethod(this,'bulk','直接大货')">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-lg flex items-center justify-center text-white" style="background:linear-gradient(135deg,#FB7185,#EC4899)"><i class="fas fa-boxes-stacked text-[11px]"></i></div>
+          <div class="flex-1"><p class="text-[12px] font-bold text-gray-800">直接大货</p><p class="text-[10px] text-gray-400">跳过打样，选标后直接生产（无样品费）</p></div>
+          <i class="far fa-circle text-gray-300 text-[14px]"></i>
+        </div>
+      </div>
+      <div class="mat-card" onclick="pickMethod(this,'both','先打样后大货')">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-lg flex items-center justify-center text-white" style="background:linear-gradient(135deg,#A78BFA,#7C3AED)"><i class="fas fa-arrow-right-arrow-left text-[11px]"></i></div>
+          <div class="flex-1"><p class="text-[12px] font-bold text-gray-800">先打样后大货</p><p class="text-[10px] text-gray-400">样衣确认后再下大货，样品费可抵大货款</p></div>
+          <i class="far fa-circle text-gray-300 text-[14px]"></i>
+        </div>
+      </div>
+    </div>
+    <p class="text-[10px] text-gray-400 mt-2 leading-relaxed">提交后由商户报价，<b>报价前不产生任何价格结论</b>；样品费由商户在报价时确定（免费 / 收费可抵 / 收费不可抵）。</p>
+
+    <div class="border-t border-gray-50 mt-3 pt-3">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-[12px] font-bold text-gray-800">报价截止</span>
+        <span class="text-[10px] text-gray-400">提交后不可延长</span>
+      </div>
+      <div class="flex flex-wrap gap-1.5" id="deadlineList">
+        <span class="pat-opt text-[11px] text-gray-600" onclick="pickDeadline(this,1)">1天</span>
+        <span class="pat-opt text-[11px] text-gray-600" onclick="pickDeadline(this,2)">2天</span>
+        <span class="pat-opt on text-[11px] text-gray-600" onclick="pickDeadline(this,3)">3天</span>
+        <span class="pat-opt text-[11px] text-gray-600" onclick="pickDeadline(this,4)">4天</span>
+        <span class="pat-opt text-[11px] text-gray-600" onclick="pickDeadline(this,5)">5天</span>
+        <span class="pat-opt text-[11px] text-gray-600" onclick="pickDeadline(this,6)">6天</span>
+        <span class="pat-opt text-[11px] text-gray-600" onclick="pickDeadline(this,7)">7天</span>
+      </div>
+    </div>
+
+    <div class="border-t border-gray-50 mt-3 pt-3" id="addrBlock">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-[12px] font-bold text-gray-800">收货地址 <span class="text-[#EF4444]">*</span></span>
+        <span class="text-[9px] text-gray-400">打样时同时作为寄样地址</span>
+        <span class="text-[10px] text-primary font-medium" onclick="switchAddr()">切换</span>
+      </div>
+      <div class="bg-gray-50 rounded-xl p-2.5">
+        <p class="text-[11.5px] font-medium text-gray-700" id="addrName">王建国 138****6688</p>
+        <p class="text-[10px] text-gray-500 mt-1 leading-relaxed" id="addrDetail">浙江省绍兴市诸暨市大唐街道袜业城 A 区 12 号档口</p>
+      </div>
     </div>
   </div>
 </div>
@@ -301,13 +413,13 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     </div>
     <div class="mt-3 p-2.5 bg-pink-50 rounded-xl flex items-start gap-2">
       <i class="fas fa-circle-info text-[#EC4899] text-[11px] mt-0.5"></i>
-      <p class="text-[10px] text-gray-600 leading-relaxed">小批量起订50双，支持多款式混批；打样费¥200（下单满500双可抵扣），打样周期3-5天，大货交期7-15天</p>
+      <p class="text-[10px] text-gray-600 leading-relaxed">小批量起订50双，支持多款式混批；<b>样品费由商户报价时确定</b>（免费 / 收费可抵大货 / 收费不可抵），打样周期3-5天，大货交期7-15天</p>
     </div>
   </div>
 </div>
 
 <!-- ===== 案例展示 ===== -->
-<div class="px-3 mt-3 mb-32">
+<div class="px-3 mt-3 mb-32" id="caseSection">
   <div class="flex items-center justify-between mb-2">
     <span class="text-[13px] font-bold text-gray-800">定制案例</span>
     <span class="text-[10px] text-gray-400" onclick="toast('查看更多案例')">查看更多 ›</span>
@@ -342,45 +454,54 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     <i class="fas fa-share-nodes text-[15px]"></i>
     <span class="text-[8px]">分享</span>
   </a>
-  <button class="card flex-1 rounded-full text-center font-bold text-[13px] py-2.5" style="background:#FFF0E8;color:#FF4D2D;border:1px solid #FFD4C5" onclick="requestSample()">申请打样</button>
-  <button class="card flex-1 rounded-full text-center font-bold text-[13px] py-2.5 text-white shadow-card" style="background:linear-gradient(135deg,#FB7185,#EC4899)" onclick="submitOrder()">立即下单</button>
+  <button class="card flex-1 rounded-full text-center font-bold text-[13px] py-2.5 text-white shadow-card" style="background:linear-gradient(135deg,#FB7185,#EC4899)" onclick="submitDemand()">提交定制需求</button>
 </div>
 <div class="fixed bottom-0 left-0 right-0 flex justify-center" style="z-index:101;width:393px;pointer-events:none"><div style="width:134px;height:5px;background:#1A1A2E;border-radius:3px;margin-bottom:2px"></div></div>
 
-<!-- 打样弹窗 -->
+<!-- 提交需求弹层 -->
 <div class="fixed inset-0 flex items-end justify-center" id="sampleMask" style="display:none;background:rgba(0,0,0,.5);z-index:200">
   <div class="bg-white rounded-t-3xl w-full p-4 fade-up" style="width:393px;padding-bottom:40px">
     <div class="w-10 h-1 rounded-full bg-gray-200 mx-auto mb-3"></div>
     <div class="flex items-center justify-between mb-3">
-      <p class="text-[15px] font-bold text-gray-900">申请打样</p>
+      <p class="text-[15px] font-bold text-gray-900">提交定制需求</p>
       <button class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-400" onclick="closeSample()"><i class="fas fa-xmark text-sm"></i></button>
     </div>
     <div class="bg-gray-50 rounded-xl p-3 mb-3">
+      <div class="flex justify-between text-[11px] mb-1.5"><span class="text-gray-500">需求名称</span><span class="text-gray-800 font-medium text-right" style="max-width:180px" id="summaryTitle">未填写</span></div>
       <div class="flex justify-between text-[11px] mb-1.5"><span class="text-gray-500">设计方案</span><span class="text-gray-800 font-medium" id="summaryDesign">藏青·条纹·精梳棉·中筒</span></div>
-      <div class="flex justify-between text-[11px] mb-1.5"><span class="text-gray-500">预估单价</span><span class="text-primary font-bold" id="summaryPrice">¥5.80/双</span></div>
-      <div class="flex justify-between text-[11px] mb-1.5"><span class="text-gray-500">起订数量</span><span class="text-gray-800 font-medium" id="summaryMoq">50双</span></div>
-      <div class="flex justify-between text-[11px]"><span class="text-gray-500">打样费</span><span class="text-gray-800 font-medium">¥200（满500双可抵扣）</span></div>
+      <div class="flex justify-between text-[11px] mb-1.5"><span class="text-gray-500">采购数量</span><span class="text-gray-800 font-medium" id="summaryMoq">500双</span></div>
+      <div class="flex justify-between text-[11px] mb-1.5"><span class="text-gray-500">期望到货</span><span class="text-gray-800 font-medium" id="summaryNeedBy">未选择</span></div>
+      <div class="flex justify-between text-[11px] mb-1.5"><span class="text-gray-500">包装要求</span><span class="text-gray-800 font-medium" id="summaryPack">标准包装</span></div>
+      <div class="flex justify-between text-[11px] mb-1.5"><span class="text-gray-500">定制方式</span><span class="text-gray-800 font-medium" id="summaryMethod">未选择</span></div>
+      <div class="flex justify-between text-[11px] mb-1.5"><span class="text-gray-500">报价截止</span><span class="text-gray-800 font-medium" id="summaryDeadline">3天</span></div>
+      <div class="flex justify-between text-[11px]"><span class="text-gray-500">样品费</span><span class="text-gray-800 font-medium text-right" style="max-width:170px">由商户报价时确定</span></div>
     </div>
-    <div class="mb-3">
-      <label class="text-[11px] text-gray-500 font-medium block mb-1.5">收货地址</label>
-      <input type="text" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-[12px] outline-none" placeholder="请输入打样收货地址">
+    <div class="mb-3" id="maskAddrWrap">
+      <label class="text-[11px] text-gray-500 font-medium block mb-1.5">收货地址 *（打样时同时作为寄样地址）</label>
+      <input type="text" id="sampleAddr" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-[12px] outline-none" placeholder="请输入打样收货地址">
     </div>
     <div class="mb-3">
       <label class="text-[11px] text-gray-500 font-medium block mb-1.5">备注说明</label>
-      <textarea class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-[12px] outline-none resize-none" rows="2" placeholder="补充说明你的定制需求细节…"></textarea>
+      <textarea id="sampleNote" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-[12px] outline-none resize-none" rows="2" placeholder="补充说明你的定制需求细节…"></textarea>
     </div>
-    <button class="card w-full py-3 rounded-2xl text-white text-[14px] font-bold shadow-card" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)" onclick="confirmSample()">确认申请 · 支付¥200打样费</button>
-    <p class="text-center text-[10px] text-gray-400 mt-2">打样周期3-5天，满意后可下单大货</p>
+    <button class="card w-full py-3 rounded-2xl text-white text-[14px] font-bold shadow-card" style="background:linear-gradient(135deg,#FF6B35,#FF4D2D)" onclick="confirmSample()">确认提交需求</button>
+    <p class="text-center text-[10px] text-gray-400 mt-2">提交后进入「我的定制需求」，商户报价后可对比选标</p>
   </div>
 </div>
 
-<!-- 下单成功弹窗 -->
+<!-- 提交成功弹窗 -->
 <div class="fixed inset-0 flex items-center justify-center" id="orderMask" style="display:none;background:rgba(0,0,0,.5);z-index:300">
-  <div class="bg-white rounded-3xl mx-6 p-6 text-center shadow-card" style="max-width:280px;animation:fadeUp .35s ease both">
+  <div class="bg-white rounded-3xl mx-6 p-6 text-center shadow-card" style="max-width:300px;animation:fadeUp .35s ease both">
     <div class="w-16 h-16 mx-auto rounded-full flex items-center justify-center" style="background:linear-gradient(135deg,#34D399,#10B981);box-shadow:0 8px 24px rgba(16,185,129,.3)"><i class="fas fa-check text-white text-2xl"></i></div>
-    <p class="text-[16px] font-bold text-gray-800 mt-4" id="successTitle">打样申请已提交</p>
-    <p class="text-[12px] text-gray-500 mt-1.5 leading-relaxed" id="successDesc">工作人员将在1个工作日内联系您<br>确认打样细节</p>
-    <a href="market-socks.html" class="card block w-full mt-4 py-2.5 rounded-xl text-white text-[13px] font-bold" style="background:linear-gradient(135deg,#FB7185,#EC4899)">返回袜子市场</a>
+    <p class="text-[16px] font-bold text-gray-800 mt-4" id="successTitle">需求已提交</p>
+    <p class="text-[12px] text-gray-500 mt-1.5 leading-relaxed" id="successDesc">已推送给匹配商户，等待报价</p>
+    <div class="bg-gray-50 rounded-xl p-2.5 mt-3 text-left">
+      <p class="text-[9px] text-gray-400">需求号</p>
+      <p class="text-[13px] font-bold text-gray-800 mt-0.5" id="successNo">CP20261110001</p>
+      <p class="text-[10px] text-gray-500 mt-1" id="successMethod">定制方式：先打样后大货 · 报价截止 3 天</p>
+    </div>
+    <a href="custom-demand.html" class="card block w-full mt-4 py-2.5 rounded-xl text-white text-[13px] font-bold" style="background:linear-gradient(135deg,#FB7185,#EC4899)">查看我的需求</a>
+    <a href="market-socks.html" class="block text-[11px] text-gray-400 mt-2.5">继续逛市场</a>
   </div>
 </div>
 
@@ -403,7 +524,7 @@ function pickColor(el,c,d,name){
   var s=el.parentElement.children;for(var i=0;i<s.length;i++)s[i].classList.remove('on');el.classList.add('on');
   curColorName=name;
   swapPreview(previewMap[name]||'images/custom-preview-1.jpg');
-  updateSummary();
+  markEdited();
 }
 function swapPreview(src){
   var img=document.getElementById('previewImg');
@@ -413,16 +534,59 @@ function swapPreview(src){
 }
 // 颜色风格选择
 function patSelect(el){el.parentElement.querySelectorAll('.pat-opt').forEach(function(e){e.classList.remove('on')});el.classList.add('on')}
-// 材质选择
+// 材质选择（curMoq = 该材质起订量，不是采购数量）
 var curMat='精梳棉',curPrice=5.80,curMoq=50;
 function matSelect(el,name,desc,price,moq){
   el.parentElement.querySelectorAll('.mat-card').forEach(function(e){var i=e.querySelector('i:last-child');i.className='far fa-circle text-gray-300 text-[14px]';e.classList.remove('on')});
   el.classList.add('on');var icon=el.querySelector('i:last-child');icon.className='fas fa-check-circle text-primary text-[14px]';
   curMat=name;curPrice=price;curMoq=moq;
   document.getElementById('matLabel').textContent=name;
-  document.getElementById('priceLabel').textContent='¥'+price.toFixed(2);
   document.getElementById('moqLabel').textContent=moq+'双';
+  var qi=document.getElementById('demandQty');
+  if(qi){qi.min=moq;if((parseInt(qi.value,10)||0)<moq){qi.value=moq;toast('该材质起订 '+moq+' 双，采购数量已调整为 '+moq+' 双');}}
+  syncQtyHint();
+  markEdited();
+}
+/* ===== 采购数量 / 期望到货 / 包装 / 参考图 ===== */
+var curQty=500,curNeedBy='',curPack='标准包装',curRefImg='';
+function syncQtyHint(){
+  var h=document.getElementById('qtyHint');
+  if(h)h.textContent='当前材质起订 '+curMoq+' 双；阶梯价与总价由商户报价';
+}
+function onQtyInput(el){
+  var v=parseInt(el.value,10)||0;
+  curQty=v;
+  var h=document.getElementById('qtyHint');
+  if(h&&v<curMoq){
+    h.style.color='#F59E0B';
+    h.textContent='采购数量低于该材质起订量 '+curMoq+' 双，请调整后再提交';
+  }else if(h){
+    h.style.color='';
+    h.textContent='当前材质起订 '+curMoq+' 双；阶梯价与总价由商户报价';
+  }
   updateSummary();
+}
+function pickNeedBy(el,val){
+  el.parentElement.querySelectorAll('.pat-opt').forEach(function(e){e.classList.remove('on')});
+  el.classList.add('on');curNeedBy=val;updateSummary();
+}
+function pickPack(el,val){
+  el.parentElement.querySelectorAll('.pat-opt').forEach(function(e){e.classList.remove('on')});
+  el.classList.add('on');curPack=val;
+}
+function onRefImg(el){
+  var f=el.files&&el.files[0];
+  if(!f)return;
+  if(f.size>5*1024*1024){toast('图片不能超过 5MB');el.value='';return;}
+  curRefImg=f.name;
+  document.getElementById('refImgName').textContent=f.name;
+  toast('已选择 '+f.name);
+}
+/* 风格词一键填入 AI 描述 */
+function fillPrompt(t){
+  var el=document.getElementById('aiPrompt');
+  if(el){el.value=t;el.focus();}
+  toast('已填入风格描述');
 }
 // 图案风格 — 切换预览图
 var curPatStyle='stripe',curPatName='经典条纹';
@@ -430,9 +594,15 @@ var patPreviewMap={'stripe':'images/custom-preview-1.jpg','dot':'images/custom-p
 function patStyleSelect(el,type,name){
   el.parentElement.querySelectorAll('.pat-opt').forEach(function(e){e.classList.remove('on')});el.classList.add('on');
   curPatStyle=type;curPatName=name;
-  document.getElementById('styleLabel').textContent=name;
   swapPreview(patPreviewMap[type]||'images/custom-preview-1.jpg');
-  updateSummary();
+  markEdited();
+}
+/* 配色风格（与图案同级，同属参数） */
+var curPalette='纯色';
+function patSelect(el,val){
+  el.parentElement.querySelectorAll('.pat-opt').forEach(function(e){e.classList.remove('on')});el.classList.add('on');
+  curPalette=val||el.textContent.trim();
+  markEdited();
 }
 // 透明度
 function updateOpacity(el){document.getElementById('opacityVal').textContent=el.value+'%'}
@@ -442,57 +612,290 @@ function updateDensity(el){var labels=['低','中','高'];document.getElementByI
 var curHeight='中筒',curSize='39-42',curCraft='200针提花';
 function specSelect(el,cat,val){
   el.parentElement.querySelectorAll('.pat-opt').forEach(function(e){e.classList.remove('on')});el.classList.add('on');
-  if(cat==='height'){curHeight=val;document.getElementById('heightLabel').textContent=val}
+  if(cat==='height')curHeight=val;
   else if(cat==='craft')curCraft=val;
   else if(cat==='size')curSize=val;
+  markEdited();
+}
+
+// ===== 定制方式 / 报价截止 / 收货地址 =====
+var curMethod='',curMethodName='',curDeadline=3;
+var ADDRS=[
+  {n:'王建国 138****6688',d:'浙江省绍兴市诸暨市大唐街道袜业城 A 区 12 号档口'},
+  {n:'李小红 139****2233',d:'浙江省绍兴市诸暨市大唐街道袜业城 B 区 06 号档口'}
+];
+var addrIdx=0;
+
+function pickMethod(el,key,name){
+  var list=document.getElementById('methodList').children;
+  for(var i=0;i<list.length;i++){
+    list[i].classList.remove('on');
+    var ic=list[i].querySelector('i:last-child');
+    if(ic)ic.className='far fa-circle text-gray-300 text-[14px]';
+  }
+  el.classList.add('on');
+  var icon=el.querySelector('i:last-child');
+  if(icon)icon.className='fas fa-check-circle text-primary text-[14px]';
+  curMethod=key;curMethodName=name;
+  /* 收货地址与定制方式无关，始终需要（大货用于报运费，打样同时作寄样地址） */
+  var inp=document.getElementById('sampleAddr');
+  if(inp&&!inp.value)inp.value=ADDRS[addrIdx].n+' '+ADDRS[addrIdx].d;
   updateSummary();
 }
-// 起订量
-function updateMoq(el){var v=el.value;document.getElementById('moqVal').textContent=v+'双';document.getElementById('moqLabel').textContent=v+'双';curMoq=parseInt(v);updateSummary()}
+function pickDeadline(el,d){
+  el.parentElement.querySelectorAll('.pat-opt').forEach(function(e){e.classList.remove('on')});
+  el.classList.add('on');
+  curDeadline=d;updateSummary();
+}
+function switchAddr(){
+  addrIdx=(addrIdx+1)%ADDRS.length;
+  var a=ADDRS[addrIdx];
+  document.getElementById('addrName').textContent=a.n;
+  document.getElementById('addrDetail').textContent=a.d;
+  var inp=document.getElementById('sampleAddr');if(inp)inp.value=a.n+' '+a.d;
+  toast('已切换收货地址');
+}
 // 汇总
 function updateSummary(){
-  var s=curColorName+'·'+curPatName+'·'+curMat+'·'+curHeight;
+  var s=curColorName+'·'+curPalette+'·'+curPatName+'·'+curMat+'·'+curHeight;
   var sm=document.getElementById('summaryDesign');if(sm)sm.textContent=s;
-  var sp=document.getElementById('summaryPrice');if(sp)sp.textContent='¥'+curPrice.toFixed(2)+'/双';
-  var mq=document.getElementById('summaryMoq');if(mq)mq.textContent=curMoq+'双';
+  var mq=document.getElementById('summaryMoq');if(mq)mq.textContent=curQty+'双';
+  var md=document.getElementById('summaryMethod');if(md)md.textContent=curMethodName||'未选择';
+  var dl=document.getElementById('summaryDeadline');if(dl)dl.textContent=curDeadline+'天';
+  var ti=document.getElementById('summaryTitle');
+  if(ti)ti.textContent=(document.getElementById('demandTitle')||{}).value||'未填写';
+  var nb=document.getElementById('summaryNeedBy');if(nb)nb.textContent=curNeedBy||'未选择';
+  var pk=document.getElementById('summaryPack');if(pk)pk.textContent=curPack;
 }
-// AI面板
-function toggleAI(){var p=document.getElementById('aiPanel');p.classList.toggle('on')}
-function aiGenerate(){
-  toast('AI正在生成设计方案…');
-  var ov=document.getElementById('loadingOverlay');ov.style.opacity='1';
-  setTimeout(function(){
-    ov.style.opacity='0';
-    document.getElementById('aiResult').style.display='block';
-    document.getElementById('aiPreviewImg').src='images/custom-preview-1.jpg';
-    toast('AI方案已生成');
-  },1500);
+/* ===== 方案状态：AI 与手动共用同一套参数（唯一数据源） ===== */
+var planSource='manual';   // manual | ai | edited
+function markEdited(){
+  if(planSource==='ai')planSource='edited';
+  syncUI();
 }
-function applyAIResult(){
-  document.getElementById('previewImg').src='images/custom-preview-1.jpg';
-  document.getElementById('styleLabel').textContent='AI推荐方案';
-  curPatName='AI推荐方案';
+/* 按选项文案高亮：chip 的 onclick 里带着各自的取值 */
+function markOn(sel,val){
+  var list=document.querySelectorAll(sel);
+  for(var i=0;i<list.length;i++){
+    var oc=list[i].getAttribute('onclick')||'';
+    list[i].classList.toggle('on',oc.indexOf(val)>-1);
+  }
+}
+/* 单一渲染入口：预览卡 + 方案条 + 提交摘要 */
+function syncUI(){
+  var set=function(id,v){var e=document.getElementById(id);if(e)e.textContent=v;};
+  set('colorLabel',curColorName);
+  set('matLabel',curMat);
+  set('patLabel',curPatName);
+  set('heightLabel',curHeight);
+  set('moqLabel',curMoq+'双');
+  set('sizeLabel',curSize);
+  set('craftLabel',curCraft);
+  set('paletteLabel',curPalette);
+  set('styleLabel',curPatName);
+  var bar=document.getElementById('planBar');
+  if(bar)bar.textContent=curColorName+' · '+curMat+' · '+curPatName+' · '+curHeight+' · '+curSize;
+  var src=document.getElementById('planSource');
+  if(src){
+    if(planSource==='ai'){src.textContent='AI 方案';src.style.background='#F3E8FF';src.style.color='#7C3AED';}
+    else if(planSource==='edited'){src.textContent='AI 方案 · 已手动调整';src.style.background='#FEF3C7';src.style.color='#B45309';}
+    else {src.textContent='手动配置';src.style.background='#F3F4F6';src.style.color='#6B7280';}
+  }
   updateSummary();
-  toast('已应用AI设计方案');
-  document.getElementById('aiPanel').classList.remove('on');
-  window.scrollTo({top:0,behavior:'smooth'});
 }
-// 打样
-function requestSample(){updateSummary();document.getElementById('sampleMask').style.display='flex'}
+
+/* ===== AI 候选方案：每组都是一套完整参数 + 一张效果图 ===== */
+var PLANS=[
+  {name:'商务简约 · 通勤款',img:'images/custom-preview-1.jpg',
+   color:'藏青',mat:'精梳棉',matPrice:5.80,moq:50,pat:'经典条纹',patStyle:'stripe',palette:'纯色',
+   height:'中筒',size:'39-42',craft:'200针提花',
+   reason:'低饱和藏青 + 细条纹，200 针提花保证挺括感，适合企业通勤批量采购'},
+  {name:'运动潮流 · 撞色款',img:'images/custom-preview-2.jpg',
+   color:'蓝',mat:'Coolmax',matPrice:7.20,moq:50,pat:'几何',patStyle:'geo',palette:'撞色拼接',
+   height:'短筒',size:'39-42',craft:'168针',
+   reason:'Coolmax 速干纤维 + 撞色几何，短筒贴脚，适合运动场景与年轻客群'}
+];
+function renderCandidates(){
+  var box=document.getElementById('aiCandidates');
+  if(!box)return;
+  box.innerHTML=PLANS.map(function(p,i){
+    var tags=['主色 '+p.color,'材质 '+p.mat,'图案 '+p.pat,'筒高 '+p.height,'工艺 '+p.craft]
+      .map(function(t){return '<span class="text-[9px] text-gray-600 bg-white rounded px-1.5 py-0.5">'+t+'</span>';}).join('');
+    return '<div class="rounded-2xl overflow-hidden" style="border:1px solid #EDE9FE">'
+      +'<div class="flex gap-2.5 p-2.5" style="background:#FAF5FF">'
+      +'<img src="'+p.img+'" class="w-16 h-16 rounded-xl object-cover shrink-0" style="background:#fff">'
+      +'<div class="flex-1 min-w-0">'
+      +'<div class="flex items-center gap-1.5"><span class="text-[11px] font-bold text-gray-800">'+p.name+'</span>'
+      +'<span class="text-[8px] text-white px-1.5 py-0.5 rounded-full" style="background:#7C3AED">AI</span></div>'
+      +'<p class="text-[9px] text-gray-500 mt-1 leading-relaxed">'+p.reason+'</p>'
+      +'</div></div>'
+      +'<div class="px-2.5 py-2 flex flex-wrap gap-1">'+tags+'</div>'
+      +'<div class="px-2.5 pb-2.5"><button onclick="applyPlan('+i+')" class="w-full py-2 rounded-xl text-white text-[11px] font-bold" style="background:linear-gradient(135deg,#7C3AED,#C084FC)">采用这套参数</button></div>'
+      +'</div>';
+  }).join('');
+}
+function applyPlan(i){
+  var p=PLANS[i];
+  if(!p)return;
+  var run=function(){
+    curColorName=p.color;curMat=p.mat;curPrice=p.matPrice;curMoq=p.moq;
+    curPatName=p.pat;curPatStyle=p.patStyle;curPalette=p.palette;
+    curHeight=p.height;curSize=p.size;curCraft=p.craft;
+    markOn('#optColor .color-swatch',p.color);
+    markOn('#optMaterial .mat-card',p.mat);
+    markOn('#optPattern .pat-opt',p.pat);
+    markOn('#optColor .pat-opt',p.palette);
+    markOn('#optSpec .pat-opt',p.height);
+    markOn('#optSpec .pat-opt',p.size);
+    markOn('#optSpec .pat-opt',p.craft);
+    var img=document.getElementById('previewImg');
+    if(img)img.src=p.img;
+    var qi=document.getElementById('demandQty');
+    if(qi){qi.min=p.moq;if((parseInt(qi.value,10)||0)<p.moq)qi.value=p.moq;}
+    planSource='ai';
+    syncUI();
+    closeAI();
+    window.scrollTo({top:0,behavior:'smooth'});
+    toast('已采用「'+p.name+'」，下方参数已同步，可继续微调');
+  };
+  if(planSource==='edited'){
+    askConfirm('采用这套参数会覆盖你刚才的手动调整，是否继续？',run);
+  }else{
+    run();
+  }
+}
+function resetPlan(){
+  curColorName='藏青';curMat='精梳棉';curPrice=5.80;curMoq=50;
+  curPatName='经典条纹';curPatStyle='stripe';curPalette='纯色';
+  curHeight='中筒';curSize='39-42';curCraft='200针提花';
+  markOn('#optColor .color-swatch','藏青');
+  markOn('#optMaterial .mat-card','精梳棉');
+  markOn('#optPattern .pat-opt','经典条纹');
+  markOn('#optColor .pat-opt','纯色');
+  markOn('#optSpec .pat-opt','中筒');
+  markOn('#optSpec .pat-opt','39-42');
+  markOn('#optSpec .pat-opt','200针提花');
+  var img=document.getElementById('previewImg');
+  if(img)img.src='images/custom-preview-1.jpg';
+  var qi=document.getElementById('demandQty');
+  if(qi)qi.value=500;
+  planSource='manual';
+  syncUI();
+  closeAI();
+  window.scrollTo({top:0,behavior:'smooth'});
+  toast('已恢复默认方案');
+}
+/* ===== AI 抽屉 ===== */
+function openAI(){
+  var o=document.getElementById('aiOverlay'),p=document.getElementById('aiPanel');
+  if(!o||!p)return;
+  o.style.display='block';
+  requestAnimationFrame(function(){p.style.transform='translateY(0)';});
+  document.body.style.overflow='hidden';
+}
+function closeAI(){
+  var o=document.getElementById('aiOverlay'),p=document.getElementById('aiPanel');
+  if(!o||!p)return;
+  p.style.transform='translateY(100%)';
+  document.body.style.overflow='';
+  setTimeout(function(){o.style.display='none';},300);
+}
+function toggleAI(){
+  var o=document.getElementById('aiOverlay');
+  if(o&&o.style.display==='block'){closeAI();}else{openAI();}
+}
+function aiGenerate(){
+  var tip=(document.getElementById('aiPrompt')||{}).value||'';
+  if(!tip.trim()){toast('请先描述你想要的风格');return;}
+  toast('AI 正在生成设计方案…');
+  var ov=document.getElementById('loadingOverlay');
+  if(ov)ov.style.opacity='1';
+  setTimeout(function(){
+    if(ov)ov.style.opacity='0';
+    var r=document.getElementById('aiResult');
+    if(r)r.style.display='block';
+    renderCandidates();
+    toast('已生成 2 套方案，任选一套采用');
+  },1200);
+}
+/* 轻量确认弹窗 */
+function askConfirm(msg,onOk){
+  var d=document.createElement('div');
+  d.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:350;display:flex;align-items:center;justify-content:center;padding:0 44px';
+  d.innerHTML='<div style="background:#fff;border-radius:20px;padding:18px 16px;width:100%;max-width:300px;text-align:center">'
+    +'<p style="font-size:13px;font-weight:700;color:#1F2937;line-height:1.55">'+msg+'</p>'
+    +'<div style="display:flex;gap:8px;margin-top:16px">'
+    +'<button id="acNo" style="flex:1;padding:9px 0;border-radius:999px;background:#F3F4F6;color:#6B7280;font-size:12px">取消</button>'
+    +'<button id="acYes" style="flex:1;padding:9px 0;border-radius:999px;color:#fff;font-size:12px;font-weight:700;background:linear-gradient(135deg,#FF6B4A,#FF2D78)">确定覆盖</button>'
+    +'</div></div>';
+  document.body.appendChild(d);
+  d.querySelector('#acNo').onclick=function(){d.remove();};
+  d.querySelector('#acYes').onclick=function(){d.remove();onOk();};
+}
+// 提交定制需求（唯一入口）
+function validateDemand(){
+  var tiEl=document.getElementById('demandTitle');
+  if(!tiEl||!tiEl.value.trim()){toast('请填写需求名称');return false;}
+  var qEl=document.getElementById('demandQty');
+  var q=parseInt(qEl?qEl.value:'',10)||0;
+  if(q<curMoq){toast('采购数量不得低于该材质起订量 '+curMoq+' 双');return false;}
+  if(!curNeedBy){toast('请选择期望到货时间');return false;}
+  if(!curMethod){toast('请选择定制方式');return false;}
+  return true;
+}
+function submitDemand(){
+  if(!validateDemand())return;
+  curQty=parseInt(document.getElementById('demandQty').value,10)||curMoq;
+  var inp=document.getElementById('sampleAddr');
+  if(inp&&!inp.value.trim())inp.value=ADDRS[addrIdx].n+' '+ADDRS[addrIdx].d;
+  updateSummary();
+  document.getElementById('sampleMask').style.display='flex';
+}
 function closeSample(){document.getElementById('sampleMask').style.display='none'}
 function confirmSample(){
+  if(!validateDemand())return;
+  var addrInp=document.getElementById('sampleAddr');
+  if(!addrInp||!addrInp.value.trim()){toast('请填写收货地址');return;}
+  /* 参数快照：结构化存储，后续 SP/CZ/商户端读同一份 */
+  var snapshot={
+    type:'CP',
+    color:curColorName,
+    patStyle:curPatStyle,
+    pattern:curPatName,
+    material:curMat,
+    opacity:(document.getElementById('opacityVal')||{}).textContent,
+    density:(document.getElementById('densityVal')||{}).textContent,
+    height:curHeight,
+    size:curSize,
+    craft:curCraft,
+    title:((document.getElementById('demandTitle')||{}).value||''),
+    palette:curPalette,
+    planSource:planSource,
+    qty:curQty,
+    qtyMin:curMoq,
+    needBy:curNeedBy,
+    packaging:curPack,
+    refImg:curRefImg,
+    method:curMethod,
+    methodName:curMethodName,
+    deadlineDays:curDeadline,
+    addr:((document.getElementById('sampleAddr')||{}).value||''),
+    note:((document.getElementById('sampleNote')||{}).value||''),
+    designId:'DS-'+curPatStyle+'-01',
+    createdAt:Date.now()
+  };
+  var d=new Date(),pad=function(n){return n<10?'0'+n:''+n};
+  var no='CP'+d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+String(Math.floor(Math.random()*900+100));
+  snapshot.no=no;
+  try{localStorage.setItem('mai_last_cp',JSON.stringify(snapshot));}catch(e){}
   document.getElementById('sampleMask').style.display='none';
-  document.getElementById('successTitle').textContent='打样申请已提交';
-  document.getElementById('successDesc').innerHTML='工作人员将在1个工作日内联系您<br>确认打样细节';
+  document.getElementById('successNo').textContent=no;
+  document.getElementById('successTitle').textContent='需求已提交';
+  document.getElementById('successDesc').innerHTML='已推送给匹配商户，等待报价<br>可在「我的定制需求」查看报价进度';
+  document.getElementById('successMethod').textContent='定制方式：'+curMethodName+' · 报价截止 '+curDeadline+' 天';
   document.getElementById('orderMask').style.display='flex';
 }
-// 下单
-function submitOrder(){
-  document.getElementById('successTitle').textContent='定制订单已提交';
-  document.getElementById('successDesc').innerHTML='设计方案：'+curColorName+'·'+curPatName+'·'+curMat+'<br>数量：'+curMoq+'双 · 合计¥'+(curPrice*curMoq).toFixed(0);
-  document.getElementById('orderMask').style.display='flex';
-}
-updateSummary();
+syncUI();
 </script>
 <script src="../shared/page-prd.js?v=20261023j"></script>
 </body>

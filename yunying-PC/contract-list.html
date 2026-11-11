@@ -366,7 +366,8 @@ function previewDoc(kind){
   if(kind==='text'){
     body='<div class="blk"><p class="text-[12px] leading-7 text-[#334155]">'
       +'甲方（出租方）：诸暨市大唐袜业城管理有限公司<br>'
-      +'乙方（承租方）：'+esc(c.name)+(c.ptype==='企业'?'（'+esc(c.uscc||'信用代码待补')+'）':'')+'<br>'
+      +'乙方（承租方）：'+esc(c.name)+(c.ptype==='企业'?'　社会信用代码：'+esc(c.uscc||'（待补）')+'　法定代表人身份证号：'+esc(c.idno?maskId(c.idno):'（待补·须补录后重签）'):'　社会信用代码（身份证号码）：'+esc(c.idno?maskId(c.idno):'（待补·须补录后重签）'))+'<br>'
+      +'联系人 / 联系电话：'+esc(c.contact||c.name)+'　'+esc(c.phone||'（待补）')+'<br>'
       +'租赁资源：'+esc(c.stall)+'（档口 '+(c.gate?esc(c.gate):'待映射')+'）　面积 '+esc(c.area)+' ㎡<br>'
       +'租赁期限：'+esc(c.start)+' ~ '+esc(c.end)+'<br>'
       +'年租金：'+money(c.rent)+' 元　总租金：'+money(c.rent*LV[c.lv].years)+' 元（'+LV[c.lv].years+' 个租赁年度）<br>'
@@ -440,7 +441,7 @@ function openD(no){
     +(c.ptype==='企业'
       ?'<div class="kv"><span class="k">统一社会信用代码</span><span class="v">'+esc(c.uscc||'（待补）')+'</span></div>'
        +'<div class="kv"><span class="k">法定代表人 / 联系人</span><span class="v">'+esc(c.contact||'—')+'　'+esc(c.phone||'')+'</span></div>'
-      :'<div class="kv"><span class="k">身份证号</span><span class="v">'+(c.idno?esc(maskId(c.idno)):'<input class="fi" id="inIdno" placeholder="补录身份证号（补录后自动重匹配 02 并升级 04 档案）" style="width:200px"> <button class="btn btn-ghost" onclick="fillIdno()">保存</button>')+'</span></div>'
+      :'<div class="kv"><span class="k">身份证号</span><span class="v">'+(c.idno?esc(maskId(c.idno)):(c.status==='待映射'?'<input class="fi" id="inIdno" placeholder="补录身份证号（补录后自动重匹配 02 并升级 04 档案）" style="width:200px"> <button class="btn btn-ghost" onclick="fillIdno()">保存</button>':'<span class="tag" style="background:#FEF3C7;color:#B45309">身份待补全</span> <span class="lk" onclick="idnoBlocked()">补录</span>'))+'</span></div>'
        +'<div class="kv"><span class="k">联系电话</span><span class="v">'+esc(c.phone||'（待补）')+'</span></div>')
     +'<div class="kv"><span class="k">出租面积</span><span class="v">'+esc(c.area)+' ㎡</span></div>'
     +'<div class="kv"><span class="k">租赁期限</span><span class="v">'+esc(c.start)+' ~ '+esc(c.end)+'</span></div>'
@@ -529,6 +530,16 @@ function openD(no){
     +'<button class="btn btn-ghost" onclick="gotoChange(\''+c.no+'\')"><i class="fas fa-pen-to-square text-[10px] mr-1"></i>变更</button>'
     +'<button class="btn btn-primary" onclick="previewDoc(\'plan\')"><i class="fas fa-calendar-check text-[10px] mr-1"></i>查看应收计划</button></div>';
   show('drawer',h);
+}
+/* v1.17：签署中 / 已存档不允许后台直改证件号（K-53），按状态引导正确路径 */
+function idnoBlocked(){
+  var c=CS.filter(function(x){return x.no===curNo;})[0];
+  if(!c){return;}
+  if(c.status==='待签署'||c.status==='生效中'||c.status==='变更中'){
+    toast('该合同已在签署中或已存档，不能直接改证件号：签署中请先「撤回」退回待发起后重新生成；已存档请走「变更」补录并重签');
+  }else{
+    toast('该合同当前状态为「'+c.status+'」，不支持补录证件号');
+  }
 }
 function fillIdno(){
   var v=document.getElementById('inIdno').value.trim();

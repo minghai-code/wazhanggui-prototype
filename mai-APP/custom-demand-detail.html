@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>定制需求详情 - 袜掌柜买家版</title>
+<link rel="stylesheet" href="tailwind.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;margin:0;background:#F6F7FA;width:393px;overflow-x:hidden}
+*{-webkit-tap-highlight-color:transparent}
+.card{background:#fff}
+.badge{font-size:9.5px;font-weight:700;padding:3px 8px;border-radius:999px}
+.b-quote{color:#B45309;background:#FEF3C7}
+.b-sel{color:#1D4ED8;background:#DBEAFE}
+.b-deal{color:#047857;background:#D1FAE5}
+.b-close{color:#6B7280;background:#F1F2F5}
+.spec{display:flex;justify-content:space-between;font-size:11px;padding:3px 0}
+.spec span:first-child{color:#8A93A3}
+.spec span:last-child{color:#2A2F3A;font-weight:600}
+.q{background:#fff;border-radius:16px;padding:12px;margin-bottom:9px;border:1.5px solid transparent;position:relative}
+.q.win{border-color:#FF4D2D;box-shadow:0 6px 18px rgba(255,77,45,.12)}
+.q.lose{opacity:.62}
+.chip-sort{font-size:10.5px;color:#5A6270;background:#fff;border:1px solid #EDEFF3;border-radius:999px;padding:4px 10px;cursor:pointer}
+.chip-sort.on{color:#fff;background:#1F2430;border-color:#1F2430;font-weight:700}
+.tag{font-size:9px;padding:2px 6px;border-radius:5px;font-weight:700}
+.t-free{color:#047857;background:#D1FAE5}
+.t-ded{color:#1D4ED8;background:#DBEAFE}
+.t-noded{color:#9A3412;background:#FFEDD5}
+.price{font-size:19px;font-weight:900;color:#FF4D2D;line-height:1}
+.price small{font-size:10px;font-weight:600}
+.mask{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.5);z-index:200}
+.mask.on{display:flex}
+.toast{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.9);background:rgba(0,0,0,.82);color:#fff;font-size:12px;padding:10px 16px;border-radius:10px;opacity:0;pointer-events:none;transition:.2s;z-index:99;max-width:78%;text-align:center;line-height:1.5}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+</style>
+</head>
+<body>
+
+<div class="fixed top-0 left-0 right-0 bg-white border-b border-gray-100 flex items-center justify-between px-3" style="width:393px;z-index:50;padding-top:44px;padding-bottom:8px">
+  <a href="custom-demand.html" class="w-8 h-8 flex items-center justify-center text-gray-600"><i class="fas fa-chevron-left"></i></a>
+  <p class="text-[15px] font-bold text-gray-800">需求详情</p>
+  <span class="w-8"></span>
+</div>
+
+<div style="padding-top:88px;padding-bottom:110px" id="page"></div>
+
+<div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-3" style="width:393px;z-index:100;padding:9px 12px 20px" id="bar"></div>
+
+<!-- 选标确认 -->
+<div class="mask" id="winMask">
+  <div class="bg-white rounded-3xl p-5 text-center" style="width:300px">
+    <div class="w-12 h-12 mx-auto rounded-full flex items-center justify-center" style="background:linear-gradient(135deg,#FBBF24,#F59E0B)"><i class="fas fa-trophy text-white text-lg"></i></div>
+    <p class="text-[15px] font-bold text-gray-800 mt-3">确认选此商户？</p>
+    <p class="text-[11px] text-gray-500 mt-1.5 leading-relaxed" id="winTip">选中后其余报价将自动落选，<br>需在 48 小时内支付，超时需求自动关闭</p>
+    <div class="bg-gray-50 rounded-xl p-2.5 mt-3 text-left">
+      <p class="text-[12px] font-bold text-gray-800" id="winShop">大唐精工袜业</p>
+      <p class="text-[10px] text-gray-500 mt-1" id="winPrice">¥3.20/双 · 交期 12 天</p>
+      <p class="text-[10px] text-gray-500 mt-0.5" id="winSample">样品费：¥50/件，可抵大货款</p>
+    </div>
+    <div class="flex gap-2 mt-4">
+      <button class="flex-1 py-2.5 rounded-xl bg-gray-100 text-[12px] font-bold text-gray-600" onclick="closeWin()">再看看</button>
+      <button class="flex-1 py-2.5 rounded-xl text-white text-[12px] font-bold" style="background:linear-gradient(135deg,#FB7185,#EC4899)" onclick="doWin()">确认选标</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var DATA={
+  'CP20261110001':{
+    no:'CP20261110001',type:'cp',status:'deal',title:'藏青条纹商务袜 · 精梳棉',
+    img:'images/sock_02.jpg',qty:'500 双',method:'先打样后大货',deadline:'2026-11-09 18:00',
+    addr:'王建国 138****6688 浙江省绍兴市诸暨市大唐街道袜业城 A 区 12 号档口',
+    spec:[['颜色','藏青'],['工艺','条纹'],['材质','精梳棉 200针'],['透明度','不透'],['密度','200针'],['袜筒','中筒'],['尺码','39-44 均码'],['工艺要求','加固脚跟']],
+    orderNo:'CZ20261110001',
+    quotes:[
+      {shop:'大唐精工袜业',v:'企业认证',price:3.2,ladder:'500-999双 ¥3.20；≥2000双 ¥2.95',deliver:12,sample:'ded',fee:50,moq:500,note:'含税，50双起订，7天出样；样衣确认后15天交货。',score:4.9,sold:326,win:true},
+      {shop:'诸暨华康针织',v:'实力工厂',price:3.05,ladder:'500-999双 ¥3.05；≥2000双 ¥2.80',deliver:15,sample:'free',fee:0,moq:500,freeCond:'大货 ≥500 双，且需先完成样衣确认',note:'样品免费，运费到付；大货支持混色混码。',score:4.7,sold:198,lose:true},
+      {shop:'袜都智造',v:'企业认证',price:3.45,ladder:'500双起 ¥3.45，不设阶梯',deliver:10,sample:'noded',fee:60,moq:800,note:'快返小单优先排产，样品费不抵大货。',score:4.6,sold:412,lose:true}
+    ]
+  },
+  'CP20261111001':{
+    no:'CP20261111001',type:'cp',status:'quote',title:'藏青条纹商务袜 · 精梳棉（新一批）',
+    img:'images/sock_02.jpg',qty:'500 双',method:'先打样后大货',deadline:'2026-11-13 18:00',
+    addr:'王建国 138****6688 浙江省绍兴市诸暨市大唐街道袜业城 A 区 12 号档口',
+    spec:[['颜色','藏青'],['工艺','条纹'],['材质','精梳棉 200针'],['透明度','不透'],['密度','200针'],['袜筒','中筒'],['尺码','39-44 均码'],['工艺要求','加固脚跟']],
+    quotes:[
+      {shop:'大唐精工袜业',v:'企业认证',price:3.2,ladder:'500-999双 ¥3.20；≥2000双 ¥2.95',deliver:12,sample:'ded',fee:50,moq:500,note:'含税，50双起订，7天出样；样衣确认后15天交货。',score:4.9,sold:326},
+      {shop:'诸暨华康针织',v:'实力工厂',price:3.05,ladder:'500-999双 ¥3.05；≥2000双 ¥2.80',deliver:15,sample:'free',fee:0,moq:500,freeCond:'大货 ≥500 双，且需先完成样衣确认',note:'样品免费，运费到付；大货支持混色混码。',score:4.7,sold:198},
+      {shop:'袜都智造',v:'企业认证',price:3.45,ladder:'500双起 ¥3.45，不设阶梯',deliver:10,sample:'noded',fee:60,moq:800,note:'快返小单优先排产，样品费不抵大货。',score:4.6,sold:412}
+    ]
+  },
+  'CP20261108002':{
+    no:'CP20261108002',type:'cp',status:'quote',title:'运动压缩袜 · Coolmax',
+    img:'images/sock_05.jpg',qty:'1,000 双',method:'仅打样',deadline:'2026-11-11 02:00',
+    addr:'王建国 138****6688 浙江省绍兴市诸暨市大唐街道袜业城 A 区 12 号档口',
+    spec:[['颜色','黑灰'],['工艺','拼色'],['材质','Coolmax 速干'],['透明度','不透'],['密度','168针'],['袜筒','中筒'],['尺码','39-44 均码'],['工艺要求','脚弓加压']],
+    quotes:[]
+  },
+  'CE20261109001':{
+    no:'CE20261109001',type:'ce',status:'selected',title:'企业年会定制袜 · 竹纤维',
+    img:'images/sock_08.jpg',qty:'5,000 双',method:'直接大货',deadline:'2026-11-11 20:00',
+    addr:'王建国 138****6688 浙江省绍兴市诸暨市大唐街道袜业城 A 区 12 号档口',
+    spec:[['颜色','酒红'],['工艺','logo提花'],['材质','竹纤维'],['透明度','不透'],['密度','200针'],['袜筒','中筒'],['尺码','39-44 均码'],['印logo','左袜筒 3cm']],
+    payLeft:'46 小时',
+    quotes:[
+      {shop:'大唐精工袜业',v:'企业认证',price:2.85,ladder:'5000-9999双 ¥2.85',deliver:18,sample:'free',fee:0,note:'含专票，企业年会礼盒可加价配盒。',score:4.9,sold:326,win:true},
+      {shop:'诸暨华康针织',v:'实力工厂',price:2.7,ladder:'5000双起 ¥2.70',deliver:22,sample:'free',fee:0,note:'价低但交期长，不支持礼盒。',score:4.7,sold:198,lose:true},
+      {shop:'袜都智造',v:'企业认证',price:3.0,ladder:'5000双起 ¥3.00',deliver:16,sample:'free',fee:0,note:'含税含运，可拆两批发货。',score:4.6,sold:412,lose:true}
+    ]
+  },
+  'CP20261105003':{
+    no:'CP20261105003',type:'cp',status:'deal',title:'儿童卡通袜 · 精梳棉',
+    img:'images/sock_11.jpg',qty:'2,000 双',method:'直接大货',deadline:'2026-11-07 12:00',
+    addr:'王建国 138****6688 浙江省绍兴市诸暨市大唐街道袜业城 A 区 12 号档口',
+    spec:[['颜色','混色'],['工艺','卡通提花'],['材质','精梳棉'],['透明度','不透'],['密度','168针'],['袜筒','短筒'],['尺码','22-30 童码'],['工艺要求','无骨缝合']],
+    orderNo:'CZ20261106001',
+    quotes:[
+      {shop:'诸暨华康针织',v:'实力工厂',price:2.35,ladder:'2000-4999双 ¥2.35',deliver:15,sample:'free',fee:0,note:'混色混码不加价。',score:4.7,sold:198,win:true},
+      {shop:'大唐精工袜业',v:'企业认证',price:2.5,ladder:'2000双起 ¥2.50',deliver:13,sample:'free',fee:0,note:'含税。',score:4.9,sold:326,lose:true}
+    ]
+  },
+  'CE20261103002':{
+    no:'CE20261103002',type:'ce',status:'closed',title:'商超促销款 · 冰丝',
+    img:'images/sock_05.jpg',qty:'8,000 双',method:'直接大货',deadline:'2026-11-06 18:00',
+    addr:'王建国 138****6688 浙江省绍兴市诸暨市大唐街道袜业城 A 区 12 号档口',
+    spec:[['颜色','肤色/黑'],['工艺','素色'],['材质','冰丝'],['透明度','半透'],['密度','120针'],['袜筒','隐形'],['尺码','35-40 女码'],['工艺要求','硅胶防滑']],
+    closeReason:'报价截止时无商户报价，需求已自动关闭',
+    quotes:[]
+  },
+  'CP20261102004':{
+    no:'CP20261102004',type:'cp',status:'closed',title:'节日礼盒款 · 美利奴羊毛',
+    img:'images/sock_02.jpg',qty:'800 双',method:'先打样后大货',deadline:'2026-11-05 18:00',
+    addr:'王建国 138****6688 浙江省绍兴市诸暨市大唐街道袜业城 A 区 12 号档口',
+    spec:[['颜色','米白'],['工艺','提花'],['材质','美利奴羊毛'],['透明度','不透'],['密度','200针'],['袜筒','中筒'],['尺码','39-44 均码'],['工艺要求','礼盒包装']],
+    closeReason:'你已撤销该需求',
+    quotes:[
+      {shop:'大唐精工袜业',v:'企业认证',price:6.8,ladder:'800双起 ¥6.80',deliver:20,sample:'noded',fee:80,note:'羊毛原料浮动，报价 7 天有效。',score:4.9,sold:326},
+      {shop:'袜都智造',v:'企业认证',price:7.2,ladder:'800双起 ¥7.20',deliver:18,sample:'ded',fee:80,note:'含礼盒。',score:4.6,sold:412}
+    ]
+  },
+  'CE20261103002':{
+    no:'CE20261103002',type:'ce',status:'closed',title:'商超促销款 · 冰丝',
+    img:'images/sock_07.jpg',qty:'8,000 双',method:'直接大货',deadline:'2026-11-03 12:00',
+    addr:'王建国 138****6688 浙江省绍兴市诸暨市大唐街道袜业城 A 区 12 号档口',
+    spec:[['定制品类','船袜'],['材质','冰丝'],['颜色','白'],['图案','纯色无图'],['工艺','144针'],['尺码','均码'],['包装','标准包装'],['企业','诸暨市恒信商贸有限公司']],
+    closeReason:'报价截止时无商户报价，需求已自动关闭',
+    quotes:[]
+  },
+  'CP20261103002':{
+    no:'CP20261103002',type:'cp',status:'deal',title:'厚款毛圈运动袜 · 精梳棉',
+    img:'images/sock_05.jpg',qty:'1,200 双',method:'直接大货',deadline:'2026-11-01 12:00',
+    addr:'王建国 138****6688 浙江省绍兴市诸暨市大唐街道袜业城 A 区 12 号档口',
+    spec:[['颜色','原白'],['工艺','毛圈加固'],['材质','精梳棉'],['透明度','不透'],['密度','144针'],['袜筒','中筒'],['尺码','39-42'],['工艺要求','脚底毛圈加厚']],
+    orderNo:'CZ20261103002',
+    quotes:[
+      {shop:'诸暨华康针织',v:'实力工厂',price:3.65,ladder:'1000-1999双 ¥3.65',deliver:18,sample:'free',fee:0,note:'含税，运费到付 ¥80；支持混码。',score:4.7,sold:198,win:true},
+      {shop:'大唐精工袜业',v:'企业认证',price:3.72,ladder:'1000双起 ¥3.72',deliver:15,sample:'free',fee:0,note:'含税含运。',score:4.9,sold:326,lose:true}
+    ]
+  }
+};
+
+var id=(location.search.match(/id=([A-Za-z0-9]+)/)||[])[1]||'CP20261111001';
+var D=DATA[id];
+if(!D){
+  /* 新提交的需求不在 mock 里：用提交时写入的快照现场生成，避免降级到别的需求 */
+  var snap=null;
+  ['mai_last_cp','mai_last_ce'].forEach(function(k){
+    try{var s=JSON.parse(localStorage.getItem(k)||'null');if(s&&s.no===id)snap=s;}catch(e){}
+  });
+  if(snap){
+    D={
+      no:snap.no,type:(snap.type==='CE'?'ce':'cp'),status:'quote',
+      title:snap.title||'新提交的定制需求',
+      img:'images/sock_01.jpg',
+      qty:(parseInt(snap.qty,10)||0).toLocaleString()+' 双',
+      method:snap.methodName||(snap.deliveryDays?('交期 '+snap.deliveryDays+' 天'):'直接大货'),
+      deadline:'报价截止 '+((snap.deadlineDays||3))+' 天内',
+      addr:snap.addr||'',
+      spec:[['颜色',snap.color||'—'],['配色',snap.palette||'—'],['图案',snap.pattern||'—'],['材质',snap.material||snap.mat||'—'],['袜筒',snap.height||'—'],['尺码',snap.size||'—'],['工艺',snap.craft||'—'],['包装',snap.packaging||'标准包装'],['期望到货',snap.needBy||'—'],['采购数量',(snap.qty||0)+' 双']],
+      quotes:[],isNew:true
+    };
+    setTimeout(function(){toast('该需求刚提交，暂无商户报价');},300);
+  }else{
+    D=DATA['CP20261111001'];
+  }
+}
+var sortBy='all',winIdx=-1;
+
+function $(x){return document.getElementById(x)}
+function toast(m){var t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(t._tm);t._tm=setTimeout(function(){t.classList.remove('on')},1600)}
+var BADGE={quote:['b-quote','报价中'],selected:['b-sel','已选标 · 待支付'],deal:['b-deal','已成交'],closed:['b-close','已关闭']};
+
+function sampleTag(q){
+  if(q.sample==='free')return '<span class="tag t-free">样品免费</span>';
+  if(q.sample==='ded')return '<span class="tag t-ded">样品 ¥'+q.fee+'，可抵</span>';
+  return '<span class="tag t-noded">样品 ¥'+q.fee+'，不可抵</span>';
+}
+
+function render(){
+  var b=BADGE[D.status];
+  var h='';
+
+  /* 需求快照 */
+  h+='<div class="px-3"><div class="card rounded-2xl p-3 shadow-soft">'
+    +'<div class="flex items-start justify-between">'
+    +'<div style="min-width:0"><p class="text-[10px] text-gray-400 font-bold">'+D.no+'</p>'
+    +'<p class="text-[14px] font-bold text-gray-800 mt-1">'+D.title+'</p></div>'
+    +'<span class="badge '+b[0]+'">'+b[1]+'</span></div>'
+    +'<div class="flex gap-2.5 mt-2.5">'
+    +'<img src="'+D.img+'" class="w-[64px] h-[64px] rounded-xl object-cover flex-shrink-0">'
+    +'<div class="flex-1 min-w-0">'
+    +'<div class="spec"><span>数量</span><span>'+D.qty+'</span></div>'
+    +'<div class="spec"><span>定制方式</span><span>'+D.method+'</span></div>'
+    +'<div class="spec"><span>'+(D.status==='deal'?'成交时间':(D.status==='closed'?'截止时间':'报价截止'))+'</span><span>'+D.deadline+'</span></div>'
+    +'</div></div>'
+    +'<div class="border-t border-dashed border-gray-100 mt-2 pt-2">'
+    +D.spec.map(function(s){return '<div class="spec"><span>'+s[0]+'</span><span>'+s[1]+'</span></div>'}).join('')
+    +'<div class="spec"><span>收货地址</span><span style="max-width:220px;text-align:right">'+D.addr+'</span></div>'
+    +'</div></div></div>';
+
+  /* 支付提醒 */
+  if(D.status==='selected'){
+    h+='<div class="px-3 mt-2.5"><div class="rounded-2xl p-3 flex items-center gap-2" style="background:#EFF6FF;border:1px solid #BFDBFE">'
+      +'<i class="fas fa-clock text-blue-500"></i>'
+      +'<p class="text-[11px] text-blue-700 flex-1">已选定「'+D.quotes.filter(function(q){return q.win})[0].shop+'」，请在 <b>'+D.payLeft+'</b> 内支付订金，超时需求自动关闭</p>'
+      +'</div></div>';
+  }
+  if(D.status==='deal'){
+    h+='<div class="px-3 mt-2.5"><div class="rounded-2xl p-3 flex items-center gap-2" style="background:#ECFDF5;border:1px solid #A7F3D0">'
+      +'<i class="fas fa-circle-check text-emerald-600"></i>'
+      +'<p class="text-[11px] text-emerald-700 flex-1">已生成定制单 <b>'+D.orderNo+'</b>，可在订单里跟进打样与生产进度</p>'
+      +'</div></div>';
+  }
+  if(D.status==='closed'){
+    h+='<div class="px-3 mt-2.5"><div class="rounded-2xl p-3 flex items-center gap-2" style="background:#F4F5F7">'
+      +'<i class="fas fa-circle-xmark text-gray-400"></i>'
+      +'<p class="text-[11px] text-gray-600 flex-1">'+D.closeReason+'</p></div></div>';
+  }
+
+  /* 报价区 */
+  if(D.quotes.length){
+    h+='<div class="px-3 mt-3 flex items-center justify-between"><p class="text-[13px] font-bold text-gray-800">商户报价 <span class="text-[11px] text-gray-400 font-normal">'+D.quotes.length+' 家</span></p><p class="text-[10px] text-gray-400">按综合排序</p></div>';
+    h+='<div class="px-3 mt-2 flex gap-1.5">'
+      +'<span class="chip-sort'+(sortBy==='all'?' on':'')+'" onclick="setSort(\'all\')">综合</span>'
+      +'<span class="chip-sort'+(sortBy==='price'?' on':'')+'" onclick="setSort(\'price\')">单价最低</span>'
+      +'<span class="chip-sort'+(sortBy==='deliver'?' on':'')+'" onclick="setSort(\'deliver\')">交期最快</span>'
+      +'</div>';
+    h+='<div class="px-3 mt-2.5" id="qlist">'+renderQuotes()+'</div>';
+  }else{
+    h+='<div class="px-3 mt-3"><div class="card rounded-2xl p-6 text-center">'
+      +'<i class="fas fa-hourglass-half text-[24px] text-gray-200"></i>'
+      +'<p class="text-[12px] text-gray-400 mt-2.5">还没有商户报价</p>'
+      +'<p class="text-[10px] text-gray-400 mt-1">需求已推送给匹配商户，截止前会持续收到报价</p>'
+      +'</div></div>';
+  }
+
+  $('page').innerHTML=h;
+  renderBar();
+}
+
+function renderQuotes(){
+  var list=D.quotes.slice();
+  if(sortBy==='price')list.sort(function(a,b){return a.price-b.price});
+  if(sortBy==='deliver')list.sort(function(a,b){return a.deliver-b.deliver});
+  return list.map(function(q){
+    var idx=D.quotes.indexOf(q);
+    var cls=q.win?' win':(q.lose?' lose':'');
+    var flag=q.win?'<span class="tag t-free" style="color:#C2410C;background:#FFEDD5">已中标</span>':(q.lose?'<span class="tag" style="color:#6B7280;background:#F1F2F5">未中标</span>':'');
+    return '<div class="q'+cls+'">'
+      +'<div class="flex items-center gap-2">'
+      +'<div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[11px]" style="background:linear-gradient(135deg,#A78BFA,#7C3AED)"><i class="fas fa-store"></i></div>'
+      +'<p class="text-[12.5px] font-bold text-gray-800 flex-1 truncate">'+q.shop+'</p>'
+      +flag
+      +'<span class="text-[9px] text-gray-400">'+q.v+'</span>'
+      +'</div>'
+      +'<div class="flex items-end justify-between mt-2">'
+      +'<div><p class="price">¥'+q.price.toFixed(2)+'<small> /双</small></p>'
+      +'<p class="text-[9.5px] text-gray-400 mt-1">'+q.ladder+'</p></div>'
+      +'<div class="text-right"><p class="text-[10px] text-gray-500">交期 <b class="text-gray-800">'+q.deliver+' 天</b></p>'
+      +'<p class="text-[10px] text-gray-500 mt-0.5">评分 '+q.score+' · 成交 '+q.sold+'</p></div>'
+      +'</div>'
+      +'<div class="flex items-center gap-1.5 mt-2">'+sampleTag(q)
+      +(q.moq?'<span class="tag" style="color:#0E7490;background:#ECFEFF">大货 MOQ '+q.moq+' 双</span>':'')+'</div>'
+      +((q.sample==='free'&&q.freeCond)?'<p class="text-[9.5px] text-emerald-600 mt-1 leading-relaxed">免费条件：'+q.freeCond+'</p>':'')
+      +'<p class="text-[10px] text-gray-500 mt-1.5 leading-relaxed">'+q.note+'</p>'
+      +(D.status==='quote'?'<div class="flex gap-2 mt-2.5"><button class="flex-1 py-2 rounded-xl bg-gray-100 text-[11.5px] font-bold text-gray-600" onclick="toast(\'已发起沟通（原型演示）\')">联系商户</button><button class="flex-1 py-2 rounded-xl text-white text-[11.5px] font-bold" style="background:linear-gradient(135deg,#FB7185,#EC4899)" onclick="openWin('+idx+')">选此商户</button></div>':'')
+      +'</div>';
+  }).join('');
+}
+function setSort(k){sortBy=k;render()}
+
+function openWin(i){
+  var q=D.quotes[i];
+  /* 商户 MOQ 与本次采购数量校验：数量不足不能选标 */
+  var need=parseInt(String(D.qty).replace(/[^\d]/g,''),10)||0;
+  if(q.moq&&need&&need<q.moq){toast('采购数量 '+need+' 双低于该商户 MOQ '+q.moq+' 双，无法选标');return;}
+  winIdx=i;
+  $('winShop').textContent=q.shop;
+  $('winPrice').textContent='¥'+q.price.toFixed(2)+'/双 · 交期 '+q.deliver+' 天';
+  $('winSample').textContent=q.sample==='free'?'样品费：免费':(q.sample==='ded'?'样品费：¥'+q.fee+'/件，可抵大货款':'样品费：¥'+q.fee+'/件，不可抵');
+  if(D.method==='仅打样'){
+    $('winTip').innerHTML='选中后其余报价将自动落选，<br>商户将先寄样，确认后再决定是否大货';
+  }else{
+    $('winTip').innerHTML='选中后其余报价将自动落选，<br>需在 48 小时内支付，超时需求自动关闭';
+  }
+  $('winMask').classList.add('on');
+}
+function closeWin(){$('winMask').classList.remove('on')}
+function doWin(){
+  D.quotes.forEach(function(q,i){if(i===winIdx){q.win=true;delete q.lose}else{q.lose=true;delete q.win}});
+  D.status='selected';
+  D.payLeft='48 小时';
+  closeWin();
+  toast('已选定商户，请在 48 小时内支付');
+  render();
+}
+
+function renderBar(){
+  var h='';
+  if(D.status==='quote'){
+    h='<div class="flex gap-2">'
+      +'<button class="flex-1 py-2.5 rounded-xl bg-gray-100 text-[12px] font-bold text-gray-600" onclick="cancelDemand()">撤销需求</button>'
+      +'<button class="flex-1 py-2.5 rounded-xl text-white text-[12px] font-bold" style="background:linear-gradient(135deg,#FB7185,#EC4899)" onclick="toast(\'已提醒商户报价（原型演示）\')">催报价</button>'
+      +'</div>';
+  }else if(D.status==='selected'){
+    h='<div class="flex gap-2">'
+      +'<button class="flex-1 py-2.5 rounded-xl bg-gray-100 text-[12px] font-bold text-gray-600" onclick="cancelDemand()">放弃</button>'
+      +'<button class="flex-1 py-2.5 rounded-xl text-white text-[12px] font-bold" style="background:linear-gradient(135deg,#FB7185,#EC4899)" onclick="pay()">去支付订金</button>'
+      +'</div>';
+  }else if(D.status==='deal'){
+    h='<a href="order-detail.html?type=custom&id='+D.orderNo+'" class="block w-full py-2.5 rounded-xl text-white text-[12px] font-bold text-center" style="background:linear-gradient(135deg,#FB7185,#EC4899)">查看定制单</a>';
+  }else{
+    h='<a href="custom-design.html" class="block w-full py-2.5 rounded-xl text-white text-[12px] font-bold text-center" style="background:linear-gradient(135deg,#FB7185,#EC4899)">按此方案重新发起</a>';
+  }
+  $('bar').innerHTML=h;
+}
+/* 支付订金 → 生成定制单：单号由需求号推导，保证与订单详情同源 */
+function pay(){
+  D.orderNo='CZ'+D.no.slice(2);
+  D.status='deal';
+  toast('支付成功，已生成定制单 '+D.orderNo);
+  render();
+}
+function cancelDemand(){
+  var old=document.getElementById('cancelMask');
+  if(old)old.remove();
+  var m=document.createElement('div');
+  m.className='mask';
+  m.id='cancelMask';
+  m.innerHTML='<div class="bg-white rounded-3xl p-5 text-center" style="width:300px">'
+    +'<p class="text-[15px] font-bold text-gray-800">确认撤销该需求？</p>'
+    +'<p class="text-[11px] text-gray-500 mt-1.5 leading-relaxed">撤销后商户无法继续报价，需求不可恢复</p>'
+    +'<div class="flex gap-2 mt-4">'
+    +'<button class="flex-1 py-2.5 rounded-xl bg-gray-100 text-[12px] font-bold text-gray-600" onclick="closeCancel()">再看看</button>'
+    +'<button class="flex-1 py-2.5 rounded-xl text-white text-[12px] font-bold" style="background:linear-gradient(135deg,#FB7185,#EC4899)" onclick="doCancelDemand()">确认撤销</button>'
+    +'</div></div>';
+  document.body.appendChild(m);
+  m.classList.add('on');
+}
+function closeCancel(){
+  var m=document.getElementById('cancelMask');
+  if(m)m.classList.remove('on');
+  setTimeout(function(){if(m&&m.parentNode)m.parentNode.removeChild(m)},150);
+}
+function doCancelDemand(){
+  closeCancel();
+  D.status='closed';D.closeReason='你已撤销该需求';
+  toast('需求已撤销');
+  render();
+}
+render();
+</script>
+<script src="../shared/page-prd.js?v=20261109"></script>
+</body>
+</html>
