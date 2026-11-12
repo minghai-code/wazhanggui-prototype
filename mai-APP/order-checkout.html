@@ -29,6 +29,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </style>
 <!-- Tailwind 静态样式：本地引用（不再依赖 cdn.tailwindcss.com）；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
 <link rel="stylesheet" href="tailwind.css">
+<script src="../shared/addr-book.js?v=20261112"></script>
 </head>
 <body>
 
@@ -50,17 +51,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 
 <!-- ===== 收货地址 ===== -->
 <div class="px-3 pt-3">
-  <div class="addr-card" onclick="toast('选择收货地址')">
+  <div class="addr-card" onclick="pickAddr()">
     <div class="flex items-center justify-between mb-1.5">
       <div class="flex items-center gap-1.5">
         <i class="fas fa-location-dot text-primary text-[12px]"></i>
-        <span class="text-[12px] font-bold text-gray-800">张建国</span>
-        <span class="text-[11px] text-gray-500">138****5678</span>
-        <span class="def-tag">默认</span>
+        <span class="text-[12px] font-bold text-gray-800" id="addrName">王建国</span>
+        <span class="text-[11px] text-gray-500" id="addrPhone">138****6688</span>
+        <span class="def-tag" id="addrTag">默认</span>
       </div>
       <i class="fas fa-chevron-right text-gray-300 text-[10px]"></i>
     </div>
-    <p class="text-[11px] text-gray-600 leading-relaxed">浙江省 绍兴市 诸暨市 大唐街道 袜业城A区3楼128号</p>
+    <p class="text-[11px] text-gray-600 leading-relaxed" id="addrFull">浙江省绍兴市诸暨市大唐街道袜业城 A 区 12 号档口</p>
   </div>
 </div>
 
@@ -292,6 +293,21 @@ function renderPay(){
     btn.onclick=function(){location.href=PAY.doneHref;};
   }
 }
+/* ===== 收货地址：默认地址带出，可切换（shared/addr-book.js） ===== */
+var curAddrId=null;
+function renderAddr(a){
+  $('addrName').textContent=a.name;
+  $('addrPhone').textContent=a.phone;
+  $('addrFull').textContent=a.full;
+  $('addrTag').textContent=a.isDefault?'默认':(a.tag||'');
+}
+function pickAddr(){
+  AddrBook.pick({title:'选择收货地址',currentId:curAddrId,onPick:function(a){
+    curAddrId=a.id;renderAddr(a);toast('已切换收货地址');
+  }});
+}
+(function initAddr(){var a=AddrBook.getDefault();if(a){curAddrId=a.id;renderAddr(a);}})();
+
 function openPay(){PAY.state='confirm';renderPay();document.getElementById('payMask').style.display='flex';}
 function submitOrder(){
   if(!PAY.no)PAY.no='DD'+String(Date.now()).slice(-10); /* 普通下单：弹层内现生成订单号 */

@@ -95,17 +95,51 @@ var DEMANDS=[
 
 /* 我的报价（种子 + 端上提交） */
 var SEED_Q=[
- {demandId:'CP20261024001',title:'校服配套定制袜（含校徽）',type:'先样品后大货',detail:'样品 ¥28/件 · 大货 ¥4.6/双',status:'待确认',time:'2026-10-20 10:12',changes:0},
- {demandId:'CE20261024002',title:'银行开户伴手礼袜（含包装）',type:'先样品后大货',detail:'样品 ¥30/件 · 大货 ¥6.2/双',status:'已选中',time:'2026-10-19 15:40',changes:1},
- {demandId:'CP20261024003',title:'宠物主题潮袜 柯基图案',type:'直接大货',detail:'¥4.0/双 × 500双',status:'未选中',time:'2026-10-18 09:20',changes:0}
+ {demandId:'CP20261024001',title:'校服配套定制袜（含校徽）',type:'先样品后大货',
+  detail:'样品 ¥15/件 × 1件 · 大货预估 ¥4.2/双 · 交期 15 天 · 含运费',status:'待确认',time:'2026-11-12 11:30',changes:1,
+  samplePrice:'15',sampleQty:'1',bulkPrice:'4.2',bulkQty:'',period:'15',freight:'含运费',note:'校徽刺绣需先确认矢量文件',
+  history:[
+    {no:1,time:'2026-10-20 10:12',detail:'样品 ¥28/件 × 2件 · 大货预估 ¥4.6/双 · 交期 20 天 · 含运费',samplePrice:'28',sampleQty:'2',bulkPrice:'4.6',bulkQty:'',period:'20',freight:'含运费',note:''},
+    {no:2,time:'2026-11-12 11:30',detail:'样品 ¥15/件 × 1件 · 大货预估 ¥4.2/双 · 交期 15 天 · 含运费',samplePrice:'15',sampleQty:'1',bulkPrice:'4.2',bulkQty:'',period:'15',freight:'含运费',note:'校徽刺绣需先确认矢量文件'}
+  ]},
+ {demandId:'CE20261024002',title:'银行开户伴手礼袜（含包装）',type:'先样品后大货',
+  detail:'样品 ¥30/件 × 1件 · 大货预估 ¥6.2/双 · 交期 32 天 · 含运费',status:'已选中',time:'2026-10-19 15:40',changes:1,
+  awardTime:'2026-10-19 16:20',orderNo:'SO20261019008',
+  samplePrice:'30',sampleQty:'1',bulkPrice:'6.2',bulkQty:'',period:'32',freight:'含运费',note:'礼盒需印行徽',
+  history:[
+    {no:1,time:'2026-10-15 09:10',detail:'样品 ¥32/件 × 1件 · 大货预估 ¥6.5/双 · 交期 35 天 · 含运费',samplePrice:'32',sampleQty:'1',bulkPrice:'6.5',bulkQty:'',period:'35',freight:'含运费',note:''},
+    {no:2,time:'2026-10-19 15:40',detail:'样品 ¥30/件 × 1件 · 大货预估 ¥6.2/双 · 交期 32 天 · 含运费',samplePrice:'30',sampleQty:'1',bulkPrice:'6.2',bulkQty:'',period:'32',freight:'含运费',note:'礼盒需印行徽'}
+  ]},
+ {demandId:'CP20261024003',title:'宠物主题潮袜 柯基图案',type:'直接大货',
+  detail:'¥4.0/双 × 500双 · 交期 20 天 · 含运费',status:'未选中',time:'2026-10-18 09:20',changes:0,
+  awardTime:'2026-10-20 10:00',
+  samplePrice:'',sampleQty:'',bulkPrice:'4.0',bulkQty:'500',period:'20',freight:'含运费',note:'',
+  history:[
+    {no:1,time:'2026-10-18 09:20',detail:'¥4.0/双 × 500双 · 交期 20 天 · 含运费',samplePrice:'',sampleQty:'',bulkPrice:'4.0',bulkQty:'500',period:'20',freight:'含运费',note:''}
+  ]}
 ];
+/* v2：补报价记录（history），旧数据只在缺 history 时回填，不覆盖用户已改的值 */
 (function seed(){
-  if(localStorage.getItem('sh_custom_seeded'))return;
+  if(localStorage.getItem('sh_custom_seeded_v3'))return;
   var list=readLS('sh_custom_quotes');
   SEED_Q.forEach(function(q){
-    if(!list.some(function(x){return x.demandId===q.demandId}))list.push(q);
+    var i=-1;list.forEach(function(x,j){if(x.demandId===q.demandId)i=j;});
+    if(i<0){list.push(q);return;}
+    var it=list[i];
+    if(!it.history||!it.history.length){
+      var h=q.history.slice();
+      if(it.detail&&it.detail!==q.detail) h.push({no:h.length+1,time:it.time||'',detail:it.detail});
+      it.history=h;
+      if(!it.samplePrice&&!it.bulkPrice){
+        it.samplePrice=q.samplePrice;it.sampleQty=q.sampleQty;it.bulkPrice=q.bulkPrice;it.bulkQty=q.bulkQty;
+        it.period=q.period;it.freight=q.freight;
+      }
+    }
+    /* v3：补中标时间与订单号，供「已中标」详情展示 */
+    if(!it.awardTime&&q.awardTime) it.awardTime=q.awardTime;
+    if(!it.orderNo&&q.orderNo) it.orderNo=q.orderNo;
   });
-  writeLS('sh_custom_quotes',list);localStorage.setItem('sh_custom_seeded','1');
+  writeLS('sh_custom_quotes',list);localStorage.setItem('sh_custom_seeded_v3','1');
 })();
 
 function tagCls(t){return t==='仅样品定制'?'bg-purple-100 text-purple-600':t==='先样品后大货'?'bg-indigo-100 text-indigo-600':'bg-pink-100 text-pink-600';}
@@ -147,14 +181,21 @@ function renderQuotes(){
   var arr=all.filter(function(q){return qFilter==='全部'||q.status===qFilter;});
   document.getElementById('quoteChips').innerHTML=['全部','待确认','已选中','未选中'].map(function(f){return '<span onclick="setQF(\''+f+'\')" class="text-[11px] px-3 py-1 rounded-full cursor-pointer '+(f===qFilter?'text-white font-bold':'bg-white text-gray-500 border border-gray-200')+'" '+(f===qFilter?'style="background:#2563EB"':'')+'>'+f+'</span>';}).join('');
   document.getElementById('quoteList').innerHTML=arr.length?arr.map(function(q){
-    return '<div class="bg-white rounded-2xl shadow-soft p-3.5"><div class="flex items-center justify-between gap-2">'
+    var href="shanghu-custom-detail.html?id="+q.demandId+"&from=mine";
+    /* 三种状态都能进详情：已选中给订单入口，待确认给改价入口，未中标给查看详情 */
+    var right=q.status==='已选中'
+      ? '<a href="orders.html" onclick="event.stopPropagation()" class="text-[10px] font-bold text-emerald-600">查看订单 ›</a>'
+      : q.status==='待确认'
+      ? '<a href="'+href+'" onclick="event.stopPropagation()" class="text-[10px] font-bold text-blue-600">'+(q.changes<2?'修改报价 ›':'查看详情 ›')+'</a>'
+      : '<a href="'+href+'" onclick="event.stopPropagation()" class="text-[10px] font-bold text-gray-500">查看详情 ›</a>';
+    return '<div onclick="location.href=\''+href+'\'" style="cursor:pointer" class="bg-white rounded-2xl shadow-soft p-3.5 active:opacity-90"><div class="flex items-center justify-between gap-2">'
       +'<p class="text-[13px] font-bold text-gray-800 truncate">'+q.title+'</p>'
       +'<span class="'+quoteState(q.status)+' text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0">'+q.status+'</span></div>'
       +'<p class="text-[10px] text-gray-500 mt-1">我的报价：<b class="num text-gray-700">'+q.detail+'</b></p>'
       +'<div class="flex items-center justify-between mt-2 pt-2 border-t border-gray-50"><span class="text-[9px] text-gray-400 num">'+q.time+' · 已改价 '+q.changes+'/2</span>'
-      +(q.status==='已选中'?'<a href="orders.html" class="text-[10px] font-bold text-emerald-600">查看订单 ›</a>':q.status==='待确认'?'<a href="shanghu-custom-detail.html?id='+q.demandId+'" class="text-[10px] font-bold text-blue-600">'+(q.changes<2?'修改报价 ›':'已用完改价')+'</a>':'<span class="text-[10px] text-gray-400">未中标</span>')
+      +right
       +'</div></div>';
-  }).join(''):'<div class="text-center text-[12px] text-gray-400 py-12">暂无报价记录</div>';
+  }).join(''):'<div class="text-center text-[12px] text-gray-400 py-16"><i class="fas fa-inbox text-3xl text-gray-200 block mb-2"></i>暂无报价记录</div>';
 }
 function setQF(f){qFilter=f;renderQuotes();}
 

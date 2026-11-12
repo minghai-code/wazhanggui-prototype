@@ -29,6 +29,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 </style>
 <!-- Tailwind 静态样式：本地引用（不再依赖 cdn.tailwindcss.com）；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
 <link rel="stylesheet" href="tailwind.css">
+<script src="../shared/addr-book.js?v=20261112"></script>
 </head>
 <body>
 
@@ -212,10 +213,13 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     <div class="border-t border-gray-50 mt-3 pt-3">
       <div class="flex items-center justify-between mb-2">
         <span class="text-[12px] font-bold text-gray-800">收货地址</span>
-        <span class="text-[9px] text-red-400 font-medium bg-red-50 rounded px-1.5 py-0.5">必填</span>
-        <span class="text-[10px] text-primary font-medium" onclick="switchAddr()">切换</span>
+        <div class="flex items-center gap-2">
+          <span class="text-[9px] text-red-400 font-medium bg-red-50 rounded px-1.5 py-0.5">必填</span>
+          <span class="text-[10px] text-primary font-medium" onclick="switchAddr()">切换</span>
+          <a href="address.html" class="text-[10px] text-gray-400 font-medium">修改</a>
+        </div>
       </div>
-      <div class="bg-gray-50 rounded-xl p-2.5">
+      <div class="bg-gray-50 rounded-xl p-2.5" onclick="switchAddr()" style="cursor:pointer">
         <p class="text-[11.5px] font-medium text-gray-700" id="addrName">王建国 138****6688</p>
         <p class="text-[10px] text-gray-500 mt-1 leading-relaxed" id="addrDetail">浙江省绍兴市诸暨市大唐街道袜业城 A 区 12 号档口</p>
       </div>
@@ -279,11 +283,20 @@ function tagToggle(el){el.classList.toggle('on')}
 function tagSingle(el,group){var parent=el.parentElement;var items=parent.querySelectorAll('.tag-opt');items.forEach(function(i){i.classList.remove('on')});el.classList.add('on')}
 
 var curQty=1000,curDay=15,curDeadline=3,curPack='标准包装';
-var ADDRS=[
-  {n:'王建国 138****6688',d:'浙江省绍兴市诸暨市大唐街道袜业城 A 区 12 号档口'},
-  {n:'李小红 139****2233',d:'浙江省绍兴市诸暨市大唐街道袜业城 B 区 06 号档口'}
-];
-var addrIdx=0;
+/* 收货地址：与「我的-收货地址管理」共用一份，默认地址自动带出（shared/addr-book.js） */
+var ADDRS=AddrBook.list();
+var curAddrId=(AddrBook.getDefault()||{}).id;
+function curAddr(){
+  var hit=null;
+  AddrBook.list().forEach(function(a){if(String(a.id)===String(curAddrId))hit=a;});
+  return hit||AddrBook.getDefault();
+}
+function renderAddr(){
+  var a=curAddr();if(!a)return;
+  var n=document.getElementById('addrName');if(n)n.textContent=a.name+' '+a.phone;
+  var d=document.getElementById('addrDetail');if(d)d.textContent=a.full;
+}
+renderAddr();
 function updateQty(el){curQty=parseInt(el.value);document.getElementById('qtyDisplay').textContent=curQty.toLocaleString()+' 双'}
 function updateDay(el){curDay=parseInt(el.value);document.getElementById('dayDisplay').textContent=curDay+' 天'}
 function pickDeadline(el,d){
@@ -295,10 +308,9 @@ function pickPack(el,val){
   el.classList.add('on');curPack=val;
 }
 function switchAddr(){
-  addrIdx=(addrIdx+1)%ADDRS.length;var a=ADDRS[addrIdx];
-  document.getElementById('addrName').textContent=a.n;
-  document.getElementById('addrDetail').textContent=a.d;
-  toast('已切换收货地址');
+  AddrBook.pick({title:'选择收货地址',currentId:curAddrId,onPick:function(a){
+    curAddrId=a.id;ADDRS=AddrBook.list();renderAddr();toast('已切换收货地址');
+  }});
 }
 /* 设计稿上传：真实选择文件，记录文件名 */
 var docs={front:false,side:false,tech:false};
@@ -333,7 +345,8 @@ function submitDemand(){
     enterprise:name,contact:contact,phone:phone,
     qty:curQty,deliveryDays:curDay,deadlineDays:curDeadline,
     packaging:curPack,
-    addr:ADDRS[addrIdx].n+' '+ADDRS[addrIdx].d,
+    addr:(function(){var a=curAddr();return a?(a.name+' '+a.phone+' '+a.full):'';})(),
+    addrId:(curAddr()||{}).id,
     note:(document.getElementById('entNote').value||''),
     docs:docs,
     createdAt:Date.now()

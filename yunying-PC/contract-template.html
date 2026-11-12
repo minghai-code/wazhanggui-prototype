@@ -33,6 +33,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .sel{width:100%;padding:6px 8px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none}
 button{cursor:pointer}
 textarea.fi{font-family:inherit;line-height:1.7;resize:vertical}
+/* v2.2：正文编辑区（contenteditable）——变量用黄色 chip 显示，与正文黑字明确区分 */
+.cedit{min-height:240px;max-height:420px;overflow-y:auto;border:1px solid #E5E7EB;border-radius:10px;background:#fff;padding:12px 14px;
+  font-size:12.5px;line-height:2;color:#334155;white-space:pre-wrap;word-break:break-word;font-family:inherit}
+.cedit:focus{outline:none;border-color:#FDBA74;box-shadow:0 0 0 3px rgba(251,146,60,.12)}
+.cedit:empty:before{content:attr(data-ph);color:#CBD5E1}
+.vt{display:inline-block;padding:0 5px;margin:0 1px;border-radius:4px;background:#FEF3C7;color:#B45309;border:1px solid #FCD34D;
+  font-weight:700;font-size:11.5px;line-height:18px;vertical-align:1px;white-space:nowrap}
+.vt.miss{background:#FEE2E2;color:#B91C1C;border-color:#FCA5A5}
+.vt-req{background:#FFF1F2;border-color:#FCA5A5;color:#BE123C}
 .vchip{display:inline-block;padding:2px 7px;border-radius:5px;font-size:11px;background:#F1F5F9;color:#475569;margin:0 4px 4px 0;cursor:pointer}
 .vchip:hover{background:#FFEDE7;color:#E63E20}
 .up{border:2px dashed #E2E8F0;border-radius:12px;padding:14px;text-align:center;color:#94A3B8;cursor:pointer}
@@ -265,7 +274,7 @@ function openEdit(id){
     +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">'+(x?'编辑模板　'+esc(x.name):'新增模板')+'</h3>'
     +'<p class="text-[11px] text-[#94A3B8] mt-1">'+(x?'当前 '+esc(x.ver)+'　最近更新 '+esc(x.up)+'（'+esc(x.by)+'）':'模板名称、适用类型、正文与启用状态')+'</p></div>'
     +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
-  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="min-height:0;display:flex;flex-direction:column;gap:14px">';
   h+='<div class="grid grid-cols-2 gap-3">'
     +'<div><label class="fl">模板名称</label><input class="fi" id="t-name" value="'+(x?esc(x.name):'')+'" placeholder="例：档口租赁合同模板（精品摊·5 年）"></div>'
     +'<div><label class="fl">适用资源类型 *（v1.5：模板按资源类型拆分）</label><select class="sel" id="t-type" onchange="varsHint()">'
@@ -276,8 +285,11 @@ function openEdit(id){
   h+='<div class="blk"><div class="blk-t"><i class="fas fa-code text-[#7C3AED]"></i>变量占位（点击插入正文）</div>'
     +'<div id="vBox"></div>'
     +'<p class="text-[11px] text-[#94A3B8] mt-2">生成合同文本时，变量按合同 / 档口数据自动替换；缺失字段会以黄色标记提示补录。</p></div>';
-  h+='<div><label class="fl">正文（富文本 / 亦可上传 Word、PDF 模板）</label>'
-    +'<textarea class="fi" id="t-body" rows="10">'+(x?esc(x.body):'')+'</textarea>'
+  h+='<div><label class="fl">正文（可直接改；变量以<span class="vt">黄色块</span>显示，点上方变量即插入到光标处）</label>'
+    +'<div class="cedit" id="t-body" contenteditable="true" data-ph="在此输入合同正文；点上方变量按钮插入，插入位置就是光标处"></div>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1.5"><i class="fas fa-circle-info mr-1"></i>'
+      +'<span class="vt" style="font-size:10.5px">{{变量}}</span> = 生成合同时自动替换的占位符；'
+      +'<span class="vt miss" style="font-size:10.5px">{{缺失}}</span> = 该变量没有值时的样子。删除变量请把整块选中后删除。</p>'
     +'<div class="mt-2 flex items-center gap-2">'
     +'<label class="up" style="flex:1;padding:8px"><i class="fas fa-file-word mr-1"></i>上传 Word / PDF 模板（可选）<input type="file" class="hidden" onchange="toast(\'已上传模板文件（原型）\')"></label>'
     +'</div></div>';
@@ -294,6 +306,7 @@ function openEdit(id){
     +'<button class="btn btn-primary" onclick="saveTpl()">保存</button></div>';
   show('drawer',h);
   varsHint();
+  renderBodyEditor(x?x.body:'');
 }
 function varsHint(){
   var t=document.getElementById('t-type').value;
@@ -302,15 +315,60 @@ function varsHint(){
     return '<span class="vchip" style="'+(req?'border-color:#FCD34D;color:#B45309':'')+'" onclick="insertVar(\''+v+'\')" title="'+(req?'必填变量：发起合同前必须有值，不得渲染为空（v1.17）':'')+'">'+v+(req?'<b style="color:#E63E20">*</b>':'')+'</span>';
   }).join('')+'<span class="text-[11px] text-[#94A3B8]" style="margin-left:8px;line-height:24px"><b style="color:#E63E20">*</b> 必填变量：证件号（个人=身份证号 / 企业=统一社会信用代码或法定代表人身份证号）与联系电话（签署匹配键），缺失则该合同<b>禁止生成与发送</b></span>';
 }
+/* v2.2：变量插入到「光标处」而不是追加到末尾；插入后只移动光标，不触发抽屉/页面滚动 */
+var LAST_RANGE=null;
+function tplRange(){
+  var ed=document.getElementById('t-body');
+  if(!ed){return null;}
+  var s=window.getSelection();
+  if(s&&s.rangeCount&&ed.contains(s.anchorNode)){return s.getRangeAt(0);}
+  return LAST_RANGE;
+}
+function saveRange(){
+  var ed=document.getElementById('t-body');
+  if(!ed){return;}
+  var s=window.getSelection();
+  if(s&&s.rangeCount&&ed.contains(s.anchorNode)){LAST_RANGE=s.getRangeAt(0).cloneRange();}
+}
 function insertVar(v){
-  var a=document.getElementById('t-body');
-  a.value=a.value+v;
-  a.focus();
-  toast('已插入变量占位 '+v+'（生成合同时自动替换为合同 / 档口数据）');
+  var ed=document.getElementById('t-body');
+  if(!ed){return;}
+  var r=tplRange(), req=(v==='{{证件号}}'||v==='{{联系电话}}');
+  var span=document.createElement('span');
+  span.className='vt'+(req?' vt-req':'');
+  span.contentEditable='false';
+  span.setAttribute('data-v',v);
+  span.textContent=v;
+  ed.focus({preventScroll:true});
+  if(r&&ed.contains(r.commonAncestorContainer)){
+    r.deleteContents();
+    r.insertNode(span);
+  }else{
+    ed.appendChild(span);
+  }
+  var after=document.createRange();
+  after.setStartAfter(span);after.collapse(true);
+  var s=window.getSelection();s.removeAllRanges();s.addRange(after);
+  LAST_RANGE=after.cloneRange();
+  /* 只滚编辑器自身，保证插入点可见；不碰抽屉/页面滚动容器 */
+  var top=span.offsetTop||0, eh=ed.clientHeight||0;
+  if(top<ed.scrollTop||top+24>ed.scrollTop+eh){ed.scrollTop=Math.max(0,top-eh/2);}
+  toast('已插入 '+v+'（插入到光标处，页面不跳动）');
+}
+/* 打开抽屉时把模板正文渲染成带变量 chip 的富文本 */
+function renderBodyEditor(text){
+  var ed=document.getElementById('t-body');
+  if(!ed){return;}
+  ed.innerHTML=window.CONTRACT_TPL.bodyToHtml(text||'');
+  LAST_RANGE=null;
+  ['keyup','mouseup','blur'].forEach(function(ev){ed.addEventListener(ev,saveRange);});
+  ed.addEventListener('keydown',function(e){
+    if(e.key==='Enter'){e.preventDefault();document.execCommand('insertLineBreak');}
+  });
 }
 function saveTpl(){
   var name=document.getElementById('t-name').value.trim(),type=document.getElementById('t-type').value,
-      body=document.getElementById('t-body').value.trim(),on=document.getElementById('t-on').checked;
+      body=window.CONTRACT_TPL.toText(document.getElementById('t-body')).trim(),on=document.getElementById('t-on').checked;
   if(!name){toast('模板名称必填');return;}
   if(!body){toast('模板正文必填');return;}
   if(curId){
@@ -338,7 +396,7 @@ function openVer(id){
     +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">版本历史　'+esc(x.name)+'</h3>'
     +'<p class="text-[11px] text-[#94A3B8] mt-1">当前 '+esc(x.ver)+'　共 '+x.history.length+' 个版本；<b>回滚会生成新版本，历史保留</b></p></div>'
     +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
-  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="display:flex;flex-direction:column;gap:14px">';
+  h+='<div class="flex-1 overflow-y-auto px-5 py-4" style="min-height:0;display:flex;flex-direction:column;gap:14px">';
   h+='<div class="blk"><div class="blk-t"><i class="fas fa-clock-rotate-left text-[#64748B]"></i>版本列表</div>';
   x.history.forEach(function(v,i){
     var cur=(i===0);

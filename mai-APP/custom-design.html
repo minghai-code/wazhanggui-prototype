@@ -45,6 +45,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 </style>
 <!-- Tailwind 静态样式：本地引用（不再依赖 cdn.tailwindcss.com）；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
 <link rel="stylesheet" href="tailwind.css">
+<script src="../shared/addr-book.js?v=20261112"></script>
 </head>
 <body>
 
@@ -384,10 +385,13 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     <div class="border-t border-gray-50 mt-3 pt-3" id="addrBlock">
       <div class="flex items-center justify-between mb-2">
         <span class="text-[12px] font-bold text-gray-800">收货地址 <span class="text-[#EF4444]">*</span></span>
-        <span class="text-[9px] text-gray-400">打样时同时作为寄样地址</span>
-        <span class="text-[10px] text-primary font-medium" onclick="switchAddr()">切换</span>
+        <div class="flex items-center gap-2">
+          <span class="text-[9px] text-gray-400">打样时同时作为寄样地址</span>
+          <span class="text-[10px] text-primary font-medium" onclick="switchAddr()">切换</span>
+          <a href="address.html" class="text-[10px] text-gray-400 font-medium">修改</a>
+        </div>
       </div>
-      <div class="bg-gray-50 rounded-xl p-2.5">
+      <div class="bg-gray-50 rounded-xl p-2.5" onclick="switchAddr()" style="cursor:pointer">
         <p class="text-[11.5px] font-medium text-gray-700" id="addrName">王建国 138****6688</p>
         <p class="text-[10px] text-gray-500 mt-1 leading-relaxed" id="addrDetail">浙江省绍兴市诸暨市大唐街道袜业城 A 区 12 号档口</p>
       </div>
@@ -478,7 +482,14 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     </div>
     <div class="mb-3" id="maskAddrWrap">
       <label class="text-[11px] text-gray-500 font-medium block mb-1.5">收货地址 *（打样时同时作为寄样地址）</label>
-      <input type="text" id="sampleAddr" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-[12px] outline-none" placeholder="请输入打样收货地址">
+      <div class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 flex items-start gap-2" onclick="switchAddr()" style="cursor:pointer">
+        <i class="fas fa-location-dot text-primary text-[11px] mt-0.5"></i>
+        <div class="flex-1 min-w-0">
+          <p class="text-[12px] font-bold text-gray-800" id="maskAddrName">王建国 138****6688</p>
+          <p class="text-[10.5px] text-gray-500 mt-0.5 leading-relaxed" id="maskAddrDetail">浙江省绍兴市诸暨市大唐街道袜业城 A 区 12 号档口</p>
+        </div>
+        <i class="fas fa-chevron-right text-gray-300 text-[10px] mt-1"></i>
+      </div>
     </div>
     <div class="mb-3">
       <label class="text-[11px] text-gray-500 font-medium block mb-1.5">备注说明</label>
@@ -620,11 +631,23 @@ function specSelect(el,cat,val){
 
 // ===== 定制方式 / 报价截止 / 收货地址 =====
 var curMethod='',curMethodName='',curDeadline=3;
-var ADDRS=[
-  {n:'王建国 138****6688',d:'浙江省绍兴市诸暨市大唐街道袜业城 A 区 12 号档口'},
-  {n:'李小红 139****2233',d:'浙江省绍兴市诸暨市大唐街道袜业城 B 区 06 号档口'}
-];
-var addrIdx=0;
+/* 收货地址：与「我的-收货地址管理」共用一份，默认地址自动带出（shared/addr-book.js） */
+var ADDRS=AddrBook.list();
+var curAddrId=(AddrBook.getDefault()||{}).id;
+function curAddr(){
+  var hit=null;
+  AddrBook.list().forEach(function(a){if(String(a.id)===String(curAddrId))hit=a;});
+  return hit||AddrBook.getDefault();
+}
+function renderAddr(){
+  var a=curAddr();if(!a)return;
+  var t=a.name+' '+a.phone;
+  var n=document.getElementById('addrName');if(n)n.textContent=t;
+  var d=document.getElementById('addrDetail');if(d)d.textContent=a.full;
+  var mn=document.getElementById('maskAddrName');if(mn)mn.textContent=t;
+  var md=document.getElementById('maskAddrDetail');if(md)md.textContent=a.full;
+}
+renderAddr();
 
 function pickMethod(el,key,name){
   var list=document.getElementById('methodList').children;
@@ -638,8 +661,7 @@ function pickMethod(el,key,name){
   if(icon)icon.className='fas fa-check-circle text-primary text-[14px]';
   curMethod=key;curMethodName=name;
   /* 收货地址与定制方式无关，始终需要（大货用于报运费，打样同时作寄样地址） */
-  var inp=document.getElementById('sampleAddr');
-  if(inp&&!inp.value)inp.value=ADDRS[addrIdx].n+' '+ADDRS[addrIdx].d;
+  renderAddr();
   updateSummary();
 }
 function pickDeadline(el,d){
@@ -648,12 +670,9 @@ function pickDeadline(el,d){
   curDeadline=d;updateSummary();
 }
 function switchAddr(){
-  addrIdx=(addrIdx+1)%ADDRS.length;
-  var a=ADDRS[addrIdx];
-  document.getElementById('addrName').textContent=a.n;
-  document.getElementById('addrDetail').textContent=a.d;
-  var inp=document.getElementById('sampleAddr');if(inp)inp.value=a.n+' '+a.d;
-  toast('已切换收货地址');
+  AddrBook.pick({title:'选择收货地址',currentId:curAddrId,onPick:function(a){
+    curAddrId=a.id;ADDRS=AddrBook.list();renderAddr();toast('已切换收货地址');
+  }});
 }
 // 汇总
 function updateSummary(){
@@ -846,16 +865,15 @@ function validateDemand(){
 function submitDemand(){
   if(!validateDemand())return;
   curQty=parseInt(document.getElementById('demandQty').value,10)||curMoq;
-  var inp=document.getElementById('sampleAddr');
-  if(inp&&!inp.value.trim())inp.value=ADDRS[addrIdx].n+' '+ADDRS[addrIdx].d;
+  renderAddr();
   updateSummary();
   document.getElementById('sampleMask').style.display='flex';
 }
 function closeSample(){document.getElementById('sampleMask').style.display='none'}
 function confirmSample(){
   if(!validateDemand())return;
-  var addrInp=document.getElementById('sampleAddr');
-  if(!addrInp||!addrInp.value.trim()){toast('请填写收货地址');return;}
+  var a=curAddr();
+  if(!a){toast('请先选择收货地址');return;}
   /* 参数快照：结构化存储，后续 SP/CZ/商户端读同一份 */
   var snapshot={
     type:'CP',
@@ -879,7 +897,8 @@ function confirmSample(){
     method:curMethod,
     methodName:curMethodName,
     deadlineDays:curDeadline,
-    addr:((document.getElementById('sampleAddr')||{}).value||''),
+    addr:(a.name+' '+a.phone+' '+a.full),
+    addrId:a.id,
     note:((document.getElementById('sampleNote')||{}).value||''),
     designId:'DS-'+curPatStyle+'-01',
     createdAt:Date.now()

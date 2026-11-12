@@ -21,6 +21,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .mask.on{opacity:1;pointer-events:auto}
 .drawer{position:fixed;top:0;right:0;height:100%;width:840px;max-width:97vw;background:#fff;box-shadow:-8px 0 32px rgba(15,23,42,.12);transform:translateX(100%);transition:transform .26s cubic-bezier(.22,1,.36,1);z-index:70;display:flex;flex-direction:column}
 .drawer.on{transform:translateX(0)}
+/* v2.2：正文编辑区（contenteditable）——变量用黄色 chip，一眼可辨哪段是自动带入 */
+.cedit{min-height:220px;max-height:400px;overflow-y:auto;border:1px solid #E5E7EB;border-radius:10px;background:#fff;padding:12px 14px;
+  font-size:12px;line-height:2;color:#334155;white-space:pre-wrap;word-break:break-word;font-family:inherit}
+.cedit:focus{outline:none;border-color:#FDBA74;box-shadow:0 0 0 3px rgba(251,146,60,.12)}
+.cedit:empty:before{content:attr(data-ph);color:#CBD5E1}
+.vt{display:inline-block;padding:0 5px;margin:0 1px;border-radius:4px;background:#FEF3C7;color:#B45309;border:1px solid #FCD34D;
+  font-weight:700;font-size:11px;line-height:17px;vertical-align:1px;white-space:nowrap}
+.vt.miss{background:#FEE2E2;color:#B91C1C;border-color:#FCA5A5}
 .modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);width:720px;max-width:95vw;max-height:86vh;overflow-y:auto;background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(15,23,42,.28);opacity:0;pointer-events:none;transition:.22s;z-index:70}
 .modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
 .blk{border:1px solid #E2E8F0;border-radius:12px;padding:14px 16px}
@@ -471,8 +479,11 @@ function openNewAu(){
     +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">录入竞拍结果（线下取得）</h3>'
     +'<p class="text-[11px] text-[#94A3B8] mt-1">浙交会线下给到袜业城的结果，由合同专员人工录入；<b>手机号必填</b>（签署匹配键）</p></div>'
     +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
-  h+='<div class="px-5 py-4" style="display:flex;flex-direction:column;gap:12px">';
+  /* v2.2：字段从 12 项增到 27 项，内容区必须自己滚（父级 .drawer 是 height:100% 的 flex 列，
+     否则内容撑出视口、底部「保存」按钮点不到）。min-height:0 是 flex 子项能滚的必要条件。 */
+  h+='<div class="px-5 py-4" style="flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:12px">';
   h+='<div class="grid grid-cols-2 gap-x-5 gap-y-3">'
+    +'<div style="grid-column:span 2;font-size:12px;font-weight:700;color:#1F2430">① 资源与承租方</div>'
     +'<div><label class="fl">资源编号 *<span style="color:#94A3B8">（从 02 市场资源管理选择，不手填）</span></label>'
     +'<div class="flex items-center gap-2">'
     +'<input class="fi flex-1" id="n-unit" readonly placeholder="点击右侧「选择档口」" style="background:#F8FAFC;cursor:pointer" onclick="openUnitPick()">'
@@ -487,6 +498,7 @@ function openNewAu(){
     +'<div><label class="fl">联系电话 *（合同签署匹配键）</label><input class="fi" id="n-phone" placeholder="11 位；企业填联系人手机号"></div>'
     +'<div><label class="fl">证件号（可后补）</label><input class="fi" id="n-idno" placeholder="个人=身份证号；企业=法定代表人身份证号"></div>'
     +'<div><label class="fl">企业类型 *（企业主体）</label><select class="sel" id="n-ent"><option>个体工商户</option><option>企业</option><option>工厂制造商</option><option>其他</option></select></div>'
+    +'<div style="grid-column:span 2;font-size:12px;font-weight:700;color:#1F2430;border-top:1px dashed #E2E8F0;padding-top:10px">② 租期与价款</div>'
     +'<div><label class="fl">起租日 *</label><input class="fi" id="n-start" type="date" value="2027-09-01" onchange="termHint()"></div>'
     +'<div><label class="fl">到期日 *（<b>按竞拍公告填，不写死</b>）</label><input class="fi" id="n-end" type="date" value="2030-08-31" onchange="termHint()"></div>'
     +'<div><label class="fl">每期租金（元 / 12 个月）*</label><input class="fi" id="n-rent" placeholder="如 98000" onchange="bondHint()"></div>'
@@ -494,6 +506,7 @@ function openNewAu(){
     +'<div><label class="fl">间数 *</label><input class="fi" id="n-rooms" type="number" min="1" value="1" onchange="bondHint()"></div>'
     +'<div><label class="fl">保证金（元 / 间，可改）</label><input class="fi" id="n-bond" type="number" value="10000" onchange="bondHint()"></div>'
     +'<div style="grid-column:span 2" id="n-bond-hint" class="text-[11px] text-[#B45309]"></div>'
+    +'<div style="grid-column:span 2;font-size:12px;font-weight:700;color:#1F2430;border-top:1px dashed #E2E8F0;padding-top:10px">③ 竞拍依据与合同约定<span class="font-normal text-[11px] text-[#94A3B8]">　（公告编号档口 / 店面必填；办公室直接出租可留空）</span></div>'
     +'<div><label class="fl">竞拍公告编号 *（正文「依据竞租拍公告」引用）</label><input class="fi" id="n-notice" placeholder="如 大唐袜业城〔2027〕拍字第 01 号"></div>'
     +'<div><label class="fl">公告日期</label><input class="fi" id="n-noticedate" type="date" value="2027-08-20"></div>'
     +'<div><label class="fl">拍卖机构 / 场次</label><input class="fi" id="n-agent" value="浙江××拍卖有限公司 · 2027 年首轮"></div>'
@@ -590,7 +603,7 @@ function openImport(){
     +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">批量导入竞拍结果（Excel）</h3>'
     +'<p class="text-[11px] text-[#94A3B8] mt-1">用于浙交会反馈的批量结果；<b>整批校验通过才入库</b>，失败行给出报告</p></div>'
     +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
-  h+='<div class="px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+  h+='<div class="px-5 py-4" style="flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:12px">'
     +'<div class="rounded-xl border p-4" style="border-color:#E2E8F0;background:#F8FAFC"><p class="text-[12px] text-[#64748B] mb-2">导入模板字段（列名需一致）：</p>'
     +'<p class="text-[11px] text-[#94A3B8]">资源编号 ｜ 资源类型 ｜ <b>主体类型（个人 / 企业）</b> ｜ <b>承租方名称</b> ｜ <b>企业名称</b> ｜ <b>统一社会信用代码</b> ｜ <b>法定代表人·联系人</b> ｜ <b>联系电话</b>（签署匹配键）｜ 身份证号 ｜ 企业类型 ｜ 租期 ｜ 年租金 ｜ 竞拍批次 ｜ 成交价（<b>不含保证金</b>：线下已缴，系统不录入）</p></div>'
     +'<div class="seal" style="width:100%;height:96px" onclick="toast(\'已选择文件：浙交会竞拍结果_2027首轮.xlsx（6 行）\')"><div><i class="fas fa-file-excel block mb-1 text-[16px]"></i>点击选择文件（.xlsx，首行为表头）</div></div>'
@@ -696,9 +709,12 @@ function openDraft(id){
 
   h+='<div class="blk"><div class="blk-t" style="display:flex;align-items:center;justify-content:space-between"><span><i class="fas fa-align-left text-[#64748B] mr-1"></i>合同正文（按模板变量自动填充，可直接改）</span>'
     +'<span class="text-[11px] font-normal" id="d-miss" style="color:#94A3B8"></span></div>'
-    +'<textarea class="fi" id="d-body" rows="18" style="font-size:12px;line-height:1.9" oninput="DRAFT_DIRTY=true;draftCheck()"></textarea>'
+    +'<div class="cedit" id="d-body" contenteditable="true" data-ph="正文由模板渲染；可直接修改。" oninput="DRAFT_DIRTY=true;draftCheck()"></div>'
+    +'<p class="text-[11px] text-[#94A3B8] mt-1.5"><i class="fas fa-circle-info mr-1"></i>'
+      +'<span class="vt" style="font-size:10.5px">黄色块</span> = 由上方变量自动带入的实际值（改上方字段后点「按变量重新生成」同步）；'
+      +'<span class="vt miss" style="font-size:10.5px">{{变量}}</span> = 该字段没值，<b style="color:#B91C1C">不发出去</b>。</p>'
     +'<div class="flex items-center justify-between mt-2">'
-    +'<span class="text-[11px] text-[#94A3B8]"><i class="fas fa-circle-info mr-1"></i>正文初始由「'+(info.name)+'」渲染；手工改过后，改上方变量需点右侧按钮重新生成</span>'
+    +'<span class="text-[11px] text-[#94A3B8]">正文初始由「'+(info.name)+'」渲染；手工改过后，改上方变量需点右侧按钮重新生成</span>'
     +'<span><button class="btn btn-ghost" onclick="draftRender(true)"><i class="fas fa-rotate mr-1"></i>按变量重新生成</button>'
     +'<button class="btn btn-ghost" onclick="draftReset()">恢复模板默认</button></span></div></div>';
 
@@ -767,7 +783,10 @@ function draftRender(force){
   var key=document.getElementById('d-tpl').value;
   var info=TPLINFO[key]||TPLINFO['档口·普通摊'];
   if(!DRAFT_DIRTY||force){
-    ta.value=CONTRACT_TPL.render(info.body,draftVars());
+    /* v2.2：渲染成「值 chip」，正文里能一眼看出哪段是变量带入；保留原滚动位置，不跳回顶部 */
+    var st=ta.scrollTop;
+    ta.innerHTML=CONTRACT_TPL.bodyToChips(info.body,draftVars());
+    ta.scrollTop=st;
     DRAFT_DIRTY=false;
   }
   draftCheck();
@@ -776,10 +795,10 @@ function draftReset(){DRAFT_DIRTY=false;draftRender(true);toast('已恢复模板
 function draftCheck(){
   var ta=document.getElementById('d-body'), el=document.getElementById('d-miss');
   if(!ta||!el) return;
-  var miss=CONTRACT_TPL.missing(ta.value);
+  var miss=CONTRACT_TPL.missing(CONTRACT_TPL.toText(ta,'tpl'));
   el.innerHTML=miss.length
     ? '<span style="color:#B91C1C">正文还有 '+miss.length+' 个变量未填：'+miss.slice(0,4).join('、')+(miss.length>4?'…':'')+'</span>'
-    : '<span style="color:#15803D">变量已全部渲染</span>';
+    : '<span style="color:#15803D">变量已全部渲染（黄色块为自动带入值）</span>';
 }
 function draftPhoneChk(){
   var a=uOf(curAu)||{}, el=document.getElementById('d-phone'), ck=document.getElementById('d-phoneOk');
@@ -793,7 +812,9 @@ function sendSign(id){
   var rent=document.getElementById('d-rent').value.trim();
   var ph=document.getElementById('d-phone').value.trim();
   var idnoEl=document.getElementById('d-idno'), idno=idnoEl?idnoEl.value.trim():'';
-  var body=document.getElementById('d-body').value;
+  var bodyEl=document.getElementById('d-body');
+  var bodyTpl=CONTRACT_TPL.toText(bodyEl,'tpl');   /* 变量占位（查漏用） */
+  var body=CONTRACT_TPL.toText(bodyEl,'text');     /* 最终正文（发出去的实际值） */
 
   /* 1) 正文主体栏：证件号 */
   if(!idno){toast('乙方证件号未填写：个人填身份证号、企业填法定代表人身份证号。合同正文主体栏不能为空');if(idnoEl){idnoEl.focus();}return;}
@@ -806,7 +827,7 @@ function sendSign(id){
   if(!start||!end){toast('租期起止必填（按竞拍公告填，不写死 9.1–8.31 或 3 年 / 5 年）');return;}
   if(end<=start){toast('到期日必须晚于起租日');return;}
   /* 4) 正文变量必须全部渲染（v2.1 新增：比只校验证件号更彻底） */
-  var miss=CONTRACT_TPL.missing(body);
+  var miss=CONTRACT_TPL.missing(bodyTpl);
   if(miss.length){toast('正文还有 '+miss.length+' 个变量未填（'+miss.slice(0,3).join('、')+(miss.length>3?'…':'')+'），不能发送');return;}
   /* 5) 附件与送达确认：线上签署必勾 */
   var a1=document.getElementById('d-att1'), a2=document.getElementById('d-att2');
@@ -855,7 +876,7 @@ function openRebind(no){
     +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">改绑签署手机号</h3>'
     +'<p class="text-[11px] text-[#94A3B8] mt-1">'+esc(s.no)+'　'+esc(s.m)+'　当前：'+esc(s.phone)+'</p></div>'
     +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
-  h+='<div class="px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+  h+='<div class="px-5 py-4" style="flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:12px">'
     +'<div><label class="fl">新手机号 *（须与竞拍登记一致，11 位）</label><input class="fi" id="rb-phone" placeholder="如 13800006688"></div>'
     +'<div><label class="fl">核实方式 *</label><select class="sel" id="rb-way"><option>电话核实竞得人本人</option><option>线下核实（浙交会反馈单）</option><option>其他</option></select></div>'
     +'<div><label class="fl">核实说明 *</label><input class="fi" id="rb-note" placeholder="如：竞得人换号，已电话核实并留存录音编号"></div>'
@@ -1014,7 +1035,7 @@ function openSeal(no){
     +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">上传盖章扫描件　'+esc(s.no)+'</h3>'
     +'<p class="text-[11px] text-[#94A3B8] mt-1">合同已生效（'+esc(s.audit)+'）　盖章件：'+esc(s.seal)+'</p></div>'
     +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
-  h+='<div class="px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+  h+='<div class="px-5 py-4" style="flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:12px">'
     +'<div class="rounded-xl border p-3" style="border-color:#BBF7D0;background:#F0FDF4"><p class="text-[11px] text-[#64748B]">本合同已<b>生效</b>（审核签字通过即生效）；盖章件仅用于<b>归档完整性</b>——超 15 天未回传会升级提醒，但<b>不影响生效与业务</b>。<b>是否改为线上盖章：客户后续再定</b>（当前流程 = 下载合同 → 线下打印盖章 → 上传扫描件）。</p></div>'
     +'<div class="seal" style="width:100%;height:110px" onclick="toast(\'已选择文件：HT2027-0003_盖章件.pdf（3 页）\')"><div><i class="fas fa-file-pdf block mb-1 text-[16px]"></i>点击上传盖章扫描件（PDF / 图片，可多页）</div></div>'
     +'<div><label class="fl">备注</label><input class="fi" id="seal-note" placeholder="如：已线下盖章并回传，共 3 页"></div>'
@@ -1069,7 +1090,7 @@ function openTplSms(){
     +'<div><h3 class="text-[15px] font-bold text-[#1F2430]">签署短信模板（文案待定）</h3>'
     +'<p class="text-[11px] text-[#94A3B8] mt-1">独立短信服务（平台级）；此处仅登记模板与占位变量，正式文案由客户提供后填入</p></div>'
     +'<button class="text-gray-400 hover:text-gray-600" onclick="closeAll()"><i class="fas fa-xmark"></i></button></div>';
-  h+='<div class="px-5 py-4" style="display:flex;flex-direction:column;gap:12px">'
+  h+='<div class="px-5 py-4" style="flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:12px">'
     +'<div><label class="fl">模板名称</label><input class="fi" value="合同签署通知" readonly></div>'
     +'<div><label class="fl">短信内容（原文待定 · 占位变量：{姓名} {资源} {租期} {注册指引}）</label>'
     +'<textarea class="fi" rows="4">【袜掌柜】{姓名}您好，您已竞得{资源}（租期{租期}）。请使用竞拍登记手机号到「袜掌柜」小程序注册并签署合同。{注册指引}</textarea></div>'

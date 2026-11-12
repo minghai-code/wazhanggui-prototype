@@ -49,6 +49,37 @@ function writeLS(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 function q(k){var m=location.search.match(new RegExp('[?&]'+k+'=([^&]+)'));return m?decodeURIComponent(m[1]):''}
 function nowStr(){var d=new Date();function p(n){return n<10?'0'+n:''+n}return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes())}
 
+/* 旧版数据只有 detail 文本：解析回结构化字段，供「修改报价」回填 */
+function parseQuoteDetail(s){
+  s=s||'';var o={},m;
+  m=s.match(/样品 ¥([\d.]+)\/件/); if(m)o.samplePrice=m[1];
+  m=s.match(/×\s*([\d.]+)\s*件/); if(m)o.sampleQty=m[1];
+  m=s.match(/大货预估 ¥([\d.]+)\//); if(m)o.bulkPrice=m[1];
+  if(!m){ m=s.match(/^¥([\d.]+)\//); if(m)o.bulkPrice=m[1]; }
+  if(!o.samplePrice){ m=s.match(/×\s*([\d.]+)\s*双/); if(m)o.bulkQty=m[1]; }
+  m=s.match(/交期\s*(\d+)\s*天/); if(m)o.period=m[1];
+  o.freight=/不含运费/.test(s)?'不含运费':'含运费';
+  return o;
+}
+/* 把一条老报价升级为「含报价记录」的新结构，并写回 localStorage */
+function migrateQuote(q){
+  var p=parseQuoteDetail(q.detail);
+  q.samplePrice=q.samplePrice||p.samplePrice||'';
+  q.sampleQty=q.sampleQty||p.sampleQty||'';
+  q.bulkPrice=q.bulkPrice||p.bulkPrice||'';
+  q.bulkQty=q.bulkQty||p.bulkQty||'';
+  q.period=q.period||p.period||'';
+  q.freight=q.freight||p.freight||'含运费';
+  q.note=q.note||'';
+  if(!q.history||!q.history.length){
+    q.history=[{no:(q.changes||0)+1,time:q.time,detail:q.detail,samplePrice:q.samplePrice,sampleQty:q.sampleQty,bulkPrice:q.bulkPrice,bulkQty:q.bulkQty,period:q.period,freight:q.freight,note:q.note}];
+  }
+  var list=readLS('sh_custom_quotes');
+  list.forEach(function(x,i){if(x.demandId===q.demandId)list[i]=q;});
+  writeLS('sh_custom_quotes',list);
+  return q;
+}
+
 var DEMANDS=[
  {id:'CP20261024001',kind:'personal',type:'先样品后大货',title:'校服配套定制袜（含校徽）',buyer:'周**',qty:1000,unit:'双',maxPrice:'5.0',left:'剩 2 天',period:'30 天',
   req:['花型：校徽刺绣（左袜口）','材质：精梳棉 80% + 氨纶 20%','版型：中筒，罗纹口','包装：独立 OPP 袋，100 双/箱'],
@@ -92,10 +123,41 @@ if(!d){
   document.getElementById('footBar').style.display='none';
 }else{
   var mine=readLS('sh_custom_quotes').filter(function(x){return x.demandId===d.id;})[0];
+  if(mine&&(!mine.history||!mine.history.length)) mine=migrateQuote(mine);
   var changes=mine?mine.changes:0;
+  var hist=mine&&mine.history?mine.history:[];
+  var lastQ=hist.length?hist[hist.length-1]:null;
   var typeTip=d.type==='仅样品定制'?'本次仅提交样品报价，样品确认后线下沟通大货。'
     :d.type==='直接大货'?'本次直接提交大货报价，不产生打样单。'
     :'本次仅对样品报价；样品通过后由买家发起大货报价，后台生成两个订单。';
+
+  /* 报价状态：待确认可继续改价；已选中看中标结果 + 订单；未中标只看结果、不披露中标价 */
+  var st=mine?mine.status:'';
+  var canEdit=!mine||st==='待确认';
+  var stCard='';
+  if(mine&&st==='已选中'){
+    stCard='<div class="bg-white rounded-2xl shadow-soft p-3.5 mt-3" style="border:1px solid #A7F3D0">'
+      +'<div class="flex items-center gap-1.5"><i class="fas fa-circle-check text-emerald-500"></i><p class="text-[12px] font-bold text-emerald-700">已中标</p>'
+      +'<span class="ml-auto text-[9px] text-gray-400 num">'+(mine.awardTime||mine.time||'')+'</span></div>'
+      +'<div class="mt-2 rounded-xl p-2.5" style="background:#F0FDF4"><p class="text-[9px] font-bold text-emerald-700">中标报价（买家已采纳）</p>'
+      +'<p class="text-[10px] text-gray-700 mt-1 leading-relaxed num">'+(mine.detail||'')+'</p></div>'
+      +'<div class="flex items-center justify-between mt-2"><span class="text-[9px] text-gray-400">'+(mine.orderNo?'订单号 '+mine.orderNo+' · 待买家支付订金后进入生产':'等待买家生成订单')+'</span>'
+      +'<a href="orders.html" class="text-[10px] font-bold text-emerald-600">查看订单 ›</a></div>'
+      +'</div>';
+  }else if(mine&&st==='未选中'){
+    stCard='<div class="bg-white rounded-2xl shadow-soft p-3.5 mt-3" style="border:1px solid #E2E8F0">'
+      +'<div class="flex items-center gap-1.5"><i class="fas fa-circle-xmark text-gray-400"></i><p class="text-[12px] font-bold text-gray-600">未中标</p>'
+      +'<span class="ml-auto text-[9px] text-gray-400 num">'+(mine.awardTime||'')+'</span></div>'
+      +'<p class="text-[10px] text-gray-500 mt-2 leading-relaxed">买家已完成选标，本次未中标。按平台规则，<b>不披露买家最终中标价与其他卖家报价</b>。</p>'
+      +'<p class="text-[9px] text-gray-400 mt-1.5">你本次报价：<span class="num">'+(mine.detail||'')+'</span></p>'
+      +'</div>';
+  }else if(mine){
+    stCard='<div class="bg-white rounded-2xl shadow-soft p-3.5 mt-3" style="border:1px solid #FDE68A">'
+      +'<div class="flex items-center gap-1.5"><i class="fas fa-clock text-amber-500"></i><p class="text-[12px] font-bold text-amber-700">待买家确认</p>'
+      +'<span class="ml-auto text-[9px] text-gray-400">截止前还可改价 '+(2-changes)+' 次</span></div>'
+      +'<p class="text-[10px] text-gray-500 mt-2 leading-relaxed">买家正在比价，选中后会在此显示中标结果与订单入口；未中标不显示其他卖家报价。</p>'
+      +'</div>';
+  }
 
   document.getElementById('bodyBox').innerHTML=
     '<div class="bg-white rounded-2xl shadow-soft p-3.5">'
@@ -114,8 +176,10 @@ if(!d){
     +d.refs.map(function(r){return '<div class="ph">'+r+'</div>';}).join('')+'</div></div>'
     +'</div>'
 
-    +'<div class="bg-white rounded-2xl shadow-soft p-3.5 mt-3">'
-    +'<div class="flex items-center justify-between mb-1"><p class="text-[12px] font-bold text-gray-800">提交报价</p>'
+    +stCard
+
+    +'<div id="quoteForm" class="bg-white rounded-2xl shadow-soft p-3.5 mt-3">'
+    +'<div class="flex items-center justify-between mb-1"><p class="text-[12px] font-bold text-gray-800">'+(mine?'修改报价':'提交报价')+'</p>'
     +'<span class="text-[9px] '+(changes>=2?'text-red-500':'text-gray-400')+'">已改价 '+changes+'/2</span></div>'
     +'<p class="text-[10px] text-amber-600 leading-relaxed mb-2"><i class="fas fa-circle-info mr-1"></i>'+typeTip+'</p>'
     +'<div id="priceFields"></div>'
@@ -126,11 +190,29 @@ if(!d){
     +'<div class="mt-2"><label class="lbl">备注</label><textarea id="fNote" class="inp" rows="2" placeholder="工艺说明、起订量、打样周期等（选填）"></textarea></div>'
     +'</div>'
 
-    +'<div class="px-1 mt-2"><p class="text-[9px] text-gray-400 leading-relaxed"><i class="fas fa-circle-info mr-1"></i>截止前可改价，最多 2 次；未中标不会显示其他卖家报价。</p></div>';
+    /* 报价记录：每次提交/改价留痕，最新在上 */
+    +(hist.length?('<div class="bg-white rounded-2xl shadow-soft p-3.5 mt-3">'
+      +'<div class="flex items-center justify-between mb-1.5"><p class="text-[12px] font-bold text-gray-800">报价记录</p><span class="text-[9px] text-gray-400">共 '+hist.length+' 次</span></div>'
+      +hist.slice().reverse().map(function(h,i){
+          var isNew=i===0;
+          return '<div class="py-2'+(i?' border-t border-gray-50':'')+'">'
+            +'<div class="flex items-center justify-between"><span class="text-[10px] font-bold '+(isNew?'text-blue-600':'text-gray-500')+'">第 '+h.no+' 次'+(isNew?'（最新）':'')+'</span><span class="text-[9px] text-gray-400 num">'+(h.time||'')+'</span></div>'
+            +'<p class="text-[10px] text-gray-600 mt-0.5 leading-relaxed">'+(h.detail||'')+'</p>'
+            +'</div>';
+        }).join('')
+      +'<p class="text-[9px] text-gray-400 mt-1 pt-2 border-t border-gray-50"><i class="fas fa-circle-info mr-1"></i>每次提交与改价均留痕；截止前最多改价 2 次，即最多 3 次报价。</p>'
+      +'</div>'):'')
 
-  // 按类型渲染价格字段
+    +'<div class="px-1 mt-2"><p class="text-[9px] text-gray-400 leading-relaxed"><i class="fas fa-circle-info mr-1"></i>'
+    +(canEdit?'截止前可改价，最多 2 次；未中标不会显示其他卖家报价。':'本需求报价已截止，选标结果以平台通知为准；不披露其他卖家报价与买家最终中标价。')
+    +'</p></div>';
+
+  // 按类型渲染价格字段（已选中 / 未中标时表单只读展示，不渲染可编辑表单）
   var pf=document.getElementById('priceFields');
-  if(d.type==='仅样品定制'){
+  if(!canEdit){
+    var qf=document.getElementById('quoteForm');
+    if(qf) qf.remove();
+  }else if(d.type==='仅样品定制'){
     pf.innerHTML='<div class="grid grid-cols-2 gap-2"><div><label class="lbl">样品单价（元/件） <b>*</b></label><input id="fSample" type="number" step="0.1" class="inp" placeholder="如 28"></div>'
       +'<div><label class="lbl">样品数量（件） <b>*</b></label><input id="fSampleQty" type="number" class="inp" placeholder="如 2"></div></div>';
   }else if(d.type==='直接大货'){
@@ -142,14 +224,41 @@ if(!d){
       +'<div class="mt-2"><label class="lbl">大货预估单价（元/'+d.unit+'）</label><input id="fBulk" type="number" step="0.1" class="inp" placeholder="样品通过后确认，可先填预估"></div>';
   }
 
+  /* 改价回填：带出上一次报价的样品价/数量、大货价、交期、运费、备注 */
+  if(mine){
+    var src=lastQ||mine;
+    [['fSample',src.samplePrice],['fSampleQty',src.sampleQty],['fBulk',src.bulkPrice],['fBulkQty',src.bulkQty]].forEach(function(p){
+      var el=document.getElementById(p[0]);
+      if(el&&p[1]!==''&&p[1]!==undefined&&p[1]!==null) el.value=p[1];
+    });
+    var pe=document.getElementById('fPeriod'); if(pe&&src.period) pe.value=src.period;
+    var fe=document.getElementById('fFreight'); if(fe&&src.freight) fe.value=src.freight;
+    var ne=document.getElementById('fNote'); if(ne&&src.note) ne.value=src.note;
+  }
+
   var foot='';
-  if(changes>=2){
+  if(st==='已选中'){
+    foot='<a href="orders.html" class="block w-full py-3 rounded-xl text-white text-[14px] font-bold text-center" style="background:linear-gradient(135deg,#10B981,#059669)">查看订单</a>';
+  }else if(st==='未选中'){
+    foot='<a href="shanghu-custom.html?tab=mine" class="block w-full py-3 rounded-xl text-gray-500 text-[14px] font-bold text-center bg-gray-100">返回我的报价</a>';
+  }else if(changes>=2){
     foot='<div class="block w-full py-3 rounded-xl text-gray-400 text-[13px] font-bold text-center bg-gray-100">改价次数已用完（2/2）</div>';
   }else{
     foot='<a onclick="submitQuote()" class="block w-full py-3 rounded-xl text-white text-[14px] font-bold text-center" style="background:linear-gradient(135deg,#6366F1,#4F46E5)">'+(mine?'提交改价':'提交报价')+'</a>';
   }
   document.getElementById('footBar').innerHTML=foot;
-  document.getElementById('backLink').href='shanghu-custom.html?type='+d.kind;
+  var bl=document.getElementById('backLink');
+  bl.href='shanghu-custom.html?type='+d.kind;
+  /* 从首页需求池进来时返回首页，从列表进来时返回列表；直接打开则走 href 兜底 */
+  bl.onclick=function(e){ if(history.length>1){ e.preventDefault(); history.back(); } };
+
+  /* 从「我的报价」进来：待确认显示「修改报价」，已结束显示「报价详情」 */
+  if(q('from')==='mine'&&mine){
+    var pageTitle=(mine.status==='待确认')?'修改报价':'报价详情';
+    Array.prototype.forEach.call(document.querySelectorAll('span'),function(el){
+      if(el.textContent.trim()==='需求详情'&&el.className.indexOf('text-[17px]')>-1) el.textContent=pageTitle;
+    });
+  }
 }
 
 function submitQuote(){
@@ -173,18 +282,43 @@ function submitQuote(){
     detail='样品 ¥'+sEl.value+'/件 × '+sqEl.value+'件'+(bEl.value?' · 大货预估 ¥'+bEl.value+'/'+d.unit:'');
   }
   detail+=' · 交期 '+period+' 天 · '+freight;
+  /* 结构化留痕：本次报价的字段值 + 明细，写入 history 供「报价记录」与下次回填 */
+  var rec={
+    no:0,time:nowStr(),detail:detail,
+    samplePrice:sEl?sEl.value:'',sampleQty:sqEl?sqEl.value:'',
+    bulkPrice:bEl?bEl.value:'',bulkQty:bqEl?bqEl.value:'',
+    period:period,freight:freight,note:note
+  };
   var list=readLS('sh_custom_quotes');
   var idx=-1;
   list.forEach(function(x,i){if(x.demandId===d.id)idx=i;});
   if(idx>-1){
     if(list[idx].changes>=2){toast('改价次数已用完（2/2）');return}
-    list[idx].detail=detail;list[idx].time=nowStr();list[idx].changes=(list[idx].changes||0)+1;list[idx].status='待确认';
+    var it=list[idx];
+    var h=it.history||[];
+    if(!h.length&&it.detail) h.push({no:1,time:it.time,detail:it.detail});
+    rec.no=h.length+1;
+    h.push(rec);
+    it.history=h;
+    it.detail=detail;it.time=rec.time;it.changes=(it.changes||0)+1;it.status='待确认';
+    it.samplePrice=rec.samplePrice;it.sampleQty=rec.sampleQty;it.bulkPrice=rec.bulkPrice;
+    it.bulkQty=rec.bulkQty;it.period=period;it.freight=freight;it.note=note;
   }else{
-    list.unshift({demandId:d.id,title:d.title,type:d.type,detail:detail,status:'待确认',time:nowStr(),changes:0});
+    rec.no=1;
+    list.unshift({demandId:d.id,title:d.title,type:d.type,detail:detail,status:'待确认',time:rec.time,changes:0,history:[rec],
+      samplePrice:rec.samplePrice,sampleQty:rec.sampleQty,bulkPrice:rec.bulkPrice,bulkQty:rec.bulkQty,period:period,freight:freight,note:note});
   }
   writeLS('sh_custom_quotes',list.slice(0,50));
-  toast(idx>-1?'改价已提交':'报价已提交');
+  toast(idx>-1?'改价已提交（第 '+rec.no+' 次报价）':'报价已提交');
   setTimeout(function(){location.href='shanghu-custom.html?tab=mine';},700);
+}
+
+/* 从「我的报价」点「修改报价」进入：自动定位到报价表单 */
+if(q('from')==='mine'){
+  setTimeout(function(){
+    var el=document.getElementById('priceFields');
+    if(el&&el.scrollIntoView) el.scrollIntoView({behavior:'smooth',block:'center'});
+  },200);
 }
 </script>
 </body>

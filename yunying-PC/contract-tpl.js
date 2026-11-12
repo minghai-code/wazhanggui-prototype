@@ -124,6 +124,58 @@
       var out = [], re = /\{\{([^}]+)\}\}/g, m;
       while ((m = re.exec(String(text || '')))) { if (out.indexOf(m[1]) < 0) out.push(m[1]); }
       return out;
+    },
+
+    /* ===== v2.2：正文「变量可见」渲染工具（模板页编辑区 / 生成合同页共用） =====
+       编辑区不再用 textarea（textarea 无法局部着色），改为 contenteditable + 变量 chip。
+       chip 带 data-v="{{变量}}"，转回文本时还原成占位符，保证存取一致。 */
+    chip: function (display, vtag, miss, actual) {
+      return '<span class="vt' + (miss ? ' miss' : '') + '" contenteditable="false" data-v="' + escH(vtag) +
+        '" data-vs="' + escH(actual === undefined ? display : actual) + '">' + escH(display) + '</span>';
+    },
+    /* 模板正文（含 {{}}）→ 编辑器 HTML：变量显示为黄色 chip */
+    bodyToHtml: function (text) {
+      return escH(text || '')
+        .replace(/\{\{[^}]+\}\}/g, function (m) { return window.CONTRACT_TPL.chip(m, m, false); })
+        .replace(/\n/g, '<br>');
+    },
+    /* 生成合同时：变量替换为「实际值 chip」，未填的保留 {{变量}} 并标红（一眼看出哪段是自动带出、哪段没数据） */
+    bodyToChips: function (body, vars) {
+      return escH(body || '').replace(/\{\{([^}]+)\}\}/g, function (m, k) {
+        var v = vars[k];
+        var has = !(v === undefined || v === null || String(v).trim() === '');
+        return window.CONTRACT_TPL.chip(has ? v : m, m, !has, has ? v : '');
+      }).replace(/\n/g, '<br>');
+    },
+    /* 编辑器 DOM → 纯文本
+       mode='tpl'  取 {{变量}} 占位（模板保存 / 缺失变量检测）
+       mode='text' 取实际值（发送给商户的最终正文） */
+    toText: function (root, mode) {
+      var out = '';
+      (function walk(n) {
+        for (var i = 0; i < n.childNodes.length; i++) {
+          var c = n.childNodes[i];
+          if (c.nodeType === 3) { out += c.nodeValue; }
+          else if (c.nodeType === 1) {
+            if (c.getAttribute && c.getAttribute('data-v')) {
+              out += (mode === 'text')
+                ? (c.getAttribute('data-vs') !== null && c.getAttribute('data-vs') !== '' ? c.getAttribute('data-vs') : c.textContent)
+                : c.getAttribute('data-v');
+            }
+            else if (c.tagName === 'BR') { out += '\n'; }
+            else {
+              var block = (c.tagName === 'DIV' || c.tagName === 'P');
+              if (block && out && out.slice(-1) !== '\n') { out += '\n'; }
+              walk(c);
+            }
+          }
+        }
+      })(root);
+      return out;
     }
   };
+
+  function escH(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
 })();
