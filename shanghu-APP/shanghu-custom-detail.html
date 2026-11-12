@@ -183,6 +183,18 @@ if(!d){
     +'<span class="text-[9px] '+(changes>=2?'text-red-500':'text-gray-400')+'">已改价 '+changes+'/2</span></div>'
     +'<p class="text-[10px] text-amber-600 leading-relaxed mb-2"><i class="fas fa-circle-info mr-1"></i>'+typeTip+'</p>'
     +'<div id="priceFields"></div>'
+
+    /* 样品收费方式（必填三选一）+ 大货起订量 MOQ（10b v2.0 §2.0.5 / §2.0.7） */
+    +'<div class="mt-2.5"><label class="lbl">样品收费方式 <b>*</b></label>'
+    +'<div class="flex gap-1.5 mt-1" id="feeWays">'
+    +'<span onclick="pickFee(\'free\')" data-w="free" class="fee-opt flex-1 text-center text-[10px] py-2 rounded-lg border border-gray-200 text-gray-600">免费提供</span>'
+    +'<span onclick="pickFee(\'paid\')" data-w="paid" class="fee-opt flex-1 text-center text-[10px] py-2 rounded-lg border border-gray-200 text-gray-600">收样品费·不可抵</span>'
+    +'<span onclick="pickFee(\'deduct\')" data-w="deduct" class="fee-opt flex-1 text-center text-[10px] py-2 rounded-lg border border-gray-200 text-gray-600">收样品费·可抵货款</span>'
+    +'</div>'
+    +'<div id="feeExtra" class="mt-1.5"></div></div>'
+
+    +(d.type!=='仅样品定制'?'<div class="mt-2"><label class="lbl">大货起订量 MOQ（'+d.unit+'） <b>*</b></label><input id="fMoq" type="number" class="inp" placeholder="如 500"></div>':'')
+
     +'<div class="grid grid-cols-2 gap-2 mt-2">'
     +'<div><label class="lbl">交期（天） <b>*</b></label><input id="fPeriod" type="number" class="inp" placeholder="如 25"></div>'
     +'<div><label class="lbl">是否含运费</label><select id="fFreight" class="inp"><option>含运费</option><option>不含运费</option></select></div>'
@@ -234,6 +246,13 @@ if(!d){
     var pe=document.getElementById('fPeriod'); if(pe&&src.period) pe.value=src.period;
     var fe=document.getElementById('fFreight'); if(fe&&src.freight) fe.value=src.freight;
     var ne=document.getElementById('fNote'); if(ne&&src.note) ne.value=src.note;
+    var mq=document.getElementById('fMoq'); if(mq&&src.moq) mq.value=src.moq;
+    /* 样品收费方式最后回填（pickFee 会重建附加字段区） */
+    if(src.sampleFeeWay||src.feeWay){
+      pickFee(src.sampleFeeWay||src.feeWay);
+      var fa=document.getElementById('fFeeAmt'); if(fa&&src.sampleFee) fa.value=src.sampleFee;
+      var fc=document.getElementById('fFreeCond'); if(fc&&src.freeCond) fc.value=src.freeCond;
+    }
   }
 
   var foot='';
@@ -261,6 +280,27 @@ if(!d){
   }
 }
 
+/* 样品收费方式：free 免费（填条件）/ paid 收费不可抵 / deduct 收费可抵 */
+var feeWay='';
+function pickFee(w){
+  feeWay=w;
+  Array.prototype.forEach.call(document.querySelectorAll('#feeWays .fee-opt'),function(el){
+    var on=el.getAttribute('data-w')===w;
+    el.style.borderColor=on?'#6366F1':'#E5E7EB';
+    el.style.background=on?'#EEF2FF':'#fff';
+    el.style.color=on?'#4F46E5':'#4B5563';
+    el.style.fontWeight=on?'700':'400';
+  });
+  var box=document.getElementById('feeExtra');
+  if(!box) return;
+  if(w==='free'){
+    box.innerHTML='<input id="fFreeCond" class="inp" placeholder="免费条件（选填），如 大货起订量 ≥2000 双 / 需签约年度框架">';
+  }else{
+    box.innerHTML='<input id="fFeeAmt" type="number" step="0.01" class="inp" placeholder="样品费金额（元）">'
+      +(w==='deduct'?'<p class="text-[9px] text-gray-400 mt-1"><i class="fas fa-circle-info mr-1"></i>该金额将在定制单中一次性抵扣，用后作废。</p>':'');
+  }
+}
+
 function submitQuote(){
   if(!d)return;
   var period=document.getElementById('fPeriod').value.trim();
@@ -268,6 +308,17 @@ function submitQuote(){
   var note=document.getElementById('fNote').value.trim();
   var sEl=document.getElementById('fSample'),sqEl=document.getElementById('fSampleQty'),bEl=document.getElementById('fBulk'),bqEl=document.getElementById('fBulkQty');
   if(!period){toast('请填写交期');return}
+  /* 样品收费方式 + 大货起订量校验（10b v2.0 §2.0.5） */
+  var feeAmt='',freeCond='',moq='';
+  var moqEl=document.getElementById('fMoq');
+  if(moqEl){ moq=moqEl.value.trim(); if(!moq){toast('请填写大货起订量');return} }
+  if(!feeWay){toast('请选择样品收费方式');return}
+  if(feeWay==='free'){
+    var fcEl=document.getElementById('fFreeCond'); freeCond=fcEl?fcEl.value.trim():'';
+  }else{
+    var faEl=document.getElementById('fFeeAmt'); feeAmt=faEl?faEl.value.trim():'';
+    if(!feeAmt){toast('请填写样品费金额');return}
+  }
   var detail='';
   if(d.type==='仅样品定制'){
     if(!sEl.value){toast('请填写样品单价');return}
@@ -281,13 +332,19 @@ function submitQuote(){
     if(!sqEl.value){toast('请填写样品数量');return}
     detail='样品 ¥'+sEl.value+'/件 × '+sqEl.value+'件'+(bEl.value?' · 大货预估 ¥'+bEl.value+'/'+d.unit:'');
   }
+  var feeTxt=feeWay==='free'
+    ? ('样品免费'+(freeCond?'（'+freeCond+'）':''))
+    : ('样品费 ¥'+feeAmt+(feeWay==='deduct'?' 可抵货款':' 不可抵'));
+  detail+=' · '+feeTxt;
+  if(moq) detail+=' · MOQ '+moq+' '+d.unit;
   detail+=' · 交期 '+period+' 天 · '+freight;
   /* 结构化留痕：本次报价的字段值 + 明细，写入 history 供「报价记录」与下次回填 */
   var rec={
     no:0,time:nowStr(),detail:detail,
     samplePrice:sEl?sEl.value:'',sampleQty:sqEl?sqEl.value:'',
     bulkPrice:bEl?bEl.value:'',bulkQty:bqEl?bqEl.value:'',
-    period:period,freight:freight,note:note
+    period:period,freight:freight,note:note,
+    sampleFeeWay:feeWay,sampleFee:feeAmt,freeCond:freeCond,moq:moq
   };
   var list=readLS('sh_custom_quotes');
   var idx=-1;
@@ -303,10 +360,12 @@ function submitQuote(){
     it.detail=detail;it.time=rec.time;it.changes=(it.changes||0)+1;it.status='待确认';
     it.samplePrice=rec.samplePrice;it.sampleQty=rec.sampleQty;it.bulkPrice=rec.bulkPrice;
     it.bulkQty=rec.bulkQty;it.period=period;it.freight=freight;it.note=note;
+    it.sampleFeeWay=feeWay;it.sampleFee=feeAmt;it.freeCond=freeCond;it.moq=moq;
   }else{
     rec.no=1;
     list.unshift({demandId:d.id,title:d.title,type:d.type,detail:detail,status:'待确认',time:rec.time,changes:0,history:[rec],
-      samplePrice:rec.samplePrice,sampleQty:rec.sampleQty,bulkPrice:rec.bulkPrice,bulkQty:rec.bulkQty,period:period,freight:freight,note:note});
+      samplePrice:rec.samplePrice,sampleQty:rec.sampleQty,bulkPrice:rec.bulkPrice,bulkQty:rec.bulkQty,period:period,freight:freight,note:note,
+      sampleFeeWay:feeWay,sampleFee:feeAmt,freeCond:freeCond,moq:moq});
   }
   writeLS('sh_custom_quotes',list.slice(0,50));
   toast(idx>-1?'改价已提交（第 '+rec.no+' 次报价）':'报价已提交');

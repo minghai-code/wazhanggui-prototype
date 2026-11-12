@@ -125,11 +125,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
   <div class="px-4 pb-6">
     <!-- 商品概要 -->
     <div class="flex gap-2.5 pb-3 border-b border-gray-50 mb-3">
-      <img src="images/sock_03.jpg" class="w-16 h-16 rounded-xl object-cover">
+      <img id="revImg" src="images/sock_03.jpg" class="w-16 h-16 rounded-xl object-cover">
       <div class="flex-1">
-        <p class="text-[12px] text-gray-800 font-medium">精梳棉商务男袜 透气防臭 10双装</p>
-        <p class="text-[10px] text-gray-400 mt-0.5">藏青色 · 均码 · 120双</p>
-        <p class="text-[10px] text-gray-500 mt-0.5">订单号：DD20260820001</p>
+        <p id="revName" class="text-[12px] text-gray-800 font-medium">精梳棉商务男袜 透气防臭 10双装</p>
+        <p id="revSpec" class="text-[10px] text-gray-400 mt-0.5">藏青色 · 均码 · 120双</p>
+        <p id="revNo" class="text-[10px] text-gray-500 mt-0.5">订单号：DD20260820001</p>
       </div>
     </div>
 
@@ -250,6 +250,20 @@ document.getElementById('reviewText').addEventListener('input',function(){
 });
 
 function openReview(){
+  /* 评价面板内容跟随当前订单（打样 / 定制 / 普通订单） */
+  var o=CUR_SPECIAL;
+  var nm=document.getElementById('revName'),sp=document.getElementById('revSpec'),no=document.getElementById('revNo'),im=document.getElementById('revImg');
+  if(o&&nm){
+    nm.textContent=o.name;
+    sp.textContent=o.spec+(o.qty?' · '+o.qty+(o.type==='sample'?' 件':' 双'):'');
+    no.textContent='订单号：'+o.id;
+    if(im)im.style.display='none';
+  }else if(nm){
+    nm.textContent='精梳棉商务男袜 透气防臭 10双装';
+    sp.textContent='藏青色 · 均码 · 120双';
+    no.textContent='订单号：DD20260820001';
+    if(im)im.style.display='block';
+  }
   var mask=document.getElementById('reviewMask');
   var sheet=document.getElementById('reviewSheet');
   mask.classList.add('on');
@@ -267,7 +281,14 @@ function submitReview(){
   var txt=document.getElementById('reviewText').value.trim();
   if(!txt){toast('请填写评价内容');return;}
   closeReview();
-  setTimeout(function(){toast('评价提交成功，感谢您的反馈');},300);
+  setTimeout(function(){
+    toast('评价提交成功，感谢您的反馈');
+    /* 打样 / 定制单评价后回列表，状态由后台置「已完成」 */
+    if(CUR_SPECIAL&&CUR_SPECIAL.sub==='review'){
+      var tp=CUR_SPECIAL.type;
+      setTimeout(function(){location.href='orders.html?type='+tp;},900);
+    }
+  },300);
 }
 
 /* ===== 询价订单详情（type=inquiry） ===== */
@@ -326,10 +347,22 @@ var SPECIAL_ORDERS={
   'GB20261110001':{type:'group',id:'GB20261110001',statusText:'待成团',pending:true,tno:'T20261110001',shop:'大唐袜业旗舰店',name:'秋季加厚羊毛袜',spec:'麻灰/均码(35-40)',qty:120,price:2.9,lockTier:'目标档 500 双',targetQty:500,cum:320,people:3,payWay:'微信支付',time:'2026-11-10 09:12',logi:'—'},
   'GB20261105003':{type:'group',id:'GB20261105003',statusText:'已取消（已退款）',refunded:true,tno:'T20261105003',shop:'绍兴童袜工厂',name:'儿童卡通棉袜（3 双装）',spec:'混色/均码',qty:260,price:3.3,lockTier:'目标档 300 双',targetQty:300,cum:260,people:3,payWay:'微信支付',time:'2026-11-05 10:20',logi:'—',refundAmt:858,refundNo:'RF20261110003',refundAt:'2026-11-10 16:30',refundReason:'到期未达目标档，拼单失败（已过第一档 100 双仍不成团）'},
   'GB20261103004':{type:'group',id:'GB20261103004',statusText:'已取消（已退款）',refunded:true,tno:'T20261103004',shop:'杭州AA跨境',name:'运动船袜（纯色 10 双装）',spec:'混色/均码',qty:450,price:2.8,lockTier:'目标档 500 双',targetQty:500,cum:450,people:4,payWay:'微信支付',time:'2026-11-03 09:40',logi:'—',refundAmt:1260,refundNo:'RF20261104007',refundAt:'2026-11-04 11:05',refundReason:'商户申请取消本团（无法供货），运营审核通过'},
-  'SP20261105001':{type:'sample',id:'SP20261105001',statusText:'打样中',cpNo:'CP20261111001',shop:'大唐精工袜业',name:'打样单 藏青条纹商务袜',spec:'精梳棉 200针 · 中筒 · 加固脚跟',fee:50,deduct:true,qty:1,addr:'王建国 138****6688 浙江省绍兴市诸暨市大唐街道袜业城 A 区 12 号档口',time:'2026-11-06 09:12'},
-  'CZ20261106001':{type:'custom',id:'CZ20261106001',statusText:'生产中',cpNo:'CP20261105003',method:'直接大货',shop:'诸暨华康针织',name:'定制单 儿童卡通袜·精梳棉',spec:'混色 · 168针 · 短筒 · 无骨缝合',qty:2000,price:2.35,deposit:1410,freight:0,freightNote:'含运费',doneAt:'11-20',time:'2026-11-06 15:40'},
-  'CZ20261110001':{type:'custom',id:'CZ20261110001',statusText:'待生产',cpNo:'CP20261110001',method:'先打样后大货',shop:'大唐精工袜业',name:'定制单 藏青条纹商务袜·精梳棉',spec:'藏青 · 200针提花 · 中筒 · 39-42',qty:500,price:3.2,deposit:480,deduct:50,freight:0,freightNote:'含运费',doneAt:'11-18',time:'2026-11-10 16:20'},
-  'CZ20261103002':{type:'custom',id:'CZ20261103002',statusText:'待付尾款',cpNo:'CP20261103002',method:'直接大货',shop:'诸暨华康针织',name:'定制单 厚款毛圈运动袜',spec:'原白 · 144针 · 中筒 · 39-42',qty:1200,price:3.65,deposit:1314,freight:80,freightNote:'',doneAt:'11-09',time:'2026-11-03 11:05'}
+  /* ===== 打样单 SP：6 子状态 ===== */
+  'SP20261112001':{type:'sample',sub:'waitfee',id:'SP20261112001',statusText:'待付样品费',cpNo:'CP20261112001',shop:'大唐精工袜业',name:'打样单 藏青条纹商务袜',spec:'仅打样 · 精梳棉 200针 · 中筒 · 加固脚跟',fee:50,deduct:true,qty:1,addr:'王建国 138****6688 浙江省绍兴市诸暨市大唐街道袜业城 A 区 12 号档口',time:'2026-11-12 10:05'},
+  'SP20261105001':{type:'sample',sub:'making',id:'SP20261105001',statusText:'打样中',cpNo:'CP20261111001',shop:'大唐精工袜业',name:'打样单 藏青条纹商务袜',spec:'先打样后大货 · 精梳棉 200针 · 中筒 · 加固脚跟',fee:50,deduct:true,qty:1,addr:'王建国 138****6688 浙江省绍兴市诸暨市大唐街道袜业城 A 区 12 号档口',time:'2026-11-06 09:12',promiseDays:'',sampleEta:''},
+  'SP20261108002':{type:'sample',sub:'sent',id:'SP20261108002',statusText:'已寄样 · 待确认',cpNo:'CP20261107002',shop:'诸暨华康针织',name:'打样单 儿童卡通袜·精梳棉',spec:'先打样后大货 · 168针 · 短筒 · 无骨缝合',fee:80,deduct:true,qty:1,addr:'王建国 138****6688 浙江省绍兴市诸暨市大唐街道袜业城 A 区 12 号档口',time:'2026-11-07 15:30',logi:'顺丰 SF3012 8890 7761',promiseDays:'3-5 天',shippedAt:'2026-11-08 14:20'},
+  'SP20261102003':{type:'sample',sub:'revise',id:'SP20261102003',statusText:'要求改样 · 第2轮',cpNo:'CP20261031003',shop:'义乌竹纤维针织',name:'打样单 竹纤维抗菌男袜',spec:'先打样后大货 · 144针 · 中筒 · 罗纹口',fee:60,deduct:false,qty:1,addr:'王建国 138****6688 浙江省绍兴市诸暨市大唐街道袜业城 A 区 12 号档口',time:'2026-11-02 11:20',round:2,reviseNote:'罗纹口偏紧、袜口回弹不足，需加宽 2mm 并改用高弹包覆纱',promiseDays:'3-5 天',sampleEta:'',shippedAt:'2026-11-06 17:40'},
+  'SP20261028004':{type:'sample',sub:'confirmed',id:'SP20261028004',statusText:'样衣已确认',cpNo:'CP20261026004',shop:'大唐精工袜业',name:'打样单 厚款毛圈运动袜',spec:'先打样后大货 · 144针 · 中筒 · 毛圈底',fee:70,deduct:true,qty:1,addr:'王建国 138****6688 浙江省绍兴市诸暨市大唐街道袜业城 A 区 12 号档口',time:'2026-10-26 09:40',logi:'顺丰 SF3012 7710 2233',promiseDays:'3-5 天',shippedAt:'2026-10-28 09:00',confirmAt:'2026-10-30 10:12 买家确认通过'},
+  'SP20261020005':{type:'sample',sub:'cancelled',id:'SP20261020005',statusText:'样衣未通过 · 已关闭',cpNo:'CP20261018005',shop:'绍兴童袜工厂',name:'打样单 儿童提花棉袜',spec:'先打样后大货 · 120针 · 短筒',fee:45,deduct:false,qty:1,addr:'王建国 138****6688 浙江省绍兴市诸暨市大唐街道袜业城 A 区 12 号档口',time:'2026-10-18 16:00',round:2,closeReason:'两次改样后色牢度仍未达要求，双方协商关闭该打样单',refundAmt:45,refundAt:'2026-10-20 11:30'},
+  /* ===== 定制单 CZ：8 子状态 ===== */
+  'CZ20261112001':{type:'custom',sub:'waitdeposit',id:'CZ20261112001',statusText:'待付订金',cpNo:'CP20261112001',method:'直接大货',shop:'诸暨华康针织',name:'定制单 厚款毛圈运动袜',spec:'原白 · 144针 · 中筒 · 39-42',qty:1200,price:3.65,deposit:1314,freight:0,freightNote:'含运费',doneAt:'11-25',time:'2026-11-12 09:30'},
+  'CZ20261110001':{type:'custom',sub:'waitproduce',id:'CZ20261110001',statusText:'待生产',cpNo:'CP20261110001',method:'先打样后大货',shop:'大唐精工袜业',name:'定制单 藏青条纹商务袜·精梳棉',spec:'藏青 · 200针提花 · 中筒 · 39-42',qty:500,price:3.2,deposit:480,deduct:50,freight:0,freightNote:'含运费',doneAt:'11-18',time:'2026-11-10 16:20'},
+  'CZ20261106001':{type:'custom',sub:'producing',id:'CZ20261106001',statusText:'生产中',cpNo:'CP20261105003',method:'直接大货',shop:'诸暨华康针织',name:'定制单 儿童卡通袜·精梳棉',spec:'混色 · 168针 · 短筒 · 无骨缝合',qty:2000,price:2.35,deposit:1410,freight:0,freightNote:'含运费',doneAt:'11-20',time:'2026-11-06 15:40'},
+  'CZ20261103002':{type:'custom',sub:'tailpay',id:'CZ20261103002',statusText:'待付尾款',cpNo:'CP20261103002',method:'直接大货',shop:'诸暨华康针织',name:'定制单 厚款毛圈运动袜',spec:'原白 · 144针 · 中筒 · 39-42',qty:1200,price:3.65,deposit:1314,freight:80,freightNote:'',doneAt:'11-09',time:'2026-11-03 11:05'},
+  'CZ20261101001':{type:'custom',sub:'waitdeliver',id:'CZ20261101001',statusText:'待发货',cpNo:'CP20261031001',method:'直接大货',shop:'大唐精工袜业',name:'定制单 商务纯色棉袜',spec:'深灰 · 200针 · 中筒 · 39-42',qty:800,price:2.95,deposit:708,freight:0,freightNote:'含运费',doneAt:'11-01',time:'2026-10-31 14:10'},
+  'CZ20261025001':{type:'custom',sub:'waitreceive',id:'CZ20261025001',statusText:'待收货',cpNo:'CP20261023001',method:'直接大货',shop:'诸暨华康针织',name:'定制单 加厚毛巾底运动袜',spec:'黑/白 · 168针 · 中筒 · 42-45',qty:600,price:4.10,deposit:738,freight:0,freightNote:'含运费',doneAt:'10-24',time:'2026-10-23 10:00',logi:'中通 7856 2210 3344',shipAt:'2026-10-25 09:20'},
+  'CZ20261018001':{type:'custom',sub:'review',id:'CZ20261018001',statusText:'待评价',cpNo:'CP20261016001',method:'直接大货',shop:'义乌竹纤维针织',name:'定制单 竹纤维抗菌男袜',spec:'本白 · 144针 · 中筒 · 39-42',qty:1000,price:3.05,deposit:915,freight:0,freightNote:'含运费',doneAt:'10-17',time:'2026-10-16 09:15',logi:'韵达 4312 8890 7761',shipAt:'2026-10-18 08:40'},
+  'CZ20261012001':{type:'custom',sub:'cancelled',id:'CZ20261012001',statusText:'已取消（订金超时）',cpNo:'CP20261010001',method:'直接大货',shop:'大唐精工袜业',name:'定制单 儿童提花棉袜',spec:'混色 · 120针 · 短筒',qty:400,price:3.5,deposit:420,freight:0,time:'2026-10-10 11:00',closeReason:'订金 24 小时未支付，需求已关闭，本单一并取消'}
 };
 function tl(items){
   var h='<div class="mt-1">';
@@ -403,93 +436,333 @@ function renderSpecialDetail(o){
     }
   }
 
+  /* ===== 打样单 SP：6 子状态分别渲染 ===== */
   if(o.type==='sample'){
+    var sSub=o.sub||'making';
+    var sStep={waitfee:0,making:1,sent:2,revise:2,confirmed:3,cancelled:2}[sSub];
+    var sSampleNo='SY'+String(o.id).slice(2);
     html+='<div class="px-3 mt-3"><div class="bg-white rounded-2xl shadow-soft p-3.5">';
     html+='<div class="flex items-center justify-between"><p class="text-[12px] font-bold text-gray-800">打样信息</p><a href="custom-demand-detail.html?id='+o.cpNo+'" class="text-[10px] text-primary font-medium">关联需求 ›</a></div>';
-    html+='<div class="mt-2 text-[11px] space-y-2"><div class="flex justify-between"><span class="text-gray-400">需求号</span><span class="text-gray-700">'+o.cpNo+'</span></div>';
+    html+='<div class="mt-2 text-[11px] space-y-2">';
+    html+='<div class="flex justify-between"><span class="text-gray-400">需求号</span><span class="text-gray-700">'+o.cpNo+'</span></div>';
     html+='<div class="flex justify-between"><span class="text-gray-400">样品费</span><span class="text-gray-700">¥'+o.fee.toFixed(2)+'（'+(o.deduct?'可抵大货款':'不可抵')+'）</span></div>';
+    html+='<div class="flex justify-between"><span class="text-gray-400">打样轮次</span><span class="text-gray-700">第 '+(o.round||1)+' 轮'+(o.round>1?'（含改样）':'')+'</span></div>';
+    if(o.promiseDays){html+='<div class="flex justify-between"><span class="text-gray-400">承诺打样周期</span><span class="text-gray-700">'+o.promiseDays+' <span class="text-[9px] text-gray-400">（商户承诺）</span></span></div>';}
+    if(o.sampleEta){html+='<div class="flex justify-between"><span class="text-gray-400">预计完成</span><span class="text-gray-700">'+o.sampleEta+' <span class="text-[9px] text-gray-400">（商户回传）</span></span></div>';}
     html+='<div class="flex justify-between"><span class="text-gray-400">规格</span><span class="text-gray-700 text-right max-w-[200px]">'+o.spec+'</span></div>';
-    html+='<div class="flex justify-between"><span class="text-gray-400">寄样地址</span><span class="text-gray-700 text-right max-w-[200px]">'+o.addr+'</span></div></div>';
-    html+='<div class="mt-3 border-t border-gray-50 pt-2"><p class="text-[11px] font-bold text-gray-800">打样进度</p>'+tl([
-      {t:'商户已接单',d:o.time,on:true},
-      {t:'制样中（3-5 天）',d:'2026-11-07 起',on:true},
-      {t:'寄样 / 上传样衣',d:'待寄出',on:false},
-      {t:'买家确认样衣',d:'确认后可下大货',on:false}
-    ])+'</div>';
+    html+='<div class="flex justify-between"><span class="text-gray-400">寄样地址</span><span class="text-gray-700 text-right max-w-[200px]">'+o.addr+'</span></div>';
+    if(sSub==='waitfee'){
+      html+='<div class="flex justify-between"><span class="text-gray-400">待付样品费</span><span class="text-primary font-bold">¥'+o.fee.toFixed(2)+'</span></div>';
+    }
+    html+='</div>';
+    var sSteps=[
+      {t:'提交打样单并支付样品费',d:sSub==='waitfee'?'待支付 ¥'+o.fee.toFixed(2):o.time,on:sStep>=1},
+      {t:'商户接单 · 制样中',d:sSub==='making'?(o.sampleEta?('商户回传预计 '+o.sampleEta+' 完成'):'制样中'):(sStep>=2?'已完成':'待开始'),on:sStep>=2},
+      {t:'寄样 / 上传样衣',d:(sStep>=2&&o.shippedAt)?(o.shippedAt+' 已寄出'):'待寄出',on:sStep>=2},
+      {t:'买家确认样衣',d:sSub==='confirmed'?(o.confirmAt||'已确认通过'):(sSub==='revise'?'已要求改样 · 第 '+(o.round||2)+' 轮进行中':'待确认'),on:sSub==='confirmed'}
+    ];
+    if(sSub==='cancelled'){sSteps.push({t:'关闭打样单',d:o.closeReason||'已关闭',on:true});}
+    html+='<div class="mt-3 border-t border-gray-50 pt-2" id="progressBlock"><p class="text-[11px] font-bold text-gray-800">打样进度</p>'+tl(sSteps)+'</div>';
     html+='</div></div>';
-    html+='<div class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-gray-100 px-3 flex items-center gap-2" style="height:60px;z-index:100;width:393px">';
-    html+='<a href="orders.html?type=sample" class="card flex-1 text-center py-2.5 rounded-full text-[13px] text-gray-500 bg-gray-100">返回列表</a>';
-    html+='<button onclick="toast(\'联系商户（原型演示）\')" class="card flex-1 text-center py-2.5 rounded-full text-[13px] text-gray-600" style="border:1px solid #eceef0">联系商户</button>';
-    html+='<button onclick="confirmSampleOrder()" class="card flex-1 text-center py-2.5 rounded-full text-[13px] font-bold text-white" style="background:'+grad+'">确认样衣</button></div><div class="h-20"></div>';
+    /* 样衣卡片（已寄样之后可见） */
+    if(sStep>=2){
+      html+='<div class="px-3 mt-2"><div class="bg-white rounded-2xl shadow-soft p-3.5">';
+      html+='<div class="flex items-center justify-between"><p class="text-[12px] font-bold text-gray-800">样衣</p><button onclick="openSampleSheet()" class="text-[10px] text-primary font-medium">查看样衣 ›</button></div>';
+      html+='<div class="flex gap-2.5 mt-2"><div class="w-[64px] h-[64px] rounded-xl flex items-center justify-center text-white flex-shrink-0" style="background:'+grad+'"><i class="fas fa-shirt text-[22px]"></i></div>';
+      html+='<div class="flex-1 min-w-0 text-[11px] space-y-1"><div class="flex justify-between"><span class="text-gray-400">样衣编号</span><span class="text-gray-700">'+sSampleNo+'</span></div>';
+      html+='<div class="flex justify-between"><span class="text-gray-400">寄出时间</span><span class="text-gray-700">'+(o.shippedAt||'待寄出')+'</span></div>';
+      html+='<div class="flex justify-between"><span class="text-gray-400">物流单号</span><span class="text-gray-700">'+(o.logi||'—')+'</span></div></div></div>';
+      if(o.logi){html+='<button onclick="openLogistics()" class="card w-full mt-2 py-1.5 rounded-lg text-[10px] text-gray-600" style="border:1px solid #eceef0">查看样衣物流</button>';}
+      html+='</div></div>';
+    }
+    /* 状态提示条 */
+    if(sSub==='waitfee'){html+=tipBar('#FFF7ED','#9A3412','fa-circle-info','样品费 ¥'+o.fee.toFixed(2)+(o.deduct?'（成交大货可抵扣）':'（不可抵）')+'，请于 48 小时内支付，逾期将自动关闭本打样单。');}
+    if(sSub==='making'){html+=tipBar('#EFF6FF','#1D4ED8','fa-circle-info','商户已接单，制样中。'+(o.promiseDays?('商户承诺打样周期 '+o.promiseDays+'。'):'')+(o.sampleEta?('预计 '+o.sampleEta+' 完成制样。'):'')+'制样完成后商户寄出样衣并回填物流单号。');}
+    if(sSub==='sent'){html+=tipBar('#EFF6FF','#1D4ED8','fa-circle-info','样衣已寄出（'+(o.logi||'')+'），签收后请 7 天内确认样衣，逾期系统自动确认通过。');}
+    if(sSub==='revise'){html+=tipBar('#FFF7ED','#9A3412','fa-circle-info','已提出改样要求：'+(o.reviseNote||'')+'。第 '+(o.round||2)+' 轮制样中，改样不额外收取样品费。');}
+    if(sSub==='confirmed'){html+=tipBar('#ECFDF5','#065F46','fa-circle-check','样衣已确认，可据此下单大货；样品费 ¥'+o.fee.toFixed(2)+' 将在大货订单中抵扣。');}
+    if(sSub==='cancelled'){html+=tipBar('#FEF2F2','#B91C1C','fa-circle-exclamation','本打样单已关闭：'+(o.closeReason||'')+'。'+(o.refundAmt?'样品费 ¥'+o.refundAmt.toFixed(2)+' 已提交原路退款，'+(o.refundAt||'到账时间以支付渠道为准')+'。':'')+'','refundBlock');}
+    html+=scBottomBar({
+      waitfee:[{t:'取消订单',act:'cancel'},{t:'支付样品费',act:'pay',pri:1}],
+      making:[{t:'催打样',act:'urge'},{t:'查看打样进度',act:'progress',pri:1}],
+      sent:[{t:'查看样衣',act:'sampleView'},{t:'确认样衣',act:'confirmSample',pri:1}],
+      revise:[{t:'联系商户',act:'contact'},{t:'查看改样要求',act:'progress',pri:1}],
+      confirmed:[{t:'查看样衣',act:'sampleView'},{t:'评价',act:'review'},{t:'去下大货',act:'bigOrder',pri:1}],
+      cancelled:[{t:'查看退款说明',act:'refund',pri:1}]
+    }[sSub],grad);
   }
 
+  /* ===== 定制单 CZ：8 子状态分别渲染 ===== */
   if(o.type==='custom'){
-    var st=o.statusText;
-    var payWait=st==='待付订金';
-    var waitProduce=st==='待生产';
-    var producing=st==='生产中';
-    var tailWait=st==='待付尾款';
-    var shipped=/待发货|待收货|已完成|已发货/.test(st);
-    var prodDone=tailWait||shipped;
+    var cSub=o.sub||'producing';
     var subtotal=o.price*o.qty;
     var frt=o.freight||0;
     var balance=subtotal-o.deposit-(o.deduct||0);
+    var cStep={waitdeposit:0,waitproduce:1,producing:2,tailpay:3,waitdeliver:4,waitreceive:5,review:5,cancelled:0}[cSub];
+    var paidDeposit=(cSub!=='waitdeposit'&&cSub!=='cancelled');
+    var tailPaid=(cStep>=4);
     html+='<div class="px-3 mt-3"><div class="bg-white rounded-2xl shadow-soft p-3.5">';
     html+='<div class="flex items-center justify-between"><p class="text-[12px] font-bold text-gray-800">定制单信息</p><a href="custom-demand-detail.html?id='+o.cpNo+'" class="text-[10px] text-primary font-medium">关联需求 ›</a></div>';
-    html+='<div class="mt-2 text-[11px] space-y-2"><div class="flex justify-between"><span class="text-gray-400">需求号</span><span class="text-gray-700">'+o.cpNo+'</span></div>';
+    html+='<div class="mt-2 text-[11px] space-y-2">';
+    html+='<div class="flex justify-between"><span class="text-gray-400">需求号</span><span class="text-gray-700">'+o.cpNo+'</span></div>';
     html+='<div class="flex justify-between"><span class="text-gray-400">定制方式</span><span class="text-gray-700">'+(o.method||'直接大货')+(o.method==='先打样后大货'?'（样衣已确认）':'')+'</span></div>';
     html+='<div class="flex justify-between"><span class="text-gray-400">成交单价 / 数量</span><span class="text-gray-700">¥'+o.price.toFixed(2)+'/双 · '+o.qty+' 双</span></div>';
-    html+='<div class="flex justify-between"><span class="text-gray-400">已付订金</span><span class="text-gray-700">¥'+(payWait?'0.00（待支付）':o.deposit.toFixed(2))+'</span></div>';
+    html+='<div class="flex justify-between"><span class="text-gray-400">已付订金</span><span class="text-gray-700">¥'+(paidDeposit?o.deposit.toFixed(2):'0.00（待支付）')+'</span></div>';
     if(o.deduct){
       html+='<div class="flex justify-between"><span class="text-gray-400">样品费抵扣</span><span class="text-emerald-600">-¥'+o.deduct.toFixed(2)+'</span></div>';
     }
     html+='<div class="flex justify-between"><span class="text-gray-400">运费</span><span class="text-gray-700">'+(frt>0?'¥'+frt.toFixed(2):'¥0.00 <span class="text-emerald-600 text-[10px]">（'+(o.freightNote||'含运费')+'）</span>')+'</span></div>';
-    if(payWait){
+    if(cSub==='waitdeposit'){
       html+='<div class="flex justify-between"><span class="text-gray-400">待付订金</span><span class="text-primary font-bold">¥'+o.deposit.toFixed(2)+'</span></div></div>';
+    }else if(tailPaid){
+      html+='<div class="flex justify-between"><span class="text-gray-400">待付尾款</span><span class="text-emerald-600 font-bold">¥0.00（已付清）</span></div></div>';
     }else{
       html+='<div class="flex justify-between"><span class="text-gray-400">待付尾款</span><span class="text-primary font-bold">¥'+balance.toFixed(2)+'</span></div></div>';
     }
     if(o.deduct){
       html+='<p class="text-[9px] text-gray-400 mt-1.5">样品费 ¥'+o.deduct.toFixed(2)+' 已在下单时抵扣大货款，尾款中不再重复收取。</p>';
     }
-    html+='<div class="mt-3 border-t border-gray-50 pt-2"><p class="text-[11px] font-bold text-gray-800">生产进度</p>'+tl([
-      {t:'选标并支付订金',d:payWait?'待支付订金':o.time,on:!payWait},
-      {t:'商户备料',d:waitProduce?'备料完成 · 待排产':((producing||prodDone)?'备料完成':'待开始'),on:waitProduce||producing||prodDone},
-      {t:'生产中',d:prodDone?'已完工':(producing?'进行中 · 预计 '+(o.doneAt||'11-18')+' 完工':'待排产'),on:producing||prodDone},
-      {t:'质检发货',d:shipped?'已发货':'待发货',on:shipped}
+    html+='<div class="mt-3 border-t border-gray-50 pt-2" id="progressBlock"><p class="text-[11px] font-bold text-gray-800">生产进度</p>'+tl([
+      {t:'选标并支付订金',d:cSub==='waitdeposit'?'待支付 ¥'+o.deposit.toFixed(2):(cSub==='cancelled'?'未支付 · 订单已取消':o.time),on:cStep>=1},
+      {t:'商户备料 / 排产',d:cSub==='waitproduce'?'备料中 · 待排产':(cStep>=2?'已完成':'待开始'),on:cStep>=2},
+      {t:'大货生产',d:cStep>=3?'已完工':(cSub==='producing'?(o.doneAt?('进行中 · 商户回传预计 '+o.doneAt+' 完工'):'进行中'):'待排产'),on:cStep>=3},
+      {t:'完工质检',d:cSub==='tailpay'?'已通过 · 待付尾款':(cStep>=4?'已通过':'待质检'),on:cStep>=4},
+      {t:'发货 / 签收',d:cSub==='waitreceive'?(o.shipAt||'已发货'):(cSub==='review'?'已签收':(cStep>=5?'已签收':'待发货')),on:cStep>=5}
     ])+'</div>';
-    if(waitProduce||producing){
-      html+='<div class="mt-2 rounded-xl px-2.5 py-2 text-[10px] leading-relaxed" style="background:#FFF7ED;color:#9A3412"><i class="fas fa-circle-info mr-1"></i>尾款 ¥'+balance.toFixed(2)+' 于完工质检后、发货前支付，支付后商户安排发货。</div>';
-    }
-    if(tailWait){
-      html+='<div class="mt-2 rounded-xl px-2.5 py-2 text-[10px] leading-relaxed" style="background:#FEF2F2;color:#B91C1C"><i class="fas fa-circle-exclamation mr-1"></i>大货已完工并通过质检，请支付尾款 ¥'+balance.toFixed(2)+'，支付后商户 '+(o.shipAt||'48 小时内')+'安排发货。</div>';
-    }
     html+='<div class="mt-2 flex items-center justify-between border-t border-gray-50 pt-2"><span class="text-[11px] text-gray-500">订单总额'+(frt>0?'（含运费）':'')+'</span><span class="text-[15px] font-bold text-primary">¥'+(subtotal+frt).toFixed(2)+'</span></div>';
     html+='</div></div>';
-    var act=tailWait?{b:'支付尾款',f:'payTail()'}:(payWait?{b:'去支付订金',f:'payDeposit()'}:(shipped?{b:'查看物流',f:"toast('查看物流（原型演示）')"}:{b:'查看进度',f:"toast('查看生产进度（原型演示）')"}));
-    html+='<div class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-gray-100 px-3 flex items-center gap-2" style="height:60px;z-index:100;width:393px">';
-    html+='<a href="orders.html?type=custom" class="card flex-1 text-center py-2.5 rounded-full text-[13px] text-gray-500 bg-gray-100">返回列表</a>';
-    html+='<button onclick="toast(\'联系商户（原型演示）\')" class="card flex-1 text-center py-2.5 rounded-full text-[13px] text-gray-600" style="border:1px solid #eceef0">联系商户</button>';
-    html+='<button onclick="'+act.f+'" class="card flex-1 text-center py-2.5 rounded-full text-[13px] font-bold text-white" style="background:'+grad+'">'+act.b+'</button></div><div class="h-20"></div>';
+    /* 状态提示条 */
+    if(cSub==='waitdeposit'){html+=tipBar('#FFF7ED','#9A3412','fa-circle-exclamation','订金 ¥'+o.deposit.toFixed(2)+'（订单金额 30%），请于 24 小时内支付，逾期需求关闭、本单自动取消。');}
+    if(cSub==='waitproduce'){html+=tipBar('#EFF6FF','#1D4ED8','fa-circle-info','订金已支付，等待商户排产。'+(o.doneAt?('商户回传预计 '+o.doneAt+' 完工。'):'')+'尾款 ¥'+balance.toFixed(2)+' 于完工质检后、发货前支付。');}
+    if(cSub==='producing'){html+=tipBar('#FFF7ED','#9A3412','fa-circle-info','大货生产中。'+(o.doneAt?('商户回传预计 '+o.doneAt+' 完工。'):'')+'尾款 ¥'+balance.toFixed(2)+' 于完工质检后、发货前支付。');}
+    if(cSub==='tailpay'){html+=tipBar('#FEF2F2','#B91C1C','fa-circle-exclamation','大货已完工并通过质检，请支付尾款 ¥'+balance.toFixed(2)+'，支付后商户安排发货。');}
+    if(cSub==='waitdeliver'){html+=tipBar('#ECFDF5','#065F46','fa-circle-check','尾款已付清，商户正在打包装车，发货后回填物流单号。');}
+    if(cSub==='waitreceive'){html+=tipBar('#EFF6FF','#1D4ED8','fa-circle-info','大货已发出（'+(o.logi||'')+'），请注意查收，签收后可对本次定制评价。');}
+    if(cSub==='review'){html+=tipBar('#ECFDF5','#065F46','fa-circle-check','大货已签收，订单完成。欢迎对品质、交期、服务做出评价。');}
+    if(cSub==='cancelled'){html+=tipBar('#FEF2F2','#B91C1C','fa-circle-exclamation','本单已取消：'+(o.closeReason||'')+'。订金未收取，无需退款。','refundBlock');}
+    html+=scBottomBar({
+      waitdeposit:[{t:'取消订单',act:'cancel'},{t:'支付订金',act:'pay',pri:1}],
+      waitproduce:[{t:'联系商户',act:'contact'},{t:'查看生产进度',act:'progress',pri:1}],
+      producing:[{t:'联系商户',act:'contact'},{t:'查看生产进度',act:'progress',pri:1}],
+      tailpay:[{t:'联系商户',act:'contact'},{t:'支付尾款',act:'pay',pri:1}],
+      waitdeliver:[{t:'联系商户',act:'contact'},{t:'催发货',act:'urge',pri:1}],
+      waitreceive:[{t:'查看物流',act:'logistics'},{t:'确认收货',act:'confirmReceipt',pri:1}],
+      review:[{t:'查看物流',act:'logistics'},{t:'去评价',act:'review',pri:1}],
+      cancelled:[{t:'查看取消原因',act:'refund',pri:1}]
+    }[cSub],grad);
   }
 
   var box=document.getElementById('inquiryDetail');
   if(box){box.innerHTML=html;box.style.display='block';}
 }
-function confirmSampleOrder(){
-  toast('已确认样衣，商户将转为大货生产');
-  setTimeout(function(){location.href='custom-demand-detail.html?id=CP20261111001';},700);
+/* ===== 打样 / 定制：通用 UI 部件 ===== */
+function specialGrad(o){return o&&o.type==='sample'?'linear-gradient(135deg,#38BDF8,#0EA5E9)':'linear-gradient(135deg,#F472B6,#DB2777)';}
+function tipBar(bg,color,icon,text,id){
+  return '<div class="px-3 mt-2"'+(id?' id="'+id+'"':'')+'><div class="rounded-2xl p-3 text-[10px] leading-relaxed" style="background:'+bg+';color:'+color+'"><i class="fas '+icon+' mr-1"></i>'+text+'</div></div>';
 }
-/* 定制单：付订金 → 待生产；付尾款 → 待发货（原型内直接推进状态） */
-function payDeposit(){
-  var o=CUR_SPECIAL;if(!o)return;
-  o.statusText='待生产';renderSpecialDetail(o);
-  toast('订金 ¥'+o.deposit.toFixed(2)+' 支付成功，商户开始备料');
+function scBottomBar(list,grad){
+  if(!list)return '';
+  var type=CUR_SPECIAL?CUR_SPECIAL.type:'';
+  var h='<div class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-gray-100 px-3 flex items-center gap-2" style="height:60px;z-index:100;width:393px">';
+  h+='<a href="orders.html?type='+type+'" class="card text-center py-2.5 rounded-full text-[13px] text-gray-500 bg-gray-100" style="'+(list.length>=3?'flex:0 0 62px':'flex:1')+'">'+(list.length>=3?'返回':'返回列表')+'</a>';
+  list.forEach(function(b){
+    h+='<button onclick="scAct(\''+b.act+'\')" class="card flex-1 text-center py-2.5 rounded-full text-[13px] '+(b.pri?'font-bold text-white':'text-gray-600')+'" style="'+(b.pri?'background:'+grad:'border:1px solid #eceef0')+'">'+b.t+'</button>';
+  });
+  return h+'</div><div class="h-20"></div>';
 }
-function payTail(){
+function showSheet(id,html){
+  closeSheet(id,true);
+  var mk=document.createElement('div');mk.className='sheet-mask on';mk.id=id+'Mask';
+  mk.onclick=function(){closeSheet(id)};
+  var sh=document.createElement('div');sh.className='sheet';sh.id=id;sh.innerHTML=html;
+  document.body.appendChild(mk);document.body.appendChild(sh);
+  setTimeout(function(){sh.classList.add('on')},10);
+}
+function closeSheet(id,immediate){
+  var sh=document.getElementById(id),mk=document.getElementById(id+'Mask');
+  var wait=immediate?0:250;
+  if(sh){sh.classList.remove('on');setTimeout(function(){if(sh.parentNode)sh.parentNode.removeChild(sh)},wait);}
+  if(mk){mk.classList.remove('on');setTimeout(function(){if(mk.parentNode)mk.parentNode.removeChild(mk)},wait);}
+}
+function showConfirm(title,body,okTxt,onOk){
+  var d=document.createElement('div');
+  d.style.cssText='position:fixed;inset:0;z-index:400;display:flex;align-items:center;justify-content:center;background:rgba(17,24,39,.45);padding:0 32px';
+  d.innerHTML='<div style="width:100%;background:#fff;border-radius:16px;padding:20px 18px">'
+    +'<p style="font-size:14px;font-weight:700;color:#1F2937;text-align:center">'+title+'</p>'
+    +'<p style="font-size:11px;color:#6B7280;line-height:1.85;margin-top:8px;text-align:center">'+body+'</p>'
+    +'<div style="display:flex;gap:10px;margin-top:16px">'
+    +'<button id="__cno" style="flex:1;padding:10px 0;border-radius:10px;background:#F3F4F6;color:#6B7280;font-size:12px;font-weight:700">再想想</button>'
+    +'<button id="__cok" style="flex:1;padding:10px 0;border-radius:10px;color:#fff;font-size:12px;font-weight:700;background:#FF4D2D">'+okTxt+'</button>'
+    +'</div></div>';
+  document.body.appendChild(d);
+  d.querySelector('#__cno').onclick=function(){d.remove()};
+  d.querySelector('#__cok').onclick=function(){d.remove();onOk&&onOk()};
+}
+/* 底部按钮动作分发（打样 / 定制详情页内） */
+function scAct(act){
   var o=CUR_SPECIAL;if(!o)return;
-  o.statusText='待发货';renderSpecialDetail(o);
-  toast('尾款支付成功，商户将安排发货');
+  if(act==='pay'){openPaySheet();return;}
+  if(act==='progress'){
+    var el=document.getElementById('progressBlock');
+    if(el)el.scrollIntoView({behavior:'smooth',block:'center'});
+    toast(o.type==='sample'?'已定位到打样进度':'已定位到生产进度');return;
+  }
+  if(act==='sampleView'){openSampleSheet(false);return;}
+  if(act==='confirmSample'){openSampleSheet(true);return;}
+  if(act==='logistics'){openLogistics();return;}
+  if(act==='review'||act==='reviewAdd'){openReview();return;}
+  if(act==='confirmReceipt'){confirmReceiptFn();return;}
+  if(act==='cancel'){cancelOrderConfirm();return;}
+  if(act==='contact'){location.href='messages.html?to='+encodeURIComponent(o.shop||'');return;}
+  if(act==='urge'){toast(o.type==='sample'?'已提醒商户尽快打样（原型演示）':'已提醒商户尽快发货（原型演示）');return;}
+  if(act==='bigOrder'){location.href='custom-demand-detail.html?id='+o.cpNo+'&from=sample';return;}
+  if(act==='refund'){
+    var r=document.getElementById('refundBlock');
+    if(r){r.scrollIntoView({behavior:'smooth',block:'center'});}
+    else{toast('本单无退款记录');}
+    return;
+  }
+}
+/* ===== 支付面板（样品费 / 订金 / 尾款） ===== */
+function payAmount(o){
+  if(o.type==='sample')return o.fee;
+  if(o.sub==='waitdeposit')return o.deposit;
+  return o.price*o.qty-o.deposit-(o.deduct||0)+(o.freight||0);
+}
+function payTitle(o){
+  if(o.type==='sample')return '支付样品费';
+  return o.sub==='waitdeposit'?'支付订金':'支付尾款';
+}
+function openPaySheet(){
+  var o=CUR_SPECIAL;if(!o)return;
+  var amt=payAmount(o);
+  var note=o.type==='sample'
+    ? (o.deduct?'样品费可抵大货款，成交后自动抵扣':'样品费不可抵扣，改样不重复收费')
+    : (o.sub==='waitdeposit'?'订金 = 订单金额 30%，剩余尾款完工质检后支付':('尾款 = 货款 − 订金'+(o.deduct?' − 样品费抵扣 ¥'+o.deduct.toFixed(2):'')+'，含运费'));
+  var h='<div class="flex justify-center pt-2 pb-1"><div class="w-10 h-1 bg-gray-200 rounded-full"></div></div>';
+  h+='<div class="flex items-center justify-between px-4 pb-2"><span class="text-[15px] font-bold text-gray-800">'+payTitle(o)+'</span><button onclick="closeSheet(\'paySheet\')" class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-400"><i class="fas fa-xmark text-xs"></i></button></div>';
+  h+='<div class="px-4 pb-6">';
+  h+='<div class="rounded-2xl p-4 text-center" style="background:#FFF7F4"><p class="text-[11px] text-gray-500">应付金额</p><p class="text-[28px] font-extrabold text-primary mt-1">¥'+amt.toFixed(2)+'</p><p class="text-[10px] text-gray-400 mt-1 leading-relaxed">'+note+'</p></div>';
+  h+='<div class="mt-3 text-[11px] space-y-2"><div class="flex justify-between"><span class="text-gray-400">订单号</span><span class="text-gray-700">'+o.id+'</span></div>';
+  h+='<div class="flex justify-between"><span class="text-gray-400">商户</span><span class="text-gray-700">'+o.shop+'</span></div>';
+  h+='<div class="flex justify-between"><span class="text-gray-400">项目</span><span class="text-gray-700 text-right max-w-[200px]">'+o.name+'</span></div></div>';
+  h+='<button onclick="doPay()" class="card w-full mt-4 py-3 rounded-xl text-[14px] font-bold text-white shadow-card grad-h">微信支付 ¥'+amt.toFixed(2)+'</button>';
+  h+='<p class="text-[9px] text-gray-400 text-center mt-2">原型演示，不产生真实扣款</p></div>';
+  showSheet('paySheet',h);
+}
+function doPay(){
+  var o=CUR_SPECIAL;if(!o)return;
+  var amt=payAmount(o);
+  closeSheet('paySheet');
+  setTimeout(function(){
+    if(o.type==='sample'&&o.sub==='waitfee'){
+      o.sub='making';o.status='ship';o.statusText='打样中';o.sampleEta='';
+      renderSpecialDetail(o);toast('样品费 ¥'+amt.toFixed(2)+' 支付成功，商户开始制样');
+    }else if(o.sub==='waitdeposit'){
+      o.sub='waitproduce';o.status='ship';o.statusText='待生产';
+      renderSpecialDetail(o);toast('订金 ¥'+amt.toFixed(2)+' 支付成功，商户开始备料');
+    }else if(o.sub==='tailpay'){
+      o.sub='waitdeliver';o.status='ship';o.statusText='待发货';
+      renderSpecialDetail(o);toast('尾款 ¥'+amt.toFixed(2)+' 支付成功，商户将安排发货');
+    }else{
+      renderSpecialDetail(o);toast('支付完成');
+    }
+  },260);
+}
+/* ===== 样衣面板（查看 / 确认 / 要求改样） ===== */
+function openSampleSheet(canConfirm){
+  var o=CUR_SPECIAL;if(!o)return;
+  var sub=o.sub;
+  var h='<div class="flex justify-center pt-2 pb-1"><div class="w-10 h-1 bg-gray-200 rounded-full"></div></div>';
+  h+='<div class="flex items-center justify-between px-4 pb-2"><span class="text-[15px] font-bold text-gray-800">样衣详情</span><button onclick="closeSheet(\'sampleSheet\')" class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-400"><i class="fas fa-xmark text-xs"></i></button></div>';
+  h+='<div class="px-4 pb-6">';
+  h+='<div class="rounded-2xl flex items-center justify-center text-white" style="height:180px;background:'+specialGrad(o)+'"><i class="fas fa-shirt text-[56px] opacity-90"></i></div>';
+  h+='<div class="mt-3 text-[11px] space-y-2">';
+  h+='<div class="flex justify-between"><span class="text-gray-400">样衣编号</span><span class="text-gray-700">SY'+String(o.id).slice(2)+'</span></div>';
+  h+='<div class="flex justify-between"><span class="text-gray-400">打样轮次</span><span class="text-gray-700">第 '+(o.round||1)+' 轮</span></div>';
+  h+='<div class="flex justify-between"><span class="text-gray-400">规格</span><span class="text-gray-700 text-right max-w-[210px]">'+o.spec+'</span></div>';
+  h+='<div class="flex justify-between"><span class="text-gray-400">寄出时间</span><span class="text-gray-700">'+(o.shippedAt||'待寄出')+'</span></div>';
+  h+='<div class="flex justify-between"><span class="text-gray-400">物流单号</span><span class="text-gray-700">'+(o.logi||'—')+'</span></div>';
+  h+='</div>';
+  if(sub==='revise'){
+    h+='<div class="mt-3 rounded-xl p-3 text-[10px] leading-relaxed" style="background:#FFF7ED;color:#9A3412"><i class="fas fa-pen-to-square mr-1"></i>你已提交改样要求：'+(o.reviseNote||'')+'</div>';
+  }
+  if(canConfirm&&sub==='sent'){
+    h+='<div class="mt-4 rounded-xl p-3 text-[10px] leading-relaxed" style="background:#EFF6FF;color:#1D4ED8"><i class="fas fa-circle-info mr-1"></i>确认通过后即解锁大货下单，样品费 ¥'+o.fee.toFixed(2)+' 可抵大货款；确认前请核对工艺、色差与手感。</div>';
+    h+='<div class="flex gap-2 mt-3"><button onclick="doReviseSample()" class="card flex-1 py-3 rounded-xl text-[13px] font-bold text-gray-600" style="border:1px solid #eceef0">要求改样</button>';
+    h+='<button onclick="doConfirmSample()" class="card flex-1 py-3 rounded-xl text-[13px] font-bold text-white" style="background:'+specialGrad(o)+'">样衣确认通过</button></div>';
+  }else if(sub==='confirmed'){
+    h+='<div class="mt-4 rounded-xl p-3 text-[10px] leading-relaxed" style="background:#ECFDF5;color:#065F46"><i class="fas fa-circle-check mr-1"></i>'+(o.confirmAt||'已确认通过')+'。可就该需求下单大货。</div>';
+    h+='<button onclick="closeSheet(\'sampleSheet\');scAct(\'bigOrder\')" class="card w-full mt-3 py-3 rounded-xl text-[14px] font-bold text-white" style="background:'+specialGrad(o)+'">去下大货</button>';
+  }else{
+    h+='<button onclick="closeSheet(\'sampleSheet\')" class="card w-full mt-4 py-3 rounded-xl text-[13px] font-bold text-gray-600" style="border:1px solid #eceef0">关闭</button>';
+  }
+  h+='</div>';
+  showSheet('sampleSheet',h);
+}
+function doConfirmSample(){
+  var o=CUR_SPECIAL;if(!o)return;
+  o.sub='confirmed';o.status='review';o.statusText='样衣已确认';o.confirmAt='刚刚 · 买家确认通过';
+  closeSheet('sampleSheet');
+  setTimeout(function(){renderSpecialDetail(o);toast('样衣已确认，样品费可抵大货款，可下单大货');},260);
+}
+function doReviseSample(){
+  var o=CUR_SPECIAL;if(!o)return;
+  o.round=(o.round||1)+1;
+  o.sub='revise';o.status='ship';o.statusText='要求改样 · 第'+o.round+'轮';
+  o.reviseNote='（第 '+o.round+' 轮）袜口回弹不足，需换高弹包覆纱并加宽 2mm';
+  o.sampleEta='';o.shippedAt='';
+  closeSheet('sampleSheet');
+  setTimeout(function(){renderSpecialDetail(o);toast('已提交改样要求，商户开始第 '+o.round+' 轮制样');},260);
+}
+function confirmSampleOrder(){openSampleSheet(true);}
+/* ===== 物流面板 ===== */
+function openLogistics(){
+  var o=CUR_SPECIAL;if(!o)return;
+  var logi=o.logi||'—';
+  var signed=(o.sub==='review');
+  var onWay=(o.sub==='waitreceive');
+  var nodes=[
+    {t:'已揽收',d:o.shipAt||'2026-11-08 09:12',on:true},
+    {t:'运输中 · 已发往诸暨转运中心',d:'2026-11-08 18:40',on:true},
+    {t:'派送中',d:onWay?'今日 派送中':(signed?'已完成':'待派送'),on:onWay||signed},
+    {t:'已签收',d:signed?'已签收 · 本人签收':'待签收',on:signed}
+  ];
+  var h='<div class="flex justify-center pt-2 pb-1"><div class="w-10 h-1 bg-gray-200 rounded-full"></div></div>';
+  h+='<div class="flex items-center justify-between px-4 pb-2"><span class="text-[15px] font-bold text-gray-800">物流详情</span><button onclick="closeSheet(\'logiSheet\')" class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-400"><i class="fas fa-xmark text-xs"></i></button></div>';
+  h+='<div class="px-4 pb-6">';
+  h+='<div class="rounded-2xl p-3.5" style="background:#FFF7F4"><p class="text-[11px] text-gray-500">'+logi+'</p><p class="text-[10px] text-gray-400 mt-1">'+o.name+' · '+o.qty+(o.type==='sample'?' 件':' 双')+'</p></div>';
+  h+='<div class="mt-3">'+tl(nodes)+'</div>';
+  h+='<button onclick="closeSheet(\'logiSheet\')" class="card w-full mt-2 py-3 rounded-xl text-[13px] font-bold text-gray-600" style="border:1px solid #eceef0">关闭</button></div>';
+  showSheet('logiSheet',h);
+}
+/* ===== 确认收货 / 取消订单 ===== */
+function confirmReceiptFn(){
+  var o=CUR_SPECIAL;if(!o)return;
+  showConfirm('确认收货','确认已收到全部大货？确认后订单完成，可进行评价。','确认收货',function(){
+    o.sub='review';o.status='review';o.statusText='待评价';
+    renderSpecialDetail(o);toast('已确认收货，订单完成');
+  });
+}
+function cancelOrderConfirm(){
+  var o=CUR_SPECIAL;if(!o)return;
+  var isSample=(o.type==='sample');
+  var paid=(o.sub!=='waitfee'&&o.sub!=='waitdeposit');
+  showConfirm('取消订单',isSample?(paid?'取消后打样单不可恢复，已付样品费将原路退回。':'该打样单尚未支付样品费，取消后可直接重新选商户打样。'):'取消后需求将关闭、本单不可恢复。','确认取消',function(){
+    if(isSample){
+      o.sub='cancelled';o.status='after';
+      if(paid){
+        o.statusText='已取消（样品费已退）';o.closeReason='买家主动取消该打样单';
+        o.refundAmt=o.fee;o.refundAt='到账时间以支付渠道为准';
+      }else{
+        o.statusText='已取消';o.closeReason='买家在支付样品费前取消该打样单';
+      }
+    }else{
+      o.sub='cancelled';o.status='after';o.statusText='已取消';
+      o.closeReason='买家主动取消，关联需求已关闭';
+    }
+    renderSpecialDetail(o);toast('订单已取消');
+  });
 }
 (function initOrderType(){
   var params=new URLSearchParams(location.search);
@@ -514,13 +787,22 @@ function payTail(){
     if(pd2)pd2.style.display='none';if(pb2)pb2.style.display='none';
     var id2=params.get('id');
     var o2=SPECIAL_ORDERS[id2];
-    if(!o2){
-      var keys=Object.keys(SPECIAL_ORDERS);
-      for(var i=0;i<keys.length;i++){if(SPECIAL_ORDERS[keys[i]].type===t){o2=SPECIAL_ORDERS[keys[i]];break;}}
-    }
     if(o2){
       renderSpecialDetail(o2);
-      if(id2&&!SPECIAL_ORDERS[id2]){toast('未找到该订单号，已展示同类订单示例');}
+      /* 列表页带 act 进来：自动执行对应动作（支付 / 进度 / 物流 / 评价 / 样衣 / 确认收货 / 取消） */
+      var act=params.get('act');
+      var ACT_OK=['pay','progress','logistics','review','reviewAdd','sampleView','confirmSample','confirmReceipt','cancel','refund'];
+      if(act&&ACT_OK.indexOf(act)>-1){setTimeout(function(){scAct(act);},240);}
+    }else{
+      /* 不再用同类订单顶替，避免"不同订单进同一页" */
+      var nf=document.getElementById('inquiryDetail');
+      if(nf){
+        nf.style.display='block';
+        nf.innerHTML='<div class="text-center py-16"><i class="fas fa-box-open text-gray-200 text-5xl"></i>'
+          +'<p class="text-[12px] text-gray-500 mt-3">未找到订单 '+(id2||'')+'</p>'
+          +'<p class="text-[10px] text-gray-400 mt-1">订单可能已删除或链接有误，请返回列表重新选择</p>'
+          +'<a href="orders.html?type='+t+'" class="inline-block mt-4 px-5 py-2 rounded-full text-[12px] font-bold text-white grad-h">返回订单列表</a></div>';
+      }
     }
   }
 })();

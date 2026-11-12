@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>商城运营 - 个性定制需求管理</title>
+<title>商城运营 - 定制需求管理</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
 *{box-sizing:border-box}
@@ -27,6 +27,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .kv{display:flex;gap:8px;font-size:12.5px;line-height:1.9}
 .kv .k{color:#94A3B8;width:96px;flex-shrink:0}
 .kv .v{color:#1F2430;flex:1}
+.ct-tab{padding:6px 12px;border-radius:8px;font-size:12.5px;font-weight:600;color:#64748B;cursor:pointer;white-space:nowrap}
+.ct-tab.on{background:#FFF1EC;color:#E63E20}
+.ct-tab b{font-size:10px;font-weight:700;color:#94A3B8;margin-left:3px}
+.ct-tab.on b{color:#E63E20}
 </style>
 <!-- Tailwind 静态样式：本地引用（不再依赖 cdn.tailwindcss.com）；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
 <link rel="stylesheet" href="tailwind.css">
@@ -37,41 +41,41 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
   <div class="flex items-start justify-between mb-5">
     <div>
       <div class="flex items-center gap-2">
-        <h1 class="text-[20px] font-bold text-[#1F2430]">个性定制需求管理</h1>
+        <h1 class="text-[20px] font-bold text-[#1F2430]">定制需求管理</h1>
         <span class="tag" style="background:#DBEAFE;color:#2563EB">10 商城运营</span>
-        <span class="tag" style="background:#EDE9FE;color:#7C3AED">定制需求 CP / CE</span>
+        <span class="tag" style="background:#EDE9FE;color:#7C3AED">个性定制 CP / 批量定制 CE</span>
       </div>
-      <p class="text-[12px] text-[#94A3B8] mt-1">商城运营 / 定制 · 买家发需求 → 商户竞价 → 买家选标　·　<b>运营只做监督与处置，不参与选标</b>（决策 Q2）</p>
+      <p class="text-[12px] text-[#94A3B8] mt-1">商城运营 / 定制 · <b>个性定制（CP）+ 批量定制·企业定制（CE）同表管理</b> → 商户报价 → 买家选标　·　<b>运营只做监督与处置，不参与选标</b>（决策 Q2）</p>
     </div>
     <span class="text-[11px] text-[#94A3B8] bg-white border border-gray-100 rounded-lg px-3 py-1.5"><i class="fas fa-user-shield mr-1" style="color:#FF4D2D"></i>当前角色：商城运营专员</span>
   </div>
 
-  <!-- 统计卡 -->
+  <!-- 统计卡（与列表同源派生，不写死） -->
   <div class="grid grid-cols-5 gap-3 mb-5">
     <div class="stat-card bg-white rounded-lg border border-gray-100 p-3.5">
       <p class="text-[11px] text-gray-400">报价中</p>
-      <p class="text-xl font-bold mt-1" style="color:#2563EB">18</p>
-      <p class="text-[10px] text-[#94A3B8] mt-0.5">等待买家选标</p>
+      <p class="text-xl font-bold mt-1" style="color:#2563EB" id="sQuote">0</p>
+      <p class="text-[10px] text-[#94A3B8] mt-0.5" id="sQuoteSub">个性 0 · 批量 0</p>
     </div>
     <div class="stat-card bg-white rounded-lg border border-gray-100 p-3.5">
       <p class="text-[11px] text-gray-400">已成交</p>
-      <p class="text-xl font-bold mt-1" style="color:#15803D">42</p>
-      <p class="text-[10px] text-[#94A3B8] mt-0.5">已生成订单</p>
+      <p class="text-xl font-bold mt-1" style="color:#15803D" id="sDeal">0</p>
+      <p class="text-[10px] text-[#94A3B8] mt-0.5">已生成定制单 / 打样单</p>
     </div>
     <div class="stat-card bg-white rounded-lg border border-gray-100 p-3.5">
       <p class="text-[11px] text-gray-400">今日新增</p>
-      <p class="text-xl font-bold mt-1" style="color:#7C3AED">7</p>
-      <p class="text-[10px] text-[#94A3B8] mt-0.5">个性 5 · 企业 2</p>
+      <p class="text-xl font-bold mt-1" style="color:#7C3AED" id="sToday">0</p>
+      <p class="text-[10px] text-[#94A3B8] mt-0.5" id="sTodaySub">个性 0 · 批量 0</p>
     </div>
     <div class="stat-card bg-white rounded-lg border border-gray-100 p-3.5">
       <p class="text-[11px] text-gray-400">临期待成交</p>
-      <p class="text-xl font-bold mt-1" style="color:#B45309">3</p>
+      <p class="text-xl font-bold mt-1" style="color:#B45309" id="sUrg">0</p>
       <p class="text-[10px] text-[#94A3B8] mt-0.5">不足 24 小时</p>
     </div>
     <div class="stat-card bg-white rounded-lg border border-gray-100 p-3.5">
       <p class="text-[11px] text-gray-400">异常待处置</p>
-      <p class="text-xl font-bold mt-1" style="color:#B91C1C">2</p>
-      <p class="text-[10px] text-[#94A3B8] mt-0.5">零报价到期 / 举报</p>
+      <p class="text-xl font-bold mt-1" style="color:#B91C1C" id="sRisk">0</p>
+      <p class="text-[10px] text-[#94A3B8] mt-0.5">零报价待到期 / 举报</p>
     </div>
   </div>
 
@@ -83,16 +87,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
     </div>
   </div>
 
+  <!-- 定制类型 Tab（个性定制 CP / 批量定制·企业定制 CE 同表管理） -->
+  <div class="flex items-center gap-1 mb-3 bg-white rounded-xl border border-gray-100 px-2 py-1.5" style="width:max-content">
+    <span class="ct-tab on" data-kind="" onclick="setKind('')">全部需求 <b id="tAll">0</b></span>
+    <span class="ct-tab" data-kind="个性定制" onclick="setKind('个性定制')"><i class="fas fa-shirt mr-1"></i>个性定制 <b id="tCp">0</b></span>
+    <span class="ct-tab" data-kind="批量定制" onclick="setKind('批量定制')"><i class="fas fa-building mr-1"></i>批量定制（企业） <b id="tCe">0</b></span>
+    <span class="text-[11px] text-[#94A3B8] ml-3">批量定制需求来自买家端「批量定制」表单，无打样、商户直接报大货单价</span>
+  </div>
+
   <!-- 筛选 -->
   <div class="bg-white rounded-xl border border-gray-100 p-4 mb-4">
     <div class="flex items-center gap-3 flex-wrap">
       <div class="relative">
         <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
-        <input id="kw" type="text" placeholder="需求号 / 标题" class="w-56 pl-8 pr-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary">
+        <input id="kw" type="text" placeholder="需求号 / 标题 / 企业名称" class="w-56 pl-8 pr-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none focus:border-primary">
       </div>
-      <select id="fKind" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
-        <option value="">全部买家类型</option><option>个性</option><option>企业</option>
-      </select>
       <select id="fType" class="px-3 py-1.5 text-[13px] bg-gray-50 rounded-lg border border-gray-200 outline-none text-gray-600">
         <option value="">全部需求类型</option><option>仅样品定制</option><option>直接大货</option><option>先样品后大货</option>
       </select>
@@ -110,20 +119,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
   <!-- 表格 -->
   <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
     <div class="px-5 py-3 border-b border-gray-100 flex items-center gap-2">
-      <button class="btn btn-ghost" onclick="toast('已导出定制需求台账（含需求类型、报价数、成交结果）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
+      <button class="btn btn-ghost" onclick="toast('已导出定制需求台账（个性定制 + 批量定制，含定制类型、需求类型、报价数、成交结果）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
       <span class="text-[12px] text-[#94A3B8]" id="cnt">共 0 条</span>
       <span class="ml-auto text-[11px] text-[#94A3B8]">选标由买家在端上完成，运营端不提供选标入口</span>
     </div>
     <div class="overflow-x-auto">
-      <table class="w-full text-[13px]" style="min-width:1320px">
+      <table class="w-full text-[13px]" style="min-width:1440px">
         <thead>
           <tr class="bg-gray-50 text-gray-500 text-[12px]">
             <th class="px-4 py-3 text-left font-medium">需求号</th>
             <th class="px-4 py-3 text-left font-medium">标题</th>
-            <th class="px-4 py-3 text-left font-medium">买家类型</th>
+            <th class="px-4 py-3 text-left font-medium">定制类型</th>
             <th class="px-4 py-3 text-left font-medium">需求类型</th>
             <th class="px-4 py-3 text-right font-medium">数量</th>
             <th class="px-4 py-3 text-right font-medium">期望单价</th>
+            <th class="px-4 py-3 text-left font-medium">期望交期</th>
             <th class="px-4 py-3 text-center font-medium">报价数</th>
             <th class="px-4 py-3 text-left font-medium">截止(剩余)</th>
             <th class="px-4 py-3 text-left font-medium">状态</th>
@@ -155,48 +165,100 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-[#1F2430] text-white text-[13px] px-5 py-2.5 rounded-lg opacity-0 pointer-events-none transition z-[80]"></div>
 
 <script>
-/* ============ 数据（mock，字段与分册 §2.2 一致） ============ */
+/* ============ 数据（mock，字段与分册 §2.2 一致）
+   两种定制类型同表：个性定制 CP（可打样）/ 批量定制·企业定制 CE（无打样，直接大货）
+   报价字段与商户端「提交报价」同口径：单价 + 交期 + 是否含运费 + 改价次数（≤2）+ 结果 ============ */
 var D = [
-  { id:'CP20261026001', kind:'个性', type:'先样品后大货', title:'校服配套定制袜（含校徽）', buyer:'周**', qty:1000, unit:'双', price:'5.0',
-    quotes:3, left:'剩 2 天', urgent:false, state:'报价中', order:'—',
+  /* ---------------- 个性定制 CP ---------------- */
+  { id:'CP20261026001', kind:'个性定制', type:'先样品后大货', title:'校服配套定制袜（含校徽）', buyer:'周**', created:'2026-10-26',
+    qty:1000, unit:'双', price:'5.0', period:'打样 7 天 / 大货 25 天',
+    quotes:3, left:'已截止', urgent:false, state:'已成交', order:'SP20261026003',
     design:{style:'藏青+银灰条纹 / 商务简约', mat:'80S 精梳棉', height:'中筒', craft:'200针提花 · 无骨缝头', img:'藏青条纹'},
-    qs:[{shop:'大唐自有品牌旗舰店', sp:'¥28/件', bulk:'¥4.6/双', changes:1, win:false},
-        {shop:'锦程袜业', sp:'¥26/件', bulk:'¥4.2/双', changes:0, win:true},
-        {shop:'丹吉娅智能工厂', sp:'¥30/件', bulk:'¥4.8/双', changes:2, win:false}],
-    log:['2026-10-24 10:02 买家提交需求','2026-10-24 14:20 锦程袜业报价 ¥26/件 · ¥4.2/双','2026-10-25 09:10 买家选标：锦程袜业','2026-10-25 09:12 生成打样单 SP20261025003'] },
-  { id:'CP20261026002', kind:'个性', type:'仅样品定制', title:'情侣款刺绣短袜 姓名定制', buyer:'吴**', qty:200, unit:'双', price:'8.0',
+    qs:[{shop:'大唐自有品牌旗舰店', sp:'¥28/件', bulk:'¥4.6/双', period:'25 天', freight:'含运费', changes:1, win:false},
+        {shop:'锦程袜业', sp:'¥26/件', bulk:'¥4.2/双', period:'22 天', freight:'不含运费', changes:0, win:true},
+        {shop:'丹吉娅智能工厂', sp:'¥30/件', bulk:'¥4.8/双', period:'28 天', freight:'含运费', changes:2, win:false}],
+    log:['2026-10-26 10:02 买家提交需求（先样品后大货）','2026-10-26 14:20 锦程袜业报价 ¥26/件 样品 · ¥4.2/双 大货','2026-10-26 15:10 买家选标：锦程袜业','2026-10-26 15:12 生成打样单 SP20261026003'] },
+
+  { id:'CP20261026002', kind:'个性定制', type:'仅样品定制', title:'情侣款刺绣短袜 姓名定制', buyer:'吴**', created:'2026-10-25',
+    qty:200, unit:'双', price:'8.0', period:'打样 7 天',
     quotes:1, left:'剩 3 天', urgent:false, state:'报价中', order:'—',
     design:{style:'刺绣姓名 / 情侣款', mat:'纯棉', height:'短筒', craft:'电脑绣花', img:'刺绣情侣'},
-    qs:[{shop:'丹吉娅智能工厂', sp:'¥22/件', bulk:'—', changes:0, win:false}],
-    log:['2026-10-25 16:30 买家提交需求','2026-10-26 09:05 丹吉娅智能工厂报价 ¥22/件（仅打样）'] },
-  { id:'CP20261026003', kind:'个性', type:'直接大货', title:'宠物主题潮袜 柯基图案', buyer:'郑**', qty:500, unit:'双', price:'4.2',
+    qs:[{shop:'丹吉娅智能工厂', sp:'¥22/件', bulk:'—', period:'10 天', freight:'含运费', changes:0, win:false}],
+    log:['2026-10-25 16:30 买家提交需求（仅样品定制）','2026-10-26 09:05 丹吉娅智能工厂报价 ¥22/件（仅打样）'] },
+
+  { id:'CP20261026003', kind:'个性定制', type:'直接大货', title:'宠物主题潮袜 柯基图案', buyer:'郑**', created:'2026-10-23',
+    qty:500, unit:'双', price:'4.2', period:'大货 20 天',
     quotes:4, left:'剩 1 天', urgent:true, state:'报价中', order:'—',
     design:{style:'柯基图案 / 潮流', mat:'精梳棉', height:'中筒', craft:'数码印花', img:'柯基潮袜'},
-    qs:[{shop:'大唐自有品牌旗舰店', sp:'—', bulk:'¥4.0/双', changes:0, win:false},
-        {shop:'锦程袜业', sp:'—', bulk:'¥3.9/双', changes:1, win:false},
-        {shop:'丹吉娅智能工厂', sp:'—', bulk:'¥4.1/双', changes:0, win:false},
-        {shop:'恒丰织造', sp:'—', bulk:'¥3.8/双', changes:0, win:false}],
-    log:['2026-10-23 11:00 买家提交需求','2026-10-25 18:20 4 家商户已报价（临期提醒已发）'] },
-  { id:'CE20261026001', kind:'企业', type:'直接大货', title:'某科技企业年会礼盒袜 LOGO刺绣', buyer:'企业采购', qty:3000, unit:'双', price:'9.8',
-    quotes:3, left:'剩 1 天', urgent:true, state:'已成交', order:'CZ20261026004',
-    design:{style:'LOGO 刺绣 / 深灰', mat:'80S 精梳棉', height:'中筒', craft:'刺绣 + 礼盒包装', img:'LOGO礼盒'},
-    qs:[{shop:'大唐自有品牌旗舰店', sp:'—', bulk:'¥9.2/双', changes:0, win:true},
-        {shop:'锦程袜业', sp:'—', bulk:'¥9.5/双', changes:0, win:false},
-        {shop:'恒丰织造', sp:'—', bulk:'¥9.6/双', changes:1, win:false}],
-    log:['2026-10-22 09:00 企业采购提交需求（3000 双）','2026-10-23 15:30 买家选标：大唐自有品牌旗舰店','2026-10-23 15:35 生成定制单 CZ20261026004（直接大货，无打样）'] },
-  { id:'CP20261024008', kind:'个性', type:'先样品后大货', title:'健身房定制毛巾底袜', buyer:'何**', qty:800, unit:'双', price:'6.0',
+    qs:[{shop:'大唐自有品牌旗舰店', sp:'—', bulk:'¥4.0/双', period:'18 天', freight:'含运费', changes:0, win:false},
+        {shop:'锦程袜业', sp:'—', bulk:'¥3.9/双', period:'20 天', freight:'不含运费', changes:1, win:false},
+        {shop:'丹吉娅智能工厂', sp:'—', bulk:'¥4.1/双', period:'17 天', freight:'含运费', changes:0, win:false},
+        {shop:'恒丰织造', sp:'—', bulk:'¥3.8/双', period:'22 天', freight:'含运费', changes:0, win:false}],
+    log:['2026-10-23 11:00 买家提交需求（直接大货）','2026-10-25 18:20 4 家商户已报价（临期提醒已发）'] },
+
+  { id:'CP20261025009', kind:'个性定制', type:'先样品后大货', title:'汉服配套提花袜', buyer:'林**', created:'2026-10-25',
+    qty:600, unit:'双', price:'6.5', period:'打样 7 天 / 大货 25 天',
+    quotes:2, left:'已截止', urgent:false, state:'已成交', order:'CZ20261025002',
+    design:{style:'汉服纹样 / 提花长筒', mat:'精梳棉', height:'长筒', craft:'提花 + 罗纹收口', img:'汉服提花'},
+    qs:[{shop:'恒丰织造', sp:'¥25/件', bulk:'¥6.0/双', period:'24 天', freight:'含运费', changes:1, win:true},
+        {shop:'锦丰针织', sp:'¥24/件', bulk:'¥6.3/双', period:'26 天', freight:'不含运费', changes:0, win:false}],
+    log:['2026-10-25 09:40 买家提交需求（先样品后大货）','2026-10-25 16:10 买家选标：恒丰织造','2026-10-25 16:15 生成打样单 SP20261025004','2026-10-26 11:20 样衣确认 → 生成定制单 CZ20261025002（抵扣样品费 ¥25）'] },
+
+  { id:'CP20261024008', kind:'个性定制', type:'先样品后大货', title:'健身房定制毛巾底袜', buyer:'何**', created:'2026-10-20',
+    qty:800, unit:'双', price:'6.0', period:'打样 7 天 / 大货 25 天',
     quotes:0, left:'已到期', urgent:false, state:'已关闭', order:'—',
     design:{style:'毛巾底加厚 / 深灰', mat:'棉 + 氨纶', height:'中筒', craft:'毛巾底编织', img:'毛巾底'},
     qs:[], log:['2026-10-20 10:00 买家提交需求','2026-10-26 00:00 截止，零报价自动关闭（原因=超时无报价）'] },
-  { id:'CP20261025011', kind:'个性', type:'直接大货', title:'动漫IP联名长筒袜', buyer:'许**', qty:1200, unit:'双', price:'5.8',
-    quotes:2, left:'剩 5 天', urgent:false, state:'已关闭', order:'—',
+
+  { id:'CP20261025011', kind:'个性定制', type:'直接大货', title:'动漫IP联名长筒袜', buyer:'许**', created:'2026-10-25',
+    qty:1200, unit:'双', price:'5.8', period:'大货 30 天',
+    quotes:2, left:'已下架', urgent:false, state:'已关闭', order:'—',
     design:{style:'IP 联名 / 长筒', mat:'精梳棉', height:'长筒', craft:'提花 + 印花', img:'IP联名'},
-    qs:[{shop:'大唐自有品牌旗舰店', sp:'—', bulk:'¥5.6/双', changes:0, win:false},
-        {shop:'锦丰针织', sp:'—', bulk:'¥5.7/双', changes:0, win:false}],
-    log:['2026-10-25 10:00 买家提交需求','2026-10-26 09:30 运营违规下架（原因=涉嫌侵犯 IP 授权）'] }
+    qs:[{shop:'大唐自有品牌旗舰店', sp:'—', bulk:'¥5.6/双', period:'28 天', freight:'含运费', changes:0, win:false},
+        {shop:'锦丰针织', sp:'—', bulk:'¥5.7/双', period:'30 天', freight:'含运费', changes:0, win:false}],
+    log:['2026-10-25 10:00 买家提交需求','2026-10-26 09:30 运营违规下架（原因=涉嫌侵犯 IP 授权）'] },
+
+  /* ---------------- 批量定制 CE（企业定制，无打样） ---------------- */
+  { id:'CE20261026001', kind:'批量定制', type:'直接大货', title:'某科技企业年会礼盒袜 LOGO刺绣', buyer:'企业采购', created:'2026-10-22',
+    ent:'浙江启元科技有限公司', contact:'王经理', phone:'138****6688',
+    qty:3000, unit:'双', price:'面议', period:'35 天',
+    quotes:3, left:'已截止', urgent:false, state:'已成交', order:'CZ20261026004',
+    spec:{cat:'运动袜', mat:'精梳棉', height:'中筒', size:'39-42', craft:'LOGO 刺绣 · 200针提花', pack:'礼盒装 + 定制吊牌',
+      addr:'浙江省杭州市滨江区江陵路 88 号 A 座 12F', note:'年会礼盒，需分 3 批交付'},
+    qs:[{shop:'大唐自有品牌旗舰店', price:'¥9.2/双', period:'30 天', freight:'含运费', changes:0, win:true},
+        {shop:'锦程袜业', price:'¥9.5/双', period:'32 天', freight:'含运费', changes:0, win:false},
+        {shop:'恒丰织造', price:'¥9.6/双', period:'35 天', freight:'不含运费', changes:1, win:false}],
+    log:['2026-10-22 09:00 企业采购提交批量定制需求（3000 双 · 期望交期 35 天）','2026-10-23 15:30 买家选标：大唐自有品牌旗舰店','2026-10-23 15:35 生成定制单 CZ20261026004（批量类型=企业大批量，无打样）'] },
+
+  { id:'CE20261026002', kind:'批量定制', type:'直接大货', title:'银行开户伴手礼袜（含包装）', buyer:'企业采购', created:'2026-10-26',
+    ent:'诸暨农商银行', contact:'李主管', phone:'137****2210',
+    qty:5000, unit:'双', price:'面议', period:'40 天',
+    quotes:2, left:'剩 4 天', urgent:false, state:'报价中', order:'—',
+    spec:{cat:'男袜', mat:'精梳棉', height:'中筒', size:'39-42', craft:'行徽提花 · 无骨缝头', pack:'牛皮纸礼盒 + 手提袋',
+      addr:'浙江省绍兴市诸暨市暨阳街道西施大街 1 号', note:'网点分发，外箱需印网点编号'},
+    qs:[{shop:'大唐自有品牌旗舰店', price:'¥6.4/双', period:'38 天', freight:'含运费', changes:0, win:false},
+        {shop:'丹吉娅智能工厂', price:'¥6.2/双', period:'40 天', freight:'不含运费', changes:1, win:false}],
+    log:['2026-10-26 09:12 企业采购提交批量定制需求（5000 双 · 期望交期 40 天）','2026-10-26 11:40 2 家商户已报价'] },
+
+  { id:'CE20261026003', kind:'批量定制', type:'直接大货', title:'连锁酒店客房一次性拖鞋袜', buyer:'企业采购', created:'2026-10-26',
+    ent:'杭州云栖酒店管理有限公司', contact:'张经理', phone:'139****7766',
+    qty:10000, unit:'双', price:'面议', period:'45 天',
+    quotes:0, left:'剩 6 天', urgent:false, state:'报价中', order:'—',
+    spec:{cat:'船袜', mat:'涤棉', height:'船袜', size:'均码', craft:'素色 + 酒店 LOGO 提花', pack:'独立 OPP 袋',
+      addr:'浙江省杭州市西湖区云栖路 66 号', note:'常年补货，首批 10000 双，后续按季度返单'},
+    qs:[], log:['2026-10-26 14:05 企业采购提交批量定制需求（10000 双 · 期望交期 45 天）','2026-10-26 14:05 系统已推送至匹配商户（暂无报价）'] },
+
+  { id:'CE20261026004', kind:'批量定制', type:'直接大货', title:'地产交付礼盒定制袜（精装）', buyer:'企业采购', created:'2026-10-26',
+    ent:'（企业认证未通过）', contact:'陈先生', phone:'135****3311',
+    qty:6000, unit:'双', price:'面议', period:'38 天',
+    quotes:1, left:'已下架', urgent:false, state:'已关闭', order:'—',
+    spec:{cat:'男袜', mat:'精梳棉', height:'中筒', size:'39-42', craft:'楼盘元素提花', pack:'精装礼盒',
+      addr:'浙江省绍兴市越城区解放大道 9 号', note:'—'},
+    qs:[{shop:'锦程袜业', price:'¥10.2/双', period:'36 天', freight:'含运费', changes:0, win:false}],
+    log:['2026-10-26 10:40 企业采购提交批量定制需求（6000 双）','2026-10-26 16:20 运营违规下架（原因=企业资质无法核验）'] }
 ];
 
-var cur = null, rows = D.slice();
+var cur = null, rows = D.slice(), curKind = '';
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
 function money(n){return Number(n).toLocaleString('en-US');}
@@ -209,29 +271,67 @@ function typeBadge(t){
   var map={'仅样品定制':'background:#EDE9FE;color:#7C3AED','先样品后大货':'background:#E0E7FF;color:#4338CA','直接大货':'background:#FFE4E6;color:#BE123C'};
   return '<span class="tag" style="'+map[t]+'">'+t+'</span>';
 }
+function kindBadge(k){
+  return k==='批量定制'
+    ? '<span class="tag" style="background:#E0F2FE;color:#0369A1"><i class="fas fa-building mr-1"></i>批量定制</span>'
+    : '<span class="tag" style="background:#F5F3FF;color:#6D28D9">个性定制</span>';
+}
+/* 统计卡与类型 Tab 计数：都与列表同源派生 */
+function stats(){
+  function n(f){return D.filter(f).length;}
+  var q=function(k){return function(d){return d.kind===k;};};
+  document.getElementById('sQuote').textContent=n(function(d){return d.state==='报价中';});
+  document.getElementById('sQuoteSub').textContent='个性 '+n(function(d){return d.state==='报价中'&&d.kind==='个性定制';})
+    +' · 批量 '+n(function(d){return d.state==='报价中'&&d.kind==='批量定制';});
+  document.getElementById('sDeal').textContent=n(function(d){return d.state==='已成交';});
+  document.getElementById('sToday').textContent=n(function(d){return d.created==='2026-10-26';});
+  document.getElementById('sTodaySub').textContent='个性 '+n(function(d){return d.created==='2026-10-26'&&d.kind==='个性定制';})
+    +' · 批量 '+n(function(d){return d.created==='2026-10-26'&&d.kind==='批量定制';});
+  document.getElementById('sUrg').textContent=n(function(d){return d.state==='报价中'&&d.urgent;});
+  document.getElementById('sRisk').textContent=n(function(d){return d.state==='报价中'&&d.quotes===0;});
+  document.getElementById('tAll').textContent=D.length;
+  document.getElementById('tCp').textContent=n(q('个性定制'));
+  document.getElementById('tCe').textContent=n(q('批量定制'));
+}
+function setKind(k){
+  curKind=k;
+  Array.prototype.forEach.call(document.querySelectorAll('.ct-tab'),function(el){
+    el.classList.toggle('on',(el.getAttribute('data-kind')||'')===k);
+  });
+  render();
+}
 
 function render(){
   var kw=(document.getElementById('kw').value||'').trim();
-  var kind=document.getElementById('fKind').value, type=document.getElementById('fType').value, state=document.getElementById('fState').value;
+  var type=document.getElementById('fType').value, state=document.getElementById('fState').value;
   var zero=document.getElementById('fZero').checked, urg=document.getElementById('fUrgent').checked;
   rows=D.filter(function(d){
-    if(kw&&d.id.indexOf(kw)<0&&d.title.indexOf(kw)<0)return false;
-    if(kind&&d.kind!==kind)return false;
+    if(kw&&d.id.indexOf(kw)<0&&d.title.indexOf(kw)<0&&String(d.ent||'').indexOf(kw)<0)return false;
+    if(curKind&&d.kind!==curKind)return false;
     if(type&&d.type!==type)return false;
     if(state&&d.state!==state)return false;
     if(zero&&d.quotes!==0)return false;
     if(urg&&!d.urgent)return false;
     return true;
   });
+  /* 默认排序：截止时间升序（临期在前）；已截止 / 已下架 / 已到期的排最后 */
+  function leftKey(s){
+    var m=/剩\s*(\d+)\s*天/.exec(String(s||'')); return m?parseInt(m[1],10):999;
+  }
+  rows.sort(function(a,b){ return leftKey(a.left)-leftKey(b.left); });
   var h='';
   rows.forEach(function(d){
+    var entLine=d.kind==='批量定制'
+      ? '企业 '+esc(d.ent)+' · '+esc(d.contact)
+      : '买家 '+esc(d.buyer);
     h+='<tr>'
       +'<td class="px-4 py-3 font-medium" style="color:#1F2430">'+esc(d.id)+'</td>'
-      +'<td class="px-4 py-3"><div class="text-[#1F2430]">'+esc(d.title)+'</div><div class="text-[11px] text-[#94A3B8]">买家 '+esc(d.buyer)+'</div></td>'
-      +'<td class="px-4 py-3"><span class="tag" style="background:'+(d.kind==='企业'?'#E0F2FE;color:#0369A1':'#F5F3FF;color:#6D28D9')+'">'+esc(d.kind)+'</span></td>'
+      +'<td class="px-4 py-3"><div class="text-[#1F2430]">'+esc(d.title)+'</div><div class="text-[11px] text-[#94A3B8]">'+entLine+'</div></td>'
+      +'<td class="px-4 py-3">'+kindBadge(d.kind)+'</td>'
       +'<td class="px-4 py-3">'+typeBadge(d.type)+'</td>'
       +'<td class="px-4 py-3 text-right">'+money(d.qty)+' '+esc(d.unit)+'</td>'
-      +'<td class="px-4 py-3 text-right">¥'+esc(d.price)+'/'+esc(d.unit)+'</td>'
+      +'<td class="px-4 py-3 text-right">'+(d.price==='面议'?'<span class="text-[#94A3B8]">面议</span>':'¥'+esc(d.price)+'/'+esc(d.unit))+'</td>'
+      +'<td class="px-4 py-3 text-[#64748B]">'+esc(d.period||'—')+'</td>'
       +'<td class="px-4 py-3 text-center">'+(d.quotes?('<b style="color:#1D4ED8">'+d.quotes+'</b>'):'<span style="color:#B91C1C">0</span>')+'</td>'
       +'<td class="px-4 py-3"><span style="'+(d.urgent?'color:#B91C1C;font-weight:600':'color:#64748B')+'">'+esc(d.left)+'</span></td>'
       +'<td class="px-4 py-3">'+stBadge(d.state)+'</td>'
@@ -240,52 +340,89 @@ function render(){
       +(d.state==='报价中'?' · <span class="lk-gray" onclick="askOff(\''+d.id+'\')">违规下架</span>':'')
       +'</td></tr>';
   });
-  if(!rows.length) h='<tr><td colspan="11" class="px-4 py-16 text-center text-gray-300"><i class="fas fa-inbox text-3xl block mb-2"></i><span class="text-[12px]">暂无匹配的定制需求</span></td></tr>';
+  if(!rows.length) h='<tr><td colspan="12" class="px-4 py-16 text-center text-gray-300"><i class="fas fa-inbox text-3xl block mb-2"></i><span class="text-[12px]">暂无匹配的定制需求</span></td></tr>';
   document.getElementById('tb').innerHTML=h;
   document.getElementById('cnt').textContent='共 '+rows.length+' 条';
+  stats();
 }
 
 function resetF(){
-  ['kw','fKind','fType','fState'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+  ['kw','fType','fState'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
   document.getElementById('fZero').checked=false;document.getElementById('fUrgent').checked=false;
   var bar=document.getElementById('fromOrder'); if(bar) bar.style.display='none';
-  render();toast('已重置筛选条件');
+  setKind('');
+  toast('已重置筛选条件');
 }
 
 function openD(id){
   var d=D.filter(function(x){return x.id===id;})[0]; if(!d)return; cur=d;
+  var isBatch=d.kind==='批量定制';
   document.getElementById('dTitle').textContent='定制需求详情';
   document.getElementById('dSub').textContent=d.id+' · '+d.title;
   var h='';
   if(d.urgent) h+='<div class="rounded-xl p-3 mb-1 text-[11.5px]" style="background:#FEF2F2;border:1px solid #FECACA;color:#B91C1C"><i class="fas fa-clock mr-1"></i>该需求距截止不足 24 小时，请尽快处置</div>';
   h+='<div class="ftitle" style="margin-top:0">需求信息</div><div class="grid grid-cols-2 gap-x-6">'
     +'<div class="kv"><span class="k">需求号</span><span class="v">'+esc(d.id)+'</span></div>'
-    +'<div class="kv"><span class="k">买家类型</span><span class="v">'+esc(d.kind)+'</span></div>'
-    +'<div class="kv"><span class="k">需求类型</span><span class="v">'+esc(d.type)+'</span></div>'
+    +'<div class="kv"><span class="k">定制类型</span><span class="v">'+kindBadge(d.kind)+'</span></div>'
+    +'<div class="kv"><span class="k">需求类型</span><span class="v">'+typeBadge(d.type)+(isBatch?'<span class="text-[10px] text-[#94A3B8] ml-1">（批量定制不打样）</span>':'')+'</span></div>'
     +'<div class="kv"><span class="k">数量</span><span class="v">'+money(d.qty)+' '+esc(d.unit)+'</span></div>'
-    +'<div class="kv"><span class="k">期望单价</span><span class="v">¥'+esc(d.price)+'/'+esc(d.unit)+'</span></div>'
+    +'<div class="kv"><span class="k">期望单价</span><span class="v">'+(d.price==='面议'?'<span class="text-[#94A3B8]">面议（由商户报价）</span>':'¥'+esc(d.price)+'/'+esc(d.unit))+'</span></div>'
+    +'<div class="kv"><span class="k">期望交期</span><span class="v">'+esc(d.period||'—')+'</span></div>'
     +'<div class="kv"><span class="k">截止</span><span class="v" style="'+(d.urgent?'color:#B91C1C':'')+'">'+esc(d.left)+'</span></div>'
     +'<div class="kv"><span class="k">状态</span><span class="v">'+stBadge(d.state)+'</span></div>'
     +'<div class="kv"><span class="k">关联订单</span><span class="v">'+(d.order==='—'?'—':'<span class="lk" onclick="jumpOrder(\''+esc(d.order)+'\')">'+esc(d.order)+'</span>')+'</span></div>'
     +'</div>';
 
-  h+='<div class="ftitle">设计方案快照（AI 生成，后台只存快照）</div>'
-    +'<div class="rounded-xl p-4" style="background:#FAFAFF;border:1px solid #EDE9FE">'
-    +'<div class="flex items-start gap-4"><div class="rounded-xl flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0" style="width:96px;height:96px;background:linear-gradient(135deg,#7C3AED,#C084FC)">'+esc(d.design.img)+'</div>'
-    +'<div class="flex-1 space-y-1">'
-    +'<div class="kv"><span class="k">风格</span><span class="v">'+esc(d.design.style)+'</span></div>'
-    +'<div class="kv"><span class="k">材质</span><span class="v">'+esc(d.design.mat)+'</span></div>'
-    +'<div class="kv"><span class="k">筒高</span><span class="v">'+esc(d.design.height)+'</span></div>'
-    +'<div class="kv"><span class="k">工艺</span><span class="v">'+esc(d.design.craft)+'</span></div>'
-    +'</div></div></div>';
+  if(isBatch){
+    /* 批量定制：企业采购信息 + 定制要求（买家端 bulk-custom.html 提交项） */
+    h+='<div class="ftitle">企业采购信息（买家提交）</div><div class="grid grid-cols-2 gap-x-6">'
+      +'<div class="kv"><span class="k">企业名称</span><span class="v">'+esc(d.ent)+'</span></div>'
+      +'<div class="kv"><span class="k">联系人</span><span class="v">'+esc(d.contact)+'</span></div>'
+      +'<div class="kv"><span class="k">联系电话</span><span class="v">'+esc(d.phone)+'</span></div>'
+      +'<div class="kv"><span class="k">收货地址</span><span class="v">'+esc(d.spec.addr)+'</span></div>'
+      +'</div>';
+    h+='<div class="ftitle">定制要求快照（后台只存快照，不可编辑）</div>'
+      +'<div class="rounded-xl p-4" style="background:#F8FBFF;border:1px solid #E0F2FE"><div class="grid grid-cols-2 gap-x-6">'
+      +'<div class="kv"><span class="k">定制品类</span><span class="v">'+esc(d.spec.cat)+'</span></div>'
+      +'<div class="kv"><span class="k">材质</span><span class="v">'+esc(d.spec.mat)+'</span></div>'
+      +'<div class="kv"><span class="k">筒高</span><span class="v">'+esc(d.spec.height)+'</span></div>'
+      +'<div class="kv"><span class="k">尺码范围</span><span class="v">'+esc(d.spec.size)+'</span></div>'
+      +'<div class="kv"><span class="k">工艺要求</span><span class="v">'+esc(d.spec.craft)+'</span></div>'
+      +'<div class="kv"><span class="k">包装要求</span><span class="v">'+esc(d.spec.pack)+'</span></div>'
+      +'<div class="kv"><span class="k">备注需求</span><span class="v">'+esc(d.spec.note)+'</span></div>'
+      +'</div></div>';
+    h+='<div class="rounded-xl px-3 py-2 mt-2 text-[11.5px] leading-relaxed" style="background:#F8FAFC;border:1px solid #E2E8F0;color:#475569">'
+      +'<i class="fas fa-circle-info mr-1"></i>批量定制<b>不走打样</b>：商户直接报大货单价 + 交期 + 是否含运费，选标后生成定制单（批量类型=企业大批量）；企业如需先看样，由买家改走个性定制「先样品后大货」。'
+      +'</div>';
+  }else{
+    h+='<div class="ftitle">设计方案快照（AI 生成，后台只存快照）</div>'
+      +'<div class="rounded-xl p-4" style="background:#FAFAFF;border:1px solid #EDE9FE">'
+      +'<div class="flex items-start gap-4"><div class="rounded-xl flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0" style="width:96px;height:96px;background:linear-gradient(135deg,#7C3AED,#C084FC)">'+esc(d.design.img)+'</div>'
+      +'<div class="flex-1 space-y-1">'
+      +'<div class="kv"><span class="k">风格</span><span class="v">'+esc(d.design.style)+'</span></div>'
+      +'<div class="kv"><span class="k">材质</span><span class="v">'+esc(d.design.mat)+'</span></div>'
+      +'<div class="kv"><span class="k">筒高</span><span class="v">'+esc(d.design.height)+'</span></div>'
+      +'<div class="kv"><span class="k">工艺</span><span class="v">'+esc(d.design.craft)+'</span></div>'
+      +'</div></div></div>';
+  }
 
   h+='<div class="ftitle">报价明细（运营可见全量，商户端仅见自己）</div>';
   if(!d.qs.length){
     h+='<div class="rounded-xl p-4 text-[12px] text-[#94A3B8]" style="background:#FEF2F2;border:1px solid #FECACA">零报价：到期将自动关闭（原因=超时无报价）</div>';
+  }else if(isBatch){
+    h+='<table class="w-full text-[12.5px]"><thead><tr class="text-[11px] text-gray-400"><th class="text-left py-1.5 font-medium">商户</th><th class="text-right font-medium">大货单价</th><th class="text-left font-medium">交期</th><th class="text-left font-medium">运费</th><th class="text-center font-medium">改价</th><th class="text-center font-medium">结果</th></tr></thead><tbody>';
+    d.qs.forEach(function(q){
+      h+='<tr class="border-t border-gray-50"><td class="py-2">'+esc(q.shop)+'</td><td class="py-2 text-right">'+esc(q.price)+'</td>'
+        +'<td class="py-2 pl-3">'+esc(q.period)+'</td><td class="py-2 pl-3">'+esc(q.freight)+'</td>'
+        +'<td class="py-2 text-center">'+q.changes+'/2</td>'
+        +'<td class="py-2 text-center">'+(q.win?'<span class="tag" style="background:#DCFCE7;color:#15803D">已中标</span>':'<span class="text-[#94A3B8]">未中标</span>')+'</td></tr>';
+    });
+    h+='</tbody></table>';
   }else{
-    h+='<table class="w-full text-[12.5px]"><thead><tr class="text-[11px] text-gray-400"><th class="text-left py-1.5 font-medium">商户</th><th class="text-right font-medium">样品价</th><th class="text-right font-medium">大货价</th><th class="text-center font-medium">改价</th><th class="text-center font-medium">结果</th></tr></thead><tbody>';
+    h+='<table class="w-full text-[12.5px]"><thead><tr class="text-[11px] text-gray-400"><th class="text-left py-1.5 font-medium">商户</th><th class="text-right font-medium">样品价</th><th class="text-right font-medium">大货价</th><th class="text-left font-medium">交期</th><th class="text-left font-medium">运费</th><th class="text-center font-medium">改价</th><th class="text-center font-medium">结果</th></tr></thead><tbody>';
     d.qs.forEach(function(q){
       h+='<tr class="border-t border-gray-50"><td class="py-2">'+esc(q.shop)+'</td><td class="py-2 text-right">'+esc(q.sp)+'</td><td class="py-2 text-right">'+esc(q.bulk)+'</td>'
+        +'<td class="py-2 pl-3">'+esc(q.period)+'</td><td class="py-2 pl-3">'+esc(q.freight)+'</td>'
         +'<td class="py-2 text-center">'+q.changes+'/2</td>'
         +'<td class="py-2 text-center">'+(q.win?'<span class="tag" style="background:#DCFCE7;color:#15803D">已中标</span>':'<span class="text-[#94A3B8]">未中标</span>')+'</td></tr>';
     });
@@ -314,7 +451,7 @@ function askOff(id){
   showModal('违规下架需求','下架后商户端需求池将不再出现，买家与报价商户会收到通知。',
     '<label class="block text-[11px] text-[#94A3B8] mb-1">下架原因 *</label>'
     +'<select id="offReason" class="w-full px-3 py-2 text-[13px] bg-gray-50 border border-gray-200 rounded-lg outline-none mb-2">'
-    +'<option value="">请选择</option><option>涉嫌侵权 / 无授权</option><option>虚假需求</option><option>违规内容</option><option>其他</option></select>'
+    +'<option value="">请选择</option><option>涉嫌侵权 / 无授权</option><option>虚假需求</option><option>违规内容</option><option>企业资质无法核验</option><option>其他</option></select>'
     +'<textarea id="offNote" rows="2" class="w-full px-3 py-2 text-[13px] bg-gray-50 border border-gray-200 rounded-lg outline-none" placeholder="补充说明（选填）"></textarea>',
     '确认下架', function(){
       var r=document.getElementById('offReason').value;

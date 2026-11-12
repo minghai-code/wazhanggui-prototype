@@ -148,7 +148,8 @@ function ruleFakeSave(file, js, fns) {
   for (const f of fns) {
     const m = f.body.match(/toast\(\s*'[^']*已(保存|提交|新增|修改|更新)/);
     if (!m) continue;
-    const writes = /\.(push|splice|pop|shift|unshift)\s*\(|\.length\s*=[^=]|\b[\w$.]+\s*=\s*(?!=)/.test(
+    // setItem 也是写入（localStorage/sessionStorage 持久化）；漏了会把「已提交 + setItem」误判成假保存
+    const writes = /\.(push|splice|pop|shift|unshift|setItem)\s*\(|\.length\s*=[^=]|\b[\w$.]+\s*=\s*(?!=)/.test(
       f.body.replace(/^\s*(?:var|let|const)\s+[\w$]+\s*=\s*document[\s\S]*?;/gm, '')
     );
     if (!writes) {

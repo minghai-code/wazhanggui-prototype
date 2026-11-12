@@ -199,6 +199,29 @@ if(_q.get('type')==='inquiry'){
   document.getElementById('shipSub').innerHTML='<i class="fas fa-truck-fast"></i> 询价订单发货 · 收货信息以买家下单填写为准';
 }
 
+/* 打样寄样变体：orders.html 打样单「已寄样」→ shipping.html?type=sample（10b §2.0.4 ②） */
+if(_q.get('type')==='sample'){
+  document.getElementById('osIcon').className='fas fa-flask text-emerald-600';
+  var _b=document.getElementById('osBadge');
+  _b.style.display='inline-block';_b.textContent='打样寄样';
+  _b.className='bg-emerald-100 text-emerald-600 text-[8px] font-bold px-1 py-0.5 rounded';
+  document.getElementById('osName').textContent=(_q.get('name')||'校服配套定制袜（含校徽）')+' · 样品寄出';
+  document.getElementById('osSub').textContent=(orderNo||'SP20261108001')+' · 样品 '+(_q.get('qty')||1)+' 件 · 运费寄付';
+  document.getElementById('osTrace').style.display='block';
+  document.getElementById('osTrace').innerHTML='<i class="fas fa-link text-[9px]"></i> 来源需求 '+(_q.get('demand')||'CP20261024001')+' · '+(_q.get('fee')||'样品免费（大货起订量 ≥500 双）');
+  document.getElementById('shipSub').innerHTML='<i class="fas fa-flask"></i> 打样寄样 · 填单号后通知买家收货';
+  document.getElementById('osName').style.color='#1F2430';
+}
+
+/* 定制大货发货：orders.html 定制单「立即发货」→ shipping.html?type=custom */
+if(_q.get('type')==='custom'){
+  var _c=document.getElementById('osBadge');
+  _c.style.display='inline-block';_c.textContent='定制订单';
+  _c.className='bg-purple-100 text-purple-600 text-[8px] font-bold px-1 py-0.5 rounded';
+  document.getElementById('osIcon').className='fas fa-shirt text-purple-500';
+  document.getElementById('shipSub').innerHTML='<i class="fas fa-shirt"></i> 定制大货发货 · 尾款已收，可出库';
+}
+
 /* 拼单团取消：不可发货（待办 #37 / M03 BR-14） */
 if(_q.get('group')==='cancelled'){
   var sbtn=document.getElementById('shipBtn');
@@ -260,9 +283,15 @@ function doShip(){
   document.getElementById('waybill').value='';
   renderShip();
   var s=shippedQty();
+  var _tp=_q.get('type');
+  if(_tp==='sample'){
+    toast('样品已寄出，物流单号已同步买家');
+    setTimeout(function(){location.href='orders.html?type=sample';},1200);
+    return;
+  }
   if(s>=total){
     toast('已全部发完（'+s+'/'+total+'），订单转「待收货」');
-    setTimeout(function(){location.href='orders.html';},1400);
+    setTimeout(function(){location.href=_tp==='custom'?'orders.html?type=custom':'orders.html';},1400);
   }else{
     toast('已发 '+s+'/'+total+' 件，订单仍为「待发货」');
   }

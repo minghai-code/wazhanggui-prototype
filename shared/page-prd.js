@@ -80,7 +80,7 @@
     'yunying-PC/property-staff.html':      ['07-物业服务/09-物业人员', '', '物业人员'],
     'yunying-PC/mall-inquiry.html':       ['10a-采购询价/01-采购询价需求管理', '', '采购询价需求管理'],
     'yunying-PC/mall-order-inquiry.html': ['10a-采购询价/02-采购询价订单', '', '采购询价订单'],
-    'yunying-PC/mall-custom-demand.html': ['10b-商城运营/01-个性定制需求管理', '', '个性定制需求管理'],
+    'yunying-PC/mall-custom-demand.html': ['10b-商城运营/01-定制需求管理', '', '定制需求管理'],
     'yunying-PC/mall-order-group.html':   ['10b-商城运营/02-拼单集采订单', '', '拼单集采订单'],
     'yunying-PC/mall-group-manage.html':  ['10b-商城运营/06-拼单团管理', '', '拼单集采需求管理'],
     'yunying-PC/mall-order-sample.html':  ['10b-商城运营/03-样品打样订单', '', '样品打样订单'],

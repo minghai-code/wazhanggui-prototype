@@ -29,6 +29,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 .aft-filter{cursor:pointer}
 .after-opt{cursor:pointer;transition:all .15s}
 .after-opt.on{border-color:#2563EB;color:#2563EB;background:#EFF6FF;font-weight:500}
+/* 接单弹层样式由 sp-take.js 注入（与打样详情页共用，避免两处各写一套） */
 </style>
 <!-- Tailwind 静态样式：本地引用（不再依赖 cdn.tailwindcss.com）；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
 <link rel="stylesheet" href="tailwind.css">
@@ -54,7 +55,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
     <div>
       <div class="flex items-center gap-2">
         <span class="text-white font-extrabold text-[26px] tracking-wide" style="text-shadow:0 2px 10px rgba(0,0,0,.18)">订单管理</span>
-        <span class="text-[10px] text-white/90 bg-white/20 rounded-full px-2 py-0.5 backdrop-blur">待发货 12</span>
+        <span class="text-[10px] text-white/90 bg-white/20 rounded-full px-2 py-0.5 backdrop-blur">待发货 <span id="hdrTodo" class="num">12</span></span>
       </div>
       <p class="text-white/80 text-[11px] mt-1"><i class="fas fa-truck-fast"></i> 及时履约 · 48h内发货</p>
     </div>
@@ -97,12 +98,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
   <!-- 状态Tab（外采口径：全部/待支付/待发货/已发货/已完成/已取消；售后时隐藏） -->
   <div class="px-3 mt-2 relative z-20" id="statusWrap">
     <div class="bg-white/80 backdrop-blur-xl rounded-2xl shadow-soft px-3 py-2.5 flex items-center gap-4 border border-white no-bar" style="overflow-x:auto;white-space:nowrap" id="statusTabs">
-      <a class="stab text-[13px] font-bold text-gray-800 relative pb-1">全部<span class="absolute bottom-0 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full" style="background:linear-gradient(90deg,#2563EB,#06B6D4)"></span></a>
-      <a onclick="switchStatus(this)" class="stab text-[13px] text-gray-400 pb-1">待支付<span class="text-[10px] ml-0.5">2</span></a>
-      <a onclick="switchStatus(this)" class="stab text-[13px] text-gray-400 pb-1">待发货<span class="text-[10px] ml-0.5">12</span></a>
-      <a onclick="switchStatus(this)" class="stab text-[13px] text-gray-400 pb-1">已发货<span class="text-[10px] ml-0.5">38</span></a>
-      <a onclick="switchStatus(this)" class="stab text-[13px] text-gray-400 pb-1">已完成</a>
-      <a onclick="switchStatus(this)" class="stab text-[13px] text-gray-400 pb-1">已取消</a>
+      <a onclick="switchStatus(this)" data-st="全部" class="stab text-[13px] font-bold text-gray-800 relative pb-1">全部<span class="text-[10px] ml-0.5 num" data-cnt="全部"></span><span class="absolute bottom-0 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full" style="background:linear-gradient(90deg,#2563EB,#06B6D4)"></span></a>
+      <a onclick="switchStatus(this)" data-st="待支付" class="stab text-[13px] text-gray-400 pb-1">待支付<span class="text-[10px] ml-0.5 num" data-cnt="待支付">2</span></a>
+      <a onclick="switchStatus(this)" data-st="待发货" class="stab text-[13px] text-gray-400 pb-1">待发货<span class="text-[10px] ml-0.5 num" data-cnt="待发货">12</span></a>
+      <a onclick="switchStatus(this)" data-st="已发货" class="stab text-[13px] text-gray-400 pb-1">已发货<span class="text-[10px] ml-0.5 num" data-cnt="已发货">38</span></a>
+      <a onclick="switchStatus(this)" data-st="已完成" class="stab text-[13px] text-gray-400 pb-1">已完成<span class="text-[10px] ml-0.5 num" data-cnt="已完成"></span></a>
+      <a onclick="switchStatus(this)" data-st="已取消" class="stab text-[13px] text-gray-400 pb-1">已取消<span class="text-[10px] ml-0.5 num" data-cnt="已取消"></span></a>
     </div>
   </div>
 
@@ -110,8 +111,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
   <div class="px-3 mt-2" id="overdueBox">
     <div class="bg-red-50 border border-red-100 rounded-xl px-3 py-2 flex items-center gap-2">
       <i class="fas fa-circle-exclamation text-red-500 text-xs"></i>
-      <p class="text-[11px] text-red-600 flex-1">有 <span class="font-bold num">3</span> 单已超48h未发货，买家可能催发货</p>
-      <a onclick="toast('查看售后详情（演示）')" class="text-[11px] text-red-500 font-bold">查看</a>
+      <p class="text-[11px] text-red-600 flex-1">有 <span id="overdueNum" class="font-bold num">3</span> 单已超48h未发货，买家可能催发货</p>
+      <a onclick="viewOverdue()" class="text-[11px] text-red-500 font-bold">查看</a>
     </div>
   </div>
 
@@ -119,7 +120,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
   <div class="px-3 py-3 space-y-3" id="sec-normal" style="padding-bottom:90px">
 
     <!-- 订单1：待支付 -->
-    <div class="card bg-white rounded-2xl shadow-soft overflow-hidden fade-up">
+    <div class="card bg-white rounded-2xl shadow-soft overflow-hidden fade-up" data-st="待支付">
       <div class="flex items-center gap-2 px-3 py-2.5 border-b border-gray-50">
         <div class="w-6 h-6 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#8B5CF6,#6D28D9)"><i class="fas fa-user text-white text-[8px]"></i></div>
         <span class="text-[12px] font-semibold text-gray-800 truncate flex-1">绍兴小商品批发部</span>
@@ -148,11 +149,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
     </div>
 
     <!-- 订单2：待发货 + 超时 -->
-    <div class="card bg-white rounded-2xl shadow-soft overflow-hidden fade-up" style="animation-delay:.05s">
+    <div class="card bg-white rounded-2xl shadow-soft overflow-hidden fade-up" data-st="待发货" style="animation-delay:.05s">
       <div class="flex items-center gap-2 px-3 py-2.5 border-b border-gray-50">
         <div class="w-6 h-6 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#3B82F6,#1D4ED8)"><i class="fas fa-user text-white text-[8px]"></i></div>
         <span class="text-[12px] font-semibold text-gray-800 truncate flex-1">杭州XX贸易·张经理</span>
-        <span class="bg-red-100 text-red-500 text-[8px] font-bold px-1 py-0.5 rounded">超时</span>
+        <span class="bg-red-100 text-red-500 text-[8px] font-bold px-1 py-0.5 rounded" data-overdue="1">超时</span>
         <span class="text-[10px] font-bold text-primary">待发货</span>
       </div>
       <a href="order-detail.html" class="flex gap-2.5 p-3">
@@ -186,7 +187,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
     </div>
 
     <!-- 订单3：多商品待发货 -->
-    <div class="card bg-white rounded-2xl shadow-soft overflow-hidden fade-up" style="animation-delay:.1s">
+    <div class="card bg-white rounded-2xl shadow-soft overflow-hidden fade-up" data-st="待发货" style="animation-delay:.1s">
       <div class="flex items-center gap-2 px-3 py-2.5 border-b border-gray-50">
         <div class="w-6 h-6 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#10B981,#047857)"><i class="fas fa-user text-white text-[8px]"></i></div>
         <span class="text-[12px] font-semibold text-gray-800 truncate flex-1">义乌批发商王老板</span>
@@ -213,8 +214,40 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
       </div>
     </div>
 
+    <!-- 订单3a：拼单订单 · 待成团（付款即生单，未达目标档不可发货） -->
+    <div class="card bg-white rounded-2xl shadow-soft overflow-hidden fade-up" data-st="待成团" style="animation-delay:.11s">
+      <div class="flex items-center gap-2 px-3 py-2.5 border-b border-gray-50">
+        <div class="w-6 h-6 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#6366F1,#4F46E5)"><i class="fas fa-users text-white text-[8px]"></i></div>
+        <span class="text-[12px] font-semibold text-gray-800 truncate flex-1">拼单 · 冬季加绒睡眠袜</span>
+        <span class="bg-indigo-100 text-indigo-600 text-[8px] font-bold px-1 py-0.5 rounded">拼单</span>
+        <span class="text-[10px] font-bold text-slate-500">待成团</span>
+      </div>
+      <a href="order-detail.html?type=group&no=GB20261030-009&qty=1200&state=pending" class="flex gap-2.5 p-3">
+        <img src="../mai-APP/images/sock_05.jpg" class="w-[72px] h-[72px] rounded-xl object-cover flex-shrink-0">
+        <div class="flex-1 min-w-0">
+          <p class="text-[12px] text-gray-800 font-medium leading-tight line-clamp-2">加绒睡眠袜（目标档 1200 双）</p>
+          <p class="text-[10px] text-gray-400 mt-1 bg-gray-50 inline-block px-1.5 py-0.5 rounded">订单 GB20261030-009 · 团号 T20261030-009 · 3 人参团</p>
+          <div class="flex items-end justify-between mt-1.5">
+            <div><span class="text-primary font-bold text-[15px] num">¥3.5</span><span class="text-[9px] text-gray-400">/双</span></div>
+            <span class="text-[11px] text-gray-500 num">我的 400双</span>
+          </div>
+        </div>
+      </a>
+      <div class="px-3 py-2 border-t border-gray-50">
+        <div class="flex items-center gap-2">
+          <div class="h-1 flex-1 rounded-full overflow-hidden" style="background:#EEF2FF"><i style="display:block;height:100%;width:33%;background:linear-gradient(90deg,#A5B4FC,#6366F1)"></i></div>
+          <span class="text-[9px] font-bold text-indigo-500 num">已拼 400/1200 双</span>
+        </div>
+        <p class="text-[9px] text-gray-400 mt-1.5"><i class="fas fa-circle-info mr-1"></i>待成团：达目标档后自动转「待发货」，此前不可发货</p>
+      </div>
+      <div class="flex gap-2 px-3 pb-3">
+        <a href="order-detail.html?type=group&no=GB20261030-009&qty=1200&state=pending" class="flex-1 py-2 rounded-lg border border-gray-200 text-[11px] text-gray-600 text-center">团信息</a>
+        <span class="flex-1 py-2 rounded-lg bg-gray-100 text-[11px] text-gray-400 text-center">待成团 · 不可发货</span>
+      </div>
+    </div>
+
     <!-- 订单3b：拼单订单 · 团成团待发货（待办 #37） -->
-    <div class="card bg-white rounded-2xl shadow-soft overflow-hidden fade-up" style="animation-delay:.12s">
+    <div class="card bg-white rounded-2xl shadow-soft overflow-hidden fade-up" data-st="待发货" style="animation-delay:.12s">
       <div class="flex items-center gap-2 px-3 py-2.5 border-b border-gray-50">
         <div class="w-6 h-6 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#6366F1,#4F46E5)"><i class="fas fa-users text-white text-[8px]"></i></div>
         <span class="text-[12px] font-semibold text-gray-800 truncate flex-1">拼单 · 秋季加厚羊毛袜</span>
@@ -225,7 +258,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
         <img src="../mai-APP/images/sock_05.jpg" class="w-[72px] h-[72px] rounded-xl object-cover flex-shrink-0">
         <div class="flex-1 min-w-0">
           <p class="text-[12px] text-gray-800 font-medium leading-tight line-clamp-2">美羊毛保暖袜加厚款（拼单档位 1000 双）</p>
-          <p class="text-[10px] text-gray-400 mt-1 bg-gray-50 inline-block px-1.5 py-0.5 rounded">团号 GB20261028-006 · 4 人参团</p>
+          <p class="text-[10px] text-gray-400 mt-1 bg-gray-50 inline-block px-1.5 py-0.5 rounded">订单 GB20261028-006 · 团号 T20261028-006 · 4 人参团</p>
           <div class="flex items-end justify-between mt-1.5">
             <div><span class="text-primary font-bold text-[15px] num">¥3.2</span><span class="text-[9px] text-gray-400">/双</span></div>
             <span class="text-[11px] text-gray-500 num">我的 300双</span>
@@ -244,15 +277,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
       </div>
       <div class="flex gap-2 px-3 pb-3">
         <a href="order-detail.html?type=group&no=GB20261028-006&qty=1000" class="flex-1 py-2 rounded-lg border border-gray-200 text-[11px] text-gray-600 text-center">团信息</a>
-        <a href="shipping.html?no=GB20261028-006&qty=1000&shipped=300&group=1" class="flex-[1.3] py-2 rounded-lg text-white text-[11px] font-bold text-center shadow-card" style="background:linear-gradient(135deg,#3B82F6,#2563EB)">继续发货（700）</a>
+        <a href="shipping.html?no=GB20261028-006&qty=1000&shipped=300" class="flex-[1.3] py-2 rounded-lg text-white text-[11px] font-bold text-center shadow-card" style="background:linear-gradient(135deg,#3B82F6,#2563EB)">继续发货（700）</a>
       </div>
     </div>
 
     <!-- 订单3c：拼单订单 · 团已取消（待办 #37） -->
-    <div class="card bg-white rounded-2xl shadow-soft overflow-hidden fade-up" style="animation-delay:.13s">
+    <div class="card bg-white rounded-2xl shadow-soft overflow-hidden fade-up" data-st="已取消" style="animation-delay:.13s">
       <div class="flex items-center gap-2 px-3 py-2.5 border-b border-gray-50">
         <div class="w-6 h-6 rounded-lg flex items-center justify-center" style="background:#E5E7EB"><i class="fas fa-users text-gray-400 text-[8px]"></i></div>
-        <span class="text-[12px] font-semibold text-gray-500 truncate flex-1">拼单 · 精梳棉商务男袜（已取消）</span>
+        <span class="text-[12px] font-semibold text-gray-500 truncate flex-1">拼单 · 精梳棉商务男袜（团长取消）</span>
         <span class="bg-gray-100 text-gray-500 text-[8px] font-bold px-1 py-0.5 rounded">已取消 · 已退款</span>
       </div>
       <a href="order-detail.html?type=group&no=GB20261021-003&qty=1000&state=cancelled" class="flex gap-2.5 p-3 opacity-70">
@@ -271,8 +304,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
       </div>
     </div>
 
+    <!-- 订单3d：拼单订单 · 已失效（到期未成团） -->
+    <div class="card bg-white rounded-2xl shadow-soft overflow-hidden fade-up" data-st="已取消" style="animation-delay:.14s">
+      <div class="flex items-center gap-2 px-3 py-2.5 border-b border-gray-50">
+        <div class="w-6 h-6 rounded-lg flex items-center justify-center" style="background:#E5E7EB"><i class="fas fa-users text-gray-400 text-[8px]"></i></div>
+        <span class="text-[12px] font-semibold text-gray-500 truncate flex-1">拼单 · 儿童卡通短袜（到期未成团）</span>
+        <span class="bg-gray-100 text-gray-500 text-[8px] font-bold px-1 py-0.5 rounded">已失效 · 已退款</span>
+      </div>
+      <a href="order-detail.html?type=group&no=GB20261018-002&qty=1000&state=expired" class="flex gap-2.5 p-3 opacity-70">
+        <img src="../mai-APP/images/sock_03.jpg" class="w-[72px] h-[72px] rounded-xl object-cover flex-shrink-0">
+        <div class="flex-1 min-w-0">
+          <p class="text-[12px] text-gray-600 font-medium leading-tight line-clamp-2">订单 GB20261018-002 · 团号 T20261018-002</p>
+          <p class="text-[10px] text-red-500 mt-1"><i class="fas fa-circle-info text-[9px] mr-0.5"></i>到期未达目标档，团已失效，款项原路全额退回（3 个工作日）</p>
+          <div class="flex items-end justify-between mt-1.5"><span class="text-[10px] text-gray-400 num">我的 200双 · ¥520.0</span></div>
+        </div>
+      </a>
+      <div class="flex gap-2 px-3 pb-3">
+        <a href="order-detail.html?type=group&no=GB20261018-002&qty=1000&state=expired" class="flex-1 py-2 rounded-lg border border-gray-200 text-[11px] text-gray-500 text-center">查看退款</a>
+        <a onclick="toast('退款已原路退回，预计 3 个工作日到账')" class="flex-1 py-2 rounded-lg text-[11px] font-bold text-center text-gray-400 border border-gray-200">退款进度</a>
+      </div>
+    </div>
+
     <!-- 订单4：已发货 -->
-    <div class="card bg-white rounded-2xl shadow-soft overflow-hidden fade-up" style="animation-delay:.15s">
+    <div class="card bg-white rounded-2xl shadow-soft overflow-hidden fade-up" data-st="已发货" style="animation-delay:.15s">
       <div class="flex items-center gap-2 px-3 py-2.5 border-b border-gray-50">
         <div class="w-6 h-6 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)"><i class="fas fa-user text-white text-[8px]"></i></div>
         <span class="text-[12px] font-semibold text-gray-800 truncate flex-1">上海花样百货</span>
@@ -302,7 +356,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 
   <!-- ===== 询价订单（竞价成功后自动生成，需求溯源） ===== -->
   <div class="px-3 pb-3 space-y-3" id="sec-inquiry" style="display:none;padding-bottom:90px">
-    <div class="card bg-white rounded-2xl shadow-soft overflow-hidden fade-up">
+    <div class="card bg-white rounded-2xl shadow-soft overflow-hidden fade-up" data-st="待发货">
       <div class="flex items-center gap-2 px-3 py-2.5 border-b border-gray-50">
         <div class="w-6 h-6 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)"><i class="fas fa-file-signature text-white text-[8px]"></i></div>
         <span class="text-[12px] font-semibold text-gray-800 truncate flex-1">秋季男士商务袜采购需求</span>
@@ -333,23 +387,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
     </div>
   </div>
 
-  <!-- ===== 打样订单（占位） ===== -->
-  <div class="px-3 pb-3" id="sec-sample" style="display:none;padding-bottom:90px">
-    <div class="bg-white rounded-2xl shadow-soft p-8 text-center">
-      <div class="w-14 h-14 mx-auto rounded-2xl flex items-center justify-center" style="background:#EFF6FF"><i class="fas fa-flask text-primary text-xl"></i></div>
-      <p class="text-[13px] font-bold text-gray-800 mt-3">打样订单</p>
-      <p class="text-[11px] text-gray-400 mt-1">关联定制需求的打样流程 · 分册 S01/S02 下一步开发</p>
-    </div>
-  </div>
+  <!-- ===== 打样订单（SP：待买家付样费 / 待制样 / 已寄样 / 要求改样 / 样衣确认） ===== -->
+  <div class="px-3 pb-3 space-y-3" id="sec-sample" style="display:none;padding-bottom:90px"></div>
 
-  <!-- ===== 定制订单（占位） ===== -->
-  <div class="px-3 pb-3" id="sec-custom" style="display:none;padding-bottom:90px">
-    <div class="bg-white rounded-2xl shadow-soft p-8 text-center">
-      <div class="w-14 h-14 mx-auto rounded-2xl flex items-center justify-center" style="background:#F5F0FF"><i class="fas fa-shirt text-purple-500 text-xl"></i></div>
-      <p class="text-[13px] font-bold text-gray-800 mt-3">定制订单</p>
-      <p class="text-[11px] text-gray-400 mt-1">个性小批量 / 企业大批量 · 分册 S02 下一步开发</p>
-    </div>
-  </div>
+  <!-- ===== 定制订单（CZ：待付订金 / 待生产 / 生产中 / 待付尾款 / 待发货 / 待收货 / 已完成） ===== -->
+  <div class="px-3 pb-3 space-y-3" id="sec-custom" style="display:none;padding-bottom:90px"></div>
 
 </div>
 
@@ -480,6 +522,178 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </div>
 
 <script>
+/* ================= 打样单（SP · 10b §2.0.4 ② / M03 v1.1） ================= */
+var SAMPLES=[
+ {no:'SP20261110003',demand:'CE20261024002',title:'银行开户伴手礼袜（含包装）',qty:2,unit:'件',
+  feeWay:'paid',fee:'30',round:1,state:'待买家付样费',time:'2026-11-10 14:20'},
+ {no:'SP20261109002',demand:'CP20261024002',title:'情侣款刺绣短袜 姓名定制',qty:2,unit:'件',
+  feeWay:'deduct',fee:'15',round:1,state:'待制样',time:'2026-11-09 10:05'},
+ {no:'SP20261108001',demand:'CP20261024001',title:'校服配套定制袜（含校徽）',qty:1,unit:'件',
+  feeWay:'free',freeCond:'大货起订量 ≥500 双',round:1,state:'已寄样',time:'2026-11-08 16:40',logi:'SF2026110800123'},
+ {no:'SP20261105001',demand:'CP20261111001',title:'藏青条纹商务袜（打样）',qty:1,unit:'件',
+  feeWay:'deduct',fee:'50',round:1,state:'制样中',time:'2026-11-06 09:12'},
+ {no:'SP20261107006',demand:'CE20261024004',title:'连锁酒店客房一次性拖鞋袜',qty:2,unit:'件',
+  feeWay:'free',freeCond:'',round:1,state:'制样中',time:'2026-11-07 09:10',promiseDays:5,eta:'2026-11-14'},
+ {no:'SP20261102004',demand:'CE20261024003',title:'车企4S店交车伴手礼袜',qty:3,unit:'件',
+  feeWay:'paid',fee:'25',round:2,state:'要求改样',time:'2026-11-02 09:30'},
+ {no:'SP20261028009',demand:'CP20261024004',title:'汉服配套提花袜',qty:2,unit:'件',
+  feeWay:'free',freeCond:'需签约年度框架',round:1,state:'样衣确认',time:'2026-10-28 11:15'}
+];
+function spBadge(s){
+  var c={'待买家付样费':'background:#FEF3C7;color:#B45309','待制样':'background:#FFEDD5;color:#C2410C',
+    '制样中':'background:#CFFAFE;color:#0E7490','已寄样':'background:#DBEAFE;color:#1D4ED8',
+    '要求改样':'background:#FEE2E2;color:#B91C1C','样衣确认':'background:#DCFCE7;color:#15803D'};
+  return '<span class="text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0" style="'+(c[s]||'background:#F1F5F9;color:#64748B')+'">'+s+'</span>';
+}
+function spFeeTxt(x){
+  if(x.feeWay==='free') return '样品免费'+(x.freeCond?'（'+x.freeCond+'）':'');
+  return '样品费 ¥'+x.fee+(x.feeWay==='deduct'?' 可抵':' 不可抵');
+}
+function renderSamples(){
+  var box=document.getElementById('sec-sample');
+  if(!box) return;
+  if(!SAMPLES.length){box.innerHTML='<div class="bg-white rounded-2xl shadow-soft p-8 text-center text-[12px] text-gray-400">暂无打样订单，买家下单后自动同步</div>';return;}
+  var list=SAMPLES.filter(function(x){return passSt('sample',x.state);});
+  if(!list.length){box.innerHTML='<div class="bg-white rounded-2xl shadow-soft p-8 text-center text-[12px] text-gray-400">「'+curStatus+'」下暂无打样订单</div>';return;}
+  box.innerHTML=list.map(function(x){
+    var op;
+    if(x.state==='待制样') op='<a onclick="openTake(\''+x.no+'\')" class="flex-1 py-2 rounded-lg text-white text-[11px] font-bold text-center shadow-card" style="background:linear-gradient(135deg,#10B981,#059669)">接单</a>';
+    else if(x.state==='制样中') op='<a href="shipping.html?type=sample&no='+x.no+'&qty='+x.qty+'&shipped=0&name='+encodeURIComponent(x.title)+'&demand='+x.demand+'&fee='+encodeURIComponent(spFeeTxt(x))+'" class="flex-1 py-2 rounded-lg text-white text-[11px] font-bold text-center shadow-card" style="background:linear-gradient(135deg,#3B82F6,#2563EB)">去寄样</a>';
+    else if(x.state==='要求改样') op='<a onclick="openTake(\''+x.no+'\')" class="flex-1 py-2 rounded-lg text-white text-[11px] font-bold text-center shadow-card" style="background:linear-gradient(135deg,#EF4444,#DC2626)">重新接单</a>';
+    else if(x.state==='已寄样') op='<a onclick="showSpLogi(\''+x.no+'\')" class="flex-1 py-2 rounded-lg border border-gray-200 text-[11px] text-gray-600 text-center">查看物流</a>';
+    else if(x.state==='待买家付样费') op='<span class="flex-1 py-2 rounded-lg bg-gray-100 text-[11px] text-gray-400 text-center">等待买家付样费</span>';
+    else op='<span class="flex-1 py-2 rounded-lg bg-gray-100 text-[11px] text-gray-400 text-center">等待买家下单大货</span>';
+    return '<div class="card bg-white rounded-2xl shadow-soft overflow-hidden fade-up">'
+      +'<div class="flex items-center gap-2 px-3 py-2.5 border-b border-gray-50">'
+      +'<div class="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,#10B981,#047857)"><i class="fas fa-flask text-white text-[8px]"></i></div>'
+      +'<span class="text-[12px] font-semibold text-gray-800 truncate flex-1">'+x.title+'</span>'+spBadge(x.state)+'</div>'
+      +'<a href="order-detail.html?type=sample&no='+x.no+'" class="flex items-center gap-2.5 p-3" style="background:#F7FEFB">'
+      +'<div class="w-[52px] h-[52px] rounded-xl flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,#10B981,#047857)"><i class="fas fa-flask text-white text-lg"></i></div>'
+      +'<div class="flex-1 min-w-0"><p class="text-[12px] text-gray-800 font-medium leading-tight line-clamp-2">'+x.title+'</p>'
+      +'<p class="text-[10px] text-gray-400 mt-1">来源 '+x.demand+' · 样品 '+x.qty+x.unit+'</p>'
+      +'<p class="text-[10px] mt-0.5 '+(x.feeWay==='free'?'text-emerald-600 font-bold':'text-gray-600')+'">'+spFeeTxt(x)+'</p>'
+      +((x.promiseDays||x.eta)?'<p class="text-[9px] text-gray-400 mt-0.5">'+(x.promiseDays?'承诺打样 '+x.promiseDays+' 天':'')+(x.promiseDays&&x.eta?' · ':'')+(x.eta?'预计 '+x.eta+' 完成':'')+'</p>':'')
+      +'</div>'
+      +'<div class="text-right flex-shrink-0"><p class="text-[10px] text-gray-400">第 '+x.round+' 轮</p><p class="text-[11px] text-gray-500 mt-0.5">'+x.time+'</p></div>'
+      +'</a>'
+      +'<div class="flex items-center justify-between px-3 py-2.5 border-t border-gray-50">'
+      +'<span class="text-[10px] text-gray-400 num">'+x.no+'</span>'
+      +(x.round>=3?'<span class="text-[10px] text-red-500 font-bold">建议尽快处理</span>':'<span class="text-[10px] text-gray-400">关联需求 '+x.demand+'</span>')
+      +'</div>'
+      +'<div class="flex gap-2 px-3 pb-3">'
+      +'<a href="shanghu-custom-detail.html?id='+x.demand+'&from=mine" class="flex-1 py-2 rounded-lg border border-gray-200 text-[11px] text-gray-600 text-center">需求详情</a>'
+      +op+'</div></div>';
+  }).join('');
+}
+function advSample(no){
+  SAMPLES.forEach(function(x){
+    if(x.no!==no) return;
+    if(x.state==='待制样'||x.state==='要求改样'){
+      x.state='已寄样';
+      x.logi='SF'+(2026110800000+Math.floor(Math.random()*999999));
+      toast('已寄出样品，物流单号 '+x.logi);
+    }
+  });
+  renderSamples();
+  refreshTypeCount();
+}
+function showSpLogi(no){
+  var x=SAMPLES.filter(function(y){return y.no===no;})[0];
+  toast(x&&x.logi?('物流单号 '+x.logi):'物流单号待回传');
+}
+/* 接单：弹层由 sp-take.js 统一提供（打样列表与打样详情共用同一口径）
+   承诺打样周期与预计完成时间均为选填；PM 2026-11-12 裁决未填则买家端不展示任何时间（BR-24） */
+function openTake(no){
+  var x=SAMPLES.filter(function(y){return y.no===no;})[0];
+  if(!x)return;
+  window.openTakeSheet({days:x.promiseDays||'',eta:x.eta||''},function(days,eta){
+    if(x.state==='要求改样') x.round=(x.round||1)+1;
+    x.state='制样中';x.promiseDays=days||'';x.eta=eta||'';
+    renderSamples();refreshTypeCount();refreshStatusCount();
+    toast('已接单'+(days?'，承诺 '+days+' 天':'')+(eta?'，预计 '+eta+' 完成':''));
+  });
+}
+
+/* ================= 定制单（CZ · 10b §2.0.4 ③ / M03 v1.1 两段收款） ================= */
+var CUSTOMS=[
+ {no:'CZ20261110001',demand:'CP20261101003',sp:'SP20261108001',batch:'个性小批量',title:'校服配套定制袜（含校徽）',
+  qty:500,price:3.20,goods:1600,deposit:480,deduct:50,tail:1070,paidTail:false,state:'待生产',due:'25 天（剩 12 天）',near:false},
+ {no:'CZ20261106001',demand:'CE20261101002',sp:'—',batch:'企业大批量',title:'商超定制中筒棉袜（含吊牌）',
+  qty:2000,price:2.35,goods:4700,deposit:1410,deduct:0,tail:3290,paidTail:false,state:'生产中',due:'30 天（剩 5 天）',near:false},
+ {no:'CZ20261103002',demand:'CP20261101005',sp:'—',batch:'企业大批量',title:'连锁酒店客房定制袜',
+  qty:1200,price:3.65,goods:4380,deposit:1314,deduct:0,tail:3066,paidTail:false,state:'待付尾款',due:'20 天（剩 2 天）',near:true,freight:80},
+ {no:'CZ20261101005',demand:'CE20261101007',sp:'SP20261101007',batch:'企业大批量',title:'地产交付礼盒定制袜（精装）',
+  qty:3000,price:2.10,goods:6300,deposit:1890,deduct:200,tail:4210,paidTail:true,state:'待发货',due:'18 天（剩 1 天）',near:true},
+ {no:'CZ20261028003',demand:'CP20261015002',sp:'—',batch:'个性小批量',title:'宠物主题潮袜 柯基图案',
+  qty:800,price:4.50,goods:3600,deposit:1080,deduct:0,tail:2520,paidTail:true,state:'已完成',due:'已于 2026-11-05 完成',near:false}
+];
+function czBadge(s){
+  var c={'待付订金':'background:#FEF3C7;color:#B45309','待生产':'background:#FFEDD5;color:#C2410C',
+    '生产中':'background:#DBEAFE;color:#1D4ED8','待付尾款':'background:#FFE4E6;color:#BE123C',
+    '待发货':'background:#E0F2FE;color:#0369A1','待收货':'background:#EEF2FF;color:#4338CA',
+    '已完成':'background:#DCFCE7;color:#15803D'};
+  return '<span class="text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0" style="'+(c[s]||'background:#F1F5F9;color:#64748B')+'">'+s+'</span>';
+}
+function money(n){return Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function renderCustoms(){
+  var box=document.getElementById('sec-custom');
+  if(!box) return;
+  if(!CUSTOMS.length){box.innerHTML='<div class="bg-white rounded-2xl shadow-soft p-8 text-center text-[12px] text-gray-400">暂无定制订单</div>';return;}
+  var list=CUSTOMS.filter(function(x){return passSt('custom',x.state);});
+  if(!list.length){box.innerHTML='<div class="bg-white rounded-2xl shadow-soft p-8 text-center text-[12px] text-gray-400">「'+curStatus+'」下暂无定制订单</div>';return;}
+  box.innerHTML=list.map(function(x){
+    var op;
+    if(x.state==='待生产') op='<a onclick="advCustom(\''+x.no+'\')" class="flex-1 py-2 rounded-lg text-white text-[11px] font-bold text-center shadow-card" style="background:linear-gradient(135deg,#8B5CF6,#6D28D9)">开始生产</a>';
+    else if(x.state==='生产中') op='<a onclick="advCustom(\''+x.no+'\')" class="flex-1 py-2 rounded-lg text-white text-[11px] font-bold text-center shadow-card" style="background:linear-gradient(135deg,#8B5CF6,#6D28D9)">完成生产</a>';
+    else if(x.state==='待付尾款') op='<a onclick="urgeTail(\''+x.no+'\')" class="flex-1 py-2 rounded-lg bg-gray-100 text-[11px] text-gray-500 text-center">等待买家付尾款 · 催付</a>';
+    else if(x.state==='待发货') op='<a href="shipping.html?type=custom&no='+x.no+'&qty='+x.qty+'&shipped=0" class="flex-1 py-2 rounded-lg text-white text-[11px] font-bold text-center shadow-card" style="background:linear-gradient(135deg,#3B82F6,#2563EB)">立即发货</a>';
+    else if(x.state==='待收货') op='<a onclick="toast(\'物流运输中，买家确认收货后订单完成\')" class="flex-1 py-2 rounded-lg border border-gray-200 text-[11px] text-gray-600 text-center">查看物流</a>';
+    else op='<a onclick="toast(\'买家评价：质量好、交期准\')" class="flex-1 py-2 rounded-lg border border-gray-200 text-[11px] text-gray-600 text-center">查看评价</a>';
+    return '<div class="card bg-white rounded-2xl shadow-soft overflow-hidden fade-up">'
+      +'<div class="flex items-center gap-2 px-3 py-2.5 border-b border-gray-50">'
+      +'<div class="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,#8B5CF6,#6D28D9)"><i class="fas fa-shirt text-white text-[8px]"></i></div>'
+      +'<span class="text-[12px] font-semibold text-gray-800 truncate flex-1">'+x.title+'</span>'+czBadge(x.state)+'</div>'
+      +'<a href="order-detail.html?type=custom&no='+x.no+'" class="flex items-center gap-2.5 p-3" style="background:#FBF8FF">'
+      +'<div class="w-[52px] h-[52px] rounded-xl flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,#8B5CF6,#6D28D9)"><i class="fas fa-shirt text-white text-lg"></i></div>'
+      +'<div class="flex-1 min-w-0"><p class="text-[12px] text-gray-800 font-medium leading-tight line-clamp-2">'+x.title+'</p>'
+      +'<p class="text-[10px] text-gray-400 mt-1">'+x.batch+' · '+x.qty+' 双 × ¥'+money(x.price)+'</p>'
+      +'<p class="text-[10px] text-gray-400 mt-0.5">来源 '+x.demand+(x.sp!=='—'?' · 打样 '+x.sp:'')+'</p></div>'
+      +'</a>'
+      +'<div class="px-3 py-2 border-t border-gray-50 grid grid-cols-3 gap-1 text-center">'
+      +'<div><p class="text-[9px] text-gray-400">货款</p><p class="text-[11px] text-gray-700 num mt-0.5">¥'+money(x.goods)+'</p></div>'
+      +'<div><p class="text-[9px] text-gray-400">已收订金</p><p class="text-[11px] text-gray-700 num mt-0.5">¥'+money(x.deposit)+'</p></div>'
+      +'<div><p class="text-[9px] text-gray-400">'+(x.paidTail?'已收尾款':'待收尾款')+'</p><p class="text-[11px] '+(x.paidTail?'text-gray-700':'text-red-500')+' font-bold num mt-0.5">¥'+money(x.tail)+'</p></div>'
+      +'</div>'
+      +'<div class="flex items-center justify-between px-3 py-2.5 border-t border-gray-50">'
+      +'<span class="text-[10px] text-gray-400 num">'+x.no+(x.deduct?' · 抵扣 -¥'+x.deduct:'')+(x.freight?' · 运费 ¥'+x.freight:'')+'</span>'
+      +(x.near?'<span class="text-[10px] text-orange-500 font-bold">临近交期 '+x.due+'</span>':'<span class="text-[10px] text-gray-400">'+x.due+'</span>')
+      +'</div>'
+      +'<div class="flex gap-2 px-3 pb-3">'
+      +'<a href="shanghu-custom-detail.html?id='+x.demand+'&from=mine" class="flex-1 py-2 rounded-lg border border-gray-200 text-[11px] text-gray-600 text-center">需求详情</a>'
+      +op+'</div></div>';
+  }).join('');
+}
+function advCustom(no){
+  CUSTOMS.forEach(function(x){
+    if(x.no!==no) return;
+    if(x.state==='待生产'){x.state='生产中';toast('已开始生产，买家端显示「生产中」');}
+    else if(x.state==='生产中'){x.state='待付尾款';toast('生产完成，已通知买家支付尾款 ¥'+money(x.tail));}
+  });
+  renderCustoms();
+  refreshTypeCount();
+}
+function urgeTail(no){
+  var x=CUSTOMS.filter(function(y){return y.no===no;})[0];
+  toast('已向买家推送尾款催付（¥'+money(x?x.tail:0)+'）');
+}
+/* Tab 计数取真实条数 */
+function refreshTypeCount(){
+  var tabs=document.querySelectorAll('#typeGrid .ttype');
+  var cnt=function(id){var s=document.getElementById(id);return s?s.querySelectorAll('.card').length:0;};
+  var vals=[cnt('sec-normal'),cnt('sec-inquiry'),SAMPLES.length,CUSTOMS.length];
+  tabs.forEach(function(a,i){var n=a.querySelector('.num');if(n&&vals[i]!=null)n.textContent=vals[i];});
+}
+
 function switchType(t,el){
   document.querySelectorAll('#typeGrid .ttype').forEach(function(a){
     a.classList.remove('on');
@@ -495,12 +709,122 @@ function switchType(t,el){
   document.getElementById('sec-sample').style.display=(t==='sample')?'block':'none';
   document.getElementById('sec-custom').style.display=(t==='custom')?'block':'none';
   document.getElementById('sec-after').style.display=isAfter?'block':'none';
+  /* 切换订单类型时状态 Tab 复位到「全部」，避免带着上一个类型的筛选看到空列表 */
+  curStatus='全部';
+  setStabUI('全部');
+  applyFilter();
   window.scrollTo(0,0);
 }
+
+/* ================= 状态 Tab：真实筛选（静态卡 data-st + 打样/定制子状态映射） ================= */
+var curStatus='全部';
+/* 拼单/售后的特殊状态归入哪个 Tab（口径见 #37 / #69） */
+var ST_ALIAS={'待成团':'待发货','已失效':'已取消','已退款':'已取消'};
+function stTab(s){return ST_ALIAS[s]||s;}
+/* 打样单 SP 子状态 → 状态 Tab（待买家付样费→待支付；制样全流程→待发货；样衣确认→已完成） */
+var ST_OF_SAMPLE={'待买家付样费':'待支付','待制样':'待发货','制样中':'待发货','要求改样':'待发货','已寄样':'待发货','样衣确认':'已完成'};
+/* 定制单 CZ 子状态 → 状态 Tab（两段收款见 M03 v1.1） */
+var ST_OF_CUSTOM={'待付订金':'待支付','待生产':'待发货','生产中':'待发货','待付尾款':'待发货','待发货':'待发货','待收货':'已发货','已完成':'已完成'};
+function curTypeKey(){
+  var tabs=document.querySelectorAll('#typeGrid .ttype');
+  var keys=['normal','inquiry','sample','custom','after'];
+  for(var i=0;i<tabs.length;i++){if(tabs[i].classList.contains('on'))return keys[i]||'normal';}
+  return 'normal';
+}
+function passSt(kind,state){
+  if(curStatus==='全部')return true;
+  var g=kind==='sample'?ST_OF_SAMPLE[state]:(kind==='custom'?ST_OF_CUSTOM[state]:stTab(state));
+  return (g||'待发货')===curStatus;
+}
+function cntIn(sec,st){
+  if(!sec)return 0;
+  var n=0;
+  Array.prototype.forEach.call(sec.querySelectorAll('.card'),function(c){
+    if(stTab(c.getAttribute('data-st')||'')===st)n++;
+  });
+  return n;
+}
+function applyStaticFilter(){
+  ['sec-normal','sec-inquiry'].forEach(function(sid){
+    var sec=document.getElementById(sid);if(!sec)return;
+    var shown=0;
+    Array.prototype.forEach.call(sec.querySelectorAll('.card'),function(c){
+      var ok=passSt('static',c.getAttribute('data-st')||'');
+      c.style.display=ok?'':'none';
+      if(ok)shown++;
+    });
+    var emp=document.getElementById('empty-'+sid);
+    if(!shown){
+      if(!emp){emp=document.createElement('div');emp.id='empty-'+sid;emp.className='bg-white rounded-2xl shadow-soft p-8 text-center text-[12px] text-gray-400';sec.appendChild(emp);}
+      emp.innerHTML='「'+curStatus+'」下暂无订单';
+    }else if(emp){emp.remove();}
+  });
+}
+function countSt(st){
+  var t=curTypeKey();
+  if(t==='sample')return SAMPLES.filter(function(x){return (ST_OF_SAMPLE[x.state]||'待发货')===st;}).length;
+  if(t==='custom')return CUSTOMS.filter(function(x){return (ST_OF_CUSTOM[x.state]||'待发货')===st;}).length;
+  return cntIn(document.getElementById('sec-'+t),st);
+}
+/* Tab 计数与顶部「待发货」徽标取真实条数（不再写死 2/12/38） */
+function refreshStatusCount(){
+  var total=0;
+  ['待支付','待发货','已发货','已完成','已取消'].forEach(function(st){
+    var n=countSt(st);total+=n;
+    var el=document.querySelector('#statusTabs [data-cnt="'+st+'"]');
+    if(el)el.textContent=n?n:'';
+  });
+  var allEl=document.querySelector('#statusTabs [data-cnt="全部"]');
+  if(allEl)allEl.textContent=total;
+  var hdr=document.getElementById('hdrTodo');
+  if(hdr){
+    var todo=cntIn(document.getElementById('sec-normal'),'待发货')+cntIn(document.getElementById('sec-inquiry'),'待发货')
+      +SAMPLES.filter(function(x){return (ST_OF_SAMPLE[x.state]||'待发货')==='待发货';}).length
+      +CUSTOMS.filter(function(x){return (ST_OF_CUSTOM[x.state]||'待发货')==='待发货';}).length;
+    hdr.textContent=todo;
+  }
+}
+function applyFilter(){
+  applyStaticFilter();
+  renderSamples();
+  renderCustoms();
+  refreshStatusCount();
+  refreshOverdueBar();
+}
+/* 顶部超时提醒条：条数取真实「超时」标记数，无超时或进入售后则整条隐藏 */
+function refreshOverdueBar(){
+  var n=document.querySelectorAll('#sec-normal [data-overdue], #sec-inquiry [data-overdue]').length;
+  var box=document.getElementById('overdueBox');
+  var num=document.getElementById('overdueNum');
+  if(num)num.textContent=n;
+  if(box)box.style.display=(n&&curTypeKey()!=='after')?'':'none';
+}
+/* 超时提醒条「查看」：落到普通订单的待发货 Tab（超时单已标红） */
+function viewOverdue(){
+  var tabs=document.querySelectorAll('#typeGrid .ttype');
+  if(tabs[0])switchType('normal',tabs[0]);
+  var st=document.querySelector('#statusTabs [data-st="待发货"]');
+  if(st)switchStatus(st);
+  toast('已筛出待发货订单，超时单已标红「超时」');
+}
+/* 状态 Tab 选中样式（含底部渐变下划线）统一由此处设置 */
+function setStabUI(st){
+  document.querySelectorAll('#statusTabs .stab').forEach(function(a){
+    a.classList.remove('font-bold','text-gray-800');
+    a.classList.add('text-gray-400');
+    var u=a.querySelector('span.absolute');if(u)u.remove();
+    if((a.getAttribute('data-st')||'全部')===st){
+      a.classList.add('font-bold','text-gray-800');
+      a.classList.remove('text-gray-400');
+      a.insertAdjacentHTML('beforeend','<span class="absolute bottom-0 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full" style="background:linear-gradient(90deg,#2563EB,#06B6D4)"></span>');
+    }
+  });
+}
 function switchStatus(el){
-  document.querySelectorAll('#statusTabs .stab').forEach(function(a){a.classList.remove('font-bold','text-gray-800');a.classList.add('text-gray-400');var u=a.querySelector('span.absolute');if(u)u.remove();});
-  el.classList.add('font-bold','text-gray-800');el.classList.remove('text-gray-400');
-  el.insertAdjacentHTML('beforeend','<span class="absolute bottom-0 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full" style="background:linear-gradient(90deg,#2563EB,#06B6D4)"></span>');
+  curStatus=el.getAttribute('data-st')||'全部';
+  setStabUI(curStatus);
+  applyFilter();
+  window.scrollTo(0,0);
 }
 function toast(msg){var d=document.createElement('div');d.style.cssText='position:fixed;left:50%;bottom:110px;transform:translateX(-50%);background:rgba(20,20,40,.85);color:#fff;font-size:12px;padding:8px 16px;border-radius:20px;z-index:999;white-space:nowrap';d.textContent=msg;document.body.appendChild(d);setTimeout(function(){d.remove()},1500);}
 function toggleAfterFilter(key,btn){
@@ -540,7 +864,22 @@ function confirmAfterFilter(){
   setAfterBtn(document.querySelector('[data-key="status"]'),false);
   toast('筛选条件已应用');
 }
+
+/* 初始化：渲染打样/定制列表、刷新 Tab 计数；支持 ?type=sample|custom 直落对应 Tab */
+(function(){
+  refreshTypeCount();
+  applyFilter();
+  var m=location.search.match(/[?&]type=([^&]+)/);
+  var t=m?decodeURIComponent(m[1]):'';
+  if(t==='sample'||t==='custom'){
+    var tabs=document.querySelectorAll('#typeGrid .ttype');
+    var el=t==='sample'?tabs[2]:tabs[3];
+    if(el) switchType(t,el);
+  }
+})();
 </script>
+<!-- 接单弹层（含预计完成时间选择）由 sp-take.js 注入：与打样详情页共用同一套移动端弹层 -->
+<script src="sp-take.js"></script>
 <script src="wuye-tab.js"></script>
 <script>wuyePatchMerchantPage('orders');</script>
 </body>
