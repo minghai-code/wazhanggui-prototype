@@ -97,15 +97,15 @@ select.field-input{appearance:none;-webkit-appearance:none;background-image:url(
 <div class="px-3 -mt-3 relative z-10">
   <div class="bg-white rounded-2xl shadow-soft p-3.5 fade-up border border-white grid grid-cols-3 gap-2 text-center">
     <div class="border-r border-gray-100">
-      <p class="text-[18px] font-black" style="color:#F97316">36</p>
-      <p class="text-[9px] text-gray-400 mt-0.5">入驻服务商</p>
+      <p class="text-[18px] font-black" style="color:#F97316" id="stProv">5</p>
+      <p class="text-[9px] text-gray-400 mt-0.5">在架服务商</p>
     </div>
     <div class="border-r border-gray-100">
-      <p class="text-[18px] font-black" style="color:#10B981">1280+</p>
+      <p class="text-[18px] font-black" style="color:#10B981" id="stOrg">—</p>
       <p class="text-[9px] text-gray-400 mt-0.5">服务企业</p>
     </div>
     <div>
-      <p class="text-[18px] font-black" style="color:#F59E0B">4.8</p>
+      <p class="text-[18px] font-black" style="color:#F59E0B" id="stRate">—</p>
       <p class="text-[9px] text-gray-400 mt-0.5">平均评分</p>
     </div>
   </div>
@@ -192,7 +192,7 @@ var providers=[
     desc:'战略规划·组织架构优化·精益生产辅导·数字化转型咨询，助力袜业企业升级',
     price:'¥2000起/项目',
     tags:['战略规划','精益生产','数字化转型'],
-    consult:{mode:'link',value:'www.huaxia-consult.cn'},
+    consult:{mode:'link',value:'https://www.huaxia-consult.cn'},
     services:[{name:'精益生产辅导',charge:'按项目计费',price:'¥20000起/项',period:'1-3个月'},{name:'数字化转型咨询',charge:'按项目计费',price:'¥30000起/项',period:'2-4个月'},{name:'组织架构优化',charge:'按项目计费',price:'¥15000起/项',period:'约1个月'}]
   },
   {
@@ -204,7 +204,7 @@ var providers=[
     desc:'袜品质量检测·色牢度测试·纤维成分分析·国标/欧标检测报告，CMA/CNAS资质',
     price:'¥200起/项',
     tags:['质量检测','色牢度','成分分析'],
-    consult:{mode:'link',value:'www.zjtextile-test.com'},
+    consult:{mode:'link',value:'https://www.zjtextile-test.com'},
     services:[{name:'纤维成分分析',charge:'按项计费',price:'¥200/项',period:'3-5个工作日'},{name:'色牢度测试',charge:'按项计费',price:'¥300/项',period:'3-5个工作日'},{name:'欧标（OEKO-TEX）检测',charge:'按项计费',price:'¥1500起/项',period:'7-10个工作日'}]
   },
   {
@@ -376,10 +376,11 @@ function consultBtn(p){
 }
 function consult(name){
   var p=null;providers.forEach(function(x){if(x.name===name)p=x;});
-  if(!p){toast('正在连接服务商…');return;}
+  if(!p){toast('该服务商信息已变更，请刷新后重试');return;}
   var c=p.consult||{mode:'phone',value:''};
-  if(c.mode==='phone'){toast('正在拨打 '+c.value);}
-  else{toast('即将跳转：'+c.value);}
+  /* 本期不做在线工单，咨询=电话拨号 / 外链跳转，均为真实动作 */
+  if(c.mode==='phone'){location.href='tel:'+String(c.value).replace(/[^\d+]/g,'');return;}
+  window.open(c.value,'_blank');
 }
 
 /* ===================== 服务项目折叠 ===================== */
@@ -389,10 +390,23 @@ function toggleSvc(pid,btn){
   var ic=btn.querySelector('i');if(ic)ic.style.transform=open?'rotate(180deg)':'';
 }
 
+/* ===================== 概览条（按在架服务商数据算，不写死） ===================== */
+function renderStats(){
+  var online=providers.filter(function(p){return p.status!=='offline';});
+  var orgs=0,rate=0;
+  online.forEach(function(p){orgs+=(p.count||0);rate+=(p.rating||0);});
+  var a=document.getElementById('stProv'),b=document.getElementById('stOrg'),c=document.getElementById('stRate');
+  if(a)a.textContent=online.length;
+  if(b)b.textContent=orgs.toLocaleString('en-US')+'+';
+  if(c)c.textContent=online.length?(rate/online.length).toFixed(1):'—';
+}
+
 /* ===================== 初始化 ===================== */
 renderProviders('all');
 renderRecommends();
+renderStats();
 </script>
 
+<script src="../shared/page-prd.js"></script>
 </body>
 </html>

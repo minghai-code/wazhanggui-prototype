@@ -101,7 +101,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
     <div class="card bg-white rounded-2xl shadow-soft p-2.5 text-center" onclick="openResume()">
       <div class="w-9 h-9 mx-auto rounded-full flex items-center justify-center text-white" style="background:linear-gradient(135deg,#F472B6,#DB2777)"><i class="fas fa-file-user text-[12px]"></i></div>
       <p class="text-[11px] font-bold text-gray-700 mt-1.5">我的简历</p>
-      <p class="text-[9px] text-gray-400" id="resumePct">完善度 85%</p>
+      <p class="text-[9px] text-gray-400" id="resumePct">完善度 —</p>
     </div>
     <div class="card bg-white rounded-2xl shadow-soft p-2.5 text-center" onclick="openGuide()">
       <div class="w-9 h-9 mx-auto rounded-full flex items-center justify-center text-white" style="background:linear-gradient(135deg,#A78BFA,#8B5CF6)"><i class="fas fa-book-open text-[12px]"></i></div>
@@ -179,7 +179,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
       <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0" style="background:linear-gradient(135deg,#FB7185,#EC4899)">李</div>
       <div class="flex-1 min-w-0">
         <p class="text-[13px] font-bold text-gray-800">李明的简历 <i class="fas fa-circle-check text-[10px]" style="color:#10B981"></i></p>
-        <p class="text-[10px] text-gray-400 mt-0.5">5年经验 · 期望 袜子设计师 · 85% 完善</p>
+        <p class="text-[10px] text-gray-400 mt-0.5" id="applyResumeLine">—</p>
       </div>
       <span class="text-[10px] px-2 py-0.5 rounded-full font-bold" style="background:#FCE7F3;color:#EC4899">默认</span>
     </div>
@@ -355,7 +355,7 @@ var GUIDE={
 var curInd='全部',curSal='all';
 var INDS=['全部','织袜档车工','缝头工','定型工','质检','机修工','电商运营','外贸业务员','设计'];
 var curDlvTab='全部';
-var DLV_TABS=['全部','已投递','已查看','已回复','已拒绝','岗位已结束'];
+var DLV_TABS=['全部','已投递','已查看','已回复','已拒绝','已撤回','岗位已结束'];
 var applyJobId=null;
 
 /* ===================== 工具 ===================== */
@@ -497,7 +497,7 @@ function openJob(id){
     html+='<div class="rounded-xl p-3 mb-3" style="background:#F9FAFB">';
     html+='<div class="flex items-center justify-between"><div class="flex items-center gap-2"><i class="fas fa-user-tie text-[12px]" style="color:#EC4899"></i><span class="text-[11px] text-gray-700">'+j.contact+'</span><span class="text-[11px] text-gray-500" id="phoneTxt">'+maskPhone(j.phone)+'</span></div>';
     html+='<button onclick="contactPhone('+j.id+')" class="text-[10px] font-bold text-white px-2.5 py-1 rounded-full" style="background:linear-gradient(135deg,#FB7185,#EC4899)"><i class="fas fa-phone mr-0.5"></i>电话联系</button></div>';
-    html+='<p class="text-[9px] text-gray-400 mt-1.5">登录后点击可查看完整号码（与后台留痕口径一致）</p></div>';
+    html+='<p class="text-[9px] text-gray-400 mt-1.5">点击「电话联系」即显示完整号码并直接拨号；平台不做在线沟通 / IM</p></div>';
   }
 
   html+='<div class="mb-3"><p class="text-[12px] font-bold text-gray-800 mb-2"><i class="fas fa-list-check mr-1" style="color:#EC4899"></i>岗位职责</p><ul class="space-y-1.5">'+duty+'</ul></div>';
@@ -526,7 +526,10 @@ function openJob(id){
 function closeJob(){document.getElementById('jobModal').classList.remove('on')}
 function contactPhone(id){
   var j=jobById(id);if(!j)return;
-  toast('正在拨打 '+j.phone+'（完整号码已展示）');
+  var el=document.getElementById('phoneTxt');
+  if(el)el.textContent=j.phone;            // 点击即揭示完整号码
+  var n=String(j.phone||'').replace(/[^\d+]/g,'');
+  if(n)location.href='tel:'+n;             // 直接拨号；平台不做在线沟通 / IM
 }
 
 /* ===================== 投递 ===================== */
@@ -538,6 +541,8 @@ function openApply(id){
   applyJobId=id;
   document.getElementById('applyHint').textContent='向「'+j.unit+'」的「'+j.pos+'」投递简历';
   document.getElementById('applyMsg').value='';
+  var line=document.getElementById('applyResumeLine');
+  if(line)line.textContent=(MY_RESUME.years||'')+'经验 · 期望 '+(MY_RESUME.want||'')+' · '+resumePct()+'% 完善';
   document.getElementById('applyMask').classList.add('on');
   document.getElementById('applySheet').classList.add('on');
 }
@@ -578,7 +583,8 @@ function renderDeliveries(){
   });
   document.getElementById('dlvTabs').innerHTML=th;
   var list=DELIVERIES.filter(function(d){
-    if(d.status==='已撤回')return false;
+    /* 已撤回不再从列表里"消失"：仅在「已撤回」Tab 可复查（与运营端投递管理口径一致） */
+    if(d.status==='已撤回')return curDlvTab==='已撤回';
     if(curDlvTab==='岗位已结束'){var jj=jobById(d.jobId);return !!(jj&&jj.status==='closed');}
     return curDlvTab==='全部'||d.status===curDlvTab;
   });
@@ -626,7 +632,7 @@ function withdrawDelivery(id){
   var job=d?jobById(d.jobId):null;
   askConfirm({
     title:'撤回投递',
-    body:'撤回后企业将不再看到你的简历'+(job?'，岗位「'+job.title+'」':'')+'。<br>已约面试不受影响；<b>撤回后不可恢复</b>，如需再投请等该岗位下次开放。',
+    body:'撤回后企业将不再看到你的简历'+(job?'，岗位「'+job.pos+'」':'')+'。<br>已约面试不受影响；<b>撤回后不可恢复</b>，如需再投请等该岗位下次开放。',
     ok:'确认撤回',
     onOk:function(){
       DELIVERIES.forEach(function(x){if(x.id===id)x.status='已撤回';});
@@ -709,6 +715,9 @@ function resumePct(){
 function renderResumePct(){
   var el=document.getElementById('resumePct');
   if(el)el.textContent='完善度 '+resumePct()+'%';
+  /* 投递 sheet 里的简历摘要同源，避免写死 85% */
+  var line=document.getElementById('applyResumeLine');
+  if(line)line.textContent=(MY_RESUME.years||'')+'经验 · 期望 '+(MY_RESUME.want||'')+' · '+resumePct()+'% 完善';
 }
 function openResumeEdit(){
   var r=MY_RESUME;
@@ -808,5 +817,6 @@ renderJobs();
 renderStats();
 renderResumePct();
 </script>
+<script src="../shared/page-prd.js"></script>
 </body>
 </html>

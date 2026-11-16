@@ -144,7 +144,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <div class="px-3 mb-3">
   <div class="bg-white rounded-2xl shadow-soft p-3.5">
     <div class="space-y-1.5">
-      <div class="flex justify-between text-[11px]"><span class="text-gray-500">订单编号</span><span class="text-gray-700 num flex items-center gap-1">SO20260720-001 <i class="fas fa-copy text-gray-400 text-[10px]"></i></span></div>
+      <div class="flex justify-between text-[11px]"><span class="text-gray-500">订单编号</span><span class="text-gray-700 num flex items-center gap-1"><span id="orderNoTxt">SO20260720-001</span> <i class="fas fa-copy text-gray-400 text-[10px]" onclick="copyNo()"></i></span></div>
       <div class="flex justify-between text-[11px]"><span class="text-gray-500">下单时间</span><span class="text-gray-700 num">2026-07-20 10:22:05</span></div>
       <div class="flex justify-between text-[11px]"><span class="text-gray-500">支付方式</span><span class="text-gray-700">微信支付</span></div>
       <div class="flex justify-between text-[11px]"><span class="text-gray-500">买家留言</span><span class="text-gray-700 text-right max-w-[200px]">请加急发货，谢谢</span></div>
@@ -172,6 +172,32 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
   </div>
 </div>
 
+<!-- 售后信息（仅售后单显示：?type=after，待办 #73 B4/C3） -->
+<div id="afterBlock" style="display:none" class="px-3 mb-3">
+  <div class="bg-white rounded-2xl shadow-soft p-3.5 border border-orange-100">
+    <div class="flex items-center justify-between mb-2.5">
+      <div class="flex items-center gap-2"><i class="fas fa-headset text-orange-500 text-xs"></i><span class="text-[12px] font-bold text-gray-800">售后申请</span><span id="afterKind" class="bg-orange-100 text-orange-600 text-[9px] font-bold px-1.5 py-0.5 rounded">退货/退款</span></div>
+      <span class="text-[10px] text-red-500 font-bold" id="afterLimit"><i class="fas fa-clock text-[9px]"></i> 48h内未响应买家可介入</span>
+    </div>
+    <div class="space-y-1.5">
+      <div class="flex justify-between text-[11px]"><span class="text-gray-500">售后单号</span><span class="text-gray-700 num" id="afterNo">SH20260722-006</span></div>
+      <div class="flex justify-between text-[11px]"><span class="text-gray-500">关联订单</span><span class="text-gray-700 num" id="afterOrderNo">SO20260718-056</span></div>
+      <div class="flex justify-between text-[11px]"><span class="text-gray-500">申请原因</span><span class="text-gray-700" id="afterReason">部分色差</span></div>
+      <div class="flex justify-between text-[11px]"><span class="text-gray-500">退款金额</span><span class="text-red-500 font-bold num" id="afterAmount">¥900.00</span></div>
+      <div class="flex justify-between text-[11px]"><span class="text-gray-500">退回数量</span><span class="text-gray-700 num" id="afterQty">500 双</span></div>
+      <div class="flex justify-between text-[11px]"><span class="text-gray-500">申请时间</span><span class="text-gray-700 num">2026-07-22 09:10</span></div>
+    </div>
+    <div class="mt-2.5 rounded-xl p-2.5" style="background:#FFF7ED">
+      <p class="text-[10px] text-gray-500 mb-1">买家凭证（2 张）</p>
+      <div class="flex gap-2">
+        <div class="w-14 h-14 rounded-lg flex items-center justify-center" style="background:#FFEDD5"><i class="fas fa-image text-orange-400"></i></div>
+        <div class="w-14 h-14 rounded-lg flex items-center justify-center" style="background:#FFEDD5"><i class="fas fa-image text-orange-400"></i></div>
+      </div>
+    </div>
+    <p class="text-[9px] text-gray-400 mt-2"><i class="fas fa-circle-info mr-1"></i>同意退款后款项原路退回买家；拒绝需填写理由，买家可申请平台介入（M03 售后口径）。</p>
+  </div>
+</div>
+
 <!-- 发货运批次（分批发货，待办 #39） -->
 <div id="shipBatchBlock" class="px-3 mb-3">
   <div class="bg-white rounded-2xl shadow-soft p-3.5">
@@ -188,7 +214,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <!-- 底部操作栏 -->
 <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-3 py-2.5 flex gap-2" style="z-index:100;width:393px;padding-bottom:18px">
   <a href="tel:13800138000" class="px-4 py-2.5 rounded-xl border border-gray-200 text-[12px] text-gray-600 font-medium flex items-center gap-1"><i class="fas fa-phone text-[10px]"></i>联系买家</a>
-  <a onclick="toast('进入售后处理（演示）')" class="flex-1 py-2.5 rounded-xl border border-orange-200 text-orange-500 text-[12px] font-medium text-center">处理售后</a>
+  <a href="#" id="afterBtn" class="flex-1 py-2.5 rounded-xl border border-orange-200 text-orange-500 text-[12px] font-medium text-center">处理售后</a>
   <a href="shipping.html" id="shipBtn" class="flex-[1.5] py-2.5 rounded-xl text-white text-[12px] font-bold text-center" style="background:linear-gradient(135deg,#3B82F6,#2563EB)"><i class="fas fa-truck text-[10px]"></i> 立即发货</a>
 </div>
 
@@ -201,16 +227,95 @@ function toast(msg){
   d.style.cssText='position:fixed;left:50%;bottom:110px;transform:translateX(-50%);background:rgba(20,20,40,.85);color:#fff;font-size:12px;padding:8px 16px;border-radius:20px;z-index:999;white-space:nowrap;max-width:320px;text-align:center;line-height:1.5';
   d.textContent=msg;document.body.appendChild(d);setTimeout(function(){d.remove();},1500);
 }
+/* ===== 订单编号 / 复制（待办 #73 B5） ===== */
+var orderNo=_q.get('no')||'SO20260720-001';
+document.getElementById('orderNoTxt').textContent=orderNo;
+function copyNo(){
+  var t=document.getElementById('orderNoTxt').textContent;
+  try{if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t);}catch(e){}
+  toast('订单号已复制：'+t);
+}
+
+/* ===== 状态渲染（待办 #73 A3）：标题 / 副标题 / 时间轴 / 主按钮 随 ?state= 同步，不再写死「待发货」 ===== */
+var ORDER_TOTAL=+(_q.get('qty')||100);
+function shipHref(extra){
+  var p=['no='+encodeURIComponent(orderNo),'qty='+ORDER_TOTAL];
+  if(extra)p.push(extra);
+  return 'shipping.html?'+p.join('&');
+}
+function renderOrderTimeline(st){
+  var idx={'待支付':1,'待发货':2,'已发货':3,'已完成':4}[st];
+  var steps;
+  if(st==='已取消'){
+    steps=[{t:'买家下单',sub:'2026-07-20 10:22:05'},
+           {t:'订单已取消',sub:'款项原路退回',fail:true}];
+  }else{
+    steps=[{t:'买家下单',sub:'2026-07-20 10:22:05'},
+           {t:'买家支付',sub:'2026-07-20 10:23:11 · 微信支付'},
+           {t:'商户发货',sub:st==='待发货'?'等待商户发货':'2026-07-21 16:10 · 顺丰 SF1234567890'},
+           {t:'买家确认收货',sub:'收货后订单完成'}];
+    steps.forEach(function(x,i){x.done=i<idx;x.active=i===idx;});
+  }
+  document.getElementById('timelineBox').innerHTML=renderSteps(steps);
+}
+function applyNormalState(st){
+  var SUB={
+    '待支付':'<i class="fas fa-clock text-[10px]"></i> 买家尚未付款 · 24h 未支付自动取消',
+    '待发货':'<i class="fas fa-clock text-[10px]"></i> 买家7月20日 10:23 支付，请48h内发货',
+    '已发货':'<i class="fas fa-truck text-[10px]"></i> 已发货 · 顺丰 SF1234567890 · 等待买家确认收货',
+    '已完成':'<i class="fas fa-circle-check text-[10px]"></i> 交易完成 · 买家已确认收货',
+    '已取消':'<i class="fas fa-ban text-[10px]"></i> 订单已取消 · 款项原路退回'
+  };
+  document.getElementById('stateTxt').textContent=st;
+  document.getElementById('stateSub').innerHTML=SUB[st]||SUB['待发货'];
+  renderOrderTimeline(st);
+  var sb=document.getElementById('shipBtn');
+  var batch=document.getElementById('shipBatchBlock');
+  if(st==='待发货'){
+    sb.href=shipHref();
+  }else if(st==='待支付'){
+    sb.removeAttribute('href');sb.textContent='等待买家支付';
+    sb.style.background='#E5E7EB';sb.style.color='#9CA3AF';
+    sb.onclick=function(){toast('买家尚未付款，付款后即可发货');};
+    batch.style.display='none';
+  }else if(st==='已发货'||st==='已完成'){
+    sb.removeAttribute('href');
+    sb.textContent=st==='已完成'?'查看评价':'查看物流';
+    sb.style.background='linear-gradient(135deg,#0EA5E9,#0284C7)';sb.style.color='#fff';
+    sb.onclick=function(){toast(st==='已完成'?'买家评价：质量好、交期准':'顺丰速运 SF1234567890 · 运输中');};
+    batch.style.display='none';
+  }else{
+    sb.removeAttribute('href');sb.textContent='订单已取消';
+    sb.style.background='#E5E7EB';sb.style.color='#9CA3AF';
+    sb.onclick=function(){toast('订单已取消，款项原路退回');};
+    batch.style.display='none';
+  }
+}
+
+/* 询价订单：补需求溯源块；其余按正常订单状态机渲染 */
 if(_q.get('type')==='inquiry'){
   document.getElementById('traceBlock').style.display='block';
   document.getElementById('inquiryBadge').style.display='inline-block';
-  var sb=document.getElementById('shipBtn');if(sb)sb.href='shipping.html?type=inquiry';
+  applyNormalState(_q.get('state')||'待发货');
+  var sb=document.getElementById('shipBtn');
+  if(sb.getAttribute('href'))sb.href=shipHref('type=inquiry');
+}
+if(!_q.get('type')){
+  applyNormalState(_q.get('state')||'待发货');
+  var _ab=document.getElementById('afterBtn');
+  if(_ab)_ab.href='order-detail.html?type=after&no='+encodeURIComponent(orderNo)+'&kind='+encodeURIComponent('退货/退款');
 }
 
 /* ===== 拼单订单变体（?type=group）：待成团 / 已成团 / 已失效 / 已取消 ===== */
 if(_q.get('type')==='group'){
   document.getElementById('groupBlock').style.display='block';
-  var gs=_q.get('state')||'confirmed';
+  var GS_ALIAS={'待成团':'pending','进行中':'pending','pending':'pending',
+                '待发货':'confirmed','已成团':'confirmed','confirmed':'confirmed',
+                '已失效':'expired','失效':'expired','expired':'expired',
+                '已取消':'cancelled','取消':'cancelled','cancelled':'cancelled'};
+  var gs=GS_ALIAS[_q.get('state')||'confirmed']||'confirmed';
+  var tp=_q.get('tp')||'3.20';
+  var gcum=_q.get('cum')||'';
   var gno=_q.get('no')||'GB20261028-006';
   var tno='T'+gno.replace(/^GB/,'');
   var gn=document.getElementById('grpNo');
@@ -234,31 +339,61 @@ if(_q.get('type')==='group'){
       sbtn.style.background='#E5E7EB';sbtn.style.color='#9CA3AF';
       sbtn.onclick=function(){toast(gs==='pending'?'本团尚未成团，达目标档后才可发货':'本团已结束，款项原路退回，无需发货');};
     }
-    if(gs==='pending') document.getElementById('stateTxt').textContent='待成团';
   }
+  /* 团状态 → 标题 / 副标题 / 时间轴（待办 #73 A3） */
+  var GMAP={
+    pending:{t:'待成团',s:'<i class="fas fa-hourglass-half text-[10px]"></i> 团号 '+tno+' · 达目标档后自动转「待发货」'},
+    confirmed:{t:'待发货',s:'<i class="fas fa-users text-[10px]"></i> 已成团 · 团号 '+tno+' · 待发货'},
+    cancelled:{t:'已取消',s:'<i class="fas fa-ban text-[10px]"></i> 团长已取消本团 · 全款原路退回'},
+    expired:{t:'已失效',s:'<i class="fas fa-circle-exclamation text-[10px]"></i> 到期未达目标档 · 全款原路退回'}
+  };
+  var gg=GMAP[gs]||GMAP.confirmed;
+  document.getElementById('stateTxt').textContent=gg.t;
+  document.getElementById('stateSub').innerHTML=gg.s;
+  var gIdx={pending:2,confirmed:3}[gs];
+  var gSteps=[
+    {t:'买家下单参团',sub:'支付即锁定名额'},
+    {t:'支付锁定名额',sub:'¥'+tp+'/双 · 预付制不随累计浮动'},
+    {t:'达目标档成团',sub:gs==='pending'?('已拼 '+(gcum||'—')+'/'+ORDER_TOTAL+' 双'):(ORDER_TOTAL+' 双达标 · 锁档 ¥'+tp+'/双')},
+    {t:'商户发货',sub:'成团后才可安排出库'},
+    {t:'买家确认收货',sub:'收货后订单完成'}
+  ];
+  if(gs==='cancelled'||gs==='expired'){
+    gSteps=[{t:'买家下单参团',sub:'支付即锁定名额'},
+            {t:'支付锁定名额',sub:'¥'+tp+'/双 · 预付制不随累计浮动'},
+            {t:gs==='cancelled'?'团长取消本团':'到期未成团',sub:'全团款项原路退回（3 个工作日）',fail:true}];
+  }else{
+    gSteps.forEach(function(x,i){x.done=i<gIdx;x.active=i===gIdx;});
+  }
+  document.getElementById('timelineBox').innerHTML=renderSteps(gSteps);
+  /* 已成团：发货按钮带 no/qty/group（待办 #73 A2/A4） */
+  if(gs==='confirmed'&&sbtn)sbtn.href=shipHref('group=1');
+  var _ab2=document.getElementById('afterBtn');
+  if(_ab2)_ab2.style.display='none';
 }
 
-/* ===== 分批发货（待办 #39）：读本机发货批次 ===== */
+/* ===== 分批发货（待办 #39 / #73 B7）：读本机发货批次；无记录就显示「尚未发货」，不再伪造批次 ===== */
 function renderBatches(){
   var box=document.getElementById('batchList');if(!box)return;
-  var no=_q.get('no')||'SO20260720-001';
+  var no=orderNo;
+  var total=ORDER_TOTAL;
   var recs=[];
   try{recs=JSON.parse(localStorage.getItem('sh_ship_'+no)||'[]');}catch(e){}
-  if(!recs.length){
-    recs=[{qty:60,carrier:'顺丰速运',no:'SF1234567890',at:'2026-07-20 16:10',note:'第 1 批 · 现货 60 双'}];
+  if(!recs.length&&(+_q.get('shipped')||0)>0){
+    recs=[{qty:+_q.get('shipped'),carrier:'顺丰速运',no:'SF1234567890',at:'2026-07-20 16:10',note:'第 1 批'}];
   }
-  var total=+(_q.get('qty')||100);
   var shipped=recs.reduce(function(a,b){return a+(+b.qty||0);},0);
   var pct=Math.min(100,Math.round(shipped/total*100));
   document.getElementById('batchProgress').textContent='已发 '+shipped+'/'+total;
   document.getElementById('batchBar').style.width=pct+'%';
-  box.innerHTML=recs.map(function(r,i){
+  document.getElementById('batchBar').style.display=shipped?'block':'none';
+  box.innerHTML=recs.length?recs.map(function(r,i){
     return '<div class="flex items-center gap-2 rounded-xl px-2.5 py-2" style="background:#F8FAFC">'
       +'<span class="w-5 h-5 rounded-md flex items-center justify-center text-[9px] font-bold text-white" style="background:linear-gradient(135deg,#60A5FA,#2563EB)">'+(i+1)+'</span>'
       +'<div class="flex-1 min-w-0"><p class="text-[11px] text-gray-800 font-medium">'+r.carrier+' · <span class="num">'+r.no+'</span></p>'
       +'<p class="text-[9px] text-gray-400 mt-0.5 num">'+r.at+(r.note?' · '+r.note:'')+'</p></div>'
       +'<span class="text-[11px] font-bold text-primary num">'+r.qty+' 件</span></div>';
-  }).join('');
+  }).join(''):'<p class="text-[11px] text-gray-400 text-center py-2">尚未发货</p>';
 }
 /* ===== 打样单 / 定制单变体（10b §2.0.4 ②③ · M03 v1.1） ===== */
 var SP_MAP={
@@ -280,10 +415,12 @@ var CZ_MAP={
 function renderSteps(list){
   var h='<div class="relative pl-2"><div class="absolute left-[14px] top-2 bottom-2 w-0.5 bg-gray-100"></div>';
   list.forEach(function(x,i){
+    var dot=x.fail?'#EF4444':(x.done?'#10B981':(x.active?'#2563EB':'#E5E7EB'));
+    var cls=x.fail?'font-bold text-red-500':(x.active?'font-bold text-primary':(x.done?'font-semibold text-gray-800':'text-gray-400'));
     h+='<div class="relative flex items-start gap-3 '+(i<list.length-1?'pb-3':'')+'">'
-      +'<div class="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 '+(x.active?'ring-4 ring-blue-100':'')+'" style="background:'+(x.done?'#10B981':(x.active?'#2563EB':'#E5E7EB'))+'">'
-      +(x.done?'<i class="fas fa-check text-white text-[8px]"></i>':'')+'</div>'
-      +'<div><p class="text-[12px] '+(x.active?'font-bold text-primary':(x.done?'font-semibold text-gray-800':'text-gray-400'))+'">'+x.t+'</p>'
+      +'<div class="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 '+(x.active&&!x.fail?'ring-4 ring-blue-100':'')+'" style="background:'+dot+'">'
+      +(x.done?'<i class="fas fa-check text-white text-[8px]"></i>':(x.fail?'<i class="fas fa-xmark text-white text-[8px]"></i>':''))+'</div>'
+      +'<div><p class="text-[12px] '+cls+'">'+x.t+'</p>'
       +(x.sub?'<p class="text-[10px] text-gray-400">'+x.sub+'</p>':'')+'</div></div>';
   });
   return h+'</div>';
@@ -368,6 +505,70 @@ if(_q.get('type')==='custom'){
   else if(c.state==='待发货'){cb.href='shipping.html?type=custom&no='+czNo+'&qty='+encodeURIComponent(c.qty.split(' 双')[0])+'&shipped=0';}
   else if(c.state==='待收货'){cb.removeAttribute('href');cb.textContent='查看物流';cb.onclick=function(){toast('运输中，等待买家确认收货');};}
   else{cb.removeAttribute('href');cb.textContent='查看评价';cb.onclick=function(){toast('买家评价：质量好、交期准');};}
+  /* 定制单按整单发货，不展示分批发货进度（待办 #73 B7） */
+  document.getElementById('shipBatchBlock').style.display='none';
+}
+
+/* ===== 售后单变体（?type=after，待办 #73 B4 / C3）：退货退款 / 仅退款 处理 ===== */
+if(_q.get('type')==='after'){
+  var aNo=_q.get('no')||'SO20260718-056';
+  var aKind=_q.get('kind')||'退货/退款';
+  var AFTER_MAP={
+    'SO20260718-056':{kid:'SH20260722-006',kind:'退货/退款',reason:'部分色差',amt:900,qty:'500 双'},
+    'SO20260719-071':{kid:'SH20260723-002',kind:'退货退款',reason:'质量问题（破洞）',amt:450,qty:'60 双'}
+  };
+  var am=AFTER_MAP[aNo]||{kid:'SH20260722-006',kind:aKind,reason:'部分色差',amt:900,qty:'500 双'};
+  document.getElementById('pageTitle').textContent='售后详情';
+  document.getElementById('afterBlock').style.display='block';
+  document.getElementById('afterKind').textContent=am.kind;
+  document.getElementById('afterNo').textContent=am.kid;
+  document.getElementById('afterOrderNo').textContent=aNo;
+  document.getElementById('afterReason').textContent=am.reason;
+  document.getElementById('afterAmount').textContent='¥'+am.amt.toFixed(2);
+  document.getElementById('afterQty').textContent=am.qty;
+  document.getElementById('shipBatchBlock').style.display='none';
+  document.getElementById('groupBlock').style.display='none';
+  document.getElementById('traceBlock').style.display='none';
+  var aState='待商家处理';
+  function renderAfter(){
+    document.getElementById('stateTxt').textContent=aState;
+    var SUB={'待商家处理':'<i class="fas fa-clock text-[10px]"></i> 48h 内未响应，买家可申请平台介入',
+             '待退款':'<i class="fas fa-hand-holding-dollar text-[10px]"></i> 已同意退款 · 款项待原路退回',
+             '已完成':'<i class="fas fa-circle-check text-[10px]"></i> 退款已完成 · 售后单已关闭',
+             '已拒绝':'<i class="fas fa-ban text-[10px]"></i> 已拒绝 · 买家可申请平台介入'};
+    document.getElementById('stateSub').innerHTML=SUB[aState];
+    document.getElementById('afterLimit').style.display=(aState==='待商家处理')?'':'none';
+    var stepIdx={'待商家处理':1,'待退款':2,'已完成':3,'已拒绝':1}[aState];
+    var steps=[
+      {t:'买家申请售后',sub:'2026-07-22 09:10 · '+am.reason},
+      {t:'商家处理',sub:aState==='待商家处理'?'请在 48h 内响应':(aState==='已拒绝'?'已拒绝退款申请':'已同意 '+am.kind)},
+      {t:'退款完成',sub:am.kind+' ¥'+am.amt.toFixed(2)+' 原路退回'}
+    ];
+    if(aState==='已拒绝'){steps[0].done=true;steps[1].fail=true;}
+    else steps.forEach(function(x,i){x.done=i<stepIdx;x.active=i===stepIdx;});
+    document.getElementById('timelineBox').innerHTML=renderSteps(steps);
+    var bb=document.getElementById('shipBtn'),ab=document.getElementById('afterBtn');
+    ab.removeAttribute('href');ab.style.display='';
+    bb.removeAttribute('href');
+    if(aState==='待商家处理'){
+      ab.textContent='拒绝申请';
+      ab.className='flex-1 py-2.5 rounded-xl border border-gray-200 text-[12px] text-gray-500 font-medium text-center';
+      ab.onclick=function(){aState='已拒绝';renderAfter();toast('已拒绝退款申请，买家可申请平台介入');};
+      bb.textContent='同意退款 ¥'+am.amt.toFixed(2);
+      bb.style.background='linear-gradient(135deg,#F59E0B,#D97706)';bb.style.color='#fff';
+      bb.onclick=function(){aState='待退款';renderAfter();toast('已同意退款，款项将原路退回买家');};
+    }else if(aState==='待退款'){
+      ab.style.display='none';
+      bb.textContent='确认已退款';
+      bb.onclick=function(){aState='已完成';renderAfter();toast('退款已完成，售后单已关闭');};
+    }else{
+      ab.style.display='none';
+      bb.textContent=(aState==='已拒绝'?'已拒绝 · 售后关闭':'已完成 · 售后关闭');
+      bb.style.background='#E5E7EB';bb.style.color='#9CA3AF';
+      bb.onclick=function(){toast(aState==='已拒绝'?'已拒绝，等待买家操作或平台介入':'售后已完成');};
+    }
+  }
+  renderAfter();
 }
 
 renderBatches();

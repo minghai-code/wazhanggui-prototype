@@ -1,0 +1,79 @@
+{
+  "_说明": "商户端（shanghu-APP）页面内容型数据的来源登记表。规则同买家端：端上展示的内容必须有某一端可维护；后台缺的必须带待办编号。注：当前 tools/check-data-source.mjs 只扫 mai-APP，本表为手工维护的登记基线，商户端接入同一闸门时可直接复用。",
+  "_字段": {
+    "kind": "content=运营维护内容 / merchant=商户维护 / user=用户自建 / system=系统生成",
+    "source": "来源端与维护入口",
+    "status": "built=后台已具备 / todo=后台缺，已登记待办 / unverified=疑有但未核实",
+    "todo": "待办编号，status=todo 时必填"
+  },
+  "ui": [
+    "tech-service.html::DEAL_STYLE",
+    "tech-service.html::MY_STATUS",
+    "tech-service.html::RATE_TAGS",
+    "tech-service.html::EXP_G",
+    "industry-records.html::KIND_CFG",
+    "finance-service.html::WAYICON"
+  ],
+  "items": {
+    "tech-service.html::TECH_ACHV": {
+      "kind": "content",
+      "source": "运营端 13 产业链服务 → 技术成果管理（成果 Tab）",
+      "status": "built",
+      "note": "端上只读；成果下架 / 已匹配后按钮态由 deal 字段决定"
+    },
+    "tech-service.html::TECH_DEMAND": {
+      "kind": "content",
+      "source": "运营端 13 产业链服务 → 技术成果管理（需求 Tab）+ 商户端发布的技术需求",
+      "status": "built",
+      "note": "商户端发布写「来源端=商户端」；mo 过滤规则随运营端字段调整时同步"
+    },
+    "tech-service.html::EXPERTS": {
+      "kind": "content",
+      "source": "运营端 13 产业链服务 v1.8 → 技术成果管理 → 技术专家 Tab（name/title/unit/dir/contact/phone）",
+      "status": "built",
+      "note": "平台不做在线沟通/IM：端上只展示联系人+电话，点击走 tel:；phone 为空则不渲染拨号按钮（待办 #84，与买家端 tech-service.html 同源同实现）"
+    },
+    "tech-service.html::MY_DEALS": {
+      "kind": "user",
+      "source": "商户端本机发起对接后写入（localStorage sh_tech_*）",
+      "status": "built",
+      "note": "演示态种子数据；正式环境由 13 对接单接口下发"
+    },
+    "policy-service.html::policies": {
+      "kind": "content",
+      "source": "运营端 13 产业链服务 → 政策管理（chain-policy）「已发布」政策",
+      "status": "built",
+      "note": "v1.5 四字段：发布标题/发布正文/附件/申请网址；无投放端字段、无申报单。本页 5 条与运营端、买家端同号同标题同更新时间（待办 #82/#85）"
+    },
+    "industry-service.html::services": {
+      "kind": "content",
+      "source": "运营端 13 产业链服务 → 服务分类（13-chain 菜单 6 类）",
+      "status": "built",
+      "note": "外贸服务本期下架（待办 #83）；卡片的 features 标签为端上文案，运营端不单独维护"
+    },
+    "industry-review.html::SEED": {
+      "kind": "system",
+      "source": "后台 FR-08 完成后推送评价邀请（对接单已成交 / 委托已办结）",
+      "status": "built",
+      "note": "政策兑现不产生评价来源（v1.2）；端上另合并 localStorage sh_svc_rec 的已匹配记录"
+    },
+    "industry-records.html::APPLY_SEED": {
+      "kind": "system",
+      "source": "13 产业链服务 → 对接单状态回写",
+      "status": "built",
+      "note": "v1.2 起只含技术需求/技术成果；历史 type='政策申报' 记录读取时过滤"
+    },
+    "industry-records.html::CONSULT_SEED": {
+      "kind": "user",
+      "source": "端上留痕（localStorage sh_svc_consult），不写后台",
+      "status": "built",
+      "note": "知产跳转 / 中介电话仅留痕：时间 + 入口 + 方式，无状态无工单"
+    },
+    "finance-service.html::products": {
+      "kind": "content",
+      "source": "运营端 13b 金融服务 → 机构与产品（入口链接）",
+      "status": "unverified",
+      "note": "端上仅入口导航、不留资、不跟踪；产品上下架需运营端配置（本轮未核对字段数）"
+    }
+  }
+}

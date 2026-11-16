@@ -44,7 +44,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
   </div>
   <div class="space-y-2.5" id="pendList"></div>
   <div class="bg-amber-50 border border-amber-100 rounded-2xl p-3.5 mt-3">
-    <p class="text-[10px] text-amber-700 leading-relaxed"><i class="fas fa-circle-info mr-1"></i>评价对象为<b>已成交的对接单</b>或<b>已办结的委托/申报</b>；评价写入服务商与成果提供方评分（后台 FR-08），不可修改。</p>
+    <p class="text-[10px] text-amber-700 leading-relaxed"><i class="fas fa-circle-info mr-1"></i>评价对象为<b>已成交的对接单</b>或<b>已办结的委托服务</b>；评价写入服务商与成果提供方评分（后台 FR-08），不可修改。</p>
   </div>
 </div>
 
@@ -102,9 +102,9 @@ function svcNow(){var d=new Date();function p(n){return n<10?'0'+n:''+n}return d
 function readLS(k){try{return JSON.parse(localStorage.getItem(k)||'[]')}catch(e){return []}}
 function getQ(k){var m=location.search.match(new RegExp('[?&]'+k+'=([^&]+)'));return m?decodeURIComponent(m[1]):''}
 
-/* 待评价种子：政策兑现 / 技术对接 / 中介委托（后台 FR-08 完成后推送评价邀请） */
+/* 待评价种子：技术对接 / 中介委托（后台 FR-08 完成后推送评价邀请）。
+   政策兑现不产生申报单，无评价来源（M06 v1.5 裁决）。 */
 var SEED=[
- {id:'a1',type:'政策兑现',icon:'fa-file-signature',cls:'bg-emerald-50 text-emerald-600',title:'袜业产业扶持资金申报',no:'SB20260705-03',agency:'诸暨市经信局',time:'2026-07-08 拨付'},
  {id:'t1',type:'技术对接',icon:'fa-flask',cls:'bg-sky-50 text-sky-600',title:'智能温控纤维材料',no:'DJ20261015003',agency:'纺织科学研究所',time:'2026-10-16 14:00'},
  {id:'m1',type:'中介服务',icon:'fa-briefcase',cls:'bg-orange-50 text-orange-600',title:'代理记账服务',no:'ZJ20260703-01',agency:'诸暨诚信财税咨询',time:'2026-07-20 09:00'}
 ];
@@ -116,9 +116,10 @@ function reviewMap(){
 function pendingList(){
   var done=reviewMap();
   var arr=SEED.slice();
-  var map={'政策申报':'政策兑现','技术需求':'技术对接','中介服务':'中介服务'};
+  var map={'技术需求':'技术对接','技术成果':'技术对接','中介服务':'中介服务'};
   readLS('sh_svc_rec').forEach(function(r){
-    if(r.status!=='已兑现'&&r.status!=='已匹配'&&r.status!=='已完成')return;
+    if(r.type==='政策申报')return;
+    if(r.status!=='已匹配'&&r.status!=='已完成')return;
     if(arr.some(function(x){return x.no===r.no}))return;
     arr.push({id:r.id,type:map[r.type]||r.type,icon:r.icon||'fa-circle-check',cls:r.cls||'bg-emerald-50 text-emerald-600',title:r.title,no:r.no,agency:r.agency,time:r.time});
   });

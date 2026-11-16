@@ -50,11 +50,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 .fab::after{content:"";position:absolute;inset:-5px;border-radius:999px;border:2px solid rgba(59,130,246,.35);animation:pulse 2s infinite}
 @keyframes pulse{0%{transform:scale(.9);opacity:.8}70%{transform:scale(1.18);opacity:0}100%{opacity:0}}
 /* 弹层与底部表单 */
-.overlay{position:fixed;inset:0;background:rgba(15,18,26,.5);z-index:300;opacity:0;pointer-events:none;transition:.25s;backdrop-filter:blur(2px)}
+/* 层级：底栏 100 < 主页面 < .ov 500（我的对接 / 对接详情）< 遮罩 600 < 底部 sheet 601 < toast 700
+   ⚠️ sheet 必须高于 .ov：否则从「对接详情」或「我的需求」里打开反馈 sheet 会被 .ov 盖住，
+   表现为"点了按钮跳回列表页"（2026-11-16 修） */
+.overlay{position:fixed;inset:0;background:rgba(15,18,26,.5);z-index:600;opacity:0;pointer-events:none;transition:.25s;backdrop-filter:blur(2px)}
 .overlay.on{opacity:1;pointer-events:auto}
-.sheet{position:fixed;bottom:0;left:0;width:393px;background:#fff;border-radius:22px 22px 0 0;z-index:301;transform:translateY(100%);transition:transform .3s cubic-bezier(.22,.61,.36,1);max-height:88vh;overflow-y:auto;box-shadow:0 -8px 30px rgba(0,0,0,.18)}
+.sheet{position:fixed;bottom:0;left:0;width:393px;background:#fff;border-radius:22px 22px 0 0;z-index:601;transform:translateY(100%);transition:transform .3s cubic-bezier(.22,.61,.36,1);max-height:88vh;overflow-y:auto;box-shadow:0 -8px 30px rgba(0,0,0,.18)}
 .sheet.on{transform:translateY(0)}
-.sheet-mask{position:fixed;inset:0;background:rgba(15,18,26,.5);z-index:300;opacity:0;pointer-events:none;transition:.25s;backdrop-filter:blur(2px)}
+.sheet-mask{position:fixed;inset:0;background:rgba(15,18,26,.5);z-index:600;opacity:0;pointer-events:none;transition:.25s;backdrop-filter:blur(2px)}
 .sheet-mask.on{opacity:1;pointer-events:auto}
 .ov{position:fixed;left:0;top:0;width:393px;height:100%;background:#FFF7F4;z-index:500;overflow-y:auto;display:none;-webkit-overflow-scrolling:touch}
 .ov.on{display:block}
@@ -70,7 +73,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 .tag-opt{font-size:11px;color:#6b7080;background:#fff;border:1px solid #eceef0;border-radius:10px;padding:6px 12px;cursor:pointer;transition:.15s;font-weight:500}
 .tag-opt.on{border-color:#3B82F6;color:#2563EB;background:#EAF2FF;font-weight:600}
 /* toast */
-.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:400;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.25);min-width:130px;justify-content:center}
+.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%) scale(.9);background:rgba(15,18,26,.92);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;z-index:700;opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.25);min-width:130px;justify-content:center}
 .toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
 </style>
 <!-- Tailwind 静态样式：本地引用（不再依赖 cdn.tailwindcss.com）；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
@@ -113,7 +116,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <div class="tabbar mt-3">
   <div class="tabs">
     <div class="tab on" id="tabAchieve" onclick="switchTab('achieve')"><i class="fas fa-microscope mr-1"></i>技术成果</div>
-    <div class="tab" id="tabDemand" onclick="switchTab('demand')"><i class="fas fa-bullhorn mr-1"></i>技术需求<span class="counttip">3</span></div>
+    <div class="tab" id="tabDemand" onclick="switchTab('demand')"><i class="fas fa-bullhorn mr-1"></i>技术需求<span class="counttip" id="demandCnt">0</span></div>
   </div>
 </div>
 
@@ -142,47 +145,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
     <span class="text-[11px] text-gray-400">后台专家库</span>
   </div>
 
-  <div class="bg-white rounded-2xl shadow-soft p-3 divide-y divide-gray-50 fade-up">
-    <!-- 专家1 -->
-    <div class="flex items-center gap-2.5 pb-2.5">
-      <div class="w-11 h-11 rounded-full flex items-center justify-center text-white text-[14px] font-bold flex-shrink-0" style="background:linear-gradient(135deg,#3B82F6,#6366F1)">张</div>
-      <div class="flex-1 min-w-0">
-        <div class="flex items-center gap-1.5">
-          <p class="text-[13px] font-bold text-gray-900">张明远</p>
-          <span class="text-[9px] font-semibold px-1.5 py-0.5 rounded" style="background:#EAF2FF;color:#2563EB">教授/博导</span>
-          <span class="w-1.5 h-1.5 rounded-full" style="background:#10B981" title="在线"></span>
-        </div>
-        <p class="text-[10px] text-gray-500 mt-0.5"><i class="fas fa-microscope mr-0.5 text-gray-300"></i>功能性纤维材料 · 浙江理工大学</p>
-      </div>
-      <span class="expert-btn" onclick="toast('正在为您连接张明远教授','fa-comment-dots')"><i class="fas fa-comment-dots text-[10px]"></i>在线咨询</span>
-    </div>
-    <!-- 专家2 -->
-    <div class="flex items-center gap-2.5 py-2.5">
-      <div class="w-11 h-11 rounded-full flex items-center justify-center text-white text-[14px] font-bold flex-shrink-0" style="background:linear-gradient(135deg,#7C3AED,#9333EA)">李</div>
-      <div class="flex-1 min-w-0">
-        <div class="flex items-center gap-1.5">
-          <p class="text-[13px] font-bold text-gray-900">李素华</p>
-          <span class="text-[9px] font-semibold px-1.5 py-0.5 rounded" style="background:#EDE9FE;color:#7C3AED">研究员</span>
-          <span class="w-1.5 h-1.5 rounded-full" style="background:#10B981"></span>
-        </div>
-        <p class="text-[10px] text-gray-500 mt-0.5"><i class="fas fa-microscope mr-0.5 text-gray-300"></i>智能纺织工艺 · 东华大学</p>
-      </div>
-      <span class="expert-btn" onclick="toast('正在为您连接李素华研究员','fa-comment-dots')"><i class="fas fa-comment-dots text-[10px]"></i>在线咨询</span>
-    </div>
-    <!-- 专家3 -->
-    <div class="flex items-center gap-2.5 pt-2.5">
-      <div class="w-11 h-11 rounded-full flex items-center justify-center text-white text-[14px] font-bold flex-shrink-0" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)">王</div>
-      <div class="flex-1 min-w-0">
-        <div class="flex items-center gap-1.5">
-          <p class="text-[13px] font-bold text-gray-900">王建国</p>
-          <span class="text-[9px] font-semibold px-1.5 py-0.5 rounded" style="background:#DBEAFE;color:#0284C7">高级工程师</span>
-          <span class="w-1.5 h-1.5 rounded-full" style="background:#9ca3af"></span>
-        </div>
-        <p class="text-[10px] text-gray-500 mt-0.5"><i class="fas fa-microscope mr-0.5 text-gray-300"></i>袜业智能制造 · 纺织科学研究所</p>
-      </div>
-      <span class="expert-btn" onclick="toast('专家离线，已发送留言通知','fa-envelope')"><i class="fas fa-comment-dots text-[10px]"></i>在线咨询</span>
-    </div>
-  </div>
+  <div id="expertList" class="bg-white rounded-2xl shadow-soft px-3 fade-up"></div>
+  <p class="text-[9px] text-gray-400 mt-1.5 px-1 leading-relaxed"><i class="fas fa-circle-info mr-1" style="color:#3B82F6"></i>专家联系方式由发布方填写，平台不做在线沟通；请直接电话联系</p>
 </div>
 
 <!-- ===== 我的对接 / 我的需求 入口 ===== -->
@@ -408,6 +372,52 @@ var DEMAND_CONTACT={
 TECH_ACHV.forEach(function(a){var c=ACHV_CONTACT[a.title]||{};a.contact=c.contact||'';a.phone=c.phone||'';});
 TECH_DEMAND.forEach(function(d){var c=DEMAND_CONTACT[d.title]||{};d.contact=c.contact||'';d.phone=c.phone||'';});
 
+/* ===== 技术专家（后台专家库 chain-tech-achv「技术专家」Tab 下发）
+   口径：平台**不做在线沟通 / IM**；联系人与电话由发布方录入，端上只展示 + 拨号。
+   无联系方式 → 不渲染拨号按钮，信息行显示「未填写联系电话」，不伪造"正在连接"。 */
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+var TECH_EXPERTS=[
+  {name:'张明远',title:'教授 / 博导',unit:'浙江理工大学',dir:'功能性纤维材料',contact:'张明远',phone:'13800001111'},
+  {name:'李素华',title:'研究员',unit:'东华大学',dir:'智能纺织工艺',contact:'李素华',phone:'13900002222'},
+  {name:'王建国',title:'高级工程师',unit:'纺织科学研究所',dir:'袜业智能制造',contact:'王建国',phone:'13700003333'}
+];
+var EXP_G=[['#3B82F6','#6366F1'],['#7C3AED','#9333EA'],['#0EA5E9','#0284C7'],['#10B981','#059669']];
+function renderExperts(){
+  var box=document.getElementById('expertList');if(!box)return;
+  if(!TECH_EXPERTS.length){
+    box.innerHTML='<div class="text-center py-6"><i class="fas fa-user-tie text-gray-200 text-2xl"></i><p class="text-[11px] text-gray-400 mt-2">暂无专家入驻</p></div>';
+    return;
+  }
+  var h='';
+  TECH_EXPERTS.forEach(function(e,i){
+    var g=EXP_G[i%EXP_G.length];
+    var hasPhone=!!String(e.phone||'').replace(/[^\d]/g,'');
+    h+='<div class="flex items-start gap-2.5 py-3 border-b border-gray-50" style="'+(i===TECH_EXPERTS.length-1?'border-bottom:none':'')+'">';
+    h+='<div class="w-11 h-11 rounded-full flex items-center justify-center text-white text-[14px] font-bold flex-shrink-0" style="background:linear-gradient(135deg,'+g[0]+','+g[1]+')">'+esc(String(e.name||'').charAt(0))+'</div>';
+    h+='<div class="flex-1 min-w-0">';
+    h+='<div class="flex items-center gap-1.5"><p class="text-[13px] font-bold text-gray-900">'+esc(e.name)+'</p>';
+    if(e.title)h+='<span class="text-[9px] font-semibold px-1.5 py-0.5 rounded" style="background:'+g[0]+'1A;color:'+g[0]+'">'+esc(e.title)+'</span>';
+    h+='</div>';
+    h+='<p class="text-[10px] text-gray-500 mt-0.5"><i class="fas fa-microscope mr-0.5 text-gray-300"></i>'+esc(e.dir||'')+(e.unit?' · '+esc(e.unit):'')+'</p>';
+    if(hasPhone){
+      h+='<p class="text-[10px] text-gray-500 mt-1"><i class="fas fa-user mr-1 text-gray-300"></i>'+esc(e.contact||e.name)+'<i class="fas fa-mobile-screen mr-1 ml-2 text-gray-300"></i>'+esc(e.phone)+'</p>';
+    }else{
+      h+='<p class="text-[10px] text-gray-400 mt-1"><i class="fas fa-user mr-1 text-gray-300"></i>'+esc(e.contact||e.name)+'<span class="ml-2">未填写联系电话</span></p>';
+    }
+    h+='</div>';
+    if(hasPhone){
+      h+='<span class="expert-btn" onclick="callExpert(\''+esc(e.phone)+'\')"><i class="fas fa-phone text-[10px]"></i>拨打电话</span>';
+    }
+    h+='</div>';
+  });
+  box.innerHTML=h;
+}
+function callExpert(phone){
+  var p=String(phone||'').replace(/[^\d+]/g,'');
+  if(!p)return;
+  location.href='tel:'+p;
+}
+
 /* ===== 对接单（自助：待反馈 / 已成交 / 未成交 / 已关闭） ===== */
 var MY_STATUS={
   '待反馈':['#FEF3C7','#D97706','fa-hourglass-half'],
@@ -603,7 +613,7 @@ function dealSuccessHtml(d){
    +'</div>';
 }
 function copyText(t){try{navigator.clipboard.writeText(t);}catch(e){}toast('已复制 '+t,'fa-copy');}
-function callPhone(p){toast('正在拨打 '+p,'fa-phone');}
+function callPhone(p){var n=String(p||'').replace(/[^\d+]/g,'');if(!n)return;location.href='tel:'+n;}
 /* 二次确认弹窗（M06-Q30 成交金额提交后不可自行修改） */
 function askConfirm(o){
   var d=document.createElement('div');
@@ -762,7 +772,7 @@ function renderAchv(){
     h+='<div class="flex gap-1.5 mt-2 flex-wrap">'+a.fields.map(function(f){return '<span class="field-tag '+(f.cls||'')+'"'+(f.cls?'':' style="background:#F3F4F6;color:#6b7280"')+'>'+f.t+'</span>';}).join('')+'<span class="field-tag" style="background:#F3F4F6;color:#6b7280">成熟度：'+a.maturity+'</span></div>';
     h+='<div class="flex items-center justify-between mt-3 pt-2.5 border-t border-gray-50">';
     h+='<span class="text-[10px] text-gray-400"><i class="fas fa-eye mr-0.5"></i>'+a.views+'人浏览 · '+a.consults+'人咨询</span>';
-    if(a.deal==='已匹配'){h+='<span class="act-btn" style="background:#e5e7eb;color:#9ca3af;box-shadow:none" onclick="toast(\'该成果已匹配成功，可咨询相似技术\',\'fa-circle-info\')"><i class="fas fa-handshake text-[11px]"></i>已匹配</span>';}
+    if(a.deal==='已匹配'){h+='<span class="text-[10px] font-semibold" style="color:#9ca3af"><i class="fas fa-circle-check mr-1"></i>已匹配，暂不可再对接</span>';}
     else{h+='<span class="act-btn" onclick="openDealForm(\'成果\',\''+a.title+'\',\''+a.from+'\',\''+(a.contact||'')+'\',\''+(a.phone||'')+'\')"><i class="fas fa-handshake text-[11px]"></i>发起对接</span>';}
     h+='</div></div>';
   });
@@ -773,6 +783,8 @@ function renderDemand(){
   /* 投放端过滤：后台 mo='sh' 表示仅商户端，买家端不展示 */
   var list=TECH_DEMAND.filter(function(d){return d.mo!=='sh';});
   document.getElementById('demandCount').textContent='共 '+list.length+' 条';
+  var cnt=document.getElementById('demandCnt');
+  if(cnt)cnt.textContent=list.length;   /* 角标跟过滤后条数一致，不写死 */
   var h='';
   list.forEach(function(d,i){
     h+='<div class="dcard fade-up" style="animation-delay:'+(i*0.05)+'s">';
@@ -786,7 +798,7 @@ function renderDemand(){
     h+='<div class="flex gap-1.5 mt-2.5 flex-wrap">'+d.fields.map(function(f){return '<span class="info-lbl"><i class="fas fa-tag mr-1 text-gray-300"></i>'+f.t+'</span>';}).join('');
     h+='<span class="info-lbl"><i class="fas fa-coins mr-1" style="color:#FF4D2D"></i>预算 '+d.budget+'</span></div>';
     h+='<div class="flex items-center justify-between mt-3 pt-2.5 border-t border-gray-50">';
-    h+='<span class="text-[10px] text-gray-400"><i class="fas fa-eye mr-0.5"></i>'+d.views+'人浏览</span>';
+    h+='<span class="text-[10px] text-gray-400"><i class="fas fa-eye mr-0.5"></i>'+d.views+'人浏览'+(d.quotes?'<span class="mx-1.5 text-gray-200">|</span><i class="fas fa-handshake mr-0.5"></i>'+d.quotes+' 次对接':'')+'</span>';
     h+='<span class="act-btn" onclick="openDealForm(\'需求\',\''+d.title+'\',\''+d.from+'\',\''+(d.contact||'')+'\',\''+(d.phone||'')+'\')"><i class="fas fa-handshake text-[11px]"></i>发起对接</span>';
     h+='</div></div>';
   });
@@ -794,6 +806,7 @@ function renderDemand(){
 }
 renderAchv();
 renderDemand();
+renderExperts();
 renderMyTechEntry();
 
 /* 领域标签多选 */
@@ -832,5 +845,6 @@ function submitDemand(){
   setTimeout(function(){toast('需求已发布（'+demId+'），可在「我的对接」查看','fa-paper-plane')},280);
 }
 </script>
+<script src="../shared/page-prd.js"></script>
 </body>
 </html>

@@ -175,7 +175,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
       <p class="text-[10px] font-bold" style="color:#B91C1C">驳回原因</p>
       <p class="text-[11px] text-gray-700 mt-1 leading-relaxed" id="rjWhy">营业执照照片模糊，统一社会信用代码与证件不一致</p>
     </div>
-    <p class="text-[10px] text-gray-400 mt-2 leading-relaxed"><i class="fas fa-circle-info mr-1"></i>按驳回原因修改后可重新提交，审核通过即开通「查看供需详情 / 参与询价 / 政策申报（企业主体）」权限。</p>
+    <p class="text-[10px] text-gray-400 mt-2 leading-relaxed"><i class="fas fa-circle-info mr-1"></i>按驳回原因修改后可重新提交，审核通过即开通「查看供需详情 / 参与询价」权限。</p>
     <button onclick="backToForm()" class="w-full py-3 mt-3 rounded-xl text-white text-[13px] font-bold" style="background:linear-gradient(135deg,#3B82F6,#2563EB)"><i class="fas fa-rotate-right text-[11px]"></i> 修改资料后重新提交</button>
   </div>
 </div>
@@ -244,7 +244,7 @@ function renderPassCats(sel){
 }
 
 /* ===== 认证状态 / 到期状态（待办 #38 / #53）
-   状态唯一写入口：本页。询价闸门、政策申报等页面按 `sh_yz_state` 只读引用。
+   状态唯一写入口：本页。询价闸门等页面按 `sh_yz_state` 只读引用（政策兑现不做资质前置，故不在引用范围）。
    7 态定义、配色、闸门文案映射见 yz-state.js（端内共享，不模拟后台同步） ===== */
 function setYZ(o){saveYZ(o);render();}
 function getStatus(){return getYZ().state;}
@@ -254,8 +254,8 @@ var DEMO_DATE={pass:YZ_DEF_EXPIRE,expiring:YZ_EXPIRING_DATE,expired:YZ_EXPIRED_D
 var PASS_SKIN={
   pass:{icon:'fa-shield-halved',iconBg:'#DCFCE7',iconColor:'#16A34A',title:'认证通过',badge:'已认证 · 实力商家',badgeBg:'#F0FDF4',badgeColor:'#15803D',badgeIcon:'fa-certificate',power:'查看供需详情 · 参与询价 ✅',powerColor:'#16A34A'},
   expiring:{icon:'fa-clock-rotate-left',iconBg:'#FFF7ED',iconColor:'#EA580C',title:'认证通过 · 即将到期',badge:'即将到期 · 请尽快上传新证',badgeBg:'#FFF7ED',badgeColor:'#C2410C',badgeIcon:'fa-triangle-exclamation',power:'当前仍可询价 · 到期后将冻结',powerColor:'#EA580C'},
-  expired:{icon:'fa-circle-exclamation',iconBg:'#FEF2F2',iconColor:'#DC2626',title:'资质已过期',badge:'已过期 · 报价与政策申报受限',badgeBg:'#FEF2F2',badgeColor:'#B91C1C',badgeIcon:'fa-ban',power:'报价 / 政策申报已受限 ❌',powerColor:'#DC2626'},
-  invalid:{icon:'fa-ban',iconBg:'#F1F5F9',iconColor:'#94A3B8',title:'资质已失效',badge:'已失效（到期不再续期）',badgeBg:'#F1F5F9',badgeColor:'#64748B',badgeIcon:'fa-ban',power:'报价 / 政策申报已受限 ❌',powerColor:'#94A3B8'}
+  expired:{icon:'fa-circle-exclamation',iconBg:'#FEF2F2',iconColor:'#DC2626',title:'资质已过期',badge:'已过期 · 报价受限',badgeBg:'#FEF2F2',badgeColor:'#B91C1C',badgeIcon:'fa-ban',power:'报价已受限 ❌',powerColor:'#DC2626'},
+  invalid:{icon:'fa-ban',iconBg:'#F1F5F9',iconColor:'#94A3B8',title:'资质已失效',badge:'已失效（到期不再续期）',badgeBg:'#F1F5F9',badgeColor:'#64748B',badgeIcon:'fa-ban',power:'报价已受限 ❌',powerColor:'#94A3B8'}
 };
 
 /* ① 已认证卡补到期状态：橙色提醒 / 红色过期 / 灰色失效 + 对应引导动作 */
@@ -288,12 +288,12 @@ function paintPass(yz){
   }else if(s==='expired'){
     body='<div class="rounded-2xl p-3.5" style="background:#FEF2F2;border:1px solid #FECACA">'
       +'<p class="text-[12px] font-bold" style="color:#B91C1C"><i class="fas fa-circle-exclamation mr-1"></i>资质已于 '+(yz.origExpire||yz.expire)+' 过期</p>'
-      +'<p class="text-[10px] mt-1.5 leading-relaxed" style="color:#DC2626">报价与政策申报受限，运营端已发起到期处理（换证续期 / 顺延 / 不再续期）；处理结果将同步到本页。</p>'
+      +'<p class="text-[10px] mt-1.5 leading-relaxed" style="color:#DC2626">报价受限，运营端已发起到期处理（换证续期 / 顺延 / 不再续期）；处理结果将同步到本页。</p>'
       +'<button onclick="uploadNew()" class="w-full py-2.5 mt-3 rounded-xl text-white text-[12px] font-bold" style="background:linear-gradient(135deg,#EF4444,#B91C1C)"><i class="fas fa-rotate-right text-[11px]"></i> 重新提交认证</button></div>';
   }else{
     body='<div class="rounded-2xl p-3.5" style="background:#F8FAFC;border:1px solid #E2E8F0">'
       +'<p class="text-[12px] font-bold" style="color:#475569"><i class="fas fa-ban mr-1"></i>已失效（到期不再续期）</p>'
-      +'<p class="text-[10px] mt-1.5 leading-relaxed" style="color:#64748B">询价 / 政策申报已受限；如需恢复请联系平台重新入驻认证。</p>'
+      +'<p class="text-[10px] mt-1.5 leading-relaxed" style="color:#64748B">询价已受限；如需恢复请联系平台重新入驻认证。</p>'
       +'<button onclick="contactPlatform()" class="w-full py-2.5 mt-3 rounded-xl text-white text-[12px] font-bold" style="background:linear-gradient(135deg,#94A3B8,#64748B)"><i class="fas fa-headset text-[11px]"></i> 联系平台</button></div>';
   }
   tip.style.display='block';tip.innerHTML=body;
@@ -359,7 +359,7 @@ function paintMeta(yz){
     +'<span class="flex-1"></span>'
     +'<a onclick="toggleSubject()" class="text-[9px] font-bold" style="color:#2563EB">切换主体</a>'
     +'</div>'
-    +'<p class="text-[9px] text-gray-400 mt-1.5 leading-relaxed">本状态被询价闸门、政策申报等页面只读引用：仅「企业主体 + 已通过 / 即将到期」放开询价与申报；已过期 / 已失效即冻结。商户端只展示结果状态与引导动作，不展示运营端经办人与操作记录。</p>'
+    +'<p class="text-[9px] text-gray-400 mt-1.5 leading-relaxed">本状态被询价闸门等页面只读引用：仅「企业主体 + 已通过 / 即将到期」放开询价；已过期 / 已失效即冻结。政策兑现不做资质前置（只发布原文与官方入口），不受本状态影响。商户端只展示结果状态与引导动作，不展示运营端经办人与操作记录。</p>'
     +'<div class="flex gap-1.5 mt-2 flex-wrap">'+chips
     +'<span class="text-[8px] text-gray-300 self-center ml-1">← 演示切换</span>'
     +'</div>'+exRow+'</div>';
@@ -385,7 +385,7 @@ function applyExpire(t){
     toast('到期顺延已生效，资质有效期已更新');
   }else{
     yz.state='invalid';yz.expire=YZ_EXPIRED_DATE;yz.origExpire=YZ_EXPIRED_DATE;yz.handle='stop';
-    toast('已标记「不再续期」：资质已失效，询价 / 政策申报继续冻结');
+    toast('已标记「不再续期」：资质已失效，询价继续冻结');
   }
   setYZ(yz);
   window.scrollTo(0,0);

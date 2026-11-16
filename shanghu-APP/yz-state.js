@@ -58,16 +58,16 @@ function yzGate(s,o){
   var G={
     none:{title:'未完成企业资质认证',sub:'认证通过后方可查看供需详情、参与询价（招标验收必查）',btn:'去认证',bg:'#FFF7ED',bd:'#FED7AA',fg:'#C2410C',sub2:'#EA580C',bar:'#F59E0B',bar2:'#D97706',icon:'fa-triangle-exclamation'},
     reviewing:{title:'资质审核中，暂不可查看供需详情与参与询价',sub:'AI 预审 + 人工复核 · 预计 1-2 个工作日',btn:'查看进度',bg:'#EFF6FF',bd:'#BFDBFE',fg:'#1D4ED8',sub2:'#2563EB',bar:'#3B82F6',bar2:'#2563EB',icon:'fa-hourglass-half'},
-    reject:{title:'资质认证未通过，请修改资料后重新提交',sub:'报价与政策申报暂不可用 · 按驳回原因修改后可重提',btn:'重新提交',bg:'#FEF2F2',bd:'#FECACA',fg:'#B91C1C',sub2:'#DC2626',bar:'#EF4444',bar2:'#DC2626',icon:'fa-circle-xmark'},
-    expired:{title:'资质已于 '+d+' 过期，请上传新证完成复核',sub:'报价与政策申报已受限，运营端已发起到期处理',btn:'上传新证',bg:'#FEF2F2',bd:'#FECACA',fg:'#B91C1C',sub2:'#DC2626',bar:'#EF4444',bar2:'#B91C1C',icon:'fa-circle-exclamation'},
-    invalid:{title:'资质已失效（到期不再续期），如需恢复请联系平台',sub:'询价 / 政策申报已受限 · 需重新入驻认证后恢复',btn:'联系平台',bg:'#F8FAFC',bd:'#E2E8F0',fg:'#475569',sub2:'#64748B',bar:'#94A3B8',bar2:'#64748B',icon:'fa-ban'}
+    reject:{title:'资质认证未通过，请修改资料后重新提交',sub:'报价暂不可用 · 按驳回原因修改后可重提',btn:'重新提交',bg:'#FEF2F2',bd:'#FECACA',fg:'#B91C1C',sub2:'#DC2626',bar:'#EF4444',bar2:'#DC2626',icon:'fa-circle-xmark'},
+    expired:{title:'资质已于 '+d+' 过期，请上传新证完成复核',sub:'报价已受限，运营端已发起到期处理',btn:'上传新证',bg:'#FEF2F2',bd:'#FECACA',fg:'#B91C1C',sub2:'#DC2626',bar:'#EF4444',bar2:'#B91C1C',icon:'fa-circle-exclamation'},
+    invalid:{title:'资质已失效（到期不再续期），如需恢复请联系平台',sub:'询价已受限 · 需重新入驻认证后恢复',btn:'联系平台',bg:'#F8FAFC',bd:'#E2E8F0',fg:'#475569',sub2:'#64748B',bar:'#94A3B8',bar2:'#64748B',icon:'fa-ban'}
   };
   return G[s]||G.none;
 }
 /* 拦截「去报价」链接时的提示语 */
 function yzBlockTip(s){
   return {
-    expired:'资质已过期，报价与政策申报受限，请上传新证完成复核',
+    expired:'资质已过期，报价受限，请上传新证完成复核',
     invalid:'资质已失效，如需恢复请联系平台重新入驻认证',
     reject:'资质认证未通过，请修改资料后重新提交',
     reviewing:'资质审核中，通过后即可查看供需详情并参与询价'

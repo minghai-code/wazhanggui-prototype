@@ -14,11 +14,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 ::-webkit-scrollbar-thumb{background:#dfdfdf;border-radius:1px}
 .shadow-soft{box-shadow:0 2px 12px rgba(20,40,80,.06)}
 .num{font-variant-numeric:tabular-nums}
-.card{transition:transform .16s ease}
+.card{transition:transform .16s ease;position:relative}
 .card:active{transform:scale(.985)}
 .fade-up{animation:fadeUp .4s ease both}
 @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .ttab{cursor:pointer}
+/* 批量选择 */
+.card .chk{display:none;position:absolute;top:6px;left:6px;width:20px;height:20px;border-radius:50%;background:#fff;border:2px solid #D1D5DB;z-index:3}
+body.batch .card .chk{display:block}
+.card.sel .chk{background:#2563EB;border-color:#2563EB}
+.card.sel .chk::after{content:'\2713';color:#fff;font-size:11px;line-height:16px;display:block;text-align:center}
+.card.sel{box-shadow:0 0 0 2px #2563EB inset}
+body.batch .card a{pointer-events:none}
 </style>
 <!-- Tailwind 静态样式：本地引用（不再依赖 cdn.tailwindcss.com）；改动页面后重新构建见 wazhanggui-code/_tw-build/build.ps1 -->
 <link rel="stylesheet" href="tailwind.css">
@@ -37,95 +44,342 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
   <div class="flex items-center justify-between px-4 mt-1">
     <a href="workbench.html" class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500"><i class="fas fa-chevron-left text-sm"></i></a>
     <span class="text-[16px] font-extrabold text-gray-900">商品</span>
-    <a onclick="toast('搜索商品（演示）')" class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500"><i class="fas fa-magnifying-glass text-sm"></i></a>
+    <a onclick="toggleSearch()" class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500"><i class="fas fa-magnifying-glass text-sm"></i></a>
   </div>
 
-  <!-- 状态Tab：出售中/已下架/待审核/回收站（外采原样） -->
+  <!-- 搜索条（待办 #73 B13：原为 toast 假按钮） -->
+  <div class="px-4 mt-2" id="searchWrap" style="display:none">
+    <div class="bg-gray-100 rounded-full px-3 py-2 flex items-center gap-2">
+      <i class="fas fa-magnifying-glass text-gray-400 text-[11px]"></i>
+      <input id="kwInput" oninput="setKw(this.value)" placeholder="搜商品名 / 规格" class="flex-1 text-[12px] bg-transparent outline-none">
+      <a onclick="toggleSearch()" class="text-[11px] text-gray-500">取消</a>
+    </div>
+  </div>
+
+  <!-- 状态Tab：出售中/已下架/待审核/回收站（外采原样；真实切换 + 计数） -->
   <div class="flex items-center gap-6 px-4 mt-3 text-[14px] border-b border-gray-100" id="statusTabs">
-    <a class="ttab font-bold relative pb-2" style="color:#2563EB;border-bottom:2px solid #2563EB">出售中</a>
-    <a onclick="switchTab(this,'已下架')" class="ttab text-gray-500 pb-2">已下架</a>
-    <a onclick="switchTab(this,'待审核')" class="ttab text-gray-500 pb-2">待审核(0)</a>
-    <a onclick="switchTab(this,'回收站')" class="ttab text-gray-500 pb-2">回收站</a>
+    <a onclick="switchTab(this,'出售中')" class="ttab font-bold relative pb-2" data-tab="出售中" style="color:#2563EB;border-bottom:2px solid #2563EB">出售中<span class="text-[10px] ml-0.5 num" data-cnt="1">3</span></a>
+    <a onclick="switchTab(this,'已下架')" class="ttab text-gray-500 pb-2" data-tab="已下架">已下架<span class="text-[10px] ml-0.5 num">1</span></a>
+    <a onclick="switchTab(this,'待审核')" class="ttab text-gray-500 pb-2" data-tab="待审核">待审核<span class="text-[10px] ml-0.5 num">0</span></a>
+    <a onclick="switchTab(this,'回收站')" class="ttab text-gray-500 pb-2" data-tab="回收站">回收站<span class="text-[10px] ml-0.5 num">1</span></a>
   </div>
 
-  <!-- 筛选行（外采原样：商品类型 | 筛选 批量） -->
+  <!-- 筛选行（外采原样：商品类型 | 筛选 批量）——三个入口均落到真实面板/模式 -->
   <div class="flex items-center justify-between px-4 py-2.5 text-[12px] text-gray-600 border-b border-gray-100">
-    <a class="flex items-center gap-1">商品类型 <i class="fas fa-chevron-down text-[9px] text-gray-400"></i></a>
+    <a onclick="openSheet('typeSheet')" class="flex items-center gap-1">商品类型<span id="typeTxt" class="text-gray-400 text-[11px]">全部</span> <i class="fas fa-chevron-down text-[9px] text-gray-400"></i></a>
     <div class="flex items-center gap-4">
-      <a class="flex items-center gap-1">筛选 <i class="fas fa-arrow-down-wide-short text-[10px]"></i></a>
-      <a class="flex items-center gap-1">批量 <i class="fas fa-list-check text-[10px]"></i></a>
+      <a onclick="openSheet('sortSheet')" class="flex items-center gap-1">筛选 <i class="fas fa-arrow-down-wide-short text-[10px]"></i></a>
+      <a onclick="toggleBatch()" class="flex items-center gap-1" id="batchLink">批量 <i class="fas fa-list-check text-[10px]"></i></a>
     </div>
   </div>
 </div>
 
 <!-- ===== 商品列表 ===== -->
-<div class="px-3 py-3 space-y-2.5" style="padding-bottom:96px">
+<div class="px-3 py-3 space-y-2.5" id="listBox" style="padding-bottom:96px">
 
-  <!-- 商品1：出售中 -->
-  <div class="card bg-white rounded-xl shadow-soft overflow-hidden fade-up">
+  <!-- 商品1：出售中（价口径与商品编辑页/订单 mock 统一：¥3.50/双 · 阶梯 100/300/500） -->
+  <div class="card bg-white rounded-xl shadow-soft overflow-hidden fade-up" data-tab="出售中" data-kind="join" data-join="1" data-price="3.50" data-stock="1200" data-id="p1" onclick="cardTap(this,event)">
+    <span class="chk"></span>
     <div class="flex gap-3 p-3">
       <img src="../mai-APP/images/sock_03.jpg" class="w-[76px] h-[76px] rounded-lg object-cover flex-shrink-0">
       <div class="flex-1 min-w-0">
         <p class="text-[13px] font-medium text-gray-800 line-clamp-1">精梳棉商务男袜 透气防臭 10双装</p>
         <p class="text-[10px] text-gray-400 mt-1">库存：1200 &nbsp; 排序：100</p>
-        <p class="text-[15px] font-bold mt-1.5 num" style="color:#F5222D">¥10.00</p>
+        <div class="flex items-end justify-between mt-1">
+          <p class="text-[15px] font-bold num" style="color:#F5222D">¥3.50<span class="text-[10px] text-gray-400 font-normal">/双</span></p>
+          <span class="text-[9px] font-bold px-1.5 py-0.5 rounded" style="background:#EEF2FF;color:#4F46E5">支持拼单</span>
+        </div>
+        <p class="text-[9px] text-gray-400 mt-1">阶梯 100/300/500 双 · ¥3.50/3.20/2.90</p>
       </div>
     </div>
     <div class="flex items-center justify-end gap-2 px-3 pb-3">
-      <a onclick="toast('更多操作')" class="px-4 py-1.5 rounded-full border border-gray-200 text-[11px] text-gray-600">更多</a>
-      <a onclick="toast('已提交下架申请（演示）')" class="px-4 py-1.5 rounded-full border border-gray-200 text-[11px] text-gray-600">下架</a>
+      <a onclick="toast('更多操作：改价/改库存/复制链接（演示）')" class="px-4 py-1.5 rounded-full border border-gray-200 text-[11px] text-gray-600">更多</a>
+      <a onclick="takeOffline(this)" class="px-4 py-1.5 rounded-full border border-gray-200 text-[11px] text-gray-600">下架</a>
       <a href="product-publish.html" class="px-5 py-1.5 rounded-full text-[11px] font-bold text-white" style="background:linear-gradient(135deg,#4F6BFF,#3B5BFF)">编辑</a>
     </div>
   </div>
 
   <!-- 商品2：出售中 -->
-  <div class="card bg-white rounded-xl shadow-soft overflow-hidden fade-up" style="animation-delay:.05s">
+  <div class="card bg-white rounded-xl shadow-soft overflow-hidden fade-up" data-tab="出售中" data-kind="join" data-join="1" data-price="2.80" data-stock="800" data-id="p2" style="animation-delay:.05s" onclick="cardTap(this,event)">
+    <span class="chk"></span>
     <div class="flex gap-3 p-3">
       <img src="../mai-APP/images/sock_05.jpg" class="w-[76px] h-[76px] rounded-lg object-cover flex-shrink-0">
       <div class="flex-1 min-w-0">
         <p class="text-[13px] font-medium text-gray-800 line-clamp-1">女士碎花短袜 纯棉透气 5双装</p>
         <p class="text-[10px] text-gray-400 mt-1">库存：800 &nbsp; 排序：90</p>
-        <p class="text-[15px] font-bold mt-1.5 num" style="color:#F5222D">¥8.80</p>
+        <div class="flex items-end justify-between mt-1">
+          <p class="text-[15px] font-bold num" style="color:#F5222D">¥2.80<span class="text-[10px] text-gray-400 font-normal">/双</span></p>
+          <span class="text-[9px] font-bold px-1.5 py-0.5 rounded" style="background:#EEF2FF;color:#4F46E5">支持拼单</span>
+        </div>
+        <p class="text-[9px] text-gray-400 mt-1">阶梯 200/500 双 · ¥2.80/2.50</p>
       </div>
     </div>
     <div class="flex items-center justify-end gap-2 px-3 pb-3">
-      <a onclick="toast('更多操作')" class="px-4 py-1.5 rounded-full border border-gray-200 text-[11px] text-gray-600">更多</a>
-      <a onclick="toast('已提交下架申请（演示）')" class="px-4 py-1.5 rounded-full border border-gray-200 text-[11px] text-gray-600">下架</a>
+      <a onclick="toast('更多操作：改价/改库存/复制链接（演示）')" class="px-4 py-1.5 rounded-full border border-gray-200 text-[11px] text-gray-600">更多</a>
+      <a onclick="takeOffline(this)" class="px-4 py-1.5 rounded-full border border-gray-200 text-[11px] text-gray-600">下架</a>
       <a href="product-publish.html" class="px-5 py-1.5 rounded-full text-[11px] font-bold text-white" style="background:linear-gradient(135deg,#4F6BFF,#3B5BFF)">编辑</a>
     </div>
   </div>
 
-  <!-- 商品3：出售中 -->
-  <div class="card bg-white rounded-xl shadow-soft overflow-hidden fade-up" style="animation-delay:.1s">
+  <!-- 商品3：出售中（未开拼单） -->
+  <div class="card bg-white rounded-xl shadow-soft overflow-hidden fade-up" data-tab="出售中" data-kind="normal" data-join="0" data-price="5.80" data-stock="300" data-id="p3" style="animation-delay:.1s" onclick="cardTap(this,event)">
+    <span class="chk"></span>
     <div class="flex gap-3 p-3">
       <img src="../mai-APP/images/sock_02.jpg" class="w-[76px] h-[76px] rounded-lg object-cover flex-shrink-0">
       <div class="flex-1 min-w-0">
         <p class="text-[13px] font-medium text-gray-800 line-clamp-1">运动压缩跑步袜 减震防滑</p>
         <p class="text-[10px] text-gray-400 mt-1">库存：300 &nbsp; 排序：80</p>
-        <p class="text-[15px] font-bold mt-1.5 num" style="color:#F5222D">¥12.50</p>
+        <div class="flex items-end justify-between mt-1">
+          <p class="text-[15px] font-bold num" style="color:#F5222D">¥5.80<span class="text-[10px] text-gray-400 font-normal">/双</span></p>
+          <span class="text-[9px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-400">未开拼单</span>
+        </div>
+        <p class="text-[9px] text-gray-400 mt-1">单一价 · 阶梯价与拼单开关由后台维护</p>
       </div>
     </div>
     <div class="flex items-center justify-end gap-2 px-3 pb-3">
-      <a onclick="toast('更多操作')" class="px-4 py-1.5 rounded-full border border-gray-200 text-[11px] text-gray-600">更多</a>
-      <a onclick="toast('已提交下架申请（演示）')" class="px-4 py-1.5 rounded-full border border-gray-200 text-[11px] text-gray-600">下架</a>
+      <a onclick="toast('更多操作：改价/改库存/复制链接（演示）')" class="px-4 py-1.5 rounded-full border border-gray-200 text-[11px] text-gray-600">更多</a>
+      <a onclick="takeOffline(this)" class="px-4 py-1.5 rounded-full border border-gray-200 text-[11px] text-gray-600">下架</a>
       <a href="product-publish.html" class="px-5 py-1.5 rounded-full text-[11px] font-bold text-white" style="background:linear-gradient(135deg,#4F6BFF,#3B5BFF)">编辑</a>
+    </div>
+  </div>
+
+  <!-- 商品4：已下架 -->
+  <div class="card bg-white rounded-xl shadow-soft overflow-hidden fade-up" data-tab="已下架" data-kind="normal" data-join="0" data-price="2.60" data-stock="0" data-id="p4" onclick="cardTap(this,event)">
+    <span class="chk"></span>
+    <div class="flex gap-3 p-3">
+      <img src="../mai-APP/images/material_04.jpg" class="w-[76px] h-[76px] rounded-lg object-cover flex-shrink-0 opacity-70">
+      <div class="flex-1 min-w-0">
+        <p class="text-[13px] font-medium text-gray-700 line-clamp-1">竹纤维隐形船袜 防滑不掉</p>
+        <p class="text-[10px] text-gray-400 mt-1">下架原因：库存不足 · 2026-11-10</p>
+        <div class="flex items-end justify-between mt-1">
+          <p class="text-[15px] font-bold num text-gray-500">¥2.60<span class="text-[10px] text-gray-400 font-normal">/双</span></p>
+          <span class="text-[9px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">已下架</span>
+        </div>
+      </div>
+    </div>
+    <div class="flex items-center justify-end gap-2 px-3 pb-3">
+      <a onclick="toast('已删除该商品（演示可在回收站恢复）')" class="px-4 py-1.5 rounded-full border border-gray-200 text-[11px] text-gray-600">删除</a>
+      <a onclick="putOnline(this)" class="px-5 py-1.5 rounded-full text-[11px] font-bold text-white" style="background:linear-gradient(135deg,#4F6BFF,#3B5BFF)">上架</a>
+    </div>
+  </div>
+
+  <!-- 商品5：回收站 -->
+  <div class="card bg-white rounded-xl shadow-soft overflow-hidden fade-up" data-tab="回收站" data-kind="normal" data-join="0" data-price="3.50" data-stock="0" data-id="p5" onclick="cardTap(this,event)">
+    <span class="chk"></span>
+    <div class="flex gap-3 p-3">
+      <img src="../mai-APP/images/sock_06.jpg" class="w-[76px] h-[76px] rounded-lg object-cover flex-shrink-0 opacity-60">
+      <div class="flex-1 min-w-0">
+        <p class="text-[13px] font-medium text-gray-700 line-clamp-1">美羊毛保暖袜加厚款</p>
+        <p class="text-[10px] text-gray-400 mt-1">删除时间：2026-11-05 · 30 天后自动清除</p>
+        <p class="text-[15px] font-bold num text-gray-400 mt-1">¥3.50<span class="text-[10px] text-gray-400 font-normal">/双</span></p>
+      </div>
+    </div>
+    <div class="flex items-center justify-end gap-2 px-3 pb-3">
+      <a onclick="toast('已彻底删除（不可恢复）')" class="px-4 py-1.5 rounded-full border border-gray-200 text-[11px] text-red-500">彻底删除</a>
+      <a onclick="restore(this)" class="px-5 py-1.5 rounded-full text-[11px] font-bold text-white" style="background:linear-gradient(135deg,#4F6BFF,#3B5BFF)">恢复</a>
     </div>
   </div>
 
 </div>
 
-<!-- 底部固定：添加商品（外采原样） -->
+<!-- 空态（待审核 = 0 时展示，待办 #73 C5） -->
+<div class="px-3" id="emptyBox" style="display:none">
+  <div class="bg-white rounded-2xl shadow-soft p-8 text-center">
+    <i class="fas fa-box-open text-gray-200 text-3xl"></i>
+    <p class="text-[12px] text-gray-400 mt-2" id="emptyTxt">暂无商品</p>
+  </div>
+</div>
+
+<!-- ===== 商品类型面板 ===== -->
+<div id="typeSheet" style="display:none;position:fixed;inset:0;z-index:200">
+  <div onclick="closeSheet('typeSheet')" style="position:absolute;inset:0;background:rgba(17,24,39,.45)"></div>
+  <div style="position:absolute;left:0;right:0;bottom:0;width:393px;background:#fff;border-radius:20px 20px 0 0;padding:14px 16px 22px">
+    <div class="flex items-center justify-between mb-3">
+      <p class="text-[14px] font-extrabold text-gray-900">商品类型</p>
+      <a onclick="closeSheet('typeSheet')" class="text-gray-400 text-[12px]">关闭</a>
+    </div>
+    <div class="space-y-2">
+      <a onclick="pickType('all',this)" data-v="all" class="flex items-center justify-between rounded-xl border px-3 py-2.5 text-[12px]" style="border-color:#2563EB;color:#2563EB;background:#EFF6FF">全部商品<i class="fas fa-check text-[11px]"></i></a>
+      <a onclick="pickType('normal',this)" data-v="normal" class="flex items-center justify-between rounded-xl border border-gray-200 px-3 py-2.5 text-[12px] text-gray-600">普通商品（未开拼单）</a>
+      <a onclick="pickType('join',this)" data-v="join" class="flex items-center justify-between rounded-xl border border-gray-200 px-3 py-2.5 text-[12px] text-gray-600">支持拼单商品</a>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 筛选（排序）面板 ===== -->
+<div id="sortSheet" style="display:none;position:fixed;inset:0;z-index:200">
+  <div onclick="closeSheet('sortSheet')" style="position:absolute;inset:0;background:rgba(17,24,39,.45)"></div>
+  <div style="position:absolute;left:0;right:0;bottom:0;width:393px;background:#fff;border-radius:20px 20px 0 0;padding:14px 16px 22px">
+    <div class="flex items-center justify-between mb-3">
+      <p class="text-[14px] font-extrabold text-gray-900">筛选排序</p>
+      <a onclick="closeSheet('sortSheet')" class="text-gray-400 text-[12px]">关闭</a>
+    </div>
+    <div class="space-y-2">
+      <a onclick="pickSort('default',this)" data-v="default" class="flex items-center justify-between rounded-xl border px-3 py-2.5 text-[12px]" style="border-color:#2563EB;color:#2563EB;background:#EFF6FF">默认排序（按排序值）<i class="fas fa-check text-[11px]"></i></a>
+      <a onclick="pickSort('priceDesc',this)" data-v="priceDesc" class="flex items-center justify-between rounded-xl border border-gray-200 px-3 py-2.5 text-[12px] text-gray-600">单价 高 → 低</a>
+      <a onclick="pickSort('priceAsc',this)" data-v="priceAsc" class="flex items-center justify-between rounded-xl border border-gray-200 px-3 py-2.5 text-[12px] text-gray-600">单价 低 → 高</a>
+      <a onclick="pickSort('stockAsc',this)" data-v="stockAsc" class="flex items-center justify-between rounded-xl border border-gray-200 px-3 py-2.5 text-[12px] text-gray-600">库存 少 → 多</a>
+    </div>
+  </div>
+</div>
+
+<!-- 底部固定：添加商品 / 批量操作（待办 #73 B13） -->
 <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-3 py-2.5" style="z-index:100;width:393px;padding-bottom:18px">
-  <a href="product-publish.html" class="block w-full py-3 rounded-full text-white text-[14px] font-bold text-center" style="background:linear-gradient(135deg,#4F6BFF,#3B5BFF)">添加商品</a>
+  <a href="product-publish.html" id="addBtn" class="block w-full py-3 rounded-full text-white text-[14px] font-bold text-center" style="background:linear-gradient(135deg,#4F6BFF,#3B5BFF)">添加商品</a>
+  <div id="batchBar" class="flex gap-2" style="display:none">
+    <button onclick="toggleAll()" class="flex-1 py-3 rounded-full border border-gray-200 text-[13px] text-gray-600 font-medium" id="allBtn">全选</button>
+    <button onclick="batchOffline()" class="flex-[1.4] py-3 rounded-full text-white text-[13px] font-bold" style="background:linear-gradient(135deg,#F59E0B,#D97706)" id="batchOffBtn">批量下架 (0)</button>
+    <button onclick="toggleBatch()" class="px-4 py-3 rounded-full border border-gray-200 text-[13px] text-gray-500">退出</button>
+  </div>
 </div>
 
 <script>
-function switchTab(el,name){
-  document.querySelectorAll('#statusTabs .ttab').forEach(function(a){a.style.color='#6b7280';a.style.fontWeight='400';a.style.borderBottom='2px solid transparent';});
-  el.style.color='#2563EB';el.style.fontWeight='700';el.style.borderBottom='2px solid #2563EB';
-  if(name&&name!=='出售中'){toast(name+' Tab · 外采页签（演示切换）');}
+/* ================= 商品页交互（待办 #73 B12 / B13 / C5） ================= */
+var curTab='出售中',pType='all',pSort='default',kw='',batchMode=false;
+
+function toast(msg){var d=document.createElement('div');d.style.cssText='position:fixed;left:50%;bottom:120px;transform:translateX(-50%);background:rgba(20,20,40,.85);color:#fff;font-size:12px;padding:8px 16px;border-radius:20px;z-index:999;max-width:320px;text-align:center;line-height:1.5';d.textContent=msg;document.body.appendChild(d);setTimeout(function(){d.remove()},1700);}
+function openSheet(id){document.getElementById(id).style.display='block';}
+function closeSheet(id){document.getElementById(id).style.display='none';}
+
+/* 搜索 */
+function toggleSearch(){
+  var w=document.getElementById('searchWrap'),open=w.style.display==='none';
+  w.style.display=open?'block':'none';
+  if(open){setTimeout(function(){document.getElementById('kwInput').focus();},50);}
+  else{document.getElementById('kwInput').value='';kw='';render();}
 }
-function toast(msg){var d=document.createElement('div');d.style.cssText='position:fixed;left:50%;bottom:120px;transform:translateX(-50%);background:rgba(20,20,40,.85);color:#fff;font-size:12px;padding:8px 16px;border-radius:20px;z-index:999;white-space:nowrap';d.textContent=msg;document.body.appendChild(d);setTimeout(function(){d.remove()},1500);}
+function setKw(v){kw=(v||'').trim();render();}
+
+/* Tab 切换：真实过滤 + 计数 */
+function switchTab(el,name){
+  curTab=name;
+  document.querySelectorAll('#statusTabs .ttab').forEach(function(a){
+    a.style.color='#6b7280';a.style.fontWeight='400';a.style.borderBottom='2px solid transparent';
+  });
+  el.style.color='#2563EB';el.style.fontWeight='700';el.style.borderBottom='2px solid #2563EB';
+  render();
+}
+
+/* 商品类型 / 排序 */
+function pickType(v,el){
+  pType=v;
+  document.querySelectorAll('#typeSheet [data-v]').forEach(function(a){
+    var on=a.getAttribute('data-v')===v;
+    a.style.borderColor=on?'#2563EB':'#E5E7EB';
+    a.style.color=on?'#2563EB':'#4B5563';
+    a.style.background=on?'#EFF6FF':'#fff';
+    var i=a.querySelector('i');if(i)i.style.display=on?'':'none';
+  });
+  document.getElementById('typeTxt').textContent=(v==='all'?'全部':(v==='join'?'支持拼单':'普通商品'));
+  closeSheet('typeSheet');render();
+}
+function pickSort(v,el){
+  pSort=v;
+  document.querySelectorAll('#sortSheet [data-v]').forEach(function(a){
+    var on=a.getAttribute('data-v')===v;
+    a.style.borderColor=on?'#2563EB':'#E5E7EB';
+    a.style.color=on?'#2563EB':'#4B5563';
+    a.style.background=on?'#EFF6FF':'#fff';
+    var i=a.querySelector('i');if(i)i.style.display=on?'':'none';
+  });
+  closeSheet('sortSheet');render();
+  toast('已按「'+({default:'默认排序',priceDesc:'单价高→低',priceAsc:'单价低→高',stockAsc:'库存少→多'}[v])+'」排序');
+}
+
+/* 批量模式 */
+function toggleBatch(){
+  batchMode=!batchMode;
+  document.body.classList.toggle('batch',batchMode);
+  document.getElementById('addBtn').style.display=batchMode?'none':'block';
+  document.getElementById('batchBar').style.display=batchMode?'flex':'none';
+  document.getElementById('batchLink').style.color=batchMode?'#2563EB':'';
+  if(!batchMode){
+    document.querySelectorAll('.card.sel').forEach(function(c){c.classList.remove('sel');});
+    updBatchBtn();
+  }
+}
+function cardTap(card,e){
+  if(!batchMode)return;
+  if(e)e.preventDefault();
+  if(card.getAttribute('data-tab')!=='出售中'){toast('仅「出售中」商品可批量下架');return;}
+  card.classList.toggle('sel');
+  updBatchBtn();
+}
+function selList(){return Array.prototype.slice.call(document.querySelectorAll('.card.sel'));}
+function updBatchBtn(){
+  var n=selList().length;
+  document.getElementById('batchOffBtn').textContent='批量下架 ('+n+')';
+  var vis=Array.prototype.slice.call(document.querySelectorAll('.card')).filter(function(c){return c.style.display!=='none';});
+  document.getElementById('allBtn').textContent=(n&&n===vis.length)?'取消全选':'全选';
+}
+function toggleAll(){
+  var vis=Array.prototype.slice.call(document.querySelectorAll('.card')).filter(function(c){return c.style.display!=='none'&&c.getAttribute('data-tab')==='出售中';});
+  var allOn=vis.length&&vis.every(function(c){return c.classList.contains('sel');});
+  vis.forEach(function(c){c.classList.toggle('sel',!allOn);});
+  updBatchBtn();
+}
+function batchOffline(){
+  var list=selList();
+  if(!list.length){toast('请先勾选要下架的商品');return;}
+  list.forEach(function(c){c.setAttribute('data-tab','已下架');c.classList.remove('sel');});
+  toast('已下架 '+list.length+' 个商品，可在「已下架」重新上架');
+  render();
+}
+
+/* 单卡操作：下架 / 上架 / 恢复 */
+function takeOffline(a){
+  var c=a.closest('.card');
+  c.setAttribute('data-tab','已下架');
+  toast('已下架，可在「已下架」重新上架');
+  render();
+}
+function putOnline(a){
+  var c=a.closest('.card');
+  c.setAttribute('data-tab','出售中');
+  toast('已上架，等待平台审核通过后对买家端生效');
+  render();
+}
+function restore(a){
+  var c=a.closest('.card');
+  c.setAttribute('data-tab','出售中');
+  toast('已从回收站恢复');
+  render();
+}
+
+/* 统一渲染：Tab + 类型 + 搜索过滤 → 排序 → 空态 → 计数 */
+function render(){
+  var box=document.getElementById('listBox');
+  var cards=Array.prototype.slice.call(box.querySelectorAll('.card'));
+  cards.forEach(function(c){
+    var okTab=c.getAttribute('data-tab')===curTab;
+    var okType=pType==='all'||c.getAttribute('data-kind')===pType;
+    var okKw=!kw||(c.textContent||'').replace(/\s/g,'').indexOf(kw.replace(/\s/g,''))>-1;
+    c.style.display=(okTab&&okType&&okKw)?'':'none';
+  });
+  /* 排序：把可见卡按规则重排到末尾顺序 */
+  var vis=cards.filter(function(c){return c.style.display!=='none';});
+  var sorted=vis.slice();
+  if(pSort==='priceDesc')sorted.sort(function(a,b){return (+b.dataset.price)-(+a.dataset.price);});
+  else if(pSort==='priceAsc')sorted.sort(function(a,b){return (+a.dataset.price)-(+b.dataset.price);});
+  else if(pSort==='stockAsc')sorted.sort(function(a,b){return (+a.dataset.stock)-(+b.dataset.stock);});
+  /* 默认排序：保持源码顺序（排序值 100/90/80 · 60 · —） */
+  sorted.forEach(function(c){box.appendChild(c);});
+  /* Tab 计数随数据变化 */
+  document.querySelectorAll('#statusTabs .ttab').forEach(function(a){
+    var t=a.getAttribute('data-tab');
+    var s=a.querySelector('span.num');
+    if(s)s.textContent=cards.filter(function(c){return c.getAttribute('data-tab')===t;}).length;
+  });
+  /* 空态 */
+  var empty=document.getElementById('emptyBox');
+  var txt=document.getElementById('emptyTxt');
+  if(!vis.length){
+    empty.style.display='block';
+    txt.textContent=curTab==='待审核'?'暂无待审核商品':'「'+curTab+'」下暂无符合条件的商品';
+  }else empty.style.display='none';
+  updBatchBtn();
+}
+render();
 </script>
 </body>
 </html>

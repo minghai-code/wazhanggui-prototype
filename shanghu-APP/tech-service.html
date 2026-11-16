@@ -142,47 +142,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
     <span class="text-[11px] text-gray-400">后台专家库</span>
   </div>
 
-  <div class="bg-white rounded-2xl shadow-soft p-3 divide-y divide-gray-50 fade-up">
-    <!-- 专家1 -->
-    <div class="flex items-center gap-2.5 pb-2.5">
-      <div class="w-11 h-11 rounded-full flex items-center justify-center text-white text-[14px] font-bold flex-shrink-0" style="background:linear-gradient(135deg,#3B82F6,#6366F1)">张</div>
-      <div class="flex-1 min-w-0">
-        <div class="flex items-center gap-1.5">
-          <p class="text-[13px] font-bold text-gray-900">张明远</p>
-          <span class="text-[9px] font-semibold px-1.5 py-0.5 rounded" style="background:#EAF2FF;color:#2563EB">教授/博导</span>
-          <span class="w-1.5 h-1.5 rounded-full" style="background:#10B981" title="在线"></span>
-        </div>
-        <p class="text-[10px] text-gray-500 mt-0.5"><i class="fas fa-microscope mr-0.5 text-gray-300"></i>功能性纤维材料 · 浙江理工大学</p>
-      </div>
-      <span class="expert-btn" onclick="toast('正在为您连接张明远教授','fa-comment-dots')"><i class="fas fa-comment-dots text-[10px]"></i>在线咨询</span>
-    </div>
-    <!-- 专家2 -->
-    <div class="flex items-center gap-2.5 py-2.5">
-      <div class="w-11 h-11 rounded-full flex items-center justify-center text-white text-[14px] font-bold flex-shrink-0" style="background:linear-gradient(135deg,#7C3AED,#9333EA)">李</div>
-      <div class="flex-1 min-w-0">
-        <div class="flex items-center gap-1.5">
-          <p class="text-[13px] font-bold text-gray-900">李素华</p>
-          <span class="text-[9px] font-semibold px-1.5 py-0.5 rounded" style="background:#EDE9FE;color:#7C3AED">研究员</span>
-          <span class="w-1.5 h-1.5 rounded-full" style="background:#10B981"></span>
-        </div>
-        <p class="text-[10px] text-gray-500 mt-0.5"><i class="fas fa-microscope mr-0.5 text-gray-300"></i>智能纺织工艺 · 东华大学</p>
-      </div>
-      <span class="expert-btn" onclick="toast('正在为您连接李素华研究员','fa-comment-dots')"><i class="fas fa-comment-dots text-[10px]"></i>在线咨询</span>
-    </div>
-    <!-- 专家3 -->
-    <div class="flex items-center gap-2.5 pt-2.5">
-      <div class="w-11 h-11 rounded-full flex items-center justify-center text-white text-[14px] font-bold flex-shrink-0" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)">王</div>
-      <div class="flex-1 min-w-0">
-        <div class="flex items-center gap-1.5">
-          <p class="text-[13px] font-bold text-gray-900">王建国</p>
-          <span class="text-[9px] font-semibold px-1.5 py-0.5 rounded" style="background:#DBEAFE;color:#0284C7">高级工程师</span>
-          <span class="w-1.5 h-1.5 rounded-full" style="background:#9ca3af"></span>
-        </div>
-        <p class="text-[10px] text-gray-500 mt-0.5"><i class="fas fa-microscope mr-0.5 text-gray-300"></i>袜业智能制造 · 纺织科学研究所</p>
-      </div>
-      <span class="expert-btn" onclick="toast('专家离线，已发送留言通知','fa-envelope')"><i class="fas fa-comment-dots text-[10px]"></i>在线咨询</span>
-    </div>
-  </div>
+  <div class="bg-white rounded-2xl shadow-soft p-3 fade-up" id="expertList"></div>
 </div>
 
 <!-- ===== 我的对接 / 我的需求 入口 ===== -->
@@ -719,6 +679,50 @@ function submitRate(dealId){
   toast('评价已提交，感谢反馈');
 }
 
+/* ===== 技术专家（技术成果管理 → 技术专家 Tab 下发，与买家端同源同口径）
+   口径：平台不做在线沟通 / IM；联系人与电话由发布方录入，端上只展示 + 拨号。
+   无电话 → 不渲染拨号按钮，信息行显示「未填写联系电话」，不伪造"正在连接 / 已留言"。 */
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+var EXPERTS=[
+  {name:'张明远',title:'教授 / 博导',unit:'浙江理工大学',dir:'功能性纤维材料',contact:'张明远',phone:'13800001111'},
+  {name:'李素华',title:'研究员',unit:'东华大学',dir:'智能纺织工艺',contact:'李素华',phone:'13900002222'},
+  {name:'王建国',title:'高级工程师',unit:'纺织科学研究所',dir:'袜业智能制造',contact:'王建国',phone:'13700003333'}
+];
+var EXP_G=[['#3B82F6','#6366F1'],['#7C3AED','#9333EA'],['#0EA5E9','#0284C7'],['#10B981','#059669']];
+function renderExperts(){
+  var box=document.getElementById('expertList');if(!box)return;
+  if(!EXPERTS.length){
+    box.innerHTML='<div class="text-center py-6"><i class="fas fa-user-tie text-gray-200 text-2xl"></i><p class="text-[11px] text-gray-400 mt-2">暂无专家入驻</p></div>';
+    return;
+  }
+  var h='';
+  EXPERTS.forEach(function(e,i){
+    var g=EXP_G[i%EXP_G.length];
+    var hasPhone=!!String(e.phone||'').replace(/[^\d]/g,'');
+    h+='<div class="flex items-start gap-2.5 py-3 border-b border-gray-50" style="'+(i===EXPERTS.length-1?'border-bottom:none':'')+'">';
+    h+='<div class="w-11 h-11 rounded-full flex items-center justify-center text-white text-[14px] font-bold flex-shrink-0" style="background:linear-gradient(135deg,'+g[0]+','+g[1]+')">'+esc(String(e.name||'').charAt(0))+'</div>';
+    h+='<div class="flex-1 min-w-0">';
+    h+='<div class="flex items-center gap-1.5"><p class="text-[13px] font-bold text-gray-900">'+esc(e.name)+'</p>';
+    if(e.title)h+='<span class="text-[9px] font-semibold px-1.5 py-0.5 rounded" style="background:'+g[0]+'1A;color:'+g[0]+'">'+esc(e.title)+'</span>';
+    h+='</div>';
+    h+='<p class="text-[10px] text-gray-500 mt-0.5"><i class="fas fa-microscope mr-0.5 text-gray-300"></i>'+esc(e.dir||'')+(e.unit?' · '+esc(e.unit):'')+'</p>';
+    if(hasPhone){
+      h+='<p class="text-[10px] text-gray-500 mt-1"><i class="fas fa-user mr-1 text-gray-300"></i>'+esc(e.contact||e.name)+'<i class="fas fa-mobile-screen mr-1 ml-2 text-gray-300"></i>'+esc(e.phone)+'</p>';
+    }else{
+      h+='<p class="text-[10px] text-gray-400 mt-1"><i class="fas fa-user mr-1 text-gray-300"></i>'+esc(e.contact||e.name)+'<span class="ml-2">未填写联系电话</span></p>';
+    }
+    h+='</div>';
+    if(hasPhone)h+='<span class="expert-btn" onclick="callExpert(\''+esc(e.phone)+'\')"><i class="fas fa-phone text-[10px]"></i>拨打电话</span>';
+    h+='</div>';
+  });
+  box.innerHTML=h;
+}
+function callExpert(phone){
+  var p=String(phone||'').replace(/[^\d+]/g,'');
+  if(!p)return;
+  location.href='tel:'+p;
+}
+
 function renderAchv(){
   var box=document.getElementById('achvList');if(!box)return;
   document.getElementById('achvCount').textContent='共 '+TECH_ACHV.length+' 项';
@@ -765,6 +769,7 @@ function renderDemand(){
   });
   box.innerHTML=h;
 }
+renderExperts();
 renderAchv();
 renderDemand();
 renderMyTechEntry();

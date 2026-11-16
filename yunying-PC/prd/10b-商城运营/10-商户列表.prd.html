@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>10b-10 商户列表 · 运营端页面说明 · 页面 PRD</title><style>
+:root{--fg:#1F2430;--muted:#64748B;--line:#E9EDF3}
+*{box-sizing:border-box}
+body{margin:0;padding:26px 32px 90px;background:#fff;color:var(--fg);
+ font:14px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif}
+h1{font-size:20px;margin:0 0 6px}
+h2{font-size:17px;margin:34px 0 12px;padding-top:12px;border-top:1px solid var(--line)}
+h3{font-size:15px;margin:22px 0 10px}
+h4{font-size:14px;margin:18px 0 8px;color:#334155}
+p{margin:8px 0}
+table{border-collapse:collapse;width:100%;margin:10px 0 16px;font-size:12.5px}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:#F8FAFC;font-weight:700}
+tr:nth-child(even) td{background:#FCFDFE}
+code{background:#F1F5F9;padding:1px 5px;border-radius:4px;font-size:12px;
+ font-family:ui-monospace,Menlo,Consolas,monospace;color:#B91C1C}
+pre.code{background:#0F172A;color:#E2E8F0;padding:14px 16px;border-radius:10px;overflow:auto;font-size:12px}
+pre.code code{background:none;color:inherit;padding:0}
+blockquote{margin:10px 0;padding:10px 14px;background:#EFF6FF;border-left:3px solid #60A5FA;
+ border-radius:0 8px 8px 0;color:#334155;font-size:13px}
+ul,ol{margin:8px 0;padding-left:22px}
+li{margin:3px 0}
+hr{border:0;border-top:1px dashed var(--line);margin:22px 0}
+a{color:#2563EB;text-decoration:none}
+.meta{font-size:12px;color:var(--muted);margin:0 0 20px}
+.vtitle{font-size:18px;font-weight:800;margin:0 0 4px}
+details.fam{margin:12px 0 20px;border:1px solid var(--line);border-radius:10px;background:#F8FAFC;padding:0 14px}
+details.fam summary{cursor:pointer;padding:10px 0;font-size:13px;font-weight:700;color:#334155}
+details.fam[open]{padding-bottom:10px}
+.vnav{display:flex;justify-content:space-between;margin-top:34px;padding-top:14px;border-top:1px dashed var(--line);font-size:13px}
+</style></head><body>
+<div class="meta">由 <code>yunying-PC/prd/10b-商城运营/10-商户列表.md</code> 生成，勿手改；改文档请改 md 后重跑 build-prd。</div>
+<h1>10b-10 商户列表 · 运营端页面说明</h1>
+<blockquote>端：运营端 PC　｜　模块：10 商城运营 → 商户管理　｜　页面：<code>mall-merchant-list.html</code> 页面版本：v1.0（2026-11-16 · 漏登记补齐）　｜　依据：<code>开发PRD/运营管理端分册PRD/10-商城运营.md</code> §6 + <code>04-商户管理.md</code> §9.3 同组页面：<code>mall-merchant-recruit.html</code>（招商内容）、<code>mall-merchant-setting.html</code>（商户设置）</blockquote>
+<hr>
+<h2 id="p0">0. 改造边界（外采 igshop 占位页）</h2>
+<table><thead><tr><th>项</th><th>结论</th></tr></thead><tbody><tr><td>页面性质</td><td><strong>外采 igshop 原样能力占位页</strong>，不属于二开范围；原型仅占位示意，开发直接对照外采系统实现</td></tr><tr><td>权威来源</td><td><strong>商户主档与入驻审核以 04 商户管理（自研）为唯一权威</strong>；商城侧只读消费商户主体</td></tr><tr><td>04 负责</td><td>商户档案、资质、信用评级、清退、线上/线下类型判定、入驻审核结论</td></tr><tr><td>本页负责</td><td>商城侧商户记录展示、认证资料留档、运营代建档</td></tr><tr><td>禁止</td><td>在本页新增「改审核结论 / 改资质状态 / 改商户主体类型」类操作；需突破时先改 04 分册</td></tr></tbody></table>
+<hr>
+<h2 id="p1">1. 商户列表 <code>mall-merchant-list.html</code></h2>
+<h3>1.1 页面说明</h3>
+<table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>页面目标</td><td>查看已入驻商城的商户主体及其店铺绑定、认证状态，支持运营代建档与维护</td></tr><tr><td>使用角色</td><td>商城运营专员（查询 / 代建档）、商城运营主管（删除）</td></tr><tr><td>入口</td><td>菜单 → 商城运营 → 商户管理 → 商户列表</td></tr><tr><td>前置</td><td>商户已通过 04 入驻审核（或运营代录）</td></tr><tr><td>后置</td><td>不改变 04 主档；仅维护商城侧可见的商户记录与认证资料</td></tr></tbody></table>
+<h3>1.2 页面结构</h3>
+<table><thead><tr><th>区块</th><th>内容</th></tr></thead><tbody><tr><td>顶部</td><td>标题 + 模块标签「10 商城运营 · 商户管理」+ 右侧「添加商户」</td></tr><tr><td>筛选区</td><td>商户名称（模糊）+ 商户类型（企业认证 / 个人认证）+ 认证状态（正常 / 已过期）+ 搜索 / 重置</td></tr><tr><td>表格</td><td><strong>8 列</strong>：商户所属单位（附「企业 / 个人」标签）/ 商户所属会员(ID) / 商户类型 / 管理员 / 已绑定店铺 / 认证状态 / 认证日期 / 操作（详情 · 编辑 · 删除）</td></tr><tr><td>空态</td><td>「暂无数据」</td></tr><tr><td>分页</td><td>底部「共 N 条记录」+ 上一页 / 页码 / 下一页</td></tr><tr><td>抽屉</td><td>添加 / 编辑商户（标题随模式切换）</td></tr></tbody></table>
+<h3>1.3 字段规格（抽屉）</h3>
+<table><thead><tr><th>字段</th><th>必填</th><th>形式</th><th>说明</th></tr></thead><tbody><tr><td>商户所属单位</td><td>是</td><td>文本</td><td>企业名或个人名</td></tr><tr><td>商户所属会员(ID)</td><td>是</td><td>文本</td><td>与 04 商户账号一致，如 <code>dz_10101</code></td></tr><tr><td>商户类型</td><td>是</td><td>二选一卡片</td><td>企业认证（营业执照）/ 个人认证（身份证实名）</td></tr><tr><td>管理员</td><td>是</td><td>文本</td><td>管理员账号名</td></tr><tr><td>认证资料</td><td>否</td><td>图片上传</td><td>营业执照 / 身份证等认证材料，选中后缩略位转勾选态并显示文件名</td></tr></tbody></table>
+<h3>1.4 操作与规则</h3>
+<table><thead><tr><th>操作</th><th>规则</th></tr></thead><tbody><tr><td>搜索 / 重置</td><td>三个条件交集过滤；重置清空条件并恢复全量</td></tr><tr><td>添加商户</td><td>校验通过后插入列表首行，绑定店铺数默认 0，认证状态默认「正常」</td></tr><tr><td>编辑商户</td><td>回填全部字段；商户类型可改（企业 / 个人标签跟随变化）</td></tr><tr><td>详情</td><td>展示商户名 · 类型 · 已绑定店铺数（外采详情页为准）</td></tr><tr><td>删除</td><td><strong>已绑定店铺 &gt; 0 的商户不可删除</strong>，需先解绑店铺；可删除时二次确认后移除</td></tr><tr><td>绑定店铺数</td><td>只读，由外采店铺数据汇总，本页不提供维护入口</td></tr></tbody></table>
+<h3>1.5 提示文案</h3>
+<table><thead><tr><th>场景</th><th>提示文案</th><th>形式</th></tr></thead><tbody><tr><td>未填单位</td><td>请输入商户所属单位</td><td>Toast</td></tr><tr><td>未填会员 ID</td><td>请输入商户所属会员(ID)</td><td>Toast</td></tr><tr><td>未填管理员</td><td>请输入管理员账号</td><td>Toast</td></tr><tr><td>添加成功</td><td>商户「{商户名}」已添加</td><td>Toast</td></tr><tr><td>编辑保存</td><td>已保存修改</td><td>Toast</td></tr><tr><td>选择认证资料</td><td>认证资料已选择：{文件名}</td><td>Toast</td></tr><tr><td>删除被拦</td><td>该商户已绑定 {n} 家店铺，不可删除</td><td>Toast</td></tr><tr><td>删除成功</td><td>商户「{商户名}」已删除</td><td>Toast</td></tr></tbody></table>
+<h3>1.6 验收标准</h3>
+<table><thead><tr><th>编号</th><th>前置</th><th>操作</th><th>预期</th></tr></thead><tbody><tr><td>AC-M1</td><td>任一商户</td><td>点「详情」</td><td>返回商户名 / 类型 / 绑定店铺数，无空响应</td></tr><tr><td>AC-M2</td><td>有店铺的商户</td><td>点「删除」</td><td>拦截并提示绑定店铺数，记录不被删除</td></tr><tr><td>AC-M3</td><td>无店铺的商户</td><td>点「删除」</td><td>二次确认后移除，列表与「共 N 条」同步</td></tr><tr><td>AC-M4</td><td>打开添加抽屉</td><td>三项必填留空提交</td><td>逐项拦截，文案见 §1.5</td></tr><tr><td>AC-M5</td><td>新建企业认证商户</td><td>保存后看列表</td><td>「企业」标签 + 认证状态「正常」+ 认证日期为保存日期</td></tr></tbody></table>
+<h3>1.7 待接口联调</h3>
+<ol><li>数据源改为接口（当前内联 6 条 mock），分页与「共 N 条」由服务端返回。</li><li>认证资料上传走对象存储，返回文件 ID 而非本地文件名。</li><li>删除前置校验（绑定店铺数）由服务端二次校验，防并发绕过。</li></ol>
+</body></html>

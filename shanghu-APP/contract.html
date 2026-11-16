@@ -38,7 +38,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
     <h1 class="text-white font-extrabold text-[20px]" style="text-shadow:0 2px 10px rgba(0,0,0,.18)">合同服务</h1>
     <div class="w-9"></div>
   </div>
-  <p class="relative text-white/80 text-[11px] mt-2"><i class="fas fa-file-contract"></i> 合同查看 · 变更由合同专员发起</p>
+  <p class="relative text-white/80 text-[11px] mt-2"><i class="fas fa-file-contract"></i> 合同查看 · 变更由合同专员发起 · 签署前须阅读全文并逐份确认附件</p>
+  <p class="relative text-white/60 text-[10px] mt-1"><i class="fas fa-stamp"></i> 线上签署后以最终盖章纸质件上传归档为准</p>
   <div class="relative flex gap-4 mt-3 text-[13px]">
     <a id="ct-sign" class="text-white font-bold border-b-2 border-white pb-1.5" onclick="switchCt('sign',this)">待签署 <span id="tabSignN" class="text-[10px] bg-white/25 px-1 rounded">0</span></a>
     <a id="ct-active" class="text-white/70 pb-1.5" onclick="switchCt('active',this)">生效中</a>
@@ -84,14 +85,38 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
     <div class="w-10 h-1 rounded-full bg-gray-200 mx-auto mb-3"></div>
     <p class="text-[15px] font-extrabold text-gray-900 text-center" id="signTitle">签署变更协议</p>
     <p class="text-[10px] text-gray-400 text-center mt-1" id="signSub">一次签署即生效，旧版本仅供查阅</p>
-    <canvas id="signPad" class="w-full h-40 bg-gray-50 border border-gray-200 rounded-xl mt-3"></canvas>
+
+    <!-- ① 合同全文入口（待办 #74 A5） -->
+    <a onclick="openBody()" class="mt-3 flex items-center gap-2 rounded-xl px-3 py-2.5" style="background:#EEF2FF">
+      <i class="fas fa-file-contract text-[13px]" style="color:#4F46E5"></i>
+      <span class="text-[12px] font-bold" style="color:#4338CA">查看合同全文（15 条 · 只读）</span>
+      <i class="fas fa-chevron-right ml-auto text-[10px]" style="color:#818CF8"></i>
+    </a>
+
+    <!-- ② 附件逐份确认（两项必勾） -->
+    <div class="mt-3 space-y-2">
+      <label class="flex items-start gap-2 rounded-xl border border-gray-200 px-3 py-2.5" onclick="toggleAgree('a')">
+        <span id="cbA" class="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 mt-0.5" style="border:1.5px solid #D1D5DB;background:#fff"><i class="fas fa-check text-white text-[8px]" style="display:none"></i></span>
+        <span class="text-[11px] text-gray-600 leading-relaxed">已阅读并同意《大唐袜子市场管理公约》</span>
+      </label>
+      <label class="flex items-start gap-2 rounded-xl border border-gray-200 px-3 py-2.5" onclick="toggleAgree('b')">
+        <span id="cbB" class="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 mt-0.5" style="border:1.5px solid #D1D5DB;background:#fff"><i class="fas fa-check text-white text-[8px]" style="display:none"></i></span>
+        <span class="text-[11px] text-gray-600 leading-relaxed">已确认《地址确认书》与送达方式（账号手机号＝合同手机号）</span>
+      </label>
+    </div>
+    <p class="text-[9px] text-gray-400 mt-2 leading-relaxed"><i class="fas fa-circle-info mr-1"></i>两项附件未全部勾选或签名区为空时无法提交；提交后以最终盖章纸质件上传归档为准。</p>
+
+    <canvas id="signPad" class="w-full h-36 bg-gray-50 border border-gray-200 rounded-xl mt-3"></canvas>
     <div class="flex gap-2 mt-3">
       <a onclick="clearSign()" class="flex-1 py-3 rounded-xl border border-gray-200 text-[13px] text-gray-600 text-center font-medium">清除</a>
-      <a onclick="submitSign()" class="flex-1 py-3 rounded-xl text-white text-[13px] font-bold text-center" style="background:linear-gradient(135deg,#6366F1,#4F46E5)">提交签名</a>
+      <a onclick="submitSign()" id="signSubmit" class="flex-1 py-3 rounded-xl text-white text-[13px] font-bold text-center" style="background:#C7CBD6">同意并提交签名</a>
     </div>
   </div>
 </div>
 
+<!-- 合同正文唯一来源：运营端模板库 + 商户端只读层（待办 #74 A5） -->
+<script src="../yunying-PC/contract-tpl.js"></script>
+<script src="contract-body.js"></script>
 <script>
 function toast(msg){var d=document.createElement('div');d.style.cssText='position:fixed;left:50%;bottom:110px;transform:translateX(-50%);background:rgba(20,20,40,.85);color:#fff;font-size:12px;padding:8px 16px;border-radius:20px;z-index:999;max-width:320px;text-align:center;line-height:1.5';d.textContent=msg;document.body.appendChild(d);setTimeout(function(){d.remove()},2000);}
 
@@ -112,7 +137,7 @@ var DATA={
     change:{
       id:'BG2026-0012',type:'租金 + 租期调整',initiator:'何静（合同专员）',
       expect:'2026-11-15',state:'待签署',round:2,
-      fields:[['年租金','¥122,880','¥128,000'],['租期','2025.09.01–2026.08.31','2025.09.01–2027.08.31']],
+      fields:[['每期租金','¥122,880 / 期','¥128,000 / 期'],['租期','2025.09.01–2026.08.31','2025.09.01–2027.08.31']],
       remind:{count:1,at:'2026-11-04 10:20'},
       reject:{type:'签名问题',why:'第 1 次签署的签名与备案笔迹差异较大，请重新签署'}
     }
@@ -130,8 +155,8 @@ var DATA={
     no:'HT2025-0102',volume:'70-02',shop:'A栋 3F A3-101',area:'45㎡',floor:'A栋3层',
     rent:'¥120,000',year:'2025.10.01–2026.09.30',state:'变更中',ver:'v1',
     signDate:'2025-09-26',subject:'enterprise',corpName:'大唐袜业旗舰',
-    change:{id:'BG2026-0015',type:'面积调整',initiator:'何静（合同专员）',expect:'2026-11-20',state:'已签待审',round:1,
-      fields:[['出租面积','45㎡','52㎡']]}
+    change:{id:'BG2026-0015',type:'面积调整 + 保证金变更',initiator:'何静（合同专员）',expect:'2026-11-20',state:'已签待审',round:1,
+      fields:[['出租面积','45㎡','52㎡'],['保证金','每间 ¥10,000 × 1 间＝¥10,000','每间 ¥12,000 × 2 间＝¥24,000']]}
   },
   /* ④ 变更已撤回（待签阶段被专员撤回 → 待签消失，全部留痕） */
   'HT2026-0006':{
@@ -139,7 +164,7 @@ var DATA={
     rent:'¥98,000',year:'2026.09.01–2027.08.31',state:'生效中',ver:'v1',
     signDate:'2026-08-30',subject:'enterprise',corpName:'大唐袜业旗舰',
     change:{id:'BG2026-0009',type:'租金调整',initiator:'何静（合同专员）',expect:'2026-11-10',state:'已撤回',round:1,withdrawAt:'2026-11-04',
-      fields:[['年租金','¥98,000','¥105,000']]}
+      fields:[['每期租金','¥98,000 / 期','¥105,000 / 期']]}
   },
   /* ⑤ 仅联系方式变更（不需重签 → 不进待签，只在全部留痕） */
   'HT2026-0008':{
@@ -161,7 +186,7 @@ var DATA={
     rent:'¥118,000',year:'2026.09.01–2028.08.31',state:'生效中',ver:'v2',
     signDate:'2026-09-28',subject:'enterprise',corpName:'大唐袜业旗舰',
     change:{id:'BG2026-0005',type:'租金调整',initiator:'何静（合同专员）',expect:'2026-10-01',state:'已生效',round:1,
-      fields:[['年租金','¥110,000','¥118,000']],signedAt:'2026-09-28 10:12',sealUp:true}
+      fields:[['每期租金','¥110,000 / 期','¥118,000 / 期']],signedAt:'2026-09-28 10:12',sealUp:true}
   },
   /* 历史 */
   'HT2023-0518':{no:'HT2023-0518',volume:'51-08',shop:'1F-A08 档口',area:'50㎡',floor:'A栋1层',rent:'¥140,000',year:'2023.09.01–2024.09.01',state:'已到期',ver:'v1',signDate:'2023-08-25',endReason:'到期（重新竞拍）',endDate:'2024.09.01',subject:'person',name:'李老板'},
@@ -271,7 +296,7 @@ function renderActive(){
       +  '</div>'
       +  '<div class="grid grid-cols-2 gap-2 bg-gray-50 rounded-lg p-2.5 text-[10px]">'
       +    '<div><span class="text-gray-400">商铺</span><p class="text-gray-700 font-medium mt-0.5">'+c.shop+' · '+c.area+'</p></div>'
-      +    '<div><span class="text-gray-400">年租金</span><p class="text-gray-700 font-medium num mt-0.5">'+c.rent+'</p></div>'
+      +    '<div><span class="text-gray-400">每期租金</span><p class="text-gray-700 font-medium num mt-0.5">'+c.rent+' <span class="text-[9px] text-gray-400">/ 期</span></p></div>'
       +    '<div><span class="text-gray-400">租赁年度</span><p class="text-gray-700 font-medium num mt-0.5">'+c.year+'</p></div>'
       +    '<div><span class="text-gray-400">当前版本</span><p class="text-gray-700 font-medium num mt-0.5">'+c.ver+'</p></div>'
       +  '</div>'
@@ -299,7 +324,7 @@ function renderHistory(){
       +'<div class="min-w-0"><p class="text-[13px] font-bold text-gray-700">商铺租赁合同 <span class="text-[9px] text-gray-400 bg-gray-100 px-1 py-0.5 rounded align-middle">'+c.ver+'</span></p>'
       +'<p class="text-[10px] text-gray-400 num mt-0.5">'+c.no+' · '+c.shop+'</p></div></div>'
       + chip(c.state,c2[1],c2[0]) +'</div>'
-      +'<div class="flex items-center justify-between text-[10px] text-gray-400"><span class="num">'+c.year+' · 年租金 '+c.rent+'</span><span>结束 '+(c.endDate||'—')+'</span></div>'
+      +'<div class="flex items-center justify-between text-[10px] text-gray-400"><span class="num">'+c.year+' · 每期租金 '+c.rent+'</span><span>结束 '+(c.endDate||'—')+'</span></div>'
       +(c.endReason?'<p class="text-[10px] text-gray-500 mt-1.5 bg-gray-50 rounded-lg px-2 py-1"><i class="fas fa-rotate-right text-[9px]"></i> 结束原因：<b>'+c.endReason+'</b></p>':'')
       +'</a>';
   }).join('');
@@ -345,7 +370,7 @@ function renderAll(){
       + chip(c.source==='legacy'?'存量合同':(c.change&&c.change.state==='待签署'?'变更中 · 待我签署':(c.change&&c.change.state==='已签待审'?'已签署 · 待审核':st.text)),
              c.source==='legacy'?'#6B7280':st.fg, c.source==='legacy'?'#F3F4F6':st.bg)
       +'</div>'
-      +'<p class="text-[10px] text-gray-400 num">'+c.year+' · 年租金 '+c.rent+' · 当前 '+c.ver+'</p>'
+      +'<p class="text-[10px] text-gray-400 num">'+c.year+' · 每期租金 '+c.rent+' · 当前 '+c.ver+'</p>'
       +(c.change&&c.change.id?'<p class="text-[10px] text-gray-500 mt-1">变更单 '+(c.change.id)+' · '+(c.change.state)+'</p>':'')
       +'</a>';
   }).join('');
@@ -360,8 +385,10 @@ function switchCt(tab,el){
   else{document.querySelectorAll('[data-ct="'+tab+'"]').forEach(function(s){s.style.display='block';});}
 }
 
-/* ---------- 签名 ---------- */
+/* ---------- 签名（含正文阅读 + 附件逐份同意；待办 #74 A5 / A6） ---------- */
 var signCtx=null,signing=false,signPad=document.getElementById('signPad'),signTarget=null;
+var agree={a:false,b:false};
+
 function openSign(no,isChange){
   signTarget={no:no,isChange:!!isChange};
   var c=DATA[no];
@@ -370,29 +397,80 @@ function openSign(no,isChange){
   document.getElementById('signMask').style.display='flex';
   var r=signPad.getBoundingClientRect();signPad.width=r.width||300;signPad.height=r.height||160;
   signCtx=signPad.getContext('2d');signCtx.lineWidth=2;signCtx.strokeStyle='#1F2937';signCtx.lineCap='round';
+  /* 每次打开重置同意态，避免沿用上一次签署 */
+  agree={a:false,b:false};paintAgree();refreshSubmit();
 }
 function closeSign(){document.getElementById('signMask').style.display='none';}
-function clearSign(){if(signCtx)signCtx.clearRect(0,0,signPad.width,signPad.height);}
+function clearSign(){if(signCtx)signCtx.clearRect(0,0,signPad.width,signPad.height);refreshSubmit();}
+function openBody(){
+  var c=DATA[(signTarget||{}).no]||{};
+  SHCT.show(c);
+}
+function paintAgree(){
+  [['a','cbA'],['b','cbB']].forEach(function(x){
+    var el=document.getElementById(x[1]);if(!el)return;
+    var on=agree[x[0]];
+    el.style.background=on?'#4F46E5':'#fff';
+    el.style.borderColor=on?'#4F46E5':'#D1D5DB';
+    el.querySelector('i').style.display=on?'block':'none';
+  });
+}
+function toggleAgree(k){agree[k]=!agree[k];paintAgree();refreshSubmit();}
+function hasSign(){
+  if(!signCtx)return false;
+  try{
+    var d=signCtx.getImageData(0,0,signPad.width,signPad.height).data;
+    for(var i=3;i<d.length;i+=4){if(d[i]!==0)return true;}
+  }catch(e){return true;}
+  return false;
+}
+function refreshSubmit(){
+  var btn=document.getElementById('signSubmit');if(!btn)return;
+  var ok=agree.a&&agree.b&&hasSign();
+  btn.style.background=ok?'linear-gradient(135deg,#6366F1,#4F46E5)':'#C7CBD6';
+  btn.style.color=ok?'#fff':'#F1F5F9';
+}
+function nowStr(){
+  var d=new Date(),p=function(n){return (n<10?'0':'')+n;};
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());
+}
 function submitSign(){
-  closeSign();
+  /* 硬校验：两项附件必须逐一勾选 + 签名区非空（待办 #74 A6） */
+  if(!agree.a||!agree.b){
+    toast('请先阅读合同全文，并勾选《管理公约》《地址确认书》两项确认');
+    return;
+  }
+  if(!hasSign()){
+    toast('签名区为空，请先手写签名');
+    return;
+  }
   var t=signTarget||{};
   var c=DATA[t.no];
+  var at=nowStr();
+  var phone=(c&&c.phone)||'137****6677';
+  /* 签署留痕：勾选时间 + 送达手机号（详情页读取） */
+  try{
+    localStorage.setItem('sh_agree_'+t.no,JSON.stringify({at:at,phone:phone,items:['大唐袜子市场管理公约','地址确认书']}));
+  }catch(e){}
+  closeSign();
   if(c&&c.change&&t.isChange){
     c.change.state='已签待审';
     c.change.reject=null;
-    toast('已签署 · 待合同专员审核（审核通过后以本版本为准）');
+    c.agreeAt=at;
   }else if(c){
     c.state='变更中';
     c.change=c.change||{id:'',type:'主体信息变更',initiator:'何静（合同专员）',expect:'—',state:'已签待审',round:1,fields:[]};
     c.change.state='已签待审';
-    toast('签名已提交 · 待合同专员审核签字');
+    c.agreeAt=at;
   }
+  toast('已同意附件并完成签署（'+at+' · '+phone+'）· 待合同专员审核，以盖章纸质件归档为准');
   renderAll();renderSign();renderActive();
   switchCt('active',document.getElementById('ct-active'));
 }
 signPad.addEventListener('pointerdown',function(e){signing=true;if(!signCtx)return;signCtx.beginPath();signCtx.moveTo(e.offsetX,e.offsetY);});
 signPad.addEventListener('pointermove',function(e){if(signing&&signCtx){signCtx.lineTo(e.offsetX,e.offsetY);signCtx.stroke();}});
-signPad.addEventListener('pointerup',function(){signing=false;});
+signPad.addEventListener('pointerup',function(){signing=false;refreshSubmit();});
+signPad.addEventListener('pointerleave',function(){signing=false;refreshSubmit();});
 
 renderSign();renderActive();renderHistory();renderAll();
 </script>

@@ -93,6 +93,9 @@
     'yunying-PC/mall-ops.html':           ['10b-商城运营/09-商品新增与阶梯价', '商品列表', '商品列表'],
     'yunying-PC/mall-product-add.html':   ['10b-商城运营/09-商品新增与阶梯价', '', '商品新增与阶梯价'],
     'yunying-PC/mall-ops.html':           ['10b-商城运营/09-商品新增与阶梯价', '', '商品新增与阶梯价'],
+    'yunying-PC/mall-merchant-list.html':    ['10b-商城运营/10-商户列表', '', '商户列表'],
+    'yunying-PC/mall-merchant-recruit.html': ['10b-商城运营/11-招商内容', '', '招商内容'],
+    'yunying-PC/mall-merchant-setting.html': ['10b-商城运营/12-商户设置', '', '商户设置'],
 
     /* ===== 移动端 · 功能族（值指向 _views/ 下的单页视图，不是族文档） ===== */
     'mai-APP/ai-assistant.html':      ['_views/F13-AI服务助手-p1', '', 'AI 服务助手'],
@@ -157,7 +160,19 @@
     'mai-APP/bulk-custom.html':       ['_views/F08-采购询价与定制-p6', '', '批量定制'],
     'mai-APP/ai-outfit.html':         ['_views/F08-采购询价与定制-p7', '', 'AI 穿搭'],
     'mai-APP/custom-demand.html':     ['_views/F08-采购询价与定制-p8', '', '我的定制需求'],
-    'mai-APP/custom-demand-detail.html':['_views/F08-采购询价与定制-p9', '', '定制需求详情']
+    'mai-APP/custom-demand-detail.html':['_views/F08-采购询价与定制-p9', '', '定制需求详情'],
+
+    'mai-APP/material-group-buy.html':        ['_views/F05-原料市场-p6', '', '原料大宗集采列表'],
+    'mai-APP/material-group-buy-create.html': ['_views/F05-原料市场-p6', '', '发起大宗集采'],
+    'mai-APP/material-group-buy-join.html':   ['_views/F05-原料市场-p6', '', '集采详情'],
+
+    'mai-APP/industry-services.html': ['_views/F09-产业链服务-p1', '', '产业链服务聚合'],
+    'mai-APP/finance-service.html':   ['_views/F09-产业链服务-p2', '', '金融服务撮合'],
+    'mai-APP/recruit-service.html':   ['_views/F09-产业链服务-p3', '', '人才招聘'],
+    'mai-APP/ip-service.html':        ['_views/F09-产业链服务-p4', '', '知识产权网'],
+    'mai-APP/tech-service.html':      ['_views/F09-产业链服务-p5', '', '技术共享'],
+    'mai-APP/policy-service.html':    ['_views/F09-产业链服务-p6', '', '政策兑现'],
+    'mai-APP/agency-service.html':    ['_views/F09-产业链服务-p7', '', '中介服务']
   };
 
   var parts = location.pathname.replace(/\\/g, '/').split('/');

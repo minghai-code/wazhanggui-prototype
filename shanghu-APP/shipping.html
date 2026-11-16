@@ -35,7 +35,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
     <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><span class="text-xs">75%</span><i class="fas fa-battery-three-quarters text-sm"></i></div>
   </div>
   <div class="relative flex items-center justify-between mt-1">
-    <a href="order-detail.html" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
+    <a href="order-detail.html" id="backBtn" class="w-9 h-9 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"><i class="fas fa-chevron-left text-sm"></i></a>
     <h1 class="text-white font-extrabold text-[20px]" style="text-shadow:0 2px 10px rgba(0,0,0,.18)">发货</h1>
     <div class="w-9"></div>
   </div>
@@ -181,6 +181,30 @@ function toast(m){
 var _q=new URLSearchParams(location.search);
 var orderNo=_q.get('no')||'SO20260720-001';
 var total=+(_q.get('qty')||100);
+
+/* 返回按钮带原单参数（待办 #73 B8） */
+(function(){
+  var keep=['no','qty','shipped','type','group','state','name','demand','fee'];
+  var qs=keep.filter(function(k){return _q.get(k)!==null&&_q.get(k)!=='';})
+             .map(function(k){return k+'='+encodeURIComponent(_q.get(k));});
+  document.getElementById('backBtn').href='order-detail.html'+(qs.length?'?'+qs.join('&'):'');
+})();
+
+/* 订单概要按单渲染（待办 #73 A1/B9）：单号 / 件数 / 商品名不再写死 */
+var ORDER_MOCK={
+  'SO20260720-001':{name:'精梳棉商务男袜 透气防臭 10双装',amt:'340.0'},
+  'SO20260719-088':{name:'运动压缩跑步袜 减震防滑 等4款',amt:'2,180.0'},
+  'SO20260718-102':{name:'纯棉中筒商务袜 6双装',amt:'168.0'},
+  'GB20261028-006':{name:'美羊毛保暖袜加厚款',amt:'960.0'},
+  'QJ20260720-001':{name:'秋季男士商务袜（询价成交）',amt:'17,500'}
+};
+var _mm=ORDER_MOCK[orderNo]||{};
+(function(){
+  var nm=_q.get('name')||_mm.name;
+  if(nm)document.getElementById('osName').textContent=nm;
+  document.getElementById('osSub').textContent=orderNo+' · x'+total+'双'+(_mm.amt?' · ¥'+_mm.amt:'');
+})();
+
 var recs=[];
 try{recs=JSON.parse(localStorage.getItem('sh_ship_'+orderNo)||'[]');}catch(e){}
 if(!recs.length&&(+_q.get('shipped')||0)>0){
@@ -193,7 +217,7 @@ if(_q.get('type')==='inquiry'){
   document.getElementById('osIcon').className='fas fa-file-signature text-sky-500';
   document.getElementById('osBadge').style.display='inline-block';
   document.getElementById('osName').textContent='秋季男士商务袜（询价成交）';
-  document.getElementById('osSub').textContent='QJ20260720-001 · x5000双 · ¥17,500';
+  document.getElementById('osSub').textContent=orderNo+' · x'+total+'双'+(_mm.amt?' · ¥'+_mm.amt:'');
   document.getElementById('osTrace').style.display='block';
   document.getElementById('recvNote').style.display='block';
   document.getElementById('shipSub').innerHTML='<i class="fas fa-truck-fast"></i> 询价订单发货 · 收货信息以买家下单填写为准';
@@ -222,17 +246,60 @@ if(_q.get('type')==='custom'){
   document.getElementById('shipSub').innerHTML='<i class="fas fa-shirt"></i> 定制大货发货 · 尾款已收，可出库';
 }
 
-/* 拼单团取消：不可发货（待办 #37 / M03 BR-14） */
-if(_q.get('group')==='cancelled'){
-  var sbtn=document.getElementById('shipBtn');
-  sbtn.textContent='本团已取消 · 不可发货';
-  sbtn.style.background='#E5E7EB';sbtn.style.color='#9CA3AF';
-  sbtn.onclick=function(){toast('团长已取消本团，全团款项原路退回，无需发货');};
-  var tip=document.createElement('div');
-  tip.className='mx-3 mb-3 rounded-2xl p-3';
-  tip.style.cssText='margin:12px;border-radius:16px;padding:12px;background:#FEF2F2;border:1px solid #FECACA;font-size:11px;line-height:1.6;color:#B91C1C';
-  tip.innerHTML='<b>团长已取消本团</b>：全团款项原路退回，订单已置「已取消 · 已退款」，不可发货。';
-  document.body.insertBefore(tip,document.querySelector('.px-3.mt-3'));
+/* 拼单订单：团状态 → 概要副行 + 发货守卫（待办 #69 / #72 / #73 A2）
+   ?group=1|formed 已成团可发；pending 待成团 / invalid 已失效 / cancelled 已取消 一律拦截 */
+var isGroup=!!(_q.get('group')||_q.get('type')==='group');
+var gBlockMsg='';
+if(isGroup){
+  var _gMap={'1':'formed','formed':'formed','pending':'pending','待成团':'pending',
+             'invalid':'invalid','expired':'invalid','失效':'invalid',
+             'cancelled':'cancelled','canceled':'cancelled','取消':'cancelled'};
+  var gState=_gMap[_q.get('state')||_q.get('group')||'']||'formed';
+  var groupNo='T'+orderNo.replace(/^GB/,'');
+  var _gb=document.getElementById('osBadge');
+  _gb.style.display='inline-block';_gb.textContent='拼单订单';
+  _gb.className='bg-indigo-100 text-indigo-600 text-[8px] font-bold px-1 py-0.5 rounded';
+  document.getElementById('osIcon').className='fas fa-users text-indigo-500';
+  var _gt=document.getElementById('osTrace');
+  _gt.style.display='block';
+  var _gSub='',_gBg='#EEF2FF',_gFg='#4F46E5';
+  if(gState==='formed'){
+    _gt.innerHTML='<i class="fas fa-users text-[9px]"></i> 拼单 · 团号 '+groupNo+' · 目标档 '+total+' 双 · 已成团，可发货';
+    _gSub='<i class="fas fa-users"></i> 拼单发货 · 团 '+groupNo+' · 已成团';
+  }else if(gState==='pending'){
+    gBlockMsg='本团仍在「待成团」，达目标档成团后才可发货';
+    _gBg='#FFFBEB';_gFg='#B45309';
+    _gt.innerHTML='<i class="fas fa-hourglass-half text-[9px]"></i> 拼单 · 团号 '+groupNo+' · 目标档 '+total+' 双 · 待成团，未成团不可发货';
+    _gSub='<i class="fas fa-hourglass-half"></i> 待成团 · 未成团不可发货';
+  }else if(gState==='invalid'){
+    gBlockMsg='本团已失效（到期未成团），款项已原路退回，不可发货';
+    _gBg='#F2F4F7';_gFg='#6B7280';
+    _gt.innerHTML='<i class="fas fa-circle-exclamation text-[9px]"></i> 拼单 · 团号 '+groupNo+' · 已失效（到期未成团）· 已退款';
+    _gSub='<i class="fas fa-ban"></i> 已失效（到期未成团）· 已退款';
+  }else{
+    gBlockMsg='本团已取消，全团款项原路退回，无需发货';
+    _gBg='#FEF2F2';_gFg='#B91C1C';
+    _gt.innerHTML='<i class="fas fa-circle-xmark text-[9px]"></i> 拼单 · 团号 '+groupNo+' · 已取消 · 已退款';
+    _gSub='<i class="fas fa-ban"></i> 已取消 · 已退款';
+  }
+  _gt.style.cssText='font-size:10px;margin-top:4px;border-radius:8px;padding:4px 6px;line-height:1.5;background:'+_gBg+';color:'+_gFg;
+  document.getElementById('shipSub').innerHTML=_gSub;
+  if(gBlockMsg){
+    var sbtn=document.getElementById('shipBtn');
+    sbtn.textContent=gState==='pending'?'待成团 · 不可发货':(gState==='invalid'?'已失效 · 不可发货':'已取消 · 不可发货');
+    sbtn.style.background='#E5E7EB';sbtn.style.color='#9CA3AF';
+    sbtn.onclick=function(){toast(gBlockMsg);};
+    var _tipBg=gState==='pending'?'#FFFBEB':'#F2F4F7',_tipBd=gState==='pending'?'#FDE68A':'#E5E7EB',_tipFg=gState==='pending'?'#B45309':'#6B7280';
+    if(gState==='cancelled'){_tipBg='#FEF2F2';_tipBd='#FECACA';_tipFg='#B91C1C';}
+    var tip=document.createElement('div');
+    tip.style.cssText='margin:12px;border-radius:16px;padding:12px;background:'+_tipBg+';border:1px solid '+_tipBd+';font-size:11px;line-height:1.6;color:'+_tipFg;
+    tip.innerHTML=gState==='pending'
+      ?'<b>待成团 · 不可发货</b>：团达目标档 '+total+' 双后自动成团并转「待发货」，此时才可安排出库。'
+      :(gState==='invalid'
+        ?'<b>已失效（到期未成团）· 已退款</b>：系统判定到期未达目标档，全团款项原路退回，商户无责，无需发货。'
+        :'<b>已取消 · 已退款</b>：团长取消本团（或商户申请取消经运营审核通过），全团款项原路退回，不可发货。');
+    document.body.insertBefore(tip,document.querySelector('.px-3.mt-3'));
+  }
 }
 
 /* ===== 进度 / 批次渲染 ===== */
@@ -270,6 +337,7 @@ function scanWB(){
 function nowT(){var d=new Date();function p(n){return n<10?'0'+n:''+n}return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());}
 
 function doShip(){
+  if(gBlockMsg){toast(gBlockMsg);return;}          /* 拼单团未成团 / 已失效 / 已取消：一律拦截（待办 #73 A2） */
   var wb=(document.getElementById('waybill').value||'').trim();
   var n=+document.getElementById('qtyInput').value||0;
   var left=Math.max(0,total-shippedQty());

@@ -75,7 +75,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <div class="flex items-center gap-1.5 mb-2.5">
 <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white shadow-soft" style="background:linear-gradient(135deg,#34D399,#10B981)"><i class="fas fa-layer-group text-[11px]"></i></div>
 <span class="sec-title">金融产品</span>
-<span class="text-[10px] text-gray-400 ml-0.5">3大类 · 4款在架产品</span>
+<span class="text-[10px] text-gray-400 ml-0.5" id="prodMeta">—</span>
 </div>
 <div class="space-y-2.5" id="productList"></div>
 </div>
@@ -175,17 +175,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 <script>
 /* 只展示后台「已上架」的产品；入口由机构提供，平台只做跳转（不收集申请资料） */
 var products=[
- {type:'企业贷款',typeColor:'#10B981',typeBg:'#D1FAE5',icon:'fa-landmark',name:'经营贷',org:'中国农业银行·诸暨支行',amount:'10万-500万',rate:'年化3.85%起',term:'1-5年',tags:['无抵押','随借随还','循环额度'],hot:true,
+ {status:'on',type:'企业贷款',typeColor:'#10B981',typeBg:'#D1FAE5',icon:'fa-landmark',name:'经营贷',org:'中国农业银行·诸暨支行',amount:'10万-500万',rate:'年化3.85%起',term:'1-5年',tags:['无抵押','随借随还','循环额度'],hot:true,
   entries:[{way:'H5',label:'前往农行企业掌银申请',url:'https://abchina.com/cn/business/loan',desc:'跳转机构官方申请页'},{way:'电话',label:'拨打 0575-8878 1001',url:'0575-8878 1001',desc:'对公业务部 王经理'}]},
- {type:'企业贷款',typeColor:'#10B981',typeBg:'#D1FAE5',icon:'fa-wave-square',name:'流水贷',org:'中国建设银行·大唐支行',amount:'5万-200万',rate:'年化4.2%起',term:'6个月-3年',tags:['凭流水','秒批秒贷','纯信用'],hot:false,
+ {status:'on',type:'企业贷款',typeColor:'#10B981',typeBg:'#D1FAE5',icon:'fa-wave-square',name:'流水贷',org:'中国建设银行·大唐支行',amount:'5万-200万',rate:'年化4.2%起',term:'6个月-3年',tags:['凭流水','秒批秒贷','纯信用'],hot:false,
   entries:[{way:'H5',label:'前往建行「惠懂你」申请',url:'https://ccb.com/loan/flow',desc:'跳转机构官方申请页'}]},
- {type:'企业贷款',typeColor:'#10B981',typeBg:'#D1FAE5',icon:'fa-shield-halved',name:'袜业信用贷',org:'诸暨农商银行',amount:'10万-100万',rate:'年化4.5%起',term:'1-3年',tags:['纯信用','无需抵押','快速审批'],hot:false,
-  entries:[{way:'二维码',label:'扫码进入农商行申请页',url:'qr',desc:'长按识别二维码'},{way:'线下',label:'查看大唐支行网点',url:'诸暨市大唐街道市场路 1 号',desc:'对公窗口 工作日 8:30-17:00'}]},
- {type:'融资租赁',typeColor:'#3B82F6',typeBg:'#DBEAFE',icon:'fa-gears',name:'袜机融资租赁',org:'远东宏信租赁',amount:'50万-2000万',rate:'年化5%起',term:'2-5年',tags:['直租回租','设备抵押','首付30%'],hot:true,
-  entries:[{way:'H5',label:'前往机构在线预审',url:'https://fehorizon.com/equipment',desc:'设备融资预审（机构页面）'}]}
+ {status:'on',type:'企业贷款',typeColor:'#10B981',typeBg:'#D1FAE5',icon:'fa-shield-halved',name:'袜业信用贷',org:'诸暨农商银行',amount:'10万-100万',rate:'年化4.5%起',term:'1-3年',tags:['纯信用','无需抵押','快速审批'],hot:false,
+  entries:[{way:'二维码',label:'扫码进入农商行申请页',url:'qr',desc:'长按识别二维码'},{way:'线下',label:'查看大唐支行网点',addr:'诸暨市大唐街道市场路 1 号',desc:'对公窗口 工作日 8:30-17:00'}]},
+ {status:'on',type:'融资租赁',typeColor:'#3B82F6',typeBg:'#DBEAFE',icon:'fa-gears',name:'袜机融资租赁',org:'远东宏信租赁',amount:'50万-2000万',rate:'年化5%起',term:'2-5年',tags:['直租回租','设备抵押','首付30%'],hot:true,
+  entries:[{way:'H5',label:'前往机构在线预审',url:'https://fehorizon.com/equipment',desc:'设备融资预审（机构页面）'}]},
+ /* 后台已下架示例：端上不展示（验证 status 过滤） */
+ {status:'off',type:'企业贷款',typeColor:'#10B981',typeBg:'#D1FAE5',icon:'fa-building-columns',name:'设备抵押贷',org:'中国银行·诸暨支行',amount:'20万-300万',rate:'年化4.35%起',term:'1-3年',tags:['设备抵押','先息后本'],hot:false,
+  entries:[{way:'H5',label:'前往中行企业网银申请',url:'https://www.boc.cn/',desc:'跳转机构官方申请页'}]}
 ];
+/* 只展示后台「已上架」(status!=='off') 的产品；分类与在架数由数据算，不写死 */
+var onList=products.filter(function(p){return p.status!=='off';});
+var catMap={};onList.forEach(function(p){catMap[p.type]=1;});
+document.getElementById('prodMeta').textContent=Object.keys(catMap).length+'大类 · '+onList.length+'款在架产品';
 var html='';
-products.forEach(function(p,i){
+onList.forEach(function(p,i){
  var tags=p.tags.map(function(t){return '<span class="text-[8px] px-1.5 py-0.5 rounded-full" style="background:'+p.typeBg+';color:'+p.typeColor+'">'+t+'</span>'}).join('');
  var hotTag=p.hot?'<span class="text-[8px] px-1.5 py-0.5 rounded-full font-bold text-white" style="background:linear-gradient(135deg,#F97316,#EF4444)">HOT</span>':'';
  html+='<div class="card bg-white rounded-2xl shadow-soft p-3.5 fade-up border border-white" style="animation-delay:'+(i*0.05)+'s">';
@@ -213,7 +220,7 @@ function toast(msg){var t=document.getElementById('toast');document.getElementBy
 var WAYICON={'H5':'fa-globe','小程序':'fa-mini-program','二维码':'fa-qrcode','电话':'fa-phone','线下':'fa-location-dot'};
 var curP=null;
 function openEntry(i){
- var p=products[i];curP=p;
+ var p=onList[i];curP=p;   /* 索引取已上架列表，避免下架项错位 */
  document.getElementById('enName').textContent=p.name+'　'+p.org;
  document.getElementById('enOrg').textContent='额度 '+p.amount+'　利率 '+p.rate+'　期限 '+p.term;
  document.getElementById('sheetSub').textContent='请前往机构官方渠道办理';
@@ -228,16 +235,18 @@ function openEntry(i){
 }
 function goEntry(j){
  var e=curP.entries[j];
- if(e.way==='电话'){toast('正在拨打 '+e.url+'（可长按复制号码）');return;}
- if(e.way==='二维码'){toast('二维码已放大，请长按识别（原型演示，正式环境调用机构二维码）');return;}
- if(e.way==='小程序'){toast('正在打开机构小程序…（正式环境需配置 appid）');return;}
- if(e.way==='线下'){toast('网点地址：'+e.url);return;}
- toast('正在打开机构页面…本次点击仅用于统计入口使用情况');
+ /* 入口由机构提供，平台只做跳转（不收集申请资料）——电话/外链为真实动作，不做假 toast */
+ if(e.way==='电话'){location.href='tel:'+String(e.url).replace(/[^\d+]/g,'');return;}
+ if(e.way==='二维码'){toast('请用微信「扫一扫」识别机构二维码（原型未内置二维码图片，正式环境由机构下发）');return;}
+ if(e.way==='小程序'){toast('需在微信内打开机构小程序：'+e.label);return;}
+ if(e.way==='线下'){toast('网点地址：'+(e.addr||e.url||''));return;}
+ window.open(e.url,'_blank');
 }
 function closeSheet(){
  document.getElementById('sheetMask').classList.remove('on');
  document.getElementById('sheet').classList.remove('on');
 }
 </script>
+<script src="../shared/page-prd.js"></script>
 </body>
 </html>
