@@ -91,6 +91,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
           <span class="opt on" id="grp-y" onclick="pickGroup(1)"><i class="far fa-circle-check"></i>支持拼单</span>
           <span class="opt" id="grp-n" onclick="pickGroup(0)"><i class="far fa-circle"></i>不支持拼单</span>
         </div>
+
+        <!-- ===== 本次新增 ② 拼单时间限制 ===== -->
+        <div class="rounded-xl px-3.5 py-3 mt-3" id="durBox" style="background:#FFFCFB;border:1px dashed #FDB4A3">
+          <div class="flex items-center gap-2 mb-2 flex-wrap">
+            <span class="text-[12px] font-bold text-[#1F2430]">拼单时间限制</span>
+            <span class="newtag">本次新增</span>
+            <span class="text-[10.5px] text-[#94A3B8]">商家自定，决定买家发起拼单后的成团倒计时</span>
+          </div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="opt on" id="dur-24" onclick="pickDur(24)"><i class="far fa-circle-check"></i>24 小时</span>
+            <span class="opt" id="dur-48" onclick="pickDur(48)"><i class="far fa-circle"></i>48 小时</span>
+            <span class="opt" id="dur-c" onclick="pickDur('custom')"><i class="far fa-circle"></i>自定义</span>
+            <span class="flex items-center gap-1.5" id="durCw" style="display:none">
+              <input id="durInput" class="fi" type="number" min="1" max="168" step="1" value="72" style="width:86px" oninput="durCheck()">
+              <span class="text-[12px] text-[#64748B]">小时（1–168）</span>
+            </span>
+          </div>
+          <p class="text-[11px] text-[#64748B] mt-2 leading-5" id="durTip">
+            买家点「发起拼单」时，该团倒计时 = <b>发起时间 + 此时长</b>；到期未达目标档 → 团「已失效」并全额原路退款。<b>改这里只影响之后发起的团</b>，已在进行的团按发起时锁定的时长走完。
+          </p>
+          <p class="text-[11px] mt-1" id="durErr" style="display:none;color:#DC2626"></p>
+        </div>
+
         <p class="text-[11px] text-[#64748B] mt-2 leading-5">
           选择「支持拼单」后，买家端 <b>商品详情页</b> 除「立即下单」外，额外出现「发起拼单」按钮（可与他人拼同一商品、按阶梯价成交）；选择「不支持拼单」时买家端只保留「立即下单」。
         </p>
@@ -294,8 +317,59 @@ function pickGroup(v){
   n.className='opt'+(!GROUP_OK?' on':'');
   y.innerHTML=(GROUP_OK?'<i class="far fa-circle-check"></i>':'<i class="far fa-circle"></i>')+'支持拼单';
   n.innerHTML=(!GROUP_OK?'<i class="far fa-circle-check"></i>':'<i class="far fa-circle"></i>')+'不支持拼单';
-  toast(GROUP_OK?'该商品支持拼单，买家端将出现「发起拼单」':'该商品不支持拼单，买家端仅保留「立即下单」');
+  syncDurBox();
+  toast(GROUP_OK?'该商品支持拼单，买家端将出现「发起拼单」（时效 '+GROUP_DUR+' 小时）':'该商品不支持拼单，买家端仅保留「立即下单」');
 }
+
+/* ================= 拼单时间限制（本次新增 ②） ================= */
+var DUR_MAX=168;                 /* 自定义上限：168 小时 = 7 天 */
+function syncDurBox(){
+  var b=document.getElementById('durBox');
+  if(!b) return;
+  b.style.opacity=GROUP_OK?'1':'.45';
+  b.style.pointerEvents=GROUP_OK?'auto':'none';
+}
+function pickDur(v){
+  if(!GROUP_OK){ toast('该商品不支持拼单，无需设置拼单时效'); return; }
+  var ids={'24':'dur-24','48':'dur-48','custom':'dur-c'};
+  var cw=document.getElementById('durCw'), inp=document.getElementById('durInput');
+  Object.keys(ids).forEach(function(k){
+    var el=document.getElementById(ids[k]), on=String(v)===k;
+    if(!el) return;
+    el.className='opt'+(on?' on':'');
+    var label=k==='custom'?'自定义':k+' 小时';
+    el.innerHTML=(on?'<i class="far fa-circle-check"></i>':'<i class="far fa-circle"></i>')+label;
+  });
+  if(v==='custom'){
+    cw.style.display='flex';
+    inp.focus(); inp.select();
+    durCheck();
+    toast('请填写自定义拼单时长（1–'+DUR_MAX+' 小时）');
+  }else{
+    cw.style.display='none';
+    GROUP_DUR=Number(v);
+    durError('');
+    toast('拼单时效已设为 '+GROUP_DUR+' 小时');
+  }
+}
+/* 自定义值校验：返回 true=合法；不合法时写红字 */
+function durCheck(){
+  var inp=document.getElementById('durInput');
+  var n=inp?inp.value.trim():'';
+  if(!/^\d+$/.test(n)){ durError('拼单时长需为整数小时'); return false; }
+  var v=Number(n);
+  if(v<1||v>DUR_MAX){ durError('拼单时长需在 1–'+DUR_MAX+' 小时之间'); return false; }
+  durError('');
+  GROUP_DUR=v;
+  return true;
+}
+function durError(msg){
+  var e=document.getElementById('durErr');
+  if(!e) return;
+  e.textContent=msg||'';
+  e.style.display=msg?'block':'none';
+}
+function durText(){ return '拼单时效 '+GROUP_DUR+' 小时'; }
 
 /* ================= 销售规格 ================= */
 function pickMode(m){
@@ -453,13 +527,16 @@ function delSvc(i){SVC.splice(i,1);renderSvc();toast('已删除该附加服务')
 
 /* ================= 提交 ================= */
 function submitProduct(){
+  if(GROUP_OK && document.getElementById('durCw').style.display!=='none' && !durCheck()){
+    toast('请填写正确的拼单时长（1–'+DUR_MAX+' 小时）');return;
+  }
   if(SPEC_MODE==='single'){
     if(!(TIERS.single||[]).length){toast('统一规格未设置阶梯价，请至少添加一档');return;}
-    toast('已提交（'+(GROUP_OK?'支持拼单':'不支持拼单')+' · 阶梯价 '+TIERS.single.length+' 档）：已进入机器初筛，约 1 秒出结果；命中警示级转人工判定，通过后才在买家端展示');
+    toast('已提交（'+(GROUP_OK?'支持拼单 · '+durText():'不支持拼单')+' · 阶梯价 '+TIERS.single.length+' 档）：已进入机器初筛，约 1 秒出结果；命中警示级转人工判定，通过后才在买家端展示');
   }else{
     var unset=SPECS.filter(function(s){return !(TIERS[s.id]||[]).length;});
     if(unset.length){toast('还有 '+unset.length+' 个规格未设置阶梯价，请补全');return;}
-    toast('已提交（'+(GROUP_OK?'支持拼单':'不支持拼单')+' · '+SPECS.length+' 个规格阶梯价均已设置）：已进入机器初筛，机审结果与人工判定见「商品审核中心」');
+    toast('已提交（'+(GROUP_OK?'支持拼单 · '+durText():'不支持拼单')+' · '+SPECS.length+' 个规格阶梯价均已设置）：已进入机器初筛，机审结果与人工判定见「商品审核中心」');
   }
 }
 
@@ -471,6 +548,7 @@ renderSpecs();
 renderSingleTiers();
 renderSvc();
 pickMode('multi');
+syncDurBox();
 tabGo('sale');
 
 /* 编辑态（由 mall-ops.html「编辑 / 详情」带入 ?id=商品编号）

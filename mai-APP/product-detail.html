@@ -92,6 +92,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 </div>
 </div>
 
+<!-- ===== 进行中的拼单（该商品正在拼的团 · 最多 3 条 · 点击直接参与） ===== -->
+<div class="bg-white/75 backdrop-blur-xl mx-3 mt-2 rounded-3xl shadow-soft p-3 border border-white" id="pdGroupCard">
+  <div class="flex items-center justify-between mb-2">
+    <div class="flex items-center gap-1.5">
+      <div class="w-6 h-6 rounded-lg flex items-center justify-center text-white" style="background:linear-gradient(135deg,#2DD4BF,#059669)"><i class="fas fa-users text-[10px]"></i></div>
+      <span class="text-[12px] font-bold text-gray-800">正在拼单</span>
+      <span class="text-[9px] text-white px-1.5 py-0.5 rounded-full" id="pdGroupCount" style="background:linear-gradient(90deg,#2DD4BF,#34D399)">0 个团进行中</span>
+    </div>
+    <a href="group-buy.html" class="text-[10px] text-gray-400">全部拼单 <i class="fas fa-chevron-right text-[8px]"></i></a>
+  </div>
+  <div class="space-y-2" id="pdGroupList"></div>
+</div>
+
 <!-- 阶梯价表 - 玻璃容器 -->
 <div class="bg-white/75 backdrop-blur-xl mx-3 mt-2 rounded-3xl shadow-soft p-3 border border-white" id="priceTierBlock">
 <div class="flex items-center gap-1.5 mb-2"><div class="w-6 h-6 rounded-lg flex items-center justify-center text-white" style="background:linear-gradient(135deg,#FF8A4C,#FF4D2D)"><i class="fas fa-layer-group text-[10px]"></i></div><span class="text-[12px] font-bold text-gray-800">阶梯价格</span></div>
@@ -490,7 +503,11 @@ var PRODUCT={isGroup:true,hasTier:true};
 (function(){
   var p=new URLSearchParams(window.location.search);
   if(p.get('group')==='0'||p.get('nogroup')==='1'){PRODUCT.isGroup=false;PRODUCT.hasTier=false;}
-  if(!PRODUCT.isGroup){var gb=document.getElementById('mainGroupBtn');if(gb)gb.style.display='none';}
+  if(!PRODUCT.isGroup){
+    var gb=document.getElementById('mainGroupBtn');if(gb)gb.style.display='none';
+    /* 不支持拼单的商品不存在进行中的团 → 整块「正在拼单」隐藏（M01-Q03） */
+    var gc=document.getElementById('pdGroupCard');if(gc)gc.style.display='none';
+  }
   if(!PRODUCT.hasTier){var tt=document.getElementById('tierTag');if(tt)tt.style.display='none';var pt=document.getElementById('priceTierBlock');if(pt)pt.style.display='none';}
 })();
 function toast(msg){var t=document.getElementById('toast');document.getElementById('toastTxt').textContent=msg;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('on')},1600)}
@@ -704,6 +721,45 @@ function createGroup(){
       +'&merchant='+encodeURIComponent('大唐袜业旗舰店');
   },600);
 }
+
+/* 「正在拼单」卡：三条不同目标档的模拟团（与 group-buy.html / group-buy-join.html 同源）
+   单价 = 该目标档价，origin = 商品原价；min = max(10, 目标档×20%)，向上对齐 10 的倍数 */
+var PD_GROUPS=[
+  {no:'T20261112010',leader:'李',targetQty:100, price:3.50,origin:4.00,min:20, cum:80, people:2,cd:'08:12:33'},
+  {no:'T20261112009',leader:'王',targetQty:500, price:3.20,origin:4.00,min:100,cum:320,people:3,cd:'32:00:00'},
+  {no:'T20261112011',leader:'张',targetQty:2000,price:2.90,origin:4.00,min:400,cum:800,people:2,cd:'71:20:10'}
+];
+function pdGroupHtml(g){
+  var pct=Math.min(100,Math.round(g.cum/g.targetQty*100));
+  var lft=g.targetQty-g.cum;
+  return '<div class="rounded-2xl p-2.5" style="background:#ECFDF5;border:1px solid #A7F3D0">'
+    +'<div class="flex items-center gap-2">'
+    +'<div class="w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0" style="background:linear-gradient(135deg,#2DD4BF,#14B8A6)">'+g.leader+'</div>'
+    +'<div class="flex-1 min-w-0">'
+    +'<p class="text-[11px] text-gray-700 font-medium truncate">'+g.leader+'** 发起 · <span style="color:#059669;font-weight:700">'+g.people+' 人</span> 已参团</p>'
+    +'<p class="text-[9px] text-gray-500 mt-0.5 truncate">目标档 '+g.targetQty+' 双 · ¥'+g.price.toFixed(2)+'/双<span class="text-gray-300 line-through ml-1">¥'+g.origin.toFixed(2)+'</span> · 每人 ≥'+g.min+' 双</p>'
+    +'</div>'
+    +'<span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0" style="background:#D1FAE5;color:#065F46">还差 '+lft+' 双</span>'
+    +'</div>'
+    +'<div class="mt-1.5 rounded-full overflow-hidden" style="height:5px;background:#D1FAE5"><div style="width:'+pct+'%;height:100%;background:linear-gradient(90deg,#2DD4BF,#34D399)"></div></div>'
+    +'<div class="flex items-center justify-between mt-1.5">'
+    +'<span class="text-[9px] text-gray-500"><i class="fas fa-clock text-[9px]" style="color:#14B8A6"></i> 剩余 <span class="font-semibold" style="color:#059669" data-pdcd>'+g.cd+'</span> · 已拼 '+g.cum+'/'+g.targetQty+'</span>'
+    +'<a href="group-buy-join.html?gb='+g.no+'" class="px-3.5 py-1.5 rounded-full text-white text-[11px] font-bold shadow-soft" style="background:linear-gradient(135deg,#2DD4BF,#059669)">参与拼单</a>'
+    +'</div></div>';
+}
+(function(){
+  var box=document.getElementById('pdGroupList');if(!box)return;
+  box.innerHTML=PD_GROUPS.map(pdGroupHtml).join('');
+  var c=document.getElementById('pdGroupCount');if(c)c.textContent=PD_GROUPS.length+' 个团进行中';
+  /* 倒计时（到期由服务端置团失效，端上仅做展示） */
+  setInterval(function(){
+    document.querySelectorAll('[data-pdcd]').forEach(function(el){
+      var p=el.textContent.split(':').map(Number),t=p[0]*3600+p[1]*60+p[2]-1;
+      if(t<=0){el.textContent='00:00:00';return;}
+      el.textContent=[Math.floor(t/3600),Math.floor(t%3600/60),t%60].map(function(n){return String(n).padStart(2,'0')}).join(':');
+    });
+  },1000);
+})();
 
 /* M01 BR-2b：运营端「是否支持拼单」为否时不展示发起入口（?nogroup=1 演示） */
 var GROUP_ENABLED=new URLSearchParams(window.location.search).get('nogroup')!=='1';
