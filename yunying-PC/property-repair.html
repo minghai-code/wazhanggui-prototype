@@ -64,9 +64,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
         <h1 class="text-[20px] font-bold text-[#1F2430]">报修工单</h1>
         <span class="tag" style="background:#DBEAFE;color:#2563EB">07 物业服务</span>
         <span class="tag" style="background:#FFEDE7;color:#E63E20">照片必传</span>
-        <span class="tag" style="background:#FEF3C7;color:#B45309">需物料转交办单</span>
+        <span class="tag" style="background:#FEF3C7;color:#B45309">需采购 → 交办单核销</span>
       </div>
-      <p class="text-[12px] text-gray-400 mt-1">商户端提交 或 物业巡逻发现 → 受理派单 → 处理（<b>前后照片</b>）→ 需物料则进「待采购池」，攒批走交办单审批与核销。报修单号 <b>BX + 年月 + 序号</b>；同一照片不可复用（哈希去重）；超时自动提醒。</p>
+      <p class="text-[12px] text-gray-400 mt-1">商户端提交 或 物业巡逻发现 → 受理派单 → 处理（<b>前后照片</b>）→ 提交处置结果时判定<b>是否需要采购</b>：需采购的单<b>留在「处理中」</b>并标记，由「交办单与核销」页攒批建单、核销完成后回本页转「待确认」。报修单号 <b>BX + 年月 + 序号</b>；同一照片不可复用（哈希去重）；超时自动提醒。</p>
     </div>
     <div class="flex items-center gap-2">
       <button class="btn btn-ghost" onclick="toast('已导出报修清单（含位置 / 类型 / 处理人 / 停留时长）')"><i class="fas fa-download text-[10px] mr-1"></i>导出</button>
@@ -82,7 +82,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
     <span class="py-2.5 text-[13px] cursor-pointer tab-on" onclick="switchTab('',this)">全部 <span class="text-[11px] text-[#94A3B8]" id="c-all"></span></span>
     <span class="py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600" onclick="switchTab('待受理',this)">待受理 <span class="text-[11px]" id="c-wait"></span></span>
     <span class="py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600" onclick="switchTab('处理中',this)">处理中 <span class="text-[11px]" id="c-doing"></span></span>
-    <span class="py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600" onclick="switchTab('待采购',this)">待采购 <span class="text-[11px]" id="c-mat"></span></span>
     <span class="py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600" onclick="switchTab('待确认',this)">待确认 <span class="text-[11px]" id="c-conf"></span></span>
     <span class="py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600" onclick="switchTab('已完成',this)">已完成 <span class="text-[11px]" id="c-done"></span></span>
     <span class="py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600" onclick="switchTab('已驳回',this)">已驳回 <span class="text-[11px]" id="c-rej"></span></span>
@@ -103,9 +102,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
       </select>
       <label class="flex items-center gap-1.5 text-[12px] text-gray-600"><input type="checkbox" id="f-slow" class="accent-[#FF4D2D]">仅看超时</label>
       <label class="flex items-center gap-1.5 text-[12px] text-gray-600"><input type="checkbox" id="f-nogeo" class="accent-[#FF4D2D]">仅看定位缺失</label>
+      <label class="flex items-center gap-1.5 text-[12px] text-gray-600"><input type="checkbox" id="f-mat" class="accent-[#FF4D2D]">仅看需采购</label>
       <button class="btn btn-primary" onclick="doSearch()">查询</button>
       <button class="btn btn-ghost" onclick="resetSearch()">重置</button>
-      <span class="text-[11px] text-[#94A3B8] ml-auto"><i class="fas fa-circle-info mr-1"></i>超时基线：待受理 <b>2 小时</b> · 待采购 <b>30 天</b> 未核销</span>
+      <span class="text-[11px] text-[#94A3B8] ml-auto"><i class="fas fa-circle-info mr-1"></i>超时基线：待受理 <b>2 小时</b> · 需采购（未核销）<b>30 天</b></span>
     </div>
   </div>
 
@@ -122,7 +122,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
     <div class="overflow-x-auto">
       <table class="w-full text-[13px] tb" style="min-width:1320px">
         <thead><tr>
-          <th>报修编号</th><th>来源</th><th>位置</th><th>报修人</th><th>故障类型</th><th>紧急度</th><th>照片</th><th>处理人</th><th>状态</th><th>停留时长</th><th class="text-center">操作</th>
+          <th>报修编号</th><th>来源</th><th>位置</th><th>报修人</th><th>故障类型</th><th>紧急度</th><th>照片</th><th>处理人</th><th>是否需要采购</th><th>状态</th><th>停留时长</th><th class="text-center">操作</th>
         </tr></thead>
         <tbody id="tb"></tbody>
       </table>
@@ -142,8 +142,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 <script src="../shared/select-options.js"></script>
 <script>
 /* ================= 字典 ================= */
+/* 状态机（2026-11-18 调整）：「待采购」不再是报修单状态——采购由「交办单与核销」页承接，
+   报修单只保留「是否需要采购」标记（needMat），需采购的单留在「处理中」直到核销完成。 */
 var STC={'待受理':'background:#FEF3C7;color:#B45309','已派单':'background:#DBEAFE;color:#2563EB','处理中':'background:#DBEAFE;color:#2563EB',
-  '待采购':'background:#FFEDE7;color:#E63E20','待确认':'background:#EDE9FE;color:#6D28D9','已完成':'background:#DCFCE7;color:#15803D','已驳回':'background:#F1F5F9;color:#64748B'};
+  '待确认':'background:#EDE9FE;color:#6D28D9','已完成':'background:#DCFCE7;color:#15803D','已驳回':'background:#F1F5F9;color:#64748B'};
 var TYPE=['照明','水电','门窗','地砖','空调','其他'];
 var PLACES=['大唐袜业城','原料市场','行政服务中心'];
 var SRCC={'商户端':'background:#DCFCE7;color:#15803D','物业巡逻':'background:#DBEAFE;color:#2563EB','问题上报转单':'background:#FEF3C7;color:#B45309'};
@@ -168,20 +170,20 @@ var BX=[
    createdAt:'2026-10-26 16:30', expect:'2026-10-27 12:00',
    logs:[['2026-10-26 16:30','商户端提交报修'],['2026-10-27 08:10','受理并派单'],['2026-10-27 09:00','维修工到场，排查中']]},
   {no:'BX202610-0027', src:'商户端', reporter:'诸暨××袜业（钱××）', pl:'大唐袜业城', b:'C 栋', f:'1F', unit:'1F-C05',
-   type:'地砖', desc:'门口地砖破损 2 块，需更换', urg:'一般', state:'待采购', hours:744, photos:1, doubt:false,
+   type:'地砖', desc:'门口地砖破损 2 块，需更换', urg:'一般', state:'处理中', hours:744, photos:1, doubt:false,
    acceptBy:'物业 张××', worker:'李国强', arriveAt:'2026-10-19 10:00', arriveGeo:'大唐袜业城 C 栋 1F（移动端 · 精度 6m）',
    resultDesc:'已清理破损地砖并做临时围挡，需采购同规格地砖 12 块后更换',
    needMat:true, jbNo:'',
    createdAt:'2026-10-19 08:10', expect:'2026-10-26 18:00',
    logs:[['2026-10-19 08:10','商户端提交报修'],['2026-10-19 09:30','受理并派单'],['2026-10-19 10:00','到场处理'],
-     ['2026-10-19 11:20','提交处理结果：需采购地砖 12 块 → 进入待采购池']]},
+     ['2026-10-19 11:20','提交处理结果：判定需采购（地砖 12 块）→ 标记需采购，留在处理中，待交办单核销']]},
   {no:'BX202610-0026', src:'问题上报转单', reporter:'物业 周××（巡逻发现）', pl:'大唐袜业城', b:'B 栋', f:'1F', unit:'1F-B01',
-   type:'照明', desc:'东侧公共通道 2 支灯管闪烁（来源：问题上报 WT202610-0045）', urg:'一般', state:'待采购', hours:480, photos:1, doubt:false,
+   type:'照明', desc:'东侧公共通道 2 支灯管闪烁（来源：问题上报 WT202610-0045）', urg:'一般', state:'处理中', hours:480, photos:1, doubt:false,
    acceptBy:'物业 张××', worker:'赵伟', arriveAt:'2026-10-21 14:00',
    resultDesc:'灯管支架氧化，需更换 LED 灯管 8 支', needMat:true, jbNo:'JB202610-0007',
    createdAt:'2026-10-21 11:00', expect:'2026-10-28 18:00',
    logs:[['2026-10-21 11:00','由问题上报 WT202610-0045 转报修'],['2026-10-21 13:20','受理并派单'],
-     ['2026-10-21 14:00','到场处理'],['2026-10-21 16:10','提交结果：需 LED 灯管 8 支 → 待采购池'],
+     ['2026-10-21 14:00','到场处理'],['2026-10-21 16:10','提交结果：判定需采购（LED 灯管 8 支）→ 标记需采购，留在处理中'],
      ['2026-10-22 09:30','已并入交办单 JB202610-0007（待审批）']]},
   {no:'BX202610-0025', src:'商户端', reporter:'诸暨××针织（赵××）', pl:'大唐袜业城', b:'A 栋', f:'2F', unit:'2F-A12',
    type:'水电', desc:'卫生间下水缓慢，怀疑管道堵塞', urg:'一般', state:'待确认', hours:6, photos:2, doubt:false,
@@ -236,32 +238,62 @@ function workerOpts(x){
   }).join('');
 }
 function st(s){return '<span class="tag" style="'+(STC[s]||'background:#F1F5F9;color:#64748B')+'">'+esc(s)+'</span>';}
-function isSlow(x){return (x.state==='待受理'&&x.hours>2)||(x.state==='待采购'&&x.hours>720);}
+/* 「是否需要采购」列（2026-11-18 新增）：唯一来源 = 处置结果弹层的「是否消耗物料」判定。
+   未提交处置结果前无值（—）；需采购的单不转独立状态，留在「处理中」，采购在「交办单与核销」页完成 */
+/* 跨页标记：P2「交办单与核销」核销完成时写 localStorage.wuye_bx_confirm（key = 报修单号），
+   本页读取后自动把报修单推到「待确认」——不需要人工点按钮（v2.2 · 2026-11-18） */
+function lsJSON(k,d){try{var v=JSON.parse(localStorage.getItem(k)||'null');return v==null?d:v;}catch(e){return d;}}
+function lsSave(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+function backOf(x){var m=lsJSON('wuye_bx_confirm',{});return (m&&m[x.no])?m[x.no]:null;}
+/* 值只有四种：是 · 已建单 / 是 · 未建单 / 否 / —
+   不放核销件数进度：核销在交办单层面按物资行做，不落到某一张报修单上，展示 x/y 会是伪精度 */
+function needMatTd(x){
+  if(!x.resultDesc) return '<span style="color:#CBD5E1" title="提交处置结果时判定">—</span>';
+  if(x.needMat!==true) return '<span class="tag" style="background:#F1F5F9;color:#64748B">否</span>';
+  return '<span class="tag" style="background:#FFEDE7;color:#E63E20">是</span>'
+    +(x.jbNo?'<div class="text-[11px] text-[#94A3B8]">已建单</div>'
+            :'<div class="text-[11px]" style="color:#B45309">未建单</div>');
+}
+/* 超时基线：待受理 > 2 小时；需采购（未核销）> 30 天（720 小时） */
+function isSlow(x){return (x.state==='待受理'&&x.hours>2)||(x.needMat===true&&x.state==='处理中'&&x.hours>720);}
 function tabOf(x){return (x.state==='已派单'||x.state==='处理中')?'处理中':x.state;}
 
 function renderStats(){
   var wait=0,doing=0,mat=0,conf=0,done=0;
   BX.forEach(function(x){
     if(x.state==='待受理') wait++;
-    else if(x.state==='已派单'||x.state==='处理中') doing++;
-    else if(x.state==='待采购') mat++;
+    else if(x.state==='已派单'||x.state==='处理中'){ doing++; if(x.needMat===true) mat++; }
     else if(x.state==='待确认') conf++;
     else if(x.state==='已完成') done++;
   });
-  var cards=[['待受理',wait,'#B45309'],['处理中',doing,'#2563EB'],['待采购',mat,'#E63E20'],['待确认',conf,'#6D28D9'],['本月已完成',done,'#15803D']];
+  var cards=[['待受理',wait,'#B45309',"switchTab('待受理')"],
+             ['处理中',doing,'#2563EB',"switchTab('处理中')"],
+             ['需采购',mat,'#E63E20',"goNeedMat()"],
+             ['待确认',conf,'#6D28D9',"switchTab('待确认')"],
+             ['本月已完成',done,'#15803D',"switchTab('已完成')"]];
   document.getElementById('stats').innerHTML=cards.map(function(x){
-    var tabName=(x[0]==='本月已完成')?'已完成':x[0];
-    return '<div class="stat-card bg-white rounded-lg border border-gray-100 p-3.5" onclick="switchTab(\''+tabName+'\')">'
+    return '<div class="stat-card bg-white rounded-lg border border-gray-100 p-3.5" title="'+(x[0]==='需采购'?'需采购的单仍在「处理中」，采购与核销见「交办单与核销」页':'')+'" onclick="'+x[3]+'">'
       +'<p class="text-[11px] text-gray-400">'+x[0]+'</p>'
       +'<p class="text-xl font-bold mt-1" style="color:'+x[2]+'">'+x[1]+'</p></div>';
   }).join('');
   document.getElementById('c-all').textContent='('+BX.length+')';
   document.getElementById('c-wait').textContent='('+wait+')';
   document.getElementById('c-doing').textContent='('+doing+')';
-  document.getElementById('c-mat').textContent='('+mat+')';
   document.getElementById('c-conf').textContent='('+conf+')';
   document.getElementById('c-done').textContent='('+done+')';
   document.getElementById('c-rej').textContent='('+BX.filter(function(x){return x.state==='已驳回';}).length+')';
+}
+/* 需采购卡：筛出「处理中 + 需采购」的单，采购进度在「交办单与核销」页 */
+function goNeedMat(){
+  document.getElementById('f-mat').checked=true;
+  switchTab('处理中');
+  /* switchTab 只按 Tab 过滤，这里再叠加「仅看需采购」并补上 Tab 高亮 */
+  curRows=curRows.filter(function(x){return x.needMat===true;});
+  document.querySelectorAll('#tabs span').forEach(function(el){
+    if(el.textContent.indexOf('处理中')===0) el.className='py-2.5 text-[13px] cursor-pointer tab-on';
+  });
+  render();
+  toast('已筛出需采购单据（'+curRows.length+' 条）；采购与核销进度见「交办单与核销」页');
 }
 
 /* 筛选下拉由列表全量数据去重生成：注入单据、问题上报转单、新增报修都会自动更新选项 */
@@ -280,11 +312,17 @@ function render(){
     }else if(x.state==='已派单'){
       ops='<span class="lk" onclick="doArrive(\''+x.no+'\')">到场打卡</span> · <span class="lk-gray" onclick="openReassign(\''+x.no+'\')">改派</span> · '+ops;
     }else if(x.state==='处理中'){
-      ops='<span class="lk" onclick="openResult(\''+x.no+'\')">提交处理结果</span> · <span class="lk-gray" onclick="openReassign(\''+x.no+'\')">改派</span> · '+ops;
-    }else if(x.state==='待采购'){
-      var noJb=BX.filter(function(y){return y.state==='待采购'&&!y.jbNo;}).length;
-      ops=(x.jbNo?'<span class="lk" onclick="toast(\'已定位到交办单 '+x.jbNo+'\')">查看交办单</span>'
-        :'<span class="lk" onclick="toast(\'已加入待采购池：'+x.no+'（当前共 '+noJb+' 单待组批）\')">去建交办单</span>')+' · '+ops;
+      if(x.needMat===true){
+        /* 已判定需采购：采购、核销全在「交办单与核销」页；核销完成由那边自动回写转待确认，
+           本页不再提供人工转状态的按钮（v2.2 · 2026-11-18） */
+        var poolCnt=BX.filter(function(y){return y.needMat===true&&y.state==='处理中'&&!y.jbNo;}).length;
+        ops=(x.jbNo
+            ? '<span class="lk" onclick="toast(\'已定位到交办单 '+x.jbNo+'\')">查看交办单</span>'
+            : '<span class="lk" onclick="toast(\'已加入待采购池：'+x.no+'（当前共 '+poolCnt+' 单待组批），请在「交办单与核销」建单\')">去建交办单</span>')
+          + ' · '+ops;
+      }else{
+        ops='<span class="lk" onclick="openResult(\''+x.no+'\')">提交处理结果</span> · <span class="lk-gray" onclick="openReassign(\''+x.no+'\')">改派</span> · '+ops;
+      }
     }else if(x.state==='待确认'){
       ops='<span class="lk" onclick="backToDoing(\''+x.no+'\')">商户退回</span> · <span class="lk-gray" onclick="toast(\'已代商户确认完成：'+x.no+'\')">代确认</span> · '+ops;
     }
@@ -301,11 +339,12 @@ function render(){
       +'<td class="text-[12px]">'+(x.worker?esc(x.worker):'<span class="text-[#94A3B8]">未派单</span>')
         +(x.arriveAt?'<div class="text-[11px] text-[#94A3B8]">到场 '+esc(x.arriveAt.slice(5))+'</div>':'')
         +(isNoGeo(x)?'<div class="text-[11px]" style="color:#B45309">定位缺失</div>':'')+'</td>'
+      +'<td>'+needMatTd(x)+'</td>'
       +'<td>'+st(x.state)+'</td>'
       +'<td class="text-[12px]">'+(x.state==='已完成'||x.state==='已驳回'?'<span class="text-[#94A3B8]">—</span>':'<span style="'+(isSlow(x)?'color:#E63E20;font-weight:600':'')+'">'+(x.hours>=24?(x.hours/24).toFixed(0)+' 天':x.hours+' 小时')+(isSlow(x)?' · 超时':'')+'</span>')+'</td>'
       +'<td class="text-center whitespace-nowrap">'+ops+'</td></tr>';
   });
-  document.getElementById('tb').innerHTML=h||'<tr><td colspan="10"><div class="empty"><i class="fas fa-inbox"></i>暂无符合条件的报修单</div></td></tr>';
+  document.getElementById('tb').innerHTML=h||'<tr><td colspan="12"><div class="empty"><i class="fas fa-inbox"></i>暂无符合条件的报修单</div></td></tr>';
   document.getElementById('cnt').textContent='共 '+curRows.length+' 条';
   document.getElementById('pageInfo').textContent='共 '+curRows.length+' 条记录，第 1-'+curRows.length+' 条';
   syncBackAll();
@@ -321,21 +360,23 @@ function switchTab(s,el){
 function doSearch(){
   var kw=document.getElementById('f-kw').value.trim(),src=document.getElementById('f-src').value,
       type=document.getElementById('f-type').value,urg=document.getElementById('f-urg').value,
-      slow=document.getElementById('f-slow').checked,nogeo=document.getElementById('f-nogeo').checked;
+      slow=document.getElementById('f-slow').checked,nogeo=document.getElementById('f-nogeo').checked,
+      mat=document.getElementById('f-mat').checked;
   curRows=BX.filter(function(x){
     return (!kw||x.no.indexOf(kw)>-1||x.unit.indexOf(kw)>-1||x.reporter.indexOf(kw)>-1||x.desc.indexOf(kw)>-1)
       &&(!src||x.src===src)&&(!type||x.type===type)&&(!urg||x.urg===urg)
-      &&(!slow||isSlow(x))&&(!nogeo||isNoGeo(x))&&(!curTab||tabOf(x)===curTab);
+      &&(!slow||isSlow(x))&&(!nogeo||isNoGeo(x))&&(!mat||x.needMat===true)&&(!curTab||tabOf(x)===curTab);
   });
   render();
   toast('已按条件查询，共 '+curRows.length+' 条');
 }
 /* 定位缺失：已到场之后（处理中及其后）没有到场定位记录 */
-function isNoGeo(x){return !x.arriveGeo&&['处理中','待采购','待确认','已完成'].indexOf(x.state)>=0;}
+function isNoGeo(x){return !x.arriveGeo&&['处理中','待确认','已完成'].indexOf(x.state)>=0;}
 function resetSearch(){
   ['f-kw','f-src','f-type','f-urg'].forEach(function(k){document.getElementById(k).value='';});
   document.getElementById('f-slow').checked=false;
   document.getElementById('f-nogeo').checked=false;
+  document.getElementById('f-mat').checked=false;
   curTab='';curRows=BX.slice();
   document.querySelectorAll('#tabs span').forEach(function(x,i){x.className=i===0?'py-2.5 text-[13px] cursor-pointer tab-on':'py-2.5 text-[13px] text-gray-400 cursor-pointer hover:text-gray-600';});
   render();toast('已重置筛选条件');
@@ -382,11 +423,12 @@ function openDetail(no){
 
   h+='<div class="blk"><div class="blk-t"><i class="fas fa-boxes-packing text-[#E63E20]"></i>物料需求</div>';
   if(x.needMat){
-    h+='<div class="kv"><span class="k">是否需物料</span><span class="v"><span class="tag" style="background:#FFEDE7;color:#E63E20">是</span></span></div>'
-      +'<div class="kv"><span class="k">关联交办单</span><span class="v">'+(x.jbNo?esc(x.jbNo)+'（'+'<span class="lk" onclick="toast(\'已定位到交办单 '+x.jbNo+'\')">查看</span>'+'）':'<span class="text-[#94A3B8]">尚未建交办单 · 在待采购池等待组批</span>')+'</span></div>'
-      +'<p class="text-[11px] text-[#94A3B8] mt-2"><i class="fas fa-circle-info mr-1"></i>本单不关闭，需物料核销完成后转「待确认」</p>';
+    h+='<div class="kv"><span class="k">是否需要采购</span><span class="v"><span class="tag" style="background:#FFEDE7;color:#E63E20">是</span>（提交处置结果时判定「是否消耗物料」）</span></div>'
+      +'<div class="kv"><span class="k">关联交办单</span><span class="v">'+(x.jbNo?esc(x.jbNo)+'（'+'<span class="lk" onclick="toast(\'已定位到交办单 '+x.jbNo+'\')">查看</span>'+'）':'<span class="text-[#94A3B8]">尚未建交办单 · 请到「交办单与核销」组批</span>')+'</span></div>'
+      +'<p class="text-[11px] text-[#94A3B8] mt-2"><i class="fas fa-circle-info mr-1"></i>采购与核销在「交办单与核销」页完成；<b>交办单全部核销完成后系统自动转「待确认」</b>，本页无需操作</p>'
+      +(x.state==='处理中'?'<p class="text-[11px] mt-1"><span class="lk-gray" onclick="forceConfirm(\''+x.no+'\')">强制转待确认（异常路径 · 需填原因）</span></p>':'');
   }else{
-    h+='<div class="kv"><span class="k">是否需物料</span><span class="v">'+(x.resultDesc?'否（无需采购）':'待提交处理结果时确认')+'</span></div>';
+    h+='<div class="kv"><span class="k">是否需要采购</span><span class="v">'+(x.resultDesc?'否（无需采购）':'待提交处置结果时确认')+'</span></div>';
   }
   h+='</div>';
 
@@ -601,7 +643,7 @@ function openResult(no){
     +'<p class="text-[11px] text-[#94A3B8] mt-1" id="w_photo_tip">左侧为处理前参考；处理后照片至少 1 张</p></div>'
     +'<div><label class="fl"><i>*</i>是否消耗物料</label><select class="fi" id="w_mat" onchange="matTip()">'
       +'<option>否</option><option>是（需采购）</option></select>'
-    +'<p class="text-[11px] text-[#94A3B8] mt-1" id="w_mat_tip">选「是」后本单进入<b>待采购池</b>，等攒批建交办单审批</p></div>';
+    +'<p class="text-[11px] text-[#94A3B8] mt-1" id="w_mat_tip">选「是」后本单标记<b>需采购</b>并留在<b>处理中</b>，请到「交办单与核销」组批建单</p></div>';
   h+='</div><div class="px-5 py-3.5 border-t border-gray-100 flex justify-end gap-2">'
     +'<button class="btn btn-ghost" onclick="closeAll()">取消</button>'
     +'<button class="btn btn-primary" onclick="saveResult(\''+no+'\')">提交结果</button></div>';
@@ -620,7 +662,7 @@ function matTip(){
   var v=document.getElementById('w_mat').value;
   document.getElementById('w_mat_tip').innerHTML=(v==='否')
     ? '无需物料 → 提交后转<b>待确认</b>，商户确认或 3 天自动确认'
-    : '选「是」后本单进入<b>待采购池</b>，等攒批建交办单审批；<b>物料核销完成前本单不关闭</b>';
+    : '选「是」后本单标记<b>需采购</b>并留在<b>处理中</b>，请到「交办单与核销」组批建单；<b>物料核销完成前本单不能转待确认</b>';
 }
 function saveResult(no){
   var x=bOf(no);
@@ -635,13 +677,45 @@ function saveResult(no){
     x.logs.push(['2026-10-27 '+new Date().toTimeString().slice(0,5),'无需物料 → 转待确认，已通知商户确认']);
     toast('已提交：'+no+'　转「待确认」，已通知商户（3 天未确认自动完成）');
   }else{
-    x.state='待采购';x.needMat=true;x.hours=0;
-    x.logs.push(['2026-10-27 '+new Date().toTimeString().slice(0,5),'需采购物料 → 进入待采购池']);
-    toast('已提交：'+no+'　已进入待采购池（当前 '+BX.filter(function(y){return y.state==='待采购'&&!y.jbNo;}).length+' 单待组批）');
+    /* 需采购：不转独立状态，留在「处理中」并打标记，倒计时不清零（采购周期也要计入停留时长） */
+    x.needMat=true;
+    x.logs.push(['2026-11-18 '+new Date().toTimeString().slice(0,5),'判定需采购（是否消耗物料=是）→ 标记「需采购」，留在处理中，待交办单核销']);
+    toast('已提交：'+no+'　已标记「需采购」并留在处理中（当前 '+BX.filter(function(y){return y.needMat===true&&y.state==='处理中'&&!y.jbNo;}).length+' 单待组批）；请到「交办单与核销」建单');
   }
   wPhoto=0;
   curRows=BX.slice();
   renderStats();render();closeAll();
+}
+
+/* 自动回写：P2 核销完成后把关联报修单推到「待确认」（v2.2 · 2026-11-18）
+   已经全量核销且异常已处置的交办单，在 P2 侧写入 localStorage.wuye_bx_confirm；本页加载时应用 */
+function applyBackConfirms(){
+  var n=0;
+  BX.forEach(function(x){
+    if(x.state!=='处理中'||x.needMat!==true) return;
+    var bk=backOf(x); if(!bk) return;
+    x.state='待确认';x.hours=0;
+    x.confirmState='待确认（超 3 天自动确认）';
+    x.logs.push([bk.at||'', '交办单 '+(bk.jb||x.jbNo||'')+' 核销完成（系统自动）→ 转「待确认」']);
+    if(!x.jbNo&&bk.jb) x.jbNo=bk.jb;
+    n++;
+  });
+  return n;
+}
+/* 异常路径兜底：交办单作废 / 走售后 / 物料由商户自备等，须主管在此强制推进并留原因。
+   常规流程不用点这个——核销完成会自动转。 */
+function forceConfirm(no){
+  var x=bOf(no);
+  if(!x||x.state!=='处理中'||x.needMat!==true){toast('仅「处理中 · 需采购」的单可用强制转');return;}
+  var why=prompt('强制转「待确认」需填原因（如：交办单已作废 / 走售后 / 物料由商户自备）','');
+  if(why===null) return;
+  if(!why.trim()){toast('请填写强制转单原因');return;}
+  x.state='待确认';x.hours=0;
+  x.confirmState='待确认（超 3 天自动确认）';
+  x.logs.push(['2026-11-18 '+new Date().toTimeString().slice(0,5),'【强制】跳过核销转「待确认」；原因：'+why.trim()]);
+  curRows=BX.slice();
+  renderStats();render();closeAll();
+  toast('已强制转「待确认」：'+no+'　原因已留痕');
 }
 
 /* 商户端「未修好」回写：待确认 → 处理中（留痕，不算新单）
@@ -671,8 +745,15 @@ function syncBackAll(){WUYE_SYNC.backAll(SYNC_KIND,SYNC_ROWS);}
     if(o&&o.no&&!BX.some(function(b){return b.no===o.no;})){BX.unshift(o);tfN++;}
   });
   var n=WUYE_SYNC.inject(SYNC_KIND,SYNC_ROWS);
+  var bk=applyBackConfirms();   /* v2.2：P2 已核销完成的交办单 → 关联报修单自动转「待确认」 */
   var tip=document.getElementById('syncTip');
-  if(tip)tip.textContent=(n||tfN)?('已同步商户端报修 '+n+' 条'+(tfN?' · 问题上报转单 '+tfN+' 条（含上报档口）':'')):'';
+  if(tip){
+    var seg=[];
+    if(n) seg.push('已同步商户端报修 '+n+' 条');
+    if(tfN) seg.push('问题上报转单 '+tfN+' 条（含上报档口）');
+    if(bk) seg.push(bk+' 条采购已核销 → 自动转待确认');
+    tip.textContent=seg.join(' · ');
+  }
   renderStats();render();
   var m=location.search.match(/[?&]unit=([^&]+)/);
   if(m){document.getElementById('f-kw').value=decodeURIComponent(m[1]);doSearch();}

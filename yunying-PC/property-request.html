@@ -270,6 +270,9 @@ var tid;
 function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(tid);tid=setTimeout(function(){t.style.opacity='0'},3200);}
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function money(n){return Number(n).toLocaleString('en-US');}
+/* v2.2：跨页回写用（核销完成 → 报修单自动转待确认） */
+function lsJSON(k,d){try{var v=JSON.parse(localStorage.getItem(k)||'null');return v==null?d:v;}catch(e){return d;}}
+function lsSave(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
 function jOf(no){return JB.filter(function(x){return x.no===no;})[0];}
 function jst(s){return '<span class="tag" style="'+(JSTC[s]||'background:#F1F5F9;color:#64748B')+'">'+esc(s)+'</span>';}
 function itemDone(j,id){var it=null;j.items.forEach(function(x){if(x.id===id)it=x;});return it?it.done:0;}
@@ -947,13 +950,28 @@ function doEntry(no){
   j.logs.push(['2026-10-27 '+new Date().toTimeString().slice(0,5),
     '第 '+j.entries.length+' 次核销：发票 '+inv+'，¥'+money(invAmt)+'（'+detail.length+' 行）'+(abn.length?'｜标记异常 '+abn.length+' 项':'')]);
 
+  /* v2.2（2026-11-18）：核销完成 → 自动回写关联报修单（P1）为「待确认」，不再由人工点按钮。
+     条件：全部物资行核销完 + 该交办单无「待处置」异常（有异常先处置完再转） */
+  var abnPend=EX.filter(function(e){return e.jb===j.no&&e.state==='待处置';}).length;
+  var bxBack=0;
+  if(allDone&&!abnPend&&(j.bx||[]).length){
+    var BXM=lsJSON('wuye_bx_confirm',{});
+    j.bx.forEach(function(bno){
+      if(!BXM[bno]){BXM[bno]={jb:j.no,at:'2026-11-18 '+new Date().toTimeString().slice(0,5)};bxBack++;}
+    });
+    if(bxBack) lsSave('wuye_bx_confirm',BXM);
+  }
+
   invPicked=false;
   jbRows=JB.slice();exRows=EX.slice();
   renderStats();renderJb();renderEx();closeAll();
   if(abn.length){
-    toast('已核销：'+no+' 第 '+j.entries.length+' 次 ¥'+money(invAmt)+'；标记异常 '+abn.length+' 项（已进异常台账）');
+    toast('已核销：'+no+' 第 '+j.entries.length+' 次 ¥'+money(invAmt)+'；标记异常 '+abn.length+' 项（已进异常台账）'
+      +(allDone?'；异常处置完成后报修单才自动转待确认':''));
   }else if(allDone){
-    toast('核销完成：'+no+' 全部物资已核销，额度已扣减');
+    toast('核销完成：'+no+' 全部物资已核销，额度已扣减'
+      +(bxBack?('；已自动回写 '+bxBack+' 张报修单为「待确认」'):'')
+      +(abnPend?('；仍有 '+abnPend+' 条异常待处置，报修单暂不转待确认'):''));
   }else{
     toast('已核销：'+no+' 第 '+j.entries.length+' 次 ¥'+money(invAmt)+'；进度 '+qtyDone(j)+'/'+qtyTotal(j)+'（'+jbPct(j)+'%）');
   }

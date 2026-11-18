@@ -16,6 +16,7 @@
    * 每个页面一份说明，抽屉只显示本页内容，不带其他页
    */
   var PRD_MAP = {
+    'daping-PC/overview.html':            ['01-驾驶舱总览', '', '驾驶舱总览'],
     'yunying-PC/resource-building.html':  ['02-市场资源管理/01-楼栋楼层管理', '', '楼栋楼层管理'],
     'yunying-PC/resource-unit.html':      ['02-市场资源管理/02-摊位商铺管理', '', '摊位商铺管理'],
     'yunying-PC/resource-floorplan.html': ['02-市场资源管理/03-平面图维护', '', '平面图维护'],
